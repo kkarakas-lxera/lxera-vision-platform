@@ -1,20 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Menu, X, Search, ChevronDown } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -55,31 +42,22 @@ const Navigation = () => {
     {
       name: 'Platform',
       href: '#platform',
-      id: 'platform',
-      hasDropdown: true,
-      submenu: [
-        { name: 'Features', href: '#features' },
-        { name: 'Integrations', href: '#integrations' },
-        { name: 'API', href: '#api' }
-      ]
+      id: 'platform'
     },
     {
       name: 'How It Works',
       href: '#how-it-works',
-      id: 'how-it-works',
-      hasDropdown: false
+      id: 'how-it-works'
     },
     {
       name: 'Features',
       href: '#features',
-      id: 'features',
-      hasDropdown: false
+      id: 'features'
     },
     {
       name: 'Contact',
       href: '#contact',
-      id: 'contact',
-      hasDropdown: false
+      id: 'contact'
     }
   ];
 
@@ -116,48 +94,20 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <NavigationMenu>
-              <NavigationMenuList className="space-x-6">
-                {menuItems.map((item) => (
-                  <NavigationMenuItem key={item.name}>
-                    {item.hasDropdown ? (
-                      <>
-                        <NavigationMenuTrigger 
-                          className={`bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-business-black hover:text-future-green transition-colors duration-300 font-medium ${
-                            activeSection === item.id ? 'text-future-green' : ''
-                          }`}
-                        >
-                          {item.name}
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                          <div className="w-48 p-2">
-                            {item.submenu?.map((subItem) => (
-                              <button
-                                key={subItem.name}
-                                onClick={() => scrollToSection(subItem.href)}
-                                className="block w-full text-left px-4 py-2 text-sm text-business-black hover:text-future-green hover:bg-smart-beige rounded-md transition-colors duration-200"
-                              >
-                                {subItem.name}
-                              </button>
-                            ))}
-                          </div>
-                        </NavigationMenuContent>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => scrollToSection(item.href)}
-                        className={`text-business-black hover:text-future-green transition-colors duration-300 font-medium relative group ${
-                          activeSection === item.id ? 'text-future-green' : ''
-                        }`}
-                      >
-                        {item.name}
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                      </button>
-                    )}
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+            <div className="flex items-center space-x-6">
+              {menuItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => scrollToSection(item.href)}
+                  className={`text-business-black hover:text-future-green transition-colors duration-300 font-medium relative group ${
+                    activeSection === item.id ? 'text-future-green' : ''
+                  }`}
+                >
+                  {item.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
+                </button>
+              ))}
+            </div>
 
             {/* Search Button */}
             <Button
@@ -208,38 +158,15 @@ const Navigation = () => {
         >
           <div className="py-4 space-y-2 border-t border-gray-200">
             {menuItems.map((item) => (
-              <div key={item.name}>
-                {item.hasDropdown ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="flex items-center justify-between w-full px-4 py-3 text-left text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-colors duration-200">
-                        {item.name}
-                        <ChevronDown className="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      {item.submenu?.map((subItem) => (
-                        <DropdownMenuItem 
-                          key={subItem.name}
-                          onClick={() => scrollToSection(subItem.href)}
-                          className="cursor-pointer"
-                        >
-                          {subItem.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <button
-                    onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-colors duration-200 ${
-                      activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
-                    }`}
-                  >
-                    {item.name}
-                  </button>
-                )}
-              </div>
+              <button
+                key={item.name}
+                onClick={() => scrollToSection(item.href)}
+                className={`block w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-colors duration-200 ${
+                  activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
+                }`}
+              >
+                {item.name}
+              </button>
             ))}
             <div className="pt-4 border-t border-gray-200">
               <Button 
