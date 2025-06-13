@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Rocket, Brain, RotateCcw, Globe } from "lucide-react";
@@ -8,22 +7,22 @@ const BuiltForInnovatorsSection = () => {
     { 
       icon: Rocket, 
       text: "Designed for innovation-driven enterprises and startup ecosystems",
-      microcopy: "Where bold ideas meet practical execution"
+      microcopy: "From scaling startups to agile corporate teams"
     },
     { 
       icon: Brain, 
       text: "Built to empower frontline employees, not just top-down trainers",
-      microcopy: "Every team member becomes a growth catalyst"
+      microcopy: "Enable creators, not just content consumers"
     },
     { 
       icon: RotateCcw, 
       text: "Co-created with early partners solving real transformation challenges",
-      microcopy: "Tested in the trenches, refined through real-world impact"
+      microcopy: "Every feature shaped by real-world feedback"
     },
     { 
       icon: Globe, 
       text: "Scalable for Enterprise & Government implementations",
-      microcopy: "From startups to global organizations"
+      microcopy: "Security, scale, and configurability built-in"
     }
   ];
 
