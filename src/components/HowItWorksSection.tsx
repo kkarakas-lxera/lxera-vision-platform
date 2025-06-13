@@ -49,16 +49,29 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/30 to-white">
+    <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/20 to-future-green/5 relative">
+      {/* Smooth transition from previous section */}
+      <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-smart-beige/50 to-transparent"></div>
+      
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-4">
+        <div className="text-center mb-20 animate-fade-in">
+          <div className="inline-block mb-4">
+            <span className="text-sm font-semibold text-future-green bg-future-green/10 px-4 py-2 rounded-full">
+              THE PROCESS
+            </span>
+          </div>
+          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
             How LXERA Works
           </h2>
           <p className="text-xl lg:text-2xl text-business-black/80 max-w-3xl mx-auto">
             From onboarding to innovation in 4 smart steps
           </p>
+          
+          {/* Visual connector */}
+          <div className="mt-8 flex justify-center">
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
+          </div>
         </div>
         
         {/* Steps Container */}
@@ -66,30 +79,30 @@ const HowItWorksSection = () => {
           {/* Desktop Layout */}
           <div className="hidden lg:block">
             <div className="grid grid-cols-4 gap-8 relative">
-              {/* Timeline Spine */}
-              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-future-green/40 via-future-green/60 to-future-green/40 -translate-y-1/2 z-0"></div>
+              {/* Enhanced Timeline Spine */}
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-future-green/20 via-future-green/60 to-future-green/20 -translate-y-1/2 z-0 rounded-full"></div>
               
               {steps.map((step, index) => (
-                <div key={index} className="relative z-10">
+                <div key={index} className="relative z-10 animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
                   {/* Step Title */}
-                  <div className="text-center mb-4">
-                    <span className="inline-block px-3 py-1 bg-future-green/20 text-business-black font-semibold rounded-full text-sm">
+                  <div className="text-center mb-6">
+                    <span className="inline-block px-4 py-2 bg-future-green/20 text-business-black font-semibold rounded-full text-sm border border-future-green/30">
                       {step.stepTitle}
                     </span>
                   </div>
                   
-                  <Card className="bg-white border-0 lxera-shadow lxera-hover h-full">
+                  <Card className="bg-white border-0 lxera-shadow lxera-hover h-full transition-all duration-500 hover:shadow-xl">
                     <CardContent className="p-8 text-center h-full flex flex-col">
                       {/* Step Number */}
-                      <div className="w-16 h-16 bg-future-green rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-future-green to-future-green/80 rounded-full flex items-center justify-center mx-auto mb-6 relative shadow-lg">
                         <span className="text-business-black font-bold text-xl">{step.step}</span>
                         {index < steps.length - 1 && (
-                          <ArrowRight className="absolute -right-12 top-1/2 -translate-y-1/2 w-6 h-6 text-future-green" />
+                          <ArrowRight className="absolute -right-12 top-1/2 -translate-y-1/2 w-6 h-6 text-future-green animate-pulse" />
                         )}
                       </div>
                       
                       {/* Main Icon with Animation */}
-                      <div className="text-future-green mb-4 flex justify-center transition-transform duration-300 hover:scale-110 hover:animate-pulse">
+                      <div className="text-future-green mb-6 flex justify-center transition-all duration-300 hover:scale-110 hover:animate-pulse">
                         {step.icon}
                       </div>
                       
@@ -114,24 +127,24 @@ const HowItWorksSection = () => {
 
           {/* Mobile Layout */}
           <div className="lg:hidden space-y-8 relative">
-            {/* Vertical Timeline Spine */}
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-future-green/40 via-future-green/60 to-future-green/40 z-0"></div>
+            {/* Enhanced Vertical Timeline Spine */}
+            <div className="absolute left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/20 via-future-green/60 to-future-green/20 z-0 rounded-full"></div>
             
             {steps.map((step, index) => (
-              <div key={index} className="relative">
+              <div key={index} className="relative animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
                 {/* Step Title */}
-                <div className="mb-4 ml-20">
-                  <span className="inline-block px-3 py-1 bg-future-green/20 text-business-black font-semibold rounded-full text-sm">
+                <div className="mb-4 ml-24">
+                  <span className="inline-block px-4 py-2 bg-future-green/20 text-business-black font-semibold rounded-full text-sm border border-future-green/30">
                     {step.stepTitle}
                   </span>
                 </div>
                 
-                <Card className="bg-white border-0 lxera-shadow relative z-10">
+                <Card className="bg-white border-0 lxera-shadow relative z-10 transition-all duration-500 hover:shadow-xl">
                   <CardContent className="p-8">
                     <div className="flex items-start space-x-6">
                       {/* Step Number & Icon */}
                       <div className="flex-shrink-0">
-                        <div className="w-16 h-16 bg-future-green rounded-full flex items-center justify-center mb-4">
+                        <div className="w-20 h-20 bg-gradient-to-br from-future-green to-future-green/80 rounded-full flex items-center justify-center mb-4 shadow-lg">
                           <span className="text-business-black font-bold text-xl">{step.step}</span>
                         </div>
                         <div className="text-future-green flex justify-center transition-transform duration-300 hover:scale-110 hover:animate-pulse">
@@ -155,10 +168,10 @@ const HowItWorksSection = () => {
                   </CardContent>
                 </Card>
                 
-                {/* Mobile Arrow */}
+                {/* Enhanced Mobile Connector */}
                 {index < steps.length - 1 && (
-                  <div className="flex justify-center my-4 relative z-10">
-                    <div className="w-0.5 h-8 bg-future-green/30"></div>
+                  <div className="flex justify-center my-6 relative z-10">
+                    <div className="w-1 h-12 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full"></div>
                   </div>
                 )}
               </div>
@@ -166,22 +179,27 @@ const HowItWorksSection = () => {
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-16">
-          <p className="text-lg text-business-black/70 mb-6">
-            Ready to transform how your organization learns, grows, and innovates?
-          </p>
-          <Button 
-            size="lg" 
-            className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 text-lg font-semibold lxera-hover"
-          >
-            Book a Demo
-          </Button>
-          <p className="text-sm text-business-black/60 mt-4">
-            Join forward-thinking teams already accelerating growth with LXERA.
-          </p>
+        {/* Enhanced Bottom CTA */}
+        <div className="text-center mt-20 animate-fade-in">
+          <div className="bg-gradient-to-r from-future-green/10 to-transparent p-8 rounded-2xl">
+            <p className="text-lg text-business-black/70 mb-6">
+              Ready to transform how your organization learns, grows, and innovates?
+            </p>
+            <Button 
+              size="lg" 
+              className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 text-lg font-semibold lxera-hover shadow-lg"
+            >
+              Book a Demo
+            </Button>
+            <p className="text-sm text-business-black/60 mt-4">
+              Join forward-thinking teams already accelerating growth with LXERA.
+            </p>
+          </div>
         </div>
       </div>
+      
+      {/* Smooth transition to next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent"></div>
     </section>
   );
 };
