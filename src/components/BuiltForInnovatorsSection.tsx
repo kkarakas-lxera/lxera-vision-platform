@@ -1,13 +1,30 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Rocket, Brain, RotateCcw, Globe } from "lucide-react";
 
 const BuiltForInnovatorsSection = () => {
   const features = [
-    { icon: "🚀", text: "Designed for innovation-driven enterprises and startup ecosystems" },
-    { icon: "🧠", text: "Built to empower frontline employees, not just top-down trainers" },
-    { icon: "🔁", text: "Co-created with early partners solving real transformation challenges" },
-    { icon: "🌐", text: "Scalable for Enterprise & Government implementations" }
+    { 
+      icon: Rocket, 
+      text: "Designed for innovation-driven enterprises and startup ecosystems",
+      microcopy: "Where bold ideas meet practical execution"
+    },
+    { 
+      icon: Brain, 
+      text: "Built to empower frontline employees, not just top-down trainers",
+      microcopy: "Every team member becomes a growth catalyst"
+    },
+    { 
+      icon: RotateCcw, 
+      text: "Co-created with early partners solving real transformation challenges",
+      microcopy: "Tested in the trenches, refined through real-world impact"
+    },
+    { 
+      icon: Globe, 
+      text: "Scalable for Enterprise & Government implementations",
+      microcopy: "From startups to global organizations"
+    }
   ];
 
   return (
@@ -22,10 +39,17 @@ const BuiltForInnovatorsSection = () => {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {features.map((item, index) => (
-            <Card key={index} className="bg-smart-beige border-0 lxera-shadow text-center">
+            <Card key={index} className="bg-smart-beige border-0 lxera-shadow text-center group hover:bg-future-green/10 transition-all duration-300">
               <CardContent className="p-6">
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <p className="text-business-black/80">{item.text}</p>
+                <div className="mb-4 flex justify-center">
+                  <item.icon className="w-12 h-12 text-future-green group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <p className="text-business-black/80 mb-3">{item.text}</p>
+                <div className="overflow-hidden transition-all duration-300 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
+                  <p className="text-sm text-business-black/60 italic border-t border-business-black/10 pt-3">
+                    {item.microcopy}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
