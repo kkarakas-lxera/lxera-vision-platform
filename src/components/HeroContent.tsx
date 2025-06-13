@@ -8,7 +8,8 @@ const HeroContent = () => {
           <span className="bg-clip-text animate-gradient-shift drop-shadow-sm text-future-green">
             Learning & Innovation
           </span><br />
-          <span className="text-business-black drop-shadow-sm">Experience Platform</span>
+          <span className="text-future-green drop-shadow-sm">Experience</span>
+          <span className="text-business-black drop-shadow-sm"> Platform</span>
           <span className="text-future-green drop-shadow-sm"> (LXIP)</span>
         </h1>
       </div>
