@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Brain, Gamepad2, Target, Users, Bot, Code, FileText, BarChart3, MessageSquare, Settings, ChevronDown, ChevronUp, Crown, TrendingUp, Sparkles } from "lucide-react";
+import { Brain, Gamepad2, Target, Users, Bot, Code, FileText, BarChart3, MessageSquare, Settings, ChevronDown, ChevronUp, Crown, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 const PlatformHighlightsSection = () => {
