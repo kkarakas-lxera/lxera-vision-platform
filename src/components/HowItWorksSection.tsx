@@ -88,14 +88,18 @@ const HowItWorksSection = () => {
                         )}
                       </div>
                       
-                      {/* Main Icon */}
-                      <div className="text-future-green mb-4 flex justify-center">{step.icon}</div>
+                      {/* Main Icon with Animation */}
+                      <div className="text-future-green mb-4 flex justify-center transition-transform duration-300 hover:scale-110 hover:animate-pulse">
+                        {step.icon}
+                      </div>
                       
                       {/* Content */}
                       <div className="flex-1 flex flex-col">
                         <div className="flex items-center justify-center gap-2 mb-4">
                           <h3 className="text-xl font-bold text-business-black">{step.title}</h3>
-                          <div className="text-future-green/70">{step.subIcon}</div>
+                          <div className="text-future-green/70 transition-transform duration-300 hover:scale-110">
+                            {step.subIcon}
+                          </div>
                         </div>
                         <p className="text-business-black/70 text-sm leading-relaxed flex-1">
                           {formatDescription(step.desc)}
@@ -130,14 +134,18 @@ const HowItWorksSection = () => {
                         <div className="w-16 h-16 bg-future-green rounded-full flex items-center justify-center mb-4">
                           <span className="text-business-black font-bold text-xl">{step.step}</span>
                         </div>
-                        <div className="text-future-green flex justify-center">{step.icon}</div>
+                        <div className="text-future-green flex justify-center transition-transform duration-300 hover:scale-110 hover:animate-pulse">
+                          {step.icon}
+                        </div>
                       </div>
                       
                       {/* Content */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-3">
                           <h3 className="text-xl font-bold text-business-black">{step.title}</h3>
-                          <div className="text-future-green/70">{step.subIcon}</div>
+                          <div className="text-future-green/70 transition-transform duration-300 hover:scale-110">
+                            {step.subIcon}
+                          </div>
                         </div>
                         <p className="text-business-black/70 leading-relaxed">
                           {formatDescription(step.desc)}
@@ -161,7 +169,7 @@ const HowItWorksSection = () => {
         {/* Bottom CTA */}
         <div className="text-center mt-16">
           <p className="text-lg text-business-black/70 mb-6">
-            Ready to transform how your organization learns and innovates?
+            Ready to transform how your organization learns, grows, and innovates?
           </p>
           <Button 
             size="lg" 
