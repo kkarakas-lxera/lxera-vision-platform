@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +26,8 @@ const PlatformHighlightsSection = () => {
         { text: "Adaptive Content", tooltip: "Content automatically adjusts to learning preferences", type: "feature" },
         { text: "SME Validated", tooltip: "Subject Matter Expert reviewed and approved content", type: "quality" }
       ],
-      iconBg: "bg-gradient-to-br from-future-green to-light-green",
-      cardBg: "bg-gradient-to-br from-future-green/5 to-light-green/10",
+      iconBg: "bg-gradient-to-br from-future-green to-emerald",
+      cardBg: "bg-gradient-to-br from-future-green/5 to-emerald/10",
       popular: true,
       roi: "60% faster learning"
     },
@@ -105,8 +104,8 @@ const PlatformHighlightsSection = () => {
         { text: "Contextual Help", tooltip: "Understands your specific learning context and goals", type: "feature" },
         { text: "Org-Specific", tooltip: "Trained on your organization's unique content and processes", type: "feature" }
       ],
-      iconBg: "bg-gradient-to-br from-light-green to-emerald",
-      cardBg: "bg-gradient-to-br from-light-green/5 to-emerald/10",
+      iconBg: "bg-gradient-to-br from-emerald to-future-green",
+      cardBg: "bg-gradient-to-br from-emerald/5 to-future-green/10",
       popular: true,
       roi: "24/7 availability"
     },
@@ -163,8 +162,8 @@ const PlatformHighlightsSection = () => {
         { text: "ROI Tracking", tooltip: "Measure the financial impact of learning programs", type: "feature" },
         { text: "Executive Insights", tooltip: "C-suite ready dashboards and reports", type: "benefit" }
       ],
-      iconBg: "bg-gradient-to-br from-lxera-blue to-light-green",
-      cardBg: "bg-gradient-to-br from-lxera-blue/5 to-light-green/10",
+      iconBg: "bg-gradient-to-br from-lxera-blue to-emerald",
+      cardBg: "bg-gradient-to-br from-lxera-blue/5 to-emerald/10",
       enterprise: true,
       roi: "Predictive ROI insights"
     },
@@ -202,8 +201,8 @@ const PlatformHighlightsSection = () => {
         { text: "Role-Based", tooltip: "Automatically assigns content based on job roles", type: "feature" },
         { text: "Automated Assignment", tooltip: "Learning paths assigned based on HR triggers", type: "feature" }
       ],
-      iconBg: "bg-gradient-to-br from-light-green to-lxera-blue",
-      cardBg: "bg-gradient-to-br from-light-green/5 to-lxera-blue/10",
+      iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
+      cardBg: "bg-gradient-to-br from-emerald/5 to-lxera-blue/10",
       enterprise: true,
       roi: "Automated efficiency"
     }
@@ -229,13 +228,13 @@ const PlatformHighlightsSection = () => {
       case 'feature':
         return 'bg-future-green/20 text-emerald border-future-green/30';
       case 'benefit':
-        return 'bg-light-green/30 text-emerald border-light-green/50';
+        return 'bg-emerald/20 text-emerald border-emerald/30';
       case 'quality':
         return 'bg-emerald/20 text-emerald border-emerald/30';
       case 'result':
         return 'bg-lxera-red/20 text-lxera-red border-lxera-red/30';
       default:
-        return 'bg-white/50 text-business-black border-business-black/10';
+        return 'bg-smart-beige/50 text-business-black border-business-black/10';
     }
   };
 
@@ -244,7 +243,7 @@ const PlatformHighlightsSection = () => {
       {/* Enhanced animated background */}
       <div className="absolute inset-0 opacity-3">
         <div className="absolute top-20 left-20 w-32 h-32 bg-future-green/20 rounded-full animate-float-gentle"></div>
-        <div className="absolute top-1/3 right-16 w-24 h-24 bg-light-green/20 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
         <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/20 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
       </div>
@@ -365,7 +364,7 @@ const PlatformHighlightsSection = () => {
           <div className="hidden lg:flex justify-center mb-8 animate-fade-in-up" style={{animationDelay: '2s'}}>
             <Button 
               onClick={() => setShowAllFeatures(true)}
-              className="bg-gradient-to-r from-future-green/20 to-light-green/20 text-business-black hover:from-future-green/30 hover:to-light-green/30 border border-future-green/30 hover:border-future-green/50 transition-all duration-300"
+              className="bg-white text-business-black hover:bg-future-green hover:text-business-black border-2 border-future-green transition-all duration-300"
             >
               See All {features.length} Features
               <ChevronDown className="w-4 h-4 ml-2" />
@@ -463,7 +462,7 @@ const PlatformHighlightsSection = () => {
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
           <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden">
             {/* Background animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 via-transparent to-light-green/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
             <div className="relative z-10">
               <h3 className="text-2xl font-bold text-business-black mb-2">
@@ -491,7 +490,7 @@ const PlatformHighlightsSection = () => {
               
               <Button 
                 onClick={scrollToContact}
-                className="bg-gradient-to-r from-future-green to-light-green text-business-black font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 group-hover:shadow-future-green/20"
+                className="bg-gradient-to-r from-future-green to-emerald text-business-black font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 group-hover:shadow-future-green/20"
               >
                 <span>See These Features in Action</span>
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
