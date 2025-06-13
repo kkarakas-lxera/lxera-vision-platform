@@ -1,16 +1,13 @@
-
 const HeroContent = () => {
   return (
     <div className="text-center space-y-8">
       <div className="animate-fade-in-up">
         <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
-          The First<br />
-          <span className="bg-clip-text animate-gradient-shift drop-shadow-sm text-future-green">
-            Learning & Innovation
+          <span className="text-business-black">LXERA is the first</span><br />
+          <span className="drop-shadow-sm" style={{ color: '#BFCB80' }}>
+            Learning & Innovation Experience
           </span><br />
-          <span className="text-future-green drop-shadow-sm">Experience</span>
-          <span className="text-business-black drop-shadow-sm"> Platform</span>
-          <span className="text-future-green drop-shadow-sm"> (LXIP)</span>
+          <span className="text-business-black drop-shadow-sm">Platform</span>
         </h1>
       </div>
 
