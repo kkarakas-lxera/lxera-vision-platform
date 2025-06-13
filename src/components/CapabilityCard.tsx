@@ -30,8 +30,8 @@ const CapabilityCard = ({
 }: CapabilityCardProps) => {
   return (
     <Card 
-      className="bg-white/90 backdrop-blur-sm border-0 lxera-shadow overflow-hidden group transition-all duration-700 hover:shadow-2xl hover:scale-102 animate-fade-in-up"
-      style={{animationDelay: `${0.2 + index * 0.1}s`}}
+      className="bg-white/90 backdrop-blur-sm border-0 lxera-shadow overflow-hidden group transition-all duration-500 hover:shadow-2xl lxera-hover animate-fade-in-up"
+      style={{animationDelay: `${200 + index * 100}ms`}}
     >
       <CardContent className="p-0">
         <div className="flex flex-col lg:flex-row items-center">
@@ -45,7 +45,7 @@ const CapabilityCard = ({
                 <div className="absolute inset-0 rounded-2xl border-2 border-future-green/20 opacity-0 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500"></div>
               </div>
               
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" style={{transitionDelay: '200ms'}}>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 animate-delay-200">
                 <SecondaryIcon className="w-4 h-4 text-future-green/70" />
               </div>
             </div>

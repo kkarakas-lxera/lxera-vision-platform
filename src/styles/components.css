@@ -45,7 +45,11 @@
     transform: translateY(0);
   }
 
-  /* Group hover enhanced effects */
+  /* Consistent hover scale utilities */
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+
   .group-hover\:scale-102:hover {
     transform: scale(1.02);
   }
@@ -54,17 +58,36 @@
     transform: scale(1.10);
   }
 
-  /* New hover scale utility */
-  .hover\:scale-102:hover {
-    transform: scale(1.02);
+  /* Standardized stagger animation utilities with consistent timing */
+  .stagger-1 { animation-delay: 100ms; }
+  .stagger-2 { animation-delay: 200ms; }
+  .stagger-3 { animation-delay: 300ms; }
+  .stagger-4 { animation-delay: 400ms; }
+  .stagger-5 { animation-delay: 500ms; }
+
+  /* Enhanced card styling for consistency */
+  .lxera-card {
+    @apply bg-white/90 backdrop-blur-sm border border-future-green/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500;
   }
 
-  /* Stagger animation utilities */
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
+  .lxera-card-hover {
+    @apply hover:bg-white hover:scale-102 hover:shadow-2xl;
+  }
+
+  /* Consistent button styling */
+  .lxera-btn-primary {
+    @apply bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold rounded-full transition-all duration-300 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2;
+  }
+
+  .lxera-btn-secondary {
+    @apply bg-business-black text-white hover:bg-business-black/90 font-semibold rounded-full transition-all duration-300 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2;
+  }
+
+  /* Consistent text color utilities */
+  .lxera-text-primary { @apply text-business-black; }
+  .lxera-text-secondary { @apply text-business-black/80; }
+  .lxera-text-muted { @apply text-business-black/60; }
+  .lxera-text-accent { @apply text-future-green; }
 
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
@@ -76,10 +99,12 @@
     .animate-glow,
     .animate-shimmer,
     .animate-bounce-slow,
-    .animate-pulse-slow {
+    .animate-pulse-slow,
+    .lxera-hover {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+      transition: none !important;
     }
   }
 }
