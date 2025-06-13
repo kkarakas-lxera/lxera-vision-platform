@@ -56,7 +56,7 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Updated LXERA Brand Colors - Inspired by reference image
+				// Original LXERA Brand Colors
 				'smart-beige': '#F8F6F0',
 				'future-green': '#00D4AA',
 				'business-black': '#1A1A1A',

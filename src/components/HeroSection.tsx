@@ -6,7 +6,7 @@ import { Play, ArrowDown } from "lucide-react";
 const HeroSection = () => {
   return (
     <section className="hero w-full py-20 px-6 lg:px-12 relative overflow-hidden">
-      {/* Vibrant gradient background inspired by reference image */}
+      {/* Original floating elements with LXERA colors */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 lxera-gradient rounded-full animate-float"></div>
         <div className="absolute top-32 right-20 w-40 h-40 lxera-gradient-vibrant rounded-full animate-float" style={{animationDelay: '1s'}}></div>
