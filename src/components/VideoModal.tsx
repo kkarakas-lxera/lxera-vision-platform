@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, Loader2, AlertCircle } from "lucide-react";
+import { Play, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 
 const VideoModal = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,11 +33,14 @@ const VideoModal = () => {
       <DialogTrigger asChild>
         <Button 
           size="lg" 
-          className="bg-white text-business-black border-2 border-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 group min-h-[3rem] focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 shadow-lg hover:shadow-xl"
-          aria-label="Watch LXERA platform demonstration video"
+          className="bg-white text-business-black border-2 border-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 group min-h-[3rem] focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 shadow-lg hover:shadow-xl hover:-translate-y-1"
+          aria-label="See how LXERA works demonstration video"
         >
-          <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-white transition-colors" />
-          Watch LXERA in Action (2 Min)
+          <div className="flex items-center gap-3">
+            <Play className="w-5 h-5 text-business-black group-hover:text-white transition-colors" />
+            <span>🎥 See How It Works (2 Min)</span>
+            <ArrowRight className="w-4 h-4 text-business-black group-hover:text-white transition-all duration-300 group-hover:translate-x-1" />
+          </div>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-description">
