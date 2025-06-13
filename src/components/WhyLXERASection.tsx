@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
@@ -77,7 +78,7 @@ const WhyLXERASection = () => {
       iconBg: "bg-emerald",
       badgeBg: "bg-emerald/20",
       badgeBorder: "border-emerald",
-      secondaryIcon: <Users className="w-5 h-5 text-emerald/70" />
+      secondaryIcon: <Shield className="w-5 h-5 text-emerald/70" />
     }
   ];
 
