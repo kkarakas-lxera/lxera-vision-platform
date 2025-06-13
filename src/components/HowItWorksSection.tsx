@@ -33,7 +33,7 @@ const HowItWorksSection = () => {
       step: "04",
       stepTitle: "Step 4",
       title: "Innovation Activation",
-      desc: "Transform learning into action through **collaborative sandboxes** and low-code prototyping tools. Submit ideas, build solutions with your team, and turn insights into tangible business impact.",
+      desc: "Submit ideas, co-create solutions, and turn insights into **measurable business outcomes**. Collaborative sandboxes and low-code prototyping tools enable your team to transform learning into tangible impact.",
       icon: <Lightbulb className="w-8 h-8" />,
       subIcon: <Rocket className="w-4 h-4" />
     }
