@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Wrench, MessageCircle, Network, ArrowRight, Star, Users, Zap } from "lucide-react";
 
@@ -55,18 +54,6 @@ const JoinTheMovementSection = () => {
       </div>
 
       <div className="max-w-6xl mx-auto text-center relative z-10">
-        {/* Enhanced introduction with improved typography */}
-        <div className="mb-12 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 mb-6 animate-slide-in-left" style={{animationDelay: '0.2s'}}>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-future-green"></div>
-            <span className="text-sm font-semibold text-business-black/70 tracking-wider uppercase">Movement</span>
-            <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-future-green"></div>
-          </div>
-          <p className="text-lg text-business-black/70 mb-6 animate-slide-in-left leading-relaxed" style={{animationDelay: '0.3s'}}>
-            It starts with leaders who go beyond traditional L&D. Join the pioneers building what's next.
-          </p>
-        </div>
-
         <h2 className="text-4xl lg:text-6xl font-bold text-business-black mb-8 animate-fade-in-scale leading-tight" style={{animationDelay: '0.4s'}}>
           Join the <span className="text-transparent bg-gradient-to-r from-future-green to-business-black bg-clip-text">Movement</span>
         </h2>
