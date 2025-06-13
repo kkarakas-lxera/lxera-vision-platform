@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Heart, BarChart3, Settings, Network } from "lucide-react";
+import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
 
 const WhyLXERASection = () => {
   const capabilities = [
@@ -17,7 +17,8 @@ const WhyLXERASection = () => {
       impactStat: "📈 60% faster completion rates",
       iconBg: "bg-future-green",
       badgeBg: "bg-future-green/20",
-      badgeBorder: "border-future-green"
+      badgeBorder: "border-future-green",
+      secondaryIcon: <Zap className="w-5 h-5 text-future-green/70" />
     },
     {
       icon: <Heart className="w-8 h-8 text-white" />,
@@ -31,7 +32,8 @@ const WhyLXERASection = () => {
       impactStat: "🚀 3x higher engagement",
       iconBg: "bg-lxera-red",
       badgeBg: "bg-lxera-red/20",
-      badgeBorder: "border-lxera-red"
+      badgeBorder: "border-lxera-red",
+      secondaryIcon: <Target className="w-5 h-5 text-lxera-red/70" />
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
@@ -45,7 +47,8 @@ const WhyLXERASection = () => {
       impactStat: "⚡ 50% faster L&D decisions",
       iconBg: "bg-lxera-blue",
       badgeBg: "bg-lxera-blue/20",
-      badgeBorder: "border-lxera-blue"
+      badgeBorder: "border-lxera-blue",
+      secondaryIcon: <TrendingUp className="w-5 h-5 text-lxera-blue/70" />
     },
     {
       icon: <Settings className="w-8 h-8" />,
@@ -59,7 +62,8 @@ const WhyLXERASection = () => {
       impactStat: "💡 72% more likely to innovate",
       iconBg: "bg-light-green",
       badgeBg: "bg-light-green/40",
-      badgeBorder: "border-light-green"
+      badgeBorder: "border-light-green",
+      secondaryIcon: <Lightbulb className="w-5 h-5 text-light-green/80" />
     },
     {
       icon: <Network className="w-8 h-8 text-white" />,
@@ -73,18 +77,27 @@ const WhyLXERASection = () => {
       impactStat: "💰 40% reduction in L&D costs",
       iconBg: "bg-emerald",
       badgeBg: "bg-emerald/20",
-      badgeBorder: "border-emerald"
+      badgeBorder: "border-emerald",
+      secondaryIcon: <Users className="w-5 h-5 text-emerald/70" />
     }
   ];
 
   return (
     <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+      {/* Enhanced animated background elements with additional icons */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-future-green rounded-full animate-float"></div>
-        <div className="absolute top-64 right-20 w-24 h-24 bg-light-green rounded-full animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-future-green rounded-full animate-float" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-emerald rounded-full animate-float" style={{animationDelay: '3s'}}></div>
+        <div className="absolute top-10 left-10 w-32 h-32 bg-future-green rounded-full animate-float flex items-center justify-center">
+          <Rocket className="w-12 h-12 text-white" />
+        </div>
+        <div className="absolute top-64 right-20 w-24 h-24 bg-light-green rounded-full animate-float flex items-center justify-center" style={{animationDelay: '2s'}}>
+          <Shield className="w-8 h-8 text-emerald" />
+        </div>
+        <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-future-green rounded-full animate-float flex items-center justify-center" style={{animationDelay: '1s'}}>
+          <Zap className="w-6 h-6 text-white" />
+        </div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-emerald rounded-full animate-float flex items-center justify-center" style={{animationDelay: '3s'}}>
+          <Target className="w-5 h-5 text-white" />
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -115,18 +128,25 @@ const WhyLXERASection = () => {
             >
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row items-center">
-                  {/* Enhanced Icon Section with hover animations */}
+                  {/* Enhanced Icon Section with hover animations and secondary icons */}
                   <div className="lg:w-1/3 p-8 lg:p-12 flex flex-col items-center lg:items-start relative">
                     {/* Floating background element */}
                     <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     
-                    <div className={`w-20 h-20 ${capability.iconBg} rounded-2xl flex items-center justify-center mb-6 relative z-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl`}>
-                      <div className="transition-all duration-300 group-hover:scale-125">
-                        {capability.icon}
+                    <div className="relative">
+                      <div className={`w-20 h-20 ${capability.iconBg} rounded-2xl flex items-center justify-center mb-6 relative z-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl`}>
+                        <div className="transition-all duration-300 group-hover:scale-125">
+                          {capability.icon}
+                        </div>
+                        
+                        {/* Animated ring effect */}
+                        <div className="absolute inset-0 rounded-2xl border-2 border-future-green/20 opacity-0 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500"></div>
                       </div>
                       
-                      {/* Animated ring effect */}
-                      <div className="absolute inset-0 rounded-2xl border-2 border-future-green/20 opacity-0 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500"></div>
+                      {/* Secondary floating icon */}
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" style={{transitionDelay: '200ms'}}>
+                        {capability.secondaryIcon}
+                      </div>
                     </div>
                     
                     <Badge className={`${capability.badgeBg} text-business-black ${capability.badgeBorder} text-sm px-4 py-2 font-bold transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg relative z-10`}>
