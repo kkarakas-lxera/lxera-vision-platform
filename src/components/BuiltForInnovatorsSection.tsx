@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Rocket, Brain, RotateCcw, Globe } from "lucide-react";
@@ -11,7 +12,7 @@ const BuiltForInnovatorsSection = () => {
     },
     { 
       icon: Brain, 
-      text: "Built to empower frontline employees, not just top-down trainers",
+      text: "Built to unlock bottom-up innovation—starting with the frontline.",
       microcopy: "Enable creators, not just content consumers"
     },
     { 
