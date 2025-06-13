@@ -39,10 +39,10 @@ const BuiltForInnovatorsSection = () => {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {features.map((item, index) => (
-            <Card key={index} className="bg-smart-beige border-0 lxera-shadow text-center group hover:bg-future-green/10 transition-all duration-300">
+            <Card key={index} className="bg-smart-beige border-0 lxera-shadow text-center group hover:bg-future-green/10 hover:border-future-green/20 border-2 border-transparent transition-all duration-300 hover:shadow-lg hover:shadow-future-green/20">
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
-                  <item.icon className="w-12 h-12 text-future-green group-hover:scale-110 transition-transform duration-300" />
+                  <item.icon className="w-12 h-12 text-future-green group-hover:scale-110 group-hover:animate-bounce transition-all duration-300" />
                 </div>
                 <p className="text-business-black/80 mb-3">{item.text}</p>
                 <div className="overflow-hidden transition-all duration-300 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
@@ -56,11 +56,11 @@ const BuiltForInnovatorsSection = () => {
         </div>
         
         <p className="text-business-black/70 mb-6 text-lg">
-          We're inviting select organizations to shape the future with us.
+          We're partnering with a select group of organizations to shape what's next.
         </p>
         
         <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover">
-          Become an Innovation Partner
+          Join as an Innovation Partner →
         </Button>
       </div>
     </section>
