@@ -55,12 +55,13 @@ const Index = () => {
             <span style={{color:'#6FFFE9'}}>Learning & Innovation</span><br />
             Experience Platform (LXIP)
           </h1>
+
           <p className="subheadline text-xl lg:text-2xl text-business-black/80 mb-12 max-w-5xl mx-auto font-medium">
             Empower your teams to learn faster, build smarter, and innovate from the frontline—<br />
             in one intelligent, adaptive ecosystem.
           </p>
-          
-          <div className="cta-buttons flex flex-col sm:flex-row gap-6 justify-center items-center mb-6">
+
+          <div className="cta-buttons flex flex-col sm:flex-row gap-6 justify-center items-center" style={{marginTop: '1.5rem'}}>
             <Button 
               size="lg" 
               className="btn btn-primary bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
@@ -77,16 +78,16 @@ const Index = () => {
             </Button>
           </div>
 
-          <p className="early-access-note mt-4 text-base text-business-black/70">
-            🚀 <span className="font-bold">Early access now open</span> for teams shaping the future of adaptive learning.<br />
+          <p className="early-access-note" style={{marginTop:'1.2rem', fontSize:'0.95rem', color:'#666'}}>
+            🚀 <strong>Early access now open</strong> for teams shaping the future of adaptive learning.<br />
             Join our innovation wave and help define what LXERA becomes.
           </p>
 
-          <div className="stat-strip mt-8 flex flex-wrap justify-center gap-4 lg:gap-8 font-bold text-sm lg:text-base">
-            <span className="text-business-black">📈 85% Retention Boost</span>
-            <span className="text-business-black">⚡ 60% Faster Learning</span>
-            <span className="text-business-black">💬 3× Engagement</span>
-            <span className="text-business-black">💡 72% Innovation Lift</span>
+          <div className="stat-strip" style={{marginTop:'2rem', display:'flex', justifyContent:'center', gap:'2rem', fontWeight:'bold', fontSize:'0.9rem'}}>
+            <span>📈 85% Retention Boost</span>
+            <span>⚡ 60% Faster Learning</span>
+            <span>💬 3× Engagement</span>
+            <span>💡 72% Innovation Lift</span>
           </div>
           
           <div className="mt-16 animate-float">
