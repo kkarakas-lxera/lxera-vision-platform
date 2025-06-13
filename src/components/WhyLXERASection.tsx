@@ -1,6 +1,7 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield, TrendingDown } from "lucide-react";
+import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
 
 const WhyLXERASection = () => {
   const capabilities = [
