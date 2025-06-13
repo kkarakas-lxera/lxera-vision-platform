@@ -89,6 +89,29 @@ const Index = () => {
             <span>💬 3× Engagement</span>
             <span>💡 72% Innovation Lift</span>
           </div>
+
+          {/* Video Preview Container */}
+          <div className="video-preview-container mt-12 max-w-4xl mx-auto relative">
+            <video 
+              autoPlay 
+              muted 
+              loop 
+              playsInline 
+              className="preview-video w-full h-64 lg:h-96 object-cover rounded-2xl lxera-shadow"
+            >
+              <source src="your-preview-snippet.mp4" type="video/mp4" />
+              Your browser does not support HTML5 video.
+            </video>
+            <div className="video-overlay absolute inset-0 flex items-center justify-center bg-business-black/20 rounded-2xl">
+              <Button 
+                onClick={() => window.open('your-full-video-url', '_blank')} 
+                className="play-full-btn bg-future-green text-business-black hover:bg-emerald hover:text-white px-8 py-4 rounded-full font-semibold lxera-hover text-lg"
+              >
+                <Play className="w-6 h-6 mr-2" />
+                Watch Full Demo
+              </Button>
+            </div>
+          </div>
           
           <div className="mt-16 animate-float">
             <ArrowDown className="w-8 h-8 text-business-black/60 mx-auto" />
