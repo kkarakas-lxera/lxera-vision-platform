@@ -33,7 +33,7 @@ const HeroSection = () => {
                 variant="outline" 
                 className="btn btn-outline border-2 border-business-black text-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
               >
-                <Play className="w-5 h-5 mr-2" />
+                <Play className="w-5 h-5 mr-2 text-business-black/90" />
                 Watch LXERA in Action (2 Min)
               </Button>
             </DialogTrigger>
@@ -70,8 +70,8 @@ const HeroSection = () => {
           *Based on industry research & projected benchmarks
         </p>
         
-        <div className="mt-16 animate-float">
-          <ArrowDown className="w-8 h-8 text-business-black/60 mx-auto" />
+        <div className="mt-16">
+          <ArrowDown className="w-8 h-8 text-business-black/60 mx-auto animate-bounce" />
         </div>
       </div>
     </section>
