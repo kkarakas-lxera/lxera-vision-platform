@@ -11,7 +11,7 @@ const WhyLXERASection = () => {
       valueStatement: "Smarter paths. Faster mastery. Deeper learning.",
       features: [
         "AI adapts to individual cognitive styles and preferences",
-        "Dynamic content recommendations based on real-time performance",
+        "Smart content sequencing based on learner progress",
         "Micro-learning paths that fit busy professional schedules"
       ],
       impactStat: "📈 60% faster completion rates",
@@ -26,7 +26,7 @@ const WhyLXERASection = () => {
       features: [
         "Real-time sentiment tracking for personalized responses",
         "Gamified elements and storytelling to boost motivation",
-        "Social learning features that build team connections"
+        "Social learning features that foster continuous peer-to-peer learning"
       ],
       impactStat: "🚀 3x higher engagement",
       iconBg: "bg-lxera-red",
@@ -40,7 +40,7 @@ const WhyLXERASection = () => {
       features: [
         "Actionable analytics for learners, instructors, and managers",
         "Predictive insights to identify skill gaps before they impact performance",
-        "ROI tracking that connects learning to business outcomes"
+        "**ROI tracking** that connects learning to business outcomes"
       ],
       impactStat: "⚡ 50% faster L&D decisions",
       iconBg: "bg-lxera-blue",
@@ -54,7 +54,7 @@ const WhyLXERASection = () => {
       features: [
         "Low-code tools for citizen development and experimentation",
         "Collaborative sandboxes for testing ideas safely",
-        "Innovation challenges that drive bottom-up solutions"
+        "Innovation sprints that drive bottom-up solutions"
       ],
       impactStat: "💡 72% more likely to innovate",
       iconBg: "bg-light-green",
@@ -123,7 +123,7 @@ const WhyLXERASection = () => {
                       {capability.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start text-business-black/80">
                           <div className="w-2 h-2 bg-future-green rounded-full mr-4 mt-2 flex-shrink-0"></div>
-                          {feature}
+                          <span dangerouslySetInnerHTML={{ __html: feature }} />
                         </li>
                       ))}
                     </ul>
@@ -132,6 +132,23 @@ const WhyLXERASection = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Connecting Banner */}
+        <div className="mt-20">
+          <Card className="bg-future-green/10 border-future-green border-2">
+            <CardContent className="p-8 text-center">
+              <p className="text-lg font-semibold text-business-black mb-4">
+                📊 These five capabilities are how LXERA delivers:
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 lg:gap-8 text-sm lg:text-base font-bold text-business-black">
+                <span>📈 85% Retention Boost</span>
+                <span>⚡ 60% Faster Learning</span>
+                <span>💬 3× Engagement</span>
+                <span>💡 72% Innovation Lift</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Bottom CTA */}
