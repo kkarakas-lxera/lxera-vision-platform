@@ -161,6 +161,8 @@
 
   .animate-shimmer {
     animation: shimmer 2s ease-in-out infinite;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
   }
 
   .animate-rotate-slow {
@@ -184,12 +186,34 @@
     transform: scale(1.10);
   }
 
+  /* New hover scale utility */
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+
   /* Stagger animation utilities */
   .stagger-1 { animation-delay: 0.1s; }
   .stagger-2 { animation-delay: 0.2s; }
   .stagger-3 { animation-delay: 0.3s; }
   .stagger-4 { animation-delay: 0.4s; }
   .stagger-5 { animation-delay: 0.5s; }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in-up,
+    .animate-fade-in-scale,
+    .animate-slide-in-left,
+    .animate-slide-in-right,
+    .animate-float-gentle,
+    .animate-glow,
+    .animate-shimmer,
+    .animate-bounce-slow,
+    .animate-pulse-slow {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
 }
 
 /* Enhanced and new keyframe animations */
