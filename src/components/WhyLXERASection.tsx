@@ -6,7 +6,7 @@ import { capabilitiesData } from "@/data/capabilitiesData";
 
 const WhyLXERASection = () => {
   return (
-    <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10 relative overflow-hidden">
+    <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-smart-beige/60 relative overflow-hidden">
       <AnimatedBackground />
 
       <div className="max-w-7xl mx-auto relative z-10">

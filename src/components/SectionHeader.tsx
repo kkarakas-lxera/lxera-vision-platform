@@ -15,7 +15,7 @@ const SectionHeader = ({ title, subtitle }: SectionHeaderProps) => {
       </p>
       
       <div className="mt-6 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
-        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow"></div>
+        <div className="w-32 h-1 animate-pulse-slow shadow-sm" style={{background: 'linear-gradient(to right, transparent, #BFCB80, transparent)'}}></div>
       </div>
     </div>
   );
