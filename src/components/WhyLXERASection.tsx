@@ -161,24 +161,6 @@ const WhyLXERASection = () => {
             </Card>
           ))}
         </div>
-
-        {/* Enhanced Bottom CTA with animations */}
-        <div className="text-center mt-16 animate-fade-in-up" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-r from-future-green/10 via-future-green/5 to-transparent p-8 rounded-2xl hover:from-future-green/20 hover:via-future-green/10 transition-all duration-500 relative overflow-hidden group">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute top-4 right-8 w-12 h-12 bg-future-green/30 rounded-full animate-float opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="absolute bottom-4 left-8 w-8 h-8 bg-light-green/40 rounded-full animate-float opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{animationDelay: '1s'}}></div>
-            </div>
-            
-            <p className="text-lg text-business-black/70 mb-4 relative z-10 transition-colors duration-300 group-hover:text-business-black/90">
-              Ready to transform your team's learning and innovation capabilities?
-            </p>
-            <p className="text-sm text-business-black/60 relative z-10 transition-colors duration-300 group-hover:text-business-black/80">
-              Join forward-thinking organizations already seeing these results with LXERA.
-            </p>
-          </div>
-        </div>
       </div>
     </section>
   );
