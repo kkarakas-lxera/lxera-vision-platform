@@ -55,6 +55,10 @@ const BuiltForInnovatorsSection = () => {
           ))}
         </div>
         
+        <p className="text-business-black/70 mb-6 text-lg">
+          We're inviting select organizations to shape the future with us.
+        </p>
+        
         <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover">
           Become an Innovation Partner
         </Button>
