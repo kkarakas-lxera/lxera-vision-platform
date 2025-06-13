@@ -1,5 +1,6 @@
 
 import { useNavigation } from "@/hooks/useNavigation";
+import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import DesktopMenu from "./DesktopMenu";
 import MobileMenu from "./MobileMenu";
@@ -41,35 +42,6 @@ const Navigation = () => {
             handleMobileMenuToggle={handleMobileMenuToggle}
             scrollToSection={scrollToSection}
           />
-        </div>
-
-        {/* Mobile Menu Container */}
-        <div 
-          className={`lg:hidden transition-all duration-300 overflow-hidden ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="py-4 space-y-2 border-t border-gray-200">
-            {menuItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => scrollToSection(item.href)}
-                className={`block w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-colors duration-200 ${
-                  activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
-                }`}
-              >
-                {item.name}
-              </button>
-            ))}
-            <div className="pt-4 border-t border-gray-200">
-              <Button 
-                variant="outline" 
-                className="w-full border-business-black text-business-black hover:bg-business-black hover:text-white transition-all duration-300"
-              >
-                Sign In
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </nav>
