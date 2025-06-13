@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
 import { StepData } from "@/data/howItWorksSteps";
 import { useState } from "react";
 
@@ -11,6 +11,17 @@ interface StepCardProps {
   isLast: boolean;
   layout: 'desktop' | 'mobile';
 }
+
+const iconMap = {
+  Users,
+  Brain,
+  BarChart3,
+  Lightbulb,
+  UserCheck,
+  Cpu,
+  TrendingUp,
+  Rocket
+};
 
 export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
@@ -23,6 +34,9 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
       return part;
     });
   };
+
+  const MainIcon = iconMap[step.iconName as keyof typeof iconMap];
+  const SubIcon = iconMap[step.subIconName as keyof typeof iconMap];
 
   if (layout === 'mobile') {
     return (
@@ -41,7 +55,7 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
                   <span className="text-business-black font-bold text-xl">{step.step}</span>
                 </div>
                 <div className="text-future-green flex justify-center transition-all duration-300 hover:scale-125 hover:animate-pulse group-hover:text-emerald">
-                  {step.icon}
+                  <MainIcon className="w-8 h-8" />
                 </div>
               </div>
               
@@ -49,7 +63,7 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-xl font-bold text-business-black group-hover:text-future-green transition-colors duration-300">{step.title}</h3>
                   <div className="text-future-green/70 transition-all duration-300 hover:scale-125 group-hover:animate-spin-slow">
-                    {step.subIcon}
+                    <SubIcon className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-business-black/70 leading-relaxed mb-4">
@@ -96,14 +110,14 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
           </div>
           
           <div className="text-future-green mb-6 flex justify-center transition-all duration-300 hover:scale-125 hover:animate-pulse group-hover:text-emerald">
-            {step.icon}
+            <MainIcon className="w-8 h-8" />
           </div>
           
           <div className="flex-1 flex flex-col">
             <div className="flex items-center justify-center gap-2 mb-4">
               <h3 className="text-xl font-bold text-business-black group-hover:text-future-green transition-colors duration-300">{step.title}</h3>
               <div className="text-future-green/70 transition-all duration-300 hover:scale-125 group-hover:animate-spin-slow">
-                {step.subIcon}
+                <SubIcon className="w-4 h-4" />
               </div>
             </div>
             <p className="text-business-black/70 text-sm leading-relaxed flex-1 mb-4">
