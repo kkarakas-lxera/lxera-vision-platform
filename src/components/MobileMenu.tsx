@@ -44,7 +44,7 @@ const MobileMenu = ({
           variant="ghost"
           size="icon"
           onClick={handleSearch}
-          className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300"
+          className="text-business-black hover:text-brand-accent hover:bg-brand-accent/10 transition-all duration-300"
           aria-label="Search site content"
         >
           <Search className="h-5 w-5" />
@@ -53,7 +53,7 @@ const MobileMenu = ({
           variant="ghost"
           size="icon"
           onClick={handleMobileMenuToggle}
-          className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300"
+          className="text-business-black hover:text-brand-accent hover:bg-brand-accent/10 transition-all duration-300"
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
         >
@@ -69,8 +69,8 @@ const MobileMenu = ({
               <button
                 key={item.name}
                 onClick={() => scrollToSection(item.href)}
-                className={`block w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                  activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
+                className={`block w-full text-left px-4 py-3 text-business-black hover:text-brand-accent hover:bg-brand-accent/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                  activeSection === item.id ? 'text-brand-accent bg-brand-accent/10' : ''
                 }`}
                 style={{ animationDelay: `${index * 50}ms` }}
                 aria-current={activeSection === item.id ? 'page' : undefined}

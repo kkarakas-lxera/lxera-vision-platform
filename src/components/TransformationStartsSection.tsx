@@ -5,11 +5,11 @@ import { ArrowDown } from "lucide-react";
 const TransformationStartsSection = () => {
   return (
     <section className="w-full py-20 px-6 text-center bg-gradient-to-b from-smart-beige/80 to-smart-beige/50 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+      {/* Enhanced animated background elements with brand colors */}
       <div className="absolute inset-0 opacity-8">
-        <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle" style={{background: 'rgba(191, 203, 128, 0.3)'}}></div>
-        <div className="absolute top-32 right-20 w-20 h-20 rounded-full animate-float-gentle" style={{animationDelay: '1s', background: 'rgba(191, 203, 128, 0.25)'}}></div>
-        <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle" style={{animationDelay: '2s', background: 'rgba(191, 203, 128, 0.2)'}}></div>
+        <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle bg-brand-accent/30"></div>
+        <div className="absolute top-32 right-20 w-20 h-20 rounded-full animate-float-gentle bg-brand-accent/25" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle bg-brand-accent/20" style={{animationDelay: '2s'}}></div>
       </div>
 
       <div className="max-w-4xl mx-auto relative z-10">
@@ -37,10 +37,9 @@ const TransformationStartsSection = () => {
           {[1, 2, 3, 4].map((step, index) => (
             <div 
               key={step}
-              className="w-2 h-2 rounded-full animate-pulse"
+              className="w-2 h-2 rounded-full animate-pulse bg-brand-accent/60"
               style={{
-                animationDelay: `${1 + index * 0.2}s`,
-                background: 'rgba(191, 203, 128, 0.6)'
+                animationDelay: `${1 + index * 0.2}s`
               }}
             ></div>
           ))}
@@ -49,8 +48,8 @@ const TransformationStartsSection = () => {
       
       {/* Enhanced visual transition element */}
       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-        <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center border-2 animate-bounce-slow hover:scale-110 transition-transform duration-300" style={{borderColor: 'rgba(191, 203, 128, 0.4)'}}>
-          <ArrowDown className="w-6 h-6 animate-bounce" style={{color: '#BFCB80'}} />
+        <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center border-2 animate-bounce-slow hover:scale-110 transition-transform duration-300 border-brand-accent/40">
+          <ArrowDown className="w-6 h-6 animate-bounce text-brand-accent" />
         </div>
       </div>
     </section>
