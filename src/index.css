@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,43 +7,48 @@
 
 @layer base {
   :root {
-    /* LXERA Brand Colors */
-    --smart-beige: #EFEFE3;
-    --future-green: #7AE5C6;
-    --business-black: #191919;
+    /* Updated LXERA Brand Colors - Inspired by reference image */
+    --smart-beige: #F8F6F0;
+    --future-green: #00D4AA;
+    --business-black: #1A1A1A;
     --lxera-white: #FFFFFF;
-    --lxera-red: #f94343;
-    --lxera-blue: #89baef;
-    --light-green: #e8fa9b;
-    --emerald: #029c55;
+    --lxera-red: #FF4757;
+    --lxera-blue: #3742FA;
+    --light-green: #2ED573;
+    --emerald: #00A085;
+    --vibrant-purple: #5F27CD;
+    --electric-blue: #00A8FF;
+    --sunset-orange: #FF6B35;
+    --coral-pink: #FF3838;
+    --lime-accent: #7BED9F;
 
-    --background: 239 239 227; /* Smart Beige */
-    --foreground: 25 25 25; /* Business Black */
+    --background: 248 246 240; /* Smart Beige */
+    --foreground: 26 26 26; /* Business Black */
 
     --card: 255 255 255; /* White */
-    --card-foreground: 25 25 25;
+    --card-foreground: 26 26 26;
 
     --popover: 255 255 255;
-    --popover-foreground: 25 25 25;
+    --popover-foreground: 26 26 26;
 
-    --primary: 25 25 25; /* Business Black */
+    --primary: 26 26 26; /* Business Black */
     --primary-foreground: 255 255 255;
 
-    --secondary: 239 239 227; /* Smart Beige */
-    --secondary-foreground: 25 25 25;
+    --secondary: 248 246 240; /* Smart Beige */
+    --secondary-foreground: 26 26 26;
 
-    --muted: 239 239 227;
+    --muted: 248 246 240;
     --muted-foreground: 115 115 115;
 
-    --accent: 122 229 198; /* Future Green */
-    --accent-foreground: 25 25 25;
+    --accent: 0 212 170; /* Future Green */
+    --accent-foreground: 26 26 26;
 
-    --destructive: 249 67 67; /* LXERA Red */
+    --destructive: 255 71 87; /* LXERA Red */
     --destructive-foreground: 255 255 255;
 
     --border: 214 214 214;
     --input: 214 214 214;
-    --ring: 122 229 198; /* Future Green */
+    --ring: 0 212 170; /* Future Green */
 
     --radius: 0.5rem;
   }
@@ -71,11 +77,19 @@
 
 @layer components {
   .lxera-gradient {
-    background: linear-gradient(135deg, #7AE5C6 0%, #e8fa9b 100%);
+    background: linear-gradient(135deg, #00D4AA 0%, #2ED573 50%, #7BED9F 100%);
+  }
+  
+  .lxera-gradient-vibrant {
+    background: linear-gradient(135deg, #5F27CD 0%, #3742FA 50%, #00A8FF 100%);
+  }
+  
+  .lxera-gradient-warm {
+    background: linear-gradient(135deg, #FF6B35 0%, #FF4757 50%, #FF3838 100%);
   }
   
   .lxera-shadow {
-    box-shadow: 0 4px 20px rgba(25, 25, 25, 0.1);
+    box-shadow: 0 4px 20px rgba(26, 26, 26, 0.1);
   }
   
   .lxera-hover {
@@ -278,10 +292,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 5px rgba(122, 229, 198, 0.3);
+    box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
   }
   to {
-    box-shadow: 0 0 20px rgba(122, 229, 198, 0.6), 0 0 30px rgba(122, 229, 198, 0.4);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.6), 0 0 30px rgba(0, 212, 170, 0.4);
   }
 }
 

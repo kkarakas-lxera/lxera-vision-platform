@@ -56,14 +56,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// LXERA Brand Colors
-				'smart-beige': '#EFEFE3',
-				'future-green': '#7AE5C6',
-				'business-black': '#191919',
-				'lxera-red': '#f94343',
-				'lxera-blue': '#89baef',
-				'light-green': '#e8fa9b',
-				'emerald': '#029c55',
+				// Updated LXERA Brand Colors - Inspired by reference image
+				'smart-beige': '#F8F6F0',
+				'future-green': '#00D4AA',
+				'business-black': '#1A1A1A',
+				'lxera-red': '#FF4757',
+				'lxera-blue': '#3742FA',
+				'light-green': '#2ED573',
+				'emerald': '#00A085',
+				'vibrant-purple': '#5F27CD',
+				'electric-blue': '#00A8FF',
+				'sunset-orange': '#FF6B35',
+				'coral-pink': '#FF3838',
+				'lime-accent': '#7BED9F',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

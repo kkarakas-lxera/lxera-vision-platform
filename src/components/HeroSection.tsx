@@ -2,19 +2,16 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Play, ArrowDown } from "lucide-react";
-import AnimatedBars from "@/components/AnimatedBars";
 
 const HeroSection = () => {
   return (
     <section className="hero w-full py-20 px-6 lg:px-12 relative overflow-hidden">
-      {/* Animated bars background */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <AnimatedBars className="w-full h-full" count={12} />
-      </div>
-      
-      {/* Additional decorative bars */}
-      <div className="absolute top-20 right-20 opacity-30 pointer-events-none hidden lg:block">
-        <AnimatedBars className="w-80 h-60" count={6} />
+      {/* Vibrant gradient background inspired by reference image */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 lxera-gradient rounded-full animate-float"></div>
+        <div className="absolute top-32 right-20 w-40 h-40 lxera-gradient-vibrant rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-20 left-1/3 w-24 h-24 lxera-gradient-warm rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 right-1/4 w-28 h-28 bg-lime-accent rounded-full animate-float" style={{animationDelay: '3s'}}></div>
       </div>
       
       <div className="container max-w-7xl mx-auto text-center animate-fade-in relative z-10">
