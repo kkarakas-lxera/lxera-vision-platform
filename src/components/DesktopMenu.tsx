@@ -40,13 +40,13 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           <button
             key={item.name}
             onClick={() => scrollToSection(item.href)}
-            className={`text-business-black hover:text-brand-accent transition-all duration-300 font-medium relative group transform hover:scale-105 ${
-              activeSection === item.id ? 'text-brand-accent' : ''
+            className={`text-business-black hover:text-future-green transition-all duration-300 font-medium relative group transform hover:scale-105 ${
+              activeSection === item.id ? 'text-future-green' : ''
             }`}
             aria-current={activeSection === item.id ? 'page' : undefined}
           >
             {item.name}
-            <span className={`absolute -bottom-1 left-0 h-0.5 bg-brand-accent transition-all duration-300 ${
+            <span className={`absolute -bottom-1 left-0 h-0.5 bg-future-green transition-all duration-300 ${
               activeSection === item.id ? 'w-full' : 'w-0 group-hover:w-full'
             }`}></span>
           </button>
@@ -58,7 +58,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         variant="ghost"
         size="icon"
         onClick={handleSearch}
-        className="text-business-black hover:text-brand-accent hover:bg-brand-accent/10 transition-all duration-300 hover:scale-110 hover:shadow-md"
+        className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300 hover:scale-110 hover:shadow-md"
         aria-label="Search site content"
       >
         <Search className="h-5 w-5" />

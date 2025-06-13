@@ -2,8 +2,6 @@
 import { TrendingUp, Zap, MessageCircle, Lightbulb } from "lucide-react";
 
 const HeroStats = () => {
-  console.log("HeroStats rendering");
-  
   const stats = [
     { icon: TrendingUp, value: "85%", label: "Retention Boost", description: "Average employee retention improvement" },
     { icon: Zap, value: "60%", label: "Faster Learning", description: "Reduction in time to competency" },
@@ -17,18 +15,20 @@ const HeroStats = () => {
         {stats.map((stat, index) => (
           <div 
             key={index}
-            className="flex flex-col items-center p-6 md:p-8 bg-white/85 backdrop-blur-sm rounded-2xl shadow-xl hover:shadow-2xl hover:bg-white/95 hover:scale-105 transition-all duration-300 animate-fade-in-up group relative overflow-hidden focus-within:ring-2 focus-within:ring-brand-accent/50 border border-brand-accent/20"
+            className="flex flex-col items-center p-6 md:p-8 bg-white/85 backdrop-blur-sm rounded-2xl shadow-xl hover:shadow-2xl hover:bg-white/95 hover:scale-105 transition-all duration-300 animate-fade-in-up group relative overflow-hidden focus-within:ring-2 focus-within:ring-future-green/50"
             style={{
-              animationDelay: `${0.8 + index * 0.1}s`
+              animationDelay: `${0.8 + index * 0.1}s`,
+              border: '1px solid rgba(191, 203, 128, 0.3)'
             }}
             role="article"
             aria-labelledby={`stat-${index}-label`}
             aria-describedby={`stat-${index}-description`}
             tabIndex={0}
           >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-brand-accent/8 to-brand-accent/4"></div>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{background: 'linear-gradient(to bottom right, rgba(191, 203, 128, 0.08), rgba(191, 203, 128, 0.04))'}}></div>
             <stat.icon 
-              className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10 text-brand-accent" 
+              className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10" 
+              style={{color: '#BFCB80'}}
               aria-hidden="true"
             />
             <div className="text-2xl md:text-3xl font-bold text-business-black mb-1 relative z-10" aria-label={`${stat.value} ${stat.label}`}>

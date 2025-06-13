@@ -41,8 +41,12 @@ const VideoModal = () => {
           Watch LXERA in Action (2 Min)
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl w-full p-0 bg-black rounded-2xl">
+      <DialogContent className="max-w-4xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-description">
         <div className="aspect-video w-full relative rounded-2xl overflow-hidden">
+          <div id="video-description" className="sr-only">
+            LXERA platform demonstration video showing key features and benefits
+          </div>
+          
           {isLoading && !hasError && (
             <div className="absolute inset-0 flex items-center justify-center bg-business-black/90 rounded-lg">
               <div className="text-center">
