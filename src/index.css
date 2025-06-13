@@ -110,7 +110,7 @@
     transform: translateY(0);
   }
 
-  /* New enhanced animation classes */
+  /* Enhanced animation classes with better performance */
   .animate-fade-in-up {
     opacity: 0;
     transform: translateY(30px);
@@ -147,13 +147,49 @@
     animation: spin-slow 3s linear infinite;
   }
 
-  /* Group hover scale effect */
+  /* New enhanced animations */
+  .animate-float-gentle {
+    animation: float-gentle 4s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  .animate-rotate-slow {
+    animation: rotate-slow 6s linear infinite;
+  }
+
+  .animate-scale-pulse {
+    animation: scale-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 4s ease-in-out infinite;
+  }
+
+  /* Group hover enhanced effects */
   .group-hover\:scale-102:hover {
     transform: scale(1.02);
   }
+
+  .group-hover\:scale-110:hover {
+    transform: scale(1.10);
+  }
+
+  /* Stagger animation utilities */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
 }
 
-/* Enhanced keyframe animations */
+/* Enhanced and new keyframe animations */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -225,6 +261,67 @@
   }
 }
 
+/* New advanced animations */
+@keyframes float-gentle {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% { 
+    transform: translateY(-8px) rotate(2deg);
+  }
+  50% { 
+    transform: translateY(-12px) rotate(0deg);
+  }
+  75% { 
+    transform: translateY(-8px) rotate(-2deg);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px rgba(122, 229, 198, 0.3);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(122, 229, 198, 0.6), 0 0 30px rgba(122, 229, 198, 0.4);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scale-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 /* Enhanced existing animations */
 @keyframes float {
   0%, 100% { 
@@ -243,5 +340,26 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Responsive animation adjustments */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High performance animation optimizations */
+@media (min-width: 1024px) {
+  .animate-fade-in-up,
+  .animate-fade-in-scale,
+  .animate-slide-in-left,
+  .animate-slide-in-right {
+    will-change: transform, opacity;
   }
 }

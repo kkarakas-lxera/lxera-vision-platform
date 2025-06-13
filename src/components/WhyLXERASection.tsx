@@ -78,55 +78,83 @@ const WhyLXERASection = () => {
   ];
 
   return (
-    <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-4">
+    <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10 relative overflow-hidden">
+      {/* Enhanced animated background elements */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-future-green rounded-full animate-float"></div>
+        <div className="absolute top-64 right-20 w-24 h-24 bg-light-green rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-future-green rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-emerald rounded-full animate-float" style={{animationDelay: '3s'}}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Enhanced Section Header with staggered animations */}
+        <div className="text-center mb-16 animate-fade-in-up">
+          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-4 animate-slide-in-left" style={{animationDelay: '0.2s'}}>
             Why LXERA
           </h2>
-          <p className="text-xl lg:text-2xl text-business-black/80 max-w-3xl mx-auto">
+          <p className="text-xl lg:text-2xl text-business-black/80 max-w-3xl mx-auto animate-slide-in-right" style={{animationDelay: '0.4s'}}>
             Strategic Outcomes with Tangible Impact
           </p>
+          
+          {/* Animated underline */}
+          <div className="mt-6 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow"></div>
+          </div>
         </div>
 
-        {/* Capability Cards */}
+        {/* Enhanced Capability Cards with staggered animations */}
         <div className="space-y-12">
           {capabilities.map((capability, index) => (
             <Card 
               key={index} 
-              className={`bg-white/80 backdrop-blur-sm border-0 lxera-shadow overflow-hidden ${
+              className={`bg-white/80 backdrop-blur-sm border-0 lxera-shadow overflow-hidden group transition-all duration-700 hover:shadow-2xl hover:scale-102 animate-fade-in-up ${
                 index % 2 === 0 ? '' : 'lg:flex-row-reverse'
               }`}
+              style={{animationDelay: `${0.8 + index * 0.2}s`}}
             >
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row items-center">
-                  {/* Icon Section */}
-                  <div className="lg:w-1/3 p-8 lg:p-12 flex flex-col items-center lg:items-start">
-                    <div className={`w-20 h-20 ${capability.iconBg} rounded-2xl flex items-center justify-center mb-6`}>
-                      {capability.icon}
+                  {/* Enhanced Icon Section with hover animations */}
+                  <div className="lg:w-1/3 p-8 lg:p-12 flex flex-col items-center lg:items-start relative">
+                    {/* Floating background element */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <div className={`w-20 h-20 ${capability.iconBg} rounded-2xl flex items-center justify-center mb-6 relative z-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl`}>
+                      <div className="transition-all duration-300 group-hover:scale-125">
+                        {capability.icon}
+                      </div>
+                      
+                      {/* Animated ring effect */}
+                      <div className="absolute inset-0 rounded-2xl border-2 border-future-green/20 opacity-0 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500"></div>
                     </div>
-                    <Badge className={`${capability.badgeBg} text-business-black ${capability.badgeBorder} text-sm px-4 py-2 font-bold`}>
-                      {capability.impactStat}
+                    
+                    <Badge className={`${capability.badgeBg} text-business-black ${capability.badgeBorder} text-sm px-4 py-2 font-bold transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg relative z-10`}>
+                      <span className="animate-pulse-slow">{capability.impactStat}</span>
                     </Badge>
                   </div>
 
-                  {/* Content Section */}
-                  <div className="lg:w-2/3 p-8 lg:p-12 lg:pl-0">
-                    <h3 className="text-2xl lg:text-3xl font-bold text-business-black mb-3">
+                  {/* Enhanced Content Section */}
+                  <div className="lg:w-2/3 p-8 lg:p-12 lg:pl-0 relative">
+                    <h3 className="text-2xl lg:text-3xl font-bold text-business-black mb-3 transition-all duration-300 group-hover:text-future-green">
                       {capability.title}
                     </h3>
-                    <p className="text-lg font-semibold text-business-black/70 mb-6">
+                    <p className="text-lg font-semibold text-business-black/70 mb-6 transition-colors duration-300 group-hover:text-business-black/90">
                       {capability.valueStatement}
                     </p>
                     <ul className="space-y-3">
                       {capability.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start text-business-black/80">
-                          <div className="w-2 h-2 bg-future-green rounded-full mr-4 mt-2 flex-shrink-0"></div>
+                        <li key={featureIndex} className="flex items-start text-business-black/80 group-hover:text-business-black transition-all duration-300 transform group-hover:translate-x-2" style={{transitionDelay: `${featureIndex * 100}ms`}}>
+                          <div className="w-2 h-2 bg-future-green rounded-full mr-4 mt-2 flex-shrink-0 transition-all duration-300 group-hover:scale-150 group-hover:animate-pulse"></div>
                           <span dangerouslySetInnerHTML={{ __html: feature }} />
                         </li>
                       ))}
                     </ul>
+                    
+                    {/* Animated progress line */}
+                    <div className="mt-6 w-full h-0.5 bg-gradient-to-r from-future-green/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <div className="h-full bg-future-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -134,14 +162,22 @@ const WhyLXERASection = () => {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-16">
-          <p className="text-lg text-business-black/70 mb-4">
-            Ready to transform your team's learning and innovation capabilities?
-          </p>
-          <p className="text-sm text-business-black/60">
-            Join forward-thinking organizations already seeing these results with LXERA.
-          </p>
+        {/* Enhanced Bottom CTA with animations */}
+        <div className="text-center mt-16 animate-fade-in-up" style={{animationDelay: '2s'}}>
+          <div className="bg-gradient-to-r from-future-green/10 via-future-green/5 to-transparent p-8 rounded-2xl hover:from-future-green/20 hover:via-future-green/10 transition-all duration-500 relative overflow-hidden group">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-4 right-8 w-12 h-12 bg-future-green/30 rounded-full animate-float opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute bottom-4 left-8 w-8 h-8 bg-light-green/40 rounded-full animate-float opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{animationDelay: '1s'}}></div>
+            </div>
+            
+            <p className="text-lg text-business-black/70 mb-4 relative z-10 transition-colors duration-300 group-hover:text-business-black/90">
+              Ready to transform your team's learning and innovation capabilities?
+            </p>
+            <p className="text-sm text-business-black/60 relative z-10 transition-colors duration-300 group-hover:text-business-black/80">
+              Join forward-thinking organizations already seeing these results with LXERA.
+            </p>
+          </div>
         </div>
       </div>
     </section>
