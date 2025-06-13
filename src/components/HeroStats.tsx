@@ -21,7 +21,7 @@ const HeroStats = () => {
               border: '1px solid rgba(191, 203, 128, 0.3)'
             }}
           >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{background: 'linear-gradient(to bottom right, rgba(191, 203, 128, 0.05), rgba(191, 203, 128, 0.03))'}}></div>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{background: 'linear-gradient(to bottom right, rgba(191, 203, 128, 0.08), rgba(191, 203, 128, 0.04))'}}></div>
             <stat.icon className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10" style={{color: '#BFCB80'}} />
             <div className="text-3xl font-bold text-business-black mb-1 relative z-10">{stat.value}</div>
             <div className="text-sm text-business-black/80 text-center font-semibold relative z-10">{stat.label}</div>

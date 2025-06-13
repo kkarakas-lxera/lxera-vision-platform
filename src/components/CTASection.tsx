@@ -8,10 +8,10 @@ const CTASection = () => {
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
         <Button 
           size="lg" 
-          className="btn btn-primary bg-future-green text-business-black hover:bg-future-green/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/20 border-2 border-transparent hover:border-future-green/20 group relative overflow-hidden"
+          className="btn btn-primary bg-future-green text-business-black hover:bg-future-green/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/30 border-2 border-white/20 hover:border-white/40 group relative overflow-hidden"
         >
-          <span className="relative z-10">Book a Demo</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-future-green/10 to-light-green/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <span className="relative z-10 drop-shadow-sm">Book a Demo</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Button>
         
         <VideoModal />
