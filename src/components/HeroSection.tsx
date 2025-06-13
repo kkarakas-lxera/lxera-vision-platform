@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Play, ArrowDown } from "lucide-react";
 
 const HeroSection = () => {
@@ -24,14 +25,32 @@ const HeroSection = () => {
           >
             Book a Demo
           </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="btn btn-outline border-2 border-business-black text-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Watch 2-Min Intro
-          </Button>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="btn btn-outline border-2 border-business-black text-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Watch LXERA in Action (2 Min)
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl w-full p-0">
+              <div className="aspect-video w-full">
+                <video 
+                  controls 
+                  autoPlay
+                  className="w-full h-full object-cover rounded-lg"
+                  poster="/placeholder.svg"
+                >
+                  <source src="your-demo-video.mp4" type="video/mp4" />
+                  Your browser does not support HTML5 video.
+                </video>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <p className="early-access-note" style={{marginTop:'1.2rem', fontSize:'0.95rem', color:'#666'}}>
@@ -50,28 +69,6 @@ const HeroSection = () => {
         <p className="text-xs text-business-black/60 mt-2 max-w-2xl mx-auto">
           *Based on industry research & projected benchmarks
         </p>
-
-        {/* Video Preview Container */}
-        <div className="video-preview-container mt-12 max-w-4xl mx-auto relative">
-          <video 
-            autoPlay 
-            muted 
-            loop 
-            playsInline 
-            className="preview-video w-full h-64 lg:h-96 object-cover rounded-2xl lxera-shadow"
-          >
-            <source src="your-preview-snippet.mp4" type="video/mp4" />
-            Your browser does not support HTML5 video.
-          </video>
-          <div className="video-overlay absolute inset-0 flex items-center justify-center bg-business-black/20 rounded-2xl">
-            <Button 
-              onClick={() => window.open('your-full-video-url', '_blank')} 
-              className="play-full-btn bg-future-green text-business-black hover:bg-emerald hover:text-white px-8 py-4 rounded-full font-semibold lxera-hover text-lg"
-            >
-              ▶ See LXERA in Action
-            </Button>
-          </div>
-        </div>
         
         <div className="mt-16 animate-float">
           <ArrowDown className="w-8 h-8 text-business-black/60 mx-auto" />
