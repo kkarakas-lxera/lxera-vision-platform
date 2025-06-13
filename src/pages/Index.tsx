@@ -90,6 +90,11 @@ const Index = () => {
             <span>💡 72% Innovation Lift</span>
           </div>
 
+          {/* Fine print for stats transparency */}
+          <p className="text-xs text-business-black/60 mt-2 max-w-2xl mx-auto">
+            *Based on industry research & projected benchmarks
+          </p>
+
           {/* Video Preview Container */}
           <div className="video-preview-container mt-12 max-w-4xl mx-auto relative">
             <video 
@@ -107,8 +112,7 @@ const Index = () => {
                 onClick={() => window.open('your-full-video-url', '_blank')} 
                 className="play-full-btn bg-future-green text-business-black hover:bg-emerald hover:text-white px-8 py-4 rounded-full font-semibold lxera-hover text-lg"
               >
-                <Play className="w-6 h-6 mr-2" />
-                Watch Full Demo
+                ▶ See LXERA in Action
               </Button>
             </div>
           </div>
