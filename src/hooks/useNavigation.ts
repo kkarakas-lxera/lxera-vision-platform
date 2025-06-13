@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from "react";
+import { useScrollOffset } from "./useScrollOffset";
 
 export const useNavigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const { scrollToSection: scrollToSectionWithOffset } = useScrollOffset();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,14 +29,26 @@ export const useNavigation = () => {
       }
     };
 
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('scroll', handleSectionChange);
+    window.addEventListener('resize', handleResize);
+    
+    // Set initial scroll state
+    handleScroll();
+    handleSectionChange();
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('scroll', handleSectionChange);
+      window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   const menuItems = [
     {
@@ -64,10 +78,7 @@ export const useNavigation = () => {
   };
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToSectionWithOffset(href);
     setIsMobileMenuOpen(false);
   };
 
