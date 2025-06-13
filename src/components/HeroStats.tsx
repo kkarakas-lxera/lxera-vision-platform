@@ -15,11 +15,14 @@ const HeroStats = () => {
         {stats.map((stat, index) => (
           <div 
             key={index}
-            className="flex flex-col items-center p-8 bg-white/85 backdrop-blur-sm rounded-2xl border border-future-green/30 shadow-xl hover:shadow-2xl hover:bg-white/95 hover:scale-105 hover:border-future-green/50 transition-all duration-300 animate-fade-in-up group relative overflow-hidden"
-            style={{animationDelay: `${0.8 + index * 0.1}s`}}
+            className="flex flex-col items-center p-8 bg-white/85 backdrop-blur-sm rounded-2xl shadow-xl hover:shadow-2xl hover:bg-white/95 hover:scale-105 transition-all duration-300 animate-fade-in-up group relative overflow-hidden"
+            style={{
+              animationDelay: `${0.8 + index * 0.1}s`,
+              border: '1px solid rgba(191, 203, 128, 0.3)'
+            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 to-light-green/3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <stat.icon className="w-8 h-8 text-future-green mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{background: 'linear-gradient(to bottom right, rgba(191, 203, 128, 0.05), rgba(191, 203, 128, 0.03))'}}></div>
+            <stat.icon className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10" style={{color: '#BFCB80'}} />
             <div className="text-3xl font-bold text-business-black mb-1 relative z-10">{stat.value}</div>
             <div className="text-sm text-business-black/80 text-center font-semibold relative z-10">{stat.label}</div>
           </div>

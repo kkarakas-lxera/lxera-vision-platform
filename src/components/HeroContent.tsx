@@ -9,19 +9,19 @@ const HeroContent = () => {
             Learning & Innovation
           </span><br />
           <span className="text-business-black drop-shadow-sm">Experience Platform</span>
-          <span className="text-future-green drop-shadow-sm"> (LXIP)</span>
+          <span style={{color: '#BFCB80'}} className="drop-shadow-sm"> (LXIP)</span>
         </h1>
       </div>
 
       <div className="animate-fade-in-up" style={{animationDelay: '0.2s'}}>
         <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-5xl mx-auto font-medium leading-relaxed tracking-wide">
-          Empower your teams to <strong className="text-future-green">learn faster</strong>, <strong className="text-future-green">build smarter</strong>, and <strong className="text-future-green">innovate from the frontline</strong>—<br className="hidden md:block" />
+          Empower your teams to <strong style={{color: '#BFCB80'}}>learn faster</strong>, <strong style={{color: '#BFCB80'}}>build smarter</strong>, and <strong style={{color: '#BFCB80'}}>innovate from the frontline</strong>—<br className="hidden md:block" />
           in one intelligent, adaptive ecosystem.
         </p>
       </div>
 
       <div className="animate-fade-in-scale" style={{animationDelay: '0.4s'}}>
-        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-future-green to-transparent mx-auto animate-pulse-slow shadow-lg"></div>
+        <div className="w-32 h-1 mx-auto animate-pulse-slow shadow-lg" style={{background: 'linear-gradient(to right, transparent, #BFCB80, transparent)'}}></div>
       </div>
     </div>
   );
