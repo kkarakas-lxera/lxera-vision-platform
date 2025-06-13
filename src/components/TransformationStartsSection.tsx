@@ -14,9 +14,16 @@ const TransformationStartsSection = () => {
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
-        <p className="text-base italic text-business-black/60 animate-fade-in">
+        <p className="text-base italic text-business-black/60 mb-8 animate-fade-in">
           "It's 3 steps ahead of where L&D is going."
         </p>
+
+        {/* Enhanced bridge content */}
+        <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in">
+          <p className="text-business-black/80 font-medium">
+            Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
+          </p>
+        </div>
       </div>
       
       {/* Visual transition element */}

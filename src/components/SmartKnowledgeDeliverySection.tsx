@@ -15,14 +15,21 @@ const SmartKnowledgeDeliverySection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
+            {/* Enhanced content flow */}
+            <div className="mb-6">
+              <p className="text-lg text-business-black/70 mb-2">
+                Now let's explore the engine that powers this transformation:
+              </p>
+            </div>
+
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
               Smart Knowledge Delivery
             </h2>
             <p className="text-xl text-business-black/80 mb-8 leading-relaxed">
-              Turn Your Internal Knowledge into Learning That Builds.
+              Turn Your Internal Knowledge into Learning That Actually Builds Capability.
             </p>
             <p className="text-lg text-business-black/70 mb-8">
-              LXERA doesn't just deliver content — it transforms your internal knowledge into real-time, context-rich learning journeys.
+              LXERA doesn't just deliver content — it transforms your organizational knowledge into real-time, context-rich learning journeys that drive immediate application.
             </p>
             
             <div className="space-y-6">

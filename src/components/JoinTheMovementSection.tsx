@@ -12,6 +12,13 @@ const JoinTheMovementSection = () => {
   return (
     <section className="w-full py-20 px-6 lg:px-12">
       <div className="max-w-6xl mx-auto text-center">
+        {/* Enhanced introduction */}
+        <div className="mb-8">
+          <p className="text-lg text-business-black/70 mb-4">
+            The transformation starts with leaders who see beyond traditional L&D. Join the pioneers shaping the future.
+          </p>
+        </div>
+
         <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
           Join the Movement
         </h2>
@@ -35,7 +42,7 @@ const JoinTheMovementSection = () => {
           Join the Early Access Program
         </Button>
         <p className="text-sm text-business-black/60 mt-4">
-          Join the early adopters redefining how teams learn, build, and innovate.
+          Ready to redefine how your teams learn, build, and innovate? Let's start the conversation.
         </p>
       </div>
     </section>
