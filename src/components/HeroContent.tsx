@@ -5,7 +5,7 @@ const HeroContent = () => {
       <div className="animate-fade-in-up">
         <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
           The First<br />
-          <span className="text-transparent bg-gradient-to-r from-business-black via-future-green to-business-black bg-clip-text animate-gradient-shift drop-shadow-sm">
+          <span className="bg-clip-text animate-gradient-shift drop-shadow-sm" style={{color: '#BFCB80'}}>
             Learning & Innovation
           </span><br />
           <span className="text-business-black drop-shadow-sm">Experience Platform</span>
