@@ -33,11 +33,10 @@ const VideoModal = () => {
       <DialogTrigger asChild>
         <Button 
           size="lg" 
-          variant="outline" 
-          className="btn btn-outline border-2 border-business-black text-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 group min-h-[3rem] focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+          className="bg-white text-business-black border-2 border-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 group min-h-[3rem] focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 shadow-lg hover:shadow-xl"
           aria-label="Watch LXERA platform demonstration video"
         >
-          <Play className="w-5 h-5 mr-2 text-business-black/90 group-hover:text-white transition-colors" />
+          <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-white transition-colors" />
           Watch LXERA in Action (2 Min)
         </Button>
       </DialogTrigger>
@@ -65,8 +64,7 @@ const VideoModal = () => {
               </p>
               <Button 
                 onClick={() => setIsOpen(false)}
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-business-black"
+                className="bg-white text-business-black hover:bg-future-green hover:text-business-black border border-white"
               >
                 Close
               </Button>
