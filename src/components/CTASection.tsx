@@ -4,24 +4,25 @@ import VideoModal from "./VideoModal";
 
 const CTASection = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
         <Button 
           size="lg" 
-          className="btn btn-primary bg-business-black text-white hover:bg-business-black/90 hover:scale-105 text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+          className="btn btn-primary bg-business-black text-white hover:bg-business-black/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/20 border-2 border-transparent hover:border-future-green/20 group relative overflow-hidden"
         >
-          Book a Demo
+          <span className="relative z-10">Book a Demo</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-future-green/10 to-light-green/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Button>
         
         <VideoModal />
       </div>
 
       <div className="text-center animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-        <p className="text-base text-business-black/80 mb-2">
-          🚀 <strong>Early access now open</strong> for teams shaping the future of adaptive learning.
+        <p className="text-base text-business-black/85 mb-3 font-medium">
+          🚀 <strong className="text-future-green">Early access now open</strong> for teams shaping the future of adaptive learning.
         </p>
-        <p className="text-sm text-business-black/70">
-          Join our innovation wave and help define what LXERA becomes.
+        <p className="text-sm text-business-black/75 font-medium">
+          Join our innovation wave and help define what <span className="text-future-green font-semibold">LXERA</span> becomes.
         </p>
       </div>
     </div>
