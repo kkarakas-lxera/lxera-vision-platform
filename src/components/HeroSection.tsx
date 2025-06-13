@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroContent from "./HeroContent";
 import CTASection from "./CTASection";
@@ -5,7 +6,7 @@ import HeroStats from "./HeroStats";
 
 const HeroSection = () => {
   return (
-    <section className="hero w-full py-16 px-6 lg:px-12 bg-smart-beige relative overflow-hidden">
+    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 bg-smart-beige relative overflow-hidden">
       {/* Enhanced decorative elements with improved color harmony */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/6 via-transparent to-future-green/4"></div>
       <div className="absolute top-20 right-10 w-40 h-40 rounded-full blur-xl animate-pulse bg-gradient-to-br from-future-green/12 to-emerald/8"></div>
