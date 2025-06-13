@@ -18,12 +18,12 @@ const CTASection = () => {
         <VideoModal />
       </div>
 
-      <div className="text-center animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+      <div className="text-center animate-fade-in-up animate-delay-600">
         <p className="text-base text-business-black/85 mb-3 font-medium">
-          🚀 <strong style={{color: '#BFCB80'}}>Early access now open</strong> for teams shaping the future of adaptive learning.
+          🚀 <strong className="text-future-green">Early access now open</strong> for teams shaping the future of adaptive learning.
         </p>
         <p className="text-sm text-business-black/75 font-medium">
-          Join our innovation wave and help define what <span style={{color: '#BFCB80'}} className="font-semibold">LXERA</span> becomes.
+          Join our innovation wave and help define what <span className="text-future-green font-semibold">LXERA</span> becomes.
         </p>
       </div>
     </div>
