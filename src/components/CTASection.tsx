@@ -4,7 +4,7 @@ import VideoModal from "./VideoModal";
 
 const CTASection = () => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
         <Button 
           size="lg" 
@@ -19,11 +19,8 @@ const CTASection = () => {
       </div>
 
       <div className="text-center animate-fade-in-up animate-delay-600">
-        <p className="text-base text-business-black/85 mb-3 font-medium">
-          🚀 <strong className="text-future-green">Early access now open</strong> for teams shaping the future of adaptive learning.
-        </p>
-        <p className="text-sm text-business-black/75 font-medium">
-          Join our innovation wave and help define what <span className="text-future-green font-semibold">LXERA</span> becomes.
+        <p className="text-base text-business-black/75 font-medium">
+          🚀 <strong className="text-future-green">Early access open</strong> for innovative teams
         </p>
       </div>
     </div>
