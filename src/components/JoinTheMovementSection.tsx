@@ -34,6 +34,9 @@ const JoinTheMovementSection = () => {
         <Button className="bg-business-black text-white hover:bg-business-black/90 text-lg px-8 py-4 rounded-full font-semibold lxera-hover">
           Join the Early Access Program
         </Button>
+        <p className="text-sm text-business-black/60 mt-4">
+          Join the early adopters redefining how teams learn, build, and innovate.
+        </p>
       </div>
     </section>
   );
