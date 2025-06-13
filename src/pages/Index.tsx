@@ -7,7 +7,6 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
 import BuiltForInnovatorsSection from "@/components/BuiltForInnovatorsSection";
 import JoinTheMovementSection from "@/components/JoinTheMovementSection";
-import WhyWereBuildingSection from "@/components/WhyWereBuildingSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -22,7 +21,6 @@ const Index = () => {
       <PlatformHighlightsSection />
       <BuiltForInnovatorsSection />
       <JoinTheMovementSection />
-      <WhyWereBuildingSection />
       <ContactSection />
       <Footer />
     </div>
