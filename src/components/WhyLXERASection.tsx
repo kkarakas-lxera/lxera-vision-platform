@@ -134,23 +134,6 @@ const WhyLXERASection = () => {
           ))}
         </div>
 
-        {/* Connecting Banner */}
-        <div className="mt-20">
-          <Card className="bg-future-green/10 border-future-green border-2">
-            <CardContent className="p-8 text-center">
-              <p className="text-lg font-semibold text-business-black mb-4">
-                📊 These five capabilities are how LXERA delivers:
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 lg:gap-8 text-sm lg:text-base font-bold text-business-black">
-                <span>📈 85% Retention Boost</span>
-                <span>⚡ 60% Faster Learning</span>
-                <span>💬 3× Engagement</span>
-                <span>💡 72% Innovation Lift</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Bottom CTA */}
         <div className="text-center mt-16">
           <p className="text-lg text-business-black/70 mb-4">
