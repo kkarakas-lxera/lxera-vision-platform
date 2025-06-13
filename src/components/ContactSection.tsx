@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download } from "lucide-react";
 import { useState } from "react";
 
 const ContactSection = () => {
@@ -27,43 +26,50 @@ const ContactSection = () => {
 
   return (
     <section id="contact" className="w-full py-20 px-6 lg:px-12 bg-business-black">
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8">
-          Let us show you how LXERA transforms your workforce.
-        </h2>
-        
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-          <Button 
-            size="lg" 
-            className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
-          >
-            Book a Demo
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="border-2 border-white text-white hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
-          >
-            Contact Sales
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="border-2 border-white text-white hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            Download Brochure
-          </Button>
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 animate-fade-in-up">
+            Let us show you how LXERA transforms your workforce.
+          </h2>
+          
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            Join forward-thinking organizations already revolutionizing their learning and development approach.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+            <Button 
+              size="lg" 
+              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              Book a Demo
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-2 border-white text-white hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              Contact Sales
+            </Button>
+          </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8">
+        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-semibold text-white mb-2">
+              Get Started Today
+            </h3>
+            <p className="text-white/70">
+              Fill out the form below and we'll get back to you within 24 hours
+            </p>
+          </div>
+          
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <Input
               name="name"
               placeholder="Full Name"
               value={formData.name}
               onChange={handleInputChange}
-              className="border-2 border-gray-200 focus:border-future-green"
+              className="bg-white/90 border-2 border-transparent focus:border-future-green focus:bg-white transition-all duration-300"
               required
             />
             <Input
@@ -72,7 +78,7 @@ const ContactSection = () => {
               placeholder="Email Address"
               value={formData.email}
               onChange={handleInputChange}
-              className="border-2 border-gray-200 focus:border-future-green"
+              className="bg-white/90 border-2 border-transparent focus:border-future-green focus:bg-white transition-all duration-300"
               required
             />
             <Input
@@ -80,7 +86,7 @@ const ContactSection = () => {
               placeholder="Organization"
               value={formData.organization}
               onChange={handleInputChange}
-              className="border-2 border-gray-200 focus:border-future-green"
+              className="bg-white/90 border-2 border-transparent focus:border-future-green focus:bg-white transition-all duration-300"
               required
             />
             <Input
@@ -88,9 +94,24 @@ const ContactSection = () => {
               placeholder="Role/Title"
               value={formData.role}
               onChange={handleInputChange}
-              className="border-2 border-gray-200 focus:border-future-green"
+              className="bg-white/90 border-2 border-transparent focus:border-future-green focus:bg-white transition-all duration-300"
               required
             />
+          </div>
+          
+          <div className="text-center">
+            <Button 
+              type="submit"
+              size="lg"
+              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-12 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              Request Demo
+            </Button>
+            
+            <p className="text-xs text-white/60 mt-4">
+              By submitting this form, you agree to receive communications from LXERA. 
+              We respect your privacy and never share your information.
+            </p>
           </div>
         </form>
       </div>
