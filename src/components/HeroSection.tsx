@@ -11,7 +11,9 @@ const HeroSection = () => {
         <div className="absolute top-10 left-10 w-32 h-32 lxera-gradient rounded-full animate-float"></div>
         <div className="absolute top-32 right-20 w-40 h-40 lxera-gradient-vibrant rounded-full animate-float" style={{animationDelay: '1s'}}></div>
         <div className="absolute bottom-20 left-1/3 w-24 h-24 lxera-gradient-warm rounded-full animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 right-1/4 w-28 h-28 bg-lime-accent rounded-full animate-float" style={{animationDelay: '3s'}}></div>
+        <div className="absolute top-1/2 right-1/4 w-28 h-28 lxera-gradient-electric rounded-full animate-float" style={{animationDelay: '3s'}}></div>
+        <div className="absolute top-20 left-1/2 w-20 h-20 bg-hot-pink rounded-full animate-float" style={{animationDelay: '1.5s'}}></div>
+        <div className="absolute bottom-32 right-1/3 w-16 h-16 bg-bright-yellow rounded-full animate-float" style={{animationDelay: '2.5s'}}></div>
       </div>
       
       <div className="container max-w-7xl mx-auto text-center animate-fade-in relative z-10">

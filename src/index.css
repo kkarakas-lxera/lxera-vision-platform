@@ -7,20 +7,23 @@
 
 @layer base {
   :root {
-    /* Updated LXERA Brand Colors - Inspired by reference image */
+    /* Vibrant Color Palette - Inspired by reference image */
     --smart-beige: #F8F6F0;
-    --future-green: #00D4AA;
+    --future-green: #10B981;
     --business-black: #1A1A1A;
     --lxera-white: #FFFFFF;
-    --lxera-red: #FF4757;
-    --lxera-blue: #3742FA;
-    --light-green: #2ED573;
-    --emerald: #00A085;
-    --vibrant-purple: #5F27CD;
-    --electric-blue: #00A8FF;
-    --sunset-orange: #FF6B35;
-    --coral-pink: #FF3838;
-    --lime-accent: #7BED9F;
+    --lxera-red: #EF4444;
+    --lxera-blue: #3B82F6;
+    --light-green: #22C55E;
+    --emerald: #059669;
+    --vibrant-purple: #8B5CF6;
+    --electric-blue: #06B6D4;
+    --sunset-orange: #F97316;
+    --coral-pink: #F472B6;
+    --lime-accent: #84CC16;
+    --bright-yellow: #FDE047;
+    --hot-pink: #EC4899;
+    --electric-cyan: #22D3EE;
 
     --background: 248 246 240; /* Smart Beige */
     --foreground: 26 26 26; /* Business Black */
@@ -40,15 +43,15 @@
     --muted: 248 246 240;
     --muted-foreground: 115 115 115;
 
-    --accent: 0 212 170; /* Future Green */
+    --accent: 16 185 129; /* Future Green */
     --accent-foreground: 26 26 26;
 
-    --destructive: 255 71 87; /* LXERA Red */
+    --destructive: 239 68 68; /* LXERA Red */
     --destructive-foreground: 255 255 255;
 
     --border: 214 214 214;
     --input: 214 214 214;
-    --ring: 0 212 170; /* Future Green */
+    --ring: 16 185 129; /* Future Green */
 
     --radius: 0.5rem;
   }
@@ -77,15 +80,19 @@
 
 @layer components {
   .lxera-gradient {
-    background: linear-gradient(135deg, #00D4AA 0%, #2ED573 50%, #7BED9F 100%);
+    background: linear-gradient(135deg, #10B981 0%, #22C55E 50%, #84CC16 100%);
   }
   
   .lxera-gradient-vibrant {
-    background: linear-gradient(135deg, #5F27CD 0%, #3742FA 50%, #00A8FF 100%);
+    background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #06B6D4 100%);
   }
   
   .lxera-gradient-warm {
-    background: linear-gradient(135deg, #FF6B35 0%, #FF4757 50%, #FF3838 100%);
+    background: linear-gradient(135deg, #F97316 0%, #EF4444 50%, #EC4899 100%);
+  }
+
+  .lxera-gradient-electric {
+    background: linear-gradient(135deg, #22D3EE 0%, #FDE047 50%, #F472B6 100%);
   }
   
   .lxera-shadow {
@@ -292,10 +299,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
   }
   to {
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.6), 0 0 30px rgba(0, 212, 170, 0.4);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 30px rgba(16, 185, 129, 0.4);
   }
 }
 
