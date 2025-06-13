@@ -2,22 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Play, ArrowDown } from "lucide-react";
-import AnimatedBars from "@/components/AnimatedBars";
 
 const HeroSection = () => {
   return (
-    <section className="hero w-full py-20 px-6 lg:px-12 relative overflow-hidden">
-      {/* Animated bars background */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <AnimatedBars className="w-full h-full" count={12} />
-      </div>
-      
-      {/* Additional decorative bars */}
-      <div className="absolute top-20 right-20 opacity-30 pointer-events-none hidden lg:block">
-        <AnimatedBars className="w-80 h-60" count={6} />
-      </div>
-      
-      <div className="container max-w-7xl mx-auto text-center animate-fade-in relative z-10">
+    <section className="hero w-full py-20 px-6 lg:px-12">
+      <div className="container max-w-7xl mx-auto text-center animate-fade-in">
         <h1 className="headline text-5xl lg:text-7xl font-bold text-business-black mb-8 leading-tight">
           The First<br />
           <span className="text-future-green">Learning & Innovation</span><br />
