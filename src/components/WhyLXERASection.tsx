@@ -1,7 +1,6 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
+import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
 
 const WhyLXERASection = () => {
   const capabilities = [
@@ -66,7 +65,7 @@ const WhyLXERASection = () => {
       secondaryIcon: <Lightbulb className="w-5 h-5 text-light-green/80" />
     },
     {
-      icon: <Network className="w-8 h-8 text-white" />,
+      icon: <TrendingDown className="w-8 h-8 text-white" />,
       title: "Organizational Capability Building",
       valueStatement: "Scale learning that scales business impact.",
       features: [
