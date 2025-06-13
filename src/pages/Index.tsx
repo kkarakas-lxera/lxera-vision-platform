@@ -2,6 +2,7 @@
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import WhyLXERASection from "@/components/WhyLXERASection";
+import TransformationStartsSection from "@/components/TransformationStartsSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
 import SmartKnowledgeDeliverySection from "@/components/SmartKnowledgeDeliverySection";
@@ -17,6 +18,7 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       <WhyLXERASection />
+      <TransformationStartsSection />
       <HowItWorksSection />
       <PlatformHighlightsSection />
       <SmartKnowledgeDeliverySection />
