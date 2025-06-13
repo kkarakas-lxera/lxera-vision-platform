@@ -1,0 +1,67 @@
+
+/* LXERA Base Styles */
+
+@layer base {
+  :root {
+    /* LXERA Brand Colors */
+    --smart-beige: #EFEFE3;
+    --future-green: #7AE5C6;
+    --business-black: #191919;
+    --lxera-white: #FFFFFF;
+    --lxera-red: #f94343;
+    --lxera-blue: #89baef;
+    --light-green: #e8fa9b;
+    --emerald: #029c55;
+
+    --background: 239 239 227; /* Smart Beige */
+    --foreground: 25 25 25; /* Business Black */
+
+    --card: 255 255 255; /* White */
+    --card-foreground: 25 25 25;
+
+    --popover: 255 255 255;
+    --popover-foreground: 25 25 25;
+
+    --primary: 25 25 25; /* Business Black */
+    --primary-foreground: 255 255 255;
+
+    --secondary: 239 239 227; /* Smart Beige */
+    --secondary-foreground: 25 25 25;
+
+    --muted: 239 239 227;
+    --muted-foreground: 115 115 115;
+
+    --accent: 122 229 198; /* Future Green */
+    --accent-foreground: 25 25 25;
+
+    --destructive: 249 67 67; /* LXERA Red */
+    --destructive-foreground: 255 255 255;
+
+    --border: 214 214 214;
+    --input: 214 214 214;
+    --ring: 122 229 198; /* Future Green */
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-smart-beige text-business-black font-inter;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+
+  /* Smooth scrolling for better transitions */
+  html {
+    scroll-behavior: smooth;
+  }
+}
