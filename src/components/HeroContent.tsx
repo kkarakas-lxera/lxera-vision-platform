@@ -6,10 +6,12 @@ const HeroContent = () => {
         <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
           LXERA is the first<br />
           <span className="bg-clip-text animate-gradient-shift drop-shadow-sm text-future-green text-5xl sm:text-6xl lg:text-8xl font-extrabold">
+            Learning & Innovation<br />
             Experience Platform
           </span><br />
-          <span className="text-business-black drop-shadow-sm">for Learning & Innovation</span>
-          <span className="text-future-green drop-shadow-sm"> (LXIP)</span>
+          <span className="text-business-black drop-shadow-sm">(</span>
+          <span className="text-future-green drop-shadow-sm font-extrabold">LXIP</span>
+          <span className="text-business-black drop-shadow-sm">)</span>
         </h1>
       </div>
 
