@@ -15,6 +15,11 @@ const PlatformHighlightsSection = () => {
       title: "Hyper-Personalized Learning Engine",
       subtitle: "Tailored learning using LLMs, RAG, SME layers",
       description: "Advanced AI adapts content to individual cognitive styles, learning pace, and professional context. Every learner receives a unique journey optimized for their success.",
+      bullets: [
+        "AI analyzes learning patterns in real-time",
+        "Content automatically adjusts to preferences", 
+        "Subject Matter Expert validated materials"
+      ],
       badges: [
         { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms" },
         { text: "Adaptive Content", tooltip: "Content automatically adjusts to learning preferences" },
@@ -28,6 +33,11 @@ const PlatformHighlightsSection = () => {
       title: "Real-Time Adaptive Gamification",
       subtitle: "Dynamic motivation through behavioral mechanics",
       description: "Intelligent gamification that evolves with learner behavior. No static badges—every element responds to individual motivation patterns and engagement levels.",
+      bullets: [
+        "AI analyzes user behavior for optimization",
+        "Rewards adapt to individual preferences",
+        "Proven 40% engagement increase"
+      ],
       badges: [
         { text: "Behavioral AI", tooltip: "AI analyzes user behavior patterns for optimization" },
         { text: "Dynamic Rewards", tooltip: "Rewards system adapts based on individual preferences" },
@@ -41,6 +51,11 @@ const PlatformHighlightsSection = () => {
       title: "Skill Taxonomy Engine",
       subtitle: "Live mapping of skills to roles and market needs",
       description: "Real-time skill gap analysis aligned with industry demands. Automatically identifies critical capabilities and creates targeted development pathways.",
+      bullets: [
+        "Synced with real-time job market data",
+        "Identifies gaps with targeted recommendations",
+        "Maps skills to career progression paths"
+      ],
       badges: [
         { text: "Market Aligned", tooltip: "Synced with real-time job market data" },
         { text: "Gap Analysis", tooltip: "Identifies skill gaps and provides targeted recommendations" },
@@ -54,6 +69,11 @@ const PlatformHighlightsSection = () => {
       title: "AI Avatar-Powered Video & Audio",
       subtitle: "Human-like, immersive content delivery",
       description: "Dynamic AI avatars deliver personalized video content with natural speech. Transform any text into engaging, professional video lessons instantly.",
+      bullets: [
+        "Lifelike digital presenters for content",
+        "Natural-sounding AI-generated speech",
+        "Convert text to professional video in seconds"
+      ],
       badges: [
         { text: "AI Avatars", tooltip: "Lifelike digital presenters for content delivery" },
         { text: "Voice Synthesis", tooltip: "Natural-sounding AI-generated speech" },
@@ -67,6 +87,11 @@ const PlatformHighlightsSection = () => {
       title: "24/7 AI Mentor Chatbot",
       subtitle: "Instant feedback and personalized coaching",
       description: "Organization-specific AI mentor trained on your data. Provides contextual guidance, answers questions, and offers personalized learning recommendations around the clock.",
+      bullets: [
+        "24/7 support with instant responses",
+        "Understands your specific learning context",
+        "Trained on organization's unique content"
+      ],
       badges: [
         { text: "Always Available", tooltip: "24/7 support with instant response times" },
         { text: "Contextual Help", tooltip: "Understands your specific learning context and goals" },
@@ -80,6 +105,11 @@ const PlatformHighlightsSection = () => {
       title: "Low-Code / No-Code Innovation Sandbox",
       subtitle: "Tools to build, automate, and prototype",
       description: "Empower citizen developers with intuitive tools for rapid prototyping. Create workflows, automate processes, and build solutions without technical barriers.",
+      bullets: [
+        "Enables non-technical users to build solutions",
+        "Build and test ideas in minutes, not weeks",
+        "Automate repetitive tasks and workflows"
+      ],
       badges: [
         { text: "Citizen Development", tooltip: "Enables non-technical users to build solutions" },
         { text: "Rapid Prototyping", tooltip: "Build and test ideas in minutes, not weeks" },
@@ -93,6 +123,11 @@ const PlatformHighlightsSection = () => {
       title: "Knowledge Base Transformation",
       subtitle: "Convert SOPs/docs into smart learning assets",
       description: "AI transforms existing documentation into interactive learning modules. Turn static knowledge into engaging, searchable, and trackable learning experiences.",
+      bullets: [
+        "AI-powered document analysis and transformation",
+        "Automatically converts docs to interactive content",
+        "Searchable, trackable, engaging materials"
+      ],
       badges: [
         { text: "Document AI", tooltip: "AI-powered document analysis and transformation" },
         { text: "Smart Conversion", tooltip: "Automatically converts docs to interactive content" },
@@ -106,6 +141,11 @@ const PlatformHighlightsSection = () => {
       title: "Real-Time Reporting & Dashboards",
       subtitle: "Full visibility for L&D and HR leaders",
       description: "Comprehensive analytics with predictive insights. Track learning ROI, identify skill trends, and make data-driven decisions with enterprise-grade reporting.",
+      bullets: [
+        "AI predicts learning outcomes and trends",
+        "Measure financial impact of learning programs",
+        "C-suite ready dashboards and reports"
+      ],
       badges: [
         { text: "Predictive Analytics", tooltip: "AI predicts learning outcomes and trends" },
         { text: "ROI Tracking", tooltip: "Measure the financial impact of learning programs" },
@@ -119,6 +159,11 @@ const PlatformHighlightsSection = () => {
       title: "Social Learning Spaces",
       subtitle: "Peer engagement, mentorship, and team challenges",
       description: "Collaborative environments that foster peer-to-peer learning. Create communities, facilitate mentorship, and drive engagement through social interaction.",
+      bullets: [
+        "Learn from colleagues and industry peers",
+        "Structured mentorship programs and matching",
+        "Collaborative challenges that build team skills"
+      ],
       badges: [
         { text: "Peer Learning", tooltip: "Learn from colleagues and industry peers" },
         { text: "Mentorship", tooltip: "Structured mentorship programs and matching" },
@@ -132,6 +177,11 @@ const PlatformHighlightsSection = () => {
       title: "HRIS Integration",
       subtitle: "Connects with HR systems for role-based learning automation",
       description: "Seamless integration with existing HR systems. Automatically assign learning paths based on roles, performance reviews, and career progression plans.",
+      bullets: [
+        "Syncs with popular HR information systems",
+        "Automatically assigns content based on job roles",
+        "Learning paths assigned based on HR triggers"
+      ],
       badges: [
         { text: "HRIS Sync", tooltip: "Syncs with popular HR information systems" },
         { text: "Role-Based", tooltip: "Automatically assigns content based on job roles" },
@@ -144,6 +194,13 @@ const PlatformHighlightsSection = () => {
 
   const toggleMobileExpanded = (index: number) => {
     setExpandedMobile(expandedMobile === index ? null : index);
+  };
+
+  const scrollToContact = () => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -252,10 +309,11 @@ const PlatformHighlightsSection = () => {
                       </p>
                     </div>
                   </div>
-                  {expandedMobile === index ? 
-                    <ChevronUp className="w-5 h-5 text-business-black/60" /> : 
-                    <ChevronDown className="w-5 h-5 text-business-black/60" />
-                  }
+                  <ChevronDown 
+                    className={`w-5 h-5 text-business-black/60 transition-transform duration-300 ${
+                      expandedMobile === index ? 'rotate-180' : ''
+                    }`} 
+                  />
                 </button>
 
                 {/* Expandable Content */}
@@ -264,6 +322,16 @@ const PlatformHighlightsSection = () => {
                     <p className="text-sm text-business-black/80 leading-relaxed mb-4">
                       {feature.description}
                     </p>
+                    
+                    {/* Bullet points */}
+                    <ul className="mb-4 space-y-1">
+                      {feature.bullets.map((bullet, bulletIndex) => (
+                        <li key={bulletIndex} className="text-sm text-business-black/70 flex items-start">
+                          <span className="text-future-green mr-2 mt-1">•</span>
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
                     
                     <div className="flex flex-wrap gap-2">
                       {feature.badges.map((badge, badgeIndex) => (
@@ -295,9 +363,10 @@ const PlatformHighlightsSection = () => {
               Ready to transform your organization's learning and innovation capabilities?
             </p>
             <Button 
+              onClick={scrollToContact}
               className="bg-gradient-to-r from-future-green to-light-green text-business-black font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0"
             >
-              See LXERA in Action →
+              See These Features in Action →
             </Button>
           </div>
         </div>
