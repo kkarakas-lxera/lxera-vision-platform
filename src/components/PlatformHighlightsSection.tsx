@@ -27,7 +27,7 @@ const PlatformHighlightsSection = () => {
         { text: "SME Validated", tooltip: "Subject Matter Expert reviewed and approved content", type: "quality" }
       ],
       iconBg: "bg-gradient-to-br from-future-green to-emerald",
-      cardBg: "bg-gradient-to-br from-future-green/5 to-emerald/10",
+      cardBg: "bg-white/90",
       popular: true,
       roi: "60% faster learning"
     },
@@ -47,7 +47,7 @@ const PlatformHighlightsSection = () => {
         { text: "Engagement Boost", tooltip: "Proven to increase learning engagement by 40%", type: "result" }
       ],
       iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-      cardBg: "bg-gradient-to-br from-lxera-red/5 to-lxera-blue/10",
+      cardBg: "bg-white/90",
       enterprise: true,
       roi: "40% higher engagement"
     },
@@ -67,7 +67,7 @@ const PlatformHighlightsSection = () => {
         { text: "Career Mapping", tooltip: "Maps skills to career progression pathways", type: "benefit" }
       ],
       iconBg: "bg-gradient-to-br from-emerald to-future-green",
-      cardBg: "bg-gradient-to-br from-emerald/5 to-future-green/10",
+      cardBg: "bg-white/90",
       roi: "3x faster skill development"
     },
     {
@@ -86,7 +86,7 @@ const PlatformHighlightsSection = () => {
         { text: "Instant Video", tooltip: "Convert text to professional video in seconds", type: "feature" }
       ],
       iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-      cardBg: "bg-gradient-to-br from-lxera-blue/5 to-future-green/10",
+      cardBg: "bg-white/90",
       roi: "90% content creation savings"
     },
     {
@@ -105,7 +105,7 @@ const PlatformHighlightsSection = () => {
         { text: "Org-Specific", tooltip: "Trained on your organization's unique content and processes", type: "feature" }
       ],
       iconBg: "bg-gradient-to-br from-emerald to-future-green",
-      cardBg: "bg-gradient-to-br from-emerald/5 to-future-green/10",
+      cardBg: "bg-white/90",
       popular: true,
       roi: "24/7 availability"
     },
@@ -125,7 +125,7 @@ const PlatformHighlightsSection = () => {
         { text: "Automation", tooltip: "Automate repetitive tasks and workflows", type: "feature" }
       ],
       iconBg: "bg-gradient-to-br from-lxera-red to-emerald",
-      cardBg: "bg-gradient-to-br from-lxera-red/5 to-emerald/10",
+      cardBg: "bg-white/90",
       roi: "10x faster prototyping"
     },
     {
@@ -144,7 +144,7 @@ const PlatformHighlightsSection = () => {
         { text: "Interactive Content", tooltip: "Searchable, trackable, and engaging learning materials", type: "feature" }
       ],
       iconBg: "bg-gradient-to-br from-future-green to-lxera-blue",
-      cardBg: "bg-gradient-to-br from-future-green/5 to-lxera-blue/10",
+      cardBg: "bg-white/90",
       roi: "85% content efficiency"
     },
     {
@@ -163,7 +163,7 @@ const PlatformHighlightsSection = () => {
         { text: "Executive Insights", tooltip: "C-suite ready dashboards and reports", type: "benefit" }
       ],
       iconBg: "bg-gradient-to-br from-lxera-blue to-emerald",
-      cardBg: "bg-gradient-to-br from-lxera-blue/5 to-emerald/10",
+      cardBg: "bg-white/90",
       enterprise: true,
       roi: "Predictive ROI insights"
     },
@@ -183,7 +183,7 @@ const PlatformHighlightsSection = () => {
         { text: "Team Challenges", tooltip: "Collaborative challenges that build team skills", type: "benefit" }
       ],
       iconBg: "bg-gradient-to-br from-emerald to-lxera-red",
-      cardBg: "bg-gradient-to-br from-emerald/5 to-lxera-red/10",
+      cardBg: "bg-white/90",
       roi: "Community-driven growth"
     },
     {
@@ -202,7 +202,7 @@ const PlatformHighlightsSection = () => {
         { text: "Automated Assignment", tooltip: "Learning paths assigned based on HR triggers", type: "feature" }
       ],
       iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
-      cardBg: "bg-gradient-to-br from-emerald/5 to-lxera-blue/10",
+      cardBg: "bg-white/90",
       enterprise: true,
       roi: "Automated efficiency"
     }
@@ -377,14 +377,14 @@ const PlatformHighlightsSection = () => {
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className={`${feature.cardBg} border-0 lxera-shadow transition-all duration-300 animate-fade-in-up`}
+              className="bg-white border-0 lxera-shadow transition-all duration-300 animate-fade-in-up"
               style={{animationDelay: `${0.8 + index * 0.05}s`}}
             >
               <CardContent className="p-0">
                 {/* Enhanced Header - Always Visible */}
                 <button
                   onClick={() => toggleMobileExpanded(index)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors duration-300"
+                  className="w-full p-6 text-left flex items-center justify-between hover:bg-smart-beige/20 transition-colors duration-300"
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center text-white flex-shrink-0`}>
@@ -420,7 +420,7 @@ const PlatformHighlightsSection = () => {
 
                 {/* Enhanced Expandable Content */}
                 {expandedMobile === index && (
-                  <div className="px-6 pb-6 animate-fade-in-up">
+                  <div className="px-6 pb-6 animate-fade-in-up bg-smart-beige/10">
                     <p className="text-sm text-business-black/80 leading-relaxed mb-4">
                       {feature.description}
                     </p>
