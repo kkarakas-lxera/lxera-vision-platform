@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
@@ -21,7 +20,7 @@ const WhyLXERASection = () => {
       secondaryIcon: <Zap className="w-5 h-5 text-future-green/70" />
     },
     {
-      icon: <Heart className="w-8 h-8 text-white" />,
+      icon: <Users className="w-8 h-8 text-white" />,
       title: "Enhanced Engagement & Motivation",
       valueStatement: "Where emotion meets education.",
       features: [
@@ -33,7 +32,7 @@ const WhyLXERASection = () => {
       iconBg: "bg-lxera-red",
       badgeBg: "bg-lxera-red/20",
       badgeBorder: "border-lxera-red",
-      secondaryIcon: <Target className="w-5 h-5 text-lxera-red/70" />
+      secondaryIcon: <Heart className="w-5 h-5 text-lxera-red/70" />
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
