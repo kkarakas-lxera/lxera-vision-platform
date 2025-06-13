@@ -1,5 +1,15 @@
 
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+
 const TransformationStartsSection = () => {
+  const scrollToHowItWorks = () => {
+    const howItWorksSection = document.querySelector('[data-section="how-it-works"]');
+    if (howItWorksSection) {
+      howItWorksSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-future-green/15 via-smart-beige/80 to-light-green/20 relative overflow-hidden">
       {/* Subtle LXERA logo pattern background */}
@@ -28,13 +38,41 @@ const TransformationStartsSection = () => {
           <span className="block text-future-green">Starts Here</span>
         </h2>
         
-        {/* Improved paragraph styling */}
-        <p className="text-xl lg:text-2xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-medium">
-          LXERA is already helping forward-thinking teams learn faster and innovate smarter. 
-          <span className="block mt-2 text-business-black/90 font-semibold">
-            Discover how it works below.
-          </span>
-        </p>
+        {/* Emotional validation quote */}
+        <div className="mb-6">
+          <p className="text-lg lg:text-xl text-future-green font-semibold italic">
+            "This platform is 3 steps ahead of where L&D is going."
+          </p>
+        </div>
+        
+        {/* Enhanced messaging */}
+        <div className="mb-8">
+          <h3 className="text-xl lg:text-2xl font-bold text-business-black mb-4">
+            Discover What's Behind the Results
+          </h3>
+          <p className="text-lg lg:text-xl text-business-black/80 max-w-3xl mx-auto leading-relaxed">
+            Organizations aren't just learning—they're innovating.
+            <span className="block mt-2 font-semibold text-business-black">
+              Let's break down how LXERA helps teams evolve in 4 smart steps.
+            </span>
+          </p>
+        </div>
+        
+        {/* Mini CTA Button with scroll animation */}
+        <div className="flex flex-col items-center gap-4">
+          <Button 
+            onClick={scrollToHowItWorks}
+            className="bg-business-black text-white hover:bg-business-black/90 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+          >
+            See How It Works
+            <ChevronDown className="ml-2 w-4 h-4" />
+          </Button>
+          
+          {/* Animated scroll indicator */}
+          <div className="animate-pulse">
+            <ChevronDown className="w-6 h-6 text-future-green" />
+          </div>
+        </div>
         
         {/* Decorative elements */}
         <div className="mt-8 flex justify-center">
