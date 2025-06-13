@@ -2,6 +2,8 @@
 import { TrendingUp, Zap, MessageCircle, Lightbulb } from "lucide-react";
 
 const HeroStats = () => {
+  console.log("HeroStats rendering");
+  
   const stats = [
     { icon: TrendingUp, value: "85%", label: "Retention Boost", description: "Average employee retention improvement" },
     { icon: Zap, value: "60%", label: "Faster Learning", description: "Reduction in time to competency" },

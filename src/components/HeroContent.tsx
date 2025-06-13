@@ -1,5 +1,7 @@
 
 const HeroContent = () => {
+  console.log("HeroContent rendering");
+  
   return (
     <div className="text-center space-y-8">
       <div className="animate-fade-in-up">

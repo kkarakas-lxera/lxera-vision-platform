@@ -5,6 +5,8 @@ import CTASection from "./CTASection";
 import HeroStats from "./HeroStats";
 
 const HeroSection = () => {
+  console.log("HeroSection rendering");
+  
   return (
     <section className="hero w-full py-20 px-6 lg:px-12 bg-smart-beige relative overflow-hidden">
       {/* Enhanced decorative elements with brand colors */}

@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import VideoModal from "./VideoModal";
 
 const CTASection = () => {
+  console.log("CTASection rendering");
+  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
