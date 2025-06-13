@@ -71,7 +71,11 @@
 
 @layer components {
   .lxera-gradient {
-    background: linear-gradient(135deg, #7AE5C6 0%, #e8fa9b 100%);
+    background: linear-gradient(135deg, #7AE5C6 0%, #EFEFE3 100%);
+  }
+
+  .lxera-gradient-hero {
+    background: linear-gradient(135deg, #7AE5C6 0%, #EFEFE3 60%, #EFEFE3 100%);
   }
   
   .lxera-shadow {

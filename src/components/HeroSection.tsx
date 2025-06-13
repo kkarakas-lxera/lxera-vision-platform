@@ -5,11 +5,11 @@ import { Play, ArrowDown } from "lucide-react";
 
 const HeroSection = () => {
   return (
-    <section className="hero w-full py-20 px-6 lg:px-12">
+    <section className="hero w-full py-20 px-6 lg:px-12 lxera-gradient-hero">
       <div className="container max-w-7xl mx-auto text-center animate-fade-in">
         <h1 className="headline text-5xl lg:text-7xl font-bold text-business-black mb-8 leading-tight">
           The First<br />
-          <span className="text-future-green">Learning & Innovation</span><br />
+          <span className="text-business-black">Learning & Innovation</span><br />
           Experience Platform (LXIP)
         </h1>
 
@@ -21,7 +21,7 @@ const HeroSection = () => {
         <div className="cta-buttons flex flex-col sm:flex-row gap-6 justify-center items-center" style={{marginTop: '1.5rem'}}>
           <Button 
             size="lg" 
-            className="btn btn-primary bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
+            className="btn btn-primary bg-business-black text-white hover:bg-business-black/90 text-lg px-8 py-4 rounded-full font-semibold lxera-hover"
           >
             Book a Demo
           </Button>
