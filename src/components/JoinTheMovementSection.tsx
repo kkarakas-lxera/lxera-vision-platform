@@ -70,6 +70,16 @@ const JoinTheMovementSection = () => {
             Redefine how your teams learn, build, and innovate—one experiment at a time.
           </p>
         </div>
+
+        {/* Testimonial */}
+        <div className="mt-12 animate-fade-in-up" style={{animationDelay: '2.2s'}}>
+          <p className="text-business-black/70 text-lg">
+            ✅ "We built this with real teams like ours. It shows."
+          </p>
+          <p className="text-business-black/50 text-sm mt-2">
+            — Early Innovation Partner (Beta Cohort)
+          </p>
+        </div>
       </div>
     </section>
   );
