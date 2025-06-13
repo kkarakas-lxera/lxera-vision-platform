@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Wrench, MessageCircle, Network } from "lucide-react";
+import { Wrench, MessageCircle, Network, ArrowRight } from "lucide-react";
 
 const JoinTheMovementSection = () => {
   const benefits = [
@@ -61,20 +61,24 @@ const JoinTheMovementSection = () => {
           </div>
         </div>
         
-        {/* Enhanced CTA button with animations */}
+        {/* Enhanced CTA button with animations and urgency message */}
         <div className="animate-fade-in-up" style={{animationDelay: '1.8s'}}>
-          <Button className="bg-business-black text-white hover:bg-business-black/90 text-lg px-8 py-4 rounded-full font-semibold lxera-hover hover:shadow-xl hover:scale-105 transition-all duration-300 animate-pulse-slow">
+          <p className="text-business-black/60 mb-4 animate-fade-in" style={{animationDelay: '1.9s'}}>
+            Only a limited number of partners will be onboarded during early access.
+          </p>
+          <Button className="bg-business-black text-white hover:bg-business-black/90 text-lg px-8 py-4 rounded-full font-semibold lxera-hover hover:shadow-xl hover:scale-105 transition-all duration-300 animate-pulse-slow group">
             Become an Early Innovation Partner
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
           </Button>
           <p className="text-sm text-business-black/60 mt-4 animate-fade-in" style={{animationDelay: '2s'}}>
             Redefine how your teams learn, build, and innovate—one experiment at a time.
           </p>
         </div>
 
-        {/* Testimonial */}
+        {/* Enhanced Testimonial */}
         <div className="mt-12 animate-fade-in-up" style={{animationDelay: '2.2s'}}>
-          <p className="text-business-black/70 text-lg">
-            ✅ "We built this with real teams like ours. It shows."
+          <p className="text-business-black/70 text-xl italic">
+            ✅ <em>"We built this with real teams like ours. It shows."</em>
           </p>
           <p className="text-business-black/50 text-sm mt-2">
             — Early Innovation Partner (Beta Cohort)
