@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -212,10 +213,10 @@ const Index = () => {
             {/* Pillar 4 - Rapid Prototyping */}
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-light-green rounded-2xl flex items-center justify-center mr-6">
-                  <Settings className="w-8 h-8 text-business-black" />
+                <div className="w-16 h-16 bg-business-black rounded-2xl flex items-center justify-center mr-6">
+                  <Settings className="w-8 h-8 text-future-green" />
                 </div>
-                <Badge className="bg-light-green/40 text-business-black border-light-green text-lg px-4 py-2">
+                <Badge className="bg-business-black text-future-green border-business-black text-lg px-4 py-2 font-bold">
                   🚀 <span className="font-bold">72% more likely</span> to innovate
                 </Badge>
               </div>
@@ -230,15 +231,15 @@ const Index = () => {
               </p>
               <ul className="space-y-3 text-business-black/80 mb-6">
                 <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-light-green mr-3 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-business-black mr-3 mt-0.5 flex-shrink-0" />
                   Tools for co-creation, experimentation, and rapid prototyping
                 </li>
                 <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-light-green mr-3 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-business-black mr-3 mt-0.5 flex-shrink-0" />
                   Community learning spaces for bottom-up idea generation
                 </li>
               </ul>
-              <div className="bg-light-green/20 p-4 rounded-lg border-l-4 border-light-green">
+              <div className="bg-business-black/10 p-4 rounded-lg border-l-4 border-business-black">
                 <p className="text-sm text-business-black font-medium">
                   Teams using LXERA are 72% more likely to create innovative solutions within their first 90 days.
                 </p>
