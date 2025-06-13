@@ -1,7 +1,6 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield } from "lucide-react";
+import { Brain, Heart, BarChart3, Settings, Network, Zap, Target, Users, Lightbulb, TrendingUp, Rocket, Shield, TrendingDown } from "lucide-react";
 
 const WhyLXERASection = () => {
   const capabilities = [
@@ -74,7 +73,7 @@ const WhyLXERASection = () => {
         "Centralized platform for enterprise-wide capability development",
         "Leadership development programs that create change agents"
       ],
-      impactStat: "💰 40% reduction in L&D costs",
+      impactStat: "📉 40% reduction in L&D costs",
       iconBg: "bg-emerald",
       badgeBg: "bg-emerald/20",
       badgeBorder: "border-emerald",
