@@ -52,7 +52,7 @@ const Index = () => {
         <div className="container max-w-7xl mx-auto text-center animate-fade-in">
           <h1 className="headline text-5xl lg:text-7xl font-bold text-business-black mb-8 leading-tight">
             The First<br />
-            <span style={{color:'#6FFFE9'}}>Learning & Innovation</span><br />
+            <span className="text-future-green">Learning & Innovation</span><br />
             Experience Platform (LXIP)
           </h1>
 
