@@ -6,43 +6,43 @@
 
 @layer base {
   :root {
-    /* LXERA Brand Colors - Updated to match reference */
-    --smart-beige: #F5F2ED;
-    --future-green: #6B8E6A;
-    --business-black: #2C2C2C;
+    /* LXERA Brand Colors */
+    --smart-beige: #EFEFE3;
+    --future-green: #7AE5C6;
+    --business-black: #191919;
     --lxera-white: #FFFFFF;
-    --lxera-red: #D4534F;
-    --lxera-blue: #7A9BC4;
-    --light-green: #A8C5A3;
-    --emerald: #4A6B47;
+    --lxera-red: #f94343;
+    --lxera-blue: #89baef;
+    --light-green: #e8fa9b;
+    --emerald: #029c55;
 
-    --background: 245 242 237; /* Smart Beige */
-    --foreground: 44 44 44; /* Business Black */
+    --background: 239 239 227; /* Smart Beige */
+    --foreground: 25 25 25; /* Business Black */
 
     --card: 255 255 255; /* White */
-    --card-foreground: 44 44 44;
+    --card-foreground: 25 25 25;
 
     --popover: 255 255 255;
-    --popover-foreground: 44 44 44;
+    --popover-foreground: 25 25 25;
 
-    --primary: 44 44 44; /* Business Black */
+    --primary: 25 25 25; /* Business Black */
     --primary-foreground: 255 255 255;
 
-    --secondary: 245 242 237; /* Smart Beige */
-    --secondary-foreground: 44 44 44;
+    --secondary: 239 239 227; /* Smart Beige */
+    --secondary-foreground: 25 25 25;
 
-    --muted: 245 242 237;
+    --muted: 239 239 227;
     --muted-foreground: 115 115 115;
 
-    --accent: 107 142 106; /* Future Green */
-    --accent-foreground: 44 44 44;
+    --accent: 122 229 198; /* Future Green */
+    --accent-foreground: 25 25 25;
 
-    --destructive: 212 83 79; /* LXERA Red */
+    --destructive: 249 67 67; /* LXERA Red */
     --destructive-foreground: 255 255 255;
 
     --border: 214 214 214;
     --input: 214 214 214;
-    --ring: 107 142 106; /* Future Green */
+    --ring: 122 229 198; /* Future Green */
 
     --radius: 0.5rem;
   }
@@ -71,11 +71,11 @@
 
 @layer components {
   .lxera-gradient {
-    background: linear-gradient(135deg, #6B8E6A 0%, #A8C5A3 100%);
+    background: linear-gradient(135deg, #7AE5C6 0%, #e8fa9b 100%);
   }
   
   .lxera-shadow {
-    box-shadow: 0 4px 20px rgba(44, 44, 44, 0.1);
+    box-shadow: 0 4px 20px rgba(25, 25, 25, 0.1);
   }
   
   .lxera-hover {
@@ -278,10 +278,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 5px rgba(107, 142, 106, 0.3);
+    box-shadow: 0 0 5px rgba(122, 229, 198, 0.3);
   }
   to {
-    box-shadow: 0 0 20px rgba(107, 142, 106, 0.6), 0 0 30px rgba(107, 142, 106, 0.4);
+    box-shadow: 0 0 20px rgba(122, 229, 198, 0.6), 0 0 30px rgba(122, 229, 198, 0.4);
   }
 }
 

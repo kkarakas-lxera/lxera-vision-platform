@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -55,14 +56,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// LXERA Brand Colors - Updated to match reference
-				'smart-beige': '#F5F2ED',
-				'future-green': '#6B8E6A',
-				'business-black': '#2C2C2C',
-				'lxera-red': '#D4534F',
-				'lxera-blue': '#7A9BC4',
-				'light-green': '#A8C5A3',
-				'emerald': '#4A6B47',
+				// LXERA Brand Colors
+				'smart-beige': '#EFEFE3',
+				'future-green': '#7AE5C6',
+				'business-black': '#191919',
+				'lxera-red': '#f94343',
+				'lxera-blue': '#89baef',
+				'light-green': '#e8fa9b',
+				'emerald': '#029c55',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
