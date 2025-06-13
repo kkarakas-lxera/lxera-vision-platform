@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowDown, ArrowUp, Linkedin, Youtube, Play, Download, Users, Brain, Wrench, Rocket, Zap, Bot, MessageCircle, Headphones, Video, RefreshCw, Target, Network, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowDown, ArrowUp, Linkedin, Youtube, Play, Download, Users, Brain, Wrench, Rocket, Zap, Bot, MessageCircle, Headphones, Video, RefreshCw, Target, Network, CheckCircle, BarChart3, Heart } from "lucide-react";
 import { useState } from "react";
 
 const Index = () => {
@@ -79,49 +79,249 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why LXERA Section */}
-      <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-white">
-        <div className="max-w-7xl mx-auto">
+      {/* Why LXERA Section - Redesigned */}
+      <section id="platform" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-64 h-64 bg-future-green rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-48 h-48 bg-lxera-blue rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
-              Why LXERA
+            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+              🌟 Why LXERA – Real Impact. Not Just Theory.
             </h2>
-            <p className="text-xl text-business-black/80 max-w-4xl mx-auto leading-relaxed">
-              LXERA merges learning, building, and innovation into one intelligent platform — fully personalized and dynamically generated for each user and organization.
+            <p className="text-xl text-business-black/80 max-w-3xl mx-auto leading-relaxed">
+              Five strategic pillars that transform how your teams learn, build, and innovate together.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { 
-                icon: <Brain className="w-12 h-12" />, 
-                title: "AI-Powered Learning Journeys", 
-                desc: "Personalized content and skill paths based on individual goals, behaviors, and roles." 
-              },
-              { 
-                icon: <Wrench className="w-12 h-12" />, 
-                title: "Citizen Development Sandbox", 
-                desc: "Learners build real solutions using low-code tools — not just consume content." 
-              },
-              { 
-                icon: <Rocket className="w-12 h-12" />, 
-                title: "Innovation Hub with CoE Support", 
-                desc: "From idea to prototype, structured sprints supported by your internal CoE and LXERA's embedded guidance." 
-              },
-              { 
-                icon: <Zap className="w-12 h-12" />, 
-                title: "Smart Knowledge Delivery", 
-                desc: "Our system learns from your internal documentation and workflows, using that data to tailor content and generate real-life scenarios." 
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="bg-smart-beige border-0 lxera-shadow lxera-hover text-center">
-                <CardContent className="p-8">
-                  <div className="text-future-green mb-6 flex justify-center">{feature.icon}</div>
-                  <h3 className="text-xl font-bold text-business-black mb-4">{feature.title}</h3>
-                  <p className="text-business-black/70">{feature.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="space-y-16">
+            {/* Pillar 1 - Left aligned */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-future-green rounded-2xl flex items-center justify-center mr-6">
+                    <Brain className="w-8 h-8 text-business-black" />
+                  </div>
+                  <Badge className="bg-future-green/20 text-business-black border-future-green">
+                    <span className="font-bold">60% faster</span> completion
+                  </Badge>
+                </div>
+                <h3 className="text-3xl font-bold text-business-black mb-4">
+                  Personalized Learning Journeys
+                </h3>
+                <p className="text-lg text-future-green font-semibold mb-6">
+                  AI adapts to each learner's pace, style, and goals in real-time.
+                </p>
+                <ul className="space-y-3 text-business-black/80">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-future-green mr-3 mt-0.5 flex-shrink-0" />
+                    Dynamic content paths based on individual behavior and performance
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-future-green mr-3 mt-0.5 flex-shrink-0" />
+                    Multi-modal learning with video, audio, and interactive simulations
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-future-green mr-3 mt-0.5 flex-shrink-0" />
+                    Continuous assessment and adaptive difficulty adjustment
+                  </li>
+                </ul>
+              </div>
+              <div className="order-1 lg:order-2">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 lxera-shadow">
+                  <CardContent className="p-8">
+                    <img 
+                      src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop" 
+                      alt="AI-powered learning interface"
+                      className="rounded-lg w-full h-64 object-cover"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Pillar 2 - Right aligned */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-1">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 lxera-shadow">
+                  <CardContent className="p-8">
+                    <img 
+                      src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop" 
+                      alt="Data analytics dashboard"
+                      className="rounded-lg w-full h-64 object-cover"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="order-2">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-lxera-blue rounded-2xl flex items-center justify-center mr-6">
+                    <BarChart3 className="w-8 h-8 text-business-black" />
+                  </div>
+                  <Badge className="bg-lxera-blue/20 text-business-black border-lxera-blue">
+                    <span className="font-bold">3x higher</span> engagement
+                  </Badge>
+                </div>
+                <h3 className="text-3xl font-bold text-business-black mb-4">
+                  Smart Analytics & Insights
+                </h3>
+                <p className="text-lg text-lxera-blue font-semibold mb-6">
+                  Real-time visibility into learning progress and skill development.
+                </p>
+                <ul className="space-y-3 text-business-black/80">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-blue mr-3 mt-0.5 flex-shrink-0" />
+                    Predictive analytics for skill gap identification
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-blue mr-3 mt-0.5 flex-shrink-0" />
+                    Team performance dashboards with actionable insights
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-blue mr-3 mt-0.5 flex-shrink-0" />
+                    ROI tracking for learning initiatives and outcomes
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Pillar 3 - Left aligned */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-emerald rounded-2xl flex items-center justify-center mr-6">
+                    <Heart className="w-8 h-8 text-white" />
+                  </div>
+                  <Badge className="bg-emerald/20 text-business-black border-emerald">
+                    <span className="font-bold">85% satisfaction</span> rate
+                  </Badge>
+                </div>
+                <h3 className="text-3xl font-bold text-business-black mb-4">
+                  Emotional Learning Engine
+                </h3>
+                <p className="text-lg text-emerald font-semibold mb-6">
+                  Psychology-driven design that keeps learners motivated and engaged.
+                </p>
+                <ul className="space-y-3 text-business-black/80">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald mr-3 mt-0.5 flex-shrink-0" />
+                    Emotional state recognition and adaptive responses
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald mr-3 mt-0.5 flex-shrink-0" />
+                    Personalized motivation triggers and reward systems
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-emerald mr-3 mt-0.5 flex-shrink-0" />
+                    Stress-free learning environment with mental health support
+                  </li>
+                </ul>
+              </div>
+              <div className="order-1 lg:order-2">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 lxera-shadow">
+                  <CardContent className="p-8">
+                    <img 
+                      src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop" 
+                      alt="Collaborative learning environment"
+                      className="rounded-lg w-full h-64 object-cover"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Pillar 4 - Right aligned */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-1">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 lxera-shadow">
+                  <CardContent className="p-8">
+                    <img 
+                      src="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=500&h=300&fit=crop" 
+                      alt="Innovation workshop"
+                      className="rounded-lg w-full h-64 object-cover"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="order-2">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-light-green rounded-2xl flex items-center justify-center mr-6">
+                    <Wrench className="w-8 h-8 text-business-black" />
+                  </div>
+                  <Badge className="bg-light-green/40 text-business-black border-light-green">
+                    <span className="font-bold">200+ prototypes</span> built
+                  </Badge>
+                </div>
+                <h3 className="text-3xl font-bold text-business-black mb-4">
+                  Innovation Sandbox
+                </h3>
+                <p className="text-lg text-business-black font-semibold mb-6">
+                  Low-code tools that turn learning into real, actionable solutions.
+                </p>
+                <ul className="space-y-3 text-business-black/80">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-light-green mr-3 mt-0.5 flex-shrink-0" />
+                    Drag-and-drop interface for rapid prototyping
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-light-green mr-3 mt-0.5 flex-shrink-0" />
+                    Integration with popular business tools and APIs
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-light-green mr-3 mt-0.5 flex-shrink-0" />
+                    Collaborative workspace for team innovation projects
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Pillar 5 - Left aligned */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-lxera-red rounded-2xl flex items-center justify-center mr-6">
+                    <Network className="w-8 h-8 text-white" />
+                  </div>
+                  <Badge className="bg-lxera-red/20 text-business-black border-lxera-red">
+                    <span className="font-bold">500+ connections</span> made
+                  </Badge>
+                </div>
+                <h3 className="text-3xl font-bold text-business-black mb-4">
+                  Connected Learning Ecosystem
+                </h3>
+                <p className="text-lg text-lxera-red font-semibold mb-6">
+                  Seamless integration across your entire organization's learning stack.
+                </p>
+                <ul className="space-y-3 text-business-black/80">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-red mr-3 mt-0.5 flex-shrink-0" />
+                    Native integrations with 50+ enterprise platforms
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-red mr-3 mt-0.5 flex-shrink-0" />
+                    Single sign-on and unified user experience
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-lxera-red mr-3 mt-0.5 flex-shrink-0" />
+                    Cross-platform data synchronization and analytics
+                  </li>
+                </ul>
+              </div>
+              <div className="order-1 lg:order-2">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 lxera-shadow">
+                  <CardContent className="p-8">
+                    <img 
+                      src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=500&h=300&fit=crop" 
+                      alt="Connected network visualization"
+                      className="rounded-lg w-full h-64 object-cover"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
