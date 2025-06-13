@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Wrench, MessageCircle, Network, ArrowRight, Star, Users, Zap } from "lucide-react";
 
@@ -146,43 +147,6 @@ const JoinTheMovementSection = () => {
           <p className="text-sm text-business-black/60 mt-6 animate-fade-in leading-relaxed" style={{animationDelay: '2.1s'}}>
             Redefine how your teams learn, build, and innovate—one experiment at a time.
           </p>
-        </div>
-
-        {/* Enhanced testimonial with card design */}
-        <div className="mt-16 animate-fade-in-up" style={{animationDelay: '2.2s'}}>
-          <div className="relative max-w-2xl mx-auto">
-            {/* Background card */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-future-green/10 rounded-2xl backdrop-blur-sm border border-future-green/20 shadow-lg"></div>
-            
-            <div className="relative p-8">
-              {/* Quote icon */}
-              <div className="absolute -top-4 left-8 w-8 h-8 bg-future-green rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">"</span>
-              </div>
-              
-              <div className="pt-4">
-                <p className="text-business-black/80 text-xl lg:text-2xl italic font-medium leading-relaxed mb-4">
-                  We built this with real teams like ours. It shows.
-                </p>
-                
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-future-green"></div>
-                  <div className="text-center">
-                    <p className="text-business-black/70 font-semibold text-sm">Early Innovation Partner</p>
-                    <p className="text-business-black/50 text-xs mt-1">(Beta Cohort)</p>
-                  </div>
-                  <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-future-green"></div>
-                </div>
-                
-                {/* Rating stars */}
-                <div className="flex justify-center gap-1 mt-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-future-green text-future-green" />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Bottom transition element */}
