@@ -7,9 +7,11 @@ import { Loader2, AlertCircle } from "lucide-react";
 interface VideoModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  videoUrl: string;
+  videoCaption?: string;
 }
 
-const VideoModal = ({ isOpen, setIsOpen }: VideoModalProps) => {
+const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -33,25 +35,25 @@ const VideoModal = ({ isOpen, setIsOpen }: VideoModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-description">
+      <DialogContent className="max-w-2xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-desc">
         <div className="aspect-video w-full relative rounded-2xl overflow-hidden">
-          <div id="video-description" className="sr-only">
-            LXERA platform demonstration video showing key features and benefits
+          <div id="video-desc" className="sr-only">
+            LXERA feature demo video {videoCaption ?? ""}
           </div>
           {isLoading && !hasError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-business-black/90 rounded-lg">
+            <div className="absolute inset-0 flex items-center justify-center bg-business-black/80 rounded-lg">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-future-green animate-spin mx-auto mb-3" />
-                <p className="text-white text-sm">Loading video...</p>
+                <p className="text-white text-sm">Loading video…</p>
               </div>
             </div>
           )}
           {hasError ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-business-black/90 rounded-lg text-white p-8">
               <AlertCircle className="w-16 h-16 text-future-green mb-4" />
-              <h3 className="text-lg mb-2 font-semibold">Video Preview Coming Soon</h3>
+              <h3 className="text-lg mb-2 font-semibold">Video Unavailable</h3>
               <p className="text-sm text-white/70 text-center mb-4">
-                Our demo video is currently being prepared and will be available shortly.
+                Sorry, this demo wasn’t found. Check again soon!
               </p>
               <Button
                 onClick={() => setIsOpen(false)}
@@ -63,20 +65,25 @@ const VideoModal = ({ isOpen, setIsOpen }: VideoModalProps) => {
           ) : (
             <video
               controls
-              autoPlay
+              muted
               className="w-full h-full object-cover rounded-lg"
               poster="/placeholder.svg"
               onLoadedData={handleVideoLoad}
               onError={handleVideoError}
-              aria-label="LXERA platform demonstration"
+              aria-label="LXERA feature demonstration"
               preload="metadata"
+              autoPlay={false}
+              tabIndex={0}
             >
-              <source src="your-demo-video.mp4" type="video/mp4" />
-              <track kind="captions" src="demo-captions.vtt" srcLang="en" label="English" />
+              <source src={videoUrl} type="video/mp4" />
+              {/* You may add <track> for captions if desired */}
               Your browser does not support HTML5 video.
             </video>
           )}
         </div>
+        {videoCaption && (
+          <div className="text-sm text-white/80 text-center p-2">{videoCaption}</div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -3,11 +3,15 @@ export interface StepData {
   step: string;
   stepTitle: string;
   title: string;
-  desc: string;
+  subtitle: string;
+  bullets: string[];
   iconName: string;
   subIconName: string;
   metrics?: string;
   cta?: string;
+  videoThumb: string;
+  videoUrl: string;
+  videoCaption: string;
 }
 
 export const stepsData: StepData[] = [
@@ -15,40 +19,68 @@ export const stepsData: StepData[] = [
     step: "01",
     stepTitle: "Step 1",
     title: "Intelligent Onboarding",
-    desc: "Smart user assessment automatically maps your role, skills, and learning preferences. The platform configures **personalized dashboards** and learning paths tailored to your specific needs and organizational goals.",
+    subtitle: "Skip generic setup, get personalized instantly.",
+    bullets: [
+      "Smart user assessment → custom learning path",
+      "Role-based dashboards, adaptive skill matching"
+    ],
     iconName: "Users",
     subIconName: "UserCheck",
-    metrics: "95% completion rate",
-    cta: "Try Assessment"
+    metrics: "✓ 95% completion rate",
+    cta: "Try Assessment",
+    videoThumb: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    videoCaption: "Watch how this works (15 sec)"
   },
   {
-    step: "02", 
+    step: "02",
     stepTitle: "Step 2",
     title: "Curated Learning Journey",
-    desc: "AI delivers bite-sized, relevant content when you need it most. **Adaptive sequencing** adjusts difficulty and pacing based on your progress, while integrated knowledge bases ensure learning is grounded in your actual work context.",
+    subtitle: "Relevant knowledge, delivered at your pace.",
+    bullets: [
+      "AI-curated, context-aware microlearning",
+      "Adaptive sequencing for faster mastery"
+    ],
     iconName: "Brain",
     subIconName: "Cpu",
-    metrics: "40% faster learning",
-    cta: "View Content"
+    metrics: "✓ 40% faster learning",
+    cta: "View Content",
+    videoThumb: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
+    videoCaption: "Watch how this works (18 sec)"
   },
   {
     step: "03",
     stepTitle: "Step 3",
-    title: "Real-Time Feedback Loop", 
-    desc: "Continuous progress tracking provides **actionable insights**. Smart nudges and personalized recommendations keep you engaged, while predictive analytics identify skill gaps before they impact performance.",
+    title: "Real-Time Feedback Loop",
+    subtitle: "Instant progress insights, actionable growth.",
+    bullets: [
+      "Live analytics & performance nudges",
+      "Personalized skill recommendations"
+    ],
     iconName: "BarChart3",
     subIconName: "TrendingUp",
-    metrics: "80% engagement boost",
-    cta: "See Analytics"
+    metrics: "✓ 80% engagement boost",
+    cta: "See Analytics",
+    videoThumb: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    videoCaption: "Watch how this works (12 sec)"
   },
   {
     step: "04",
     stepTitle: "Step 4",
     title: "Innovation Activation",
-    desc: "Submit ideas, co-create solutions, and turn insights into **measurable business outcomes**. Collaborative sandboxes and low-code prototyping tools enable your team to transform learning into tangible impact.",
+    subtitle: "Turn learning into business impact.",
+    bullets: [
+      "Co-create ideas in real-world sandboxes",
+      "Low-code prototyping to fast-track outcomes"
+    ],
     iconName: "Lightbulb",
     subIconName: "Rocket",
-    metrics: "3x innovation rate",
-    cta: "Start Creating"
+    metrics: "✓ 3x innovation rate",
+    cta: "Start Creating",
+    videoThumb: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&q=80",
+    videoUrl: "https://www.w3schools.com/html/movie.mp4",
+    videoCaption: "Watch how this works (20 sec)"
   }
 ];
