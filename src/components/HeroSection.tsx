@@ -1,32 +1,27 @@
 
-import { ArrowDown } from "lucide-react";
 import HeroContent from "./HeroContent";
 import CTASection from "./CTASection";
-import HeroStats from "./HeroStats";
+import VideoPreview from "./VideoPreview";
 
 const HeroSection = () => {
   return (
-    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 bg-smart-beige relative overflow-hidden">
-      {/* Enhanced decorative elements with improved color harmony */}
-      <div className="absolute inset-0 bg-gradient-to-br from-future-green/6 via-transparent to-future-green/4"></div>
-      <div className="absolute top-20 right-10 w-40 h-40 rounded-full blur-xl animate-pulse bg-gradient-to-br from-future-green/12 to-emerald/8"></div>
-      <div className="absolute bottom-20 left-10 w-32 h-32 rounded-full blur-lg animate-pulse bg-gradient-to-br from-future-green/15 to-future-green/10 animate-delay-1000"></div>
-      <div className="absolute top-1/2 left-1/4 w-20 h-20 rounded-full blur-md animate-pulse bg-future-green/8 animate-delay-2000"></div>
-      <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-future-green/12 animate-delay-500"></div>
+    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-smart-beige to-future-green/5 relative overflow-hidden">
+      {/* Subtle decorative elements */}
+      <div className="absolute top-20 right-10 w-32 h-32 rounded-full blur-3xl bg-future-green/8 animate-pulse"></div>
+      <div className="absolute bottom-20 left-10 w-24 h-24 rounded-full blur-2xl bg-future-green/10 animate-pulse animate-delay-1000"></div>
       
-      <div className="container max-w-7xl mx-auto relative z-10 space-y-12">
-        <HeroContent />
-        <CTASection />
-        <HeroStats />
-        
-        {/* Enhanced scroll indicator with improved styling */}
-        <div className="mt-12 animate-fade-in-up animate-delay-1200">
-          <div className="flex flex-col items-center space-y-3">
-            <p className="text-sm text-business-black/60 font-medium">Discover more</p>
-            <div className="relative">
-              <ArrowDown className="w-8 h-8 animate-bounce drop-shadow-lg text-future-green" />
-              <div className="absolute inset-0 w-8 h-8 rounded-full blur-sm animate-ping bg-future-green/25"></div>
-            </div>
+      <div className="container max-w-7xl mx-auto relative z-10">
+        {/* Split-screen layout */}
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
+          {/* Left side - Content */}
+          <div className="space-y-8">
+            <HeroContent />
+            <CTASection />
+          </div>
+          
+          {/* Right side - Video */}
+          <div className="lg:pl-8">
+            <VideoPreview />
           </div>
         </div>
       </div>

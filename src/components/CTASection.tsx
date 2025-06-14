@@ -1,26 +1,46 @@
 
 import { Button } from "@/components/ui/button";
-import VideoModal from "./VideoModal";
+import { Play, Rocket } from "lucide-react";
 
 const CTASection = () => {
+  const handleScrollToDemo = () => {
+    // Scroll to demo section or trigger video modal
+    const demoSection = document.getElementById('demo-section');
+    if (demoSection) {
+      demoSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+    <div className="space-y-6 animate-fade-in-up animate-delay-500">
+      <div className="flex flex-col sm:flex-row gap-4 justify-start items-start">
+        {/* Primary CTA - Try LXERA Experience */}
         <Button 
           size="lg" 
-          className="btn btn-primary bg-future-green text-business-black hover:bg-future-green/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/30 border-2 border-white/30 hover:border-white/60 group relative overflow-hidden focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
-          aria-label="Book a demonstration of LXERA platform"
+          className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 active:scale-95 text-lg px-8 py-6 rounded-2xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl border-0 min-w-[280px]"
+          aria-label="Try the LXERA Experience"
         >
-          <span className="relative z-10 drop-shadow-sm">Book a Demo</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <Rocket className="w-5 h-5 mr-2" />
+          🚀 Try the LXERA Experience
         </Button>
         
-        <VideoModal />
+        {/* Secondary CTA - See How It Works */}
+        <Button 
+          size="lg" 
+          variant="outline"
+          className="border-2 border-business-black text-business-black hover:bg-business-black hover:text-white text-lg px-8 py-6 rounded-2xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl min-w-[280px]"
+          onClick={handleScrollToDemo}
+          aria-label="Watch how LXERA works demo video"
+        >
+          <Play className="w-5 h-5 mr-2" />
+          ▶ See How It Works (2 Min)
+        </Button>
       </div>
 
-      <div className="text-center animate-fade-in-up animate-delay-600">
+      {/* Early access indicator */}
+      <div className="text-left animate-fade-in-up animate-delay-700">
         <p className="text-base text-business-black/75 font-medium">
-          🚀 <strong className="text-future-green">Early access open</strong> for innovative teams
+          🚀 <strong className="text-future-green">Early access open</strong> for innovation leaders
         </p>
       </div>
     </div>
