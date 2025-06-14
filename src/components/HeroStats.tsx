@@ -36,11 +36,6 @@ const HeroStats = () => {
           </div>
         ))}
       </div>
-      <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "1rem" }}>
-        <em>
-          Already co-created with forward-thinking teams in learning, innovation, and digital transformation.
-        </em>
-      </p>
     </div>
   );
 };
