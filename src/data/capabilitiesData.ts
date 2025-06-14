@@ -18,14 +18,14 @@ export interface CapabilityData {
 export const capabilitiesData: CapabilityData[] = [
   {
     icon: Brain,
-    title: "🧠 Personalized Learning Journeys",
+    title: "Personalized Learning Journeys",
     valueStatement: "Smarter paths. Faster mastery. Deeper learning.",
     features: [
-      "Our AI adapts to each learner’s preferences, behavior, and feedback in real time.",
-      "Tailored learning paths that reflect unique cognitive styles",
-      "Content personalized through AI diagnostics and adaptive algorithms"
+      "AI adapts to individual cognitive styles and preferences",
+      "Smart content sequencing based on learner progress",
+      "Micro-learning paths that fit busy professional schedules"
     ],
-    impactStat: "🚀 Tangible Results:\nLearners complete content 60% faster and retain up to 85% more using personalized experiences.",
+    impactStat: "📈 60% faster completion rates",
     iconBg: "bg-future-green",
     badgeBg: "bg-future-green/20",
     badgeBorder: "border-future-green",
