@@ -1,10 +1,28 @@
 
+import { Button } from "@/components/ui/button";
+import VideoModal from "./VideoModal";
+
 const CTASection = () => {
   return (
-    <div className="text-center animate-fade-in-up animate-delay-600 mt-16">
-      <p className="text-base text-business-black/75 font-medium">
-        🚀 <strong className="text-future-green">Early access open</strong> for innovative teams
-      </p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <Button 
+          size="lg" 
+          className="btn btn-primary bg-future-green text-business-black hover:bg-future-green/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/30 border-2 border-white/30 hover:border-white/60 group relative overflow-hidden focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          aria-label="Book a demonstration of LXERA platform"
+        >
+          <span className="relative z-10 drop-shadow-sm">Book a Demo</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </Button>
+        
+        <VideoModal />
+      </div>
+
+      <div className="text-center animate-fade-in-up animate-delay-600">
+        <p className="text-base text-business-black/75 font-medium">
+          🚀 <strong className="text-future-green">Early access open</strong> for innovative teams
+        </p>
+      </div>
     </div>
   );
 };
