@@ -57,9 +57,9 @@ const HowItWorksSection = () => {
         
         {/* Pathway Flow Steps Container */}
         <div className="relative">
-          {/* Desktop Pathway Flow Layout */}
+          {/* Desktop Pathway Flow Layout with centered consistent row alignment */}
           <div className="hidden lg:flex justify-center relative min-h-[400px] px-6">
-            <div className="w-full flex items-center justify-center relative z-10">
+            <div className="w-full flex items-center justify-center gap-2 relative z-10">
               {stepsData.map((step, idx) => (
                 <div key={idx} className="flex flex-col items-center relative w-1/4">
                   <StepCard

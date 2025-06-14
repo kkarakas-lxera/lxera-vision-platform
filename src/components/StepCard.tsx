@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
@@ -100,7 +99,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     </div>
   );
 
-  // Common card content
+  // Card content: updated subtitle, metrics colors (avoid future green text)
   const CardContentBody = (
     <>
       {arrow}
@@ -108,7 +107,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
       <div className="flex flex-col items-center">
         <div className="mb-1">{IconBadge}</div>
         <h3 className="text-lg font-bold text-business-black text-center mt-2">{step.title}</h3>
-        <div className="text-sm text-future-green/90 font-semibold mt-1 mb-2 text-center">{step.subtitle}</div>
+        <div className="text-sm text-business-black/70 font-semibold mt-1 mb-2 text-center">{step.subtitle}</div>
         <ul className="mb-3 mt-2 space-y-1">
           {step.bullets.map((b, i) => (
             <li key={i} className="text-business-black/80 text-sm flex items-start gap-1">
@@ -119,7 +118,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
         </ul>
         {VideoThumbnail}
         {VideoCaption}
-        <div className="mt-3 mb-1 text-xs font-semibold text-future-green/90 text-center">{step.metrics}</div>
+        <div className="mt-3 mb-1 text-xs font-semibold text-business-black/80 text-center">{step.metrics}</div>
         {step.cta && (
           <div className="mt-1 flex justify-center">
             <Button
@@ -145,33 +144,33 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
 
   // --- Pathway Flow Layouts ---
   if (layout === "pathway") {
-    // Desktop: horizontal pathway with basic animation
+    // Desktop: horizontal pathway with improved alignment
     return (
       <div
         ref={ref}
         className={`
-          relative z-10 group transition-transform
+          relative z-10 group transition-transform flex flex-col items-center
           ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
         `}
-        style={{ animationDelay: `${index * 0.15}s`, minWidth: 280, maxWidth: 330 }}
+        style={{ animationDelay: `${index * 0.15}s`, minWidth: 300, maxWidth: 340 }}
       >
-        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500">
-          <CardContent className="p-6 flex flex-col h-full">{CardContentBody}</CardContent>
+        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500 flex flex-col items-center h-full">
+          <CardContent className="p-6 flex flex-col h-full items-center">{CardContentBody}</CardContent>
         </Card>
       </div>
     );
   }
 
   if (layout === "pathway-vertical") {
-    // Mobile: stacked pathway
+    // Mobile: stacked pathway with improved alignment
     return (
       <div
         ref={ref}
-        className={`relative group ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"} ml-11`}
+        className={`relative group flex flex-col items-center ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"} ml-11`}
         style={{ animationDelay: `${index * 0.18}s` }}
       >
-        <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500">
-          <CardContent className="p-4">{CardContentBody}</CardContent>
+        <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500 flex flex-col items-center">
+          <CardContent className="p-4 flex flex-col items-center">{CardContentBody}</CardContent>
         </Card>
       </div>
     );
