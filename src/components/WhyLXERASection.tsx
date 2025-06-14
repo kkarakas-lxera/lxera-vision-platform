@@ -2,18 +2,17 @@ import CapabilityCard from "./CapabilityCard";
 import AnimatedBackground from "./AnimatedBackground";
 import SectionHeader from "./SectionHeader";
 import TestimonialCarousel from "./TestimonialCarousel";
-import CapabilityFilter from "./CapabilityFilter";
+// import CapabilityFilter from "./CapabilityFilter"; // Removed
 import StatsCounter from "./StatsCounter";
 import { capabilitiesData } from "@/data/capabilitiesData";
 import { useState } from "react";
 
 const WhyLXERASection = () => {
-  const [activeFilter, setActiveFilter] = useState("all");
+  // Removed filter state and logic, all cards are always shown
+  // const [activeFilter, setActiveFilter] = useState("all");
 
-  const filteredCapabilities = capabilitiesData.filter(capability => {
-    if (activeFilter === "all") return true;
-    return capability.category === activeFilter;
-  });
+  // Show all capabilities
+  const filteredCapabilities = capabilitiesData;
 
   return (
     <>
@@ -40,11 +39,7 @@ const WhyLXERASection = () => {
             subtitle="Strategic Outcomes with Tangible Impact"
           />
 
-          {/* Capability filter bar */}
-          <CapabilityFilter 
-            activeFilter={activeFilter} 
-            onFilterChange={setActiveFilter} 
-          />
+          {/* Capability filter bar REMOVED */}
 
           {/* Capabilities grid: add more spacing, grouping on mobile */}
           <div className="space-y-16 lg:space-y-20 px-1">
