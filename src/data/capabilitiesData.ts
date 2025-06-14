@@ -52,8 +52,8 @@ export const capabilitiesData: CapabilityData[] = [
   },
   {
     icon: Users,
-    // Updated contents below!
-    title: "💡 Enhanced Engagement and Motivation",
+    // Removed lamp/💡 emoji from the title as requested.
+    title: "Enhanced Engagement and Motivation",
     valueStatement: "Where emotion meets education.",
     description: "LXERA uses emotional intelligence and gamification to keep learners connected and inspired.",
     features: [
