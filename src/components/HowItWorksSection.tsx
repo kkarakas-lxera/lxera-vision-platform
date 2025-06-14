@@ -55,67 +55,60 @@ const HowItWorksSection = () => {
           </div>
         </div>
         
-        {/* Steps Container */}
+        {/* Pathway Flow Steps Container */}
         <div className="relative">
-          {/* Desktop Alternating Vertical Timeline Layout */}
-          <div className="hidden lg:flex justify-center relative min-h-[680px]">
-            {/* Central vertical line */}
-            <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-gradient-to-b from-future-green/10 via-future-green/60 to-smart-beige/30 rounded-full z-0" style={{ transform: "translateX(-50%)" }}></div>
-            <div className="grid grid-cols-2 gap-x-12 w-full z-10">
-              {/* Left side cards (even indexes) and right side cards (odd indexes) */}
-              <div className="flex flex-col gap-24">
-                {stepsData.map((step, idx) =>
-                  idx % 2 === 0 ? (
-                    <div key={idx} className="flex justify-end">
-                      <StepCard
-                        step={step}
-                        index={idx}
-                        isLast={idx === stepsData.length - 1}
-                        layout="desktop"
-                        side="left"
-                      />
+          {/* Desktop Pathway Flow Layout */}
+          <div className="hidden lg:flex justify-center relative min-h-[400px] px-6">
+            <div className="w-full flex items-center justify-center relative z-10">
+              {stepsData.map((step, idx) => (
+                <div key={idx} className="flex flex-col items-center relative w-1/4">
+                  <StepCard
+                    step={step}
+                    index={idx}
+                    isLast={idx === stepsData.length - 1}
+                    layout="pathway"
+                  />
+                  {/* Arrow Connector, except after last step */}
+                  {idx < stepsData.length - 1 && (
+                    <div
+                      className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-2 z-20"
+                      style={{ width: '60px', height: '28px' }}
+                      aria-hidden="true"
+                    >
+                      {/* SVG Curved Pathway Arrow */}
+                      <svg width="60" height="32" viewBox="0 0 60 32" fill="none">
+                        <path d="M4 20 Q30 1 56 20" stroke="#7AE5C6" strokeWidth="4" fill="none" />
+                        <polygon points="56,20 50,18 54,28" fill="#7AE5C6"/>
+                      </svg>
                     </div>
-                  ) : (
-                    <div key={`spacer-left-${idx}`} className="h-16"></div>
-                  )
-                )}
-              </div>
-              <div className="flex flex-col gap-24">
-                {stepsData.map((step, idx) =>
-                  idx % 2 === 1 ? (
-                    <div key={idx} className="flex justify-start">
-                      <StepCard
-                        step={step}
-                        index={idx}
-                        isLast={idx === stepsData.length - 1}
-                        layout="desktop"
-                        side="right"
-                      />
-                    </div>
-                  ) : (
-                    <div key={`spacer-right-${idx}`} className="h-16"></div>
-                  )
-                )}
-              </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* Pathway baseline (decorative) */}
+            <div className="absolute left-0 right-0 bottom-0 h-3 flex z-0 items-center pointer-events-none">
+              <div className="w-full h-1 rounded bg-gradient-to-r from-future-green via-future-green/50 to-future-green/10 blur-xxs opacity-50" />
             </div>
           </div>
-
-          {/* Mobile Layout: stack vertical, no alternation */}
+          {/* Mobile Vertical Pathway Flow */}
           <div className="lg:hidden space-y-8 relative">
-            {/* Timeline as before */}
-            <Timeline stepCount={stepsData.length} layout="mobile" />
+            {/* Decorative pathway line for mobile */}
+            <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
             {stepsData.map((step, index) => (
-              <div key={index}>
+              <div key={index} className="relative z-10">
                 <StepCard
                   step={step}
                   index={index}
                   isLast={index === stepsData.length - 1}
-                  layout="mobile"
+                  layout="pathway-vertical"
                 />
-                {/* Enhanced mobile connector */}
+                {/* Curved connector (except after last card) */}
                 {index < stepsData.length - 1 && (
-                  <div className="flex justify-center my-6 relative z-10">
-                    <div className="w-1 h-12 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full animate-pulse"></div>
+                  <div className="flex justify-start pl-14 py-0.5 -mt-3 mb-4 relative z-20">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                      <path d="M4 4 Q20 16 28 28" stroke="#7AE5C6" strokeWidth="3" fill="none" />
+                      <polygon points="28,28 24,24 28,22" fill="#7AE5C6"/>
+                    </svg>
                   </div>
                 )}
               </div>

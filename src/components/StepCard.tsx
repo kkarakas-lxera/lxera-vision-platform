@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
@@ -10,25 +11,15 @@ interface StepCardProps {
   step: StepData;
   index: number;
   isLast: boolean;
-  layout: "desktop" | "mobile";
+  layout: "desktop" | "mobile" | "pathway" | "pathway-vertical";
   side?: "left" | "right";
 }
 
-const iconMap = {
-  Users,
-  Brain,
-  BarChart3,
-  Lightbulb,
-  UserCheck,
-  Cpu,
-  TrendingUp,
-  Rocket,
-};
+const iconMap = { Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket };
 
 export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const MainIcon = iconMap[step.iconName as keyof typeof iconMap];
-  const SubIcon = iconMap[step.subIconName as keyof typeof iconMap];
 
   // Animate card on scroll into view
   const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.18 });
@@ -40,15 +31,13 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     }
   };
 
-  // Layout placement styling for vertical timeline
-  let sideAlign = "";
-  let arrow = null;
+  // Used only for original timeline layouts
+  let arrow = null, sideAlign = "";
   if (layout === "desktop" && side) {
     sideAlign =
       side === "left"
         ? "ml-auto mr-8 pl-0 pr-8"
         : "mr-auto ml-8 pr-0 pl-8";
-    // Optionally: draw an arrow pointing to the timeline
     arrow = (
       <span
         className={`
@@ -61,14 +50,18 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     );
   }
 
+  // Pathway step number badge (more prominent)
   const NumberBadge = (
     <div className="flex items-center justify-center mb-3">
-      <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green/80 rounded-full shadow-lg flex items-center justify-center scale-105">
-        <span className="text-3xl font-extrabold text-business-black tracking-tight">{step.step}</span>
+      <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green/90 rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20">
+        <span className="text-3xl font-extrabold text-business-black tracking-tight">
+          {step.step}
+        </span>
       </div>
     </div>
   );
 
+  // Main icon display, as before
   const IconBadge = (
     <div className="w-12 h-12 bg-gradient-to-br from-smart-beige/90 to-future-green/30 rounded-full flex items-center justify-center shadow group-hover:shadow-lg transition-all duration-500">
       <MainIcon className="w-6 h-6 text-future-green" />
@@ -107,7 +100,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     </div>
   );
 
-  // Card content
+  // Common card content
   const CardContentBody = (
     <>
       {arrow}
@@ -150,7 +143,41 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     </>
   );
 
-  // Desktop alternating timeline layout
+  // --- Pathway Flow Layouts ---
+  if (layout === "pathway") {
+    // Desktop: horizontal pathway with basic animation
+    return (
+      <div
+        ref={ref}
+        className={`
+          relative z-10 group transition-transform
+          ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
+        `}
+        style={{ animationDelay: `${index * 0.15}s`, minWidth: 280, maxWidth: 330 }}
+      >
+        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500">
+          <CardContent className="p-6 flex flex-col h-full">{CardContentBody}</CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (layout === "pathway-vertical") {
+    // Mobile: stacked pathway
+    return (
+      <div
+        ref={ref}
+        className={`relative group ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"} ml-11`}
+        style={{ animationDelay: `${index * 0.18}s` }}
+      >
+        <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500">
+          <CardContent className="p-4">{CardContentBody}</CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Fallbacks for old layouts (desktop alternating, mobile)
   if (layout === "desktop") {
     return (
       <div
@@ -175,7 +202,6 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
     );
   }
 
-  // Mobile layout
   if (layout === "mobile") {
     return (
       <div
