@@ -9,6 +9,12 @@ const HeroStats = () => {
     { icon: Lightbulb, value: "72%", label: "Innovation Lift", description: "Boost in innovative thinking" }
   ];
 
+  const partnerLogos = [
+    { src: "/partner-logo-1.svg", alt: "Placeholder Logo 1" },
+    { src: "/partner-logo-2.svg", alt: "Placeholder Logo 2" },
+    { src: "/partner-logo-3.svg", alt: "Placeholder Logo 3" }
+  ];
+
   return (
     <div className="mt-12">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
@@ -40,6 +46,22 @@ const HeroStats = () => {
       <p className="text-xs text-business-black/60 mt-7 text-center max-w-2xl mx-auto font-medium">
         *Based on industry research & projected benchmarks
       </p>
+      <div className="mt-6 flex flex-col items-center">
+        <span className="text-business-black/70 font-medium text-base mb-2">
+          Used by early teams at
+        </span>
+        <div className="flex gap-6 justify-center items-center">
+          {partnerLogos.map((logo, i) => (
+            <img
+              src={logo.src}
+              alt={logo.alt}
+              key={logo.src}
+              className="h-8 w-auto opacity-70 grayscale hover:opacity-100 hover:grayscale-0 transition duration-300"
+              style={{ maxWidth: 96 }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

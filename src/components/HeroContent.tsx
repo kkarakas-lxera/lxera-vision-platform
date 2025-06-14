@@ -1,26 +1,23 @@
+
 const HeroContent = () => {
   return (
     <div className="text-center space-y-10">
       <div className="animate-fade-in-up">
         <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
-          <span className="text-business-black">LXERA is the first</span><br />
-          <span className="drop-shadow-sm" style={{ color: '#aeb171' }}>
-            Learning & Innovation Experience
-          </span><br />
-          <span className="text-business-black drop-shadow-sm">Platform</span>
+          <span className="block text-business-black">LXERA is the first</span>
+          <span className="block drop-shadow-sm" style={{ color: '#aeb171' }}>
+            Learning & Innovation
+          </span>
+          <span className="block text-business-black drop-shadow-sm">Experience Platform</span>
         </h1>
       </div>
 
       <div className="animate-fade-in-up animate-delay-200">
-        <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-4xl mx-auto font-medium leading-relaxed">
+        <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-3xl mx-auto font-medium leading-relaxed">
           Empower teams to{" "}
-          <span className="relative">
-            learn faster
-          </span>{" "}
-          and{" "}
-          <span>
-            innovate from the frontline
-          </span>{" "}
+          <b className="text-business-black">learn faster</b>,<br className="hidden sm:inline" />
+          <b className="text-business-black"> innovate deeper</b>, and{" "}
+          <b className="text-business-black">grow</b> from the frontline—
           in one intelligent ecosystem.
         </p>
       </div>
