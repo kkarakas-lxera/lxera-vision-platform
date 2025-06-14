@@ -106,14 +106,19 @@ export const capabilitiesData: CapabilityData[] = [
   },
   {
     icon: Settings,
-    title: "Rapid Prototyping & Innovation",
-    valueStatement: "Turn learners into innovators.",
+    title: "Rapid Prototyping & Innovation Enablement",
+    valueStatement: "Fuel creativity from the ground up.",
+    description: "LXERA turns employees into innovators through citizen development.",
     features: [
-      "Low-code tools for citizen development and experimentation",
-      "Collaborative sandboxes for testing ideas safely",
-      "Innovation sprints that drive bottom-up solutions"
+      "Tools for co-creation, experimentation, and rapid prototyping",
+      "Community learning spaces for bottom-up idea generation"
     ],
-    impactStat: "💡 72% more likely to innovate",
+    impactStat: "",
+    tangibleResults: {
+      icon: Lightbulb,
+      label: "Tangible Results",
+      description: "Teams using LXERA are 72% more likely to create innovative solutions within their first 90 days."
+    },
     iconBg: "bg-light-green",
     badgeBg: "bg-light-green/40",
     badgeBorder: "border-light-green",
