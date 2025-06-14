@@ -112,6 +112,15 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
         {VideoThumbnail}
         {VideoCaption}
         <div className="mt-3 mb-1 text-xs font-semibold text-business-black/80 text-center">{step.metrics}</div>
+        {step.cta && (
+          <Button
+            size="sm"
+            className="mt-2 bg-future-green text-business-black hover:bg-future-green/80 font-semibold rounded-full transition-all duration-300 shadow-sm px-5 py-2"
+            type="button"
+          >
+            {step.cta}
+          </Button>
+        )}
       </div>
       {showModal && (
         <VideoModal
