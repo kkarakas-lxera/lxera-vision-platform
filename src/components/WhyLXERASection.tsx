@@ -71,59 +71,7 @@ const WhyLXERASection = () => {
               );
             })}
           </div>
-
-          {/* Section CTA: Enhance focus */}
-          <div className="mt-24 text-center animate-fade-in-up animate-delay-1000">
-            <div className="relative max-w-5xl mx-auto overflow-hidden rounded-3xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-smart-beige/85 via-future-green/30 to-smart-beige/70 backdrop-blur-xl shadow-2xl"></div>
-              <div className="relative p-10 lg:p-12">
-                {/* Urgency indicator */}
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-future-green/15 to-smart-beige/20 text-future-green text-sm font-medium px-4 py-2 rounded-full mb-6 shadow-md">
-                  <div className="w-2 h-2 bg-future-green rounded-full animate-pulse"></div>
-                  Limited Time: Free Implementation Consultation
-                </div>
-
-                {/* CTA heading */}
-                <h3 className="text-3xl lg:text-4xl font-bold text-business-black mb-6 hover:text-future-green transition-colors duration-500 drop-shadow-md">
-                  Ready to Experience the Difference?
-                </h3>
-                <p className="text-xl text-business-black/80 leading-relaxed mb-8 max-w-3xl mx-auto">
-                  Join forward-thinking organizations that are already transforming their learning and development with LXERA's innovative platform.
-                </p>
-
-                {/* Enhanced CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-                  <button className="group bg-future-green hover:bg-emerald text-business-black hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-emerald-300 shadow-md relative overflow-hidden focus-visible:ring-2 focus-visible:ring-emerald/50 focus:outline-none shadow-emerald-200">
-                    <span className="relative z-10">Start Your Transformation</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                  </button>
-                  <button className="border-2 border-future-green text-future-green hover:bg-future-green hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-emerald/30">
-                    Watch Interactive Demo
-                  </button>
-                </div>
-
-                {/* Features */}
-                <div className="flex flex-wrap justify-center gap-6 text-sm text-business-black/60">
-                  <span className="flex items-center gap-2 bg-white/60 rounded-full px-3 py-1">
-                    <div className="w-1.5 h-1.5 bg-future-green rounded-full animate-pulse"></div>
-                    Enterprise Security
-                  </span>
-                  <span className="flex items-center gap-2 bg-white/60 rounded-full px-3 py-1">
-                    <div className="w-1.5 h-1.5 bg-emerald rounded-full animate-pulse animate-delay-300"></div>
-                    99.9% Uptime
-                  </span>
-                  <span className="flex items-center gap-2 bg-white/60 rounded-full px-3 py-1">
-                    <div className="w-1.5 h-1.5 bg-future-green rounded-full animate-pulse animate-delay-600"></div>
-                    24/7 Support
-                  </span>
-                  <span className="flex items-center gap-2 bg-white/60 rounded-full px-3 py-1">
-                    <div className="w-1.5 h-1.5 bg-emerald rounded-full animate-pulse animate-delay-900"></div>
-                    30-Day Money Back
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Removed "Ready to Experience the Difference?" CTA section here */}
         </div>
       </section>
     </>
@@ -131,4 +79,3 @@ const WhyLXERASection = () => {
 };
 
 export default WhyLXERASection;
-
