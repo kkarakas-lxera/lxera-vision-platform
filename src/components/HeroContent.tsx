@@ -1,4 +1,3 @@
-
 const HeroContent = () => {
   return (
     <div className="text-center space-y-10">
@@ -15,13 +14,7 @@ const HeroContent = () => {
       <div className="animate-fade-in-up animate-delay-200">
         <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-4xl mx-auto font-medium leading-relaxed">
           Empower teams to{" "}
-          <span
-            className="relative"
-            style={{
-              borderBottom: "3px solid #7AE5C6", // subtle future-green underline
-              paddingBottom: 2,
-            }}
-          >
+          <span className="relative">
             learn faster
           </span>{" "}
           and{" "}
