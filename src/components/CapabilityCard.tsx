@@ -23,6 +23,7 @@ interface CapabilityCardProps {
   category?: string;
   useCases?: string[];
   roiMetrics?: string;
+  isVisible?: boolean; // NEW: driven by scroll observer
 }
 
 // Helper to wrap numbers in bold
@@ -57,15 +58,18 @@ const CapabilityCard = ({
   index,
   category,
   useCases = [],
-  roiMetrics
+  roiMetrics,
+  isVisible = true // default true for graceful fallback
 }: CapabilityCardProps) => {
   const isSpecial = Boolean(tangibleResults);
 
   return (
     <section
-      className="relative group transition-all duration-700 animate-fade-in-up p-0 md:p-1 focus-within:ring-2 focus-within:ring-future-green/40 rounded-2xl"
+      className={`relative group transition-all duration-700 focus-within:ring-2 focus-within:ring-future-green/40 rounded-2xl
+        ${isVisible ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
+      `}
       tabIndex={0}
-      style={{ animationDelay: `${300 + index * 150}ms` }}
+      // Delay is controlled by parent section; smooth fade-in by isVisible change
       aria-label={title}
     >
       {/* Soft grouping background */}

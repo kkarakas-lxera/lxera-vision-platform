@@ -1,19 +1,18 @@
+
 import CapabilityCard from "./CapabilityCard";
 import AnimatedBackground from "./AnimatedBackground";
 import SectionHeader from "./SectionHeader";
 import TestimonialCarousel from "./TestimonialCarousel";
-// import CapabilityFilter from "./CapabilityFilter"; // Removed
 import StatsCounter from "./StatsCounter";
 import { capabilitiesData } from "@/data/capabilitiesData";
 import { useState } from "react";
+import { useInView } from "@/hooks/useInView";
 
 const WhyLXERASection = () => {
-  // Removed filter state and logic, all cards are always shown
-  // const [activeFilter, setActiveFilter] = useState("all");
-
   // Show all capabilities
   const filteredCapabilities = capabilitiesData;
 
+  // We're going to track in-view states for each card.
   return (
     <>
       {/* Section Transition with consistent colors */}
@@ -39,29 +38,38 @@ const WhyLXERASection = () => {
             subtitle="LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across five core pillars."
           />
 
-          {/* Capability filter bar REMOVED */}
-
-          {/* Capabilities grid: add more spacing, grouping on mobile */}
+          {/* Capabilities grid with in-view animation */}
           <div className="space-y-16 lg:space-y-20 px-1">
-            {filteredCapabilities.map((capability, index) => (
-              <div
-                key={index}
-                className={`relative group ${index % 2 === 1 ? 'lg:ml-16' : ''} transition-all duration-500`}
-                style={{ animationDelay: `${400 + index * 200}ms` }}
-              >
-                {/* Decorative band, no sharp border */}
-                <div className={`absolute inset-0 blur-md rounded-3xl group-hover:scale-105 group-hover:opacity-70 transition-all duration-700 pointer-events-none
-                  ${index % 2 === 1
-                    ? "bg-gradient-to-r from-future-green/10 via-smart-beige/40 to-future-green/10"
-                    : "bg-gradient-to-l from-smart-beige/10 via-future-green/5 to-smart-beige/10"
-                  }
-                `}></div>
-                <CapabilityCard
-                  {...capability}
-                  index={index}
-                />
-              </div>
-            ))}
+            {filteredCapabilities.map((capability, index) => {
+              // Each card observes itself
+              const [ref, inView] = useInView<HTMLDivElement>({});
+
+              return (
+                <div
+                  key={index}
+                  ref={ref}
+                  className={`relative group ${index % 2 === 1 ? 'lg:ml-16' : ''} transition-all duration-500`}
+                  style={{
+                    animationDelay: inView
+                      ? `${300 + index * 150}ms`
+                      : undefined,
+                  }}
+                >
+                  {/* Decorative band */}
+                  <div className={`absolute inset-0 blur-md rounded-3xl group-hover:scale-105 group-hover:opacity-70 transition-all duration-700 pointer-events-none
+                    ${index % 2 === 1
+                      ? "bg-gradient-to-r from-future-green/10 via-smart-beige/40 to-future-green/10"
+                      : "bg-gradient-to-l from-smart-beige/10 via-future-green/5 to-smart-beige/10"
+                    }
+                  `}></div>
+                  <CapabilityCard
+                    {...capability}
+                    index={index}
+                    isVisible={inView}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* Section CTA: Enhance focus */}
