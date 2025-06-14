@@ -1,4 +1,3 @@
-
 import { TrendingUp, Zap, MessageCircle, Lightbulb } from "lucide-react";
 
 const HeroStats = () => {
@@ -43,8 +42,10 @@ const HeroStats = () => {
           </div>
         ))}
       </div>
-      <p className="text-xs text-business-black/60 mt-7 text-center max-w-2xl mx-auto font-medium">
-        *Based on industry research & projected benchmarks
+      <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "1rem" }}>
+        <em>
+          Already co-created with forward-thinking teams in learning, innovation, and digital transformation.
+        </em>
       </p>
       <div className="mt-6 flex flex-col items-center">
         <span className="text-business-black/70 font-medium text-base mb-2">
