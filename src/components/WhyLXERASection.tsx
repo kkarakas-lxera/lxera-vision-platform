@@ -41,8 +41,7 @@ const WhyLXERASection = () => {
 
           {/* Intro box with StatsCounter removed as requested */}
 
-          {/* Testimonial */}
-          <TestimonialCarousel />
+          {/* Testimonial Carousel removed as requested */}
 
           <CapabilityFilter 
             activeFilter={activeFilter} 
