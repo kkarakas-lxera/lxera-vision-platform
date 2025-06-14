@@ -30,7 +30,7 @@ export const stepsData: StepData[] = [
     cta: "Try Assessment",
     videoThumb: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=600&q=80&fm=webp",
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    videoCaption: "See this in action (15 sec demo)"
+    videoCaption: "Watch how this works (15 sec demo)"
   },
   {
     step: "02",
@@ -47,7 +47,7 @@ export const stepsData: StepData[] = [
     cta: "View Content",
     videoThumb: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&q=80&fm=webp",
     videoUrl: "https://www.w3schools.com/html/movie.mp4",
-    videoCaption: "See this in action (18 sec demo)"
+    videoCaption: "Watch how this works (18 sec demo)"
   },
   {
     step: "03",
@@ -64,7 +64,7 @@ export const stepsData: StepData[] = [
     cta: "See Analytics",
     videoThumb: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80&fm=webp",
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    videoCaption: "See this in action (12 sec demo)"
+    videoCaption: "Watch how this works (12 sec demo)"
   },
   {
     step: "04",
@@ -81,6 +81,6 @@ export const stepsData: StepData[] = [
     cta: "Start Creating",
     videoThumb: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&q=80&fm=webp",
     videoUrl: "https://www.w3schools.com/html/movie.mp4",
-    videoCaption: "See this in action (20 sec demo)"
+    videoCaption: "Watch how this works (20 sec demo)"
   }
 ];
