@@ -4,6 +4,7 @@ import { ProgressIndicator } from "@/components/ProgressIndicator";
 import { Timeline } from "@/components/Timeline";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { stepsData } from "@/data/howItWorksSteps";
+import HowItWorksStepsCTA from "./HowItWorksStepsCTA";
 
 const HowItWorksSection = () => {
   const { isVisible, currentStep, updateCurrentStep } = useScrollAnimation();
@@ -161,6 +162,7 @@ const HowItWorksSection = () => {
             </div>
           </div>
         </div>
+        <HowItWorksStepsCTA />
       </div>
     </section>
   );
