@@ -1,4 +1,3 @@
-
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -37,8 +36,8 @@ const CTASection = () => {
         >
           <span className="relative flex items-center justify-center w-full">
             <span className="mx-auto">Request a demo</span>
-            {/* Arrow is absolutely positioned on the right, without shifting "Request a demo" */}
-            <span className="absolute right-[-2.1rem] top-1/2 -translate-y-1/2 pointer-events-none">
+            {/* Arrow is absolutely positioned on the right, neatly inside the button */}
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
               <ArrowRight
                 className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
                 size={22}
@@ -53,4 +52,3 @@ const CTASection = () => {
 };
 
 export default CTASection;
-
