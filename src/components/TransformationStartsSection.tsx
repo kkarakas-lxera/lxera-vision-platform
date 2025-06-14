@@ -1,8 +1,17 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import React from "react";
 
 const TransformationStartsSection = () => {
+  const handleCTA = () => {
+    toast({
+      title: "Thanks for your interest!",
+      description: "You'll be notified when early access is available 🚀",
+    });
+  };
+
   return (
     <section className="w-full py-20 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
       {/* Animated background elements with consistent colors */}
@@ -12,17 +21,17 @@ const TransformationStartsSection = () => {
         <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle bg-gradient-to-r from-future-green/15 to-smart-beige/25 animate-delay-2000"></div>
       </div>
       <div className="max-w-4xl mx-auto relative z-10">
-        
+
         <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6 animate-fade-in-up">
           Your Transformation Starts Here
         </h2>
-        
+
         <p className="text-lg lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200">
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
-        
+
         {/* Removed the neutral quote here */}
-        
+
         <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
           <p className="text-business-black/80 font-medium">
             Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
@@ -33,16 +42,34 @@ const TransformationStartsSection = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
           <Button
             size="lg"
-            className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow transition-all duration-200"
+            className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow transition-all duration-200 
+              ring-0 focus-visible:ring-4 focus-visible:ring-future-green/40
+              hover:shadow-lg hover:ring-2 hover:ring-future-green/30
+              hover:drop-shadow-[0_6px_16px_rgba(87,238,185,0.3)]
+              active:scale-98
+              sm:text-lg
+              text-base
+              sm:px-8 px-6
+              sm:py-4 py-5
+              "
             aria-label="Get Early Access"
+            onClick={handleCTA}
           >
             Get Early Access
           </Button>
         </div>
-        
+
+        {/* Animated Arrow Down Indicator */}
+        <div className="flex justify-center mt-6 animate-fade-in-up animate-delay-900">
+          <ArrowDown
+            className="w-8 h-8 text-future-green animate-bounce-slow"
+            aria-label="Scroll down for more"
+          />
+        </div>
+
         <div className="flex justify-center mt-8 space-x-2 animate-fade-in animate-delay-800">
           {[1, 2, 3, 4].map((step, index) => (
-            <div 
+            <div
               key={step}
               className="w-2 h-2 rounded-full animate-pulse-slow bg-future-green/60"
               style={{
@@ -56,3 +83,4 @@ const TransformationStartsSection = () => {
   );
 };
 export default TransformationStartsSection;
+
