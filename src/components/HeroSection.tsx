@@ -6,7 +6,8 @@ import HeroStats from "./HeroStats";
 
 const HeroSection = () => {
   return (
-    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 2xl:px-10 bg-gradient-to-br from-smart-beige via-smart-beige/90 to-future-green/10 relative overflow-hidden">
+-    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 2xl:px-10 bg-gradient-to-br from-smart-beige via-smart-beige/90 to-future-green/10 relative overflow-hidden">
++    <section className="hero w-full pt-32 pb-4 px-6 lg:px-12 2xl:px-10 bg-gradient-to-br from-smart-beige via-smart-beige/90 to-future-green/10 relative overflow-hidden">
       {/* Decorative elements with consistent color palette */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
       <div className="absolute top-20 right-10 w-40 h-40 rounded-full blur-xl animate-pulse bg-gradient-to-br from-future-green/15 to-smart-beige/10"></div>
