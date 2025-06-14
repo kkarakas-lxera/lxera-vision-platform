@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -20,11 +21,7 @@ const TransformationStartsSection = () => {
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
-        {/* Changed: neutral quote, no green */}
-        <p className="text-base italic text-business-black/60 mb-8 animate-fade-in-up animate-delay-400">
-          "It's 3 steps ahead of where L&D is going."
-        </p>
-
+        {/* Removed the neutral quote here */}
         
         <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
           <p className="text-business-black/80 font-medium">
@@ -52,3 +49,4 @@ const TransformationStartsSection = () => {
   );
 };
 export default TransformationStartsSection;
+
