@@ -1,4 +1,3 @@
-
 import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -37,7 +36,7 @@ export const capabilitiesData: CapabilityData[] = [
       "IT professionals upskilling on cloud technologies at their own pace",
       "Healthcare workers completing compliance training efficiently"
     ],
-    roiMetrics: "ROI: 340% in 6 months"
+    roiMetrics: ""
   },
   {
     icon: Users,

@@ -30,6 +30,7 @@ const CapabilityCard = ({
   badgeBorder,
   secondaryIcon: SecondaryIcon,
   index,
+  category,
   useCases = [],
   roiMetrics
 }: CapabilityCardProps) => {
@@ -53,7 +54,7 @@ const CapabilityCard = ({
       <div className="relative z-10 flex flex-col lg:flex-row items-center backdrop-blur-[2px] p-6 lg:p-8 xl:p-12 min-h-[260px] md:min-h-[240px] shadow-lg hover:shadow-2xl bg-white/80 rounded-2xl transition-all duration-300 border border-future-green/20">
         {/* Icon & Stat */}
         <div className="lg:w-1/3 flex flex-col items-center lg:items-start mb-4 lg:mb-0">
-          {/* Icon: enhanced shadow, bounce, pulse and clear focus */}
+          {/* Icon */}
           <div
             className={`w-20 h-20 md:w-24 md:h-24 ${iconBg} rounded-2xl flex items-center justify-center mb-6 shadow-md transition-all duration-300
               group-hover:shadow-emerald-200 group-hover:scale-110 group-hover:animate-bounce-slow focus-visible:ring focus-visible:ring-future-green/50
@@ -73,22 +74,17 @@ const CapabilityCard = ({
               {impactStat}
             </span>
           </div>
-          {roiMetrics && (
-            <div className="mt-3 text-center lg:text-left text-xs bg-future-green/10 text-future-green font-semibold rounded-full px-3 py-1">
-              {roiMetrics}
-            </div>
-          )}
+          {/* Remove ROI metrics text (no longer shown) */}
         </div>
         <div className="lg:w-2/3 pl-0 lg:pl-8">
-          {/* Headings: hierarchy improved */}
+          {/* Headings */}
           <h3 className="text-2xl md:text-3xl font-extrabold text-business-black mb-2 tracking-tight leading-tight">
             {title}
           </h3>
           <p className="text-lg md:text-xl text-business-black/80 font-medium mb-6">
             {valueStatement}
           </p>
-
-          {/* Bullets: more space, visual dividers for grouping */}
+          {/* Bullets */}
           <ul className="space-y-0 mb-4">
             {features.map((feature, featureIndex) => (
               <li
@@ -103,31 +99,7 @@ const CapabilityCard = ({
               </li>
             ))}
           </ul>
-
-          {/* Use Cases accordion, visually grouped */}
-          {useCases.length > 0 && (
-            <div className="border-t border-future-green/20 pt-4 mt-2">
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-2 text-future-green hover:text-emerald font-semibold text-sm mb-2 focus-visible:outline-none focus-visible:ring focus-visible:ring-future-green/50"
-                aria-expanded={isExpanded}
-                aria-controls={`usecases-${index}`}
-              >
-                <span>Real-World Use Cases</span>
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              {isExpanded && (
-                <div className="space-y-2 mt-2" id={`usecases-${index}`}>
-                  {useCases.map((useCase, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-business-black/70 text-sm">
-                      <span className="w-1.5 h-1.5 bg-emerald rounded-full mt-2 flex-shrink-0"></span>
-                      <span>{useCase}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {/* Removed Real-World Use Cases accordion */}
         </div>
       </div>
     </section>
