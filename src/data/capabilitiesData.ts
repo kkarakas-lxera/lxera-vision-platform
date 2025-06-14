@@ -1,4 +1,4 @@
-import { Brain, Heart, BarChart3, Bulb, Users, Lightbulb, Shield } from "lucide-react";
+import { Brain, Heart, BarChart3, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
   icon: any;
@@ -105,7 +105,7 @@ export const capabilitiesData: CapabilityData[] = [
     roiMetrics: "Cost Reduction: 45%"
   },
   {
-    icon: Bulb,
+    icon: Lightbulb,
     title: "Rapid Prototyping & Innovation Enablement",
     valueStatement: "Fuel creativity from the ground up.",
     description: "LXERA turns employees into innovators through citizen development.",
@@ -115,14 +115,14 @@ export const capabilitiesData: CapabilityData[] = [
     ],
     impactStat: "",
     tangibleResults: {
-      icon: Bulb,
+      icon: Lightbulb,
       label: "Tangible Results",
       description: "Teams using LXERA are 72% more likely to create innovative solutions within their first 90 days."
     },
     iconBg: "bg-light-green",
     badgeBg: "bg-light-green/40",
     badgeBorder: "border-light-green",
-    secondaryIcon: Bulb,
+    secondaryIcon: Lightbulb,
     category: "learning",
     useCases: [
       "Engineering teams rapidly prototyping new solutions for client challenges",
