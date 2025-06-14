@@ -1,7 +1,6 @@
-
 const HeroContent = () => {
   return (
-    <div className="w-full flex flex-col lg:flex-row lg:justify-center lg:items-center">
+    <div className="hero-content w-full flex flex-col lg:flex-row lg:justify-center lg:items-center">
       <div className="w-full lg:max-w-2xl mx-auto text-center space-y-10">
         {/* Headline */}
         <div className="animate-fade-in-up">
@@ -42,4 +41,3 @@ const HeroContent = () => {
 };
 
 export default HeroContent;
-
