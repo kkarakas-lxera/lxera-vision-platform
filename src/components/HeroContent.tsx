@@ -1,25 +1,34 @@
+
 const HeroContent = () => {
   return (
     <div className="hero-content w-full flex flex-col lg:flex-row lg:justify-center lg:items-center">
       <div className="w-full lg:max-w-2xl mx-auto text-center space-y-10">
         {/* Headline */}
         <div className="animate-fade-in-up">
-          <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
-            LXERA is the first<br />
+          <h1 className="headline text-3xl xs:text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
+            <span>
+              LXERA is the first
+              {/* Only break to new line on small screens and above */}
+              <br className="hidden sm:inline" />
+            </span>
             <span
-              className="drop-shadow-sm"
+              className="block sm:inline drop-shadow-sm"
               style={{ color: '#B1B973' }}
             >
-              Learning & Innovation
+              {/* On mobile, this is a block; on sm+ it's inline */}
+              &nbsp;Learning & Innovation
             </span>
-            <br />
-            Experience Platform
+            {/* Only break to new line on small screens and above */}
+            <br className="hidden sm:inline" />
+            <span>
+              &nbsp;Experience Platform
+            </span>
           </h1>
         </div>
 
         {/* Subheadline */}
         <div className="animate-fade-in-up animate-delay-200">
-          <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-3xl mx-auto font-medium leading-relaxed">
+          <p className="subheadline text-base xs:text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-3xl mx-auto font-medium leading-relaxed">
             Empower teams to{" "}
             <b className="text-business-black">learn faster,</b>
             <br className="hidden sm:block" />
@@ -41,3 +50,4 @@ const HeroContent = () => {
 };
 
 export default HeroContent;
+
