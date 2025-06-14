@@ -15,9 +15,12 @@ const HeroContent = () => {
       <div className="animate-fade-in-up animate-delay-200">
         <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-3xl mx-auto font-medium leading-relaxed">
           Empower teams to{" "}
-          <b className="text-business-black">learn faster</b>,<br className="hidden sm:inline" />
-          <b className="text-business-black"> innovate deeper</b>, and{" "}
-          <b className="text-business-black">grow</b> from the frontline—
+          <b className="text-business-black">learn faster,</b>
+          <br className="hidden sm:block" />
+          <b className="text-business-black"> innovate deeper,</b>
+          <br className="hidden sm:block" />
+          and <b className="text-business-black">grow</b> from the frontline—
+          <br className="hidden sm:block" />
           in one intelligent ecosystem.
         </p>
       </div>
@@ -30,3 +33,4 @@ const HeroContent = () => {
 };
 
 export default HeroContent;
+
