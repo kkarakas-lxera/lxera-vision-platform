@@ -29,9 +29,9 @@ const WhyLXERASection = () => {
         </div>
       </div>
       
-      <section id="platform" className="w-full pt-4 pb-24 px-6 lg:px-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/3 via-smart-beige/50 to-future-green/8"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/6"></div>
+      <section id="platform" className="w-full pt-4 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-future-green/3 via-smart-beige/60 to-future-green/8"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
         <AnimatedBackground />
         <div className="max-w-7xl mx-auto relative z-10">
           <SectionHeader 
@@ -42,7 +42,8 @@ const WhyLXERASection = () => {
           {/* Intro section with updated colors */}
           <div className="text-center mb-16 animate-fade-in-up animate-delay-600">
             <div className="max-w-4xl mx-auto relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-smart-beige/60 via-smart-beige/40 to-future-green/20 backdrop-blur-sm rounded-3xl border border-future-green/30 shadow-lg -m-8"></div>
+              {/* No strong border, keep soft blending */}
+              <div className="absolute inset-0 bg-gradient-to-r from-smart-beige/80 via-white/60 to-future-green/20 backdrop-blur-md rounded-3xl shadow-lg -m-8"></div>
               
               <div className="relative z-10 p-8">
                 <p className="text-xl lg:text-2xl text-business-black/80 leading-relaxed font-medium mb-6">
@@ -65,6 +66,7 @@ const WhyLXERASection = () => {
             </div>
           </div>
 
+          {/* Testimonial */}
           <TestimonialCarousel />
 
           <CapabilityFilter 
@@ -72,18 +74,21 @@ const WhyLXERASection = () => {
             onFilterChange={setActiveFilter} 
           />
 
-          {/* Capabilities grid with updated background patterns */}
-          <div className="space-y-12 lg:space-y-16">
+          {/* Capabilities grid as open bands, less card-like */}
+          <div className="space-y-16 lg:space-y-20 px-1">
             {filteredCapabilities.map((capability, index) => (
               <div 
                 key={index}
-                className={`relative ${index % 2 === 1 ? 'lg:ml-16' : ''}`}
+                className={`relative group ${index % 2 === 1 ? 'lg:ml-16' : ''}`}
                 style={{animationDelay: `${400 + index * 200}ms`}}
               >
-                {index % 2 === 1 && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-smart-beige/30 via-future-green/5 to-smart-beige/20 rounded-3xl blur-sm"></div>
-                )}
-                
+                {/* Decorative band, no sharp border */}
+                <div className={`absolute inset-0 blur-md rounded-3xl group-hover:scale-105 group-hover:opacity-70 transition-all duration-700 pointer-events-none
+                  ${index % 2 === 1 
+                    ? "bg-gradient-to-r from-future-green/10 via-smart-beige/40 to-future-green/10" 
+                    : "bg-gradient-to-l from-smart-beige/10 via-future-green/5 to-smart-beige/10"
+                  }
+                `}></div>
                 <CapabilityCard
                   {...capability}
                   index={index}
@@ -92,10 +97,10 @@ const WhyLXERASection = () => {
             ))}
           </div>
 
-          {/* CTA section with consistent gradient */}
-          <div className="mt-20 text-center animate-fade-in-up animate-delay-1000">
-            <div className="relative max-w-5xl mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-br from-smart-beige/70 via-future-green/10 to-smart-beige/50 rounded-3xl backdrop-blur-md border border-future-green/40 shadow-2xl"></div>
+          {/* CTA section softened, no outlined box */}
+          <div className="mt-24 text-center animate-fade-in-up animate-delay-1000">
+            <div className="relative max-w-5xl mx-auto overflow-hidden rounded-3xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-smart-beige/70 via-future-green/30 to-smart-beige/50 backdrop-blur-xl shadow-2xl"></div>
               
               <div className="relative p-10 lg:p-12">
                 <div className="absolute top-6 left-6 w-3 h-3 bg-future-green/30 rounded-full"></div>

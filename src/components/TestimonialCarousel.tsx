@@ -39,40 +39,34 @@ const TestimonialCarousel = () => {
   return (
     <div className="mb-16 animate-fade-in-up animate-delay-800">
       <div className="max-w-4xl mx-auto relative">
-        <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-3xl border border-white/50 shadow-xl p-8 lg:p-12 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-future-green/10 to-transparent rounded-full blur-2xl"></div>
-          
-          <div className="relative z-10">
-            <div className="flex items-center justify-center mb-6">
-              <Quote className="w-12 h-12 text-future-green opacity-60" />
-            </div>
-            
-            <div className="text-center">
-              <blockquote className="text-xl lg:text-2xl text-business-black/90 font-medium mb-6 leading-relaxed">
-                "{testimonials[currentIndex].quote}"
-              </blockquote>
-              
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div className="text-center sm:text-left">
-                  <cite className="text-business-black font-semibold not-italic">
-                    {testimonials[currentIndex].author}
-                  </cite>
-                  <p className="text-business-black/70 text-sm">
-                    {testimonials[currentIndex].role}
-                  </p>
-                  <p className="text-business-black/60 text-sm">
-                    {testimonials[currentIndex].company}
-                  </p>
-                </div>
-                
-                <div className="bg-future-green/20 text-future-green px-4 py-2 rounded-full text-sm font-medium">
-                  {testimonials[currentIndex].impact}
-                </div>
+        {/* Soft gradient blur "band" instead of strong box */}
+        <div className="absolute -inset-3 sm:-inset-6 lg:-inset-10 bg-gradient-to-br from-future-green/15 via-smart-beige/40 to-white/60 rounded-3xl blur-lg"></div>
+        
+        <div className="relative z-10 p-8 lg:p-12">
+          <div className="flex items-center justify-center mb-6">
+            <Quote className="w-12 h-12 text-future-green opacity-60" />
+          </div>
+          <div className="text-center">
+            <blockquote className="text-xl lg:text-2xl text-business-black/90 font-medium mb-6 leading-relaxed">
+              "{testimonials[currentIndex].quote}"
+            </blockquote>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="text-center sm:text-left">
+                <cite className="text-business-black font-semibold not-italic">
+                  {testimonials[currentIndex].author}
+                </cite>
+                <p className="text-business-black/70 text-sm">
+                  {testimonials[currentIndex].role}
+                </p>
+                <p className="text-business-black/60 text-sm">
+                  {testimonials[currentIndex].company}
+                </p>
+              </div>
+              <div className="bg-future-green/20 text-future-green px-4 py-2 rounded-full text-sm font-medium">
+                {testimonials[currentIndex].impact}
               </div>
             </div>
           </div>
-          
           {/* Carousel indicators */}
           <div className="flex justify-center mt-8 gap-2">
             {testimonials.map((_, index) => (
@@ -84,6 +78,7 @@ const TestimonialCarousel = () => {
                     ? 'bg-future-green scale-125' 
                     : 'bg-future-green/30 hover:bg-future-green/50'
                 }`}
+                aria-label={`Show testimonial ${index + 1}`}
               />
             ))}
           </div>
