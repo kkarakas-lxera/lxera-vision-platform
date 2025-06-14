@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
@@ -12,6 +11,7 @@ interface StepCardProps {
   index: number;
   isLast: boolean;
   layout: "desktop" | "mobile";
+  side?: "left" | "right";
 }
 
 const iconMap = {
@@ -25,7 +25,7 @@ const iconMap = {
   Rocket,
 };
 
-export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
+export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const MainIcon = iconMap[step.iconName as keyof typeof iconMap];
   const SubIcon = iconMap[step.subIconName as keyof typeof iconMap];
@@ -39,6 +39,27 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
       setShowModal(true);
     }
   };
+
+  // Layout placement styling for vertical timeline
+  let sideAlign = "";
+  let arrow = null;
+  if (layout === "desktop" && side) {
+    sideAlign =
+      side === "left"
+        ? "ml-auto mr-8 pl-0 pr-8"
+        : "mr-auto ml-8 pr-0 pl-8";
+    // Optionally: draw an arrow pointing to the timeline
+    arrow = (
+      <span
+        className={`
+          absolute top-16 ${side === "left" ? "right-0 -mr-4" : "left-0 -ml-4"}
+          z-20 w-8 flex justify-center pointer-events-none
+        `}
+      >
+        <span className="block w-3 h-3 bg-future-green rounded-full border-2 border-white shadow"></span>
+      </span>
+    );
+  }
 
   const NumberBadge = (
     <div className="flex items-center justify-center mb-3">
@@ -89,6 +110,7 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   // Card content
   const CardContentBody = (
     <>
+      {arrow}
       {NumberBadge}
       <div className="flex flex-col items-center">
         <div className="mb-1">{IconBadge}</div>
@@ -128,7 +150,32 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
     </>
   );
 
-  // Desktop and mobile layouts
+  // Desktop alternating timeline layout
+  if (layout === "desktop") {
+    return (
+      <div
+        ref={ref}
+        className={`
+          relative z-10 group
+          ${side === "left" ? "items-end text-right" : "items-start text-left"}
+          ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8 transition-all duration-500"}
+        `}
+        style={{
+          animationDelay: `${index * 0.18}s`,
+          minWidth: '325px',
+          maxWidth: '420px',
+        }}
+      >
+        <div className={`relative ${sideAlign}`}>
+          <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500">
+            <CardContent className="p-6 flex flex-col h-full">{CardContentBody}</CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout
   if (layout === "mobile") {
     return (
       <div
@@ -142,16 +189,4 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
       </div>
     );
   }
-
-  return (
-    <div
-      ref={ref}
-      className={`relative z-10 group ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8 transition-all duration-500"}`}
-      style={{ animationDelay: `${index * 0.18}s` }}
-    >
-      <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500">
-        <CardContent className="p-6 flex flex-col h-full">{CardContentBody}</CardContent>
-      </Card>
-    </div>
-  );
 };

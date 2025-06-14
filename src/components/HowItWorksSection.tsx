@@ -57,33 +57,53 @@ const HowItWorksSection = () => {
         
         {/* Steps Container */}
         <div className="relative">
-          {/* Desktop Layout */}
-          <div className="hidden lg:block">
-            <div className="grid grid-cols-4 gap-8 relative">
-              {/* Enhanced animated timeline */}
-              <Timeline stepCount={stepsData.length} layout="desktop" />
-              
-              {stepsData.map((step, index) => (
-                <div
-                  key={index}
-                  onMouseEnter={() => updateCurrentStep(index + 1)}
-                >
-                  <StepCard
-                    step={step}
-                    index={index}
-                    isLast={index === stepsData.length - 1}
-                    layout="desktop"
-                  />
-                </div>
-              ))}
+          {/* Desktop Alternating Vertical Timeline Layout */}
+          <div className="hidden lg:flex justify-center relative min-h-[680px]">
+            {/* Central vertical line */}
+            <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-gradient-to-b from-future-green/10 via-future-green/60 to-smart-beige/30 rounded-full z-0" style={{ transform: "translateX(-50%)" }}></div>
+            <div className="grid grid-cols-2 gap-x-12 w-full z-10">
+              {/* Left side cards (even indexes) and right side cards (odd indexes) */}
+              <div className="flex flex-col gap-24">
+                {stepsData.map((step, idx) =>
+                  idx % 2 === 0 ? (
+                    <div key={idx} className="flex justify-end">
+                      <StepCard
+                        step={step}
+                        index={idx}
+                        isLast={idx === stepsData.length - 1}
+                        layout="desktop"
+                        side="left"
+                      />
+                    </div>
+                  ) : (
+                    <div key={`spacer-left-${idx}`} className="h-16"></div>
+                  )
+                )}
+              </div>
+              <div className="flex flex-col gap-24">
+                {stepsData.map((step, idx) =>
+                  idx % 2 === 1 ? (
+                    <div key={idx} className="flex justify-start">
+                      <StepCard
+                        step={step}
+                        index={idx}
+                        isLast={idx === stepsData.length - 1}
+                        layout="desktop"
+                        side="right"
+                      />
+                    </div>
+                  ) : (
+                    <div key={`spacer-right-${idx}`} className="h-16"></div>
+                  )
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Mobile Layout */}
+          {/* Mobile Layout: stack vertical, no alternation */}
           <div className="lg:hidden space-y-8 relative">
-            {/* Enhanced animated vertical timeline */}
+            {/* Timeline as before */}
             <Timeline stepCount={stepsData.length} layout="mobile" />
-            
             {stepsData.map((step, index) => (
               <div key={index}>
                 <StepCard
@@ -92,7 +112,6 @@ const HowItWorksSection = () => {
                   isLast={index === stepsData.length - 1}
                   layout="mobile"
                 />
-                
                 {/* Enhanced mobile connector */}
                 {index < stepsData.length - 1 && (
                   <div className="flex justify-center my-6 relative z-10">
