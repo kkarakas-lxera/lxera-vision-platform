@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Wrench, MessageCircle, Network, ArrowRight, Star, Users, Zap } from "lucide-react";
 
@@ -32,14 +31,14 @@ const JoinTheMovementSection = () => {
 
   return (
     <section className="w-full py-20 px-6 lg:px-12 overflow-hidden relative">
-      {/* Enhanced animated background with mesh gradient */}
+      {/* Enhanced animated background with consistent mesh gradient */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/20 via-transparent to-smart-beige/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-future-green/25 via-smart-beige/40 to-future-green/15"></div>
         <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-20 left-20 w-40 h-40 bg-gradient-to-br from-future-green to-future-green/50 rounded-full blur-xl animate-float-gentle"></div>
-          <div className="absolute bottom-32 right-16 w-32 h-32 bg-gradient-to-br from-business-black/20 to-future-green/30 rounded-full blur-lg animate-float-gentle" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-br from-future-green/40 to-smart-beige/20 rounded-full blur-md animate-float-gentle" style={{animationDelay: '3s'}}></div>
-          <div className="absolute top-1/3 right-1/3 w-16 h-16 bg-future-green/30 rounded-full blur-sm animate-float-gentle" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-20 left-20 w-40 h-40 bg-gradient-to-br from-future-green/30 to-smart-beige/20 rounded-full blur-xl animate-float-gentle"></div>
+          <div className="absolute bottom-32 right-16 w-32 h-32 bg-gradient-to-br from-smart-beige/25 to-future-green/20 rounded-full blur-lg animate-float-gentle" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-br from-future-green/20 to-smart-beige/30 rounded-full blur-md animate-float-gentle" style={{animationDelay: '3s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-16 h-16 bg-gradient-to-l from-smart-beige/25 to-future-green/15 rounded-full blur-sm animate-float-gentle" style={{animationDelay: '2s'}}></div>
         </div>
         {/* Geometric pattern overlay */}
         <div className="absolute inset-0 opacity-5">
@@ -76,7 +75,7 @@ const JoinTheMovementSection = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-future-green/20 via-future-green/10 to-transparent rounded-3xl p-8 lg:p-12 mb-12 hover:from-future-green/25 hover:via-future-green/15 transition-all duration-700 border border-future-green/20 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-future-green/25 via-smart-beige/30 to-future-green/15 rounded-3xl p-8 lg:p-12 mb-12 hover:from-future-green/30 hover:via-smart-beige/40 hover:to-future-green/20 transition-all duration-700 border border-future-green/30 backdrop-blur-sm">
             <h3 className="text-2xl lg:text-3xl font-bold text-business-black mb-12 animate-fade-in" style={{animationDelay: '1s'}}>
               As an early partner, you'll:
             </h3>
@@ -128,15 +127,15 @@ const JoinTheMovementSection = () => {
 
           {/* Urgency message with enhanced styling */}
           <div className="relative mb-6 animate-fade-in" style={{animationDelay: '2s'}}>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/10 to-transparent rounded-full"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-smart-beige/20 via-future-green/15 to-smart-beige/20 rounded-full"></div>
             <p className="relative text-business-black/70 font-medium py-3 px-6">
               🔥 Only a limited number of partners will be onboarded during early access
             </p>
           </div>
 
-          {/* Enhanced CTA button */}
+          {/* Enhanced CTA button with gradient shadow */}
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-future-green/20 to-business-black/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-future-green/25 to-smart-beige/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             <Button className="relative bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black/90 hover:to-business-black text-white text-lg px-10 py-6 rounded-full font-bold lxera-hover hover:shadow-2xl hover:shadow-business-black/30 hover:scale-105 transition-all duration-500 animate-pulse-slow group border-2 border-transparent hover:border-future-green/20">
               <span className="relative z-10">Become an Early Innovation Partner</span>
               <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />

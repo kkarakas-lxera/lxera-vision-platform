@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { StepCard } from "@/components/StepCard";
 import { ProgressIndicator } from "@/components/ProgressIndicator";
@@ -10,13 +9,13 @@ const HowItWorksSection = () => {
   const { isVisible, currentStep, updateCurrentStep } = useScrollAnimation();
 
   return (
-    <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-white via-smart-beige/20 to-future-green/5 relative overflow-hidden">
-      {/* Animated background particles */}
+    <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden">
+      {/* Animated background particles with consistent colors */}
       <div className="absolute inset-0 opacity-5">
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-2 h-2 bg-future-green rounded-full animate-float-gentle"
+            className="absolute w-2 h-2 bg-gradient-to-r from-future-green to-smart-beige rounded-full animate-float-gentle"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -105,10 +104,10 @@ const HowItWorksSection = () => {
           </div>
         </div>
 
-        {/* Enhanced bottom CTA with animations */}
+        {/* Enhanced bottom CTA with consistent gradient */}
         <div className="text-center mt-20 animate-fade-in-up stagger-5">
-          <div className="bg-gradient-to-r from-future-green/10 to-transparent p-8 rounded-2xl hover:from-future-green/20 transition-all duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 to-emerald/5 animate-gradient-shift"></div>
+          <div className="bg-gradient-to-r from-future-green/15 via-smart-beige/30 to-future-green/10 p-8 rounded-2xl hover:from-future-green/20 hover:via-smart-beige/40 hover:to-future-green/15 transition-all duration-500 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-future-green/8 to-smart-beige/12 animate-gradient-shift"></div>
             <div className="relative z-10">
               <p className="text-lg text-business-black/70 mb-6 animate-fade-in stagger-5">
                 Ready to transform how your organization learns, grows, and innovates?
@@ -137,7 +136,7 @@ const HowItWorksSection = () => {
       </div>
       
       {/* Smooth transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-smart-beige/30 to-transparent"></div>
     </section>
   );
 };
