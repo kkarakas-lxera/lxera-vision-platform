@@ -24,6 +24,12 @@ const HeroVideoPreview = () => {
           playsInline
           poster="/placeholder.svg"
         />
+        {/* Video Overlay Label */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-4 py-1 bg-white/75 text-business-black/75 text-xs font-semibold rounded-full shadow-sm border border-future-green/30 transition-all group-hover:bg-white group-hover:text-business-black/90 z-20 select-none">
+            Watch how LXERA works
+          </span>
+        </div>
         {/* Fallback play button overlay */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition">
           <span className="flex items-center justify-center bg-white/90 rounded-full shadow-md w-16 h-16 border-2 border-future-green drop-shadow-xl">
@@ -37,3 +43,4 @@ const HeroVideoPreview = () => {
 };
 
 export default HeroVideoPreview;
+
