@@ -30,10 +30,15 @@ const HeroVideoPreview = () => {
             Watch how LXERA works
           </span>
         </div>
-        {/* Fallback play button overlay */}
+        {/* Fallback play button overlay with ring and pulse effect */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition">
-          <span className="flex items-center justify-center bg-white/90 rounded-full shadow-md w-16 h-16 border-2 border-future-green drop-shadow-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#6cd4b4" strokeWidth="2"><polygon points="9.5,7.5 16.5,12 9.5,16.5" fill="#40b69e" /></svg>
+          <span className="relative flex items-center justify-center">
+            {/* Ping/ring animation */}
+            <span className="absolute inline-flex h-20 w-20 rounded-full bg-future-green/60 opacity-30 animate-ping" />
+            {/* Play button with a soft slow pulse */}
+            <span className="flex items-center justify-center bg-white/90 rounded-full shadow-md w-16 h-16 border-2 border-future-green drop-shadow-xl animate-pulse-slow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#6cd4b4" strokeWidth="2"><polygon points="9.5,7.5 16.5,12 9.5,16.5" fill="#40b69e" /></svg>
+            </span>
           </span>
         </div>
       </div>
@@ -50,3 +55,4 @@ const HeroVideoPreview = () => {
 };
 
 export default HeroVideoPreview;
+
