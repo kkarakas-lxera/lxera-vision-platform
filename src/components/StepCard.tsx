@@ -108,14 +108,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
         {/* Icon removed as requested */}
         <h3 className="text-lg font-bold text-business-black text-center mt-2">{step.title}</h3>
         <div className="text-sm text-business-black/70 font-semibold mt-1 mb-2 text-center">{step.subtitle}</div>
-        <ul className="mb-3 mt-2 space-y-1">
-          {step.bullets.map((b, i) => (
-            <li key={i} className="text-business-black/80 text-sm flex items-start gap-1">
-              <span className="mt-0.5 text-future-green font-bold text-base">•</span>
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
+        {/* Bullets removed as requested */}
         {VideoThumbnail}
         {VideoCaption}
         <div className="mt-3 mb-1 text-xs font-semibold text-business-black/80 text-center">{step.metrics}</div>
