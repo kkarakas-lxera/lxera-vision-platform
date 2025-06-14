@@ -1,57 +1,101 @@
 
-import HeroContent from "./HeroContent";
-import CTASection from "./CTASection";
-import HeroStats from "./HeroStats";
-
 const HeroSection = () => {
   return (
-    <section className="hero w-full pt-32 pb-16 px-6 lg:px-12 bg-smart-beige relative overflow-hidden">
-      {/* Enhanced decorative elements with improved color harmony */}
-      <div className="absolute inset-0 bg-gradient-to-br from-future-green/6 via-transparent to-future-green/4"></div>
-      <div className="absolute top-20 right-10 w-40 h-40 rounded-full blur-xl animate-pulse bg-gradient-to-br from-future-green/12 to-emerald/8"></div>
-      <div className="absolute bottom-20 left-10 w-32 h-32 rounded-full blur-lg animate-pulse bg-gradient-to-br from-future-green/15 to-future-green/10 animate-delay-1000"></div>
-      <div className="absolute top-1/2 left-1/4 w-20 h-20 rounded-full blur-md animate-pulse bg-future-green/8 animate-delay-2000"></div>
-      <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-future-green/12 animate-delay-500"></div>
+    <section className="hero w-full min-h-screen bg-business-black relative overflow-hidden flex items-center">
+      {/* Subtle decorative elements */}
+      <div className="absolute top-20 right-10 w-32 h-32 rounded-full blur-xl animate-pulse bg-future-green/10"></div>
+      <div className="absolute bottom-20 left-10 w-24 h-24 rounded-full blur-lg animate-pulse bg-future-green/8 animate-delay-1000"></div>
       
-      <div className="container max-w-7xl mx-auto relative z-10">
-        {/* Split-screen layout */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-12">
-          {/* Left side - Content */}
+      <div className="container max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left Side - Content */}
           <div className="space-y-8">
-            <HeroContent />
-            <CTASection />
-          </div>
-          
-          {/* Right side - Video */}
-          <div className="lg:order-last">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black/5 backdrop-blur-sm border border-future-green/20">
-              <div className="aspect-video">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover"
-                  poster="/placeholder.svg"
-                >
-                  <source src="your-product-demo.mp4" type="video/mp4" />
-                  <div className="w-full h-full bg-gradient-to-br from-future-green/20 to-emerald/10 flex items-center justify-center">
-                    <p className="text-business-black/60 text-center px-4">
-                      Product demo video will appear here
-                    </p>
-                  </div>
-                </video>
+            <div className="animate-fade-in-up">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+                LXERA is the first{" "}
+                <span className="text-future-green">
+                  Learning & Innovation Experience Platform
+                </span>{" "}
+                (LXIP)
+              </h1>
+            </div>
+
+            <div className="animate-fade-in-up animate-delay-200">
+              <p className="text-lg lg:text-xl text-white/85 font-medium leading-relaxed max-w-2xl">
+                Empower your teams to learn faster, build smarter, and innovate from the inside out — all through one intelligent, adaptive platform.
+              </p>
+            </div>
+
+            {/* Value Bullets */}
+            <div className="animate-fade-in-up animate-delay-300 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-future-green/20 flex items-center justify-center mt-0.5">
+                  <div className="w-2 h-2 rounded-full bg-future-green"></div>
+                </div>
+                <p className="text-white/90 font-medium text-lg">
+                  AI-powered learning journeys, tailored in real time
+                </p>
               </div>
-              
-              {/* Video overlay indicator */}
-              <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                Live Demo
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-future-green/20 flex items-center justify-center mt-0.5">
+                  <div className="w-2 h-2 rounded-full bg-future-green"></div>
+                </div>
+                <p className="text-white/90 font-medium text-lg">
+                  Built-in tools to drive innovation from the frontline
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-future-green/20 flex items-center justify-center mt-0.5">
+                  <div className="w-2 h-2 rounded-full bg-future-green"></div>
+                </div>
+                <p className="text-white/90 font-medium text-lg">
+                  Dashboards, insights, and skill mapping—automated
+                </p>
               </div>
             </div>
+
+            {/* CTA Buttons */}
+            <div className="animate-fade-in-up animate-delay-400 flex flex-col sm:flex-row gap-4 pt-4">
+              <button className="bg-future-green text-business-black hover:bg-future-green/90 text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+                🚀 Try the LXERA Experience
+              </button>
+              
+              <button className="bg-transparent text-white border-2 border-white/30 hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+                ▶ See How It Works (2 Min)
+              </button>
+            </div>
+          </div>
+
+          {/* Right Side - Video */}
+          <div className="animate-fade-in-scale animate-delay-500">
+            <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Video Thumbnail/Preview */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-700/80 to-gray-900/60 flex items-center justify-center">
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto shadow-lg hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                  <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <p className="text-white font-medium text-sm">Play with sound</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Background pattern */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-4 right-4 w-32 h-32 rounded-full blur-xl bg-future-green/20"></div>
+                <div className="absolute bottom-4 left-4 w-24 h-24 rounded-full blur-lg bg-future-green/30"></div>
+              </div>
+            </div>
+            
+            {/* Video Subtitle */}
+            <p className="text-center text-white/60 text-sm mt-4 italic">
+              *See why early adopters are already onboard.*
+            </p>
           </div>
         </div>
-        
-        <HeroStats />
       </div>
     </section>
   );
