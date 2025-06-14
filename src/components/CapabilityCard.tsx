@@ -123,8 +123,11 @@ const CapabilityCard = ({
                 aria-label="Tangible Results icon"
               />
               <div>
-                {/* Updated color for Tangible Results label */}
-                <div className="text-base font-semibold flex items-center gap-2 mb-1 text-emerald">
+                {/* Updated color for Tangible Results label with custom color */}
+                <div
+                  className="text-base font-semibold flex items-center gap-2 mb-1"
+                  style={{ color: '#aeb171' }}
+                >
                   🚀 <span className="font-bold">Tangible Results</span>
                 </div>
                 <div className="text-business-black/80 text-md leading-relaxed">
