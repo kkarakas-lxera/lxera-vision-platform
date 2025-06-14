@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -29,6 +28,24 @@ const TransformationStartsSection = () => {
           </p>
         </div>
 
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
+          <Button
+            size="lg"
+            className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow transition-all duration-200"
+            aria-label="Get Early Access"
+          >
+            Get Early Access
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-future-green text-future-green hover:bg-future-green/10 font-semibold px-8 py-4 rounded-xl shadow transition-all duration-200"
+            aria-label="Request a demo"
+          >
+            Request a demo
+          </Button>
+        </div>
         
         <div className="flex justify-center mt-8 space-x-2 animate-fade-in animate-delay-800">
           {[1, 2, 3, 4].map((step, index) => (
@@ -49,4 +66,3 @@ const TransformationStartsSection = () => {
   );
 };
 export default TransformationStartsSection;
-
