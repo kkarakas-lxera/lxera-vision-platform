@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
+import React from "react";
 
 interface CapabilityCardProps {
   icon: LucideIcon;
@@ -23,6 +24,23 @@ interface CapabilityCardProps {
   category?: string;
   useCases?: string[];
   roiMetrics?: string;
+}
+
+// Helper to wrap numbers in bold
+function highlightNumbers(text: string) {
+  // Matches numbers with optional % or +, e.g. 60%, +180%, 99, 40%
+  const parts = text.split(/(\d[\d,.]*%?|\+\d[\d,.]*%?)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        /^\+?\d[\d,.]*%?$/.test(part) ? (
+          <span key={i} className="font-bold">{part}</span>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
 }
 
 const CapabilityCard = ({
@@ -61,7 +79,7 @@ const CapabilityCard = ({
 
       {/* CARD FLEX ROW LAYOUT */}
       <div className="relative z-10 flex flex-col md:flex-row items-center md:items-stretch backdrop-blur-[2px] p-6 lg:p-10 xl:p-14 min-h-[260px] md:min-h-[240px] shadow-lg hover:shadow-2xl bg-white/80 rounded-2xl transition-all duration-300 border border-future-green/20">
-        
+
         {/* Left: Content Section */}
         <div className="flex-1 flex flex-col justify-center w-full md:w-2/3 pr-0 md:pr-10">
           {/* Impact metric badge under icon */}
@@ -69,7 +87,7 @@ const CapabilityCard = ({
             <div className="flex items-center gap-2 mb-2" tabIndex={-1}>
               <span className={`text-xs md:text-sm font-semibold px-4 py-2 rounded-full ${badgeBg} ${badgeBorder} border border-future-green/20 drop-shadow-sm bg-white/80`}>
                 <span className="w-2 h-2 bg-current rounded-full inline-block mr-2"></span>
-                {impactStat}
+                {highlightNumbers(impactStat)}
               </span>
             </div>
           )}
@@ -86,7 +104,7 @@ const CapabilityCard = ({
               {description}
             </p>
           )}
-          
+
           {/* Bullets */}
           <ul className="space-y-0 w-full mb-4">
             {features.map((feature, featureIndex) => (
@@ -98,7 +116,7 @@ const CapabilityCard = ({
                 aria-label={`Feature: ${feature.replace(/(<([^>]+)>)/gi, "")}`}
               >
                 <span className="w-2 h-2 bg-future-green rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                <span className="leading-relaxed">{feature}</span>
+                <span className="leading-relaxed">{highlightNumbers(feature)}</span>
               </li>
             ))}
           </ul>
@@ -115,7 +133,7 @@ const CapabilityCard = ({
                   🚀 <span className="font-bold">Tangible Results</span>
                 </div>
                 <div className="text-business-black/80 text-md leading-relaxed">
-                  {tangibleResults.description}
+                  {highlightNumbers(tangibleResults.description)}
                 </div>
               </div>
             </div>
