@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -21,15 +20,15 @@ const TransformationStartsSection = () => {
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
-        {/* Animated Down Arrow Indicator above the box */}
-        <div className="flex justify-center mt-4 animate-bounce-slow">
-          <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
-        </div>
-
         <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
           <p className="text-business-black/80 font-medium">
             Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
           </p>
+        </div>
+
+        {/* Animated Down Arrow Indicator above the CTA button */}
+        <div className="flex justify-center mt-6 animate-bounce-slow">
+          <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
         </div>
 
         {/* CTA Button - Only Get Early Access */}
