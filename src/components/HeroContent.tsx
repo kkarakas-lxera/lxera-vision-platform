@@ -14,7 +14,21 @@ const HeroContent = () => {
 
       <div className="animate-fade-in-up animate-delay-200">
         <p className="subheadline text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-4xl mx-auto font-medium leading-relaxed">
-          Empower teams to <strong className="text-future-green">learn faster</strong> and <strong className="text-future-green">innovate from the frontline</strong> in one intelligent ecosystem.
+          Empower teams to{" "}
+          <span
+            className="relative"
+            style={{
+              borderBottom: "3px solid #7AE5C6", // subtle future-green underline
+              paddingBottom: 2,
+            }}
+          >
+            learn faster
+          </span>{" "}
+          and{" "}
+          <span>
+            innovate from the frontline
+          </span>{" "}
+          in one intelligent ecosystem.
         </p>
       </div>
 
