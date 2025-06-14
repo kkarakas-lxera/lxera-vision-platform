@@ -31,16 +31,21 @@ const CTASection = () => {
         </p>
         <Button
           size="lg"
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 group inline-flex items-center gap-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 group relative inline-flex items-center justify-center gap-2"
           onClick={handleScrollToContact}
           aria-label="Request a demo"
         >
-          Request a demo
-          <ArrowRight
-            className="ml-1 transition-all duration-200 ease-out opacity-0 translate-x-0 group-hover:opacity-100 group-hover:translate-x-1"
-            size={22}
-            aria-hidden="true"
-          />
+          <span className="relative flex items-center justify-center w-full">
+            <span className="mx-auto">Request a demo</span>
+            {/* Arrow is absolutely positioned on the right, without shifting "Request a demo" */}
+            <span className="absolute right-[-2.1rem] top-1/2 -translate-y-1/2 pointer-events-none">
+              <ArrowRight
+                className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                size={22}
+                aria-hidden="true"
+              />
+            </span>
+          </span>
         </Button>
       </div>
     </div>
@@ -48,3 +53,4 @@ const CTASection = () => {
 };
 
 export default CTASection;
+
