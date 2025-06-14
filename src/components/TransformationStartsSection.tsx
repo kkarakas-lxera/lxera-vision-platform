@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -28,7 +29,7 @@ const TransformationStartsSection = () => {
           </p>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Button - Only Get Early Access */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
           <Button
             size="lg"
@@ -36,14 +37,6 @@ const TransformationStartsSection = () => {
             aria-label="Get Early Access"
           >
             Get Early Access
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-future-green text-future-green hover:bg-future-green/10 font-semibold px-8 py-4 rounded-xl shadow transition-all duration-200"
-            aria-label="Request a demo"
-          >
-            Request a demo
           </Button>
         </div>
         
@@ -59,9 +52,6 @@ const TransformationStartsSection = () => {
           ))}
         </div>
       </div>
-      
-      {/* Visual transition element with updated colors */}
-      
     </section>
   );
 };
