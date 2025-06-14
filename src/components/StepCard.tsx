@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
@@ -41,7 +40,14 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   if (layout === 'mobile') {
     return (
       <div className="relative animate-fade-in-up group" style={{ animationDelay: `${index * 0.2}s` }}>
-        <div className="mb-4 ml-24">
+        {/* Step Number Label (Huge, above everything else, only on mobile) */}
+        <div className="flex flex-col items-center mb-3">
+          <span className="text-4xl font-extrabold text-future-green leading-snug tracking-wide drop-shadow-sm">
+            {step.step}
+          </span>
+        </div>
+        {/* Step Title Badge */}
+        <div className="mb-4 flex justify-center">
           <span className="inline-block px-4 py-2 bg-future-green/20 text-business-black font-semibold rounded-full text-sm border border-future-green/30 hover:bg-future-green/30 hover:scale-105 transition-all duration-300">
             {step.stepTitle}
           </span>
@@ -51,20 +57,19 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
           <CardContent className="p-8">
             <div className="flex items-start space-x-6">
               <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-gradient-to-br from-future-green to-future-green/80 rounded-full flex items-center justify-center mb-4 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:rotate-3">
-                  <span className="text-business-black font-bold text-xl">{step.step}</span>
+                {/* Hide the step number inside the badge, only show icon */}
+                <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green/80 rounded-full flex items-center justify-center mb-4 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:rotate-3">
+                  <MainIcon className="w-8 h-8 text-business-black" />
                 </div>
                 <div className="text-future-green flex justify-center transition-all duration-300 hover:scale-125 hover:animate-pulse group-hover:text-emerald">
-                  <MainIcon className="w-8 h-8" />
+                  <SubIcon className="w-5 h-5" />
                 </div>
               </div>
               
               <div className="flex-1">
+                {/* Headline (title) */}
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-xl font-bold text-business-black group-hover:text-future-green transition-colors duration-300">{step.title}</h3>
-                  <div className="text-future-green/70 transition-all duration-300 hover:scale-125 group-hover:animate-spin-slow">
-                    <SubIcon className="w-4 h-4" />
-                  </div>
                 </div>
                 <p className="text-business-black/70 leading-relaxed mb-4">
                   {formatDescription(step.desc)}
