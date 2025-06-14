@@ -61,7 +61,11 @@ const HowItWorksSection = () => {
           <div className="hidden lg:flex justify-center relative min-h-[400px] px-6">
             <div className="w-full flex items-center justify-center gap-2 relative z-10">
               {stepsData.map((step, idx) => (
-                <div key={idx} className="flex flex-col items-center relative w-1/4">
+                <div
+                  key={idx}
+                  className="flex flex-col items-center relative w-[320px]"
+                  style={{ flex: "0 0 320px" }}
+                >
                   <StepCard
                     step={step}
                     index={idx}

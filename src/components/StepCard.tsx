@@ -152,9 +152,9 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
           relative z-10 group transition-transform flex flex-col items-center
           ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
         `}
-        style={{ animationDelay: `${index * 0.15}s`, minWidth: 300, maxWidth: 340 }}
+        style={{ animationDelay: `${index * 0.15}s` }}
       >
-        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500 flex flex-col items-center h-full">
+        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500 flex flex-col items-center h-full w-full">
           <CardContent className="p-6 flex flex-col h-full items-center">{CardContentBody}</CardContent>
         </Card>
       </div>
