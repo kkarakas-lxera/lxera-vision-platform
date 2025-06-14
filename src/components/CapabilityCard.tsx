@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
@@ -124,15 +123,13 @@ const CapabilityCard = ({
           {/* Tangible Results Block */}
           {isSpecial && tangibleResults && (
             <div className="mt-6 w-full p-4 rounded-xl bg-future-green/10 border border-future-green/30 flex items-start gap-3 shadow-md">
-              <tangibleResults.icon
-                className="w-8 h-8 text-future-green flex-shrink-0 mt-1"
-                aria-label="Tangible Results icon"
-              />
               <div>
-                <div className="text-base font-semibold flex items-center gap-2 mb-1 text-emerald">
-                  🚀 <span className="font-bold">Tangible Results</span>
+                {/* Unified pill-style label with icon and text */}
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-future-green/90 text-white text-sm font-semibold mb-2 shadow-sm">
+                  <tangibleResults.icon className="w-5 h-5 mr-1" aria-hidden="true" />
+                  {tangibleResults.label}
                 </div>
-                <div className="text-business-black/80 text-md leading-relaxed">
+                <div className="text-business-black/80 text-md leading-relaxed mt-1">
                   {highlightNumbers(tangibleResults.description)}
                 </div>
               </div>
