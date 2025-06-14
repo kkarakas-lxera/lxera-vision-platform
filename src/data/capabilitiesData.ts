@@ -1,4 +1,4 @@
-import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Shield } from "lucide-react";
+import { Brain, Heart, BarChart3, Bulb, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
   icon: any;
@@ -33,14 +33,14 @@ export const capabilitiesData: CapabilityData[] = [
     ],
     impactStat: "",
     tangibleResults: {
-      icon: Zap,
+      icon: Lightbulb,
       label: "Tangible Results",
       description: "Learners complete content 60% faster and retain up to 85% more using personalized experiences."
     },
     iconBg: "bg-future-green",
     badgeBg: "bg-future-green/20",
     badgeBorder: "border-future-green",
-    secondaryIcon: Zap,
+    secondaryIcon: Lightbulb,
     category: "learning",
     useCases: [
       "Sales team learning new product features with adaptive content",
@@ -95,7 +95,7 @@ export const capabilitiesData: CapabilityData[] = [
     iconBg: "bg-lxera-blue",
     badgeBg: "bg-lxera-blue/20",
     badgeBorder: "border-lxera-blue",
-    secondaryIcon: TrendingUp,
+    secondaryIcon: BarChart3,
     category: "analytics",
     useCases: [
       "Manufacturing company reducing safety incidents through predictive skill gap analysis",
@@ -105,7 +105,7 @@ export const capabilitiesData: CapabilityData[] = [
     roiMetrics: "Cost Reduction: 45%"
   },
   {
-    icon: Settings,
+    icon: Bulb,
     title: "Rapid Prototyping & Innovation Enablement",
     valueStatement: "Fuel creativity from the ground up.",
     description: "LXERA turns employees into innovators through citizen development.",
@@ -115,14 +115,14 @@ export const capabilitiesData: CapabilityData[] = [
     ],
     impactStat: "",
     tangibleResults: {
-      icon: Lightbulb,
+      icon: Bulb,
       label: "Tangible Results",
       description: "Teams using LXERA are 72% more likely to create innovative solutions within their first 90 days."
     },
     iconBg: "bg-light-green",
     badgeBg: "bg-light-green/40",
     badgeBorder: "border-light-green",
-    secondaryIcon: Lightbulb,
+    secondaryIcon: Bulb,
     category: "learning",
     useCases: [
       "Engineering teams rapidly prototyping new solutions for client challenges",
@@ -132,7 +132,7 @@ export const capabilitiesData: CapabilityData[] = [
     roiMetrics: "Innovation Rate: +180%"
   },
   {
-    icon: TrendingDown,
+    icon: Users,
     title: "Organizational Capability Building",
     valueStatement: "Upskill at scale, aligned with strategy.",
     description: "LXERA serves as your digital learning backbone, tailored to your business transformation.",
@@ -142,14 +142,14 @@ export const capabilitiesData: CapabilityData[] = [
     ],
     impactStat: "",
     tangibleResults: {
-      icon: Shield,
+      icon: Users,
       label: "Tangible Results",
       description: "Organizations cut L&D costs by up to 40%, while doubling ROI on training investments."
     },
     iconBg: "bg-emerald",
     badgeBg: "bg-emerald/20",
     badgeBorder: "border-emerald",
-    secondaryIcon: Shield,
+    secondaryIcon: Users,
     category: "analytics",
     useCases: [
       "Global corporation aligning 50,000+ employees with digital transformation goals",

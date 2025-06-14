@@ -145,7 +145,7 @@ const CapabilityCard = ({
           className={`mt-6 md:mt-0 md:ml-8 flex-shrink-0 flex items-center justify-center
               w-24 h-24 md:w-32 md:h-32 ${iconBg} rounded-2xl shadow-md
               transition-all duration-300
-              group-hover:shadow-emerald-200 group-hover:scale-110 group-hover:animate-bounce-slow
+              group-hover:shadow-emerald-200 group-hover:scale-110 group-hover:animate-pulse-slow
               focus-visible:ring focus-visible:ring-future-green/50
             `}
           tabIndex={-1}
@@ -162,4 +162,3 @@ const CapabilityCard = ({
 };
 
 export default CapabilityCard;
-
