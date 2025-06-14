@@ -31,13 +31,16 @@ const VideoModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button 
-          size="lg" 
-          className="bg-white text-business-black border-2 border-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 group min-h-[3rem] focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 shadow-lg hover:shadow-xl"
-          aria-label="Watch LXERA platform demonstration video"
+        <Button
+          size="lg"
+          className="btn btn-primary bg-future-green text-business-black hover:bg-future-green/90 hover:scale-110 hover:shadow-2xl active:scale-95 text-lg px-10 py-5 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-future-green/30 border-2 border-white/30 hover:border-white/60 group relative overflow-hidden focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          aria-label="Watch LXERA in Action (video demonstration)"
         >
-          <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-white transition-colors" />
-          Watch LXERA in Action (2 Min)
+          <span className="relative z-10 drop-shadow-sm flex items-center">
+            <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-business-black transition-colors" />
+            Watch LXERA in Action (2 Min)
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-description">
