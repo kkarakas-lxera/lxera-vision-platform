@@ -1,4 +1,3 @@
-
 import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -82,10 +81,10 @@ export const capabilitiesData: CapabilityData[] = [
     icon: BarChart3,
     title: "Data-Driven Decision-Making",
     valueStatement: "Every interaction becomes an insight.",
+    description: "We transform behavioral data into performance breakthroughs.",
     features: [
-      "Actionable analytics for learners, instructors, and managers",
-      "Predictive insights to identify skill gaps before they impact performance",
-      "**ROI tracking** that connects learning to business outcomes"
+      "Actionable insights for learners and managers",
+      "Continuous feedback loops from engagement and outcome analytics"
     ],
     impactStat: "⚡ 50% faster L&D decisions",
     iconBg: "bg-lxera-blue",
@@ -145,4 +144,3 @@ export const capabilitiesData: CapabilityData[] = [
     roiMetrics: "Capability Growth: 65%"
   }
 ];
-
