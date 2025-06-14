@@ -3,7 +3,7 @@ import { ArrowDown } from "lucide-react";
 
 const TransformationStartsSection = () => {
   return (
-    <section className="w-full py-20 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
+    <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
       {/* Animated background elements with consistent colors */}
       <div className="absolute inset-0 opacity-8">
         <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle bg-gradient-to-br from-future-green/25 to-smart-beige/15"></div>
