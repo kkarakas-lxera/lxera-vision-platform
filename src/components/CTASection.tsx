@@ -20,7 +20,7 @@ const CTASection = () => {
 
       <div className="text-center animate-fade-in-up animate-delay-600">
         <p className="text-base text-business-black/75 font-medium">
-          🚀 <strong className="text-future-green">Early access open</strong> for innovative teams
+          🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
         </p>
       </div>
     </div>
@@ -28,3 +28,4 @@ const CTASection = () => {
 };
 
 export default CTASection;
+
