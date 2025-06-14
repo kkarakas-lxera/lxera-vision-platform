@@ -38,7 +38,7 @@ const VideoModal = () => {
         >
           <span className="relative z-10 drop-shadow-sm flex items-center">
             <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-business-black transition-colors" />
-            Watch LXERA in Action (2 Min)
+            Watch LXERA in Action
           </span>
           <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Button>
