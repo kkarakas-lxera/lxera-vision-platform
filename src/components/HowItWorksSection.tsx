@@ -25,7 +25,7 @@ const HowItWorksSection = () => {
           ></div>
         ))}
       </div>
-
+      
       {/* Smooth transition from previous section */}
       <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-smart-beige/50 to-transparent"></div>
       
@@ -134,9 +134,6 @@ const HowItWorksSection = () => {
           </div>
         </div>
       </div>
-      
-      {/* Smooth transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-smart-beige/30 to-transparent"></div>
     </section>
   );
 };

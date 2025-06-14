@@ -23,7 +23,6 @@ const WhyLXERASection = () => {
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/15"></div>
           </div>
-          
           <div className="absolute top-8 left-1/4 w-4 h-4 bg-future-green/20 rounded-full animate-float-gentle blur-sm"></div>
           <div className="absolute top-16 right-1/3 w-3 h-3 bg-smart-beige/40 rounded-full animate-float-gentle animate-delay-500 blur-sm"></div>
           <div className="absolute top-12 left-2/3 w-2 h-2 bg-future-green/30 rounded-full animate-float-gentle animate-delay-1000"></div>
@@ -31,17 +30,9 @@ const WhyLXERASection = () => {
       </div>
       
       <section id="platform" className="w-full py-24 px-6 lg:px-12 relative overflow-hidden">
-        {/* Background with future-green and smart-beige gradients */}
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/3 via-smart-beige/50 to-future-green/8"></div>
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/6"></div>
-        
         <AnimatedBackground />
-        
-        {/* Decorative elements with consistent palette */}
-        <div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-gradient-to-br from-future-green/12 to-smart-beige/8 animate-float-gentle blur-xl"></div>
-        <div className="absolute bottom-40 right-16 w-48 h-48 rounded-full bg-gradient-to-tl from-smart-beige/15 to-future-green/10 animate-float-gentle animate-delay-1000 blur-2xl"></div>
-        <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-gradient-to-r from-future-green/8 to-smart-beige/12 animate-float-gentle animate-delay-2000 blur-xl"></div>
-
         <div className="max-w-7xl mx-auto relative z-10">
           <SectionHeader 
             title="Why LXERA"
