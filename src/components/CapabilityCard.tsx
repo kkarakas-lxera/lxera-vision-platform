@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import AnimatedStat from "./AnimatedStat";
 
 interface CapabilityCardProps {
   icon: LucideIcon;
@@ -56,7 +57,7 @@ const CapabilityCard = ({
           <div className="flex items-center gap-2">
             <span className={`text-xs md:text-sm font-semibold px-4 py-2 rounded-full ${badgeBg} ${badgeBorder}`}>
               <span className="w-2 h-2 bg-current rounded-full inline-block mr-2"></span>
-              {impactStat}
+              <AnimatedStat value={impactStat} />
             </span>
           </div>
           {roiMetrics && (
