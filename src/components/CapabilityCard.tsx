@@ -69,7 +69,6 @@ const CapabilityCard = ({
         ${isVisible ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
       `}
       tabIndex={0}
-      // Delay is controlled by parent section; smooth fade-in by isVisible change
       aria-label={title}
     >
       {/* Soft grouping background */}
@@ -126,14 +125,14 @@ const CapabilityCard = ({
 
           {/* Tangible Results Block */}
           {isSpecial && tangibleResults && (
-            <div className="mt-6 w-full p-4 rounded-xl bg-future-green/10 border border-future-green/30 flex items-start gap-3 shadow-md">
+            <div className="mt-6 w-full p-4 rounded-xl bg-business-black border border-future-green/30 flex items-start gap-3 shadow-md">
               <div>
                 {/* Unified pill-style label with icon and text */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-future-green/90 text-white text-sm font-semibold mb-2 shadow-sm">
                   <tangibleResults.icon className="w-5 h-5 mr-1" aria-hidden="true" />
                   {tangibleResults.label}
                 </div>
-                <div className="text-business-black/80 text-md leading-relaxed mt-1">
+                <div className="text-white text-md leading-relaxed mt-1">
                   {highlightNumbers(tangibleResults.description)}
                 </div>
               </div>
