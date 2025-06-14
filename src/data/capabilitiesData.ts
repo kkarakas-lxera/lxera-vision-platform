@@ -1,11 +1,18 @@
+
 import { Brain, Heart, BarChart3, Settings, TrendingDown, Zap, Target, Users, Lightbulb, TrendingUp, Shield } from "lucide-react";
 
 export interface CapabilityData {
   icon: any;
   title: string;
   valueStatement: string;
+  description?: string;
   features: string[];
   impactStat: string;
+  tangibleResults?: {
+    icon: any;
+    label: string;
+    description: string;
+  };
   iconBg: string;
   badgeBg: string;
   badgeBorder: string;
@@ -20,12 +27,17 @@ export const capabilitiesData: CapabilityData[] = [
     icon: Brain,
     title: "Personalized Learning Journeys",
     valueStatement: "Smarter paths. Faster mastery. Deeper learning.",
+    description: "Our AI adapts to each learner’s preferences, behavior, and feedback in real time.",
     features: [
-      "AI adapts to individual cognitive styles and preferences",
-      "Smart content sequencing based on learner progress",
-      "Micro-learning paths that fit busy professional schedules"
+      "Tailored learning paths that reflect unique cognitive styles",
+      "Content personalized through AI diagnostics and adaptive algorithms"
     ],
-    impactStat: "📈 60% faster completion rates",
+    impactStat: "",
+    tangibleResults: {
+      icon: Zap,
+      label: "Tangible Results",
+      description: "Learners complete content 60% faster and retain up to 85% more using personalized experiences."
+    },
     iconBg: "bg-future-green",
     badgeBg: "bg-future-green/20",
     badgeBorder: "border-future-green",

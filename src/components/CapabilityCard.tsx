@@ -1,14 +1,21 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface CapabilityCardProps {
   icon: LucideIcon;
   title: string;
   valueStatement: string;
+  description?: string;
   features: string[];
   impactStat: string;
+  tangibleResults?: {
+    icon: LucideIcon;
+    label: string;
+    description: string;
+  };
   iconBg: string;
   badgeBg: string;
   badgeBorder: string;
@@ -23,8 +30,10 @@ const CapabilityCard = ({
   icon: Icon,
   title,
   valueStatement,
+  description,
   features,
   impactStat,
+  tangibleResults,
   iconBg,
   badgeBg,
   badgeBorder,
@@ -34,7 +43,7 @@ const CapabilityCard = ({
   useCases = [],
   roiMetrics
 }: CapabilityCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isSpecial = Boolean(tangibleResults);
 
   return (
     <section
@@ -68,12 +77,14 @@ const CapabilityCard = ({
             />
           </div>
           {/* Impact metric badge, with accessibility */}
+          {impactStat && (
           <div className="flex items-center gap-2" tabIndex={-1}>
             <span className={`text-xs md:text-sm font-semibold px-4 py-2 rounded-full ${badgeBg} ${badgeBorder} border border-future-green/20 drop-shadow-sm bg-white/80`}>
               <span className="w-2 h-2 bg-current rounded-full inline-block mr-2"></span>
               {impactStat}
             </span>
           </div>
+          )}
           {/* Remove ROI metrics text (no longer shown) */}
         </div>
         <div className="lg:w-2/3 pl-0 lg:pl-8">
@@ -81,9 +92,14 @@ const CapabilityCard = ({
           <h3 className="text-2xl md:text-3xl font-extrabold text-business-black mb-2 tracking-tight leading-tight">
             {title}
           </h3>
-          <p className="text-lg md:text-xl text-business-black/80 font-medium mb-6">
+          <p className="text-lg md:text-xl text-business-black/80 font-medium mb-2">
             {valueStatement}
           </p>
+          {description && (
+            <p className="text-base text-business-black/70 mb-6">
+              {description}
+            </p>
+          )}
           {/* Bullets */}
           <ul className="space-y-0 mb-4">
             {features.map((feature, featureIndex) => (
@@ -95,11 +111,27 @@ const CapabilityCard = ({
                 aria-label={`Feature: ${feature.replace(/(<([^>]+)>)/gi, "")}`}
               >
                 <span className="w-2 h-2 bg-future-green rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                <span dangerouslySetInnerHTML={{ __html: feature }} className="leading-relaxed" />
+                <span className="leading-relaxed">{feature}</span>
               </li>
             ))}
           </ul>
-          {/* Removed Real-World Use Cases accordion */}
+          {/* Tangible Results Block */}
+          {isSpecial && tangibleResults && (
+            <div className="mt-6 p-4 rounded-xl bg-future-green/10 border border-future-green/30 flex items-start gap-3 shadow-md">
+              <tangibleResults.icon
+                className="w-8 h-8 text-future-green flex-shrink-0 mt-1"
+                aria-label="Tangible Results icon"
+              />
+              <div>
+                <div className="text-base font-semibold text-future-green flex items-center gap-2 mb-1">
+                  🚀 {tangibleResults.label}
+                </div>
+                <div className="text-business-black/80 text-md leading-relaxed">
+                  {tangibleResults.description}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
