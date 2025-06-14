@@ -83,10 +83,15 @@ export const capabilitiesData: CapabilityData[] = [
     valueStatement: "Every interaction becomes an insight.",
     description: "We transform behavioral data into performance breakthroughs.",
     features: [
-      "Actionable insights for learners and managers",
+      "Actionable insights for learners, instructors, and managers",
       "Continuous feedback loops from engagement and outcome analytics"
     ],
-    impactStat: "⚡ 50% faster L&D decisions",
+    impactStat: "",
+    tangibleResults: {
+      icon: BarChart3,
+      label: "Tangible Results",
+      description: "Learning leaders make training decisions 50% faster, with 30% better alignment to performance goals."
+    },
     iconBg: "bg-lxera-blue",
     badgeBg: "bg-lxera-blue/20",
     badgeBorder: "border-lxera-blue",
