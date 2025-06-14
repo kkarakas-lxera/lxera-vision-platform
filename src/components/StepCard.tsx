@@ -144,33 +144,41 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
 
   // --- Pathway Flow Layouts ---
   if (layout === "pathway") {
-    // Desktop: horizontal pathway with improved alignment
+    // Desktop: horizontal pathway with improved alignment & forced height/width
     return (
       <div
         ref={ref}
         className={`
-          relative z-10 group transition-transform flex flex-col items-center
+          relative z-10 group transition-transform flex flex-col items-center w-full h-full
           ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
         `}
         style={{ animationDelay: `${index * 0.15}s` }}
       >
-        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500 flex flex-col items-center h-full w-full">
-          <CardContent className="p-6 flex flex-col h-full items-center">{CardContentBody}</CardContent>
+        <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500 flex flex-col items-center w-full h-full min-h-[530px]">
+          <CardContent className="p-6 flex flex-col h-full items-center w-full">{CardContentBody}</CardContent>
         </Card>
       </div>
     );
   }
 
   if (layout === "pathway-vertical") {
-    // Mobile: stacked pathway with improved alignment
+    // Mobile: stacked pathway with forced width/height matching above
     return (
       <div
         ref={ref}
-        className={`relative group flex flex-col items-center ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"} ml-11`}
-        style={{ animationDelay: `${index * 0.18}s` }}
+        className={`
+          relative group flex flex-col items-center w-full h-full
+          ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8"}
+          ml-11
+        `}
+        style={{
+          animationDelay: `${index * 0.18}s`,
+        }}
       >
-        <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500 flex flex-col items-center">
-          <CardContent className="p-4 flex flex-col items-center">{CardContentBody}</CardContent>
+        <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500 flex flex-col items-center w-full min-h-[530px]">
+          <CardContent className="p-4 flex flex-col items-center w-full h-full">
+            {CardContentBody}
+          </CardContent>
         </Card>
       </div>
     );

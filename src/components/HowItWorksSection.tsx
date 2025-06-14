@@ -58,13 +58,17 @@ const HowItWorksSection = () => {
         {/* Pathway Flow Steps Container */}
         <div className="relative">
           {/* Desktop Pathway Flow Layout with centered consistent row alignment */}
-          <div className="hidden lg:flex justify-center relative min-h-[400px] px-6">
+          <div className="hidden lg:flex justify-center relative min-h-[540px] px-6">
             <div className="w-full flex items-center justify-center gap-2 relative z-10">
               {stepsData.map((step, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col items-center relative w-[320px]"
-                  style={{ flex: "0 0 320px" }}
+                  className="flex flex-col items-center relative"
+                  style={{
+                    width: "320px",
+                    height: "530px",
+                    flex: "0 0 320px"
+                  }}
                 >
                   <StepCard
                     step={step}
@@ -99,7 +103,15 @@ const HowItWorksSection = () => {
             {/* Decorative pathway line for mobile */}
             <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
             {stepsData.map((step, index) => (
-              <div key={index} className="relative z-10">
+              <div
+                key={index}
+                className="relative z-10"
+                style={{
+                  width: "96%",
+                  maxWidth: "340px",
+                  marginLeft: "2.75rem", // match ml-11
+                }}
+              >
                 <StepCard
                   step={step}
                   index={index}
