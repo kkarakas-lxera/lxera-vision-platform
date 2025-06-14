@@ -37,10 +37,16 @@ const HeroVideoPreview = () => {
           </span>
         </div>
       </div>
+      {/* Tiny line under play button */}
+      <div className="w-full max-w-xl mx-auto mt-2 flex flex-col items-center">
+        <span className="block h-0.5 w-16 bg-gradient-to-r from-transparent via-future-green to-transparent mb-1 rounded-full opacity-80" />
+        <span className="text-sm text-business-black/60 font-medium tracking-wide">
+          Watch how LXERA works in 90 seconds
+        </span>
+      </div>
       <VideoModal isOpen={open} setIsOpen={setOpen} />
     </>
   );
 };
 
 export default HeroVideoPreview;
-
