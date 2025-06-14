@@ -105,7 +105,7 @@ export const StepCard = ({ step, index, isLast, layout, side }: StepCardProps) =
       {arrow}
       {NumberBadge}
       <div className="flex flex-col items-center">
-        <div className="mb-1">{IconBadge}</div>
+        {/* Icon removed as requested */}
         <h3 className="text-lg font-bold text-business-black text-center mt-2">{step.title}</h3>
         <div className="text-sm text-business-black/70 font-semibold mt-1 mb-2 text-center">{step.subtitle}</div>
         <ul className="mb-3 mt-2 space-y-1">
