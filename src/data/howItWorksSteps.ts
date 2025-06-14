@@ -70,7 +70,7 @@ export const stepsData: StepData[] = [
     step: "04",
     stepTitle: "Step 4",
     title: "Innovation Activation",
-    subtitle: "Turn learning into business impact.",
+    subtitle: "Turn learning into measurable business impact.",
     bullets: [
       "Co-create ideas in real-world sandboxes",
       "Low-code prototyping to fast-track outcomes"
