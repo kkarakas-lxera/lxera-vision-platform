@@ -6,11 +6,15 @@ const HeroContent = () => {
         {/* Headline */}
         <div className="animate-fade-in-up">
           <h1 className="headline text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
-            <span className="block text-business-black">LXERA is the first</span>
-            <span className="block drop-shadow-sm" style={{ color: '#aeb171' }}>
+            LXERA is the first<br />
+            <span
+              className="drop-shadow-sm"
+              style={{ color: '#B1B973' }}
+            >
               Learning & Innovation
             </span>
-            <span className="block text-business-black drop-shadow-sm">Experience Platform</span>
+            <br />
+            Experience Platform
           </h1>
         </div>
 
@@ -38,3 +42,4 @@ const HeroContent = () => {
 };
 
 export default HeroContent;
+
