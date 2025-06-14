@@ -76,9 +76,14 @@ const CapabilityCard = ({
           <p className="text-lg md:text-xl text-business-black/80 font-medium mb-6">
             {valueStatement}
           </p>
-          <ul className="space-y-3 mb-4">
+          <ul className="space-y-0 mb-4">
             {features.map((feature, featureIndex) => (
-              <li key={featureIndex} className="flex items-start text-business-black/80 text-base">
+              <li
+                key={featureIndex}
+                className={`flex items-start text-business-black/80 text-base relative 
+                  ${featureIndex > 0 ? "pt-4 mt-2 border-t border-future-green/10" : ""}
+                `}
+              >
                 <span className="w-2 h-2 bg-future-green rounded-full mt-2 mr-3 flex-shrink-0"></span>
                 <span dangerouslySetInnerHTML={{ __html: feature }} className="leading-relaxed" />
               </li>
