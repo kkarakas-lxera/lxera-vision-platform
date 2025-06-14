@@ -33,10 +33,10 @@ const VideoModal = () => {
       <DialogTrigger asChild>
         <Button 
           size="lg" 
-          className="bg-transparent text-white border-2 border-white/30 hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 group shadow-lg hover:shadow-xl hover:scale-105"
+          className="bg-transparent text-business-black border-2 border-business-black hover:bg-business-black hover:text-white text-lg px-8 py-4 rounded-full font-semibold transition-all duration-300 group shadow-lg hover:shadow-xl hover:scale-105"
           aria-label="See How LXERA Works demonstration video"
         >
-          <Play className="w-5 h-5 mr-2 text-white group-hover:text-business-black transition-colors" />
+          <Play className="w-5 h-5 mr-2 text-business-black group-hover:text-white transition-colors" />
           ▶ See How It Works (2 Min)
         </Button>
       </DialogTrigger>
