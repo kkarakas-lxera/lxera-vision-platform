@@ -22,6 +22,14 @@ const HowItWorksSection = () => {
   // Mobile step tracker
   const stepInViewIdx = useStepInView(stepsData.length);
 
+  // Keyboard navigation for sticky mobile step navigation
+  const handleStepButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
+    if (e.key === "Enter" || e.key === " ") {
+      const el = document.getElementById(`howitworks-step-${idx}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden">
       {/* Animated background particles with consistent colors */}
@@ -64,7 +72,7 @@ const HowItWorksSection = () => {
                     const el = document.getElementById(`howitworks-step-${idx}`);
                     el?.scrollIntoView({ behavior: "smooth", block: "center" });
                   }}
-                  onKeyDown={e => (e.key === "Enter" || e.key === " " ? (document.getElementById(`howitworks-step-${idx}`)?.scrollIntoView({ behavior: "smooth", block: "center" }) : undefined)}
+                  onKeyDown={e => handleStepButtonKeyDown(e, idx)}
                 >
                   {step.step}
                 </button>
