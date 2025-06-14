@@ -39,32 +39,7 @@ const WhyLXERASection = () => {
             subtitle="Strategic Outcomes with Tangible Impact"
           />
 
-          {/* Intro section with updated colors */}
-          <div className="text-center mb-16 animate-fade-in-up animate-delay-600">
-            <div className="max-w-4xl mx-auto relative">
-              {/* No strong border, keep soft blending */}
-              <div className="absolute inset-0 bg-gradient-to-r from-smart-beige/80 via-white/60 to-future-green/20 backdrop-blur-md rounded-3xl shadow-lg -m-8"></div>
-              
-              <div className="relative z-10 p-8">
-                <p className="text-xl lg:text-2xl text-business-black/80 leading-relaxed font-medium mb-6">
-                  Transform your organization's learning culture with AI-powered solutions that drive 
-                  <span
-                    className="relative"
-                    style={{
-                      borderBottom: "3px solid #7AE5C6",
-                      paddingBottom: 2,
-                      marginLeft: 4,
-                      marginRight: 4,
-                    }}
-                  >
-                    real business outcomes
-                  </span>
-                </p>
-                
-                <StatsCounter />
-              </div>
-            </div>
-          </div>
+          {/* Intro box with StatsCounter removed as requested */}
 
           {/* Testimonial */}
           <TestimonialCarousel />
