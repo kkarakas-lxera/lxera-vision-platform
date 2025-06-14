@@ -2,6 +2,9 @@
 import { useState } from "react";
 import VideoModal from "./VideoModal";
 
+const HERO_VIDEO_URL = "your-demo-video.mp4";
+const HERO_VIDEO_CAPTION = "LXERA 90-second overview";
+
 const HeroVideoPreview = () => {
   const [open, setOpen] = useState(false);
 
@@ -17,7 +20,7 @@ const HeroVideoPreview = () => {
       >
         <video
           className="w-full object-cover aspect-video"
-          src="your-demo-video.mp4"
+          src={HERO_VIDEO_URL}
           autoPlay
           loop
           muted
@@ -49,7 +52,12 @@ const HeroVideoPreview = () => {
           Watch how LXERA works in 90 seconds
         </span>
       </div>
-      <VideoModal isOpen={open} setIsOpen={setOpen} />
+      <VideoModal 
+        isOpen={open}
+        setIsOpen={setOpen}
+        videoUrl={HERO_VIDEO_URL}
+        videoCaption={HERO_VIDEO_CAPTION}
+      />
     </>
   );
 };
