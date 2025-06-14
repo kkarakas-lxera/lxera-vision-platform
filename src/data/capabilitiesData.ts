@@ -52,14 +52,20 @@ export const capabilitiesData: CapabilityData[] = [
   },
   {
     icon: Users,
-    title: "Enhanced Engagement & Motivation",
+    // Updated contents below!
+    title: "💡 Enhanced Engagement and Motivation",
     valueStatement: "Where emotion meets education.",
+    description: "LXERA uses emotional intelligence and gamification to keep learners connected and inspired.",
     features: [
-      "Real-time sentiment tracking for personalized responses",
-      "Gamified elements and storytelling to boost motivation",
-      "Social learning features that foster continuous peer-to-peer learning"
+      "Real-time sentiment tracking for personalized emotional responses",
+      "Storytelling, avatars, and gamified elements to boost motivation"
     ],
-    impactStat: "🚀 3x higher engagement",
+    impactStat: "",
+    tangibleResults: {
+      icon: Heart,
+      label: "Tangible Results",
+      description: "Engagement rates increase by 3x, while dropout rates decrease by 40% in emotionally optimized learning environments."
+    },
     iconBg: "bg-lxera-red",
     badgeBg: "bg-lxera-red/20",
     badgeBorder: "border-lxera-red",
@@ -139,3 +145,4 @@ export const capabilitiesData: CapabilityData[] = [
     roiMetrics: "Capability Growth: 65%"
   }
 ];
+
