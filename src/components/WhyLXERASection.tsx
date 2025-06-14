@@ -36,7 +36,7 @@ const WhyLXERASection = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <SectionHeader 
             title="Why LXERA"
-            subtitle="Strategic Outcomes with Tangible Impact"
+            subtitle="LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across five core pillars."
           />
 
           {/* Capability filter bar REMOVED */}
