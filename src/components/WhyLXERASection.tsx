@@ -34,7 +34,7 @@ const WhyLXERASection = () => {
         <AnimatedBackground />
         <div className="max-w-7xl mx-auto relative z-10">
           <SectionHeader 
-            title="Why LXERA"
+            title="What Makes LXERA Different"
             subtitle="LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across five core pillars."
           />
 
@@ -131,3 +131,4 @@ const WhyLXERASection = () => {
 };
 
 export default WhyLXERASection;
+
