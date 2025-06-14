@@ -5,9 +5,22 @@ import { Timeline } from "@/components/Timeline";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { stepsData } from "@/data/howItWorksSteps";
 import HowItWorksStepsCTA from "./HowItWorksStepsCTA";
+import { useStepInView } from "@/hooks/useStepInView";
+import React from "react";
 
 const HowItWorksSection = () => {
   const { isVisible, currentStep, updateCurrentStep } = useScrollAnimation();
+
+  // Detect reduced motion (prefers-reduced-motion)
+  const [reducedMotion, setReducedMotion] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+  }, []);
+
+  // Mobile step tracker
+  const stepInViewIdx = useStepInView(stepsData.length);
 
   return (
     <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden">
@@ -31,6 +44,38 @@ const HowItWorksSection = () => {
       <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-smart-beige/50 to-transparent"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Sticky Mobile Progress Bar */}
+        <div className="lg:hidden sticky top-0 left-0 right-0 z-40" style={{ height: 46 }}>
+          <div className="flex items-center justify-center gap-2 px-4 bg-white/90 backdrop-blur-md border-b border-future-green/20 shadow-sm h-11">
+            {stepsData.map((step, idx) => (
+              <React.Fragment key={idx}>
+                <button
+                  type="button"
+                  aria-label={`Go to ${step.title}`}
+                  tabIndex={0}
+                  className={`
+                    flex items-center justify-center h-7 w-7 rounded-full border-2 font-bold text-xs transition
+                    ${stepInViewIdx === idx
+                      ? "bg-future-green text-white border-future-green scale-105 shadow"
+                      : "bg-white text-future-green border-future-green/40 hover:bg-future-green/15"
+                    }
+                  `}
+                  onClick={() => {
+                    const el = document.getElementById(`howitworks-step-${idx}`);
+                    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}
+                  onKeyDown={e => (e.key === "Enter" || e.key === " " ? (document.getElementById(`howitworks-step-${idx}`)?.scrollIntoView({ behavior: "smooth", block: "center" }) : undefined)}
+                >
+                  {step.step}
+                </button>
+                {idx < stepsData.length - 1 && (
+                  <span className="w-5 h-1 bg-future-green/20 rounded-full mx-0.5" aria-hidden />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+        
         {/* Section Header with enhanced animations */}
         <div className="text-center mb-20 animate-fade-in-up">
           <div className="inline-block mb-4 animate-slide-in-right stagger-2">
@@ -99,13 +144,14 @@ const HowItWorksSection = () => {
               <div className="w-full h-1 rounded bg-gradient-to-r from-future-green via-future-green/50 to-future-green/10 blur-xxs opacity-50" />
             </div>
           </div>
-          {/* Mobile Vertical Pathway Flow */}
+          {/* Mobile Vertical Pathway Flow (with step ids for intersection observer) */}
           <div className="lg:hidden space-y-8 relative">
             {/* Decorative pathway line for mobile */}
             <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
             {stepsData.map((step, index) => (
               <div
                 key={index}
+                id={`howitworks-step-${index}`}
                 className="relative z-10"
                 style={{
                   width: "96%",
@@ -118,6 +164,7 @@ const HowItWorksSection = () => {
                   index={index}
                   isLast={index === stepsData.length - 1}
                   layout="pathway-vertical"
+                  reducedMotion={reducedMotion}
                 />
                 {/* Curved connector (except after last card) */}
                 {index < stepsData.length - 1 && (
