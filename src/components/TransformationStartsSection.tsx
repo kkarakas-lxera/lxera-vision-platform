@@ -20,6 +20,7 @@ const TransformationStartsSection = () => {
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
+        {/* Changed: neutral quote, no green */}
         <p className="text-base italic text-business-black/60 mb-8 animate-fade-in-up animate-delay-400">
           "It's 3 steps ahead of where L&D is going."
         </p>

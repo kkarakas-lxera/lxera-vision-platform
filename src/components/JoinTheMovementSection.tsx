@@ -58,6 +58,7 @@ const JoinTheMovementSection = () => {
           Join the <span className="text-transparent bg-gradient-to-r from-future-green to-business-black bg-clip-text">Movement</span>
         </h2>
         <p className="text-xl lg:text-2xl text-business-black/80 mb-16 max-w-4xl mx-auto animate-fade-in-up leading-relaxed" style={{animationDelay: '0.6s'}}>
+          {/* headline and intro: all neutral, subtle accent only if absolutely needed */}
           LXERA is more than software — it's a new foundation for how organizations grow through learning and action.
         </p>
         

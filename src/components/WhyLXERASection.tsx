@@ -56,7 +56,17 @@ const WhyLXERASection = () => {
               <div className="relative z-10 p-8">
                 <p className="text-xl lg:text-2xl text-business-black/80 leading-relaxed font-medium mb-6">
                   Transform your organization's learning culture with AI-powered solutions that drive 
-                  <span className="text-future-green font-semibold"> real business outcomes</span>
+                  <span
+                    className="relative"
+                    style={{
+                      borderBottom: "3px solid #7AE5C6",
+                      paddingBottom: 2,
+                      marginLeft: 4,
+                      marginRight: 4,
+                    }}
+                  >
+                    real business outcomes
+                  </span>
                 </p>
                 
                 <StatsCounter />
