@@ -7,6 +7,7 @@ import StatsCounter from "./StatsCounter";
 import { capabilitiesData } from "@/data/capabilitiesData";
 import { useState } from "react";
 import { useInView } from "@/hooks/useInView";
+import { Button } from "@/components/ui/button";
 
 const WhyLXERASection = () => {
   // Show all capabilities
@@ -72,6 +73,21 @@ const WhyLXERASection = () => {
             })}
           </div>
 
+          {/* CTA Micro-section after last card */}
+          <div className="flex flex-col items-center justify-center mt-20 mb-12 px-4">
+            <div className="rounded-2xl bg-white/80 border border-future-green/20 shadow-md p-8 w-full max-w-xl text-center mx-auto animate-fade-in-up">
+              <div className="text-2xl font-bold text-business-black mb-4">
+                Ready to unlock these outcomes in your team?
+              </div>
+              <Button
+                className="lxera-btn-primary mt-2 w-fit px-8 py-4 text-lg rounded-full shadow-future-green/30 transition-all duration-200 hover:scale-105"
+                size="lg"
+              >
+                Request a Demo
+              </Button>
+            </div>
+          </div>
+
           {/* Section CTA: Enhance focus */}
           <div className="mt-24 text-center animate-fade-in-up animate-delay-1000">
             <div className="relative max-w-5xl mx-auto overflow-hidden rounded-3xl">
@@ -131,3 +147,4 @@ const WhyLXERASection = () => {
 };
 
 export default WhyLXERASection;
+
