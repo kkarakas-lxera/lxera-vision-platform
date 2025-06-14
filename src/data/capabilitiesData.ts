@@ -52,19 +52,19 @@ export const capabilitiesData: CapabilityData[] = [
   },
   {
     icon: Users,
-    // Removed lamp/💡 emoji from the title as requested.
+    // Enhanced semantic & consistent structure
     title: "Enhanced Engagement and Motivation",
-    valueStatement: "Where emotion meets education.",
-    description: "LXERA uses emotional intelligence and gamification to keep learners connected and inspired.",
+    valueStatement: "Where emotion meets education. Deeper connections, stronger commitment.",
+    description: "LXERA leverages emotional intelligence and gamification—adapting in real time to each learner's mood and motivation signals.",
     features: [
-      "Real-time sentiment tracking for personalized emotional responses",
-      "Storytelling, avatars, and gamified elements to boost motivation"
+      "Personalized emotional responses powered by real-time sentiment tracking",
+      "Immersive storytelling, dynamic avatars, and gamified incentives that maintain motivation"
     ],
     impactStat: "",
     tangibleResults: {
       icon: Heart,
       label: "Tangible Results",
-      description: "Engagement rates increase by 3x, while dropout rates decrease by 40% in emotionally optimized learning environments."
+      description: "Learners engage 3x more often and dropout rates fall by 40% in emotionally optimized learning environments."
     },
     iconBg: "bg-lxera-red",
     badgeBg: "bg-lxera-red/20",
