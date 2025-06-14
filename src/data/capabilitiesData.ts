@@ -134,13 +134,18 @@ export const capabilitiesData: CapabilityData[] = [
   {
     icon: TrendingDown,
     title: "Organizational Capability Building",
-    valueStatement: "Scale learning that scales business impact.",
+    valueStatement: "Upskill at scale, aligned with strategy.",
+    description: "LXERA serves as your digital learning backbone, tailored to your business transformation.",
     features: [
-      "Strategic upskilling aligned with business transformation goals",
-      "Centralized platform for enterprise-wide capability development",
-      "Leadership development programs that create change agents"
+      "Centralized platform for strategic upskilling and reskilling",
+      "Focus on digital, innovation, and leadership capabilities"
     ],
-    impactStat: "📉 40% reduction in L&D costs",
+    impactStat: "",
+    tangibleResults: {
+      icon: Shield,
+      label: "Tangible Results",
+      description: "Organizations cut L&D costs by up to 40%, while doubling ROI on training investments."
+    },
     iconBg: "bg-emerald",
     badgeBg: "bg-emerald/20",
     badgeBorder: "border-emerald",
