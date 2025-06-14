@@ -41,7 +41,7 @@ const HowItWorksSection = () => {
             How LXERA Works
           </h2>
           <p className="text-xl lg:text-2xl text-business-black/80 max-w-3xl mx-auto animate-fade-in-up stagger-5">
-            From onboarding to innovation in 4 smart steps
+            From onboarding to innovation — in 4 steps that drive measurable results.
           </p>
           
           {/* Enhanced Progress Indicator */}
