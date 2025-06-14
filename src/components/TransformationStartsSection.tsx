@@ -39,6 +39,11 @@ const TransformationStartsSection = () => {
             Get Early Access
           </Button>
         </div>
+
+        {/* Animated Down Arrow Indicator */}
+        <div className="flex justify-center mt-6 animate-bounce-slow">
+          <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
+        </div>
         
         <div className="flex justify-center mt-8 space-x-2 animate-fade-in animate-delay-800">
           {[1, 2, 3, 4].map((step, index) => (
@@ -56,3 +61,4 @@ const TransformationStartsSection = () => {
   );
 };
 export default TransformationStartsSection;
+
