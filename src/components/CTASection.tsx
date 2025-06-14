@@ -19,6 +19,12 @@ const CTASection = () => {
           <HeroVideoPreview />
         </div>
       </div>
+      {/* Quote snippet below video */}
+      <div className="text-center mt-3">
+        <span className="block text-business-black/70 text-base font-medium italic leading-tight">
+          “Built with real teams. Designed for transformation.”
+        </span>
+      </div>
       <div className="text-center animate-fade-in-up animate-delay-600 space-y-4">
         <p className="text-base text-business-black/75 font-medium">
           🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
