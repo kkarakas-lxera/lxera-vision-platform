@@ -35,13 +35,18 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl w-full p-0 bg-black rounded-2xl" aria-describedby="video-desc">
+      <DialogContent
+        className="max-w-2xl w-full p-0 bg-black rounded-2xl"
+        aria-describedby="video-desc"
+        aria-modal="true"
+        aria-label="Demonstration video modal"
+      >
         <div className="aspect-video w-full relative rounded-2xl overflow-hidden">
           <div id="video-desc" className="sr-only">
             LXERA feature demo video {videoCaption ?? ""}
           </div>
           {isLoading && !hasError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-business-black/80 rounded-lg">
+            <div className="absolute inset-0 flex items-center justify-center bg-business-black/80 rounded-lg animate-pulse">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-future-green animate-spin mx-auto mb-3" />
                 <p className="text-white text-sm">Loading video…</p>
@@ -70,13 +75,11 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
               poster="/placeholder.svg"
               onLoadedData={handleVideoLoad}
               onError={handleVideoError}
-              aria-label="LXERA feature demonstration"
-              preload="metadata"
-              autoPlay={false}
+              aria-label={videoCaption ? `Demonstration: ${videoCaption}` : "Demonstration video"}
+              preload="none"
               tabIndex={0}
             >
               <source src={videoUrl} type="video/mp4" />
-              {/* You may add <track> for captions if desired */}
               Your browser does not support HTML5 video.
             </video>
           )}

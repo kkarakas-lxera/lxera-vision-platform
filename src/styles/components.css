@@ -114,4 +114,13 @@
       padding-right: 4rem;
     }
   }
+
+  .play-btn-glow {
+    @apply transition-shadow duration-200;
+  }
+  .play-btn-glow:hover,
+  .play-btn-glow:focus {
+    box-shadow: 0 0 12px 2px #7AE5C6, 0 2px 16px 5px #7AE5C699;
+    outline: none;
+  }
 }

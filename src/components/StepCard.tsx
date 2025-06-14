@@ -5,6 +5,7 @@ import { Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, R
 import { StepData } from "@/data/howItWorksSteps";
 import { useState } from "react";
 import VideoModal from "./VideoModal";
+import { useInView } from "@/hooks/useInView";
 
 interface StepCardProps {
   step: StepData;
@@ -29,10 +30,20 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   const MainIcon = iconMap[step.iconName as keyof typeof iconMap];
   const SubIcon = iconMap[step.subIconName as keyof typeof iconMap];
 
+  // Animate card on scroll into view
+  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.18 });
+
+  // Keyboard support: open modal on Enter/Space
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      setShowModal(true);
+    }
+  };
+
   const NumberBadge = (
     <div className="flex items-center justify-center mb-3">
-      <div className="w-14 h-14 bg-gradient-to-br from-future-green to-future-green/80 rounded-full shadow-lg flex items-center justify-center">
-        <span className="text-2xl font-extrabold text-business-black tracking-tight">{step.step}</span>
+      <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green/80 rounded-full shadow-lg flex items-center justify-center scale-105">
+        <span className="text-3xl font-extrabold text-business-black tracking-tight">{step.step}</span>
       </div>
     </div>
   );
@@ -48,19 +59,22 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
       <img
         src={step.videoThumb}
         alt={`${step.title} preview`}
-        className="w-full h-40 object-cover rounded-xl border-2 border-future-green/30 group-hover:scale-102 transition-transform duration-300"
+        className="w-full h-40 object-cover rounded-xl border-2 border-future-green/30 group-hover:scale-102 transition-transform duration-300 bg-[#e6faf3]"
         draggable={false}
-        style={{ background: "#e6faf3" }}
         loading="lazy"
       />
       <button
         onClick={() => setShowModal(true)}
-        className="absolute inset-0 flex items-center justify-center bg-black/15 hover:bg-black/25 transition group"
-        aria-label="Play step video"
+        className="absolute inset-0 flex items-center justify-center bg-black/15 hover:bg-black/25 transition group outline-none focus-visible:ring-2 focus-visible:ring-future-green play-btn-glow"
+        aria-label={`Play video: ${step.title}`}
         tabIndex={0}
+        role="button"
+        onKeyDown={handleKeyDown}
+        type="button"
+        style={{ WebkitTapHighlightColor: "transparent" }}
       >
-        <div className="w-14 h-14 flex items-center justify-center rounded-full bg-future-green/90 shadow-lg border-4 border-white hover:scale-110 transition">
-          <Play className="w-8 h-8 text-business-black" />
+        <div className="w-14 h-14 flex items-center justify-center rounded-full bg-future-green/90 shadow-lg border-4 border-white hover:scale-110 transition relative animate-pulse-slow">
+          <Play className="w-8 h-8 text-business-black drop-shadow" />
         </div>
       </button>
     </div>
@@ -72,7 +86,7 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
     </div>
   );
 
-  // Shared card core (for both layouts)
+  // Card content
   const CardContentBody = (
     <>
       {NumberBadge}
@@ -108,7 +122,7 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
           isOpen={showModal}
           setIsOpen={setShowModal}
           videoUrl={step.videoUrl}
-          videoCaption={step.title}
+          videoCaption={step.videoCaption}
         />
       )}
     </>
@@ -117,7 +131,11 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   // Desktop and mobile layouts
   if (layout === "mobile") {
     return (
-      <div className="relative animate-fade-in-up group" style={{ animationDelay: `${index * 0.2}s` }}>
+      <div
+        ref={ref}
+        className={`relative group ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8 transition-all duration-500"}`}
+        style={{ animationDelay: `${index * 0.18}s` }}
+      >
         <Card className="bg-white border-0 lxera-shadow p-3 relative z-10 hover:shadow-xl hover:-translate-y-1 group-hover:scale-102 transition-all duration-500">
           <CardContent className="p-4">{CardContentBody}</CardContent>
         </Card>
@@ -126,7 +144,11 @@ export const StepCard = ({ step, index, isLast, layout }: StepCardProps) => {
   }
 
   return (
-    <div className="relative z-10 animate-fade-in-up group" style={{ animationDelay: `${index * 0.2}s` }}>
+    <div
+      ref={ref}
+      className={`relative z-10 group ${inView ? "animate-fade-in-up" : "opacity-0 translate-y-8 transition-all duration-500"}`}
+      style={{ animationDelay: `${index * 0.18}s` }}
+    >
       <Card className="bg-white border-0 lxera-shadow relative z-10 hover:shadow-xl hover:-translate-y-2 group-hover:scale-105 transition-all duration-500">
         <CardContent className="p-6 flex flex-col h-full">{CardContentBody}</CardContent>
       </Card>
