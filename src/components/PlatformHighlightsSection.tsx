@@ -130,22 +130,22 @@ const PlatformHighlightsSection = () => {
     },
     {
       icon: <FileText className="w-8 h-8" />,
-      title: "Turn Documents into Learning Experiences",
-      subtitle: "Smart Knowledge Base Transformation",
-      description: "AI transforms existing documentation into interactive learning modules. Turn static knowledge into engaging, searchable, and trackable learning experiences.",
+      title: "AI Hyper-Personalized Learning Engine",
+      subtitle: "Tailored learning at the speed of thought",
+      description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
       bullets: [
-        "AI-powered document analysis and transformation",
-        "Automatically converts docs to interactive content",
-        "Searchable, trackable, engaging materials"
+        "Zero generic content",
+        "Adaptive to career path",
+        "AI-curated relevance"
       ],
       badges: [
-        { text: "Document AI", tooltip: "AI-powered document analysis and transformation", type: "tech" },
-        { text: "Smart Conversion", tooltip: "Automatically converts docs to interactive content", type: "feature" },
-        { text: "Interactive Content", tooltip: "Searchable, trackable, and engaging learning materials", type: "feature" }
+        { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
+        { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
+        { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
       ],
-      iconBg: "bg-gradient-to-br from-future-green to-lxera-blue",
+      iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
       cardBg: "bg-white/90",
-      roi: "85% content efficiency"
+      roi: "Truly individualized learning"
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
