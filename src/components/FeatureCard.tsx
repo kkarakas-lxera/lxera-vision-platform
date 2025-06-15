@@ -168,7 +168,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             {feature.description}
           </p>
           {/* Bullets */}
-          <div className="bg-smart-beige/80 border border-future-green/30 rounded-lg px-4 py-2 mt-2 mb-2 shadow-inner">
+          <div className="bg-smart-beige/80 px-4 py-2 mt-2 mb-2 shadow-inner rounded-lg">
             <ul className="space-y-1">
               {feature.bullets.map((bullet, i) => (
                 <li key={i} className="flex items-start text-[15px] text-business-black/90 font-medium leading-snug">
@@ -206,7 +206,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               className={`
                 absolute bottom-2 right-2 p-1 
                 bg-future-green/10 text-future-green rounded-full
-                border border-future-green/20 shadow-sm
+                shadow-sm
                 ${expanded ? "rotate-180" : ""}
                 transition-all duration-200
               `}

@@ -123,7 +123,7 @@ const CapabilityCard = ({
 
           {/* Tangible Results Block */}
           {isSpecial && tangibleResults && (
-            <div className="mt-6 w-full p-4 rounded-xl bg-future-green/10 border border-future-green/30 flex items-start gap-3 shadow-md">
+            <div className="mt-6 w-full p-4 rounded-xl bg-future-green/10 flex items-start gap-3 shadow-md">
               <div>
                 {/* Unified pill-style label with icon and text */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-business-black text-white text-sm font-semibold mb-2 shadow-sm">

@@ -75,7 +75,7 @@ const JoinTheMovementSection = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-future-green/25 via-smart-beige/30 to-future-green/15 rounded-3xl p-8 lg:p-12 mb-12 hover:from-future-green/30 hover:via-smart-beige/40 hover:to-future-green/20 transition-all duration-700 border border-future-green/30 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-future-green/25 via-smart-beige/30 to-future-green/15 rounded-3xl p-8 lg:p-12 mb-12 hover:from-future-green/30 hover:via-smart-beige/40 hover:to-future-green/20 transition-all duration-700 backdrop-blur-sm">
             <h3 className="text-2xl lg:text-3xl font-bold text-business-black mb-12 animate-fade-in" style={{animationDelay: '1s'}}>
               As an early partner, you'll:
             </h3>
