@@ -97,10 +97,7 @@ const HowItWorksSection = () => {
             From onboarding to innovation — in 4 steps that drive measurable results.
           </p>
           
-          {/* Enhanced Progress Indicator */}
-          <div className="mt-8 animate-fade-in stagger-5">
-            <ProgressIndicator totalSteps={stepsData.length} currentStep={currentStep} />
-          </div>
+          {/* Enhanced Progress Indicator removed as requested */}
           
           {/* Animated visual connector */}
           <div className="mt-4 flex justify-center animate-fade-in stagger-5">
