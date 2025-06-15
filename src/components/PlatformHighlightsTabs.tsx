@@ -21,49 +21,49 @@ interface PlatformHighlightsTabsProps {
   groupedByCategory: Record<string, any[]>;
 }
 
-// Map category names to Lucide icons with business-oriented color accents
+// Map category names to Lucide icons with brand color accents and consistent radius/animation
 const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
   "Security & Compliance": (
-    <Shield className="w-5 h-5 text-business-black mr-1" />
+    <Shield className="w-5 h-5 lxera-icon-animate text-business-black mr-1 lxera-rounded-md" />
   ),
   "Analytics": (
-    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
+    <BarChart3 className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
   "Analytics & Insights": (
-    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
+    <BarChart3 className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
   "HR Integration": (
-    <Settings className="w-5 h-5 text-emerald mr-1" />
+    <Settings className="w-5 h-5 lxera-icon-animate text-emerald mr-1 lxera-rounded-md" />
   ),
   "AI & Personalization": (
-    <Bot className="w-5 h-5 text-lxera-red mr-1" />
+    <Bot className="w-5 h-5 lxera-icon-animate text-lxera-red mr-1 lxera-rounded-md" />
   ),
   "Skill Analysis": (
-    <Target className="w-5 h-5 text-business-black mr-1" />
+    <Target className="w-5 h-5 lxera-icon-animate text-business-black mr-1 lxera-rounded-md" />
   ),
   "Content Transformation": (
-    <FileText className="w-5 h-5 text-lxera-blue mr-1" />
+    <FileText className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
   "Innovation": (
-    <Code className="w-5 h-5 text-lxera-red mr-1" />
+    <Code className="w-5 h-5 lxera-icon-animate text-lxera-red mr-1 lxera-rounded-md" />
   ),
   "Innovation & Automation": (
-    <Code className="w-5 h-5 text-emerald mr-1" />
+    <Code className="w-5 h-5 lxera-icon-animate text-emerald mr-1 lxera-rounded-md" />
   ),
   "Gamification": (
-    <Gamepad className="w-5 h-5 text-emerald mr-1" />
+    <Gamepad className="w-5 h-5 lxera-icon-animate text-emerald mr-1 lxera-rounded-md" />
   ),
   "Content Generation": (
-    <Users className="w-5 h-5 text-business-black mr-1" />
+    <Users className="w-5 h-5 lxera-icon-animate text-business-black mr-1 lxera-rounded-md" />
   ),
   "Collaboration": (
-    <Users className="w-5 h-5 text-lxera-blue mr-1" />
+    <Users className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
   "Community & Delivery": (
-    <Users className="w-5 h-5 text-lxera-blue mr-1" />
+    <Users className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
   "Engagement": (
-    <Bell className="w-5 h-5 text-lxera-blue mr-1" />
+    <Bell className="w-5 h-5 lxera-icon-animate text-lxera-blue mr-1 lxera-rounded-md" />
   ),
 };
 
@@ -82,7 +82,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
   return (
     <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
       <div
-        className="
+        className={`
           sticky top-0 z-30
           bg-smart-beige/95 backdrop-blur
           rounded-xl
@@ -94,7 +94,8 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
           mx-auto
           flex
           items-center
-        "
+          ${tabValue ? "drop-shadow-[0_4px_12px_rgba(25,25,25,0.07)]" : ""}
+        `}
         style={{
           zIndex: 30,
         }}
@@ -126,7 +127,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
               key={cat}
               value={cat}
               className={`
-                px-5 py-2 rounded-full
+                px-5 py-2 rounded-full lxera-tab-underline group
                 flex items-center gap-2
                 font-semibold border-2
                 transition-all
@@ -138,12 +139,9 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
                 data-[state=active]:shadow-lg
                 data-[state=active]:ring-2
                 data-[state=active]:ring-lxera-blue/60
-                data-[state=active]:underline
-                data-[state=active]:decoration-business-black
-                data-[state=active]:decoration-4
                 hover:scale-105
                 shadow
-                transition
+                ${tabValue === cat ? "focus:outline-none focus:ring-2 focus:ring-lxera-blue/60" : ""}
               `}
               style={{
                 boxShadow: tabValue === cat ? '0 4px 24px 0 #D9D9D9aa' : '0 2px 8px 0 #F3F3F3aa',
@@ -153,9 +151,12 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
                 whiteSpace: "nowrap",
               }}
               data-state={tabValue === cat ? "active" : undefined}
+              aria-current={tabValue === cat ? "page" : undefined}
             >
-              {CATEGORY_ICON_MAP[cat] || null}
-              {cat}
+              {/* Animated Icon + accessible label */}
+              <span aria-hidden="true">{CATEGORY_ICON_MAP[cat] || null}</span>
+              <span className="sr-only">{cat} features</span>
+              <span>{cat}</span>
             </TabsTrigger>
           ))}
         </TabsList>

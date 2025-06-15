@@ -123,4 +123,37 @@
     box-shadow: 0 0 12px 2px #7AE5C6, 0 2px 16px 5px #7AE5C699;
     outline: none;
   }
+
+  /* Animated underline for Tab triggers */
+  .lxera-tab-underline {
+    position: relative;
+    overflow: visible;
+  }
+  .lxera-tab-underline::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 4px;
+    left: 30%;
+    width: 40%;
+    height: 3px;
+    background: linear-gradient(to right, #191919 60%, #7AE5C6 100%);
+    border-radius: 2px;
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: opacity 0.18s, transform 0.25s cubic-bezier(.85,-0.01,.47,1.09);
+    pointer-events: none;
+  }
+  /* Animate in if data-state=active is present */
+  .lxera-tab-underline[data-state="active"]::after {
+    opacity: 1;
+    transform: scaleX(1);
+    animation: underline-slide 0.35s cubic-bezier(.29,1.59,.26,.92);
+  }
+
+  /* Slightly round badge corners + radius utility for icon/buttons */
+  .lxera-rounded-md {
+    border-radius: 0.625rem !important;
+  }
 }

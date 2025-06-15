@@ -390,11 +390,12 @@ const PlatformHighlightsSection = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-lxera-blue/10 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
             <div className="relative z-10">
+              {/* Polished CTA */}
               <h3 className="text-2xl font-bold text-business-black mb-2">
-                Ready to Transform Learning & Innovation?
+                Ready to Transform Learning & Innovation? — Let’s Talk
               </h3>
               <p className="text-lg text-business-black/70 mb-6">
-                See these features in action and discover how they can drive measurable results for your organization.
+                Experience these features firsthand and discover how LXERA helps you drive measurable, on-brand results.
               </p>
               
               {/* Enhanced stats */}
