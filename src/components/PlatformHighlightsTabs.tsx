@@ -1,4 +1,3 @@
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useRef, useEffect } from "react";
 import PlatformHighlightsCarousel from "./PlatformHighlightsCarousel";
@@ -153,8 +152,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
               data-state={tabValue === cat ? "active" : undefined}
               aria-current={tabValue === cat ? "page" : undefined}
             >
-              {/* Animated Icon + accessible label */}
-              <span aria-hidden="true">{CATEGORY_ICON_MAP[cat] || null}</span>
+              {/* Removed animated Icon */}
               <span className="sr-only">{cat} features</span>
               <span>{cat}</span>
             </TabsTrigger>
