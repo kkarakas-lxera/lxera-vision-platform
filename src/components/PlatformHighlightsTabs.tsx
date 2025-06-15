@@ -1,3 +1,4 @@
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useRef, useEffect } from "react";
 import PlatformHighlightsCarousel from "./PlatformHighlightsCarousel";
@@ -80,20 +81,20 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
 
   return (
     <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
-      {/* Sticky, pill-style tab bar, horizontally scrollable on mobile */}
       <div
         className={`
           sticky top-0 z-30
           bg-smart-beige/95 backdrop-blur
           rounded-xl
+          shadow-lg
           transition-all
+          border border-business-black/10
           px-2
-          mb-0
+          mb-4
           mx-auto
           flex
           items-center
-          drop-shadow-[0_2px_8px_rgba(40,64,90,0.06)]
-          border border-business-black/10
+          ${tabValue ? "drop-shadow-[0_4px_12px_rgba(25,25,25,0.07)]" : ""}
         `}
         style={{
           zIndex: 30,
@@ -101,8 +102,8 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
       >
         <TabsList
           ref={tabListRef}
-          className={`
-            flex flex-nowrap gap-3
+          className="
+            flex flex-nowrap gap-4
             w-full
             justify-start
             overflow-x-auto
@@ -110,12 +111,12 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
             whitespace-nowrap
             bg-transparent
             rounded-xl
-            py-2
+            py-1
             px-0
-            min-h-[52px]
+            min-h-[60px]
             transition-all
             [scrollbar-width:thin]
-          `}
+            "
           style={{
             background: "transparent",
             boxShadow: "none",
@@ -126,24 +127,25 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
               key={cat}
               value={cat}
               className={`
-                px-5 py-2 rounded-full group
+                px-5 py-2 rounded-full lxera-tab-underline group
                 flex items-center gap-2
-                font-semibold border
+                font-semibold border-2
                 transition-all
                 bg-white
                 border-business-black/15
-                data-[state=active]:bg-lxera-blue/90
-                data-[state=active]:border-lxera-blue
+                data-[state=active]:bg-business-black/90
+                data-[state=active]:border-business-black
                 data-[state=active]:text-white
                 data-[state=active]:shadow-lg
                 data-[state=active]:ring-2
-                data-[state=active]:ring-lxera-blue/40
+                data-[state=active]:ring-lxera-blue/60
                 hover:scale-105
                 shadow
                 ${tabValue === cat ? "focus:outline-none focus:ring-2 focus:ring-lxera-blue/60" : ""}
               `}
               style={{
                 boxShadow: tabValue === cat ? '0 4px 24px 0 #D9D9D9aa' : '0 2px 8px 0 #F3F3F3aa',
+                borderBottom: tabValue === cat ? "4px solid #191919" : undefined,
                 minWidth: 110,
                 marginRight: 4,
                 whiteSpace: "nowrap",
@@ -159,35 +161,13 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
           ))}
         </TabsList>
       </div>
-      {/* 40px vertical gap below sticky tabs */}
-      <div className="mt-10" style={{ minHeight: "40px" }} />
+      <div className="mt-16 lg:mt-12" />
       {categories.map((cat) => (
         <TabsContent key={cat} value={cat} className="w-full">
-          {/* Desktop: show 2-3 cards per row, horizontal scroll on overflow */}
           <div className="hidden lg:block">
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-8 overflow-x-auto">
-              {groupedByCategory[cat].map((feature, idx) => (
-                <div className="min-w-[340px] flex" key={feature.title}>
-                  {/* The card itself is made responsive and fills container */}
-                  <PlatformHighlightsCarousel features={[feature]} cat={cat} />
-                </div>
-              ))}
-            </div>
+            <PlatformHighlightsCarousel features={groupedByCategory[cat]} cat={cat} />
           </div>
-          {/* Mobile: stack cards vertically with horizontal scroll on overflow */}
-          <div className="lg:hidden">
-            <div className="flex flex-row gap-4 overflow-x-auto pb-2 px-1 snap-x snap-mandatory">
-              {groupedByCategory[cat].map((feature, idx) => (
-                <div
-                  className="min-w-[85vw] max-w-[420px] flex-shrink-0 snap-start"
-                  key={feature.title}
-                  style={{ scrollSnapAlign: "start" }}
-                >
-                  <PlatformHighlightsMobileStack features={[feature]} />
-                </div>
-              ))}
-            </div>
-          </div>
+          <PlatformHighlightsMobileStack features={groupedByCategory[cat]} />
         </TabsContent>
       ))}
     </Tabs>
