@@ -1,4 +1,16 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { 
+  Shield, 
+  BarChart3, 
+  Settings, 
+  Bot, 
+  Target, 
+  FileText, 
+  Code, 
+  Gamepad, 
+  UserCheck, 
+  Users, 
+  Bell 
+} from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -178,7 +190,7 @@ const highlightsData = [
   },
   {
     category: "Gamification",
-    icon: <Gamepad2 className="w-8 h-8" />,
+    icon: <Gamepad className="w-8 h-8" />,
     title: "Real-Time Adaptive Gamification",
     subtitle: "Motivation That Moves With You",
     description: "+40% higher engagement\nGame mechanics adjust to each learner’s behavior and progress.",
@@ -258,7 +270,7 @@ const highlightsData = [
   },
   {
     category: "Collaboration",
-    icon: <MessageSquare className="w-8 h-8" />,
+    icon: <Users className="w-8 h-8" />,
     title: "Social Learning Communities",
     subtitle: "Peer-to-Peer Growth in Action",
     description: "+50% collaboration in hybrid teams\nSpaces for discussion, mentorship, and informal learning.",
