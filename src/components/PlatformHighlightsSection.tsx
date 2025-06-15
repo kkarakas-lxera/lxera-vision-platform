@@ -1,393 +1,157 @@
+
 import { 
+  Bot,
   Shield, 
   BarChart3, 
-  Settings, 
-  Bot, 
-  Target, 
-  FileText, 
+  Users, 
   Code, 
   Gamepad, 
-  UserCheck, 
-  Users, 
-  Bell 
+  Bell,
+  FileText, 
+  Target,
+  Settings,
+  UserCheck,
 } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ArrowRight, TrendingUp, Sparkles } from "lucide-react";
-import { useState } from "react";
-import FeatureCard from "./FeatureCard";
+import { Card, CardContent } from "@/components/ui/card";
 
-// Add a 'category' field for grouping features by theme
+// Import the highlights data (just like before)
 const highlightsData = [
-  // --- AI & Personalization ---
   {
-    category: "AI & Personalization",
-    icon: <Bot className="w-8 h-8" />,
-    title: "AI Hyper-Personalized Learning Engine", // "Personalized Learning Engine"
-    subtitle: "Tailored Learning at the Speed of Thought",
-    description: "Truly individualized journeys\nAdapts learning based on role, behavior, and goals using LLMs and RAG.",
-    bullets: [
-      "LLM-powered adaptation",
-      "Journey updates with each user interaction",
-      "Immediate relevance, zero generic"
-    ],
-    badges: [
-      { text: "LLM-Powered", tooltip: "Leverages large language models for adaptation", type: "tech" },
-      { text: "Dynamic Personalization", tooltip: "Journeys adapt dynamically to user needs", type: "feature" },
-      { text: "Real-Time Relevance", tooltip: "Ensures all learning is immediately applicable", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
-    cardBg: "bg-white/90",
-    popular: true,
-    roi: "Truly individualized journeys"
+    icon: Bot,
+    title: "AI Hyper-Personalized Learning Engine",
+    microcopy: "Truly individualized journeys",
+    description: "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
   },
   {
-    category: "AI & Personalization",
-    icon: <Users className="w-8 h-8" />,
-    title: "AI Avatar-Powered Content Creation", // "Avatar Videos"
-    subtitle: "Transform Text to Video Instantly",
-    description: "90% content production savings\nGenerate dynamic video lessons with lifelike avatars.",
-    bullets: [
-      "Text-to-video in seconds",
-      "Lifelike digital presenters",
-      "Natural-sounding speech"
-    ],
-    badges: [
-      { text: "AI Avatars", tooltip: "Digital presenters generate content 24/7", type: "tech" },
-      { text: "Voice Synthesis", tooltip: "Natural-sounding voiceovers", type: "tech" },
-      { text: "Instant Video", tooltip: "Instant video from text", type: "feature" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-    cardBg: "bg-white/90",
-    roi: "90% content efficiency"
+    icon: Users,
+    title: "AI Avatar-Powered Content Creation",
+    microcopy: "90% content efficiency",
+    description: "Generate dynamic video lessons with lifelike avatars.",
   },
   {
-    category: "AI & Personalization",
-    icon: <Bot className="w-8 h-8" />,
-    title: "Organization-Specific Mentor Chatbot", // "Chatbot"
-    subtitle: "24/7 Personalized AI Learning Support",
-    description: "Always available, always contextual\nPrivate AI mentor trained on internal content.",
-    bullets: [
-      "24/7 contextual guidance",
-      "Trained on your internal resources",
-      "Answers, recommendations, and reminders"
-    ],
-    badges: [
-      { text: "AI Coach", tooltip: "Your own AI mentor", type: "feature" },
-      { text: "Always-On", tooltip: "Support whenever you need it", type: "benefit" },
-      { text: "Smart Help", tooltip: "Contextual, relevant advice", type: "tech" }
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
-    cardBg: "bg-white/90",
-    roi: "Always available & tailored"
+    icon: Bot,
+    title: "Organization-Specific Mentor Chatbot",
+    microcopy: "Always available & tailored",
+    description: "Private AI mentor trained on internal content.",
   },
   {
-    category: "AI & Personalization",
-    icon: <Gamepad className="w-8 h-8" />,
-    title: "Real-Time Adaptive Gamification", // "Gamification"
-    subtitle: "Motivation That Moves With You",
-    description: "+40% higher engagement\nGame mechanics adjust to each learner’s behavior and progress.",
-    bullets: [
-      "Gamification powered by behavioral AI",
-      "Personalized challenges & rewards",
-      "Dynamic adaptation to learning style"
-    ],
-    badges: [
-      { text: "Gamified Learning", tooltip: "Boost engagement with game elements", type: "feature" },
-      { text: "Behavioral AI", tooltip: "Learner motivation model", type: "tech" },
-      { text: "Engagement Engine", tooltip: "Persistent, adaptive motivation", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "+40% engagement"
+    icon: Gamepad,
+    title: "Real-Time Adaptive Gamification",
+    microcopy: "+40% engagement",
+    description: "Game mechanics adjust to each learner’s behavior and progress.",
   },
   {
-    category: "AI & Personalization",
-    icon: <Bell className="w-8 h-8" />,
-    title: "Smart Nudging & Behavioral Triggers", // "Nudging"
-    subtitle: "Right Nudge. Right Time. Right Outcome.",
-    description: "+35% completion rate improvement\nNudges and reminders based on user behavior via Slack/email.",
-    bullets: [
-      "Automated nudge delivery",
-      "Behavior-based reminders",
-      "Slack & email integration"
-    ],
-    badges: [
-      { text: "Behavioral Nudges", tooltip: "Timely nudges drive outcomes", type: "feature" },
-      { text: "Engagement Boost", tooltip: "Reminders boost motivation and completion", type: "benefit" },
-      { text: "Micro-Motivation", tooltip: "Tiny triggers, big impact", type: "tech" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "+35% completion"
+    icon: Bell,
+    title: "Smart Nudging & Behavioral Triggers",
+    microcopy: "+35% completion",
+    description: "Nudges and reminders based on user behavior via Slack/email.",
   },
-
-  // --- Security & Compliance ---
   {
-    category: "Security & Compliance",
-    icon: <Shield className="w-8 h-8" />,
+    icon: Shield,
     title: "Enterprise-Grade Security & Compliance",
-    subtitle: "Trust Built Into Every Layer",
-    description: "SOC2 & GDPR aligned\nProtect your data with role-based access, encryption, and compliance-ready systems.",
-    bullets: [
-      "SOC2 & GDPR aligned",
-      "Role-based access",
-      "Data encryption at rest and in transit"
-    ],
-    badges: [
-      { text: "Data Privacy", tooltip: "Your data privacy is protected at every layer", type: "quality" },
-      { text: "Compliance", tooltip: "SOC2 & GDPR aligned", type: "quality" },
-      { text: "Enterprise Security", tooltip: "Best practices for enterprise security", type: "feature" },
-      { text: "Trustworthy AI", tooltip: "Built with AI you can trust", type: "tech" },
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-    cardBg: "bg-white/90",
-    roi: "Trust & compliance ready"
+    microcopy: "Trust & compliance ready",
+    description: "SOC2 & GDPR aligned, encryption, role-based access.",
   },
   {
-    category: "Security & Compliance",
-    icon: <UserCheck className="w-8 h-8" />,
+    icon: UserCheck,
     title: "Human-in-the-Loop Intelligence",
-    subtitle: "AI-Powered. Human-Refined.",
-    description: "Expert accuracy with emotional depth\nCombine scalable AI with human review for high-trust learning.",
-    bullets: [
-      "Hybrid intelligence—AI plus human experts",
-      "Mentor oversight ensures accuracy",
-      "Trusted recommendations"
-    ],
-    badges: [
-      { text: "Ethical AI", tooltip: "AI reviewed for safety, ethics, and bias", type: "quality" },
-      { text: "Mentor Oversight", tooltip: "Human mentors refine every learning journey", type: "benefit" },
-      { text: "Hybrid Intelligence", tooltip: "AI + Human collaboration", type: "tech" }
-    ],
-    iconBg: "bg-gradient-to-br from-future-green to-lxera-red",
-    cardBg: "bg-white/90",
-    roi: "Expert accuracy"
+    microcopy: "Expert accuracy",
+    description: "Combine scalable AI with human review for high-trust learning.",
   },
-
-  // --- Analytics & Insights ---
   {
-    category: "Analytics & Insights",
-    icon: <BarChart3 className="w-8 h-8" />,
+    icon: BarChart3,
     title: "Executive-Ready Analytics Dashboard",
-    subtitle: "Predict Learning ROI with Confidence",
-    description: "Actionable insights for every stakeholder\nVisualize outcomes and innovation metrics across departments.",
-    bullets: [
-      "ROI tracking & forecasting",
-      "Executive-level views across teams",
-      "Departmental skill analytics"
-    ],
-    badges: [
-      { text: "ROI Tracking", tooltip: "Easily measure learning investment impact", type: "feature" },
-      { text: "Executive Views", tooltip: "Share insights across the entire leadership team", type: "benefit" },
-      { text: "Skill Insights", tooltip: "Track critical skill development by trend", type: "feature" },
-      { text: "Departmental Analytics", tooltip: "See analytics by business group", type: "benefit" },
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-blue to-emerald",
-    cardBg: "bg-white/90",
-    roi: "Predict learning ROI"
+    microcopy: "Predict learning ROI",
+    description: "Visualize outcomes and innovation metrics across departments.",
   },
   {
-    category: "Analytics & Insights",
-    icon: <BarChart3 className="w-8 h-8" />,
-    title: "Learner Analytics Dashboards",
-    subtitle: "Empower Learners With Their Own Data",
-    description: "+25% self-driven completion rate\nHelp learners track their progress and own their development.",
-    bullets: [
-      "Self-service analytics for every learner",
-      "Customizable progress views",
-      "Drive autonomy and motivation"
-    ],
-    badges: [
-      { text: "Progress Tracking", tooltip: "Learners can see their own journeys", type: "feature" },
-      { text: "Learner Autonomy", tooltip: "Increases self-directed learning completion", type: "benefit" },
-      { text: "Self-Insight", tooltip: "Deeper insight creates faster results", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-future-green to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "+25% self-completion"
+    icon: Code,
+    title: "Low-Code / No-Code Innovation Sandbox",
+    microcopy: "10x faster prototyping",
+    description: "Enable bottom-up innovation through app building and automation.",
   },
   {
-    category: "Analytics & Insights",
-    icon: <Target className="w-8 h-8" />,
-    title: "Real-Time Skill Gap Analysis",
-    subtitle: "Market-Aligned Taxonomy Engine",
-    description: "3x faster skill development\nAlign skills with job needs and future market requirements.",
-    bullets: [
-      "Market-aligned skill graph",
-      "Gap insights for critical roles",
-      "Future-proof workforce skills"
-    ],
-    badges: [
-      { text: "Gap Analysis", tooltip: "Identify the biggest skill gaps instantly", type: "feature" },
-      { text: "Skill Graph", tooltip: "Map and visualize organizational skills", type: "tech" },
-      { text: "Workforce Agility", tooltip: "Adapt quickly to shifting market needs", type: "benefit" },
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
-    cardBg: "bg-white/90",
-    roi: "3x faster skill development"
-  },
-
-  // --- Innovation & Automation ---
-  {
-    category: "Innovation & Automation",
-    icon: <Code className="w-8 h-8" />,
-    title: "Low-Code / No-Code Innovation Sandbox", // "No-Code Sandbox"
-    subtitle: "Build Without Technical Barriers",
-    description: "10x faster prototyping\nEnable bottom-up innovation through app building and automation.",
-    bullets: [
-      "Drag-and-drop app building",
-      "Automate workflows instantly",
-      "Empower business users—not just IT"
-    ],
-    badges: [
-      { text: "Citizen Development", tooltip: "Enable anyone to innovate", type: "benefit" },
-      { text: "Low-Code", tooltip: "Rapid creation with minimal code", type: "tech" },
-      { text: "Innovation Enablement", tooltip: "Ignite creative problem solving", type: "feature" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-red to-emerald",
-    cardBg: "bg-white/90",
-    roi: "10x faster prototyping"
+    icon: FileText,
+    title: "Knowledge Base Transformation",
+    microcopy: "+70% engagement",
+    description: "Turn SOPs and reports into microlearning modules.",
   },
   {
-    category: "Innovation & Automation",
-    icon: <FileText className="w-8 h-8" />,
-    title: "Knowledge Base Transformation", // "Knowledge Base Transformation"
-    subtitle: "Convert Legacy Content into Learning Assets",
-    description: "+70% internal content engagement\nTurn SOPs and reports into microlearning modules.",
-    bullets: [
-      "Upgrade SOPs into smart modules",
-      "Contextual assets for just-in-time learning",
-      "Microlearning from existing docs"
-    ],
-    badges: [
-      { text: "Legacy Upgrade", tooltip: "Transform legacy content into interactive learning", type: "feature" },
-      { text: "Smart Learning Assets", tooltip: "Contextualized, searchable, measurable", type: "benefit" },
-      { text: "Microlearning", tooltip: "Quick learning in bite-sized modules", type: "quality" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-    cardBg: "bg-white/90",
-    roi: "+70% engagement"
-  },
-
-  // --- Community & Delivery ---
-  {
-    category: "Community & Delivery",
-    icon: <Settings className="w-8 h-8" />,
+    icon: Settings,
     title: "Automated Role-Based Learning (HRIS Integration)",
-    subtitle: "HR System-Aware Learning Journeys",
-    description: "Fully automated journeys\nSync with HR systems to personalize content by job role and performance.",
-    bullets: [
-      "Syncs with HRIS in real-time",
-      "Personalizes by job function",
-      "Performance-triggered learning paths"
-    ],
-    badges: [
-      { text: "HRIS", tooltip: "Integrates with leading HRIS", type: "tech" },
-      { text: "Career Pathing", tooltip: "Personalized for career development", type: "benefit" },
-      { text: "Auto-Personalization", tooltip: "Learning auto-personalized by role", type: "feature" },
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "Fully automated journeys"
+    microcopy: "Fully automated journeys",
+    description: "Sync with HR systems to personalize content by job role.",
   },
   {
-    category: "Community & Delivery",
-    icon: <Users className="w-8 h-8" />,
-    title: "Social Learning Communities", // "Social Learning Spaces"
-    subtitle: "Peer-to-Peer Growth in Action",
-    description: "+50% collaboration in hybrid teams\nSpaces for discussion, mentorship, and informal learning.",
-    bullets: [
-      "Mentorship matching & tracking",
-      "Team challenges and collaboration",
-      "Informal knowledge sharing"
-    ],
-    badges: [
-      { text: "Peer Learning", tooltip: "Learn from colleagues and peers", type: "feature" },
-      { text: "Team Challenges", tooltip: "Boosts collaboration across teams", type: "benefit" },
-      { text: "Social Spaces", tooltip: "Foster informal learning", type: "feature" }
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-lxera-red",
-    cardBg: "bg-white/90",
-    roi: "+50% collaboration"
-  },
+    icon: Users,
+    title: "Social Learning Communities",
+    microcopy: "+50% collaboration",
+    description: "Spaces for discussion, mentorship, and informal learning.",
+  }
 ];
-
-// --- Adjust the category order for the new tabs:
-const categories = [
-  "AI & Personalization",
-  "Security & Compliance",
-  "Analytics & Insights",
-  "Innovation & Automation",
-  "Community & Delivery",
-];
-
-// --- Regroup features by new categories:
-const groupedByCategory: Record<string, typeof highlightsData> = {};
-categories.forEach((cat) => {
-  groupedByCategory[cat] = highlightsData.filter((item) => item.category === cat);
-});
-
-import PlatformHighlightsTabs from "./PlatformHighlightsTabs";
 
 const PlatformHighlightsSection = () => {
-  const scrollToContact = () => {
-    const contactSection = document.getElementById("contact");
-    if (contactSection) contactSection.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
-    <section
-      id="features"
-      className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0"
-    >
-      {/* Enhanced animated background */}
+    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0">
+      {/* Animated background for consistency */}
       <div className="absolute inset-0 opacity-3 z-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-business-black/10 rounded-full animate-float-gentle"></div>
         <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/10 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-smart-beige/30 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
         <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/15 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
       </div>
-
       <div className="max-w-7xl mx-auto relative z-0">
-        {/* Enhanced Section Header */}
-        <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-4 animate-slide-in-left" style={{animationDelay: '0.2s'}}>
+        {/* Section Header matching Built for Innovators */}
+        <div className="text-center mb-12 animate-fade-in-up">
+          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
             Platform Highlights
           </h2>
-          <p className="text-xl lg:text-2xl text-business-black/70 max-w-4xl mx-auto animate-slide-in-right" style={{animationDelay: '0.4s'}}>
-            <em>10 Features That Power Measurable Results</em>
+          <p className="text-xl text-business-black/80 mb-2 max-w-3xl mx-auto">
+            10+ features fueling impact, engagement, and innovation.
           </p>
-          <div className="mt-8 flex justify-center items-center gap-8 animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
-            <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
-              <span className="w-4 h-4 rounded-full bg-lxera-blue inline-block" />
-              <span>40% avg. engagement boost</span>
-            </div>
-            <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-business-black/20 to-transparent"></div>
-            <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
-              <span className="w-4 h-4 rounded-full bg-emerald inline-block" />
-              <span>100% personalized Learning</span>
-            </div>
-          </div>
         </div>
-        {/* Enforce z-10 on highlights wrapper */}
-        <div className="relative z-0">
-          <PlatformHighlightsTabs
-            categories={categories}
-            groupedByCategory={groupedByCategory}
-          />
+
+        {/* Feature Cards Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-4">
+          {highlightsData.slice(0, 12).map((item, index) => (
+            <Card
+              key={index}
+              className="
+                bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 
+                lxera-shadow text-center group 
+                hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 
+                hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up
+                "
+              style={{
+                animationDelay: `${250 + index * 60}ms`,
+              }}
+            >
+              <CardContent className="p-6">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                    <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
+                  </div>
+                </div>
+                <p className="text-business-black font-bold text-lg mb-1">{item.title}</p>
+                <p className="text-business-black/70 mb-3 text-sm min-h-[34px]">{item.description}</p>
+                {/* Microcopy/ROI reveals on hover */}
+                <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-14 opacity-0 group-hover:opacity-100">
+                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-2">
+                    {item.microcopy}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        {/* Add extra space above where CTA was to prevent overlap */}
-        <div className="mt-24 lg:mt-32" />
+        {/* Optional: subtle "impact note" at bottom */}
+        <p className="text-business-black/70 mb-2 text-center text-base mt-8">
+          Each feature designed and refined with real-world feedback for measurable results.
+        </p>
       </div>
     </section>
   );
 };
 
 export default PlatformHighlightsSection;
+
