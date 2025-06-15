@@ -4,7 +4,6 @@ import { ProgressIndicator } from "@/components/ProgressIndicator";
 import { Timeline } from "@/components/Timeline";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { stepsData } from "@/data/howItWorksSteps";
-import HowItWorksStepsCTA from "./HowItWorksStepsCTA";
 import { useStepInView } from "@/hooks/useStepInView";
 import React from "react";
 
@@ -189,7 +188,8 @@ const HowItWorksSection = () => {
         </div>
 
         {/* Enhanced bottom CTA with consistent gradient */}
-        <HowItWorksStepsCTA />
+        {/* Removed HowItWorksStepsCTA component as requested */}
+        {/* <HowItWorksStepsCTA /> */}
       </div>
     </section>
   );
