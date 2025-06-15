@@ -1,7 +1,8 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TrendingUp, Crown, Film, ClipboardList } from "lucide-react";
+import { TrendingUp, Crown } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import VideoModal from "./VideoModal";
@@ -28,7 +29,7 @@ interface FeatureCardProps {
   onAccordionClick?: () => void;
 }
 
-// Badge color scheme map
+// Brand-accessible badge colors
 const getBadgeStyle = (type: string) => {
   switch (type) {
     case "tech":
@@ -60,49 +61,49 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   // Use actual videoUrl if present, otherwise fallback to placeholder video
   const videoUrl = feature.videoUrl ?? "https://samplelib.com/mp4/sample-5s.mp4";
 
-  // Handler for Add to Proposal button (shows toast)
-  const handleAddToProposal = () => {
-    toast({
-      title: "Added to Proposal",
-      description: `"${feature.title}" was added to your shortlist.`,
-    });
-  };
-
   return (
     <>
       <Card
         tabIndex={0}
         className={`
-          group overflow-hidden flex flex-col 
+          group overflow-hidden flex flex-col
           transition-all duration-700 relative 
-          ${feature.cardBg} border-0 lxera-shadow
-          ${desktop 
-            ? "h-[500px] hover:shadow-2xl hover:scale-105 focus-within:scale-105 animate-fade-in-up" 
+          ${feature.cardBg}
+          border-0 lxera-shadow
+          ${desktop
+            ? "h-[510px] hover:shadow-2xl hover:scale-105 focus-within:scale-105 animate-fade-in-up"
             : "animate-fade-in-up"}
           focus-within:ring-2 focus-within:ring-future-green/40 outline-none
           ${expanded ? "shadow-2xl scale-102" : ""}
           z-0
+          backdrop-blur-sm
+          rounded-2xl
         `}
-        style={desktop 
-          ? { animationDelay: `${0.8 + index * 0.09}s` } 
+        style={desktop
+          ? { animationDelay: `${0.8 + index * 0.09}s` }
           : { animationDelay: `${0.8 + index * 0.04}s` }}
         onMouseEnter={desktop && setHoveredCard ? () => setHoveredCard(index) : undefined}
         onMouseLeave={desktop && setHoveredCard ? () => setHoveredCard(null) : undefined}
         aria-label={feature.title}
       >
         <CardContent
-          className={`relative z-10 h-full flex flex-col gap-1 ${desktop ? "p-8" : "p-4"}`}
+          className={`
+            relative z-10 h-full flex flex-col gap-1
+            ${desktop ? "p-8" : "p-4"}
+            transition-all duration-500
+          `}
         >
-          {/* Icon, "Enterprise Favorite" badge, ROI badge */}
-          <div className="flex items-start justify-between mb-2">
+          {/* Icon, Favorite badge, ROI */}
+          <div className="flex items-start justify-between mb-2 gap-2">
             <div
               className={`
-                w-16 h-16 rounded-2xl flex-shrink-0 flex items-center justify-center
+                w-14 h-14 md:w-16 md:h-16 rounded-2xl flex-shrink-0 flex items-center justify-center
                 transition-transform duration-300 bg-gradient-to-br ${feature.iconBg}
                 text-white shadow-md
                 group-hover:scale-110 group-focus:scale-110
                 border-0
-                outline-none focus:ring-2 focus:ring-emerald/40
+                focus-visible:ring-2 focus-visible:ring-emerald/40
+                outline-none
               `}
               aria-hidden="true"
             >
@@ -122,14 +123,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
                   Enterprise Favorite
                 </Badge>
               )}
-              {/* ROI badge */}
+              {/* ROI */}
               <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald bg-white/90 px-3 py-1 rounded-full shadow-lg tracking-tight mt-1 mb-0">
                 <TrendingUp className="w-3 h-3 text-future-green" />
                 <span className="whitespace-nowrap">{feature.roi}</span>
               </span>
             </div>
           </div>
-          {/* Title + subtitle */}
+          {/* Title & subtitle */}
           <div className="mb-1 mt-2">
             <h3 className="text-2xl font-extrabold text-business-black mb-1 leading-snug">
               {feature.title}
@@ -142,7 +143,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <p className="text-sm text-business-black/80 leading-relaxed my-2 mb-0">
             {feature.description}
           </p>
-          {/* Feature bullets */}
+          {/* Bullets */}
           <div className="bg-smart-beige/80 border border-future-green/30 rounded-lg px-4 py-2 mt-2 mb-2 shadow-inner">
             <ul className="space-y-1">
               {feature.bullets.map((bullet, i) => (
@@ -153,7 +154,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               ))}
             </ul>
           </div>
-          {/* Badges section */}
+          {/* Badges */}
           <div className="flex flex-wrap gap-2 mt-auto pt-3 mb-1 -ml-1">
             {feature.badges.map((badge, i) => (
               <Tooltip key={i}>
@@ -172,21 +173,25 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               </Tooltip>
             ))}
           </div>
-          {/* Actions */}
-          
-          {/* Optional: mobile expand arrow */}
+          {/* Mobile expand arrow */}
           {!desktop && (
             <button
               onClick={onAccordionClick}
               aria-label={expanded ? "Collapse" : "Expand"}
               tabIndex={-1}
-              className={`absolute bottom-2 right-2 p-1 bg-future-green/10 text-future-green rounded-full border border-future-green/20 shadow-sm ${expanded ? "rotate-180" : ""} transition-all duration-200`}
+              className={`
+                absolute bottom-2 right-2 p-1 
+                bg-future-green/10 text-future-green rounded-full
+                border border-future-green/20 shadow-sm
+                ${expanded ? "rotate-180" : ""}
+                transition-all duration-200
+              `}
               style={{ pointerEvents: "none" }}
             />
           )}
         </CardContent>
       </Card>
-      {/* Video Modal */}
+      {/* Video Modal - preserved for future enablement */}
       <VideoModal
         isOpen={videoOpen}
         setIsOpen={setVideoOpen}
@@ -198,3 +203,4 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 };
 
 export default FeatureCard;
+
