@@ -20,7 +20,7 @@ const WhyLXERASection = () => {
           <div className="absolute top-12 left-2/3 w-2 h-2 bg-future-green/30 rounded-full animate-float-gentle animate-delay-1000"></div>
         </div>
       </div>
-      
+
       <section id="platform" className="w-full pt-4 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
@@ -31,11 +31,11 @@ const WhyLXERASection = () => {
             subtitle="LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across five core pillars."
           />
 
-          {/* Card Grid mimicking Built for Innovators design */}
+          {/* Card Grid in "Built for Innovators" design */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {filteredCapabilities.map((capability, index) => (
               <div
-                key={index}
+                key={capability.title}
                 className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
                 style={{
                   animationDelay: `${300 + index * 100}ms`,
@@ -51,20 +51,18 @@ const WhyLXERASection = () => {
                     </div>
                   </div>
                   <p className="text-business-black font-bold text-lg mb-1">{capability.title}</p>
-                  {/* Subtitle as the lighter text below the title */}
-                  {capability.subtitle && (
-                    <p className="text-business-black/80 mb-1 text-base">{capability.subtitle}</p>
+                  {/* Use valueStatement as subtitle */}
+                  {capability.valueStatement && (
+                    <p className="text-business-black/80 mb-2 text-base">{capability.valueStatement}</p>
                   )}
-                  {/* Description/microcopy, always visible or on hover depending on data */}
-                  <div className={capability.microcopy ? 
-                    "overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100" : ""}>
-                    <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
-                      {capability.microcopy ?? capability.description}
-                    </p>
-                  </div>
-                  {/* If no microcopy, always show description */}
-                  {!capability.microcopy && (
-                    <p className="text-business-black/70 mt-2 text-sm">{capability.description}</p>
+                  {/* Always show description. If tangibleResults, show on hover as microcopy */}
+                  <p className="text-business-black/70 text-sm min-h-[40px]">{capability.description}</p>
+                  {capability.tangibleResults && (
+                    <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-16 opacity-0 group-hover:opacity-100">
+                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
+                        {capability.tangibleResults.description}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -82,3 +80,4 @@ const WhyLXERASection = () => {
 };
 
 export default WhyLXERASection;
+
