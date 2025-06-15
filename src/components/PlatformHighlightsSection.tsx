@@ -1,13 +1,20 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Brain, Gamepad2, Target, Users, Bot, Code, FileText, BarChart3, MessageSquare, Settings, ChevronDown, ChevronUp, Crown, TrendingUp, Sparkles, ArrowRight, Shield, UserCheck, Bell } from "lucide-react";
+import { ChevronDown, ArrowRight, TrendingUp, Sparkles } from "lucide-react";
 import { useState } from "react";
 import FeatureCard from "./FeatureCard";
 
+// Add a 'category' field for grouping features by theme
 const highlightsData = [
   {
+    category: "Security & Compliance",
     icon: <Shield className="w-8 h-8" />, // Use Shield (or Lock if preferred) for Security
     title: "Enterprise-Grade Security & Compliance",
     subtitle: "Trust Built Into Every Layer",
@@ -28,6 +35,7 @@ const highlightsData = [
     roi: "Trust & compliance ready"
   },
   {
+    category: "Analytics",
     icon: <BarChart3 className="w-8 h-8" />,
     title: "Executive-Ready Analytics Dashboard",
     subtitle: "Predict Learning ROI with Confidence",
@@ -48,6 +56,7 @@ const highlightsData = [
     roi: "Predict learning ROI"
   },
   {
+    category: "HR Integration",
     icon: <Settings className="w-8 h-8" />,
     title: "Automated Role-Based Learning (HRIS Integration)",
     subtitle: "HR System-Aware Learning Journeys",
@@ -67,6 +76,7 @@ const highlightsData = [
     roi: "Fully automated journeys"
   },
   {
+    category: "AI & Personalization",
     icon: <Bot className="w-8 h-8" />,
     title: "AI Hyper-Personalized Learning Engine",
     subtitle: "Tailored Learning at the Speed of Thought",
@@ -87,6 +97,7 @@ const highlightsData = [
     roi: "Truly individualized journeys"
   },
   {
+    category: "Skill Analysis",
     icon: <Target className="w-8 h-8" />,
     title: "Real-Time Skill Gap Analysis",
     subtitle: "Market-Aligned Taxonomy Engine",
@@ -106,6 +117,7 @@ const highlightsData = [
     roi: "3x faster skill development"
   },
   {
+    category: "Content Transformation",
     icon: <FileText className="w-8 h-8" />,
     title: "Knowledge Base Transformation",
     subtitle: "Convert Legacy Content into Learning Assets",
@@ -125,6 +137,7 @@ const highlightsData = [
     roi: "+70% engagement"
   },
   {
+    category: "Analytics",
     icon: <BarChart3 className="w-8 h-8" />,
     title: "Learner Analytics Dashboards",
     subtitle: "Empower Learners With Their Own Data",
@@ -144,6 +157,7 @@ const highlightsData = [
     roi: "+25% self-completion"
   },
   {
+    category: "Innovation",
     icon: <Code className="w-8 h-8" />,
     title: "Low-Code / No-Code Innovation Sandbox",
     subtitle: "Build Without Technical Barriers",
@@ -163,6 +177,7 @@ const highlightsData = [
     roi: "10x faster prototyping"
   },
   {
+    category: "Gamification",
     icon: <Gamepad2 className="w-8 h-8" />,
     title: "Real-Time Adaptive Gamification",
     subtitle: "Motivation That Moves With You",
@@ -182,7 +197,8 @@ const highlightsData = [
     roi: "+40% engagement"
   },
   {
-    icon: <UserCheck className="w-8 h-8" />, // Use UserCheck for human-in-the-loop intelligence
+    category: "AI & Personalization",
+    icon: <UserCheck className="w-8 h-8" />,
     title: "Human-in-the-Loop Intelligence",
     subtitle: "AI-Powered. Human-Refined.",
     description: "Expert accuracy with emotional depth\nCombine scalable AI with human review for high-trust learning.",
@@ -201,6 +217,7 @@ const highlightsData = [
     roi: "Expert accuracy"
   },
   {
+    category: "Content Generation",
     icon: <Users className="w-8 h-8" />,
     title: "AI Avatar-Powered Content Creation",
     subtitle: "Transform Text to Video Instantly",
@@ -220,6 +237,7 @@ const highlightsData = [
     roi: "90% content efficiency"
   },
   {
+    category: "AI & Personalization",
     icon: <Bot className="w-8 h-8" />,
     title: "Organization-Specific Mentor Chatbot",
     subtitle: "24/7 Personalized AI Learning Support",
@@ -239,6 +257,7 @@ const highlightsData = [
     roi: "Always available & tailored"
   },
   {
+    category: "Collaboration",
     icon: <MessageSquare className="w-8 h-8" />,
     title: "Social Learning Communities",
     subtitle: "Peer-to-Peer Growth in Action",
@@ -258,7 +277,8 @@ const highlightsData = [
     roi: "+50% collaboration"
   },
   {
-    icon: <Bell className="w-8 h-8" />, // Use Bell for Nudging/Triggers
+    category: "Engagement",
+    icon: <Bell className="w-8 h-8" />,
     title: "Smart Nudging & Behavioral Triggers",
     subtitle: "Right Nudge. Right Time. Right Outcome.",
     description: "+35% completion rate improvement\nNudges and reminders based on user behavior via Slack/email.",
@@ -278,26 +298,28 @@ const highlightsData = [
   },
 ];
 
+// Get all unique categories
+const categories = Array.from(
+  new Set(highlightsData.map((item) => item.category))
+);
+
+const groupedByCategory: Record<string, typeof highlightsData> = {};
+categories.forEach((cat) => {
+  groupedByCategory[cat] = highlightsData.filter((item) => item.category === cat);
+});
+
 const PlatformHighlightsSection = () => {
-  const [expandedMobile, setExpandedMobile] = useState<number | null>(null);
-  const [showAllFeatures, setShowAllFeatures] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
-  const displayedFeatures = showAllFeatures ? highlightsData : highlightsData.slice(0, 6);
-
-  const toggleMobileExpanded = (index: number) => {
-    setExpandedMobile(expandedMobile === index ? null : index);
-  };
-
+  const [tabValue, setTabValue] = useState(categories[0]);
   const scrollToContact = () => {
-    const contactSection = document.getElementById('contact');
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    const contactSection = document.getElementById("contact");
+    if (contactSection) contactSection.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <section id="features" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden">
+    <section
+      id="features"
+      className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden"
+    >
       {/* Enhanced animated background */}
       <div className="absolute inset-0 opacity-3">
         <div className="absolute top-20 left-20 w-32 h-32 bg-future-green/20 rounded-full animate-float-gentle"></div>
@@ -330,53 +352,56 @@ const PlatformHighlightsSection = () => {
           </div>
         </div>
         
-        {/* Enhanced Desktop Grid */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-10 mb-16">
-          {displayedFeatures.map((feature, index) => (
-            <FeatureCard
-              key={index}
-              feature={feature}
-              index={index}
-              desktop
-              hoveredCard={hoveredCard}
-              setHoveredCard={setHoveredCard}
-            />
-          ))}
-        </div>
-
-        {/* Show All Features Button */}
-        {!showAllFeatures && (
-          <div className="hidden lg:flex justify-center mb-8 animate-fade-in-up" style={{animationDelay: '2s'}}>
-            <Button 
-              onClick={() => setShowAllFeatures(true)}
-              className="bg-white text-business-black hover:bg-future-green hover:text-business-black border-2 border-future-green transition-all duration-300"
-            >
-              See All {highlightsData.length} Features
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        )}
-
-        {/* Enhanced Mobile Accordion */}
-        <div className="lg:hidden space-y-4 mb-16">
-          {highlightsData.map((feature, index) => (
-            <div key={index} className="flex w-full">
-              <button
-                onClick={() => toggleMobileExpanded(index)}
-                className={`flex-1 rounded-t-xl border-b-0 transition-all duration-300 cursor-pointer group focus:outline-none`}
-                tabIndex={0}
-                aria-expanded={expandedMobile === index}
+        {/* Tabbed Layout and Horizontal Carousel for Features */}
+        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
+          <TabsList className="flex flex-wrap justify-center gap-4 bg-transparent mb-8">
+            {categories.map((cat) => (
+              <TabsTrigger
+                key={cat}
+                value={cat}
+                className="px-5 py-2 rounded-full bg-white text-business-black font-semibold border-2 border-future-green/30 data-[state=active]:bg-future-green/10 data-[state=active]:text-future-green transition-all"
               >
-                <FeatureCard
-                  feature={feature}
-                  index={index}
-                  expanded={expandedMobile === index}
-                  onAccordionClick={() => toggleMobileExpanded(index)}
-                />
-              </button>
-            </div>
+                {cat}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {categories.map((cat) => (
+            <TabsContent key={cat} value={cat} className="w-full">
+              {/* Desktop: Horizontal Carousel, 3 at a time */}
+              <div className="hidden lg:block">
+                <Carousel opts={{ align: "start", slidesToScroll: 1 }}>
+                  <CarouselContent>
+                    {groupedByCategory[cat].map((feature, index) => (
+                      <CarouselItem
+                        key={feature.title}
+                        className="basis-1/3 flex-grow-0"
+                      >
+                        <FeatureCard
+                          feature={feature}
+                          index={index}
+                          desktop
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              </div>
+              {/* Mobile: Stack vertically */}
+              <div className="block lg:hidden space-y-4">
+                {groupedByCategory[cat].map((feature, idx) => (
+                  <FeatureCard
+                    key={feature.title}
+                    feature={feature}
+                    index={idx}
+                    expanded
+                  />
+                ))}
+              </div>
+            </TabsContent>
           ))}
-        </div>
+        </Tabs>
         
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
