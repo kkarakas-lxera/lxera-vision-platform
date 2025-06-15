@@ -25,9 +25,113 @@ import FeatureCard from "./FeatureCard";
 
 // Add a 'category' field for grouping features by theme
 const highlightsData = [
+  // --- AI & Personalization ---
+  {
+    category: "AI & Personalization",
+    icon: <Bot className="w-8 h-8" />,
+    title: "AI Hyper-Personalized Learning Engine", // "Personalized Learning Engine"
+    subtitle: "Tailored Learning at the Speed of Thought",
+    description: "Truly individualized journeys\nAdapts learning based on role, behavior, and goals using LLMs and RAG.",
+    bullets: [
+      "LLM-powered adaptation",
+      "Journey updates with each user interaction",
+      "Immediate relevance, zero generic"
+    ],
+    badges: [
+      { text: "LLM-Powered", tooltip: "Leverages large language models for adaptation", type: "tech" },
+      { text: "Dynamic Personalization", tooltip: "Journeys adapt dynamically to user needs", type: "feature" },
+      { text: "Real-Time Relevance", tooltip: "Ensures all learning is immediately applicable", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    cardBg: "bg-white/90",
+    popular: true,
+    roi: "Truly individualized journeys"
+  },
+  {
+    category: "AI & Personalization",
+    icon: <Users className="w-8 h-8" />,
+    title: "AI Avatar-Powered Content Creation", // "Avatar Videos"
+    subtitle: "Transform Text to Video Instantly",
+    description: "90% content production savings\nGenerate dynamic video lessons with lifelike avatars.",
+    bullets: [
+      "Text-to-video in seconds",
+      "Lifelike digital presenters",
+      "Natural-sounding speech"
+    ],
+    badges: [
+      { text: "AI Avatars", tooltip: "Digital presenters generate content 24/7", type: "tech" },
+      { text: "Voice Synthesis", tooltip: "Natural-sounding voiceovers", type: "tech" },
+      { text: "Instant Video", tooltip: "Instant video from text", type: "feature" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
+    cardBg: "bg-white/90",
+    roi: "90% content efficiency"
+  },
+  {
+    category: "AI & Personalization",
+    icon: <Bot className="w-8 h-8" />,
+    title: "Organization-Specific Mentor Chatbot", // "Chatbot"
+    subtitle: "24/7 Personalized AI Learning Support",
+    description: "Always available, always contextual\nPrivate AI mentor trained on internal content.",
+    bullets: [
+      "24/7 contextual guidance",
+      "Trained on your internal resources",
+      "Answers, recommendations, and reminders"
+    ],
+    badges: [
+      { text: "AI Coach", tooltip: "Your own AI mentor", type: "feature" },
+      { text: "Always-On", tooltip: "Support whenever you need it", type: "benefit" },
+      { text: "Smart Help", tooltip: "Contextual, relevant advice", type: "tech" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    cardBg: "bg-white/90",
+    roi: "Always available & tailored"
+  },
+  {
+    category: "AI & Personalization",
+    icon: <Gamepad className="w-8 h-8" />,
+    title: "Real-Time Adaptive Gamification", // "Gamification"
+    subtitle: "Motivation That Moves With You",
+    description: "+40% higher engagement\nGame mechanics adjust to each learner’s behavior and progress.",
+    bullets: [
+      "Gamification powered by behavioral AI",
+      "Personalized challenges & rewards",
+      "Dynamic adaptation to learning style"
+    ],
+    badges: [
+      { text: "Gamified Learning", tooltip: "Boost engagement with game elements", type: "feature" },
+      { text: "Behavioral AI", tooltip: "Learner motivation model", type: "tech" },
+      { text: "Engagement Engine", tooltip: "Persistent, adaptive motivation", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
+    cardBg: "bg-white/90",
+    roi: "+40% engagement"
+  },
+  {
+    category: "AI & Personalization",
+    icon: <Bell className="w-8 h-8" />,
+    title: "Smart Nudging & Behavioral Triggers", // "Nudging"
+    subtitle: "Right Nudge. Right Time. Right Outcome.",
+    description: "+35% completion rate improvement\nNudges and reminders based on user behavior via Slack/email.",
+    bullets: [
+      "Automated nudge delivery",
+      "Behavior-based reminders",
+      "Slack & email integration"
+    ],
+    badges: [
+      { text: "Behavioral Nudges", tooltip: "Timely nudges drive outcomes", type: "feature" },
+      { text: "Engagement Boost", tooltip: "Reminders boost motivation and completion", type: "benefit" },
+      { text: "Micro-Motivation", tooltip: "Tiny triggers, big impact", type: "tech" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
+    cardBg: "bg-white/90",
+    roi: "+35% completion"
+  },
+
+  // --- Security & Compliance ---
   {
     category: "Security & Compliance",
-    icon: <Shield className="w-8 h-8" />, // Use Shield (or Lock if preferred) for Security
+    icon: <Shield className="w-8 h-8" />,
     title: "Enterprise-Grade Security & Compliance",
     subtitle: "Trust Built Into Every Layer",
     description: "SOC2 & GDPR aligned\nProtect your data with role-based access, encryption, and compliance-ready systems.",
@@ -47,7 +151,29 @@ const highlightsData = [
     roi: "Trust & compliance ready"
   },
   {
-    category: "Analytics",
+    category: "Security & Compliance",
+    icon: <UserCheck className="w-8 h-8" />,
+    title: "Human-in-the-Loop Intelligence",
+    subtitle: "AI-Powered. Human-Refined.",
+    description: "Expert accuracy with emotional depth\nCombine scalable AI with human review for high-trust learning.",
+    bullets: [
+      "Hybrid intelligence—AI plus human experts",
+      "Mentor oversight ensures accuracy",
+      "Trusted recommendations"
+    ],
+    badges: [
+      { text: "Ethical AI", tooltip: "AI reviewed for safety, ethics, and bias", type: "quality" },
+      { text: "Mentor Oversight", tooltip: "Human mentors refine every learning journey", type: "benefit" },
+      { text: "Hybrid Intelligence", tooltip: "AI + Human collaboration", type: "tech" }
+    ],
+    iconBg: "bg-gradient-to-br from-future-green to-lxera-red",
+    cardBg: "bg-white/90",
+    roi: "Expert accuracy"
+  },
+
+  // --- Analytics & Insights ---
+  {
+    category: "Analytics & Insights",
     icon: <BarChart3 className="w-8 h-8" />,
     title: "Executive-Ready Analytics Dashboard",
     subtitle: "Predict Learning ROI with Confidence",
@@ -68,88 +194,7 @@ const highlightsData = [
     roi: "Predict learning ROI"
   },
   {
-    category: "HR Integration",
-    icon: <Settings className="w-8 h-8" />,
-    title: "Automated Role-Based Learning (HRIS Integration)",
-    subtitle: "HR System-Aware Learning Journeys",
-    description: "Fully automated journeys\nSync with HR systems to personalize content by job role and performance.",
-    bullets: [
-      "Syncs with HRIS in real-time",
-      "Personalizes by job function",
-      "Performance-triggered learning paths"
-    ],
-    badges: [
-      { text: "HRIS", tooltip: "Integrates with leading HRIS", type: "tech" },
-      { text: "Career Pathing", tooltip: "Personalized for career development", type: "benefit" },
-      { text: "Auto-Personalization", tooltip: "Learning auto-personalized by role", type: "feature" },
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "Fully automated journeys"
-  },
-  {
-    category: "AI & Personalization",
-    icon: <Bot className="w-8 h-8" />,
-    title: "AI Hyper-Personalized Learning Engine",
-    subtitle: "Tailored Learning at the Speed of Thought",
-    description: "Truly individualized journeys\nAdapts learning based on role, behavior, and goals using LLMs and RAG.",
-    bullets: [
-      "LLM-powered adaptation",
-      "Journey updates with each user interaction",
-      "Immediate relevance, zero generic"
-    ],
-    badges: [
-      { text: "LLM-Powered", tooltip: "Leverages large language models for adaptation", type: "tech" },
-      { text: "Dynamic Personalization", tooltip: "Journeys adapt dynamically to user needs", type: "feature" },
-      { text: "Real-Time Relevance", tooltip: "Ensures all learning is immediately applicable", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
-    cardBg: "bg-white/90",
-    popular: true,
-    roi: "Truly individualized journeys"
-  },
-  {
-    category: "Skill Analysis",
-    icon: <Target className="w-8 h-8" />,
-    title: "Real-Time Skill Gap Analysis",
-    subtitle: "Market-Aligned Taxonomy Engine",
-    description: "3x faster skill development\nAlign skills with job needs and future market requirements.",
-    bullets: [
-      "Market-aligned skill graph",
-      "Gap insights for critical roles",
-      "Future-proof workforce skills"
-    ],
-    badges: [
-      { text: "Gap Analysis", tooltip: "Identify the biggest skill gaps instantly", type: "feature" },
-      { text: "Skill Graph", tooltip: "Map and visualize organizational skills", type: "tech" },
-      { text: "Workforce Agility", tooltip: "Adapt quickly to shifting market needs", type: "benefit" },
-    ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
-    cardBg: "bg-white/90",
-    roi: "3x faster skill development"
-  },
-  {
-    category: "Content Transformation",
-    icon: <FileText className="w-8 h-8" />,
-    title: "Knowledge Base Transformation",
-    subtitle: "Convert Legacy Content into Learning Assets",
-    description: "+70% internal content engagement\nTurn SOPs and reports into microlearning modules.",
-    bullets: [
-      "Upgrade SOPs into smart modules",
-      "Contextual assets for just-in-time learning",
-      "Microlearning from existing docs"
-    ],
-    badges: [
-      { text: "Legacy Upgrade", tooltip: "Transform legacy content into interactive learning", type: "feature" },
-      { text: "Smart Learning Assets", tooltip: "Contextualized, searchable, measurable", type: "benefit" },
-      { text: "Microlearning", tooltip: "Quick learning in bite-sized modules", type: "quality" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-    cardBg: "bg-white/90",
-    roi: "+70% engagement"
-  },
-  {
-    category: "Analytics",
+    category: "Analytics & Insights",
     icon: <BarChart3 className="w-8 h-8" />,
     title: "Learner Analytics Dashboards",
     subtitle: "Empower Learners With Their Own Data",
@@ -169,9 +214,31 @@ const highlightsData = [
     roi: "+25% self-completion"
   },
   {
-    category: "Innovation",
+    category: "Analytics & Insights",
+    icon: <Target className="w-8 h-8" />,
+    title: "Real-Time Skill Gap Analysis",
+    subtitle: "Market-Aligned Taxonomy Engine",
+    description: "3x faster skill development\nAlign skills with job needs and future market requirements.",
+    bullets: [
+      "Market-aligned skill graph",
+      "Gap insights for critical roles",
+      "Future-proof workforce skills"
+    ],
+    badges: [
+      { text: "Gap Analysis", tooltip: "Identify the biggest skill gaps instantly", type: "feature" },
+      { text: "Skill Graph", tooltip: "Map and visualize organizational skills", type: "tech" },
+      { text: "Workforce Agility", tooltip: "Adapt quickly to shifting market needs", type: "benefit" },
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    cardBg: "bg-white/90",
+    roi: "3x faster skill development"
+  },
+
+  // --- Innovation & Automation ---
+  {
+    category: "Innovation & Automation",
     icon: <Code className="w-8 h-8" />,
-    title: "Low-Code / No-Code Innovation Sandbox",
+    title: "Low-Code / No-Code Innovation Sandbox", // "No-Code Sandbox"
     subtitle: "Build Without Technical Barriers",
     description: "10x faster prototyping\nEnable bottom-up innovation through app building and automation.",
     bullets: [
@@ -189,89 +256,51 @@ const highlightsData = [
     roi: "10x faster prototyping"
   },
   {
-    category: "Gamification",
-    icon: <Gamepad className="w-8 h-8" />,
-    title: "Real-Time Adaptive Gamification",
-    subtitle: "Motivation That Moves With You",
-    description: "+40% higher engagement\nGame mechanics adjust to each learner’s behavior and progress.",
+    category: "Innovation & Automation",
+    icon: <FileText className="w-8 h-8" />,
+    title: "Knowledge Base Transformation", // "Knowledge Base Transformation"
+    subtitle: "Convert Legacy Content into Learning Assets",
+    description: "+70% internal content engagement\nTurn SOPs and reports into microlearning modules.",
     bullets: [
-      "Gamification powered by behavioral AI",
-      "Personalized challenges & rewards",
-      "Dynamic adaptation to learning style"
+      "Upgrade SOPs into smart modules",
+      "Contextual assets for just-in-time learning",
+      "Microlearning from existing docs"
     ],
     badges: [
-      { text: "Gamified Learning", tooltip: "Boost engagement with game elements", type: "feature" },
-      { text: "Behavioral AI", tooltip: "Learner motivation model", type: "tech" },
-      { text: "Engagement Engine", tooltip: "Persistent, adaptive motivation", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "+40% engagement"
-  },
-  {
-    category: "AI & Personalization",
-    icon: <UserCheck className="w-8 h-8" />,
-    title: "Human-in-the-Loop Intelligence",
-    subtitle: "AI-Powered. Human-Refined.",
-    description: "Expert accuracy with emotional depth\nCombine scalable AI with human review for high-trust learning.",
-    bullets: [
-      "Hybrid intelligence—AI plus human experts",
-      "Mentor oversight ensures accuracy",
-      "Trusted recommendations"
-    ],
-    badges: [
-      { text: "Ethical AI", tooltip: "AI reviewed for safety, ethics, and bias", type: "quality" },
-      { text: "Mentor Oversight", tooltip: "Human mentors refine every learning journey", type: "benefit" },
-      { text: "Hybrid Intelligence", tooltip: "AI + Human collaboration", type: "tech" }
-    ],
-    iconBg: "bg-gradient-to-br from-future-green to-lxera-red",
-    cardBg: "bg-white/90",
-    roi: "Expert accuracy"
-  },
-  {
-    category: "Content Generation",
-    icon: <Users className="w-8 h-8" />,
-    title: "AI Avatar-Powered Content Creation",
-    subtitle: "Transform Text to Video Instantly",
-    description: "90% content production savings\nGenerate dynamic video lessons with lifelike avatars.",
-    bullets: [
-      "Text-to-video in seconds",
-      "Lifelike digital presenters",
-      "Natural-sounding speech"
-    ],
-    badges: [
-      { text: "AI Avatars", tooltip: "Digital presenters generate content 24/7", type: "tech" },
-      { text: "Voice Synthesis", tooltip: "Natural-sounding voiceovers", type: "tech" },
-      { text: "Instant Video", tooltip: "Instant video from text", type: "feature" }
+      { text: "Legacy Upgrade", tooltip: "Transform legacy content into interactive learning", type: "feature" },
+      { text: "Smart Learning Assets", tooltip: "Contextualized, searchable, measurable", type: "benefit" },
+      { text: "Microlearning", tooltip: "Quick learning in bite-sized modules", type: "quality" }
     ],
     iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
     cardBg: "bg-white/90",
-    roi: "90% content efficiency"
+    roi: "+70% engagement"
   },
+
+  // --- Community & Delivery ---
   {
-    category: "AI & Personalization",
-    icon: <Bot className="w-8 h-8" />,
-    title: "Organization-Specific Mentor Chatbot",
-    subtitle: "24/7 Personalized AI Learning Support",
-    description: "Always available, always contextual\nPrivate AI mentor trained on internal content.",
+    category: "Community & Delivery",
+    icon: <Settings className="w-8 h-8" />,
+    title: "Automated Role-Based Learning (HRIS Integration)",
+    subtitle: "HR System-Aware Learning Journeys",
+    description: "Fully automated journeys\nSync with HR systems to personalize content by job role and performance.",
     bullets: [
-      "24/7 contextual guidance",
-      "Trained on your internal resources",
-      "Answers, recommendations, and reminders"
+      "Syncs with HRIS in real-time",
+      "Personalizes by job function",
+      "Performance-triggered learning paths"
     ],
     badges: [
-      { text: "AI Coach", tooltip: "Your own AI mentor", type: "feature" },
-      { text: "Always-On", tooltip: "Support whenever you need it", type: "benefit" },
-      { text: "Smart Help", tooltip: "Contextual, relevant advice", type: "tech" }
+      { text: "HRIS", tooltip: "Integrates with leading HRIS", type: "tech" },
+      { text: "Career Pathing", tooltip: "Personalized for career development", type: "benefit" },
+      { text: "Auto-Personalization", tooltip: "Learning auto-personalized by role", type: "feature" },
     ],
-    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
     cardBg: "bg-white/90",
-    roi: "Always available & tailored"
+    roi: "Fully automated journeys"
   },
   {
-    category: "Collaboration",
+    category: "Community & Delivery",
     icon: <Users className="w-8 h-8" />,
-    title: "Social Learning Communities",
+    title: "Social Learning Communities", // "Social Learning Spaces"
     subtitle: "Peer-to-Peer Growth in Action",
     description: "+50% collaboration in hybrid teams\nSpaces for discussion, mentorship, and informal learning.",
     bullets: [
@@ -288,37 +317,23 @@ const highlightsData = [
     cardBg: "bg-white/90",
     roi: "+50% collaboration"
   },
-  {
-    category: "Engagement",
-    icon: <Bell className="w-8 h-8" />,
-    title: "Smart Nudging & Behavioral Triggers",
-    subtitle: "Right Nudge. Right Time. Right Outcome.",
-    description: "+35% completion rate improvement\nNudges and reminders based on user behavior via Slack/email.",
-    bullets: [
-      "Automated nudge delivery",
-      "Behavior-based reminders",
-      "Slack & email integration"
-    ],
-    badges: [
-      { text: "Behavioral Nudges", tooltip: "Timely nudges drive outcomes", type: "feature" },
-      { text: "Engagement Boost", tooltip: "Reminders boost motivation and completion", type: "benefit" },
-      { text: "Micro-Motivation", tooltip: "Tiny triggers, big impact", type: "tech" }
-    ],
-    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-    cardBg: "bg-white/90",
-    roi: "+35% completion"
-  },
 ];
 
-// Get all unique categories
-const categories = Array.from(
-  new Set(highlightsData.map((item) => item.category))
-);
+// --- Adjust the category order for the new tabs:
+const categories = [
+  "AI & Personalization",
+  "Security & Compliance",
+  "Analytics & Insights",
+  "Innovation & Automation",
+  "Community & Delivery",
+];
 
+// --- Regroup features by new categories:
 const groupedByCategory: Record<string, typeof highlightsData> = {};
 categories.forEach((cat) => {
   groupedByCategory[cat] = highlightsData.filter((item) => item.category === cat);
 });
+
 import PlatformHighlightsTabs from "./PlatformHighlightsTabs";
 
 const PlatformHighlightsSection = () => {
