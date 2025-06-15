@@ -5,230 +5,230 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Brain, Gamepad2, Target, Users, Bot, Code, FileText, BarChart3, MessageSquare, Settings, ChevronDown, ChevronUp, Crown, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
+const highlightsData = [
+  {
+    icon: <Brain className="w-8 h-8" />,
+    title: "Tailored learning at the speed of thought",
+    subtitle: "AI Hyper-Personalized Learning Engine",
+    description:
+      "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
+    bullets: [
+      "Zero generic content",
+      "Adaptive to career path",
+      "AI-curated relevance"
+    ],
+    badges: [
+      { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
+      { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
+      { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-future-green to-emerald",
+    cardBg: "bg-white/90",
+    popular: true,
+    roi: "100% personalized Learning"
+  },
+  {
+    icon: <Gamepad2 className="w-8 h-8" />,
+    title: "Real-Time Adaptive Gamification",
+    subtitle: "Motivation that moves with you",
+    description: "Game mechanics powered by behavioral AI adjust dynamically to learner progress, providing personalized challenges, rewards, and encouragement to drive sustained engagement.",
+    bullets: [
+      "Personalized points & streaks",
+      "Rewards based on motivation style",
+      "Real-time behavior analysis"
+    ],
+    badges: [
+      { text: "Behavioral AI", tooltip: "AI analyzes user behavior patterns for optimization", type: "tech" },
+      { text: "Dynamic Rewards", tooltip: "Rewards system adapts based on individual preferences", type: "feature" },
+      { text: "Engagement Boost", tooltip: "Proven to increase learning engagement by 40%", type: "result" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
+    cardBg: "bg-white/90",
+    enterprise: true,
+    roi: "40% higher engagement"
+  },
+  {
+    icon: <Target className="w-8 h-8" />,
+    title: "Real-Time Skill Gap Analysis",
+    subtitle: "Market-Aligned Skill Taxonomy Engine",
+    description: "Real-time skill gap analysis aligned with industry demands. Automatically identifies critical capabilities and creates targeted development pathways.",
+    bullets: [
+      "Synced with real-time job market data",
+      "Identifies gaps with targeted recommendations",
+      "Maps skills to career progression paths"
+    ],
+    badges: [
+      { text: "Market Aligned", tooltip: "Synced with real-time job market data", type: "feature" },
+      { text: "Gap Analysis", tooltip: "Identifies skill gaps and provides targeted recommendations", type: "feature" },
+      { text: "Career Mapping", tooltip: "Maps skills to career progression pathways", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    cardBg: "bg-white/90",
+    roi: "3x faster skill development"
+  },
+  {
+    icon: <Users className="w-8 h-8" />,
+    title: "Transform Text to Video Instantly",
+    subtitle: "AI Avatar-Powered Content Creation",
+    description: "Dynamic AI avatars deliver personalized video content with natural speech. Transform any text into engaging, professional video lessons instantly.",
+    bullets: [
+      "Lifelike digital presenters for content",
+      "Natural-sounding AI-generated speech",
+      "Convert text to professional video in seconds"
+    ],
+    badges: [
+      { text: "AI Avatars", tooltip: "Lifelike digital presenters for content delivery", type: "tech" },
+      { text: "Voice Synthesis", tooltip: "Natural-sounding AI-generated speech", type: "tech" },
+      { text: "Instant Video", tooltip: "Convert text to professional video in seconds", type: "feature" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
+    cardBg: "bg-white/90",
+    roi: "90% content creation savings"
+  },
+  {
+    icon: <Bot className="w-8 h-8" />,
+    title: "24/7 AI-Powered Learning Support",
+    subtitle: "Organization-Specific Mentor Chatbot",
+    description: "Organization-specific AI mentor trained on your data. Provides contextual guidance, answers questions, and offers personalized learning recommendations around the clock.",
+    bullets: [
+      "24/7 support with instant responses",
+      "Understands your specific learning context",
+      "Trained on organization's unique content"
+    ],
+    badges: [
+      { text: "Always Available", tooltip: "24/7 support with instant response times", type: "benefit" },
+      { text: "Contextual Help", tooltip: "Understands your specific learning context and goals", type: "feature" },
+      { text: "Org-Specific", tooltip: "Trained on your organization's unique content and processes", type: "feature" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-future-green",
+    cardBg: "bg-white/90",
+    popular: true,
+    roi: "24/7 availability"
+  },
+  {
+    icon: <Code className="w-8 h-8" />,
+    title: "Build Solutions Without Code",
+    subtitle: "No-Code Innovation Sandbox",
+    description: "Empower citizen developers with intuitive tools for rapid prototyping. Create workflows, automate processes, and build solutions without technical barriers.",
+    bullets: [
+      "Enables non-technical users to build solutions",
+      "Build and test ideas in minutes, not weeks",
+      "Automate repetitive tasks and workflows"
+    ],
+    badges: [
+      { text: "Citizen Development", tooltip: "Enables non-technical users to build solutions", type: "benefit" },
+      { text: "Rapid Prototyping", tooltip: "Build and test ideas in minutes, not weeks", type: "feature" },
+      { text: "Automation", tooltip: "Automate repetitive tasks and workflows", type: "feature" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-red to-emerald",
+    cardBg: "bg-white/90",
+    roi: "10x faster prototyping"
+  },
+  {
+    icon: <FileText className="w-8 h-8" />,
+    title: "AI Hyper-Personalized Learning Engine",
+    subtitle: "Tailored learning at the speed of thought",
+    description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
+    bullets: [
+      "Zero generic content",
+      "Adaptive to career path",
+      "AI-curated relevance"
+    ],
+    badges: [
+      { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
+      { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
+      { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
+    cardBg: "bg-white/90",
+    roi: "Truly individualized learning"
+  },
+  {
+    icon: <BarChart3 className="w-8 h-8" />,
+    title: "Predict Learning ROI with AI",
+    subtitle: "Executive-Ready Analytics Dashboard",
+    description: "Comprehensive analytics with predictive insights. Track learning ROI, identify skill trends, and make data-driven decisions with enterprise-grade reporting.",
+    bullets: [
+      "AI predicts learning outcomes and trends",
+      "Measure financial impact of learning programs",
+      "C-suite ready dashboards and reports"
+    ],
+    badges: [
+      { text: "Predictive Analytics", tooltip: "AI predicts learning outcomes and trends", type: "tech" },
+      { text: "ROI Tracking", tooltip: "Measure the financial impact of learning programs", type: "feature" },
+      { text: "Executive Insights", tooltip: "C-suite ready dashboards and reports", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-blue to-emerald",
+    cardBg: "bg-white/90",
+    enterprise: true,
+    roi: "Predictive ROI insights"
+  },
+  {
+    icon: <MessageSquare className="w-8 h-8" />,
+    title: "Foster Peer-to-Peer Learning",
+    subtitle: "Social Learning Communities",
+    description: "Collaborative environments that foster peer-to-peer learning. Create communities, facilitate mentorship, and drive engagement through social interaction.",
+    bullets: [
+      "Learn from colleagues and industry peers",
+      "Structured mentorship programs and matching",
+      "Collaborative challenges that build team skills"
+    ],
+    badges: [
+      { text: "Peer Learning", tooltip: "Learn from colleagues and industry peers", type: "feature" },
+      { text: "Mentorship", tooltip: "Structured mentorship programs and matching", type: "feature" },
+      { text: "Team Challenges", tooltip: "Collaborative challenges that build team skills", type: "benefit" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-lxera-red",
+    cardBg: "bg-white/90",
+    roi: "Community-driven growth"
+  },
+  {
+    icon: <Settings className="w-8 h-8" />,
+    title: "Seamless HR System Integration",
+    subtitle: "Automated Role-Based Learning",
+    description: "Seamless integration with existing HR systems. Automatically assign learning paths based on roles, performance reviews, and career progression plans.",
+    bullets: [
+      "Syncs with popular HR information systems",
+      "Automatically assigns content based on job roles",
+      "Learning paths assigned based on HR triggers"
+    ],
+    badges: [
+      { text: "HRIS Sync", tooltip: "Syncs with popular HR information systems", type: "tech" },
+      { text: "Role-Based", tooltip: "Automatically assigns content based on job roles", type: "feature" },
+      { text: "Automated Assignment", tooltip: "Learning paths assigned based on HR triggers", type: "feature" }
+    ],
+    iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
+    cardBg: "bg-white/90",
+    enterprise: true,
+    roi: "Automated efficiency"
+  },
+  {
+    icon: <FileText className="w-8 h-8" />,
+    title: "From static to strategic learning assets",
+    subtitle: "Knowledge Base Transformation",
+    description: "LXERA turns legacy SOPs, reports, and manuals into interactive learning modules—making institutional knowledge accessible, trackable, and engaging.",
+    bullets: [
+      "No content left behind",
+      "Contextualized knowledge assets",
+      "Richer than your old LMS"
+    ],
+    badges: [
+      { text: "Content Transformation", tooltip: "No content left behind", type: "feature" },
+      { text: "Contextualized", tooltip: "Contextualized knowledge assets", type: "benefit" },
+      { text: "Beyond LMS", tooltip: "Richer than your old LMS", type: "quality" }
+    ],
+    iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
+    cardBg: "bg-white/90",
+    roi: "Legacy docs, newly valuable"
+  },
+];
+
 const PlatformHighlightsSection = () => {
   const [expandedMobile, setExpandedMobile] = useState<number | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  const features = [
-    {
-      icon: <Brain className="w-8 h-8" />,
-      title: "Tailored learning at the speed of thought",
-      subtitle: "AI Hyper-Personalized Learning Engine",
-      description:
-        "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
-      bullets: [
-        "Zero generic content",
-        "Adaptive to career path",
-        "AI-curated relevance"
-      ],
-      badges: [
-        { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
-        { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
-        { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
-      ],
-      iconBg: "bg-gradient-to-br from-future-green to-emerald",
-      cardBg: "bg-white/90",
-      popular: true,
-      roi: "100% personalized Learning"
-    },
-    {
-      icon: <Gamepad2 className="w-8 h-8" />,
-      title: "Real-Time Adaptive Gamification",
-      subtitle: "Motivation that moves with you",
-      description: "Game mechanics powered by behavioral AI adjust dynamically to learner progress, providing personalized challenges, rewards, and encouragement to drive sustained engagement.",
-      bullets: [
-        "Personalized points & streaks",
-        "Rewards based on motivation style",
-        "Real-time behavior analysis"
-      ],
-      badges: [
-        { text: "Behavioral AI", tooltip: "AI analyzes user behavior patterns for optimization", type: "tech" },
-        { text: "Dynamic Rewards", tooltip: "Rewards system adapts based on individual preferences", type: "feature" },
-        { text: "Engagement Boost", tooltip: "Proven to increase learning engagement by 40%", type: "result" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-red to-lxera-blue",
-      cardBg: "bg-white/90",
-      enterprise: true,
-      roi: "40% higher engagement"
-    },
-    {
-      icon: <Target className="w-8 h-8" />,
-      title: "Real-Time Skill Gap Analysis",
-      subtitle: "Market-Aligned Skill Taxonomy Engine",
-      description: "Real-time skill gap analysis aligned with industry demands. Automatically identifies critical capabilities and creates targeted development pathways.",
-      bullets: [
-        "Synced with real-time job market data",
-        "Identifies gaps with targeted recommendations",
-        "Maps skills to career progression paths"
-      ],
-      badges: [
-        { text: "Market Aligned", tooltip: "Synced with real-time job market data", type: "feature" },
-        { text: "Gap Analysis", tooltip: "Identifies skill gaps and provides targeted recommendations", type: "feature" },
-        { text: "Career Mapping", tooltip: "Maps skills to career progression pathways", type: "benefit" }
-      ],
-      iconBg: "bg-gradient-to-br from-emerald to-future-green",
-      cardBg: "bg-white/90",
-      roi: "3x faster skill development"
-    },
-    {
-      icon: <Users className="w-8 h-8" />,
-      title: "Transform Text to Video Instantly",
-      subtitle: "AI Avatar-Powered Content Creation",
-      description: "Dynamic AI avatars deliver personalized video content with natural speech. Transform any text into engaging, professional video lessons instantly.",
-      bullets: [
-        "Lifelike digital presenters for content",
-        "Natural-sounding AI-generated speech",
-        "Convert text to professional video in seconds"
-      ],
-      badges: [
-        { text: "AI Avatars", tooltip: "Lifelike digital presenters for content delivery", type: "tech" },
-        { text: "Voice Synthesis", tooltip: "Natural-sounding AI-generated speech", type: "tech" },
-        { text: "Instant Video", tooltip: "Convert text to professional video in seconds", type: "feature" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-      cardBg: "bg-white/90",
-      roi: "90% content creation savings"
-    },
-    {
-      icon: <Bot className="w-8 h-8" />,
-      title: "24/7 AI-Powered Learning Support",
-      subtitle: "Organization-Specific Mentor Chatbot",
-      description: "Organization-specific AI mentor trained on your data. Provides contextual guidance, answers questions, and offers personalized learning recommendations around the clock.",
-      bullets: [
-        "24/7 support with instant responses",
-        "Understands your specific learning context",
-        "Trained on organization's unique content"
-      ],
-      badges: [
-        { text: "Always Available", tooltip: "24/7 support with instant response times", type: "benefit" },
-        { text: "Contextual Help", tooltip: "Understands your specific learning context and goals", type: "feature" },
-        { text: "Org-Specific", tooltip: "Trained on your organization's unique content and processes", type: "feature" }
-      ],
-      iconBg: "bg-gradient-to-br from-emerald to-future-green",
-      cardBg: "bg-white/90",
-      popular: true,
-      roi: "24/7 availability"
-    },
-    {
-      icon: <Code className="w-8 h-8" />,
-      title: "Build Solutions Without Code",
-      subtitle: "No-Code Innovation Sandbox",
-      description: "Empower citizen developers with intuitive tools for rapid prototyping. Create workflows, automate processes, and build solutions without technical barriers.",
-      bullets: [
-        "Enables non-technical users to build solutions",
-        "Build and test ideas in minutes, not weeks",
-        "Automate repetitive tasks and workflows"
-      ],
-      badges: [
-        { text: "Citizen Development", tooltip: "Enables non-technical users to build solutions", type: "benefit" },
-        { text: "Rapid Prototyping", tooltip: "Build and test ideas in minutes, not weeks", type: "feature" },
-        { text: "Automation", tooltip: "Automate repetitive tasks and workflows", type: "feature" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-red to-emerald",
-      cardBg: "bg-white/90",
-      roi: "10x faster prototyping"
-    },
-    {
-      icon: <FileText className="w-8 h-8" />,
-      title: "AI Hyper-Personalized Learning Engine",
-      subtitle: "Tailored learning at the speed of thought",
-      description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
-      bullets: [
-        "Zero generic content",
-        "Adaptive to career path",
-        "AI-curated relevance"
-      ],
-      badges: [
-        { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
-        { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
-        { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-      cardBg: "bg-white/90",
-      roi: "Truly individualized learning"
-    },
-    {
-      icon: <BarChart3 className="w-8 h-8" />,
-      title: "Predict Learning ROI with AI",
-      subtitle: "Executive-Ready Analytics Dashboard",
-      description: "Comprehensive analytics with predictive insights. Track learning ROI, identify skill trends, and make data-driven decisions with enterprise-grade reporting.",
-      bullets: [
-        "AI predicts learning outcomes and trends",
-        "Measure financial impact of learning programs",
-        "C-suite ready dashboards and reports"
-      ],
-      badges: [
-        { text: "Predictive Analytics", tooltip: "AI predicts learning outcomes and trends", type: "tech" },
-        { text: "ROI Tracking", tooltip: "Measure the financial impact of learning programs", type: "feature" },
-        { text: "Executive Insights", tooltip: "C-suite ready dashboards and reports", type: "benefit" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-blue to-emerald",
-      cardBg: "bg-white/90",
-      enterprise: true,
-      roi: "Predictive ROI insights"
-    },
-    {
-      icon: <MessageSquare className="w-8 h-8" />,
-      title: "Foster Peer-to-Peer Learning",
-      subtitle: "Social Learning Communities",
-      description: "Collaborative environments that foster peer-to-peer learning. Create communities, facilitate mentorship, and drive engagement through social interaction.",
-      bullets: [
-        "Learn from colleagues and industry peers",
-        "Structured mentorship programs and matching",
-        "Collaborative challenges that build team skills"
-      ],
-      badges: [
-        { text: "Peer Learning", tooltip: "Learn from colleagues and industry peers", type: "feature" },
-        { text: "Mentorship", tooltip: "Structured mentorship programs and matching", type: "feature" },
-        { text: "Team Challenges", tooltip: "Collaborative challenges that build team skills", type: "benefit" }
-      ],
-      iconBg: "bg-gradient-to-br from-emerald to-lxera-red",
-      cardBg: "bg-white/90",
-      roi: "Community-driven growth"
-    },
-    {
-      icon: <Settings className="w-8 h-8" />,
-      title: "Seamless HR System Integration",
-      subtitle: "Automated Role-Based Learning",
-      description: "Seamless integration with existing HR systems. Automatically assign learning paths based on roles, performance reviews, and career progression plans.",
-      bullets: [
-        "Syncs with popular HR information systems",
-        "Automatically assigns content based on job roles",
-        "Learning paths assigned based on HR triggers"
-      ],
-      badges: [
-        { text: "HRIS Sync", tooltip: "Syncs with popular HR information systems", type: "tech" },
-        { text: "Role-Based", tooltip: "Automatically assigns content based on job roles", type: "feature" },
-        { text: "Automated Assignment", tooltip: "Learning paths assigned based on HR triggers", type: "feature" }
-      ],
-      iconBg: "bg-gradient-to-br from-emerald to-lxera-blue",
-      cardBg: "bg-white/90",
-      enterprise: true,
-      roi: "Automated efficiency"
-    },
-    {
-      icon: <FileText className="w-8 h-8" />,
-      title: "From static to strategic learning assets",
-      subtitle: "Knowledge Base Transformation",
-      description: "LXERA turns legacy SOPs, reports, and manuals into interactive learning modules—making institutional knowledge accessible, trackable, and engaging.",
-      bullets: [
-        "No content left behind",
-        "Contextualized knowledge assets",
-        "Richer than your old LMS"
-      ],
-      badges: [
-        { text: "Content Transformation", tooltip: "No content left behind", type: "feature" },
-        { text: "Contextualized", tooltip: "Contextualized knowledge assets", type: "benefit" },
-        { text: "Beyond LMS", tooltip: "Richer than your old LMS", type: "quality" }
-      ],
-      iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
-      cardBg: "bg-white/90",
-      roi: "Legacy docs, newly valuable"
-    },
-  ];
-
-  const displayedFeatures = showAllFeatures ? features : features.slice(0, 6);
+  const displayedFeatures = showAllFeatures ? highlightsData : highlightsData.slice(0, 6);
 
   const toggleMobileExpanded = (index: number) => {
     setExpandedMobile(expandedMobile === index ? null : index);
@@ -386,7 +386,7 @@ const PlatformHighlightsSection = () => {
               onClick={() => setShowAllFeatures(true)}
               className="bg-white text-business-black hover:bg-future-green hover:text-business-black border-2 border-future-green transition-all duration-300"
             >
-              See All {features.length} Features
+              See All {highlightsData.length} Features
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -394,7 +394,7 @@ const PlatformHighlightsSection = () => {
 
         {/* Enhanced Mobile Accordion Layout */}
         <div className="lg:hidden space-y-4 mb-16">
-          {features.map((feature, index) => (
+          {highlightsData.map((feature, index) => (
             <Card 
               key={index} 
               className="bg-white border-0 lxera-shadow transition-all duration-300 animate-fade-in-up"
