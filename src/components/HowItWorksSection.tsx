@@ -189,34 +189,6 @@ const HowItWorksSection = () => {
         </div>
 
         {/* Enhanced bottom CTA with consistent gradient */}
-        <div className="text-center mt-20 animate-fade-in-up stagger-5">
-          <div className="bg-gradient-to-r from-future-green/15 via-smart-beige/30 to-future-green/10 p-8 rounded-2xl hover:from-future-green/20 hover:via-smart-beige/40 hover:to-future-green/15 transition-all duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-future-green/8 to-smart-beige/12 animate-gradient-shift"></div>
-            <div className="relative z-10">
-              <p className="text-lg text-business-black/70 mb-6 animate-fade-in stagger-5">
-                Ready to transform how your organization learns, grows, and innovates?
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 text-lg font-semibold lxera-hover shadow-lg hover:shadow-xl animate-scale-pulse"
-                >
-                  Book a Demo
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-future-green text-future-green hover:bg-future-green/10 px-8 py-3 text-lg font-semibold lxera-hover"
-                >
-                  Watch Overview
-                </Button>
-              </div>
-              <p className="text-sm text-business-black/60 mt-4 animate-fade-in stagger-5">
-                Join forward-thinking teams already accelerating growth with LXERA.
-              </p>
-            </div>
-          </div>
-        </div>
         <HowItWorksStepsCTA />
       </div>
     </section>
