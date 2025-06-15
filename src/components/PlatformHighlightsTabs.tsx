@@ -1,3 +1,4 @@
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useRef, useEffect } from "react";
 import PlatformHighlightsCarousel from "./PlatformHighlightsCarousel";
@@ -11,7 +12,6 @@ import {
   FileText,
   Code,
   Gamepad,
-  UserCheck,
   Users,
   Bell,
 } from "lucide-react";
@@ -21,19 +21,57 @@ interface PlatformHighlightsTabsProps {
   groupedByCategory: Record<string, any[]>;
 }
 
-// Map category names to relevant Lucide icons for use in the tab UI
+// New: Map category names to more "business" accent Lucide icons
 const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
-  "Security & Compliance": <Shield className="w-5 h-5 text-future-green mr-1" />,
-  "Analytics": <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />,
-  "HR Integration": <Settings className="w-5 h-5 text-emerald mr-1" />,
-  "AI & Personalization": <Bot className="w-5 h-5 text-future-green mr-1" />,
-  "Skill Analysis": <Target className="w-5 h-5 text-business-black mr-1" />,
-  "Content Transformation": <FileText className="w-5 h-5 text-lxera-red mr-1" />,
-  "Innovation": <Code className="w-5 h-5 text-lxera-red mr-1" />,
-  "Gamification": <Gamepad className="w-5 h-5 text-emerald mr-1" />,
-  "Content Generation": <Users className="w-5 h-5 text-future-green mr-1" />,
-  "Collaboration": <Users className="w-5 h-5 text-lxera-blue mr-1" />,
-  "Engagement": <Bell className="w-5 h-5 text-lxera-blue mr-1" />,
+  "Security & Compliance": (
+    <Shield className="w-5 h-5 text-business-black mr-1" />
+  ),
+  "Analytics": (
+    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "HR Integration": (
+    <Settings className="w-5 h-5 text-emerald mr-1" />
+  ),
+  "AI & Personalization": (
+    <Bot className="w-5 h-5 text-lxera-red mr-1" />
+  ),
+  "Skill Analysis": (
+    <Target className="w-5 h-5 text-business-black mr-1" />
+  ),
+  "Content Transformation": (
+    <FileText className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "Innovation": (
+    <Code className="w-5 h-5 text-lxera-red mr-1" />
+  ),
+  "Gamification": (
+    <Gamepad className="w-5 h-5 text-emerald mr-1" />
+  ),
+  "Content Generation": (
+    <Users className="w-5 h-5 text-business-black mr-1" />
+  ),
+  "Collaboration": (
+    <Users className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "Engagement": (
+    <Bell className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  // For new categories
+  "AI & Personalization": (
+    <Bot className="w-5 h-5 text-lxera-red mr-1" />
+  ),
+  "Security & Compliance": (
+    <Shield className="w-5 h-5 text-business-black mr-1" />
+  ),
+  "Analytics & Insights": (
+    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "Innovation & Automation": (
+    <Code className="w-5 h-5 text-emerald mr-1" />
+  ),
+  "Community & Delivery": (
+    <Users className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
 };
 
 const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighlightsTabsProps) => {
@@ -54,11 +92,11 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
       <div
         className="
           sticky top-0 z-30
-          bg-white/95 backdrop-blur
+          bg-smart-beige/95 backdrop-blur
           rounded-xl
           shadow-lg
           transition-all
-          border border-future-green/15
+          border border-business-black/10
           px-2
           mb-4
           mx-auto
@@ -76,7 +114,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
             w-full
             justify-start
             overflow-x-auto
-            scrollbar-thin scrollbar-thumb-future-green/50 scrollbar-track-transparent
+            scrollbar-thin scrollbar-thumb-business-black/30 scrollbar-track-transparent
             whitespace-nowrap
             bg-transparent
             rounded-xl
@@ -101,23 +139,23 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
                 font-semibold border-2
                 transition-all
                 bg-white
-                border-future-green/30
-                data-[state=active]:bg-[#F0F7F8]
-                data-[state=active]:border-future-green
-                data-[state=active]:text-future-green
+                border-business-black/15
+                data-[state=active]:bg-business-black/90
+                data-[state=active]:border-business-black
+                data-[state=active]:text-white
                 data-[state=active]:shadow-lg
                 data-[state=active]:ring-2
-                data-[state=active]:ring-future-green/60
+                data-[state=active]:ring-lxera-blue/60
                 data-[state=active]:underline
-                data-[state=active]:decoration-future-green
+                data-[state=active]:decoration-business-black
                 data-[state=active]:decoration-4
                 hover:scale-105
                 shadow
                 transition
               `}
               style={{
-                boxShadow: tabValue === cat ? '0 4px 24px 0 #B6FCF0cc' : '0 2px 8px 0 #DEFAF7cc',
-                borderBottom: tabValue === cat ? "4px solid #4fd1c5" : undefined,
+                boxShadow: tabValue === cat ? '0 4px 24px 0 #D9D9D9aa' : '0 2px 8px 0 #F3F3F3aa',
+                borderBottom: tabValue === cat ? "4px solid #191919" : undefined,
                 minWidth: 110,
                 marginRight: 4,
                 whiteSpace: "nowrap",

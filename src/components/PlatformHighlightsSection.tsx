@@ -349,10 +349,10 @@ const PlatformHighlightsSection = () => {
     >
       {/* Enhanced animated background */}
       <div className="absolute inset-0 opacity-3 z-0">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-future-green/20 rounded-full animate-float-gentle"></div>
-        <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/20 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-business-black/10 rounded-full animate-float-gentle"></div>
+        <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/10 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-smart-beige/30 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/15 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-0">
@@ -366,12 +366,12 @@ const PlatformHighlightsSection = () => {
           </p>
           <div className="mt-8 flex justify-center items-center gap-8 animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
             <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
-              <TrendingUp className="w-4 h-4 text-future-green" />
+              <span className="w-4 h-4 rounded-full bg-lxera-blue inline-block" />
               <span>40% avg. engagement boost</span>
             </div>
-            <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
+            <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-business-black/20 to-transparent"></div>
             <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
-              <Sparkles className="w-4 h-4 text-future-green" />
+              <span className="w-4 h-4 rounded-full bg-emerald inline-block" />
               <span>100% personalized Learning</span>
             </div>
           </div>
@@ -385,9 +385,9 @@ const PlatformHighlightsSection = () => {
         </div>
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden z-0">
+          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-business-black/10 hover:border-business-black/30 transition-all duration-500 group relative overflow-hidden z-0">
             {/* Background animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-lxera-blue/10 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
             <div className="relative z-10">
               <h3 className="text-2xl font-bold text-business-black mb-2">
@@ -400,22 +400,22 @@ const PlatformHighlightsSection = () => {
               {/* Enhanced stats */}
               <div className="flex justify-center items-center gap-8 mb-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-future-green rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-lxera-blue rounded-full animate-pulse"></div>
                   <span className="text-business-black/60">60% Faster Learning</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                  <div className="w-2 h-2 bg-business-black rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
                   <span className="text-business-black/60">40% Higher Engagement</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-lxera-blue rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                  <div className="w-2 h-2 bg-emerald rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
                   <span className="text-business-black/60">90% Content Efficiency</span>
                 </div>
               </div>
               
               <Button 
                 onClick={scrollToContact}
-                className="bg-gradient-to-r from-future-green to-emerald text-business-black font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 group-hover:shadow-future-green/20"
+                className="bg-gradient-to-r from-business-black to-emerald text-white font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 group-hover:shadow-business-black/20"
               >
                 <span>See These Features in Action</span>
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
