@@ -208,8 +208,8 @@ const PlatformHighlightsSection = () => {
     },
     {
       icon: <FileText className="w-8 h-8" />,
-      title: "Knowledge Base Transformation",
-      subtitle: "From static to strategic learning assets",
+      title: "From static to strategic learning assets",
+      subtitle: "Knowledge Base Transformation",
       description: "LXERA turns legacy SOPs, reports, and manuals into interactive learning modules—making institutional knowledge accessible, trackable, and engaging.",
       bullets: [
         "No content left behind",
