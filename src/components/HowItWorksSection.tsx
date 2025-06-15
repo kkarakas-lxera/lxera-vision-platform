@@ -149,18 +149,18 @@ const HowItWorksSection = () => {
             </div>
           </div>
           {/* Mobile Vertical Pathway Flow (with step ids for intersection observer) */}
-          <div className="lg:hidden space-y-8 relative">
+          <div className="lg:hidden flex flex-col items-center space-y-8 relative w-full">
             {/* Decorative pathway line for mobile */}
-            <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
             {stepsData.map((step, index) => (
               <div
                 key={index}
                 id={`howitworks-step-${index}`}
-                className="relative z-10"
+                className="relative z-10 flex justify-center w-full"
                 style={{
-                  width: "96%",
                   maxWidth: "340px",
-                  marginLeft: "2.75rem", // match ml-11
+                  marginLeft: "auto",
+                  marginRight: "auto"
                 }}
               >
                 <StepCard
@@ -172,7 +172,7 @@ const HowItWorksSection = () => {
                 />
                 {/* Curved connector (except after last card) */}
                 {index < stepsData.length - 1 && (
-                  <div className="flex justify-start pl-14 py-0.5 -mt-3 mb-4 relative z-20">
+                  <div className="absolute left-1/2 transform -translate-x-1/2 flex justify-center py-0.5 -mt-3 mb-4 z-20" style={{ top: "100%" }}>
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                       <path d="M4 4 Q20 16 28 28" stroke="#7AE5C6" strokeWidth="3" fill="none" />
                       <polygon points="28,28 24,24 28,22" fill="#7AE5C6"/>
