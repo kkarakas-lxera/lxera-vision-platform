@@ -369,11 +369,6 @@ const PlatformHighlightsSection = () => {
                         Most Popular
                       </Badge>
                     )}
-                    {feature.enterprise && (
-                      <Badge className="bg-business-black/10 text-business-black border-business-black/20 text-xs px-2 py-1">
-                        Enterprise Favorite
-                      </Badge>
-                    )}
                   </div>
                 </div>
                 
