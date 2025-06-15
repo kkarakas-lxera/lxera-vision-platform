@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Brain, Gamepad2, Target, Users, Bot, Code, FileText, BarChart3, MessageSquare, Settings, ChevronDown, ChevronUp, Crown, TrendingUp, Sparkles, ArrowRight, Shield, UserCheck, Bell } from "lucide-react";
 import { useState } from "react";
+import FeatureCard from "./FeatureCard";
 
 const highlightsData = [
   {
@@ -346,99 +347,17 @@ const PlatformHighlightsSection = () => {
           </div>
         </div>
         
-        {/* Enhanced Desktop Grid with consistent heights */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-6 mb-16">
+        {/* Enhanced Desktop Grid using FeatureCard */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-8 mb-16">
           {displayedFeatures.map((feature, index) => (
-            <Card 
-              key={index} 
-              className={`${feature.cardBg} border-0 lxera-shadow group transition-all duration-700 hover:shadow-2xl hover:scale-102 animate-fade-in-up relative overflow-hidden h-[420px] flex flex-col`}
-              style={{animationDelay: `${0.8 + index * 0.1}s`}}
-              onMouseEnter={() => setHoveredCard(index)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <CardContent className="p-6 relative z-10 h-full flex flex-col">
-                {/* Enhanced Header with badges */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-16 h-16 ${feature.iconBg} rounded-2xl flex items-center justify-center text-white transition-all duration-700 group-hover:scale-110 group-hover:rotate-3 flex-shrink-0 animate-glow`}>
-                    {feature.icon}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {feature.popular && (
-                      <Badge className="bg-future-green/20 text-future-green border-future-green/30 text-xs px-2 py-1">
-                        <Crown className="w-3 h-3 mr-1" />
-                        Most Popular
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Enhanced Content with progressive disclosure */}
-                <div className="flex-grow flex flex-col">
-                  {/* Render title as main heading and subtitle as italic ONLY for the second card (index 1) */}
-                  {index === 1 ? (
-                    <>
-                      <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
-                        {feature.subtitle}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      {/* For other cards, keep swapped styling */}
-                      <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
-                        {feature.subtitle}
-                      </h3>
-                      <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
-                        {feature.title}
-                      </p>
-                    </>
-                  )}
-                  
-                  {/* ROI indicator */}
-                  <div className="mb-3">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald bg-emerald/10 px-2 py-1 rounded-full">
-                      <TrendingUp className="w-3 h-3" />
-                      {feature.roi}
-                    </span>
-                  </div>
-                  
-                  {/* Progressive disclosure - show description on hover or always on mobile */}
-                  <div className={`transition-all duration-500 ${hoveredCard === index ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 lg:opacity-100 lg:max-h-40'} overflow-hidden`}>
-                    <p className="text-sm text-business-black/80 leading-relaxed mb-4 group-hover:text-business-black transition-colors duration-300">
-                      {feature.description}
-                    </p>
-                  </div>
-                  
-                  {/* Enhanced feature badges with improved styling */}
-                  <div className="flex flex-wrap gap-1 mt-auto">
-                    {feature.badges.map((badge, badgeIndex) => (
-                      <Tooltip key={badgeIndex}>
-                        <TooltipTrigger asChild>
-                          <Badge 
-                            className={`text-xs px-2 py-1 ${getBadgeStyle(badge.type)} hover:scale-105 transition-all duration-300 cursor-help`}
-                          >
-                            {badge.text}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">{badge.tooltip}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Enhanced hover effect overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-lg"></div>
-                
-                {/* Shimmer effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-                </div>
-              </CardContent>
-            </Card>
+            <FeatureCard
+              key={index}
+              feature={feature}
+              index={index}
+              desktop
+              hoveredCard={hoveredCard}
+              setHoveredCard={setHoveredCard}
+            />
           ))}
         </div>
 
@@ -455,91 +374,24 @@ const PlatformHighlightsSection = () => {
           </div>
         )}
 
-        {/* Enhanced Mobile Accordion Layout */}
+        {/* Enhanced Mobile Accordion Layout using FeatureCard */}
         <div className="lg:hidden space-y-4 mb-16">
           {highlightsData.map((feature, index) => (
-            <Card 
-              key={index} 
-              className="bg-white border-0 lxera-shadow transition-all duration-300 animate-fade-in-up"
-              style={{animationDelay: `${0.8 + index * 0.05}s`}}
-            >
-              <CardContent className="p-0">
-                {/* SWAPPED: subtitle before title */}
-                <button
-                  onClick={() => toggleMobileExpanded(index)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-smart-beige/20 transition-colors duration-300"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 ${feature.iconBg} rounded-xl flex items-center justify-center text-white flex-shrink-0`}>
-                      {feature.icon}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-2 mb-1">
-                        {/* subtitle is the main heading */}
-                        <h3 className="text-lg font-bold text-business-black">
-                          {feature.subtitle}
-                        </h3>
-                        {feature.popular && (
-                          <Badge className="bg-future-green/20 text-future-green border-future-green/30 text-xs px-2 py-1">
-                            <Crown className="w-3 h-3 mr-1" />
-                            Popular
-                          </Badge>
-                        )}
-                      </div>
-                      {/* title is now the subtitle line */}
-                      <p className="text-sm italic text-business-black/60 font-medium">
-                        {feature.title}
-                      </p>
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald bg-emerald/10 px-2 py-1 rounded-full mt-1">
-                        <TrendingUp className="w-3 h-3" />
-                        {feature.roi}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronDown 
-                    className={`w-5 h-5 text-business-black/60 transition-transform duration-300 ${
-                      expandedMobile === index ? 'rotate-180' : ''
-                    }`} 
-                  />
-                </button>
-
-                {/* Enhanced Expandable Content */}
-                {expandedMobile === index && (
-                  <div className="px-6 pb-6 animate-fade-in-up bg-smart-beige/10">
-                    <p className="text-sm text-business-black/80 leading-relaxed mb-4">
-                      {feature.description}
-                    </p>
-                    
-                    {/* Bullet points */}
-                    <ul className="mb-4 space-y-2">
-                      {feature.bullets.map((bullet, bulletIndex) => (
-                        <li key={bulletIndex} className="text-sm text-business-black/70 flex items-start">
-                          <span className="text-future-green mr-2 mt-1 font-bold">•</span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {feature.badges.map((badge, badgeIndex) => (
-                        <Tooltip key={badgeIndex}>
-                          <TooltipTrigger asChild>
-                            <Badge 
-                              className={`text-xs px-3 py-1 ${getBadgeStyle(badge.type)} hover:scale-105 transition-all duration-300 cursor-help`}
-                            >
-                              {badge.text}
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm">{badge.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div key={index} className="flex w-full">
+              <button
+                onClick={() => toggleMobileExpanded(index)}
+                className={`flex-1 rounded-t-xl border-b-0 transition-all duration-300 cursor-pointer group focus:outline-none`}
+                tabIndex={0}
+                aria-expanded={expandedMobile === index}
+              >
+                <FeatureCard
+                  feature={feature}
+                  index={index}
+                  expanded={expandedMobile === index}
+                  onAccordionClick={() => toggleMobileExpanded(index)}
+                />
+              </button>
+            </div>
           ))}
         </div>
         
