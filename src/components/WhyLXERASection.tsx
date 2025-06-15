@@ -1,18 +1,12 @@
 
-import CapabilityCard from "./CapabilityCard";
 import AnimatedBackground from "./AnimatedBackground";
 import SectionHeader from "./SectionHeader";
-import TestimonialCarousel from "./TestimonialCarousel";
-import StatsCounter from "./StatsCounter";
 import { capabilitiesData } from "@/data/capabilitiesData";
-import { useState } from "react";
-import { useInView } from "@/hooks/useInView";
 
 const WhyLXERASection = () => {
-  // Show all capabilities
+  // Use all capabilities as originally
   const filteredCapabilities = capabilitiesData;
 
-  // We're going to track in-view states for each card.
   return (
     <>
       {/* Section Transition with consistent colors */}
@@ -28,7 +22,6 @@ const WhyLXERASection = () => {
       </div>
       
       <section id="platform" className="w-full pt-4 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
-        {/* Improved gradient transition for visual separation */}
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
         <AnimatedBackground />
@@ -38,40 +31,50 @@ const WhyLXERASection = () => {
             subtitle="LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across five core pillars."
           />
 
-          {/* Capabilities grid with in-view animation */}
-          <div className="space-y-16 lg:space-y-20 px-1">
-            {filteredCapabilities.map((capability, index) => {
-              // Each card observes itself
-              const [ref, inView] = useInView<HTMLDivElement>({});
-
-              return (
-                <div
-                  key={index}
-                  ref={ref}
-                  className={`relative group ${index % 2 === 1 ? 'lg:ml-16' : ''} transition-all duration-500`}
-                  style={{
-                    animationDelay: inView
-                      ? `${300 + index * 150}ms`
-                      : undefined,
-                  }}
-                >
-                  {/* Decorative band */}
-                  <div className={`absolute inset-0 blur-md rounded-3xl group-hover:scale-105 group-hover:opacity-70 transition-all duration-700 pointer-events-none
-                    ${index % 2 === 1
-                      ? "bg-gradient-to-r from-future-green/10 via-smart-beige/40 to-future-green/10"
-                      : "bg-gradient-to-l from-smart-beige/10 via-future-green/5 to-smart-beige/10"
-                    }
-                  `}></div>
-                  <CapabilityCard
-                    {...capability}
-                    index={index}
-                    isVisible={inView}
-                  />
+          {/* Card Grid mimicking Built for Innovators design */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            {filteredCapabilities.map((capability, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+                style={{
+                  animationDelay: `${300 + index * 100}ms`,
+                }}
+              >
+                <div className="p-6">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                      {capability.icon && (
+                        // @ts-ignore
+                        <capability.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-business-black font-bold text-lg mb-1">{capability.title}</p>
+                  {/* Subtitle as the lighter text below the title */}
+                  {capability.subtitle && (
+                    <p className="text-business-black/80 mb-1 text-base">{capability.subtitle}</p>
+                  )}
+                  {/* Description/microcopy, always visible or on hover depending on data */}
+                  <div className={capability.microcopy ? 
+                    "overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100" : ""}>
+                    <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
+                      {capability.microcopy ?? capability.description}
+                    </p>
+                  </div>
+                  {/* If no microcopy, always show description */}
+                  {!capability.microcopy && (
+                    <p className="text-business-black/70 mt-2 text-sm">{capability.description}</p>
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
-          {/* Removed "Ready to Experience the Difference?" CTA section here */}
+
+          {/* Conclude with an impact note for consistency */}
+          <p className="text-business-black/70 mb-2 text-center text-base mt-8">
+            Every LXERA innovation capability shaped by real-world feedback for maximum impact.
+          </p>
         </div>
       </section>
     </>
