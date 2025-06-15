@@ -7,27 +7,6 @@ import { useState } from "react";
 
 const highlightsData = [
   {
-    icon: <Brain className="w-8 h-8" />,
-    title: "Tailored learning at the speed of thought",
-    subtitle: "AI Hyper-Personalized Learning Engine",
-    description:
-      "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
-    bullets: [
-      "Zero generic content",
-      "Adaptive to career path",
-      "AI-curated relevance"
-    ],
-    badges: [
-      { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
-      { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
-      { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
-    ],
-    iconBg: "bg-gradient-to-br from-future-green to-emerald",
-    cardBg: "bg-white/90",
-    popular: true,
-    roi: "100% personalized Learning"
-  },
-  {
     icon: <Gamepad2 className="w-8 h-8" />,
     title: "Real-Time Adaptive Gamification",
     subtitle: "Motivation that moves with you",
