@@ -296,23 +296,6 @@ const PlatformHighlightsSection = () => {
     }
   };
 
-  const getBadgeStyle = (type: string) => {
-    switch (type) {
-      case 'tech':
-        return 'bg-lxera-blue/20 text-lxera-blue border-lxera-blue/30';
-      case 'feature':
-        return 'bg-future-green/20 text-emerald border-future-green/30';
-      case 'benefit':
-        return 'bg-emerald/20 text-emerald border-emerald/30';
-      case 'quality':
-        return 'bg-emerald/20 text-emerald border-emerald/30';
-      case 'result':
-        return 'bg-lxera-red/20 text-lxera-red border-lxera-red/30';
-      default:
-        return 'bg-smart-beige/50 text-business-black border-business-black/10';
-    }
-  };
-
   return (
     <section id="features" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden">
       {/* Enhanced animated background */}
@@ -347,8 +330,8 @@ const PlatformHighlightsSection = () => {
           </div>
         </div>
         
-        {/* Enhanced Desktop Grid using FeatureCard */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-8 mb-16">
+        {/* Enhanced Desktop Grid */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-10 mb-16">
           {displayedFeatures.map((feature, index) => (
             <FeatureCard
               key={index}
@@ -374,7 +357,7 @@ const PlatformHighlightsSection = () => {
           </div>
         )}
 
-        {/* Enhanced Mobile Accordion Layout using FeatureCard */}
+        {/* Enhanced Mobile Accordion */}
         <div className="lg:hidden space-y-4 mb-16">
           {highlightsData.map((feature, index) => (
             <div key={index} className="flex w-full">
