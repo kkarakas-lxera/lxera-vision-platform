@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { StepCard } from "@/components/StepCard";
 import { ProgressIndicator } from "@/components/ProgressIndicator";
@@ -18,16 +19,16 @@ const HowItWorksSection = () => {
     }
   }, []);
 
-  // Mobile step tracker
+  // Mobile step tracker - no longer needed without the navigator, but kept if used for other features
   const stepInViewIdx = useStepInView(stepsData.length);
 
-  // Keyboard navigation for sticky mobile step navigation
-  const handleStepButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
-    if (e.key === "Enter" || e.key === " ") {
-      const el = document.getElementById(`howitworks-step-${idx}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
+  // Keyboard navigation handler for the step navigator (now unused)
+  // const handleStepButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
+  //   if (e.key === "Enter" || e.key === " ") {
+  //     const el = document.getElementById(`howitworks-step-${idx}`);
+  //     el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  //   }
+  // };
 
   return (
     <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden">
@@ -51,38 +52,7 @@ const HowItWorksSection = () => {
       <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-smart-beige/50 to-transparent"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Sticky Mobile Progress Bar */}
-        <div className="lg:hidden sticky top-0 left-0 right-0 z-40" style={{ height: 46 }}>
-          <div className="flex items-center justify-center gap-2 px-4 bg-white/90 backdrop-blur-md border-b border-future-green/20 shadow-sm h-11">
-            {stepsData.map((step, idx) => (
-              <React.Fragment key={idx}>
-                <button
-                  type="button"
-                  aria-label={`Go to ${step.title}`}
-                  tabIndex={0}
-                  className={`
-                    flex items-center justify-center h-7 w-7 rounded-full border-2 font-bold text-xs transition
-                    ${stepInViewIdx === idx
-                      ? "bg-future-green text-white border-future-green scale-105 shadow"
-                      : "bg-white text-future-green border-future-green/40 hover:bg-future-green/15"
-                    }
-                  `}
-                  onClick={() => {
-                    const el = document.getElementById(`howitworks-step-${idx}`);
-                    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  }}
-                  onKeyDown={e => handleStepButtonKeyDown(e, idx)}
-                >
-                  {step.step}
-                </button>
-                {idx < stepsData.length - 1 && (
-                  <span className="w-5 h-1 bg-future-green/20 rounded-full mx-0.5" aria-hidden />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-        
+        {/* Sticky Mobile Progress Bar deleted as requested */}
         {/* Section Header with enhanced animations */}
         <div className="text-center mb-20 animate-fade-in-up">
           <div className="inline-block mb-4 animate-slide-in-right stagger-2">
