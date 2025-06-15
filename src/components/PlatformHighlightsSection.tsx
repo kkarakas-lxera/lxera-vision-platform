@@ -205,7 +205,26 @@ const PlatformHighlightsSection = () => {
       cardBg: "bg-white/90",
       enterprise: true,
       roi: "Automated efficiency"
-    }
+    },
+    {
+      icon: <FileText className="w-8 h-8" />,
+      title: "Knowledge Base Transformation",
+      subtitle: "From static to strategic learning assets",
+      description: "LXERA turns legacy SOPs, reports, and manuals into interactive learning modules—making institutional knowledge accessible, trackable, and engaging.",
+      bullets: [
+        "No content left behind",
+        "Contextualized knowledge assets",
+        "Richer than your old LMS"
+      ],
+      badges: [
+        { text: "Content Transformation", tooltip: "No content left behind", type: "feature" },
+        { text: "Contextualized", tooltip: "Contextualized knowledge assets", type: "benefit" },
+        { text: "Beyond LMS", tooltip: "Richer than your old LMS", type: "quality" }
+      ],
+      iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
+      cardBg: "bg-white/90",
+      roi: "Legacy docs, newly valuable"
+    },
   ];
 
   const displayedFeatures = showAllFeatures ? features : features.slice(0, 6);
