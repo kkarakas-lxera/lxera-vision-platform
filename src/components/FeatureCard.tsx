@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -131,58 +132,22 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           </div>
           {/* Title & subtitle */}
           <div className="mb-1 mt-2">
-            <h3
-              className={`
-                font-semibold md:font-bold
-                ${desktop
-                  ? 'text-[26px]'
-                  : 'text-[20px]'}
-                text-business-black
-                mb-1 leading-snug font-inter
-              `}
-            >
+            <h3 className="text-2xl font-extrabold text-business-black mb-1 leading-snug">
               {feature.title}
             </h3>
-            <p
-              className={`
-                font-light md:font-normal
-                ${desktop
-                  ? 'text-[18px]'
-                  : 'text-[16px]'}
-                italic text-business-black/60 font-inter
-              `}
-            >
+            <p className="text-base italic font-medium text-business-black/60">
               {feature.subtitle}
             </p>
           </div>
           {/* Description */}
-          <p
-            className={`
-              font-light md:font-normal
-              ${desktop
-                ? 'text-[18px]'
-                : 'text-[16px]'}
-              text-business-black/80 leading-relaxed my-2 mb-0 font-inter
-            `}
-          >
+          <p className="text-sm text-business-black/80 leading-relaxed my-2 mb-0">
             {feature.description}
           </p>
           {/* Bullets */}
           <div className="bg-smart-beige/80 border border-future-green/30 rounded-lg px-4 py-2 mt-2 mb-2 shadow-inner">
             <ul className="space-y-1">
               {feature.bullets.map((bullet, i) => (
-                <li
-                  key={i}
-                  className={`
-                    flex items-start
-                    font-light md:font-normal
-                    ${desktop
-                      ? 'text-[18px]'
-                      : 'text-[16px]'}
-                    text-business-black/90
-                    leading-snug font-medium font-inter
-                  `}
-                >
+                <li key={i} className="flex items-start text-[15px] text-business-black/90 font-medium leading-snug">
                   <span className="w-4 flex items-start justify-center text-future-green font-extrabold select-none">•</span>
                   <span className="pl-1">{bullet}</span>
                 </li>
@@ -238,3 +203,4 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 };
 
 export default FeatureCard;
+
