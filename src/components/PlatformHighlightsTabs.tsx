@@ -1,4 +1,3 @@
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useRef, useEffect } from "react";
 import PlatformHighlightsCarousel from "./PlatformHighlightsCarousel";
@@ -61,13 +60,12 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
           transition-all
           border border-future-green/15
           px-2
-          mb-10
+          mb-4
           mx-auto
           flex
           items-center
         "
         style={{
-          // Make sure the tab bar appears above all content/cards but below global nav (nav likely has z-40 or higher)
           zIndex: 30,
         }}
       >
@@ -89,9 +87,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
             [scrollbar-width:thin]
             "
           style={{
-            // Remove default TabsList background
             background: "transparent",
-            // Remove accidental double shadow/colors
             boxShadow: "none",
           }}
         >
@@ -134,8 +130,8 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
           ))}
         </TabsList>
       </div>
-      {/* Add at least 40px vertical spacing between the tab group and the features/cards */}
-      <div className="mt-12" />
+      {/* Responsive vertical spacing: more on mobile to avoid overlap */}
+      <div className="mt-16 lg:mt-12" />
       {categories.map((cat) => (
         <TabsContent key={cat} value={cat} className="w-full">
           {/* Desktop: Horizontal Carousel, 3 at a time */}
@@ -151,4 +147,3 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
 };
 
 export default PlatformHighlightsTabs;
-
