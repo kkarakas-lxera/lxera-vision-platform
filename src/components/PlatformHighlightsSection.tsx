@@ -319,9 +319,9 @@ const groupedByCategory: Record<string, typeof highlightsData> = {};
 categories.forEach((cat) => {
   groupedByCategory[cat] = highlightsData.filter((item) => item.category === cat);
 });
+import PlatformHighlightsTabs from "./PlatformHighlightsTabs";
 
 const PlatformHighlightsSection = () => {
-  const [tabValue, setTabValue] = useState(categories[0]);
   const scrollToContact = () => {
     const contactSection = document.getElementById("contact");
     if (contactSection) contactSection.scrollIntoView({ behavior: "smooth" });
@@ -363,58 +363,10 @@ const PlatformHighlightsSection = () => {
             </div>
           </div>
         </div>
-        
-        {/* Tabbed Layout and Horizontal Carousel for Features */}
-        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
-          <TabsList className="flex flex-wrap justify-center gap-4 bg-transparent mb-8">
-            {categories.map((cat) => (
-              <TabsTrigger
-                key={cat}
-                value={cat}
-                className="px-5 py-2 rounded-full bg-white text-business-black font-semibold border-2 border-future-green/30 data-[state=active]:bg-future-green/10 data-[state=active]:text-future-green transition-all"
-              >
-                {cat}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {categories.map((cat) => (
-            <TabsContent key={cat} value={cat} className="w-full">
-              {/* Desktop: Horizontal Carousel, 3 at a time */}
-              <div className="hidden lg:block">
-                <Carousel opts={{ align: "start", slidesToScroll: 1 }}>
-                  <CarouselContent>
-                    {groupedByCategory[cat].map((feature, index) => (
-                      <CarouselItem
-                        key={feature.title}
-                        className="basis-1/3 flex-grow-0"
-                      >
-                        <FeatureCard
-                          feature={feature}
-                          index={index}
-                          desktop
-                        />
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </Carousel>
-              </div>
-              {/* Mobile: Stack vertically */}
-              <div className="block lg:hidden space-y-4">
-                {groupedByCategory[cat].map((feature, idx) => (
-                  <FeatureCard
-                    key={feature.title}
-                    feature={feature}
-                    index={idx}
-                    expanded
-                  />
-                ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-        
+        <PlatformHighlightsTabs
+          categories={categories}
+          groupedByCategory={groupedByCategory}
+        />
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
           <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden">
