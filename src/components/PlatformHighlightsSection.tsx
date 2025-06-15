@@ -66,23 +66,21 @@ const highlightsData = [
   },
   {
     icon: <Bot className="w-8 h-8" />,
-    title: "24/7 AI-Powered Learning Support",
-    subtitle: "Organization-Specific Mentor Chatbot",
-    description: "Organization-specific AI mentor trained on your data. Provides contextual guidance, answers questions, and offers personalized learning recommendations around the clock.",
+    title: "AI Hyper-Personalized Learning Engine",
+    subtitle: "Tailored Learning at the Speed of Thought",
+    description: "Truly individualized journeys",
     bullets: [
-      "24/7 support with instant responses",
-      "Understands your specific learning context",
-      "Trained on organization's unique content"
+      "Adapts learning based on role, behavior, and goals using LLMs and RAG."
     ],
     badges: [
-      { text: "Always Available", tooltip: "24/7 support with instant response times", type: "benefit" },
-      { text: "Contextual Help", tooltip: "Understands your specific learning context and goals", type: "feature" },
-      { text: "Org-Specific", tooltip: "Trained on your organization's unique content and processes", type: "feature" }
+      { text: "LLM-Powered", tooltip: "Leverages large language models for adaptation", type: "tech" },
+      { text: "Dynamic Personalization", tooltip: "Journeys adapt dynamically to user needs", type: "feature" },
+      { text: "Real-Time Relevance", tooltip: "Ensures all learning is immediately applicable", type: "benefit" }
     ],
     iconBg: "bg-gradient-to-br from-emerald to-future-green",
     cardBg: "bg-white/90",
     popular: true,
-    roi: "24/7 availability"
+    roi: "Truly individualized journeys"
   },
   {
     icon: <Code className="w-8 h-8" />,
@@ -105,22 +103,22 @@ const highlightsData = [
   },
   {
     icon: <FileText className="w-8 h-8" />,
-    title: "AI Hyper-Personalized Learning Engine",
-    subtitle: "Tailored learning at the speed of thought",
-    description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
+    title: "From static to strategic learning assets",
+    subtitle: "Knowledge Base Transformation",
+    description: "LXERA turns legacy SOPs, reports, and manuals into interactive learning modules—making institutional knowledge accessible, trackable, and engaging.",
     bullets: [
-      "Zero generic content",
-      "Adaptive to career path",
-      "AI-curated relevance"
+      "No content left behind",
+      "Contextualized knowledge assets",
+      "Richer than your old LMS"
     ],
     badges: [
-      { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
-      { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
-      { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
+      { text: "Content Transformation", tooltip: "No content left behind", type: "feature" },
+      { text: "Contextualized", tooltip: "Contextualized knowledge assets", type: "benefit" },
+      { text: "Beyond LMS", tooltip: "Richer than your old LMS", type: "quality" }
     ],
     iconBg: "bg-gradient-to-br from-lxera-blue to-future-green",
     cardBg: "bg-white/90",
-    roi: "Truly individualized learning"
+    roi: "Legacy docs, newly valuable"
   },
   {
     icon: <BarChart3 className="w-8 h-8" />,
