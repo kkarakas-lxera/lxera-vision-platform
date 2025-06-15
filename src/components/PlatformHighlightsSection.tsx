@@ -13,8 +13,8 @@ const PlatformHighlightsSection = () => {
   const features = [
     {
       icon: <Brain className="w-8 h-8" />,
-      title: "AI Hyper-Personalized Learning Engine",
-      subtitle: "Tailored learning at the speed of thought",
+      title: "Tailored learning at the speed of thought",
+      subtitle: "AI Hyper-Personalized Learning Engine",
       description:
         "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
       bullets: [
