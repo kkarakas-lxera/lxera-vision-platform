@@ -325,13 +325,27 @@ const PlatformHighlightsSection = () => {
                 
                 {/* Enhanced Content with progressive disclosure */}
                 <div className="flex-grow flex flex-col">
-                  {/* SWAPPED: Now subtitle is the main heading, title is below as subtitle */}
-                  <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
-                    {feature.subtitle}
-                  </h3>
-                  <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
-                    {feature.title}
-                  </p>
+                  {/* Render title as main heading and subtitle as italic ONLY for the second card (index 1) */}
+                  {index === 1 ? (
+                    <>
+                      <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
+                        {feature.subtitle}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      {/* For other cards, keep swapped styling */}
+                      <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
+                        {feature.subtitle}
+                      </h3>
+                      <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
+                        {feature.title}
+                      </p>
+                    </>
+                  )}
                   
                   {/* ROI indicator */}
                   <div className="mb-3">
