@@ -21,12 +21,15 @@ interface PlatformHighlightsTabsProps {
   groupedByCategory: Record<string, any[]>;
 }
 
-// New: Map category names to more "business" accent Lucide icons
+// Map category names to Lucide icons with business-oriented color accents
 const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
   "Security & Compliance": (
     <Shield className="w-5 h-5 text-business-black mr-1" />
   ),
   "Analytics": (
+    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "Analytics & Insights": (
     <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
   ),
   "HR Integration": (
@@ -44,6 +47,9 @@ const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
   "Innovation": (
     <Code className="w-5 h-5 text-lxera-red mr-1" />
   ),
+  "Innovation & Automation": (
+    <Code className="w-5 h-5 text-emerald mr-1" />
+  ),
   "Gamification": (
     <Gamepad className="w-5 h-5 text-emerald mr-1" />
   ),
@@ -53,24 +59,11 @@ const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
   "Collaboration": (
     <Users className="w-5 h-5 text-lxera-blue mr-1" />
   ),
-  "Engagement": (
-    <Bell className="w-5 h-5 text-lxera-blue mr-1" />
-  ),
-  // For new categories
-  "AI & Personalization": (
-    <Bot className="w-5 h-5 text-lxera-red mr-1" />
-  ),
-  "Security & Compliance": (
-    <Shield className="w-5 h-5 text-business-black mr-1" />
-  ),
-  "Analytics & Insights": (
-    <BarChart3 className="w-5 h-5 text-lxera-blue mr-1" />
-  ),
-  "Innovation & Automation": (
-    <Code className="w-5 h-5 text-emerald mr-1" />
-  ),
   "Community & Delivery": (
     <Users className="w-5 h-5 text-lxera-blue mr-1" />
+  ),
+  "Engagement": (
+    <Bell className="w-5 h-5 text-lxera-blue mr-1" />
   ),
 };
 
@@ -78,7 +71,6 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
   const [tabValue, setTabValue] = useState(categories[0]);
   const tabListRef = useRef<HTMLDivElement>(null);
 
-  // Optional: Detect and scroll selected tab into view on tab change (for better UX)
   useEffect(() => {
     if (!tabListRef.current) return;
     const activeTab = tabListRef.current.querySelector('[data-state="active"]');
@@ -168,15 +160,12 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
           ))}
         </TabsList>
       </div>
-      {/* Responsive vertical spacing: more on mobile to avoid overlap */}
       <div className="mt-16 lg:mt-12" />
       {categories.map((cat) => (
         <TabsContent key={cat} value={cat} className="w-full">
-          {/* Desktop: Horizontal Carousel, 3 at a time */}
           <div className="hidden lg:block">
             <PlatformHighlightsCarousel features={groupedByCategory[cat]} cat={cat} />
           </div>
-          {/* Mobile: Stack vertically */}
           <PlatformHighlightsMobileStack features={groupedByCategory[cat]} />
         </TabsContent>
       ))}
