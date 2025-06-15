@@ -28,7 +28,7 @@ const highlightsData = [
   },
   {
     icon: <Target className="w-8 h-8" />,
-    title: "Real-Time Skill Gap Analysis",
+    title: "AI Hyper-Personalized Learning Engine",
     subtitle: "Market-Aligned Skill Taxonomy Engine",
     description: "Real-time skill gap analysis aligned with industry demands. Automatically identifies critical capabilities and creates targeted development pathways.",
     bullets: [
@@ -107,7 +107,7 @@ const highlightsData = [
     icon: <FileText className="w-8 h-8" />,
     title: "AI Hyper-Personalized Learning Engine",
     subtitle: "Tailored learning at the speed of thought",
-    description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
+    description: "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user's role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
     bullets: [
       "Zero generic content",
       "Adaptive to career path",
