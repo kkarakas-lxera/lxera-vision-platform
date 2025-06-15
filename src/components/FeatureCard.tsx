@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -29,22 +28,47 @@ interface FeatureCardProps {
   onAccordionClick?: () => void;
 }
 
-// Brand-accessible badge colors
+// Tag color mapping per LXERA brand
 const getBadgeStyle = (type: string) => {
-  switch (type) {
-    case "tech":
-      return "bg-lxera-blue/15 text-lxera-blue";
-    case "feature":
-      return "bg-future-green/15 text-emerald";
-    case "benefit":
-      return "bg-emerald/15 text-emerald";
-    case "quality":
-      return "bg-emerald/15 text-emerald";
-    case "result":
-      return "bg-lxera-red/10 text-lxera-red";
-    default:
-      return "bg-smart-beige/60 text-business-black";
+  // Normalize type to lower case for matching
+  const t = type.toLowerCase();
+  if (
+    t === "trust" ||
+    t === "results" ||
+    t === "impact" ||
+    t === "benefit"
+  ) {
+    // Green
+    return "bg-emerald/15 text-emerald";
   }
+  if (
+    t === "compliance" ||
+    t === "security" ||
+    t === "secure"
+  ) {
+    // Blue
+    return "bg-lxera-blue/15 text-lxera-blue";
+  }
+  if (
+    t === "ai" ||
+    t === "innovation" ||
+    t === "machine learning" ||
+    t === "ml"
+  ) {
+    // Purple
+    return "bg-purple-400/15 text-purple-600";
+  }
+  if (
+    t === "personalization" ||
+    t === "personalised" ||
+    t === "customization" ||
+    t === "teal"
+  ) {
+    // Teal (brand's future green)
+    return "bg-future-green/15 text-future-green";
+  }
+  // fallback (neutral)
+  return "bg-smart-beige/60 text-business-black";
 };
 
 const FeatureCard: React.FC<FeatureCardProps> = ({
@@ -203,4 +227,3 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 };
 
 export default FeatureCard;
-
