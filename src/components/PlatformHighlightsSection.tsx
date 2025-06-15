@@ -383,49 +383,8 @@ const PlatformHighlightsSection = () => {
             groupedByCategory={groupedByCategory}
           />
         </div>
-        {/* Add extra space above CTA to prevent overlap */}
+        {/* Add extra space above where CTA was to prevent overlap */}
         <div className="mt-24 lg:mt-32" />
-        {/* Enhanced Call to Action */}
-        <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-business-black/10 hover:border-business-black/30 transition-all duration-500 group relative overflow-hidden z-0">
-            {/* Background animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-lxera-blue/10 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            
-            <div className="relative z-10">
-              {/* Polished CTA */}
-              <h3 className="text-2xl font-bold text-business-black mb-2">
-                Ready to Transform Learning & Innovation? — Let’s Talk
-              </h3>
-              <p className="text-lg text-business-black/70 mb-6">
-                Experience these features firsthand and discover how LXERA helps you drive measurable, on-brand results.
-              </p>
-              
-              {/* Enhanced stats */}
-              <div className="flex justify-center items-center gap-8 mb-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-lxera-blue rounded-full animate-pulse"></div>
-                  <span className="text-business-black/60">60% Faster Learning</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-business-black rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                  <span className="text-business-black/60">40% Higher Engagement</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-                  <span className="text-business-black/60">90% Content Efficiency</span>
-                </div>
-              </div>
-              
-              <Button 
-                onClick={scrollToContact}
-                className="bg-gradient-to-r from-business-black to-emerald text-white font-semibold px-8 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 group-hover:shadow-business-black/20"
-              >
-                <span>See These Features in Action</span>
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-              </Button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
