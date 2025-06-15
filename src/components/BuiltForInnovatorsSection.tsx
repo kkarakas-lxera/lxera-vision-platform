@@ -40,7 +40,7 @@ const BuiltForInnovatorsSection = () => {
           {features.map((item, index) => (
             <Card 
               key={index} 
-              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 border border-future-green/20 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
               style={{
                 animationDelay: `${300 + index * 100}ms`,
               }}

@@ -29,17 +29,17 @@ interface FeatureCardProps {
 const getBadgeStyle = (type: string) => {
   switch (type) {
     case "tech":
-      return "bg-lxera-blue/15 text-lxera-blue border-lxera-blue/20";
+      return "bg-lxera-blue/15 text-lxera-blue"; // Removed border
     case "feature":
-      return "bg-future-green/15 text-emerald border-future-green/20";
+      return "bg-future-green/15 text-emerald";  // Removed border
     case "benefit":
-      return "bg-emerald/15 text-emerald border-emerald/20";
+      return "bg-emerald/15 text-emerald";       // Removed border
     case "quality":
-      return "bg-emerald/15 text-emerald border-emerald/20";
+      return "bg-emerald/15 text-emerald";
     case "result":
-      return "bg-lxera-red/10 text-lxera-red border-lxera-red/20";
+      return "bg-lxera-red/10 text-lxera-red";   // Removed border
     default:
-      return "bg-smart-beige/60 text-business-black border-business-black/10";
+      return "bg-smart-beige/60 text-business-black";
   }
 };
 
@@ -59,7 +59,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
       className={`
         group overflow-hidden flex flex-col 
         transition-all duration-700 relative 
-        ${feature.cardBg} border-0 lxera-shadow 
+        ${feature.cardBg} border-0 lxera-shadow
         ${desktop 
           ? "h-[500px] hover:shadow-2xl hover:scale-105 focus-within:scale-105 animate-fade-in-up" 
           : "animate-fade-in-up"}
@@ -85,7 +85,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               transition-transform duration-300 bg-gradient-to-br ${feature.iconBg}
               text-white shadow-md
               group-hover:scale-110 group-focus:scale-110
-              border-2 border-white/80
+              border-0
               outline-none focus:ring-2 focus:ring-emerald/40
             `}
             aria-hidden="true"
@@ -101,13 +101,13 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           </div>
           <div className="flex flex-col items-end min-w-[106px] gap-1 mt-1">
             {feature.popular && (
-              <Badge className="bg-future-green/25 text-future-green border-future-green/40 px-2 py-1 text-xs font-bold flex items-center gap-1 rounded-xl shadow">
+              <Badge className="bg-future-green/25 text-future-green px-2 py-1 text-xs font-bold flex items-center gap-1 rounded-xl shadow">
                 <Crown className="w-3 h-3 mr-1" />
                 Most Popular
               </Badge>
             )}
             {/* Enhanced ROI badge */}
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald bg-white/90 border-2 border-emerald/40 px-3 py-1 rounded-full shadow-lg tracking-tight mt-1 mb-0">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald bg-white/90 px-3 py-1 rounded-full shadow-lg tracking-tight mt-1 mb-0">
               <TrendingUp className="w-3 h-3 text-future-green" />
               <span className="whitespace-nowrap">{feature.roi}</span>
             </span>
@@ -143,7 +143,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             <Tooltip key={i}>
               <TooltipTrigger asChild>
                 <Badge
-                  className={`text-xs px-3 py-1 rounded-full border-2 font-semibold hover:scale-105 transition-all duration-300 cursor-help ${getBadgeStyle(badge.type)}`}
+                  className={`text-xs px-3 py-1 rounded-full font-semibold hover:scale-105 transition-all duration-300 cursor-help ${getBadgeStyle(badge.type)}`}
                   tabIndex={0}
                   aria-label={badge.tooltip}
                 >
