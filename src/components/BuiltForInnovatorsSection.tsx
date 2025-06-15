@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Rocket, Brain, RotateCcw, Globe } from "lucide-react";
@@ -48,7 +49,7 @@ const BuiltForInnovatorsSection = () => {
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <item.icon className="w-8 h-8 text-future-green group-hover:animate-bounce transition-all duration-300" />
+                    <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                   </div>
                 </div>
                 <p className="text-business-black/80 mb-3 font-medium">{item.text}</p>
