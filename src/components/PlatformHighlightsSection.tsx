@@ -305,14 +305,14 @@ const PlatformHighlightsSection = () => {
                 
                 {/* Enhanced Content with progressive disclosure */}
                 <div className="flex-grow flex flex-col">
+                  {/* SWAPPED: Now subtitle is the main heading, title is below as subtitle */}
                   <h3 className="text-lg font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300 leading-tight">
-                    {feature.title}
-                  </h3>
-                  
-                  <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
                     {feature.subtitle}
+                  </h3>
+                  <p className="text-sm italic text-business-black/60 mb-3 font-medium leading-relaxed">
+                    {feature.title}
                   </p>
-
+                  
                   {/* ROI indicator */}
                   <div className="mb-3">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald bg-emerald/10 px-2 py-1 rounded-full">
@@ -381,7 +381,7 @@ const PlatformHighlightsSection = () => {
               style={{animationDelay: `${0.8 + index * 0.05}s`}}
             >
               <CardContent className="p-0">
-                {/* Enhanced Header - Always Visible */}
+                {/* SWAPPED: subtitle before title */}
                 <button
                   onClick={() => toggleMobileExpanded(index)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-smart-beige/20 transition-colors duration-300"
@@ -392,8 +392,9 @@ const PlatformHighlightsSection = () => {
                     </div>
                     <div className="flex-grow">
                       <div className="flex items-center gap-2 mb-1">
+                        {/* subtitle is the main heading */}
                         <h3 className="text-lg font-bold text-business-black">
-                          {feature.title}
+                          {feature.subtitle}
                         </h3>
                         {feature.popular && (
                           <Badge className="bg-future-green/20 text-future-green border-future-green/30 text-xs px-2 py-1">
@@ -402,8 +403,9 @@ const PlatformHighlightsSection = () => {
                           </Badge>
                         )}
                       </div>
+                      {/* title is now the subtitle line */}
                       <p className="text-sm italic text-business-black/60 font-medium">
-                        {feature.subtitle}
+                        {feature.title}
                       </p>
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald bg-emerald/10 px-2 py-1 rounded-full mt-1">
                         <TrendingUp className="w-3 h-3" />
