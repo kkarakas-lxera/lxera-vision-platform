@@ -383,6 +383,8 @@ const PlatformHighlightsSection = () => {
             groupedByCategory={groupedByCategory}
           />
         </div>
+        {/* Add extra space above CTA to prevent overlap */}
+        <div className="mt-24 lg:mt-32" />
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
           <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-business-black/10 hover:border-business-black/30 transition-all duration-500 group relative overflow-hidden z-0">
