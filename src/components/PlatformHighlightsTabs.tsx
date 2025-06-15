@@ -1,4 +1,3 @@
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useRef, useEffect } from "react";
 import PlatformHighlightsCarousel from "./PlatformHighlightsCarousel";
@@ -170,7 +169,7 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
               {groupedByCategory[cat].map((feature, idx) => (
                 <div className="min-w-[340px] flex" key={feature.title}>
                   {/* The card itself is made responsive and fills container */}
-                  <PlatformHighlightsCarousel features={[feature]} cat={cat} singleCardMode />
+                  <PlatformHighlightsCarousel features={[feature]} cat={cat} />
                 </div>
               ))}
             </div>
@@ -196,4 +195,3 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
 };
 
 export default PlatformHighlightsTabs;
-
