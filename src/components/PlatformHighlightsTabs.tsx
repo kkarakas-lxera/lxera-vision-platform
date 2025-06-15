@@ -102,9 +102,8 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
         <TabsList
           ref={tabListRef}
           className="
-            flex flex-nowrap gap-4
+            flex flex-wrap justify-center gap-4
             w-full
-            justify-start
             overflow-x-auto
             scrollbar-thin scrollbar-thumb-business-black/30 scrollbar-track-transparent
             whitespace-nowrap
@@ -115,7 +114,8 @@ const PlatformHighlightsTabs = ({ categories, groupedByCategory }: PlatformHighl
             min-h-[60px]
             transition-all
             [scrollbar-width:thin]
-            "
+            sm:justify-center
+          "
           style={{
             background: "transparent",
             boxShadow: "none",
