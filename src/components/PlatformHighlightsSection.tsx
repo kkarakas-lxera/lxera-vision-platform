@@ -30,7 +30,7 @@ const PlatformHighlightsSection = () => {
       iconBg: "bg-gradient-to-br from-future-green to-emerald",
       cardBg: "bg-white/90",
       popular: true,
-      roi: "60% faster learning"
+      roi: "100% personalized Learning"
     },
     {
       icon: <Gamepad2 className="w-8 h-8" />,
@@ -287,7 +287,7 @@ const PlatformHighlightsSection = () => {
             <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
             <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
               <Sparkles className="w-4 h-4 text-future-green" />
-              <span>60% faster learning</span>
+              <span>100% personalized Learning</span>
             </div>
           </div>
         </div>
