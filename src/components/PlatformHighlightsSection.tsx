@@ -11,8 +11,8 @@ import {
   Users, 
   Bell 
 } from "lucide-react";
-import {
-  Carousel,
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
