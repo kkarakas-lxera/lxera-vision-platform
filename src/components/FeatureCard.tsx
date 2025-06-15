@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -174,28 +173,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             ))}
           </div>
           {/* Actions */}
-          <div className="flex gap-3 mt-4">
-            {/* See it in Action */}
-            <button
-              type="button"
-              onClick={() => setVideoOpen(true)}
-              className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-future-green/10 text-future-green text-sm font-semibold border border-future-green/30 hover:bg-future-green/30 focus:bg-future-green/20 transition transform hover:-translate-y-[2px] hover:shadow-lg focus:shadow-xl focus:ring-2 focus:ring-future-green outline-none shadow"
-              aria-label={`See ${feature.title} in Action`}
-            >
-              <Film className="w-4 h-4 mr-1" />
-              See it in Action
-            </button>
-            {/* Add to Proposal */}
-            <button
-              type="button"
-              onClick={handleAddToProposal}
-              className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-lxera-blue/10 text-lxera-blue text-sm font-semibold border border-lxera-blue/30 hover:bg-lxera-blue/20 focus:bg-lxera-blue/15 transition transform hover:-translate-y-[2px] hover:shadow-lg focus:shadow-xl focus:ring-2 focus:ring-lxera-blue outline-none shadow"
-              aria-label={`Add ${feature.title} to Proposal`}
-            >
-              <ClipboardList className="w-4 h-4 mr-1" />
-              Add to Proposal
-            </button>
-          </div>
+          
           {/* Optional: mobile expand arrow */}
           {!desktop && (
             <button
@@ -220,4 +198,3 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 };
 
 export default FeatureCard;
-
