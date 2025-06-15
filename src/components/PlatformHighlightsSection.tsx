@@ -330,7 +330,7 @@ const PlatformHighlightsSection = () => {
   return (
     <section
       id="features"
-      className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden"
+      className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0"
     >
       {/* Enhanced animated background */}
       <div className="absolute inset-0 opacity-3 z-0">
@@ -340,7 +340,7 @@ const PlatformHighlightsSection = () => {
         <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/20 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-0">
         {/* Enhanced Section Header */}
         <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-4 animate-slide-in-left" style={{animationDelay: '0.2s'}}>
@@ -362,7 +362,7 @@ const PlatformHighlightsSection = () => {
           </div>
         </div>
         {/* Enforce z-10 on highlights wrapper */}
-        <div className="relative z-10">
+        <div className="relative z-0">
           <PlatformHighlightsTabs
             categories={categories}
             groupedByCategory={groupedByCategory}
@@ -370,7 +370,7 @@ const PlatformHighlightsSection = () => {
         </div>
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden z-10">
+          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden z-0">
             {/* Background animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
