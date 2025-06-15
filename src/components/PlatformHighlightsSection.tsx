@@ -13,18 +13,19 @@ const PlatformHighlightsSection = () => {
   const features = [
     {
       icon: <Brain className="w-8 h-8" />,
-      title: "Cut Training Time by 60%",
-      subtitle: "Hyper-Personalized Learning Engine",
-      description: "Advanced AI adapts content to individual cognitive styles, learning pace, and professional context. Every learner receives a unique journey optimized for their success.",
+      title: "AI Hyper-Personalized Learning Engine",
+      subtitle: "Tailored learning at the speed of thought",
+      description:
+        "LXERA uses advanced AI (LLMs, RAG, and SME layer) to craft unique, real-time learning journeys based on each user’s role, behavior, and goals. It learns as the learner learns—delivering exactly what they need, when they need it.",
       bullets: [
-        "AI analyzes learning patterns in real-time",
-        "Content automatically adjusts to preferences", 
-        "Subject Matter Expert validated materials"
+        "Zero generic content",
+        "Adaptive to career path",
+        "AI-curated relevance"
       ],
       badges: [
         { text: "AI-Powered", tooltip: "Powered by advanced machine learning algorithms", type: "tech" },
-        { text: "Adaptive Content", tooltip: "Content automatically adjusts to learning preferences", type: "feature" },
-        { text: "SME Validated", tooltip: "Subject Matter Expert reviewed and approved content", type: "quality" }
+        { text: "Career Adaptive", tooltip: "Adaptive to each learner's unique career path", type: "feature" },
+        { text: "Relevance Curated", tooltip: "All content is uniquely curated by AI for highest relevance", type: "benefit" }
       ],
       iconBg: "bg-gradient-to-br from-future-green to-emerald",
       cardBg: "bg-white/90",
