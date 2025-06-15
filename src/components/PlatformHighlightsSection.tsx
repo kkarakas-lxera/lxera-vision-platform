@@ -29,8 +29,8 @@ const highlightsData = [
   },
   {
     icon: <Gamepad2 className="w-8 h-8" />,
-    title: "Motivation that moves with you",
-    subtitle: "Real-Time Adaptive Gamification",
+    title: "Real-Time Adaptive Gamification",
+    subtitle: "Motivation that moves with you",
     description: "Game mechanics powered by behavioral AI adjust dynamically to learner progress, providing personalized challenges, rewards, and encouragement to drive sustained engagement.",
     bullets: [
       "Personalized points & streaks",
