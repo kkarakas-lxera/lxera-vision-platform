@@ -1,3 +1,4 @@
+
 import { Brain, Heart, BarChart3, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -130,32 +131,5 @@ export const capabilitiesData: CapabilityData[] = [
       "Operations teams creating efficiency improvements through collaborative innovation"
     ],
     roiMetrics: "Innovation Rate: +180%"
-  },
-  {
-    icon: Users,
-    title: "Organizational Capability Building",
-    valueStatement: "Upskill at scale, aligned with strategy.",
-    description: "LXERA serves as your digital learning backbone, tailored to your business transformation.",
-    features: [
-      "Centralized platform for strategic upskilling and reskilling",
-      "Focus on digital, innovation, and leadership capabilities"
-    ],
-    impactStat: "",
-    tangibleResults: {
-      icon: Users,
-      label: "Tangible Results",
-      description: "Organizations cut L&D costs by up to 40%, while doubling ROI on training investments."
-    },
-    iconBg: "bg-emerald",
-    badgeBg: "bg-emerald/20",
-    badgeBorder: "border-emerald",
-    secondaryIcon: Users,
-    category: "analytics",
-    useCases: [
-      "Global corporation aligning 50,000+ employees with digital transformation goals",
-      "Mid-size company developing internal leaders for succession planning",
-      "Startup scaling culture and capabilities while maintaining agility"
-    ],
-    roiMetrics: "Capability Growth: 65%"
   }
 ];
