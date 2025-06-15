@@ -34,13 +34,13 @@ const PlatformHighlightsSection = () => {
     },
     {
       icon: <Gamepad2 className="w-8 h-8" />,
-      title: "Boost Engagement by 40%",
-      subtitle: "Real-Time Adaptive Gamification",
-      description: "Intelligent gamification that evolves with learner behavior. No static badges—every element responds to individual motivation patterns and engagement levels.",
+      title: "Real-Time Adaptive Gamification",
+      subtitle: "Motivation that moves with you",
+      description: "Game mechanics powered by behavioral AI adjust dynamically to learner progress, providing personalized challenges, rewards, and encouragement to drive sustained engagement.",
       bullets: [
-        "AI analyzes user behavior for optimization",
-        "Rewards adapt to individual preferences",
-        "Proven 40% engagement increase"
+        "Personalized points & streaks",
+        "Rewards based on motivation style",
+        "Real-time behavior analysis"
       ],
       badges: [
         { text: "Behavioral AI", tooltip: "AI analyzes user behavior patterns for optimization", type: "tech" },
