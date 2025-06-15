@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Users, Brain, BarChart3, Lightbulb, UserCheck, Cpu, TrendingUp, Rocket } from "lucide-react";
@@ -51,10 +50,11 @@ export const StepCard = ({ step, index, isLast, layout, side, reducedMotion }: S
     );
   }
 
+  // Change: number badge colors (background black, text white)
   const NumberBadge = (
     <div className="flex items-center justify-center mb-3">
-      <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green/90 rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20">
-        <span className="text-3xl font-extrabold text-business-black tracking-tight">
+      <div className="w-16 h-16 bg-business-black rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20">
+        <span className="text-3xl font-extrabold text-white tracking-tight">
           {step.step}
         </span>
       </div>
