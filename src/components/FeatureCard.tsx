@@ -66,6 +66,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           : "animate-fade-in-up"}
         focus-within:ring-2 focus-within:ring-future-green/40 outline-none
         ${expanded ? "shadow-2xl scale-102" : ""}
+        z-10
       `}
       style={desktop 
         ? { animationDelay: `${0.8 + index * 0.09}s` } 

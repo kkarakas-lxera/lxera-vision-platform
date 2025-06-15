@@ -333,7 +333,7 @@ const PlatformHighlightsSection = () => {
       className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden"
     >
       {/* Enhanced animated background */}
-      <div className="absolute inset-0 opacity-3">
+      <div className="absolute inset-0 opacity-3 z-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-future-green/20 rounded-full animate-float-gentle"></div>
         <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
@@ -349,8 +349,6 @@ const PlatformHighlightsSection = () => {
           <p className="text-xl lg:text-2xl text-business-black/70 max-w-4xl mx-auto animate-slide-in-right" style={{animationDelay: '0.4s'}}>
             <em>10 Features That Power Measurable Results</em>
           </p>
-          
-          {/* Enhanced separator with stats */}
           <div className="mt-8 flex justify-center items-center gap-8 animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
             <div className="hidden md:flex items-center gap-2 text-sm text-business-black/60">
               <TrendingUp className="w-4 h-4 text-future-green" />
@@ -363,13 +361,16 @@ const PlatformHighlightsSection = () => {
             </div>
           </div>
         </div>
-        <PlatformHighlightsTabs
-          categories={categories}
-          groupedByCategory={groupedByCategory}
-        />
+        {/* Enforce z-10 on highlights wrapper */}
+        <div className="relative z-10">
+          <PlatformHighlightsTabs
+            categories={categories}
+            groupedByCategory={groupedByCategory}
+          />
+        </div>
         {/* Enhanced Call to Action */}
         <div className="text-center animate-fade-in-up" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden">
+          <div className="bg-gradient-to-r from-white/80 to-smart-beige/50 backdrop-blur-sm p-8 rounded-2xl border border-future-green/20 hover:border-future-green/40 transition-all duration-500 group relative overflow-hidden z-10">
             {/* Background animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-future-green/5 via-transparent to-emerald/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
