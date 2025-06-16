@@ -1,5 +1,3 @@
-
-
 export interface StepData {
   step: string;
   stepTitle: string;
@@ -20,7 +18,7 @@ export const stepsData: StepData[] = [
     step: "01",
     stepTitle: "Step 1",
     title: "Intelligent Onboarding Process",
-    subtitle: "Skip generic setup, LXERA adapts to your role, data, and learning needs from the first click.",
+    subtitle: "Skip generic setup—LXERA instantly adapts to your role, learning goals, skills, and preferences.",
     bullets: [
       "Smart user assessment → custom learning path",
       "Role-based dashboards, adaptive skill matching"
@@ -85,4 +83,3 @@ export const stepsData: StepData[] = [
     videoCaption: "Watch how this works (20 sec demo)"
   }
 ];
-
