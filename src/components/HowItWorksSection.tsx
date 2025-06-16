@@ -1,29 +1,12 @@
 
 import { Button } from "@/components/ui/button";
-import { StepCard } from "@/components/StepCard";
-import { ProgressIndicator } from "@/components/ProgressIndicator";
-import { Timeline } from "@/components/Timeline";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { stepsData } from "@/data/howItWorksSteps";
-import { useStepInView } from "@/hooks/useStepInView";
-import { Play } from "lucide-react";
 import VideoModal from "@/components/VideoModal";
 import React, { useState } from "react";
+import { stepsData } from "@/data/howItWorksSteps";
+import { Play } from "lucide-react";
 
 const HowItWorksSection = () => {
-  const { isVisible, currentStep, updateCurrentStep } = useScrollAnimation();
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
-
-  // Detect reduced motion (prefers-reduced-motion)
-  const [reducedMotion, setReducedMotion] = React.useState(false);
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    }
-  }, []);
-
-  // Mobile step tracker - no longer needed without the navigator, but kept if used for other features
-  const stepInViewIdx = useStepInView(stepsData.length);
 
   const handleVideoClick = (videoUrl: string, videoCaption: string) => {
     setSelectedVideo({ url: videoUrl, caption: videoCaption });
@@ -32,7 +15,7 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center">
-        {/* Section Header matching Built for Innovators */}
+        {/* Section Header matching other sections */}
         <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
           How LXERA Works
         </h2>
@@ -44,7 +27,7 @@ const HowItWorksSection = () => {
           {stepsData.map((step, index) => (
             <div
               key={index}
-              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up rounded-2xl"
+              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 group animate-fade-in-up"
               style={{
                 animationDelay: `${300 + index * 100}ms`,
               }}
@@ -52,7 +35,7 @@ const HowItWorksSection = () => {
               <div className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="w-16 h-16 bg-business-black rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20 group-hover:scale-110 transition-all duration-300">
-                    <span className="text-3xl font-extrabold text-white tracking-tight group-hover:animate-bounce transition-all duration-300">
+                    <span className="text-3xl font-extrabold text-white tracking-tight">
                       {step.step}
                     </span>
                   </div>
@@ -84,10 +67,8 @@ const HowItWorksSection = () => {
                   {step.videoCaption}
                 </div>
                 
-                <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
-                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
-                    {step.metrics}
-                  </p>
+                <div className="text-sm text-business-black/60 italic text-center">
+                  {step.metrics}
                 </div>
               </div>
             </div>
@@ -99,7 +80,7 @@ const HowItWorksSection = () => {
         </p>
         
         <Button 
-          className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover animate-fade-in-up animate-delay-800 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
           aria-label="Start your LXERA journey"
         >
           Start Your Journey →
