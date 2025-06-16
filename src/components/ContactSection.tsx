@@ -139,7 +139,7 @@ const ContactSection = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-2 border-white text-white hover:bg-white hover:text-business-black text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+              className="border-2 border-white text-business-black bg-white hover:bg-white/90 hover:text-business-black text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
               aria-label="Contact our sales team"
             >
               Contact Sales
