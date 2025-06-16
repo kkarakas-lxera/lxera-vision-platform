@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 
 const TransformationStartsSection = () => {
   return (
@@ -40,6 +40,7 @@ const TransformationStartsSection = () => {
             aria-label="Get Early Access"
           >
             Get Early Access
+            <ArrowRight size={18} />
           </Button>
         </div>
 

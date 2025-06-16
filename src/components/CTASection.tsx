@@ -35,14 +35,8 @@ const CTASection = () => {
           onClick={handleScrollToContact}
           aria-label="Request a demo"
         >
-          <span className="flex items-center justify-center gap-2 w-full">
-            <span className="block mx-auto">Request a demo</span>
-            <ArrowRight
-              className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
-              size={22}
-              aria-hidden="true"
-            />
-          </span>
+          Request a demo
+          <ArrowRight size={18} />
         </Button>
       </div>
     </div>
