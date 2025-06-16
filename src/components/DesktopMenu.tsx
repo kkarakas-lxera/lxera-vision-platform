@@ -58,7 +58,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         variant="ghost"
         size="icon"
         onClick={handleSearch}
-        className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300 hover:scale-110 hover:shadow-md"
+        className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300 hover:scale-105 hover:shadow-md"
         aria-label="Search site content"
       >
         <Search className="h-5 w-5" />

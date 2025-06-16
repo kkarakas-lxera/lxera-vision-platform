@@ -68,7 +68,7 @@ const BuiltForInnovatorsSection = () => {
         </p>
         
         <Button 
-          className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover animate-fade-in-up animate-delay-800 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
           aria-label="Join as an innovation partner with LXERA"
         >
           Join as an Innovation Partner →
