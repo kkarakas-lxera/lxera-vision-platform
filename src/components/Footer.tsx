@@ -19,7 +19,7 @@ const Footer = () => {
     <footer className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/95">
       <div className="max-w-7xl mx-auto">
         {/* Newsletter Section */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-white/10">
+        <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-white mb-3">
               Stay ahead of the innovation curve
@@ -33,12 +33,12 @@ const Footer = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/90 border-0 focus:bg-white flex-1"
+                className="bg-white/90 border-0 focus:bg-white flex-1 rounded-xl"
                 required
               />
               <Button 
                 type="submit"
-                className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8"
+                className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 font-semibold px-8 rounded-xl transition-all duration-300 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
               >
                 Subscribe
               </Button>
