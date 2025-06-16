@@ -22,141 +22,56 @@ const HowItWorksSection = () => {
   // Mobile step tracker - no longer needed without the navigator, but kept if used for other features
   const stepInViewIdx = useStepInView(stepsData.length);
 
-  // Keyboard navigation handler for the step navigator (now unused)
-  // const handleStepButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
-  //   if (e.key === "Enter" || e.key === " ") {
-  //     const el = document.getElementById(`howitworks-step-${idx}`);
-  //     el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  //   }
-  // };
-
   return (
-    <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden">
-      {/* Animated background particles with consistent colors */}
-      <div className="absolute inset-0 opacity-5">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-future-green to-smart-beige rounded-full animate-float-gentle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 2}s`
-            }}
-          ></div>
-        ))}
-      </div>
-      
-      {/* Smooth transition from previous section */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-smart-beige/50 to-transparent"></div>
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Sticky Mobile Progress Bar deleted as requested */}
-        {/* Section Header with enhanced animations */}
-        <div className="text-center mb-20 animate-fade-in-up">
-          <div className="inline-block mb-4 animate-slide-in-right stagger-2">
-            <span className="text-sm font-semibold text-future-green bg-future-green/10 px-4 py-2 rounded-full hover:bg-future-green/20 transition-colors duration-300 animate-glow">
-              THE PROCESS
-            </span>
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-fade-in-up stagger-4">
-            How LXERA Works
-          </h2>
-          <p className="text-xl lg:text-2xl text-business-black/80 max-w-3xl mx-auto animate-fade-in-up stagger-5">
-            From onboarding to innovation — in 4 steps that drive measurable results.
-          </p>
-          
-          {/* Enhanced Progress Indicator removed as requested */}
-          
-          {/* Animated visual connector */}
-          <div className="mt-4 flex justify-center animate-fade-in stagger-5">
-            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow"></div>
-          </div>
+    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto text-center">
+        {/* Section Header matching Built for Innovators */}
+        <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
+          How LXERA Works
+        </h2>
+        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
+          From onboarding to innovation — in 4 steps that drive measurable results.
+        </p>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {stepsData.map((step, index) => (
+            <div
+              key={index}
+              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up rounded-2xl"
+              style={{
+                animationDelay: `${300 + index * 100}ms`,
+              }}
+            >
+              <div className="p-6">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 bg-business-black rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20 group-hover:scale-110 transition-all duration-300">
+                    <span className="text-3xl font-extrabold text-white tracking-tight group-hover:animate-bounce transition-all duration-300">
+                      {step.step}
+                    </span>
+                  </div>
+                </div>
+                <h3 className="text-business-black font-bold text-lg mb-1">{step.title}</h3>
+                <p className="text-business-black/80 mb-3 text-sm">{step.subtitle}</p>
+                <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
+                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
+                    {step.metrics}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
         
-        {/* Pathway Flow Steps Container */}
-        <div className="relative">
-          {/* Desktop Pathway Flow Layout with centered consistent row alignment */}
-          <div className="hidden lg:flex justify-center relative min-h-[540px] px-6">
-            <div className="w-full flex items-center justify-center gap-2 relative z-10">
-              {stepsData.map((step, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col items-center relative"
-                  style={{
-                    width: "320px",
-                    height: "530px",
-                    flex: "0 0 320px"
-                  }}
-                >
-                  <StepCard
-                    step={step}
-                    index={idx}
-                    isLast={idx === stepsData.length - 1}
-                    layout="pathway"
-                  />
-                  {/* Arrow Connector, except after last step */}
-                  {idx < stepsData.length - 1 && (
-                    <div
-                      className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-2 z-20"
-                      style={{ width: '60px', height: '28px' }}
-                      aria-hidden="true"
-                    >
-                      {/* SVG Curved Pathway Arrow */}
-                      <svg width="60" height="32" viewBox="0 0 60 32" fill="none">
-                        <path d="M4 20 Q30 1 56 20" stroke="#7AE5C6" strokeWidth="4" fill="none" />
-                        <polygon points="56,20 50,18 54,28" fill="#7AE5C6"/>
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {/* Pathway baseline (decorative) */}
-            <div className="absolute left-0 right-0 bottom-0 h-3 flex z-0 items-center pointer-events-none">
-              <div className="w-full h-1 rounded bg-gradient-to-r from-future-green via-future-green/50 to-future-green/10 blur-xxs opacity-50" />
-            </div>
-          </div>
-          {/* Mobile Vertical Pathway Flow (with step ids for intersection observer) */}
-          <div className="lg:hidden flex flex-col items-center space-y-8 relative w-full">
-            {/* Decorative pathway line for mobile */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-future-green/60 to-future-green/20 rounded-full pointer-events-none z-0" />
-            {stepsData.map((step, index) => (
-              <div
-                key={index}
-                id={`howitworks-step-${index}`}
-                className="relative z-10 flex justify-center w-full"
-                style={{
-                  maxWidth: "340px",
-                  marginLeft: "auto",
-                  marginRight: "auto"
-                }}
-              >
-                <StepCard
-                  step={step}
-                  index={index}
-                  isLast={index === stepsData.length - 1}
-                  layout="pathway-vertical"
-                  reducedMotion={reducedMotion}
-                />
-                {/* Curved connector (except after last card) */}
-                {index < stepsData.length - 1 && (
-                  <div className="absolute left-1/2 transform -translate-x-1/2 flex justify-center py-0.5 -mt-3 mb-4 z-20" style={{ top: "100%" }}>
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                      <path d="M4 4 Q20 16 28 28" stroke="#7AE5C6" strokeWidth="3" fill="none" />
-                      <polygon points="28,28 24,24 28,22" fill="#7AE5C6"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Enhanced bottom CTA with consistent gradient */}
-        {/* Removed HowItWorksStepsCTA component as requested */}
-        {/* <HowItWorksStepsCTA /> */}
+        <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700">
+          Every LXERA innovation capability shaped by real-world feedback for maximum impact.
+        </p>
+        
+        <Button 
+          className="bg-future-green text-business-black hover:bg-emerald hover:text-white text-lg px-8 py-4 rounded-full font-semibold lxera-hover animate-fade-in-up animate-delay-800 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          aria-label="Start your LXERA journey"
+        >
+          Start Your Journey →
+        </Button>
       </div>
     </section>
   );
