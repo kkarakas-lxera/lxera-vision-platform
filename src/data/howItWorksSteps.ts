@@ -20,7 +20,7 @@ export const stepsData: StepData[] = [
     step: "01",
     stepTitle: "Step 1",
     title: "Intelligent Onboarding Process",
-    subtitle: "Skip generic setup—LXERA adapts to your role, data, and learning needs from the first click.",
+    subtitle: "Skip generic setup, LXERA adapts to your role, data, and learning needs from the first click.",
     bullets: [
       "Smart user assessment → custom learning path",
       "Role-based dashboards, adaptive skill matching"
