@@ -6,7 +6,6 @@ import TransformationStartsSection from "@/components/TransformationStartsSectio
 import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
 import BuiltForInnovatorsSection from "@/components/BuiltForInnovatorsSection";
-import JoinTheMovementSection from "@/components/JoinTheMovementSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -20,7 +19,6 @@ const Index = () => {
       <HowItWorksSection />
       <PlatformHighlightsSection />
       <BuiltForInnovatorsSection />
-      <JoinTheMovementSection />
       <ContactSection />
       <Footer />
     </div>
