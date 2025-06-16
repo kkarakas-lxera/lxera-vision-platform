@@ -58,8 +58,8 @@ const WhyLXERASection = () => {
                   {/* Always show description. If tangibleResults, show on hover as microcopy */}
                   <p className="text-business-black/70 text-sm min-h-[40px]">{capability.description}</p>
                   {capability.tangibleResults && (
-                    <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-16 opacity-0 group-hover:opacity-100">
-                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
+                    <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-32 opacity-0 group-hover:opacity-100">
+                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 leading-relaxed">
                         {capability.tangibleResults.description}
                       </p>
                     </div>
@@ -80,4 +80,3 @@ const WhyLXERASection = () => {
 };
 
 export default WhyLXERASection;
-
