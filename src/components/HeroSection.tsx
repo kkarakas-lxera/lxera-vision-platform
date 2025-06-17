@@ -1,4 +1,3 @@
-
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,7 @@ const HeroSection = () => {
 
           {/* Right side - Video (much bigger - takes more space) */}
           <div className="w-full lg:w-3/5 lg:pl-8 mt-8 lg:mt-6">
-            <div className="transform lg:scale-125 lg:translate-x-6 lg:translate-y-4">
+            <div className="transform lg:scale-110 lg:translate-x-4 lg:translate-y-2">
               <HeroVideoPreview />
             </div>
           </div>
