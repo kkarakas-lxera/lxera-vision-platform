@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Volume, VolumeOff, Play, Pause } from "lucide-react";
 
