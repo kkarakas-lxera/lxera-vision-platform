@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import HeroStats from "./HeroStats";
@@ -76,7 +76,6 @@ const HeroSection = () => {
                   aria-label="Request a demo"
                 >
                   Request a demo
-                  <ArrowRight size={16} />
                 </Button>
                 <Button
                   size="lg"
@@ -84,7 +83,6 @@ const HeroSection = () => {
                   aria-label="LXERA for Business"
                 >
                   LXERA for Business
-                  <ArrowRight size={16} />
                 </Button>
               </div>
             </div>
