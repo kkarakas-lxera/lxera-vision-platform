@@ -29,6 +29,11 @@ const HeroVideoPreview = () => {
     }
   };
 
+  const handleVideoClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    togglePlayPause(e);
+  };
+
   // Always start muted to comply with autoplay policies
   const videoUrl = "https://www.youtube.com/embed/U-7THjkQdbg?autoplay=1&mute=1&loop=1&playlist=U-7THjkQdbg&enablejsapi=1&origin=" + window.location.origin;
 
@@ -43,7 +48,7 @@ const HeroVideoPreview = () => {
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        onClick={togglePlayPause}
+        onClick={handleVideoClick}
       />
       
       {/* Control buttons container */}
@@ -67,10 +72,10 @@ const HeroVideoPreview = () => {
           className="p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
-          {!isMuted ? (
-            <Volume className="w-4 h-4" />
-          ) : (
+          {isMuted ? (
             <VolumeOff className="w-4 h-4" />
+          ) : (
+            <Volume className="w-4 h-4" />
           )}
         </button>
       </div>
