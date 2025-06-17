@@ -14,7 +14,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
+    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
       {/* Simple background gradient without animated elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
       
@@ -95,12 +95,12 @@ const HeroSection = () => {
         </div>
         
         {/* Stats section - centered */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <HeroStats />
         </div>
         
         {/* Scroll indicator */}
-        <div className="mt-10 animate-fade-in-up animate-delay-1200 text-center">
+        <div className="mt-6 animate-fade-in-up animate-delay-1200 text-center">
           <div className="flex flex-col items-center space-y-2">
             <p className="text-sm text-business-black/60 font-normal font-inter">Discover more</p>
             <div className="relative">
