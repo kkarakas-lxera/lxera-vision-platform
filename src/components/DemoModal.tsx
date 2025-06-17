@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,28 +261,73 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50">
-                  <SelectItem value="1-10" className="rounded-xl hover:bg-gray-100 cursor-pointer">1-10</SelectItem>
-                  <SelectItem value="11-50" className="rounded-xl hover:bg-gray-100 cursor-pointer">11-50</SelectItem>
-                  <SelectItem value="51-200" className="rounded-xl hover:bg-gray-100 cursor-pointer">51-200</SelectItem>
-                  <SelectItem value="201-1000" className="rounded-xl hover:bg-gray-100 cursor-pointer">201-1000</SelectItem>
-                  <SelectItem value="1000+" className="rounded-xl hover:bg-gray-100 cursor-pointer">1000+</SelectItem>
+                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50 max-h-64 overflow-y-auto">
+                  <SelectItem value="1-10" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">1-10</SelectItem>
+                  <SelectItem value="11-50" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">11-50</SelectItem>
+                  <SelectItem value="51-200" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">51-200</SelectItem>
+                  <SelectItem value="201-1000" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">201-1000</SelectItem>
+                  <SelectItem value="1000+" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">1000+</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-3 block font-medium">Location</label>
+              <label className="text-sm text-gray-600 mb-3 block font-medium">Country</label>
               <Select value={formData.location} onValueChange={(value) => handleSelectChange('location', value)}>
                 <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
-                  <SelectValue placeholder="Select location" />
+                  <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50">
-                  <SelectItem value="north-america" className="rounded-xl hover:bg-gray-100 cursor-pointer">North America</SelectItem>
-                  <SelectItem value="europe" className="rounded-xl hover:bg-gray-100 cursor-pointer">Europe</SelectItem>
-                  <SelectItem value="asia-pacific" className="rounded-xl hover:bg-gray-100 cursor-pointer">Asia Pacific</SelectItem>
-                  <SelectItem value="latin-america" className="rounded-xl hover:bg-gray-100 cursor-pointer">Latin America</SelectItem>
-                  <SelectItem value="africa" className="rounded-xl hover:bg-gray-100 cursor-pointer">Africa</SelectItem>
-                  <SelectItem value="middle-east" className="rounded-xl hover:bg-gray-100 cursor-pointer">Middle East</SelectItem>
+                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50 max-h-64 overflow-y-auto">
+                  <SelectItem value="afghanistan" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Afghanistan</SelectItem>
+                  <SelectItem value="albania" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Albania</SelectItem>
+                  <SelectItem value="algeria" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Algeria</SelectItem>
+                  <SelectItem value="argentina" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Argentina</SelectItem>
+                  <SelectItem value="australia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Australia</SelectItem>
+                  <SelectItem value="austria" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Austria</SelectItem>
+                  <SelectItem value="bangladesh" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Bangladesh</SelectItem>
+                  <SelectItem value="belgium" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Belgium</SelectItem>
+                  <SelectItem value="brazil" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Brazil</SelectItem>
+                  <SelectItem value="canada" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Canada</SelectItem>
+                  <SelectItem value="chile" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Chile</SelectItem>
+                  <SelectItem value="china" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">China</SelectItem>
+                  <SelectItem value="colombia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Colombia</SelectItem>
+                  <SelectItem value="denmark" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Denmark</SelectItem>
+                  <SelectItem value="egypt" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Egypt</SelectItem>
+                  <SelectItem value="finland" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Finland</SelectItem>
+                  <SelectItem value="france" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">France</SelectItem>
+                  <SelectItem value="germany" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Germany</SelectItem>
+                  <SelectItem value="ghana" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Ghana</SelectItem>
+                  <SelectItem value="greece" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Greece</SelectItem>
+                  <SelectItem value="india" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">India</SelectItem>
+                  <SelectItem value="indonesia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Indonesia</SelectItem>
+                  <SelectItem value="ireland" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Ireland</SelectItem>
+                  <SelectItem value="italy" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Italy</SelectItem>
+                  <SelectItem value="japan" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Japan</SelectItem>
+                  <SelectItem value="kenya" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Kenya</SelectItem>
+                  <SelectItem value="malaysia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Malaysia</SelectItem>
+                  <SelectItem value="mexico" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Mexico</SelectItem>
+                  <SelectItem value="netherlands" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Netherlands</SelectItem>
+                  <SelectItem value="new-zealand" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">New Zealand</SelectItem>
+                  <SelectItem value="nigeria" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Nigeria</SelectItem>
+                  <SelectItem value="norway" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Norway</SelectItem>
+                  <SelectItem value="pakistan" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Pakistan</SelectItem>
+                  <SelectItem value="philippines" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Philippines</SelectItem>
+                  <SelectItem value="poland" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Poland</SelectItem>
+                  <SelectItem value="portugal" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Portugal</SelectItem>
+                  <SelectItem value="russia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Russia</SelectItem>
+                  <SelectItem value="saudi-arabia" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Saudi Arabia</SelectItem>
+                  <SelectItem value="singapore" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Singapore</SelectItem>
+                  <SelectItem value="south-africa" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">South Africa</SelectItem>
+                  <SelectItem value="south-korea" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">South Korea</SelectItem>
+                  <SelectItem value="spain" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Spain</SelectItem>
+                  <SelectItem value="sweden" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Sweden</SelectItem>
+                  <SelectItem value="switzerland" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Switzerland</SelectItem>
+                  <SelectItem value="thailand" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Thailand</SelectItem>
+                  <SelectItem value="turkey" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Turkey</SelectItem>
+                  <SelectItem value="ukraine" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Ukraine</SelectItem>
+                  <SelectItem value="united-arab-emirates" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">United Arab Emirates</SelectItem>
+                  <SelectItem value="united-kingdom" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">United Kingdom</SelectItem>
+                  <SelectItem value="united-states" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">United States</SelectItem>
+                  <SelectItem value="vietnam" className="rounded-xl hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 cursor-pointer transition-colors duration-200">Vietnam</SelectItem>
                 </SelectContent>
               </Select>
             </div>
