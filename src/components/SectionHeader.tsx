@@ -11,10 +11,10 @@ const SectionHeader = ({ title, subtitle }: SectionHeaderProps) => {
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 w-32 h-32 bg-gradient-to-br from-future-green/10 to-emerald/5 rounded-full blur-2xl"></div>
       
       <div className="relative z-10">
-        <h2 className="text-5xl lg:text-6xl font-bold text-business-black mb-6 animate-slide-in-left leading-tight" style={{animationDelay: '0.2s'}}>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-slide-in-left leading-tight" style={{animationDelay: '0.2s'}}>
           {title}
         </h2>
-        <p className="text-xl lg:text-2xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium" style={{animationDelay: '0.4s'}}>
+        <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium" style={{animationDelay: '0.4s'}}>
           {subtitle}
         </p>
         

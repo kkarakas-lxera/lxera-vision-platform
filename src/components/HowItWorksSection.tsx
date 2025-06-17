@@ -16,10 +16,10 @@ const HowItWorksSection = () => {
     <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center">
         {/* Section Header matching other sections */}
-        <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
           How LXERA Works
         </h2>
-        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
+        <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
           From onboarding to innovation — in 4 steps that drive measurable results.
         </p>
         
@@ -75,7 +75,7 @@ const HowItWorksSection = () => {
           ))}
         </div>
         
-        <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700">
+        <p className="text-business-black/70 mb-6 text-base animate-fade-in-up animate-delay-700">
           Every LXERA innovation capability shaped by real-world feedback for maximum impact.
         </p>
         

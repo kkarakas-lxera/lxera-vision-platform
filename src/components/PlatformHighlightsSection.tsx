@@ -38,7 +38,7 @@ const highlightsData = [
     icon: Gamepad,
     title: "Real-Time Adaptive Gamification",
     microcopy: "+40% engagement",
-    description: "Game mechanics adjust to each learner’s behavior and progress.",
+    description: "Game mechanics adjust to each learner's behavior and progress.",
   },
   {
     icon: Bell,
@@ -103,10 +103,10 @@ const PlatformHighlightsSection = () => {
       <div className="max-w-7xl mx-auto relative z-0">
         {/* Section Header matching Built for Innovators */}
         <div className="text-center mb-12 animate-fade-in-up">
-          <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-8">
             Platform Highlights
           </h2>
-          <p className="text-xl text-business-black/80 mb-2 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto">
             10+ features fueling impact, engagement, and innovation.
           </p>
         </div>
@@ -154,4 +154,3 @@ const PlatformHighlightsSection = () => {
 };
 
 export default PlatformHighlightsSection;
-

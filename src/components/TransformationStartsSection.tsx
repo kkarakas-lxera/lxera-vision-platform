@@ -13,16 +13,16 @@ const TransformationStartsSection = () => {
       </div>
       <div className="max-w-4xl mx-auto relative z-10">
         
-        <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6 animate-fade-in-up">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-fade-in-up">
           Your Transformation Starts Here
         </h2>
         
-        <p className="text-lg lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200">
+        <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200">
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
         <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
-          <p className="text-business-black/80 font-medium">
+          <p className="text-business-black/80 font-medium text-base">
             Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
           </p>
         </div>

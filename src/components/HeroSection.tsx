@@ -26,9 +26,9 @@ const HeroSection = () => {
         <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
           {/* Left side - Headline and CTA content (smaller) */}
           <div className="w-full lg:w-2/5 space-y-4">
-            {/* Headline - reduced sizes */}
+            {/* Headline - consistent sizing */}
             <div className="animate-fade-in-up">
-              <h1 className="headline text-2xl xs:text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-business-black leading-tight tracking-tight">
+              <h1 className="headline text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-business-black leading-tight tracking-tight">
                 <span>
                   LXERA: The First
                 </span>
@@ -46,9 +46,9 @@ const HeroSection = () => {
               </h1>
             </div>
 
-            {/* Subheadline - reduced size */}
+            {/* Subheadline - consistent sizing */}
             <div className="animate-fade-in-up animate-delay-200">
-              <p className="subheadline text-sm xs:text-base sm:text-lg lg:text-lg text-business-black/85 font-medium leading-relaxed">
+              <p className="subheadline text-base sm:text-lg md:text-xl lg:text-xl text-business-black/85 font-medium leading-relaxed">
                 Empower your teams to{" "}
                 <b className="text-business-black">learn faster,</b>{" "}
                 <b className="text-business-black">innovate deeper,</b>{" "}
@@ -62,15 +62,15 @@ const HeroSection = () => {
               <div className="w-24 h-1 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
             </div>
 
-            {/* Quote snippet - smaller text */}
+            {/* Quote snippet - consistent text size */}
             <div className="text-left">
-              <span className="block text-business-black/70 text-sm font-medium italic leading-tight">
+              <span className="block text-business-black/70 text-base font-medium italic leading-tight">
                 "Built with real teams. Designed for transformation."
               </span>
             </div>
             
             <div className="text-left animate-fade-in-up animate-delay-600 space-y-3">
-              <p className="text-sm text-business-black/75 font-medium">
+              <p className="text-base text-business-black/75 font-medium">
                 🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -109,7 +109,7 @@ const HeroSection = () => {
         {/* Scroll indicator */}
         <div className="mt-10 animate-fade-in-up animate-delay-1200 text-center">
           <div className="flex flex-col items-center space-y-2">
-            <p className="text-xs text-business-black/60 font-medium">Discover more</p>
+            <p className="text-sm text-business-black/60 font-medium">Discover more</p>
             <div className="relative">
               <ArrowDown className="w-6 h-6 animate-bounce drop-shadow-lg text-future-green" />
               <div className="absolute inset-0 w-6 h-6 rounded-full blur-sm animate-ping bg-future-green/25"></div>
