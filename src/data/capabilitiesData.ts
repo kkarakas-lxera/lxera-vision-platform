@@ -1,4 +1,3 @@
-
 import { Brain, Heart, BarChart3, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -81,7 +80,7 @@ export const capabilitiesData: CapabilityData[] = [
     icon: BarChart3,
     title: "Data-Driven Decision-Making",
     valueStatement: "Every interaction becomes an insight.",
-    description: "We transform behavioral data into performance breakthroughs.",
+    description: "LXERA transforms behavioral data into actionable intelligence, helping teams optimize learning strategies and unlock performance breakthroughs.",
     features: [
       "Actionable insights for learners, instructors, and managers",
       "Continuous feedback loops from engagement and outcome analytics"
@@ -90,7 +89,7 @@ export const capabilitiesData: CapabilityData[] = [
     tangibleResults: {
       icon: BarChart3,
       label: "Tangible Results",
-      description: "Learning leaders make training decisions 50% faster, with 30% better alignment to performance goals."
+      description: "Track skills, impact, and progress with real-time dashboards aligned to your goals."
     },
     iconBg: "bg-lxera-blue",
     badgeBg: "bg-lxera-blue/20",
