@@ -23,9 +23,9 @@ const HeroSection = () => {
         <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-12">
           {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
           <div className="w-full lg:w-2/5 space-y-4">
-            {/* Headline - consistent sizing */}
+            {/* Headline - updated to match section 2 font sizing */}
             <div className="animate-fade-in-up">
-              <h1 className="headline text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-medium text-business-black leading-tight tracking-tight font-inter">
+              <h1 className="headline text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black leading-tight tracking-tight font-inter">
                 <span className="block">
                   LXERA: The First
                 </span>
@@ -39,9 +39,9 @@ const HeroSection = () => {
               </h1>
             </div>
 
-            {/* Subheadline - consistent sizing */}
+            {/* Subheadline - updated to match section 2 font sizing */}
             <div className="animate-fade-in-up animate-delay-200">
-              <p className="subheadline text-base sm:text-lg md:text-xl lg:text-xl text-business-black/85 font-normal leading-relaxed font-inter">
+              <p className="subheadline text-lg sm:text-xl lg:text-xl text-business-black/85 font-normal leading-relaxed font-inter">
                 Empower your teams to{" "}
                 <b className="text-business-black font-medium">learn faster,</b>{" "}
                 <b className="text-business-black font-medium">innovate deeper,</b>{" "}
