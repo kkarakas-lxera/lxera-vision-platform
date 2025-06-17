@@ -53,10 +53,10 @@ const HeroVideoPreview = () => {
       
       {/* Control buttons container */}
       <div className="absolute top-4 right-4 flex gap-3 z-30">
-        {/* Play/Pause Button */}
+        {/* Play/Pause Button - YouTube logic: shows OPPOSITE of current state */}
         <button
           onClick={togglePlayPause}
-          className="p-3 bg-white/90 hover:bg-white text-business-black rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm border border-white/20"
+          className="p-3 bg-black/40 hover:bg-black/60 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm"
           aria-label={isPlaying ? "Pause video" : "Play video"}
         >
           {isPlaying ? (
@@ -66,10 +66,10 @@ const HeroVideoPreview = () => {
           )}
         </button>
         
-        {/* Mute/Unmute Button - FIXED LOGIC */}
+        {/* Mute/Unmute Button - YouTube logic: shows CURRENT state */}
         <button
           onClick={toggleMute}
-          className="p-3 bg-white/90 hover:bg-white text-business-black rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm border border-white/20"
+          className="p-3 bg-black/40 hover:bg-black/60 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
           {isMuted ? (
