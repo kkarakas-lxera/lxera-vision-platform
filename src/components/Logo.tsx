@@ -6,7 +6,7 @@ const Logo = () => {
       <img
         src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
         alt="LXERA logo"
-        className="h-8 md:h-10 object-contain rounded-none select-none bg-transparent"
+        className="h-6 md:h-8 object-contain rounded-none select-none bg-transparent"
         draggable={false}
         style={{ backgroundColor: 'transparent' }}
       />
