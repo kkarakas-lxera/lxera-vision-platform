@@ -21,9 +21,9 @@ const HeroSection = () => {
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main content - side by side layout with video positioned down and right */}
-        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-12 mb-12">
-          {/* Left side - Headline and CTA content - keeping original design */}
+        {/* Main content - side by side layout with bigger video */}
+        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
+          {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
           <div className="w-full lg:w-2/5 space-y-4">
             {/* Headline - consistent sizing */}
             <div className="animate-fade-in-up">
@@ -88,8 +88,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (positioned down and to the right) */}
-          <div className="w-full lg:w-3/5 lg:pl-20 mt-8 lg:mt-6">
+          {/* Right side - Video (bigger - takes more space) */}
+          <div className="w-full lg:w-3/5 lg:pl-12 mt-8 lg:mt-6">
             <HeroVideoPreview />
           </div>
         </div>
