@@ -2,7 +2,7 @@
 import { useState } from "react";
 import VideoModal from "./VideoModal";
 
-const HERO_VIDEO_URL = "your-demo-video.mp4";
+const HERO_VIDEO_URL = "https://www.youtube.com/embed/U-7THjkQdbg?autoplay=1&mute=1&loop=1&playlist=U-7THjkQdbg";
 const HERO_VIDEO_CAPTION = "LXERA 90-second overview";
 
 const HeroVideoPreview = () => {
@@ -18,15 +18,14 @@ const HeroVideoPreview = () => {
         onKeyDown={e => (e.key === "Enter" ? setOpen(true) : undefined)}
         role="button"
       >
-        {/* Auto-playing video preview */}
-        <video
-          className="w-full object-cover aspect-video"
+        {/* YouTube iframe preview */}
+        <iframe
+          className="w-full aspect-video"
           src={HERO_VIDEO_URL}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/placeholder.svg"
+          title="LXERA Demo Video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
         />
         
         {/* Video Overlay Label */}
@@ -46,7 +45,7 @@ const HeroVideoPreview = () => {
       <VideoModal 
         isOpen={open}
         setIsOpen={setOpen}
-        videoUrl={HERO_VIDEO_URL}
+        videoUrl="https://www.youtube.com/embed/U-7THjkQdbg"
         videoCaption={HERO_VIDEO_CAPTION}
       />
     </>

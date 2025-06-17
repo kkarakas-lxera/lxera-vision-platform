@@ -15,12 +15,12 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const handleVideoLoad = () => {
+  const handleIframeLoad = () => {
     setIsLoading(false);
     setHasError(false);
   };
 
-  const handleVideoError = () => {
+  const handleIframeError = () => {
     setIsLoading(false);
     setHasError(true);
   };
@@ -33,10 +33,13 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
     }
   };
 
+  // Check if it's a YouTube URL to use iframe
+  const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-w-2xl w-full p-0 bg-black rounded-2xl"
+        className="max-w-4xl w-full p-0 bg-black rounded-2xl"
         aria-describedby="video-desc"
         aria-modal="true"
         aria-label="Demonstration video modal"
@@ -58,7 +61,7 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
               <AlertCircle className="w-16 h-16 text-future-green mb-4" />
               <h3 className="text-lg mb-2 font-semibold">Video Unavailable</h3>
               <p className="text-sm text-white/70 text-center mb-4">
-                Sorry, this demo wasn’t found. Check again soon!
+                Sorry, this demo wasn't found. Check again soon!
               </p>
               <Button
                 onClick={() => setIsOpen(false)}
@@ -68,20 +71,35 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
               </Button>
             </div>
           ) : (
-            <video
-              controls
-              muted
-              className="w-full h-full object-cover rounded-lg"
-              poster="/placeholder.svg"
-              onLoadedData={handleVideoLoad}
-              onError={handleVideoError}
-              aria-label={videoCaption ? `Demonstration: ${videoCaption}` : "Demonstration video"}
-              preload="none"
-              tabIndex={0}
-            >
-              <source src={videoUrl} type="video/mp4" />
-              Your browser does not support HTML5 video.
-            </video>
+            <>
+              {isYouTube ? (
+                <iframe
+                  className="w-full h-full rounded-lg"
+                  src={videoUrl}
+                  title={videoCaption || "Demo Video"}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  onLoad={handleIframeLoad}
+                  onError={handleIframeError}
+                />
+              ) : (
+                <video
+                  controls
+                  muted
+                  className="w-full h-full object-cover rounded-lg"
+                  poster="/placeholder.svg"
+                  onLoadedData={handleIframeLoad}
+                  onError={handleIframeError}
+                  aria-label={videoCaption ? `Demonstration: ${videoCaption}` : "Demonstration video"}
+                  preload="none"
+                  tabIndex={0}
+                >
+                  <source src={videoUrl} type="video/mp4" />
+                  Your browser does not support HTML5 video.
+                </video>
+              )}
+            </>
           )}
         </div>
         {videoCaption && (
