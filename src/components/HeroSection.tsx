@@ -21,8 +21,8 @@ const HeroSection = () => {
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main content - side by side layout with bigger video */}
-        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
+        {/* Main content - side by side layout with much bigger video */}
+        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-12">
           {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
           <div className="w-full lg:w-2/5 space-y-4">
             {/* Headline - consistent sizing */}
@@ -88,9 +88,11 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (bigger - takes more space) */}
-          <div className="w-full lg:w-3/5 lg:pl-12 mt-8 lg:mt-6">
-            <HeroVideoPreview />
+          {/* Right side - Video (much bigger - takes more space) */}
+          <div className="w-full lg:w-3/5 lg:pl-8 mt-8 lg:mt-6">
+            <div className="transform lg:scale-110 lg:translate-x-4 lg:translate-y-2">
+              <HeroVideoPreview />
+            </div>
           </div>
         </div>
         
