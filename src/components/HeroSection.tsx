@@ -43,7 +43,10 @@ const HeroSection = () => {
                   className="block drop-shadow-sm"
                   style={{ color: '#B1B973' }}
                 >
-                  Experience Platform
+                  Experience
+                </span>{" "}
+                <span>
+                  Platform
                 </span>
               </h1>
             </div>
