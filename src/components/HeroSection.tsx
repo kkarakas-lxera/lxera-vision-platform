@@ -22,13 +22,13 @@ const HeroSection = () => {
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main content - side by side layout */}
-        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-12 mb-16">
-          {/* Left side - Headline and CTA content */}
-          <div className="w-full lg:w-1/2 space-y-8">
-            {/* Headline */}
+        {/* Main content - side by side layout with adjusted proportions */}
+        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
+          {/* Left side - Headline and CTA content (smaller) */}
+          <div className="w-full lg:w-2/5 space-y-5">
+            {/* Headline - reduced sizes */}
             <div className="animate-fade-in-up">
-              <h1 className="headline text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-business-black leading-tight tracking-tight">
+              <h1 className="headline text-2xl xs:text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-business-black leading-tight tracking-tight">
                 <span>
                   LXERA is the first
                 </span>
@@ -45,9 +45,9 @@ const HeroSection = () => {
               </h1>
             </div>
 
-            {/* Subheadline */}
+            {/* Subheadline - reduced size */}
             <div className="animate-fade-in-up animate-delay-200">
-              <p className="subheadline text-base xs:text-lg sm:text-xl lg:text-xl text-business-black/85 font-medium leading-relaxed">
+              <p className="subheadline text-sm xs:text-base sm:text-lg lg:text-lg text-business-black/85 font-medium leading-relaxed">
                 Empower teams to{" "}
                 <b className="text-business-black">learn faster,</b>{" "}
                 <b className="text-business-black">innovate deeper,</b>{" "}
@@ -56,36 +56,36 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* Divider */}
+            {/* Divider - smaller */}
             <div className="animate-fade-in-scale animate-delay-400">
-              <div className="w-32 h-1 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
+              <div className="w-24 h-1 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
             </div>
 
-            {/* Quote snippet */}
+            {/* Quote snippet - smaller text */}
             <div className="text-left">
-              <span className="block text-business-black/70 text-base font-medium italic leading-tight">
+              <span className="block text-business-black/70 text-sm font-medium italic leading-tight">
                 "Built with real teams. Designed for transformation."
               </span>
             </div>
             
-            <div className="text-left animate-fade-in-up animate-delay-600 space-y-4">
-              <p className="text-base text-business-black/75 font-medium">
+            <div className="text-left animate-fade-in-up animate-delay-600 space-y-3">
+              <p className="text-sm text-business-black/75 font-medium">
                 🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+                  className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
                   onClick={handleScrollToContact}
                   aria-label="Request a demo"
                 >
                   Request a demo
-                  <ArrowRight size={18} />
+                  <ArrowRight size={16} />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+                  className="border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
                   aria-label="LXERA for Business"
                 >
                   LXERA for Business
@@ -94,24 +94,24 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video */}
-          <div className="w-full lg:w-1/2 mt-8 lg:mt-0">
+          {/* Right side - Video (larger space) */}
+          <div className="w-full lg:w-3/5 mt-6 lg:mt-0">
             <HeroVideoPreview />
           </div>
         </div>
         
         {/* Stats section - centered */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <HeroStats />
         </div>
         
         {/* Scroll indicator */}
-        <div className="mt-12 animate-fade-in-up animate-delay-1200 text-center">
-          <div className="flex flex-col items-center space-y-3">
-            <p className="text-sm text-business-black/60 font-medium">Discover more</p>
+        <div className="mt-10 animate-fade-in-up animate-delay-1200 text-center">
+          <div className="flex flex-col items-center space-y-2">
+            <p className="text-xs text-business-black/60 font-medium">Discover more</p>
             <div className="relative">
-              <ArrowDown className="w-8 h-8 animate-bounce drop-shadow-lg text-future-green" />
-              <div className="absolute inset-0 w-8 h-8 rounded-full blur-sm animate-ping bg-future-green/25"></div>
+              <ArrowDown className="w-6 h-6 animate-bounce drop-shadow-lg text-future-green" />
+              <div className="absolute inset-0 w-6 h-6 rounded-full blur-sm animate-ping bg-future-green/25"></div>
             </div>
           </div>
         </div>
