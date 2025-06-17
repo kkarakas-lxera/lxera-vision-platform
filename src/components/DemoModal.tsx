@@ -104,8 +104,8 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-[3rem] border-0 shadow-2xl">
-        <DialogHeader className="rounded-t-[3rem] px-8 pt-8">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-[4rem] border-0 shadow-2xl">
+        <DialogHeader className="rounded-t-[4rem] px-8 pt-8">
           <div className="flex items-center justify-start mb-6">
             <img
               src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
@@ -129,7 +129,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -140,7 +140,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -155,7 +155,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.workEmail}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -166,7 +166,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.companyName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -179,7 +179,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 placeholder="Your role"
                 value={formData.jobTitle}
                 onChange={handleInputChange}
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -189,7 +189,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 placeholder="Phone number"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -198,10 +198,10 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
             <div>
               <label className="text-sm text-gray-600 mb-3 block font-medium"># of employees</label>
               <Select value={formData.numberOfEmployees} onValueChange={(value) => handleSelectChange('numberOfEmployees', value)}>
-                <SelectTrigger className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
+                <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[1.5rem] border-0 shadow-xl">
+                <SelectContent className="rounded-[2rem] border-0 shadow-xl">
                   <SelectItem value="1-10" className="rounded-xl">1-10</SelectItem>
                   <SelectItem value="11-50" className="rounded-xl">11-50</SelectItem>
                   <SelectItem value="51-200" className="rounded-xl">51-200</SelectItem>
@@ -213,10 +213,10 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
             <div>
               <label className="text-sm text-gray-600 mb-3 block font-medium">Location</label>
               <Select value={formData.location} onValueChange={(value) => handleSelectChange('location', value)}>
-                <SelectTrigger className="border-0 bg-gray-100 rounded-[1.5rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
+                <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[1.5rem] border-0 shadow-xl">
+                <SelectContent className="rounded-[2rem] border-0 shadow-xl">
                   <SelectItem value="north-america" className="rounded-xl">North America</SelectItem>
                   <SelectItem value="europe" className="rounded-xl">Europe</SelectItem>
                   <SelectItem value="asia-pacific" className="rounded-xl">Asia Pacific</SelectItem>
@@ -235,11 +235,11 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
               placeholder="Tell us about your learning and development needs..."
               value={formData.message}
               onChange={handleInputChange}
-              className="border-0 bg-gray-100 min-h-[120px] rounded-[1.5rem] px-5 py-4 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 resize-none"
+              className="border-0 bg-gray-100 min-h-[120px] rounded-[2rem] px-5 py-4 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 resize-none"
             />
           </div>
 
-          <div className="text-xs text-gray-500 leading-relaxed bg-gray-50 p-4 rounded-[1.5rem]">
+          <div className="text-xs text-gray-500 leading-relaxed bg-gray-50 p-6 rounded-[2rem]">
             By completing and submitting this form, you agree that LXERA may email or call you with product updates, educational resources, and other promotional information. To learn more about how LXERA uses your information, see our{' '}
             <span className="text-blue-600 cursor-pointer hover:underline">Privacy Policy</span>.
           </div>
@@ -247,7 +247,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
           <Button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-[1.5rem] font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-[2rem] font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
           >
             {isSubmitting ? (
               <>
