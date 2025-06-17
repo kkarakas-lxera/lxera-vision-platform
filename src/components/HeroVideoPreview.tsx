@@ -1,12 +1,20 @@
 
 import { useState } from "react";
+import { Volume, VolumeOff } from "lucide-react";
 import VideoModal from "./VideoModal";
 
-const HERO_VIDEO_URL = "https://www.youtube.com/embed/U-7THjkQdbg?autoplay=1&mute=1&loop=1&playlist=U-7THjkQdbg";
+const HERO_VIDEO_URL_MUTED = "https://www.youtube.com/embed/U-7THjkQdbg?autoplay=1&mute=1&loop=1&playlist=U-7THjkQdbg";
+const HERO_VIDEO_URL_UNMUTED = "https://www.youtube.com/embed/U-7THjkQdbg?autoplay=1&loop=1&playlist=U-7THjkQdbg";
 const HERO_VIDEO_CAPTION = "LXERA 90-second overview";
 
 const HeroVideoPreview = () => {
   const [open, setOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the modal when clicking the mute button
+    setIsMuted(!isMuted);
+  };
 
   return (
     <>
@@ -21,12 +29,25 @@ const HeroVideoPreview = () => {
         {/* YouTube iframe preview */}
         <iframe
           className="w-full aspect-video"
-          src={HERO_VIDEO_URL}
+          src={isMuted ? HERO_VIDEO_URL_MUTED : HERO_VIDEO_URL_UNMUTED}
           title="LXERA Demo Video"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+        
+        {/* Mute/Unmute Button */}
+        <button
+          onClick={toggleMute}
+          className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 z-30"
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
+        >
+          {isMuted ? (
+            <VolumeOff className="w-4 h-4" />
+          ) : (
+            <Volume className="w-4 h-4" />
+          )}
+        </button>
         
         {/* Video Overlay Label */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
