@@ -1,3 +1,4 @@
+
 import { ArrowDown, ArrowRight } from "lucide-react";
 import HeroContent from "./HeroContent";
 import CTASection from "./CTASection";
@@ -13,6 +14,11 @@ const HeroSection = () => {
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Main headline content */}
+        <div className="mb-12">
+          <HeroContent />
+        </div>
+        
         {/* CTA Section with side-by-side layout */}
         <div className="mb-16">
           <CTASection />
