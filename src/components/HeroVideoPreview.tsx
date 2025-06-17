@@ -86,13 +86,6 @@ const HeroVideoPreview = () => {
           Watch how LXERA works
         </span>
       </div>
-      
-      {/* Subtle hover overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition pointer-events-none">
-        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-medium bg-black/50 px-4 py-2 rounded-lg">
-          LXERA Demo
-        </span>
-      </div>
     </div>
   );
 };
