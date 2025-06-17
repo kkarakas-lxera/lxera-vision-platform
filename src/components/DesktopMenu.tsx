@@ -1,7 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { useState } from "react";
 
 interface DesktopMenuProps {
   menuItems: Array<{
@@ -14,23 +12,8 @@ interface DesktopMenuProps {
 }
 
 const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  const handleSearch = () => {
-    setSearchOpen(!searchOpen);
-    // Basic search functionality - could be enhanced
-    if (!searchOpen) {
-      const searchTerm = prompt("Search for...");
-      if (searchTerm) {
-        // Simple search - scroll to first matching section
-        const matchingItem = menuItems.find(item => 
-          item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        if (matchingItem) {
-          scrollToSection(matchingItem.href);
-        }
-      }
-    }
+  const handleRequestDemo = () => {
+    scrollToSection('#contact');
   };
 
   return (
@@ -53,15 +36,13 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         ))}
       </div>
 
-      {/* Enhanced Search Button */}
+      {/* Request Demo Button */}
       <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleSearch}
-        className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300 hover:scale-105 hover:shadow-md"
-        aria-label="Search site content"
+        onClick={handleRequestDemo}
+        className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-4 py-2 rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+        aria-label="Request a demo"
       >
-        <Search className="h-5 w-5" />
+        Request a demo
       </Button>
 
       {/* Enhanced Sign In Button */}

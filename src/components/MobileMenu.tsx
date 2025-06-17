@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search } from "lucide-react";
-import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -22,32 +21,20 @@ const MobileMenu = ({
   handleMobileMenuToggle, 
   scrollToSection 
 }: MobileMenuProps) => {
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  const handleSearch = () => {
-    const searchTerm = prompt("Search for...");
-    if (searchTerm) {
-      const matchingItem = menuItems.find(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      if (matchingItem) {
-        scrollToSection(matchingItem.href);
-      }
-    }
+  const handleRequestDemo = () => {
+    scrollToSection('#contact');
   };
 
   return (
     <div className="lg:hidden">
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button and Request Demo */}
       <div className="flex items-center space-x-2">
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleSearch}
-          className="text-business-black hover:text-future-green hover:bg-future-green/10 transition-all duration-300"
-          aria-label="Search site content"
+          onClick={handleRequestDemo}
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-3 py-2 text-sm rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          aria-label="Request a demo"
         >
-          <Search className="h-5 w-5" />
+          Request a demo
         </Button>
         <Button
           variant="ghost"
