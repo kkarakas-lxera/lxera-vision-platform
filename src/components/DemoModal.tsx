@@ -105,45 +105,50 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-2 text-business-black">
-            LXERA
-          </DialogTitle>
-          <h3 className="text-xl font-semibold text-center text-business-black">
+          <div className="flex items-center justify-start mb-4">
+            <img
+              src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+              alt="LXERA logo"
+              className="h-6 object-contain"
+              draggable={false}
+            />
+          </div>
+          <DialogTitle className="text-xl font-semibold text-left text-business-black">
             Get a demo
-          </h3>
+          </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">First name</label>
+              <label className="text-sm text-gray-600 mb-2 block">First name</label>
               <Input
                 name="firstName"
                 placeholder="First name"
                 value={formData.firstName}
                 onChange={handleInputChange}
                 required
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Last name</label>
+              <label className="text-sm text-gray-600 mb-2 block">Last name</label>
               <Input
                 name="lastName"
                 placeholder="Last name"
                 value={formData.lastName}
                 onChange={handleInputChange}
                 required
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Work email</label>
+              <label className="text-sm text-gray-600 mb-2 block">Work email</label>
               <Input
                 name="workEmail"
                 type="email"
@@ -151,53 +156,53 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.workEmail}
                 onChange={handleInputChange}
                 required
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Company name</label>
+              <label className="text-sm text-gray-600 mb-2 block">Company name</label>
               <Input
                 name="companyName"
                 placeholder="Company name"
                 value={formData.companyName}
                 onChange={handleInputChange}
                 required
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Job title</label>
+              <label className="text-sm text-gray-600 mb-2 block">Job title</label>
               <Input
                 name="jobTitle"
                 placeholder="Your role"
                 value={formData.jobTitle}
                 onChange={handleInputChange}
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Phone number</label>
+              <label className="text-sm text-gray-600 mb-2 block">Phone number</label>
               <Input
                 name="phoneNumber"
                 placeholder="Phone number"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                className="border-gray-300 bg-white"
+                className="border-gray-300 bg-gray-100 rounded-2xl h-12"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-600 mb-1 block"># of employees</label>
+              <label className="text-sm text-gray-600 mb-2 block"># of employees</label>
               <Select value={formData.numberOfEmployees} onValueChange={(value) => handleSelectChange('numberOfEmployees', value)}>
-                <SelectTrigger className="border-gray-300 bg-white">
+                <SelectTrigger className="border-gray-300 bg-gray-100 rounded-2xl h-12">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl">
                   <SelectItem value="1-10">1-10</SelectItem>
                   <SelectItem value="11-50">11-50</SelectItem>
                   <SelectItem value="51-200">51-200</SelectItem>
@@ -207,12 +212,12 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
               </Select>
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-1 block">Location</label>
+              <label className="text-sm text-gray-600 mb-2 block">Location</label>
               <Select value={formData.location} onValueChange={(value) => handleSelectChange('location', value)}>
-                <SelectTrigger className="border-gray-300 bg-white">
+                <SelectTrigger className="border-gray-300 bg-gray-100 rounded-2xl h-12">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl">
                   <SelectItem value="north-america">North America</SelectItem>
                   <SelectItem value="europe">Europe</SelectItem>
                   <SelectItem value="asia-pacific">Asia Pacific</SelectItem>
@@ -225,13 +230,13 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-600 mb-1 block">How can we help you?</label>
+            <label className="text-sm text-gray-600 mb-2 block">How can we help you?</label>
             <Textarea
               name="message"
               placeholder="Tell us about your learning and development needs..."
               value={formData.message}
               onChange={handleInputChange}
-              className="border-gray-300 min-h-[100px] bg-white"
+              className="border-gray-300 bg-gray-100 min-h-[100px] rounded-2xl"
             />
           </div>
 
@@ -243,7 +248,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
           <Button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-medium text-base"
           >
             {isSubmitting ? (
               <>
