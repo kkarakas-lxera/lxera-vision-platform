@@ -39,8 +39,8 @@ const HeroSection = () => {
                 >
                   Learning & Innovation
                 </span>
-                <span className="block drop-shadow-sm">
-                  <span style={{ color: '#B1B973' }}>Experience Platform</span>
+                <span className="block drop-shadow-sm" style={{ color: '#B1B973' }}>
+                  Experience Platform
                 </span>
               </h1>
             </div>
@@ -94,8 +94,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (positioned further to the right) */}
-          <div className="w-full lg:w-3/5 lg:pl-12 mt-6 lg:mt-0">
+          {/* Right side - Video (positioned much further to the right for more text space) */}
+          <div className="w-full lg:w-3/5 lg:pl-16 mt-6 lg:mt-0">
             <HeroVideoPreview />
           </div>
         </div>
