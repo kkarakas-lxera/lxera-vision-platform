@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -44,6 +46,14 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -51,22 +61,44 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user selects
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.workEmail.trim()) newErrors.workEmail = 'Work email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.workEmail)) {
+      newErrors.workEmail = 'Please enter a valid email address';
+    }
+    if (!formData.companyName.trim()) newErrors.companyName = 'Company name is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.workEmail || !formData.companyName) {
+    if (!validateForm()) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields correctly.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       // Simulate API call
@@ -90,6 +122,7 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
         location: '',
         message: ''
       });
+      setErrors({});
       onClose();
     } catch (error) {
       toast({
@@ -122,32 +155,46 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
         <form onSubmit={handleSubmit} className="space-y-8 px-8 pb-8">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="text-sm text-gray-600 mb-3 block font-medium">First name</label>
+              <label className="text-sm text-gray-600 mb-3 block font-medium">First name *</label>
               <Input
                 name="firstName"
                 placeholder="First name"
                 value={formData.firstName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className={`border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base transition-all duration-200 ${
+                  errors.firstName 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : 'focus:ring-2 focus:ring-blue-500 focus:bg-white'
+                }`}
               />
+              {errors.firstName && (
+                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+              )}
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-3 block font-medium">Last name</label>
+              <label className="text-sm text-gray-600 mb-3 block font-medium">Last name *</label>
               <Input
                 name="lastName"
                 placeholder="Last name"
                 value={formData.lastName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className={`border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base transition-all duration-200 ${
+                  errors.lastName 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : 'focus:ring-2 focus:ring-blue-500 focus:bg-white'
+                }`}
               />
+              {errors.lastName && (
+                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="text-sm text-gray-600 mb-3 block font-medium">Work email</label>
+              <label className="text-sm text-gray-600 mb-3 block font-medium">Work email *</label>
               <Input
                 name="workEmail"
                 type="email"
@@ -155,19 +202,33 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 value={formData.workEmail}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className={`border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base transition-all duration-200 ${
+                  errors.workEmail 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : 'focus:ring-2 focus:ring-blue-500 focus:bg-white'
+                }`}
               />
+              {errors.workEmail && (
+                <p className="text-red-500 text-sm mt-1">{errors.workEmail}</p>
+              )}
             </div>
             <div>
-              <label className="text-sm text-gray-600 mb-3 block font-medium">Company name</label>
+              <label className="text-sm text-gray-600 mb-3 block font-medium">Company name *</label>
               <Input
                 name="companyName"
                 placeholder="Company name"
                 value={formData.companyName}
                 onChange={handleInputChange}
                 required
-                className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                className={`border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base transition-all duration-200 ${
+                  errors.companyName 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : 'focus:ring-2 focus:ring-blue-500 focus:bg-white'
+                }`}
               />
+              {errors.companyName && (
+                <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
+              )}
             </div>
           </div>
 
@@ -201,12 +262,12 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[2rem] border-0 shadow-xl">
-                  <SelectItem value="1-10" className="rounded-xl">1-10</SelectItem>
-                  <SelectItem value="11-50" className="rounded-xl">11-50</SelectItem>
-                  <SelectItem value="51-200" className="rounded-xl">51-200</SelectItem>
-                  <SelectItem value="201-1000" className="rounded-xl">201-1000</SelectItem>
-                  <SelectItem value="1000+" className="rounded-xl">1000+</SelectItem>
+                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50">
+                  <SelectItem value="1-10" className="rounded-xl hover:bg-gray-100 cursor-pointer">1-10</SelectItem>
+                  <SelectItem value="11-50" className="rounded-xl hover:bg-gray-100 cursor-pointer">11-50</SelectItem>
+                  <SelectItem value="51-200" className="rounded-xl hover:bg-gray-100 cursor-pointer">51-200</SelectItem>
+                  <SelectItem value="201-1000" className="rounded-xl hover:bg-gray-100 cursor-pointer">201-1000</SelectItem>
+                  <SelectItem value="1000+" className="rounded-xl hover:bg-gray-100 cursor-pointer">1000+</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -216,13 +277,13 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
                 <SelectTrigger className="border-0 bg-gray-100 rounded-[2rem] h-14 px-5 text-base focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[2rem] border-0 shadow-xl">
-                  <SelectItem value="north-america" className="rounded-xl">North America</SelectItem>
-                  <SelectItem value="europe" className="rounded-xl">Europe</SelectItem>
-                  <SelectItem value="asia-pacific" className="rounded-xl">Asia Pacific</SelectItem>
-                  <SelectItem value="latin-america" className="rounded-xl">Latin America</SelectItem>
-                  <SelectItem value="africa" className="rounded-xl">Africa</SelectItem>
-                  <SelectItem value="middle-east" className="rounded-xl">Middle East</SelectItem>
+                <SelectContent className="bg-white border border-gray-200 rounded-[2rem] shadow-xl z-50">
+                  <SelectItem value="north-america" className="rounded-xl hover:bg-gray-100 cursor-pointer">North America</SelectItem>
+                  <SelectItem value="europe" className="rounded-xl hover:bg-gray-100 cursor-pointer">Europe</SelectItem>
+                  <SelectItem value="asia-pacific" className="rounded-xl hover:bg-gray-100 cursor-pointer">Asia Pacific</SelectItem>
+                  <SelectItem value="latin-america" className="rounded-xl hover:bg-gray-100 cursor-pointer">Latin America</SelectItem>
+                  <SelectItem value="africa" className="rounded-xl hover:bg-gray-100 cursor-pointer">Africa</SelectItem>
+                  <SelectItem value="middle-east" className="rounded-xl hover:bg-gray-100 cursor-pointer">Middle East</SelectItem>
                 </SelectContent>
               </Select>
             </div>
