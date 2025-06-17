@@ -1,9 +1,14 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import HeroStats from "./HeroStats";
+import DemoModal from "./DemoModal";
+import { useState } from "react";
 
 const HeroSection = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
   // Smooth scroll to #contact
   const handleScrollToContact = () => {
     const el = document.getElementById("contact");
@@ -12,8 +17,12 @@ const HeroSection = () => {
     }
   };
 
+  const handleRequestDemo = () => {
+    setIsDemoModalOpen(true);
+  };
+
   return (
-    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-6 sm:px-8 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
+    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
       {/* Simple background gradient without animated elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
       
@@ -69,7 +78,7 @@ const HeroSection = () => {
                 <Button
                   size="lg"
                   className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
-                  onClick={handleScrollToContact}
+                  onClick={handleRequestDemo}
                   aria-label="Request a demo"
                 >
                   Request a demo
@@ -109,6 +118,11 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
+
+      <DemoModal 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)} 
+      />
     </section>
   );
 };
