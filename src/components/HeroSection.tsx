@@ -1,3 +1,4 @@
+
 import { ArrowDown, ArrowRight } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -42,10 +43,7 @@ const HeroSection = () => {
                   className="block drop-shadow-sm"
                   style={{ color: '#B1B973' }}
                 >
-                  Experience
-                </span>{" "}
-                <span>
-                  Platform
+                  Experience Platform
                 </span>
               </h1>
             </div>
