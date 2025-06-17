@@ -18,7 +18,7 @@ const WhyLXERASection = () => {
         </div>
       </div>
 
-      <section id="platform" className="w-full pt-8 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
+      <section id="platform" className="w-full pt-8 pb-16 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
         <AnimatedBackground />

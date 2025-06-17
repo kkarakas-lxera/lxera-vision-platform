@@ -4,7 +4,7 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 
 const TransformationStartsSection = () => {
   return (
-    <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden font-inter">
+    <section className="w-full py-16 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden font-inter">
       <div className="max-w-4xl mx-auto relative z-10">
         
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-fade-in-up font-inter">
