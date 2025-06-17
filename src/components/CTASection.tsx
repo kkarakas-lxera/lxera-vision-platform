@@ -13,9 +13,9 @@ const CTASection = () => {
   };
 
   return (
-    <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-center lg:gap-12">
+    <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-12">
       {/* Left side - CTA content */}
-      <div className="w-full lg:w-1/2 space-y-6 lg:order-1">
+      <div className="w-full lg:w-1/2 space-y-6">
         {/* Quote snippet */}
         <div className="text-left">
           <span className="block text-business-black/70 text-base font-medium italic leading-tight">
@@ -50,7 +50,7 @@ const CTASection = () => {
       </div>
 
       {/* Right side - Video */}
-      <div className="w-full lg:w-1/2 lg:order-2 mt-8 lg:mt-0">
+      <div className="w-full lg:w-1/2 mt-8 lg:mt-0">
         <HeroVideoPreview />
       </div>
     </div>
