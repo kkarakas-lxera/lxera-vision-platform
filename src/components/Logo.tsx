@@ -1,11 +1,10 @@
 
-
 const Logo = () => {
   return (
     <div className="flex items-center space-x-3">
       {/* Logo Icon */}
       <img
-        src="/lovable-uploads/5596ea22-3035-4641-9ec6-204cc19cf148.png"
+        src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
         alt="LXERA logo"
         className="h-8 md:h-10 object-contain rounded-none select-none bg-transparent"
         draggable={false}
@@ -16,4 +15,3 @@ const Logo = () => {
 };
 
 export default Logo;
-
