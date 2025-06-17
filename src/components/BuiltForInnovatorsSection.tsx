@@ -28,12 +28,12 @@ const BuiltForInnovatorsSection = () => {
   ];
 
   return (
-    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70">
+    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 font-inter">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
+        <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up font-inter">
           Built for Innovators. Designed for Impact.
         </h2>
-        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
+        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-normal font-inter">
           LXERA is made for the teams shaping the future — not maintaining the past.
         </p>
         
@@ -41,7 +41,7 @@ const BuiltForInnovatorsSection = () => {
           {features.map((item, index) => (
             <Card 
               key={index} 
-              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+              className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up font-inter"
               style={{
                 animationDelay: `${300 + index * 100}ms`,
               }}
@@ -52,9 +52,9 @@ const BuiltForInnovatorsSection = () => {
                     <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                   </div>
                 </div>
-                <p className="text-business-black/80 mb-3 font-medium">{item.text}</p>
+                <p className="text-business-black/80 mb-3 font-normal font-inter">{item.text}</p>
                 <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
-                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3">
+                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 font-normal font-inter">
                     {item.microcopy}
                   </p>
                 </div>
@@ -63,12 +63,12 @@ const BuiltForInnovatorsSection = () => {
           ))}
         </div>
         
-        <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700">
+        <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700 font-normal font-inter">
           We're partnering with a select group of organizations to shape what's next.
         </p>
         
         <Button 
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
           aria-label="Join as an innovation partner with LXERA"
         >
           Join as an Innovation Partner →

@@ -4,19 +4,19 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 
 const TransformationStartsSection = () => {
   return (
-    <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
+    <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden font-inter">
       <div className="max-w-4xl mx-auto relative z-10">
         
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-fade-in-up">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-fade-in-up font-inter">
           Your Transformation Starts Here
         </h2>
         
-        <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200">
+        <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200 font-normal font-inter">
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
         <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
-          <p className="text-business-black/80 font-medium text-base">
+          <p className="text-business-black/80 font-normal text-base font-inter">
             Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
           </p>
         </div>
@@ -30,7 +30,7 @@ const TransformationStartsSection = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
           <Button
             size="lg"
-            className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+            className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
             aria-label="Get Early Access"
           >
             Get Early Access

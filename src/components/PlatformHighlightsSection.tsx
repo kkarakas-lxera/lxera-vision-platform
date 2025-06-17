@@ -92,14 +92,14 @@ const highlightsData = [
 
 const PlatformHighlightsSection = () => {
   return (
-    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0">
+    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0 font-inter">
       <div className="max-w-7xl mx-auto relative z-0">
         {/* Section Header matching Built for Innovators */}
         <div className="text-center mb-12 animate-fade-in-up">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-8">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 font-inter">
             Platform Highlights
           </h2>
-          <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto font-normal font-inter">
             10+ features fueling impact, engagement, and innovation.
           </p>
         </div>
@@ -114,6 +114,7 @@ const PlatformHighlightsSection = () => {
                 lxera-shadow text-center group 
                 hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 
                 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up
+                font-inter
                 "
               style={{
                 animationDelay: `${250 + index * 60}ms`,
@@ -125,11 +126,11 @@ const PlatformHighlightsSection = () => {
                     <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                   </div>
                 </div>
-                <p className="text-business-black font-bold text-lg mb-1">{item.title}</p>
-                <p className="text-business-black/70 mb-3 text-sm min-h-[34px]">{item.description}</p>
+                <p className="text-business-black font-medium text-lg mb-1 font-inter">{item.title}</p>
+                <p className="text-business-black/70 mb-3 text-sm min-h-[34px] font-normal font-inter">{item.description}</p>
                 {/* Microcopy/ROI reveals on hover */}
                 <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-14 opacity-0 group-hover:opacity-100">
-                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-2">
+                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-2 font-normal font-inter">
                     {item.microcopy}
                   </p>
                 </div>
@@ -138,7 +139,7 @@ const PlatformHighlightsSection = () => {
           ))}
         </div>
         {/* Optional: subtle "impact note" at bottom */}
-        <p className="text-business-black/70 mb-2 text-center text-base mt-8">
+        <p className="text-business-black/70 mb-2 text-center text-base mt-8 font-normal font-inter">
           Each feature designed and refined with real-world feedback for measurable results.
         </p>
       </div>
