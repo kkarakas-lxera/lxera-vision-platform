@@ -1,4 +1,3 @@
-
 import { ArrowDown, ArrowRight } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -35,8 +34,9 @@ const HeroSection = () => {
                 <span className="block whitespace-nowrap" style={{ color: '#B1B973' }}>
                   Learning & Innovation
                 </span>
-                <span className="block whitespace-nowrap" style={{ color: '#B1B973' }}>
-                  Experience Platform
+                <span className="block whitespace-nowrap">
+                  <span style={{ color: '#B1B973' }}>Experience </span>
+                  <span className="text-business-black">Platform</span>
                 </span>
               </h1>
             </div>
