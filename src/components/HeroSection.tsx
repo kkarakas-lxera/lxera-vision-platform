@@ -1,3 +1,4 @@
+
 import { ArrowDown, ArrowRight } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,7 @@ const HeroSection = () => {
                   Learning & Innovation
                 </span>
                 <span className="block drop-shadow-sm">
-                  <span style={{ color: '#B1B973' }}>Experience </span>
-                  <span className="text-business-black">Platform</span>
+                  <span style={{ color: '#B1B973' }}>Experience Platform</span>
                 </span>
               </h1>
             </div>
@@ -94,8 +94,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (positioned slightly to the right) */}
-          <div className="w-full lg:w-3/5 lg:pl-8 mt-6 lg:mt-0">
+          {/* Right side - Video (positioned further to the right) */}
+          <div className="w-full lg:w-3/5 lg:pl-12 mt-6 lg:mt-0">
             <HeroVideoPreview />
           </div>
         </div>
