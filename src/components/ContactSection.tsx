@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -94,10 +93,10 @@ const ContactSection = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="animate-fade-in-scale">
             <CheckCircle2 className="w-16 h-16 text-future-green mx-auto mb-6" />
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white mb-6">
               Thank You!
             </h2>
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl lg:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
               Your demo request has been submitted successfully. Our team will contact you within 24 hours.
             </p>
             <Button 
@@ -120,11 +119,11 @@ const ContactSection = () => {
     <section id="contact" className="w-full py-20 px-6 lg:px-12 bg-business-black" role="region" aria-labelledby="contact-heading">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 id="contact-heading" className="text-4xl lg:text-5xl font-bold text-white mb-6 animate-fade-in-up">
+          <h2 id="contact-heading" className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white mb-6 animate-fade-in-up">
             Let us show you how LXERA transforms your workforce.
           </h2>
           
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+          <p className="text-lg sm:text-xl lg:text-xl text-white/80 mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.2s'}}>
             Join forward-thinking organizations already revolutionizing their learning and development approach.
           </p>
           
