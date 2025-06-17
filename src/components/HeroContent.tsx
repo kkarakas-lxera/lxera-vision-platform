@@ -1,48 +1,41 @@
 
 const HeroContent = () => {
   return (
-    <div className="hero-content w-full flex flex-col lg:flex-row lg:justify-center lg:items-center">
-      <div className="w-full lg:max-w-2xl mx-auto text-center space-y-10">
+    <div className="hero-content w-full flex flex-col lg:flex-row lg:justify-between lg:items-center lg:gap-12">
+      <div className="w-full lg:w-1/2 text-left lg:text-left space-y-8">
         {/* Headline */}
         <div className="animate-fade-in-up">
-          <h1 className="headline text-3xl xs:text-4xl sm:text-5xl lg:text-7xl font-bold text-business-black leading-tight tracking-tight">
+          <h1 className="headline text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-business-black leading-tight tracking-tight">
             <span>
               LXERA is the first
-              {/* Only break to new line on small screens and above */}
-              <br className="hidden sm:inline" />
             </span>
+            <br />
             <span
-              className="block sm:inline drop-shadow-sm"
+              className="block drop-shadow-sm"
               style={{ color: '#B1B973' }}
             >
-              {/* On mobile, this is a block; on sm+ it's inline */}
-              &nbsp;Learning & Innovation
+              Learning & Innovation
             </span>
-            {/* Only break to new line on small screens and above */}
-            <br className="hidden sm:inline" />
             <span>
-              &nbsp;Experience Platform
+              Experience Platform
             </span>
           </h1>
         </div>
 
         {/* Subheadline */}
         <div className="animate-fade-in-up animate-delay-200">
-          <p className="subheadline text-base xs:text-lg sm:text-xl lg:text-2xl text-business-black/85 max-w-3xl mx-auto font-medium leading-relaxed">
+          <p className="subheadline text-base xs:text-lg sm:text-xl lg:text-xl text-business-black/85 font-medium leading-relaxed">
             Empower teams to{" "}
-            <b className="text-business-black">learn faster,</b>
-            <br className="hidden sm:block" />
-            <b className="text-business-black"> innovate deeper,</b>
-            <br className="hidden sm:block" />
+            <b className="text-business-black">learn faster,</b>{" "}
+            <b className="text-business-black">innovate deeper,</b>{" "}
             and <b className="text-business-black">grow</b> from the frontline—
-            <br className="hidden sm:block" />
             in one intelligent ecosystem.
           </p>
         </div>
 
         {/* Divider */}
         <div className="animate-fade-in-scale animate-delay-400">
-          <div className="w-32 h-1 mx-auto animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
+          <div className="w-32 h-1 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
         </div>
       </div>
     </div>
@@ -50,4 +43,3 @@ const HeroContent = () => {
 };
 
 export default HeroContent;
-

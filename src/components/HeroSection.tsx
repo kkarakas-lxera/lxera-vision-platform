@@ -13,13 +13,17 @@ const HeroSection = () => {
       <div className="absolute top-1/2 left-1/4 w-20 h-20 rounded-full blur-md animate-pulse bg-gradient-to-r from-future-green/12 to-smart-beige/15 animate-delay-2000"></div>
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
-      <div className="max-w-6xl mx-auto text-center relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 space-y-16">
         <HeroContent />
         <CTASection />
-        <HeroStats />
+        
+        {/* Stats section - centered */}
+        <div className="text-center">
+          <HeroStats />
+        </div>
         
         {/* Scroll indicator with consistent colors */}
-        <div className="mt-12 animate-fade-in-up animate-delay-1200">
+        <div className="mt-12 animate-fade-in-up animate-delay-1200 text-center">
           <div className="flex flex-col items-center space-y-3">
             <p className="text-sm text-business-black/60 font-medium">Discover more</p>
             <div className="relative">
