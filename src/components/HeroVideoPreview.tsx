@@ -67,10 +67,10 @@ const HeroVideoPreview = () => {
           className="p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
-          {isMuted ? (
-            <VolumeOff className="w-4 h-4" />
-          ) : (
+          {!isMuted ? (
             <Volume className="w-4 h-4" />
+          ) : (
+            <VolumeOff className="w-4 h-4" />
           )}
         </button>
       </div>
