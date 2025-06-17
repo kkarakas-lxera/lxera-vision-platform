@@ -39,7 +39,10 @@ const HeroSection = () => {
                 >
                   Learning & Innovation
                 </span>
-                <span>
+                <span
+                  className="block drop-shadow-sm"
+                  style={{ color: '#B1B973' }}
+                >
                   Experience Platform
                 </span>
               </h1>
