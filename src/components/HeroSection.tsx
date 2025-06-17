@@ -68,7 +68,7 @@ const HeroSection = () => {
               <p className="text-base text-business-black/75 font-medium">
                 🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-row gap-3">
                 <Button
                   size="lg"
                   className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
@@ -80,11 +80,11 @@ const HeroSection = () => {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+                  className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
                   aria-label="LXERA for Business"
                 >
                   LXERA for Business
+                  <ArrowRight size={16} />
                 </Button>
               </div>
             </div>
