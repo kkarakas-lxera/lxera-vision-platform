@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ const HeroSection = () => {
             {/* Quote snippet - consistent text size */}
             <div className="text-left">
               <span className="block text-business-black/70 text-base font-medium italic leading-tight">
-                "Built with real teams. Designed for transformation."
+                "Designed for the new world of work—where speed, innovation, and learning are inseparable."
               </span>
             </div>
             
