@@ -1,3 +1,4 @@
+
 import { Brain, Heart, BarChart3, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -51,10 +52,9 @@ export const capabilitiesData: CapabilityData[] = [
   },
   {
     icon: Users,
-    // Enhanced semantic & consistent structure
-    title: "Enhanced Engagement and Motivation",
-    valueStatement: "Where emotion meets education. Deeper connections, stronger commitment.",
-    description: "LXERA leverages emotional intelligence and gamification—adapting in real time to each learner's mood and motivation signals.",
+    title: "Enhanced Engagement & Motivation",
+    valueStatement: "Where emotion meets education. Deeper connection. Stronger commitment.",
+    description: "LXERA detects each learner's motivation signals and mood, using emotional intelligence and gamification to adapt the journey dynamically.",
     features: [
       "Personalized emotional responses powered by real-time sentiment tracking",
       "Immersive storytelling, dynamic avatars, and gamified incentives that maintain motivation"
@@ -63,7 +63,7 @@ export const capabilitiesData: CapabilityData[] = [
     tangibleResults: {
       icon: Heart,
       label: "Tangible Results",
-      description: "Learners engage 3x more often and dropout rates fall by 40% in emotionally optimized learning environments."
+      description: "Organizations report 3x higher engagement and a 40% lift in course completion."
     },
     iconBg: "bg-lxera-red",
     badgeBg: "bg-lxera-red/20",
