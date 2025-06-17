@@ -36,10 +36,10 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         ))}
       </div>
 
-      {/* Request Demo Button */}
+      {/* Request Demo Button - Header version with distinct color */}
       <Button
         onClick={handleRequestDemo}
-        className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-4 py-2 rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+        className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
         aria-label="Request a demo"
       >
         Request a demo
@@ -48,7 +48,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       {/* Enhanced Sign In Button */}
       <Button 
         variant="outline" 
-        className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105"
+        className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3"
       >
         Sign In
       </Button>

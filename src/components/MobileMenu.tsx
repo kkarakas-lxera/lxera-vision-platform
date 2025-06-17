@@ -31,7 +31,7 @@ const MobileMenu = ({
       <div className="flex items-center space-x-2">
         <Button
           onClick={handleRequestDemo}
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-3 py-2 text-sm rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
           aria-label="Request a demo"
         >
           Request a demo
@@ -68,7 +68,7 @@ const MobileMenu = ({
             <div className="pt-4 border-t border-gray-200/50 animate-fade-in" style={{ animationDelay: '200ms' }}>
               <Button 
                 variant="outline" 
-                className="w-full border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300"
+                className="w-full border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 rounded-xl"
               >
                 Sign In
               </Button>
