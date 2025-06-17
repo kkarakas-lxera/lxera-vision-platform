@@ -1,4 +1,3 @@
-
 import { Brain, Heart, BarChart3, Users, Lightbulb, Shield } from "lucide-react";
 
 export interface CapabilityData {
@@ -27,7 +26,7 @@ export const capabilitiesData: CapabilityData[] = [
     icon: Brain,
     title: "Personalized Learning Journeys",
     valueStatement: "Smarter paths. Faster mastery. Deeper learning.",
-    description: "Our AI adapts to each learner’s preferences, behavior, and feedback in real time.",
+    description: "LXERA's AI continuously adapts to each learner's preferences, behaviors, and feedback—delivering real-time, personalized content.",
     features: [
       "Tailored learning paths that reflect unique cognitive styles",
       "Content personalized through AI diagnostics and adaptive algorithms"
@@ -36,7 +35,7 @@ export const capabilitiesData: CapabilityData[] = [
     tangibleResults: {
       icon: Lightbulb,
       label: "Tangible Results",
-      description: "Learners complete content 60% faster and retain up to 85% more using personalized experiences."
+      description: "Learners complete programs 60% faster and retain 85% more with tailored experiences."
     },
     iconBg: "bg-future-green",
     badgeBg: "bg-future-green/20",
