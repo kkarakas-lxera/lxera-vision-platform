@@ -52,30 +52,30 @@ const HeroVideoPreview = () => {
       />
       
       {/* Control buttons container */}
-      <div className="absolute top-4 right-4 flex gap-2 z-30">
+      <div className="absolute top-4 right-4 flex gap-3 z-30">
         {/* Play/Pause Button */}
         <button
           onClick={togglePlayPause}
-          className="p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50"
+          className="p-3 bg-white/90 hover:bg-white text-business-black rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm border border-white/20"
           aria-label={isPlaying ? "Pause video" : "Play video"}
         >
           {isPlaying ? (
-            <Pause className="w-4 h-4" />
+            <Pause className="w-5 h-5" />
           ) : (
-            <Play className="w-4 h-4" />
+            <Play className="w-5 h-5" />
           )}
         </button>
         
-        {/* Mute/Unmute Button */}
+        {/* Mute/Unmute Button - FIXED LOGIC */}
         <button
           onClick={toggleMute}
-          className="p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50"
+          className="p-3 bg-white/90 hover:bg-white text-business-black rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-future-green/50 shadow-lg backdrop-blur-sm border border-white/20"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
           {isMuted ? (
-            <VolumeOff className="w-4 h-4" />
+            <VolumeOff className="w-5 h-5" />
           ) : (
-            <Volume className="w-4 h-4" />
+            <Volume className="w-5 h-5" />
           )}
         </button>
       </div>
