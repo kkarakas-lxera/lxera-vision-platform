@@ -1,61 +1,92 @@
 
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Check } from "lucide-react";
+import AnimatedBackground from "./AnimatedBackground";
+import SectionHeader from "./SectionHeader";
 import { capabilitiesData } from "@/data/capabilitiesData";
-import CapabilityCard from "./CapabilityCard";
-import { useInView } from "@/hooks/useInView";
 
 const WhyLXERASection = () => {
-  const [ref, isInView] = useInView();
+  // Use all capabilities as originally
+  const filteredCapabilities = capabilitiesData;
 
   return (
-    <section 
-      ref={ref}
-      className="w-full py-8 sm:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0 font-inter"
-    >
-      <div className="max-w-7xl mx-auto relative z-0">
-        {/* Section Header */}
-        <div className="text-center mb-6 sm:mb-8 lg:mb-12 xl:mb-16 animate-fade-in-up">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-medium text-business-black mb-3 sm:mb-4 lg:mb-6 xl:mb-8 font-inter px-2">
-            What Makes LXERA Different
-          </h2>
-          <p className="text-base sm:text-lg lg:text-xl xl:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto font-normal font-inter px-4">
-            Beyond traditional learning platforms — LXERA drives innovation from the ground up.
-          </p>
-        </div>
-
-        {/* Capabilities Grid */}
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8 xl:space-y-12">
-          {capabilitiesData.map((capability, index) => (
-            <CapabilityCard
-              key={capability.title}
-              {...capability}
-              index={index}
-              isVisible={isInView}
-            />
-          ))}
-        </div>
-        
-        {/* Bottom CTA */}
-        <div className="text-center mt-8 sm:mt-12 lg:mt-16 xl:mt-20 animate-fade-in-up animate-delay-800">
-          <p className="text-business-black/70 mb-3 sm:mb-4 lg:mb-6 text-sm sm:text-base lg:text-lg font-normal font-inter px-4">
-            Ready to see these capabilities in action?
-          </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
-            <button className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter flex items-center justify-center gap-2 w-full sm:w-auto">
-              Request Demo
-              <ArrowRight size={16} className="sm:w-[18px] sm:h-[18px]" />
-            </button>
-            
-            <button className="bg-business-black text-white hover:bg-business-black/90 font-medium px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter flex items-center justify-center gap-2 w-full sm:w-auto">
-              <Check size={16} className="sm:w-[18px] sm:h-[18px]" />
-              Learn More
-            </button>
+    <>
+      {/* Reduced section transition height */}
+      <div className="relative">
+        <div className="h-16 bg-gradient-to-b from-smart-beige via-smart-beige/95 to-future-green/5 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/15"></div>
           </div>
         </div>
       </div>
-    </section>
+
+      <section id="platform" className="w-full pt-8 pb-16 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
+        <AnimatedBackground />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-left mb-20 animate-fade-in-up relative">
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+                What Makes LXERA Different
+              </h2>
+              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-normal font-inter" style={{animationDelay: '0.4s'}}>
+                LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across four core pillars.
+              </p>
+              
+              {/* Enhanced decorative line */}
+              <div className="mt-8 flex justify-start animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+                <div className="relative">
+                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
+                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card Grid in "Built for Innovators" design */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            {filteredCapabilities.map((capability, index) => (
+              <div
+                key={capability.title}
+                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+                style={{
+                  animationDelay: `${300 + index * 100}ms`,
+                }}
+              >
+                <div className="p-6">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                      {capability.icon && (
+                        // @ts-ignore
+                        <capability.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-business-black font-medium text-lg mb-1 font-inter">{capability.title}</p>
+                  {/* Use valueStatement as subtitle */}
+                  {capability.valueStatement && (
+                    <p className="text-business-black/80 mb-2 text-base font-normal font-inter">{capability.valueStatement}</p>
+                  )}
+                  {/* Always show description. If tangibleResults, show on hover as microcopy */}
+                  <p className="text-business-black/70 text-sm min-h-[40px] font-normal font-inter">{capability.description}</p>
+                  {capability.tangibleResults && (
+                    <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-32 opacity-0 group-hover:opacity-100">
+                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 leading-relaxed font-normal font-inter">
+                        {capability.tangibleResults.description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Conclude with an impact note for consistency */}
+          <p className="text-business-black/70 mb-2 text-center text-base mt-8 font-normal font-inter">
+            Every LXERA innovation capability shaped by real-world feedback for maximum impact.
+          </p>
+        </div>
+      </section>
+    </>
   );
 };
 
