@@ -1,4 +1,3 @@
-
 import { ArrowDown, ArrowRight } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
