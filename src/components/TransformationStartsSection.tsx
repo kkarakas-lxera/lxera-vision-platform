@@ -4,12 +4,12 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 
 const TransformationStartsSection = () => {
   return (
-    <section className="w-full py-28 px-6 text-center bg-gradient-to-br from-light-green/30 via-light-green/20 to-light-green/40 relative overflow-hidden">
+    <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
       {/* Animated background elements with consistent colors */}
       <div className="absolute inset-0 opacity-8">
-        <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle bg-gradient-to-br from-light-green/25 to-business-black/5"></div>
-        <div className="absolute top-32 right-20 w-20 h-20 rounded-full animate-float-gentle bg-gradient-to-l from-business-black/10 to-light-green/20 animate-delay-1000"></div>
-        <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle bg-gradient-to-r from-light-green/20 to-business-black/8 animate-delay-2000"></div>
+        <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle bg-gradient-to-br from-future-green/25 to-smart-beige/15"></div>
+        <div className="absolute top-32 right-20 w-20 h-20 rounded-full animate-float-gentle bg-gradient-to-l from-smart-beige/20 to-future-green/18 animate-delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle bg-gradient-to-r from-future-green/15 to-smart-beige/25 animate-delay-2000"></div>
       </div>
       <div className="max-w-4xl mx-auto relative z-10">
         
@@ -21,7 +21,7 @@ const TransformationStartsSection = () => {
           LXERA helps future-ready teams move beyond learning and into innovation.
         </p>
         
-        <div className="bg-gradient-to-r from-white/70 via-light-green/25 to-white/60 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-light-green/40 hover:from-white/80 hover:via-light-green/30 hover:to-white/70 hover:shadow-xl transition-all duration-500 lxera-hover">
+        <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
           <p className="text-business-black/80 font-medium">
             Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
           </p>
@@ -29,7 +29,7 @@ const TransformationStartsSection = () => {
 
         {/* Animated Down Arrow Indicator above the CTA button */}
         <div className="flex justify-center mt-6 animate-bounce-slow">
-          <ArrowDown size={32} className="text-light-green/70" aria-label="Scroll for more" />
+          <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
         </div>
 
         {/* CTA Button - Only Get Early Access */}
@@ -48,7 +48,7 @@ const TransformationStartsSection = () => {
           {[1, 2, 3, 4].map((step, index) => (
             <div 
               key={step}
-              className="w-2 h-2 rounded-full animate-pulse-slow bg-light-green/60"
+              className="w-2 h-2 rounded-full animate-pulse-slow bg-future-green/60"
               style={{
                 animationDelay: `${1000 + index * 200}ms`,
               }}
