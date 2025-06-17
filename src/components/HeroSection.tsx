@@ -29,17 +29,13 @@ const HeroSection = () => {
             {/* Headline - consistent sizing */}
             <div className="animate-fade-in-up">
               <h1 className="headline text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-business-black leading-tight tracking-tight">
-                <span>
+                <span className="block">
                   LXERA: The First
                 </span>
-                <br />
-                <span
-                  className="block drop-shadow-sm"
-                  style={{ color: '#B1B973' }}
-                >
+                <span className="block whitespace-nowrap" style={{ color: '#B1B973' }}>
                   Learning & Innovation
                 </span>
-                <span className="block drop-shadow-sm" style={{ color: '#B1B973' }}>
+                <span className="block whitespace-nowrap" style={{ color: '#B1B973' }}>
                   Experience Platform
                 </span>
               </h1>
@@ -95,7 +91,7 @@ const HeroSection = () => {
           </div>
 
           {/* Right side - Video (positioned much further to the right for more text space) */}
-          <div className="w-full lg:w-3/5 lg:pl-16 mt-6 lg:mt-0">
+          <div className="w-full lg:w-3/5 lg:pl-20 mt-6 lg:mt-0">
             <HeroVideoPreview />
           </div>
         </div>
