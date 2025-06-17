@@ -13,7 +13,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero w-full pt-16 sm:pt-20 md:pt-24 lg:pt-32 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
+    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-6 sm:px-8 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
       {/* Simple background gradient without animated elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
       
@@ -21,7 +21,7 @@ const HeroSection = () => {
         {/* Main content - side by side layout with much bigger video */}
         <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-8 sm:mb-12">
           {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
-          <div className="w-full lg:w-2/5 space-y-3 sm:space-y-4">
+          <div className="w-full lg:w-2/5 space-y-3 sm:space-y-4 px-2 sm:px-0">
             {/* Headline - responsive sizing */}
             <div className="animate-fade-in-up">
               <h1 className="headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black leading-tight tracking-tight font-inter">
@@ -86,7 +86,7 @@ const HeroSection = () => {
           </div>
 
           {/* Right side - Video (responsive sizing) */}
-          <div className="w-full lg:w-3/5 lg:pl-8 mt-6 sm:mt-8 lg:mt-6">
+          <div className="w-full lg:w-3/5 lg:pl-8 mt-6 sm:mt-8 lg:mt-6 px-2 sm:px-0">
             <div className="transform lg:scale-110 lg:translate-x-4 lg:translate-y-2">
               <HeroVideoPreview />
             </div>
@@ -94,7 +94,7 @@ const HeroSection = () => {
         </div>
         
         {/* Stats section - centered */}
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-6 sm:mb-8 px-2 sm:px-0">
           <HeroStats />
         </div>
         
