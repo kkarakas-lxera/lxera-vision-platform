@@ -25,12 +25,12 @@ const HeroSection = () => {
         {/* Main content - side by side layout with adjusted proportions */}
         <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
           {/* Left side - Headline and CTA content (smaller) */}
-          <div className="w-full lg:w-2/5 space-y-5">
+          <div className="w-full lg:w-2/5 space-y-4">
             {/* Headline - reduced sizes */}
             <div className="animate-fade-in-up">
               <h1 className="headline text-2xl xs:text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-business-black leading-tight tracking-tight">
                 <span>
-                  LXERA is the first
+                  LXERA: The First
                 </span>
                 <br />
                 <span
@@ -48,11 +48,11 @@ const HeroSection = () => {
             {/* Subheadline - reduced size */}
             <div className="animate-fade-in-up animate-delay-200">
               <p className="subheadline text-sm xs:text-base sm:text-lg lg:text-lg text-business-black/85 font-medium leading-relaxed">
-                Empower teams to{" "}
+                Empower your teams to{" "}
                 <b className="text-business-black">learn faster,</b>{" "}
                 <b className="text-business-black">innovate deeper,</b>{" "}
-                and <b className="text-business-black">grow</b> from the frontline—
-                in one intelligent ecosystem.
+                and <b className="text-business-black">lead transformation</b>—
+                within one intelligent ecosystem.
               </p>
             </div>
 
