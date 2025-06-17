@@ -65,7 +65,7 @@ const HeroSection = () => {
               <p className="text-sm sm:text-base text-business-black/75 font-normal font-inter">
                 🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="flex flex-row gap-2 sm:gap-3">
                 <Button
                   size="lg"
                   className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
