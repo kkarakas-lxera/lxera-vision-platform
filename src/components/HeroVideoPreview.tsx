@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import VideoModal from "./VideoModal";
 
@@ -54,7 +53,7 @@ const HeroVideoPreview = () => {
       </div>
       <VideoModal 
         isOpen={open}
-        setIsOpen={setIsOpen}
+        setIsOpen={setOpen}
         videoUrl={HERO_VIDEO_URL}
         videoCaption={HERO_VIDEO_CAPTION}
       />
