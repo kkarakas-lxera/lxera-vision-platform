@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import VideoModal from "./VideoModal";
 
@@ -48,7 +49,7 @@ const HeroVideoPreview = () => {
       <div className="w-full max-w-xl mx-auto mt-2 flex flex-col items-center">
         <span className="block h-0.5 w-16 bg-gradient-to-r from-transparent via-future-green to-transparent mb-1 rounded-full opacity-80" />
         <span className="text-sm text-business-black/60 font-medium tracking-wide">
-          See how LXERA empowers teams to learn, innovate, and transform—in just 90 seconds.
+          Designed for the new world of work, where speed, innovation, and learning are inseparable.
         </span>
       </div>
       <VideoModal 
