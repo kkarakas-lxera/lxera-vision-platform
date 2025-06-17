@@ -30,10 +30,10 @@ const BuiltForInnovatorsSection = () => {
   return (
     <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 font-inter">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up font-inter">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up font-inter">
           Built for Innovators. Designed for Impact.
         </h2>
-        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-normal font-inter">
+        <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-normal font-inter">
           LXERA is made for the teams shaping the future — not maintaining the past.
         </p>
         
