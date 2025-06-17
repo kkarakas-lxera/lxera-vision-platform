@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-smart-beige">
+    <div className="min-h-screen">
       <Navigation />
       <HeroSection />
       <WhyLXERASection />

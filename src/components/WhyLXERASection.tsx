@@ -9,21 +9,20 @@ const WhyLXERASection = () => {
 
   return (
     <>
-      {/* Section Transition with consistent colors */}
+      {/* Section Transition */}
       <div className="relative">
-        <div className="h-32 bg-gradient-to-b from-smart-beige via-smart-beige/95 to-future-green/5 relative overflow-hidden">
+        <div className="h-32 bg-gradient-to-b from-smart-beige via-future-green/10 to-future-green/20 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/15"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-future-green/8 via-transparent to-business-black/5"></div>
           </div>
           <div className="absolute top-8 left-1/4 w-4 h-4 bg-future-green/20 rounded-full animate-float-gentle blur-sm"></div>
-          <div className="absolute top-16 right-1/3 w-3 h-3 bg-smart-beige/40 rounded-full animate-float-gentle animate-delay-500 blur-sm"></div>
+          <div className="absolute top-16 right-1/3 w-3 h-3 bg-business-black/20 rounded-full animate-float-gentle animate-delay-500 blur-sm"></div>
           <div className="absolute top-12 left-2/3 w-2 h-2 bg-future-green/30 rounded-full animate-float-gentle animate-delay-1000"></div>
         </div>
       </div>
 
-      <section id="platform" className="w-full pt-4 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
+      <section id="platform" className="w-full pt-4 pb-24 px-0 sm:px-6 lg:px-12 relative overflow-hidden bg-gradient-to-br from-future-green/15 via-future-green/8 to-future-green/20">
+        <div className="absolute inset-0 bg-gradient-to-tr from-future-green/10 via-transparent to-business-black/5"></div>
         <AnimatedBackground />
         <div className="max-w-7xl mx-auto relative z-10">
           <SectionHeader 
@@ -36,14 +35,14 @@ const WhyLXERASection = () => {
             {filteredCapabilities.map((capability, index) => (
               <div
                 key={capability.title}
-                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+                className="bg-gradient-to-br from-white/90 via-smart-beige/20 to-white/80 lxera-shadow text-center group hover:from-white hover:via-smart-beige/30 hover:to-white/90 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
                 style={{
                   animationDelay: `${300 + index * 100}ms`,
                 }}
               >
                 <div className="p-6">
                   <div className="mb-4 flex justify-center">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-business-black/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                       {capability.icon && (
                         // @ts-ignore
                         <capability.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />

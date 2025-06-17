@@ -13,13 +13,13 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden">
+    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black/95 to-business-black relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center">
         {/* Section Header matching other sections */}
-        <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
+        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8 animate-fade-in-up">
           How LXERA Works
         </h2>
-        <p className="text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
+        <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
           From onboarding to innovation — in 4 steps that drive measurable results.
         </p>
         
@@ -27,21 +27,21 @@ const HowItWorksSection = () => {
           {stepsData.map((step, index) => (
             <div
               key={index}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 group animate-fade-in-up"
+              className="bg-white/10 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 group animate-fade-in-up border border-white/20 hover:bg-white/15"
               style={{
                 animationDelay: `${300 + index * 100}ms`,
               }}
             >
               <div className="p-6">
                 <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 bg-business-black rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20 group-hover:scale-110 transition-all duration-300">
-                    <span className="text-3xl font-extrabold text-white tracking-tight">
+                  <div className="w-16 h-16 bg-future-green rounded-full shadow-lg flex items-center justify-center scale-105 border-4 border-white relative z-20 group-hover:scale-110 transition-all duration-300">
+                    <span className="text-3xl font-extrabold text-business-black tracking-tight">
                       {step.step}
                     </span>
                   </div>
                 </div>
-                <h3 className="text-business-black font-bold text-lg mb-1">{step.title}</h3>
-                <p className="text-business-black/80 mb-4 text-sm">{step.subtitle}</p>
+                <h3 className="text-white font-bold text-lg mb-1">{step.title}</h3>
+                <p className="text-white/80 mb-4 text-sm">{step.subtitle}</p>
                 
                 {/* Video Thumbnail */}
                 <div className="relative rounded-xl overflow-hidden shadow-lg group/video mb-4">
@@ -63,11 +63,11 @@ const HowItWorksSection = () => {
                   </button>
                 </div>
                 
-                <div className="text-xs text-business-black/70 text-center mb-3">
+                <div className="text-xs text-white/70 text-center mb-3">
                   {step.videoCaption}
                 </div>
                 
-                <div className="text-sm text-business-black/60 italic text-center">
+                <div className="text-sm text-white/60 italic text-center">
                   {step.metrics}
                 </div>
               </div>
@@ -75,7 +75,7 @@ const HowItWorksSection = () => {
           ))}
         </div>
         
-        <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700">
+        <p className="text-white/70 mb-6 text-lg animate-fade-in-up animate-delay-700">
           Every LXERA innovation capability shaped by real-world feedback for maximum impact.
         </p>
         
