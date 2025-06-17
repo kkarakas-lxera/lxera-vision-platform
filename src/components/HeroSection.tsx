@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,10 @@ const HeroSection = () => {
       <div className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full blur-lg animate-pulse bg-gradient-to-l from-smart-beige/18 to-future-green/10 animate-delay-500"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main content - side by side layout with better balance */}
-        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-12 mb-12">
-          {/* Left side - Headline and CTA content */}
-          <div className="w-full lg:w-2/5 space-y-4">
+        {/* Main content - side by side layout with bigger video */}
+        <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-8 mb-12">
+          {/* Left side - Headline and CTA content - slightly smaller */}
+          <div className="w-full lg:w-1/3 space-y-4">
             {/* Headline - consistent sizing */}
             <div className="animate-fade-in-up">
               <h1 className="headline text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-business-black leading-tight tracking-tight">
@@ -88,8 +89,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (positioned much further to the right for more text space) */}
-          <div className="w-full lg:w-3/5 lg:pl-20 mt-6 lg:mt-0">
+          {/* Right side - Video (bigger and extends further right) */}
+          <div className="w-full lg:w-2/3 lg:pl-8 mt-6 lg:mt-0">
             <HeroVideoPreview />
           </div>
         </div>
