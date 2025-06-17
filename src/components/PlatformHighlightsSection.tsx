@@ -93,13 +93,6 @@ const highlightsData = [
 const PlatformHighlightsSection = () => {
   return (
     <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-white to-smart-beige/50 relative overflow-hidden z-0">
-      {/* Animated background for consistency */}
-      <div className="absolute inset-0 opacity-3 z-0">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-business-black/10 rounded-full animate-float-gentle"></div>
-        <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/10 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-smart-beige/30 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-lxera-blue/15 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
-      </div>
       <div className="max-w-7xl mx-auto relative z-0">
         {/* Section Header matching Built for Innovators */}
         <div className="text-center mb-12 animate-fade-in-up">

@@ -5,12 +5,6 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 const TransformationStartsSection = () => {
   return (
     <section className="w-full py-28 px-6 text-center bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden">
-      {/* Animated background elements with consistent colors */}
-      <div className="absolute inset-0 opacity-8">
-        <div className="absolute top-10 left-10 w-32 h-32 rounded-full animate-float-gentle bg-gradient-to-br from-future-green/25 to-smart-beige/15"></div>
-        <div className="absolute top-32 right-20 w-20 h-20 rounded-full animate-float-gentle bg-gradient-to-l from-smart-beige/20 to-future-green/18 animate-delay-1000"></div>
-        <div className="absolute bottom-20 left-1/3 w-16 h-16 rounded-full animate-float-gentle bg-gradient-to-r from-future-green/15 to-smart-beige/25 animate-delay-2000"></div>
-      </div>
       <div className="max-w-4xl mx-auto relative z-10">
         
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-fade-in-up">
