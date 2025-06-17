@@ -28,7 +28,7 @@ const BuiltForInnovatorsSection = () => {
   ];
 
   return (
-    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-lxera-blue/10 via-light-green/15 to-emerald/10">
+    <section className="w-full py-20 px-6 lg:px-12 bg-white relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8 animate-fade-in-up">
           Built for Innovators. Designed for Impact.
@@ -41,20 +41,20 @@ const BuiltForInnovatorsSection = () => {
           {features.map((item, index) => (
             <Card 
               key={index} 
-              className="bg-gradient-to-br from-white/90 via-light-green/10 to-white/80 lxera-shadow text-center group hover:from-white hover:via-light-green/20 hover:to-white/90 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+              className="bg-gradient-to-br from-white/90 via-smart-beige/15 to-white/80 lxera-shadow text-center group hover:from-white hover:via-smart-beige/25 hover:to-white/90 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
               style={{
                 animationDelay: `${300 + index * 100}ms`,
               }}
             >
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald/25 to-lxera-blue/15 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-smart-beige/30 to-business-black/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                     <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                   </div>
                 </div>
                 <p className="text-business-black/80 mb-3 font-medium">{item.text}</p>
                 <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
-                  <p className="text-sm text-business-black/60 italic border-t border-emerald/20 pt-3">
+                  <p className="text-sm text-business-black/60 italic border-t border-smart-beige/30 pt-3">
                     {item.microcopy}
                   </p>
                 </div>

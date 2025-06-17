@@ -13,7 +13,7 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black/95 to-business-black relative overflow-hidden">
+    <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-lxera-red/85 via-lxera-red/90 to-lxera-red/95 relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center">
         {/* Section Header matching other sections */}
         <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8 animate-fade-in-up">

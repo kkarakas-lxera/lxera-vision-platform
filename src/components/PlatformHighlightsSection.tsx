@@ -92,13 +92,13 @@ const highlightsData = [
 
 const PlatformHighlightsSection = () => {
   return (
-    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige via-smart-beige/80 to-white relative overflow-hidden z-0">
+    <section className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-emerald/25 via-emerald/15 to-emerald/30 relative overflow-hidden z-0">
       {/* Animated background for consistency */}
       <div className="absolute inset-0 opacity-3 z-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-business-black/5 rounded-full animate-float-gentle"></div>
-        <div className="absolute top-1/3 right-16 w-24 h-24 bg-future-green/10 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/3 right-16 w-24 h-24 bg-emerald/15 rounded-full animate-float-gentle" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-business-black/8 rounded-full animate-float-gentle" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-future-green/15 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
+        <div className="absolute top-2/3 right-1/4 w-20 h-20 bg-emerald/20 rounded-full animate-float-gentle" style={{animationDelay: '3s'}}></div>
       </div>
       <div className="max-w-7xl mx-auto relative z-0">
         {/* Section Header matching Built for Innovators */}
@@ -117,9 +117,9 @@ const PlatformHighlightsSection = () => {
             <Card
               key={index}
               className="
-                bg-gradient-to-br from-white/90 via-future-green/5 to-white/80 
+                bg-gradient-to-br from-white/90 via-emerald/10 to-white/80 
                 lxera-shadow text-center group 
-                hover:from-white hover:via-future-green/10 hover:to-white/90 
+                hover:from-white hover:via-emerald/15 hover:to-white/90 
                 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up
                 "
               style={{
@@ -128,7 +128,7 @@ const PlatformHighlightsSection = () => {
             >
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-future-green/25 to-business-black/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald/30 to-business-black/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                     <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                   </div>
                 </div>
@@ -136,7 +136,7 @@ const PlatformHighlightsSection = () => {
                 <p className="text-business-black/70 mb-3 text-sm min-h-[34px]">{item.description}</p>
                 {/* Microcopy/ROI reveals on hover */}
                 <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-14 opacity-0 group-hover:opacity-100">
-                  <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-2">
+                  <p className="text-sm text-business-black/60 italic border-t border-emerald/20 pt-2">
                     {item.microcopy}
                   </p>
                 </div>
