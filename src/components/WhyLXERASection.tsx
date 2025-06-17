@@ -25,10 +25,10 @@ const WhyLXERASection = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-left mb-20 animate-fade-in-up relative">
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-business-black mb-6 animate-slide-in-left leading-tight" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight" style={{animationDelay: '0.2s'}}>
                 What Makes LXERA Different
               </h2>
-              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-medium" style={{animationDelay: '0.4s'}}>
+              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-normal" style={{animationDelay: '0.4s'}}>
                 LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across four core pillars.
               </p>
               
@@ -61,16 +61,16 @@ const WhyLXERASection = () => {
                       )}
                     </div>
                   </div>
-                  <p className="text-business-black font-bold text-lg mb-1">{capability.title}</p>
+                  <p className="text-business-black font-medium text-lg mb-1">{capability.title}</p>
                   {/* Use valueStatement as subtitle */}
                   {capability.valueStatement && (
-                    <p className="text-business-black/80 mb-2 text-base">{capability.valueStatement}</p>
+                    <p className="text-business-black/80 mb-2 text-base font-normal">{capability.valueStatement}</p>
                   )}
                   {/* Always show description. If tangibleResults, show on hover as microcopy */}
-                  <p className="text-business-black/70 text-sm min-h-[40px]">{capability.description}</p>
+                  <p className="text-business-black/70 text-sm min-h-[40px] font-normal">{capability.description}</p>
                   {capability.tangibleResults && (
                     <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-32 opacity-0 group-hover:opacity-100">
-                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 leading-relaxed">
+                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 leading-relaxed font-normal">
                         {capability.tangibleResults.description}
                       </p>
                     </div>
@@ -81,7 +81,7 @@ const WhyLXERASection = () => {
           </div>
 
           {/* Conclude with an impact note for consistency */}
-          <p className="text-business-black/70 mb-2 text-center text-base mt-8">
+          <p className="text-business-black/70 mb-2 text-center text-base mt-8 font-normal">
             Every LXERA innovation capability shaped by real-world feedback for maximum impact.
           </p>
         </div>
