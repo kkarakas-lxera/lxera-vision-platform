@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -27,13 +28,12 @@ const Pricing = () => {
       period: "contact us",
       description: "Tailored for large organizations",
       features: [
-        "Unlimited team members",
-        "Enterprise analytics",
-        "24/7 dedicated support",
-        "Custom integrations",
-        "Unlimited storage",
-        "Advanced security",
-        "SLA guarantee"
+        "Everything in Core, plus:",
+        "Enterprise-Grade Security & Compliance",
+        "Low-Code / No-Code Innovation Sandbox",
+        "SSO/HRIS integrations",
+        "Org-specific AI mentor",
+        "Compliance & security features"
       ],
       popular: false
     }
@@ -155,3 +155,4 @@ const Pricing = () => {
 };
 
 export default Pricing;
+
