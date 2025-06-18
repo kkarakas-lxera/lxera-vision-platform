@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -9,12 +10,14 @@ const Pricing = () => {
       period: "per month",
       description: "Perfect for growing businesses",
       features: [
-        "Up to 25 team members",
-        "Advanced analytics",
-        "Priority support",
-        "All integrations",
-        "10GB storage",
-        "Custom workflows"
+        "AI Hyper-Personalized Learning Engine",
+        "Taxonomist Skill Gap Engine",
+        "AI Avatar-Powered Content Creation",
+        "Real-Time Adaptive Gamification",
+        "Smart Nudging & Behavioral Triggers",
+        "Human-in-the-Loop Intelligence",
+        "Executive-Ready Analytics Dashboard",
+        "Knowledge Base Transformation"
       ],
       popular: true
     },
