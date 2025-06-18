@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
+import PlanComparisonSection from "@/components/PlanComparisonSection";
 
 const Pricing = () => {
   const featureExplanations: {[key: string]: string} = {
@@ -171,6 +171,9 @@ const Pricing = () => {
             </div>
           </div>
         </div>
+
+        {/* Plan Comparison Section */}
+        <PlanComparisonSection />
 
         {/* Enhanced FAQ Section */}
         <div className="py-16 lg:py-24 bg-white">
