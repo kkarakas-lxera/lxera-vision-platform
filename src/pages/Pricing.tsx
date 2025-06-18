@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Check, Info, Star, Zap, ArrowRight, Users, Shield, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 
 const Pricing = () => {
@@ -62,26 +64,29 @@ const Pricing = () => {
   ];
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-smart-beige via-white to-smart-beige">
-        {/* Enhanced Header Section */}
-        <div className="bg-gradient-to-br from-white via-smart-beige/30 to-future-green/10 py-20 lg:py-28">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
+    <div className="min-h-screen bg-smart-beige">
+      <Navigation />
+      
+      <TooltipProvider>
+        {/* Enhanced Header Section - matching home page hero style */}
+        <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
+          <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
+          
+          <div className="max-w-7xl mx-auto relative z-10 text-center">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-future-green/20 text-business-black text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4 mr-2" />
               Transparent, Simple Pricing
             </div>
-            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-8 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium text-business-black mb-6 leading-tight tracking-tight font-inter">
               Choose Your
-              <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent"> Learning </span>
-              Journey
+              <span className="block" style={{ color: '#B1B973' }}>Learning Journey</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-business-black/70 max-w-4xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-business-black/85 max-w-4xl mx-auto mb-10 leading-relaxed font-normal font-inter">
               Transform your organization with AI-powered learning. Start your journey today with our comprehensive plans designed for every stage of growth.
             </p>
             
             {/* Enhanced Trust badges */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-base text-business-black/60">
+            <div className="flex flex-wrap justify-center items-center gap-6 text-base text-business-black/60">
               <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl">
                 <Star className="h-5 w-5 text-future-green" />
                 <span className="font-medium">14-day free trial</span>
@@ -96,20 +101,23 @@ const Pricing = () => {
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Enhanced Pricing Cards */}
-        <div className="py-20 lg:py-28">
-          <div className="max-w-6xl mx-auto px-6 lg:px-12">
+        {/* Enhanced Pricing Cards - matching home page section style */}
+        <section className="w-full py-16 px-6 bg-gradient-to-b from-smart-beige/70 via-future-green/5 to-smart-beige/60 relative overflow-hidden font-inter">
+          <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
+          
+          <div className="max-w-6xl mx-auto relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               {plans.map((plan, index) => (
                 <div
                   key={plan.name}
-                  className={`relative bg-white rounded-3xl p-10 shadow-2xl transition-all duration-500 hover:shadow-3xl hover:-translate-y-3 border-2 group ${
+                  className={`relative bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 rounded-3xl p-10 shadow-2xl transition-all duration-500 hover:shadow-3xl hover:-translate-y-3 border-2 group lxera-shadow ${
                     plan.popular 
-                      ? 'border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' 
-                      : 'border-future-green/30 hover:border-future-green'
-                  }`}
+                      ? 'border-business-black scale-105 hover:from-smart-beige/90 hover:via-business-black/15 hover:to-smart-beige/70' 
+                      : 'border-future-green/30 hover:border-future-green hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70'
+                  } lxera-hover`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
@@ -121,7 +129,7 @@ const Pricing = () => {
                   
                   <div className="text-center mb-10">
                     <div className="flex items-center justify-center mb-4">
-                      <h3 className={`text-3xl font-bold transition-colors duration-300 ${
+                      <h3 className={`text-3xl font-bold transition-colors duration-300 font-inter ${
                         plan.popular ? 'text-business-black' : 'text-business-black group-hover:text-future-green'
                       }`}>
                         {plan.name}
@@ -132,23 +140,23 @@ const Pricing = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-lg text-business-black/70 mb-6 leading-relaxed">
+                    <p className="text-lg text-business-black/70 mb-6 leading-relaxed font-normal font-inter">
                       {plan.description}
                     </p>
                     <div className="mb-6">
-                      <span className="text-6xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block">
+                      <span className="text-6xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
                       </span>
-                      <span className="text-xl text-business-black/60 ml-3">
+                      <span className="text-xl text-business-black/60 ml-3 font-normal font-inter">
                         {plan.period}
                       </span>
                     </div>
                     <div className="flex items-center justify-center text-business-black/60 mb-2">
                       <Users className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium">{plan.users}</span>
+                      <span className="text-sm font-medium font-inter">{plan.users}</span>
                     </div>
                     {plan.subtitle && (
-                      <p className="text-base text-business-black/70 font-medium bg-smart-beige/30 px-4 py-2 rounded-xl">
+                      <p className="text-base text-business-black/70 font-medium bg-smart-beige/30 px-4 py-2 rounded-xl font-inter">
                         {plan.subtitle}
                       </p>
                     )}
@@ -164,7 +172,7 @@ const Pricing = () => {
                             <Check className={`h-6 w-6 mr-4 flex-shrink-0 mt-0.5 group-hover/feature:scale-110 transition-transform duration-200 ${
                               plan.popular ? 'text-business-black' : 'text-future-green'
                             }`} />
-                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200 leading-relaxed">
+                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200 leading-relaxed font-normal font-inter">
                               {feature}
                             </span>
                             {hasExplanation && (
@@ -190,7 +198,7 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                    className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl font-inter ${
                       plan.popular
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
                         : 'bg-future-green hover:bg-emerald text-business-black hover:text-white hover:shadow-future-green/25'
@@ -203,19 +211,21 @@ const Pricing = () => {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Plan Comparison Section */}
         <PlanComparisonSection />
 
-        {/* Enhanced FAQ Section */}
-        <div className="py-20 lg:py-28 bg-gradient-to-b from-white to-smart-beige/30">
-          <div className="max-w-5xl mx-auto px-6 lg:px-12">
+        {/* Enhanced FAQ Section - matching home page section style */}
+        <section className="w-full py-16 px-6 bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden font-inter">
+          <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
+          
+          <div className="max-w-5xl mx-auto relative z-10">
             <div className="text-center mb-16">
-              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
                 Frequently Asked Questions
               </h2>
-              <p className="text-xl text-business-black/70">
+              <p className="text-xl text-business-black/70 font-normal font-inter">
                 Everything you need to know about our pricing and plans
               </p>
             </div>
@@ -247,20 +257,22 @@ const Pricing = () => {
                   answer: "We take security seriously with SOC2 compliance, GDPR alignment, end-to-end encryption, and role-based access controls for all enterprise features."
                 }
               ].map((faq, index) => (
-                <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                  <h3 className="text-xl font-bold text-business-black mb-4 leading-tight">
+                <div key={index} className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-future-green/20 lxera-shadow lxera-hover">
+                  <h3 className="text-xl font-bold text-business-black mb-4 leading-tight font-inter">
                     {faq.question}
                   </h3>
-                  <p className="text-business-black/70 leading-relaxed">
+                  <p className="text-business-black/70 leading-relaxed font-normal font-inter">
                     {faq.answer}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
-    </TooltipProvider>
+        </section>
+      </TooltipProvider>
+      
+      <Footer />
+    </div>
   );
 };
 
