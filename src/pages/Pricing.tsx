@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -35,7 +36,7 @@ const Pricing = () => {
         "Knowledge Base Transformation",
         "Taxonomist Skill Gap Engine"
       ],
-      popular: true
+      popular: false
     },
     {
       name: "Enterprise",
@@ -49,7 +50,7 @@ const Pricing = () => {
         "Low-Code / No-Code Innovation Sandbox",
         "SSO/HRIS Integrations"
       ],
-      popular: false
+      popular: true
     }
   ];
 
@@ -88,19 +89,21 @@ const Pricing = () => {
                 <div
                   key={plan.name}
                   className={`relative bg-white rounded-3xl p-8 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group ${
-                    plan.popular ? 'border-4 border-future-green scale-105' : 'border border-gray-200 hover:border-future-green/30'
+                    plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-future-green/30'
                   }`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-future-green text-white px-6 py-2 rounded-full text-sm font-semibold animate-pulse">
-                        Most Popular
+                      <span className="bg-business-black text-white px-6 py-2 rounded-full text-sm font-semibold">
+                        Enterprise Ready
                       </span>
                     </div>
                   )}
                   
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300">
+                    <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${
+                      plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-future-green'
+                    }`}>
                       {plan.name}
                     </h3>
                     <p className="text-business-black/60 mb-6">
@@ -128,7 +131,9 @@ const Pricing = () => {
                       return (
                         <li key={featureIndex}>
                           <div className="flex items-center group/feature">
-                            <Check className="h-5 w-5 text-future-green mr-3 flex-shrink-0 group-hover/feature:scale-110 transition-transform duration-200" />
+                            <Check className={`h-5 w-5 mr-3 flex-shrink-0 group-hover/feature:scale-110 transition-transform duration-200 ${
+                              plan.popular ? 'text-business-black' : 'text-future-green'
+                            }`} />
                             <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200">{feature}</span>
                             {hasExplanation && (
                               <Tooltip>
@@ -155,8 +160,8 @@ const Pricing = () => {
                   <Button
                     className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                       plan.popular
-                        ? 'bg-future-green hover:bg-future-green/90 text-white hover:shadow-future-green/25'
-                        : 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
+                        ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
+                        : 'bg-future-green hover:bg-future-green/90 text-white hover:shadow-future-green/25'
                     }`}
                   >
                     {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
