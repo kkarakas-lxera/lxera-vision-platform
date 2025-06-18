@@ -23,8 +23,8 @@ const Pricing = () => {
   const plans = [
     {
       name: "Core",
-      price: "$199",
-      period: "per month",
+      price: "$49",
+      period: "per month/per user",
       description: "Perfect for growing businesses",
       features: [
         "AI Hyper-Personalized Learning Engine",
