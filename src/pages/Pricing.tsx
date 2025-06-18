@@ -1,28 +1,13 @@
-
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
 const Pricing = () => {
   const plans = [
     {
-      name: "Starter",
-      price: "$99",
+      name: "Core",
+      price: "$199",
       period: "per month",
-      description: "Perfect for small teams getting started",
-      features: [
-        "Up to 5 team members",
-        "Basic analytics",
-        "Email support",
-        "Standard integrations",
-        "1GB storage"
-      ],
-      popular: false
-    },
-    {
-      name: "Professional",
-      price: "$299",
-      period: "per month",
-      description: "Ideal for growing businesses",
+      description: "Perfect for growing businesses",
       features: [
         "Up to 25 team members",
         "Advanced analytics",
@@ -67,8 +52,8 @@ const Pricing = () => {
 
       {/* Pricing Cards */}
       <div className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto px-6 lg:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
