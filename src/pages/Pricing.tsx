@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -84,7 +82,7 @@ const Pricing = () => {
                   <p className="text-business-black/60 mb-6">
                     {plan.description}
                   </p>
-                  <div className="mb-6">
+                  <div className={`mb-6 ${plan.name === 'Enterprise' ? 'text-right' : ''}`}>
                     <span className="text-5xl font-bold text-business-black">
                       {plan.price}
                     </span>
@@ -160,4 +158,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-
