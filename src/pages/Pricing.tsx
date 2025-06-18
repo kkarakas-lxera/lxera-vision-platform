@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -70,7 +71,7 @@ const Pricing = () => {
                   </div>
                 )}
                 
-                <div className={`mb-8 ${plan.name === 'Enterprise' ? 'text-right' : 'text-center'}`}>
+                <div className={`mb-8 ${plan.name === 'Enterprise' ? 'text-left' : 'text-center'}`}>
                   <h3 className="text-2xl font-bold text-business-black mb-2">
                     {plan.name}
                   </h3>
