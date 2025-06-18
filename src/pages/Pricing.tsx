@@ -37,7 +37,7 @@ const Pricing = () => {
         "Taxonomist Skill Gap Engine"
       ],
       popular: false,
-      hasFreeTrial: true
+      hasFreeTrial: false
     },
     {
       name: "Enterprise",
@@ -114,11 +114,6 @@ const Pricing = () => {
                     {plan.subtitle && (
                       <p className="text-sm text-business-black/60 font-normal font-inter">
                         {plan.subtitle}
-                      </p>
-                    )}
-                    {plan.hasFreeTrial && (
-                      <p className="text-sm text-future-green font-medium font-inter mt-2">
-                        Start your free 14-day trial
                       </p>
                     )}
                   </div>
