@@ -227,60 +227,46 @@ const PlanComparisonSection = () => {
 
   return (
     <TooltipProvider>
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="py-12 bg-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8">
           {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
               Compare plans and features
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base text-gray-600 max-w-2xl mx-auto">
               Choose the plan that best fits your organization's learning and innovation needs
             </p>
           </div>
 
-          {/* Plan Headers */}
-          <div className="grid grid-cols-12 gap-6 mb-12">
-            <div className="col-span-6"></div>
-            <div className="col-span-3 text-center">
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Core</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-1">$199</div>
-                <div className="text-sm text-gray-500 mb-4">per user/month</div>
-                <button className="w-full bg-gray-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors">
-                  Get started
-                </button>
-              </div>
-            </div>
-            <div className="col-span-3 text-center">
-              <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200 relative">
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Most Popular
-                  </span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Enterprise</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-1">Custom</div>
-                <div className="text-sm text-gray-500 mb-4">pricing</div>
-                <button className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                  Contact sales
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Comparison Table */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+            {/* Table Header */}
+            <div className="bg-gray-50 border-b border-gray-200">
+              <div className="grid grid-cols-3 gap-0">
+                <div className="px-4 py-3">
+                  <span className="text-sm font-medium text-gray-500">Features</span>
+                </div>
+                <div className="px-4 py-3 text-center border-l border-gray-200">
+                  <div className="text-sm font-semibold text-gray-900">Core</div>
+                  <div className="text-xs text-gray-500 mt-0.5">$199/month</div>
+                </div>
+                <div className="px-4 py-3 text-center border-l border-gray-200">
+                  <div className="text-sm font-semibold text-gray-900">Enterprise</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Custom pricing</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Content */}
             {comparisonFeatures.map((category, categoryIndex) => (
               <div key={categoryIndex}>
                 {/* Category Header */}
-                <div className="bg-gray-50 border-b border-gray-200">
-                  <div className="grid grid-cols-12 gap-6">
-                    <div className="col-span-12 py-4 px-6">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {category.category}
-                      </h4>
-                    </div>
+                <div className="bg-gray-50/50 border-b border-gray-100">
+                  <div className="px-4 py-2">
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      {category.category}
+                    </h4>
                   </div>
                 </div>
                 
@@ -288,53 +274,53 @@ const PlanComparisonSection = () => {
                 {category.features.map((feature, featureIndex) => (
                   <div 
                     key={featureIndex}
-                    className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
+                    className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/30 transition-colors"
                   >
-                    <div className="grid grid-cols-12 gap-6 py-4 px-6">
-                      <div className="col-span-6 flex items-center">
-                        <span className="font-medium text-gray-900 mr-2">
+                    <div className="grid grid-cols-3 gap-0 py-2">
+                      <div className="px-4 flex items-center min-h-[40px]">
+                        <span className="text-sm text-gray-900 mr-2">
                           {feature.name}
                         </span>
                         {featureExplanations[feature.name] && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                                <Info className="h-4 w-4 text-gray-400" />
+                              <button className="p-0.5 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
+                                <Info className="h-3 w-3 text-gray-400" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent 
                               side="top" 
-                              className="max-w-xs bg-gray-900 text-white p-3 text-sm rounded-lg"
+                              className="max-w-xs bg-gray-900 text-white p-2 text-xs rounded-md"
                             >
                               {featureExplanations[feature.name]}
                             </TooltipContent>
                           </Tooltip>
                         )}
                       </div>
-                      <div className="col-span-3 flex items-center justify-center">
+                      <div className="px-4 flex items-center justify-center min-h-[40px] border-l border-gray-200">
                         {feature.coreAvailable ? (
                           feature.core ? (
-                            <div className="text-sm text-gray-600 text-center">
+                            <div className="text-xs text-gray-600 text-center leading-tight">
                               {feature.core}
                             </div>
                           ) : (
-                            <Check className="h-5 w-5 text-green-500" />
+                            <Check className="h-4 w-4 text-green-500" />
                           )
                         ) : (
-                          <X className="h-5 w-5 text-gray-300" />
+                          <X className="h-4 w-4 text-gray-300" />
                         )}
                       </div>
-                      <div className="col-span-3 flex items-center justify-center">
+                      <div className="px-4 flex items-center justify-center min-h-[40px] border-l border-gray-200">
                         {feature.enterpriseAvailable ? (
                           feature.enterprise ? (
-                            <div className="text-sm text-gray-600 text-center">
+                            <div className="text-xs text-gray-600 text-center leading-tight">
                               {feature.enterprise}
                             </div>
                           ) : (
-                            <Check className="h-5 w-5 text-green-500" />
+                            <Check className="h-4 w-4 text-green-500" />
                           )
                         ) : (
-                          <X className="h-5 w-5 text-gray-300" />
+                          <X className="h-4 w-4 text-gray-300" />
                         )}
                       </div>
                     </div>
@@ -345,15 +331,15 @@ const PlanComparisonSection = () => {
           </div>
 
           {/* Call-to-Action */}
-          <div className="text-center mt-12">
-            <p className="text-lg text-gray-600 mb-6">
+          <div className="text-center mt-8">
+            <p className="text-base text-gray-600 mb-4">
               Need help choosing the right plan? Our team is here to help.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-sm font-medium transition-colors">
                 Start Free Trial
               </button>
-              <button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+              <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2.5 rounded-md text-sm font-medium transition-colors">
                 Contact Sales
               </button>
             </div>
