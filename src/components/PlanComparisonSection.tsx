@@ -154,10 +154,10 @@ const PlanComparisonSection = () => {
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-black mb-4">
             Compare plans and features
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-black max-w-2xl mx-auto">
             Choose the plan that best fits your organization's learning and innovation needs
           </p>
         </div>
@@ -167,15 +167,15 @@ const PlanComparisonSection = () => {
           {/* Table Header */}
           <div className="grid grid-cols-3 gap-0 bg-gray-50 border-b border-gray-200">
             <div className="px-6 py-4">
-              <span className="text-lg font-semibold text-gray-900">Features</span>
+              <span className="text-lg font-semibold text-black">Features</span>
             </div>
             <div className="px-6 py-4 text-center bg-gradient-to-br from-future-green/20 to-smart-beige/50 border-l border-gray-200">
-              <div className="text-lg font-bold text-gray-900">CORE</div>
-              <div className="text-sm text-gray-600 mt-1">$199/month</div>
+              <div className="text-lg font-bold text-black">CORE</div>
+              <div className="text-sm text-black mt-1">$199/month</div>
             </div>
             <div className="px-6 py-4 text-center bg-gradient-to-br from-business-black/10 to-business-black/20 border-l border-gray-200">
-              <div className="text-lg font-bold text-gray-900">ENTERPRISE</div>
-              <div className="text-sm text-gray-600 mt-1">Custom pricing</div>
+              <div className="text-lg font-bold text-black">ENTERPRISE</div>
+              <div className="text-sm text-black mt-1">Custom pricing</div>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ const PlanComparisonSection = () => {
               {/* Category Header - Updated styling to match reference */}
               <div className="grid grid-cols-3 gap-0 border-t border-gray-200 bg-gray-50">
                 <div className="px-6 py-5 col-span-3">
-                  <h4 className="text-lg font-bold text-gray-900">
+                  <h4 className="text-lg font-bold text-black">
                     {category.category}
                   </h4>
                 </div>
@@ -198,7 +198,7 @@ const PlanComparisonSection = () => {
                   className="grid grid-cols-3 gap-0 border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   <div className="px-6 py-4 flex items-center border-r border-gray-200">
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-black">
                       {feature.name}
                     </span>
                   </div>
@@ -206,14 +206,14 @@ const PlanComparisonSection = () => {
                     {feature.core ? (
                       <Check className="h-5 w-5 text-future-green" />
                     ) : (
-                      <X className="h-5 w-5 text-gray-300" />
+                      <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
                   <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-business-black/5 to-business-black/15">
                     {feature.enterprise ? (
                       <Check className="h-5 w-5 text-business-black" />
                     ) : (
-                      <X className="h-5 w-5 text-gray-300" />
+                      <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
                 </div>
@@ -224,7 +224,7 @@ const PlanComparisonSection = () => {
 
         {/* Call-to-Action */}
         <div className="text-center mt-10">
-          <p className="text-base text-gray-600 mb-6">
+          <p className="text-base text-black mb-6">
             Need help choosing the right plan? Our team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
