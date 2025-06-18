@@ -204,14 +204,14 @@ const PlanComparisonSection = () => {
                   </div>
                   <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-future-green/10 to-smart-beige/30 border-r border-gray-200">
                     {feature.core ? (
-                      <Check className="h-5 w-5 text-future-green" />
+                      <Check className="h-5 w-5 text-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
                   <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-business-black/5 to-business-black/15">
                     {feature.enterprise ? (
-                      <Check className="h-5 w-5 text-business-black" />
+                      <Check className="h-5 w-5 text-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}
