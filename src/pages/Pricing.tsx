@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -75,9 +76,11 @@ const Pricing = () => {
                   <h3 className="text-2xl font-bold text-business-black mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-business-black/60 mb-6">
-                    {plan.description}
-                  </p>
+                  {plan.name !== 'Enterprise' && (
+                    <p className="text-business-black/60 mb-6">
+                      {plan.description}
+                    </p>
+                  )}
                   <div className="mb-4">
                     <span className="text-5xl font-bold text-business-black">
                       {plan.price}
@@ -92,6 +95,14 @@ const Pricing = () => {
                     </p>
                   )}
                 </div>
+
+                {plan.name === 'Enterprise' && (
+                  <div className="text-center mb-6">
+                    <p className="text-business-black/60">
+                      {plan.description}
+                    </p>
+                  </div>
+                )}
 
                 <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, featureIndex) => (
@@ -159,3 +170,4 @@ const Pricing = () => {
 };
 
 export default Pricing;
+
