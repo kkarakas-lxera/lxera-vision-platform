@@ -170,7 +170,7 @@ const PlanComparisonSection = () => {
             <div className="px-6 py-4">
               <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
-            <div className="px-6 py-4 text-center bg-future-green/20 border-l border-gray-200">
+            <div className="px-6 py-4 text-center bg-white border-l border-gray-200">
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
@@ -203,9 +203,9 @@ const PlanComparisonSection = () => {
                       {feature.name}
                     </span>
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-future-green/20 border-r border-gray-200">
+                  <div className="px-6 py-4 flex items-center justify-center bg-white border-r border-gray-200">
                     {feature.core ? (
-                      <Check className="h-5 w-5 text-future-green" />
+                      <Check className="h-5 w-5 text-business-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}

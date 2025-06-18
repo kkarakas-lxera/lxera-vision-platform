@@ -90,7 +90,7 @@ const Pricing = () => {
                 <div
                   key={plan.name}
                   className={`relative bg-white rounded-3xl p-8 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group ${
-                    plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-future-green/30'
+                    plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   {plan.popular && (
@@ -103,7 +103,7 @@ const Pricing = () => {
                   
                   <div className="text-center mb-8">
                     <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
-                      plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-future-green'
+                      plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
                     }`}>
                       {plan.name}
                     </h3>
@@ -133,7 +133,7 @@ const Pricing = () => {
                         <li key={featureIndex}>
                           <div className="flex items-center group/feature">
                             <Check className={`h-5 w-5 mr-3 flex-shrink-0 group-hover/feature:scale-110 transition-transform duration-200 ${
-                              plan.popular ? 'text-business-black' : 'text-future-green'
+                              plan.popular ? 'text-business-black' : 'text-business-black'
                             }`} />
                             <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200 font-inter font-normal">{feature}</span>
                             {hasExplanation && (
@@ -162,7 +162,7 @@ const Pricing = () => {
                     className={`w-full py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
                       plan.popular
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                        : 'bg-future-green hover:bg-future-green/90 text-white hover:shadow-future-green/25'
+                        : 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
                     }`}
                   >
                     {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
