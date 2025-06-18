@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -170,11 +169,11 @@ const PlanComparisonSection = () => {
             <div className="px-6 py-4">
               <span className="text-lg font-semibold text-black">Features</span>
             </div>
-            <div className="px-6 py-4 text-center bg-future-green/20 border-l border-gray-200">
+            <div className="px-6 py-4 text-center bg-gradient-to-br from-future-green/20 to-smart-beige/50 border-l border-gray-200">
               <div className="text-lg font-bold text-black">CORE</div>
               <div className="text-sm text-black mt-1">$199/month</div>
             </div>
-            <div className="px-6 py-4 text-center bg-business-black/10 border-l border-gray-200">
+            <div className="px-6 py-4 text-center bg-gradient-to-br from-business-black/10 to-business-black/20 border-l border-gray-200">
               <div className="text-lg font-bold text-black">ENTERPRISE</div>
               <div className="text-sm text-black mt-1">Custom pricing</div>
             </div>
@@ -183,7 +182,7 @@ const PlanComparisonSection = () => {
           {/* Table Content */}
           {comparisonFeatures.map((category, categoryIndex) => (
             <div key={categoryIndex}>
-              {/* Category Header */}
+              {/* Category Header - Updated styling to match reference */}
               <div className="grid grid-cols-3 gap-0 border-t border-gray-200 bg-gray-50">
                 <div className="px-6 py-5 col-span-3">
                   <h4 className="text-lg font-bold text-black">
@@ -203,16 +202,16 @@ const PlanComparisonSection = () => {
                       {feature.name}
                     </span>
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-future-green/10 border-r border-gray-200">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-future-green/10 to-smart-beige/30 border-r border-gray-200">
                     {feature.core ? (
-                      <Check className="h-5 w-5 text-future-green" />
+                      <Check className="h-5 w-5 text-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-business-black/5">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-business-black/5 to-business-black/15">
                     {feature.enterprise ? (
-                      <Check className="h-5 w-5 text-business-black" />
+                      <Check className="h-5 w-5 text-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}
@@ -229,7 +228,7 @@ const PlanComparisonSection = () => {
             Need help choosing the right plan? Our team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-future-green hover:bg-future-green/90 text-black px-8 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 hover:shadow-lg">
+            <button className="bg-future-green hover:bg-future-green/90 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 hover:shadow-lg">
               Start Free Trial
             </button>
             <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 hover:shadow-lg">
