@@ -227,126 +227,133 @@ const PlanComparisonSection = () => {
 
   return (
     <TooltipProvider>
-      <div className="py-16 lg:py-24 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+      <div className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Compare plans and features
             </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Choose the plan that best fits your organization's learning and innovation needs
+            </p>
           </div>
 
           {/* Plan Headers */}
-          <div className="grid grid-cols-3 gap-8 mb-8">
-            <div></div>
-            <div className="bg-gray-100 rounded-2xl p-8 text-center">
-              <h3 className="text-2xl font-bold text-business-black mb-2">CORE</h3>
-              <div className="text-4xl font-bold text-business-black mb-2">$199</div>
-              <div className="text-gray-600 mb-6">per user/month</div>
-              <button className="bg-business-black text-white px-8 py-3 rounded-full font-semibold hover:bg-business-black/90 transition-colors w-full">
-                Get started
-              </button>
+          <div className="grid grid-cols-12 gap-6 mb-12">
+            <div className="col-span-6"></div>
+            <div className="col-span-3 text-center">
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Core</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-1">$199</div>
+                <div className="text-sm text-gray-500 mb-4">per user/month</div>
+                <button className="w-full bg-gray-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                  Get started
+                </button>
+              </div>
             </div>
-            <div className="bg-blue-50 rounded-2xl p-8 text-center border-2 border-blue-200">
-              <h3 className="text-2xl font-bold text-business-black mb-2">ENTERPRISE</h3>
-              <div className="text-2xl font-bold text-business-black mb-2">Custom</div>
-              <div className="text-2xl font-bold text-business-black mb-2">pricing</div>
-              <div className="text-gray-600 mb-6">&nbsp;</div>
-              <button className="bg-business-black text-white px-8 py-3 rounded-full font-semibold hover:bg-business-black/90 transition-colors w-full">
-                Contact sales
-              </button>
+            <div className="col-span-3 text-center">
+              <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200 relative">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    Most Popular
+                  </span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Enterprise</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-1">Custom</div>
+                <div className="text-sm text-gray-500 mb-4">pricing</div>
+                <button className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                  Contact sales
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Comparison Table */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <tbody>
-                  {comparisonFeatures.map((category, categoryIndex) => (
-                    <>
-                      {/* Category Header */}
-                      <tr key={`category-${categoryIndex}`} className="bg-gray-50 border-b border-gray-200">
-                        <td colSpan={3} className="py-4 px-6">
-                          <h4 className="text-lg font-semibold text-business-black">
-                            {category.category}
-                          </h4>
-                        </td>
-                      </tr>
-                      
-                      {/* Category Features */}
-                      {category.features.map((feature, featureIndex) => (
-                        <tr 
-                          key={`${categoryIndex}-${featureIndex}`}
-                          className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
-                        >
-                          <td className="py-4 px-6 w-1/3">
-                            <div className="flex items-center">
-                              <span className="font-medium text-business-black/90 flex-1">
-                                {feature.name}
-                              </span>
-                              {featureExplanations[feature.name] && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button className="ml-2 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200">
-                                      <Info className="h-4 w-4 text-gray-400 hover:text-future-green" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent 
-                                    side="top" 
-                                    className="max-w-xs bg-white border border-gray-200 shadow-lg p-3 text-sm text-business-black/80"
-                                  >
-                                    {featureExplanations[feature.name]}
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            {comparisonFeatures.map((category, categoryIndex) => (
+              <div key={categoryIndex}>
+                {/* Category Header */}
+                <div className="bg-gray-50 border-b border-gray-200">
+                  <div className="grid grid-cols-12 gap-6">
+                    <div className="col-span-12 py-4 px-6">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {category.category}
+                      </h4>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Category Features */}
+                {category.features.map((feature, featureIndex) => (
+                  <div 
+                    key={featureIndex}
+                    className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="grid grid-cols-12 gap-6 py-4 px-6">
+                      <div className="col-span-6 flex items-center">
+                        <span className="font-medium text-gray-900 mr-2">
+                          {feature.name}
+                        </span>
+                        {featureExplanations[feature.name] && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                                <Info className="h-4 w-4 text-gray-400" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="top" 
+                              className="max-w-xs bg-gray-900 text-white p-3 text-sm rounded-lg"
+                            >
+                              {featureExplanations[feature.name]}
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                      <div className="col-span-3 flex items-center justify-center">
+                        {feature.coreAvailable ? (
+                          feature.core ? (
+                            <div className="text-sm text-gray-600 text-center">
+                              {feature.core}
                             </div>
-                          </td>
-                          <td className="py-4 px-6 w-1/3 text-center">
-                            {feature.coreAvailable ? (
-                              feature.core ? (
-                                <div className="text-sm text-business-black/80">
-                                  {feature.core}
-                                </div>
-                              ) : (
-                                <Check className="h-5 w-5 text-future-green mx-auto" />
-                              )
-                            ) : (
-                              <X className="h-5 w-5 text-gray-300 mx-auto" />
-                            )}
-                          </td>
-                          <td className="py-4 px-6 w-1/3 text-center">
-                            {feature.enterpriseAvailable ? (
-                              feature.enterprise ? (
-                                <div className="text-sm text-business-black/80">
-                                  {feature.enterprise}
-                                </div>
-                              ) : (
-                                <Check className="h-5 w-5 text-future-green mx-auto" />
-                              )
-                            ) : (
-                              <X className="h-5 w-5 text-gray-300 mx-auto" />
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          ) : (
+                            <Check className="h-5 w-5 text-green-500" />
+                          )
+                        ) : (
+                          <X className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="col-span-3 flex items-center justify-center">
+                        {feature.enterpriseAvailable ? (
+                          feature.enterprise ? (
+                            <div className="text-sm text-gray-600 text-center">
+                              {feature.enterprise}
+                            </div>
+                          ) : (
+                            <Check className="h-5 w-5 text-green-500" />
+                          )
+                        ) : (
+                          <X className="h-5 w-5 text-gray-300" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
 
           {/* Call-to-Action */}
           <div className="text-center mt-12">
-            <p className="text-lg text-business-black/70 mb-8">
+            <p className="text-lg text-gray-600 mb-6">
               Need help choosing the right plan? Our team is here to help.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-future-green hover:bg-future-green/90 text-business-black px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
                 Start Free Trial
               </button>
-              <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
+              <button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-colors">
                 Contact Sales
               </button>
             </div>
