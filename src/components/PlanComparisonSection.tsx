@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -166,8 +165,8 @@ const PlanComparisonSection = () => {
         {/* Comparison Table */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
           {/* Table Header */}
-          <div className="grid grid-cols-3 gap-0">
-            <div className="px-6 py-4 bg-gray-50">
+          <div className="grid grid-cols-3 gap-0 bg-gray-50 border-b border-gray-200">
+            <div className="px-6 py-4">
               <span className="text-lg font-semibold text-gray-900">Features</span>
             </div>
             <div className="px-6 py-4 text-center bg-gradient-to-br from-future-green/20 to-smart-beige/50 border-l border-gray-200">
@@ -183,15 +182,13 @@ const PlanComparisonSection = () => {
           {/* Table Content */}
           {comparisonFeatures.map((category, categoryIndex) => (
             <div key={categoryIndex}>
-              {/* Category Header */}
-              <div className="grid grid-cols-3 gap-0 border-t border-gray-200">
-                <div className="px-6 py-4 bg-gray-100 border-r border-gray-200">
-                  <h4 className="text-base font-bold text-gray-900">
+              {/* Category Header - Updated styling to match reference */}
+              <div className="grid grid-cols-3 gap-0 border-t border-gray-200 bg-gray-50">
+                <div className="px-6 py-5 col-span-3">
+                  <h4 className="text-lg font-bold text-gray-900">
                     {category.category}
                   </h4>
                 </div>
-                <div className="bg-gradient-to-br from-future-green/10 to-smart-beige/30 border-r border-gray-200"></div>
-                <div className="bg-gradient-to-br from-business-black/5 to-business-black/15"></div>
               </div>
               
               {/* Category Features */}
@@ -200,19 +197,19 @@ const PlanComparisonSection = () => {
                   key={featureIndex}
                   className="grid grid-cols-3 gap-0 border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
-                  <div className="px-6 py-3 flex items-center border-r border-gray-200">
-                    <span className="text-sm text-gray-900 font-medium">
+                  <div className="px-6 py-4 flex items-center border-r border-gray-200">
+                    <span className="text-sm text-gray-700">
                       {feature.name}
                     </span>
                   </div>
-                  <div className="px-6 py-3 flex items-center justify-center bg-gradient-to-br from-future-green/10 to-smart-beige/30 border-r border-gray-200">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-future-green/10 to-smart-beige/30 border-r border-gray-200">
                     {feature.core ? (
                       <Check className="h-5 w-5 text-future-green" />
                     ) : (
                       <X className="h-5 w-5 text-gray-300" />
                     )}
                   </div>
-                  <div className="px-6 py-3 flex items-center justify-center bg-gradient-to-br from-business-black/5 to-business-black/15">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gradient-to-br from-business-black/5 to-business-black/15">
                     {feature.enterprise ? (
                       <Check className="h-5 w-5 text-business-black" />
                     ) : (
