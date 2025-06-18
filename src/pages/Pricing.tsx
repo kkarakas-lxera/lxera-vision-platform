@@ -41,7 +41,7 @@ const Pricing = () => {
     {
       name: "Enterprise",
       subtitle: "Everything in Core, plus:",
-      price: "Custom",
+      price: "Custom pricing",
       period: "contact us",
       description: "Tailored for large organizations",
       features: [
