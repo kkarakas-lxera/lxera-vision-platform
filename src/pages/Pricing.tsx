@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -72,19 +70,14 @@ const Pricing = () => {
                   </div>
                 )}
                 
-                <div className="text-center mb-8">
+                <div className={`mb-8 ${plan.name === 'Enterprise' ? 'text-right' : 'text-center'}`}>
                   <h3 className="text-2xl font-bold text-business-black mb-2">
                     {plan.name}
                   </h3>
-                  {plan.subtitle && (
-                    <p className="text-sm text-business-black/60 mb-2 font-medium">
-                      {plan.subtitle}
-                    </p>
-                  )}
                   <p className="text-business-black/60 mb-6">
                     {plan.description}
                   </p>
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <span className="text-5xl font-bold text-business-black">
                       {plan.price}
                     </span>
@@ -92,6 +85,11 @@ const Pricing = () => {
                       {plan.period}
                     </span>
                   </div>
+                  {plan.subtitle && (
+                    <p className="text-sm text-business-black/60 font-medium">
+                      {plan.subtitle}
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-4 mb-8">
@@ -160,4 +158,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-
