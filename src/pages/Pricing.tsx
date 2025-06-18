@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -41,7 +40,7 @@ const Pricing = () => {
       hasFreeTrial: true
     },
     {
-      name: "Enterprise",
+      name: "",
       subtitle: "Everything in Core, plus:",
       price: "Custom pricing",
       period: "",
@@ -66,11 +65,8 @@ const Pricing = () => {
             <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
-            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-6 font-inter font-normal leading-relaxed">
+            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
               Empower your organization to transform learning with adaptive AI.
-            </p>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
-              Choose the perfect plan for your business needs
             </p>
           </div>
         </div>
@@ -81,7 +77,7 @@ const Pricing = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {plans.map((plan, index) => (
                 <div
-                  key={plan.name}
+                  key={index}
                   className={`relative bg-white rounded-3xl p-8 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group ${
                     plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-gray-300'
                   }`}
@@ -95,11 +91,13 @@ const Pricing = () => {
                   )}
                   
                   <div className="text-center mb-8">
-                    <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 font-inter ${
-                      plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
-                    }`}>
-                      {plan.name}
-                    </h3>
+                    {plan.name && (
+                      <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 font-inter ${
+                        plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
+                      }`}>
+                        {plan.name}
+                      </h3>
+                    )}
                     <p className="text-business-black/70 mb-6 font-inter font-normal">
                       {plan.description}
                     </p>
@@ -165,7 +163,7 @@ const Pricing = () => {
                         : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
                     }`}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
+                    {plan.popular ? 'Contact Sales' : 'Get Started'}
                   </Button>
                 </div>
               ))}
