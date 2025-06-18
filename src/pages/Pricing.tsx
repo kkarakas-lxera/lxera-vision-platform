@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -69,16 +68,7 @@ const Pricing = () => {
             </p>
             
             {/* Trust badges */}
-            <div className="flex justify-center items-center gap-6 text-sm text-business-black/60 font-inter">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-future-green" />
-                <span>14-day free trial</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-future-green" />
-                <span>No credit card required</span>
-              </div>
-            </div>
+            
           </div>
         </div>
 
