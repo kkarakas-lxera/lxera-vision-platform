@@ -66,7 +66,10 @@ const Pricing = () => {
             <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
-            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
+            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-6 font-inter font-normal leading-relaxed">
+              Empower your organization to transform learning with adaptive AI.
+            </p>
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
               Choose the perfect plan for your business needs
             </p>
           </div>
