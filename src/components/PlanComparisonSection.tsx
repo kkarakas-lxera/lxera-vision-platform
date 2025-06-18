@@ -1,8 +1,6 @@
 
 import { Check, X, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const PlanComparisonSection = () => {
   const featureExplanations: {[key: string]: string} = {
@@ -36,43 +34,43 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "AI Hyper-Personalized Learning Engine", 
-          core: "✓ Adaptive based on role & goals", 
-          enterprise: "✓ Advanced with RAG + behavior modeling",
+          core: "Adaptive based on role & goals", 
+          enterprise: "Advanced with RAG + behavior modeling",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "AI Avatar-Powered Content Creation", 
-          core: "✓ 20 min/user/month", 
-          enterprise: "✓ 40+ min/user/month + pooled capacity",
+          core: "20 min/user/month", 
+          enterprise: "40+ min/user/month + pooled capacity",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Skill Gap Engine", 
-          core: "✓ Standard taxonomy", 
-          enterprise: "✓ Custom org taxonomy mapping",
+          core: "Standard taxonomy", 
+          enterprise: "Custom org taxonomy mapping",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Smart Nudging", 
-          core: "✓ Slack/email reminders", 
-          enterprise: "✓ Event-driven workflows",
+          core: "Slack/email reminders", 
+          enterprise: "Event-driven workflows",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Human-in-the-Loop Intelligence", 
-          core: "✓ Peer-based review", 
-          enterprise: "✓ SME workflows + traceable edits",
+          core: "Peer-based review", 
+          enterprise: "SME workflows + traceable edits",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Organization-Specific AI Mentor", 
           core: "", 
-          enterprise: "✓ AI trained on client content",
+          enterprise: "AI trained on client content",
           coreAvailable: false,
           enterpriseAvailable: true
         }
@@ -83,22 +81,22 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "Real-Time Adaptive Gamification", 
-          core: "✓ Individual progress mechanics", 
-          enterprise: "✓ Team-based challenges + deeper logic",
+          core: "Individual progress mechanics", 
+          enterprise: "Team-based challenges + deeper logic",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "SOP to Microlearning Converter", 
-          core: "✓ Convert docs to bite-sized modules", 
-          enterprise: "✓ Plus tagging, versioning, and permissions",
+          core: "Convert docs to bite-sized modules", 
+          enterprise: "Plus tagging, versioning, and permissions",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Learning Journey Templates", 
-          core: "✓ Predefined templates", 
-          enterprise: "✓ Fully customizable per team/role",
+          core: "Predefined templates", 
+          enterprise: "Fully customizable per team/role",
           coreAvailable: true,
           enterpriseAvailable: true
         }
@@ -109,8 +107,8 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "Learner Dashboard", 
-          core: "✓ Progress & activity data", 
-          enterprise: "✓ Org-wide dashboards, KPIs, CSV exports",
+          core: "Progress & activity data", 
+          enterprise: "Org-wide dashboards, KPIs, CSV exports",
           coreAvailable: true,
           enterpriseAvailable: true
         }
@@ -121,22 +119,22 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "Shared Knowledge Base Access", 
-          core: "✓ Global content search", 
-          enterprise: "✓ Private org-level KB with search indexing",
+          core: "Global content search", 
+          enterprise: "Private org-level KB with search indexing",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Low-Code Innovation Sandbox", 
           core: "", 
-          enterprise: "✓ Build internal tools using drag-and-drop logic",
+          enterprise: "Build internal tools using drag-and-drop logic",
           coreAvailable: false,
           enterpriseAvailable: true
         },
         { 
           name: "Innovation Hub Access", 
           core: "", 
-          enterprise: "✓ Run idea campaigns, collect and evaluate ideas",
+          enterprise: "Run idea campaigns, collect and evaluate ideas",
           coreAvailable: false,
           enterpriseAvailable: true
         }
@@ -147,15 +145,15 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "Social Learning Communities", 
-          core: "✓ Open community forums", 
-          enterprise: "✓ Moderated team channels & mentoring",
+          core: "Open community forums", 
+          enterprise: "Moderated team channels & mentoring",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Live AI Avatar Streaming", 
           core: "", 
-          enterprise: "✓ Included or discounted",
+          enterprise: "Included or discounted",
           coreAvailable: false,
           enterpriseAvailable: true
         }
@@ -167,21 +165,21 @@ const PlanComparisonSection = () => {
         { 
           name: "HRIS/SSO Integrations", 
           core: "", 
-          enterprise: "✓ Enterprise-ready identity control",
+          enterprise: "Enterprise-ready identity control",
           coreAvailable: false,
           enterpriseAvailable: true
         },
         { 
           name: "Compliance & Security", 
-          core: "✓ Standard encrypted platform", 
-          enterprise: "✓ SOC2, GDPR, audit logs, RBAC",
+          core: "Standard encrypted platform", 
+          enterprise: "SOC2, GDPR, audit logs, RBAC",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "White-label Branding", 
           core: "", 
-          enterprise: "✓ Custom logo, URL, brand tone",
+          enterprise: "Custom logo, URL, brand tone",
           coreAvailable: false,
           enterpriseAvailable: true
         }
@@ -192,15 +190,15 @@ const PlanComparisonSection = () => {
       features: [
         { 
           name: "Guided Self-Onboarding", 
-          core: "✓ Checklist, templates", 
-          enterprise: "✓ Dedicated onboarding manager",
+          core: "Checklist, templates", 
+          enterprise: "Dedicated onboarding manager",
           coreAvailable: true,
           enterpriseAvailable: true
         },
         { 
           name: "Standard Support", 
-          core: "✓ Email support", 
-          enterprise: "✓ Priority support + Success Manager",
+          core: "Email support", 
+          enterprise: "Priority support + Success Manager",
           coreAvailable: true,
           enterpriseAvailable: true
         }
@@ -212,14 +210,14 @@ const PlanComparisonSection = () => {
         { 
           name: "Dedicated SME Support", 
           core: "", 
-          enterprise: "✓ Content review by expert",
+          enterprise: "Content review by expert",
           coreAvailable: false,
           enterpriseAvailable: true
         },
         { 
           name: "Dedicated Learning Experience Designer (LXD)", 
           core: "", 
-          enterprise: "✓ Learning design partner for course creation",
+          enterprise: "Learning design partner for course creation",
           coreAvailable: false,
           enterpriseAvailable: true
         }
@@ -229,63 +227,60 @@ const PlanComparisonSection = () => {
 
   return (
     <TooltipProvider>
-      <div className="py-16 lg:py-24 bg-smart-beige/30">
+      <div className="py-16 lg:py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-5xl font-bold text-business-black mb-6">
-              Compare Plans & Features
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+              Compare plans and features
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              See exactly what's included in each plan to make the best choice for your organization
-            </p>
+          </div>
+
+          {/* Plan Headers */}
+          <div className="grid grid-cols-3 gap-8 mb-8">
+            <div></div>
+            <div className="bg-gray-100 rounded-2xl p-8 text-center">
+              <h3 className="text-2xl font-bold text-business-black mb-2">CORE</h3>
+              <div className="text-4xl font-bold text-business-black mb-2">$199</div>
+              <div className="text-gray-600 mb-6">per user/month</div>
+              <button className="bg-business-black text-white px-8 py-3 rounded-full font-semibold hover:bg-business-black/90 transition-colors w-full">
+                Get started
+              </button>
+            </div>
+            <div className="bg-blue-50 rounded-2xl p-8 text-center border-2 border-blue-200">
+              <h3 className="text-2xl font-bold text-business-black mb-2">ENTERPRISE</h3>
+              <div className="text-2xl font-bold text-business-black mb-2">Custom</div>
+              <div className="text-2xl font-bold text-business-black mb-2">pricing</div>
+              <div className="text-gray-600 mb-6">&nbsp;</div>
+              <button className="bg-business-black text-white px-8 py-3 rounded-full font-semibold hover:bg-business-black/90 transition-colors w-full">
+                Contact sales
+              </button>
+            </div>
           </div>
 
           {/* Comparison Table */}
-          <Card className="overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b-2 border-smart-beige bg-gradient-to-r from-smart-beige/50 to-smart-beige/30">
-                    <TableHead className="text-left py-6 px-6 text-lg font-bold text-business-black">
-                      Features
-                    </TableHead>
-                    <TableHead className="text-center py-6 px-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-business-black mb-2">Core</div>
-                        <div className="text-sm text-business-black/60">$199/month</div>
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-center py-6 px-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-business-black mb-2">Enterprise</div>
-                        <div className="text-sm text-business-black/60">Custom pricing</div>
-                        <div className="inline-block bg-business-black text-white text-xs px-3 py-1 rounded-full mt-1">
-                          Enterprise Ready
-                        </div>
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <tbody>
                   {comparisonFeatures.map((category, categoryIndex) => (
                     <>
                       {/* Category Header */}
-                      <TableRow key={`category-${categoryIndex}`} className="bg-smart-beige/20 border-0">
-                        <TableCell colSpan={3} className="py-4 px-6">
-                          <h3 className="text-lg font-semibold text-business-black">
+                      <tr key={`category-${categoryIndex}`} className="bg-gray-50 border-b border-gray-200">
+                        <td colSpan={3} className="py-4 px-6">
+                          <h4 className="text-lg font-semibold text-business-black">
                             {category.category}
-                          </h3>
-                        </TableCell>
-                      </TableRow>
+                          </h4>
+                        </td>
+                      </tr>
                       
                       {/* Category Features */}
                       {category.features.map((feature, featureIndex) => (
-                        <TableRow 
+                        <tr 
                           key={`${categoryIndex}-${featureIndex}`}
-                          className="border-b border-smart-beige/30 hover:bg-smart-beige/10 transition-colors duration-200"
+                          className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                         >
-                          <TableCell className="py-4 px-6">
+                          <td className="py-4 px-6 w-1/3">
                             <div className="flex items-center">
                               <span className="font-medium text-business-black/90 flex-1">
                                 {feature.name}
@@ -293,47 +288,54 @@ const PlanComparisonSection = () => {
                               {featureExplanations[feature.name] && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <button className="ml-2 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200 hover:scale-110 group">
-                                      <Info className="h-4 w-4 text-future-green/70 group-hover:text-future-green transition-colors duration-200" />
+                                    <button className="ml-2 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200">
+                                      <Info className="h-4 w-4 text-gray-400 hover:text-future-green" />
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent 
-                                    side="right" 
-                                    className="max-w-xs bg-white border border-future-green/20 shadow-lg p-3 text-sm text-business-black/80"
-                                    sideOffset={8}
+                                    side="top" 
+                                    className="max-w-xs bg-white border border-gray-200 shadow-lg p-3 text-sm text-business-black/80"
                                   >
                                     {featureExplanations[feature.name]}
                                   </TooltipContent>
                                 </Tooltip>
                               )}
                             </div>
-                          </TableCell>
-                          <TableCell className="py-4 px-6">
+                          </td>
+                          <td className="py-4 px-6 w-1/3 text-center">
                             {feature.coreAvailable ? (
-                              <div className="text-sm text-business-black/80">
-                                {feature.core}
-                              </div>
+                              feature.core ? (
+                                <div className="text-sm text-business-black/80">
+                                  {feature.core}
+                                </div>
+                              ) : (
+                                <Check className="h-5 w-5 text-future-green mx-auto" />
+                              )
                             ) : (
-                              <X className="h-6 w-6 text-gray-300 mx-auto" />
+                              <X className="h-5 w-5 text-gray-300 mx-auto" />
                             )}
-                          </TableCell>
-                          <TableCell className="py-4 px-6">
+                          </td>
+                          <td className="py-4 px-6 w-1/3 text-center">
                             {feature.enterpriseAvailable ? (
-                              <div className="text-sm text-business-black/80">
-                                {feature.enterprise}
-                              </div>
+                              feature.enterprise ? (
+                                <div className="text-sm text-business-black/80">
+                                  {feature.enterprise}
+                                </div>
+                              ) : (
+                                <Check className="h-5 w-5 text-future-green mx-auto" />
+                              )
                             ) : (
-                              <X className="h-6 w-6 text-gray-300 mx-auto" />
+                              <X className="h-5 w-5 text-gray-300 mx-auto" />
                             )}
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       ))}
                     </>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* Call-to-Action */}
           <div className="text-center mt-12">
@@ -341,10 +343,10 @@ const PlanComparisonSection = () => {
               Need help choosing the right plan? Our team is here to help.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-future-green hover:bg-future-green/90 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-future-green/25">
+              <button className="bg-future-green hover:bg-future-green/90 text-business-black px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
                 Start Free Trial
               </button>
-              <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-business-black/25">
+              <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
                 Contact Sales
               </button>
             </div>
