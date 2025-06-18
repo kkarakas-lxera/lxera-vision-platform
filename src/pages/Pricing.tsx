@@ -6,8 +6,6 @@ import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 
 const Pricing = () => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
-
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
     "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
@@ -26,9 +24,8 @@ const Pricing = () => {
   const plans = [
     {
       name: "Core",
-      price: billingCycle === 'annually' ? "$39" : "$49",
+      price: "$49",
       period: "per month/per user",
-      yearlyNote: billingCycle === 'annually' ? "billed annually" : "billed monthly",
       description: "Everything you need to get started",
       features: [
         "AI Hyper-Personalized Learning Engine",
@@ -72,31 +69,6 @@ const Pricing = () => {
             <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
               Choose the perfect plan for your business needs
             </p>
-            
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-12">
-              <span className={`text-base font-medium transition-colors ${billingCycle === 'monthly' ? 'text-business-black' : 'text-business-black/60'}`}>
-                Monthly
-              </span>
-              <button
-                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annually' : 'monthly')}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-business-black/20 transition-colors focus:outline-none focus:ring-2 focus:ring-business-black focus:ring-offset-2"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-business-black transition-transform ${
-                    billingCycle === 'annually' ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className={`text-base font-medium transition-colors ${billingCycle === 'annually' ? 'text-business-black' : 'text-business-black/60'}`}>
-                Annually
-              </span>
-              {billingCycle === 'annually' && (
-                <span className="bg-future-green text-business-black text-xs font-medium px-2 py-1 rounded-full ml-2">
-                  Save 20%
-                </span>
-              )}
-            </div>
           </div>
         </div>
 
@@ -138,11 +110,6 @@ const Pricing = () => {
                         </span>
                       )}
                     </div>
-                    {plan.yearlyNote && (
-                      <p className="text-sm text-business-black/60 font-normal font-inter mb-2">
-                        {plan.yearlyNote}
-                      </p>
-                    )}
                     {plan.subtitle && (
                       <p className="text-sm text-business-black/60 font-normal font-inter">
                         {plan.subtitle}
