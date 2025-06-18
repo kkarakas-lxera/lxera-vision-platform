@@ -62,10 +62,10 @@ const Pricing = () => {
         <div className="bg-white py-16 lg:py-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 font-inter leading-tight tracking-tight">
-              Simple, Transparent Pricing
+              Plans & Pricing
             </h1>
             <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
-              Choose the perfect plan for your team. No hidden fees, no surprises.
+              Empower your organization to transform learning with adaptive AI.
             </p>
             
             {/* Trust badges */}
