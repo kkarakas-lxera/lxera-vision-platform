@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -56,19 +57,19 @@ const Pricing = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-smart-beige">
+      <div className="min-h-screen bg-smart-beige font-inter">
         {/* Header Section */}
         <div className="bg-white py-16 lg:py-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+            <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 font-inter leading-tight tracking-tight">
               Simple, Transparent Pricing
             </h1>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
               Choose the perfect plan for your team. No hidden fees, no surprises.
             </p>
             
             {/* Trust badges */}
-            <div className="flex justify-center items-center gap-6 text-sm text-business-black/60">
+            <div className="flex justify-center items-center gap-6 text-sm text-business-black/60 font-inter">
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 text-future-green" />
                 <span>14-day free trial</span>
@@ -94,31 +95,31 @@ const Pricing = () => {
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-business-black text-white px-6 py-2 rounded-full text-sm font-semibold">
+                      <span className="bg-business-black text-white px-6 py-2 rounded-full text-sm font-medium font-inter">
                         Enterprise Ready
                       </span>
                     </div>
                   )}
                   
                   <div className="text-center mb-8">
-                    <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${
+                    <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
                       plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-future-green'
                     }`}>
                       {plan.name}
                     </h3>
-                    <p className="text-business-black/60 mb-6">
+                    <p className="text-business-black/70 mb-6 font-inter font-normal">
                       {plan.description}
                     </p>
                     <div className="mb-4">
-                      <span className="text-5xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block">
+                      <span className="text-5xl font-medium text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
                       </span>
-                      <span className="text-business-black/60 ml-2">
+                      <span className="text-business-black/60 ml-2 font-inter font-normal">
                         {plan.period}
                       </span>
                     </div>
                     {plan.subtitle && (
-                      <p className="text-sm text-business-black/60 font-medium">
+                      <p className="text-sm text-business-black/60 font-normal font-inter">
                         {plan.subtitle}
                       </p>
                     )}
@@ -134,7 +135,7 @@ const Pricing = () => {
                             <Check className={`h-5 w-5 mr-3 flex-shrink-0 group-hover/feature:scale-110 transition-transform duration-200 ${
                               plan.popular ? 'text-business-black' : 'text-future-green'
                             }`} />
-                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200">{feature}</span>
+                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200 font-inter font-normal">{feature}</span>
                             {hasExplanation && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -144,7 +145,7 @@ const Pricing = () => {
                                 </TooltipTrigger>
                                 <TooltipContent 
                                   side="left" 
-                                  className="max-w-xs bg-white border border-future-green/20 shadow-lg p-3 text-sm text-business-black/80"
+                                  className="max-w-xs bg-white border border-future-green/20 shadow-lg p-3 text-sm text-business-black/80 font-inter"
                                   sideOffset={8}
                                 >
                                   {featureExplanations[feature]}
@@ -158,7 +159,7 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                    className={`w-full py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
                       plan.popular
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
                         : 'bg-future-green hover:bg-future-green/90 text-white hover:shadow-future-green/25'
@@ -178,7 +179,7 @@ const Pricing = () => {
         {/* Enhanced FAQ Section */}
         <div className="py-16 lg:py-24 bg-white">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black text-center mb-12 font-inter">
               Frequently Asked Questions
             </h2>
             
@@ -202,10 +203,10 @@ const Pricing = () => {
                 }
               ].map((faq, index) => (
                 <div key={index} className="bg-smart-beige/30 rounded-2xl p-6 hover:bg-smart-beige/50 transition-all duration-300 hover:shadow-md group">
-                  <h3 className="text-xl font-semibold text-business-black mb-3 group-hover:text-future-green transition-colors duration-300">
+                  <h3 className="text-xl font-medium text-business-black mb-3 group-hover:text-future-green transition-colors duration-300 font-inter">
                     {faq.question}
                   </h3>
-                  <p className="text-business-black/70 leading-relaxed">
+                  <p className="text-business-black/70 leading-relaxed font-inter font-normal">
                     {faq.answer}
                   </p>
                 </div>

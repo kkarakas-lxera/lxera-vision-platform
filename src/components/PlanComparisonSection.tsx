@@ -151,14 +151,14 @@ const PlanComparisonSection = () => {
   ];
 
   return (
-    <div className="py-16 bg-white">
+    <div className="py-16 bg-white font-inter">
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-black mb-4">
+          <h2 className="text-3xl font-medium text-black mb-4 font-inter">
             Compare plans and features
           </h2>
-          <p className="text-lg text-black max-w-2xl mx-auto">
+          <p className="text-lg text-black max-w-2xl mx-auto font-inter font-normal">
             Choose the plan that best fits your organization's learning and innovation needs
           </p>
         </div>
@@ -168,15 +168,15 @@ const PlanComparisonSection = () => {
           {/* Table Header */}
           <div className="grid grid-cols-3 gap-0 bg-gray-50 border-b border-gray-200">
             <div className="px-6 py-4">
-              <span className="text-lg font-semibold text-black">Features</span>
+              <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
             <div className="px-6 py-4 text-center bg-future-green/20 border-l border-gray-200">
-              <div className="text-lg font-bold text-black">CORE</div>
-              <div className="text-sm text-black mt-1">$199/month</div>
+              <div className="text-lg font-medium text-black font-inter">CORE</div>
+              <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
             <div className="px-6 py-4 text-center bg-business-black/10 border-l border-gray-200">
-              <div className="text-lg font-bold text-black">ENTERPRISE</div>
-              <div className="text-sm text-black mt-1">Custom pricing</div>
+              <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
+              <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ const PlanComparisonSection = () => {
               {/* Category Header */}
               <div className="grid grid-cols-3 gap-0 border-t border-gray-200 bg-gray-50">
                 <div className="px-6 py-5 col-span-3">
-                  <h4 className="text-lg font-bold text-black">
+                  <h4 className="text-lg font-medium text-black font-inter">
                     {category.category}
                   </h4>
                 </div>
@@ -199,7 +199,7 @@ const PlanComparisonSection = () => {
                   className="grid grid-cols-3 gap-0 border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   <div className="px-6 py-4 flex items-center border-r border-gray-200">
-                    <span className="text-sm text-black">
+                    <span className="text-sm text-black font-inter font-normal">
                       {feature.name}
                     </span>
                   </div>
@@ -225,14 +225,14 @@ const PlanComparisonSection = () => {
 
         {/* Call-to-Action */}
         <div className="text-center mt-10">
-          <p className="text-base text-black mb-6">
+          <p className="text-base text-black mb-6 font-inter font-normal">
             Need help choosing the right plan? Our team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-future-green hover:bg-future-green/90 text-black px-8 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 hover:shadow-lg">
+            <button className="bg-future-green hover:bg-future-green/90 text-black px-8 py-3 rounded-xl text-sm font-medium transition-all hover:scale-105 hover:shadow-lg font-inter">
               Start Free Trial
             </button>
-            <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 hover:shadow-lg">
+            <button className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-xl text-sm font-medium transition-all hover:scale-105 hover:shadow-lg font-inter">
               Contact Sales
             </button>
           </div>
