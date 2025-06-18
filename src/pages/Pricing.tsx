@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,12 +21,15 @@ const Pricing = () => {
     "SSO/HRIS Integrations": "Sync with HR systems to personalize content by job role."
   };
 
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annually'>('annually');
+
   const plans = [
     {
-      name: "Core",
-      price: "$49",
-      period: "per month/per user",
-      description: "Perfect for growing businesses",
+      name: "STARTER",
+      description: "Kickstart AI adoption with instant access to Writer agents and core platform features.",
+      price: billingPeriod === 'annually' ? "$29" : "$35",
+      period: "Per month/per user",
+      billing: billingPeriod === 'annually' ? "Billed annually" : "Billed monthly",
       features: [
         "AI Hyper-Personalized Learning Engine",
         "AI Avatar-Powered Content Creation",
@@ -36,20 +40,22 @@ const Pricing = () => {
         "Knowledge Base Transformation",
         "Taxonomist Skill Gap Engine"
       ],
+      buttonText: "Try for free",
       popular: false
     },
     {
-      name: "Enterprise",
-      subtitle: "Everything in Core, plus:",
-      price: "Custom",
-      period: "contact us",
-      description: "Tailored for large organizations",
+      name: "ENTERPRISE",
+      description: "Transform work with a platform to build, use, and supervise AI agents across your organization.",
+      price: "Custom pricing",
+      period: "",
+      billing: "",
       features: [
         "Organization-Specific AI Mentor",
         "Enterprise-Grade Security & Compliance",
         "Low-Code / No-Code Innovation Sandbox",
         "SSO/HRIS Integrations"
       ],
+      buttonText: "Contact sales",
       popular: true
     }
   ];
@@ -66,9 +72,6 @@ const Pricing = () => {
             <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
               Empower your organization to transform learning with adaptive AI.
             </p>
-            
-            {/* Trust badges */}
-            
           </div>
         </div>
 
@@ -84,28 +87,61 @@ const Pricing = () => {
                   }`}
                 >
                   
-                  <div className="text-center mb-8">
-                    <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
+                  <div className="mb-8">
+                    <h3 className={`text-2xl font-bold mb-4 transition-colors duration-300 font-inter ${
                       plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
                     }`}>
                       {plan.name}
                     </h3>
-                    <p className="text-business-black/70 mb-6 font-inter font-normal">
+                    <p className="text-business-black/70 mb-6 font-inter font-normal leading-relaxed">
                       {plan.description}
                     </p>
+                    
+                    {/* Billing Toggle for Starter plan */}
+                    {plan.name === 'STARTER' && (
+                      <div className="flex items-center justify-center mb-6">
+                        <div className="bg-gray-100 rounded-full p-1 flex">
+                          <button
+                            onClick={() => setBillingPeriod('annually')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                              billingPeriod === 'annually'
+                                ? 'bg-white text-business-black shadow-sm'
+                                : 'text-business-black/60 hover:text-business-black'
+                            }`}
+                          >
+                            Annually
+                          </button>
+                          <button
+                            onClick={() => setBillingPeriod('monthly')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                              billingPeriod === 'monthly'
+                                ? 'bg-white text-business-black shadow-sm'
+                                : 'text-business-black/60 hover:text-business-black'
+                            }`}
+                          >
+                            Monthly
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="mb-4">
-                      <span className="text-5xl font-medium text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
+                      <span className="text-5xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
                       </span>
-                      <span className="text-business-black/60 ml-2 font-inter font-normal">
-                        {plan.period}
-                      </span>
+                      {plan.period && (
+                        <div className="mt-2">
+                          <div className="text-business-black/70 text-sm font-inter font-normal">
+                            {plan.period}
+                          </div>
+                          {plan.billing && (
+                            <div className="text-business-black/60 text-sm font-inter font-normal">
+                              {plan.billing}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {plan.subtitle && (
-                      <p className="text-sm text-business-black/60 font-normal font-inter">
-                        {plan.subtitle}
-                      </p>
-                    )}
                   </div>
 
                   <ul className="space-y-4 mb-8">
@@ -142,14 +178,17 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    className={`w-full py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
-                      plan.popular
-                        ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                        : 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                    }`}
+                    className="w-full py-4 rounded-full font-medium text-white bg-business-black hover:bg-business-black/90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter text-base"
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
+                    {plan.buttonText}
                   </Button>
+                  
+                  {/* Trial info for Starter plan */}
+                  {plan.name === 'STARTER' && (
+                    <p className="text-center text-business-black/60 text-sm mt-4 font-inter">
+                      14-day free trial. No credit card required.
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
