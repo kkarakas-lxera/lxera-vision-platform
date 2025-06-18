@@ -25,9 +25,9 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: "STARTER",
+      name: "CORE",
       description: "Kickstart AI adoption with instant access to Writer agents and core platform features.",
-      price: billingPeriod === 'annually' ? "$29" : "$35",
+      price: billingPeriod === 'annually' ? "$39" : "$49",
       period: "Per month/per user",
       billing: billingPeriod === 'annually' ? "Billed annually" : "Billed monthly",
       features: [
@@ -97,8 +97,8 @@ const Pricing = () => {
                       {plan.description}
                     </p>
                     
-                    {/* Billing Toggle for Starter plan */}
-                    {plan.name === 'STARTER' && (
+                    {/* Billing Toggle for Core plan */}
+                    {plan.name === 'CORE' && (
                       <div className="flex items-center justify-center mb-6">
                         <div className="bg-gray-100 rounded-full p-1 flex">
                           <button
@@ -183,8 +183,8 @@ const Pricing = () => {
                     {plan.buttonText}
                   </Button>
                   
-                  {/* Trial info for Starter plan */}
-                  {plan.name === 'STARTER' && (
+                  {/* Trial info for Core plan */}
+                  {plan.name === 'CORE' && (
                     <p className="text-center text-business-black/60 text-sm mt-4 font-inter">
                       14-day free trial. No credit card required.
                     </p>
