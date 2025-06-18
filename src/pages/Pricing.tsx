@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -7,18 +6,17 @@ import { useState } from "react";
 const Pricing = () => {
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
-    "Taxonomist Skill Gap Engine": "Identifies specific skill gaps and creates targeted learning paths for each individual.",
-    "AI Avatar-Powered Content Creation": "Creates personalized content using AI avatars that match your company's tone and style.",
-    "Real-Time Adaptive Gamification": "Dynamically adjusts challenges and rewards based on user engagement and progress.",
-    "Smart Nudging & Behavioral Triggers": "Uses behavioral science to send timely prompts that encourage learning habits.",
-    "Human-in-the-Loop Intelligence": "Combines AI efficiency with human expertise for quality assurance and personalization.",
-    "Executive-Ready Analytics Dashboard": "Provides comprehensive insights and metrics designed for leadership decision-making.",
-    "Knowledge Base Transformation": "Converts existing company documents into interactive, searchable learning materials.",
-    "Enterprise-Grade Security & Compliance": "Advanced security features including SOC 2, GDPR compliance, and data encryption.",
-    "Low-Code / No-Code Innovation Sandbox": "Allows teams to create custom learning experiences without technical expertise.",
-    "SSO/HRIS integrations": "Seamless integration with your existing identity management and HR systems.",
-    "Org-specific AI mentor": "Custom AI assistant trained on your organization's specific processes and culture.",
-    "Compliance & security features": "Advanced compliance tools for regulated industries with audit trails and reporting."
+    "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
+    "Real-Time Adaptive Gamification": "Game mechanics adjust to each learner's behavior and progress.",
+    "Smart Nudging & Behavioral Triggers": "Nudges and reminders based on user behavior via Slack/email.",
+    "Human-in-the-Loop Intelligence": "Combine scalable AI with human review for high-trust learning.",
+    "Executive-Ready Analytics Dashboard": "Visualize outcomes and innovation metrics across departments.",
+    "Knowledge Base Transformation": "Turn SOPs and reports into microlearning modules.",
+    "Taxonomist Skill Gap Engine": "Automatically detects role-based skill gaps and maps them to personalized learning paths.",
+    "Organization-Specific AI Mentor": "Private AI chatbot trained on your company's content to support contextual, role-specific learning.",
+    "Enterprise-Grade Security & Compliance": "SOC2 & GDPR aligned, encryption, role-based access.",
+    "Low-Code / No-Code Innovation Sandbox": "Enable bottom-up innovation through app building and automation.",
+    "SSO/HRIS Integrations": "Sync with HR systems to personalize content by job role."
   };
 
   const plans = [
@@ -29,13 +27,13 @@ const Pricing = () => {
       description: "Perfect for growing businesses",
       features: [
         "AI Hyper-Personalized Learning Engine",
-        "Taxonomist Skill Gap Engine",
         "AI Avatar-Powered Content Creation",
         "Real-Time Adaptive Gamification",
         "Smart Nudging & Behavioral Triggers",
         "Human-in-the-Loop Intelligence",
         "Executive-Ready Analytics Dashboard",
-        "Knowledge Base Transformation"
+        "Knowledge Base Transformation",
+        "Taxonomist Skill Gap Engine"
       ],
       popular: true
     },
@@ -46,11 +44,10 @@ const Pricing = () => {
       period: "contact us",
       description: "Tailored for large organizations",
       features: [
+        "Organization-Specific AI Mentor",
         "Enterprise-Grade Security & Compliance",
         "Low-Code / No-Code Innovation Sandbox",
-        "SSO/HRIS integrations",
-        "Org-specific AI mentor",
-        "Compliance & security features"
+        "SSO/HRIS Integrations"
       ],
       popular: false
     }
