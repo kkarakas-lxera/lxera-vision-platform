@@ -8,44 +8,221 @@ const PlanComparisonSection = () => {
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
     "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
-    "Real-Time Adaptive Gamification": "Game mechanics adjust to each learner's behavior and progress.",
-    "Smart Nudging & Behavioral Triggers": "Nudges and reminders based on user behavior via Slack/email.",
+    "Skill Gap Engine": "Automatically detects role-based skill gaps and maps them to personalized learning paths.",
+    "Smart Nudging": "Nudges and reminders based on user behavior via Slack/email.",
     "Human-in-the-Loop Intelligence": "Combine scalable AI with human review for high-trust learning.",
-    "Executive-Ready Analytics Dashboard": "Visualize outcomes and innovation metrics across departments.",
-    "Knowledge Base Transformation": "Turn SOPs and reports into microlearning modules.",
-    "Taxonomist Skill Gap Engine": "Automatically detects role-based skill gaps and maps them to personalized learning paths.",
     "Organization-Specific AI Mentor": "Private AI chatbot trained on your company's content to support contextual, role-specific learning.",
-    "Enterprise-Grade Security & Compliance": "SOC2 & GDPR aligned, encryption, role-based access.",
-    "Low-Code / No-Code Innovation Sandbox": "Enable bottom-up innovation through app building and automation.",
-    "SSO/HRIS Integrations": "Sync with HR systems to personalize content by job role."
+    "Real-Time Adaptive Gamification": "Game mechanics adjust to each learner's behavior and progress.",
+    "SOP to Microlearning Converter": "Turn SOPs and reports into microlearning modules.",
+    "Learning Journey Templates": "Pre-built learning paths that can be customized for different roles and teams.",
+    "Learner Dashboard": "Visualize outcomes and innovation metrics across departments.",
+    "Shared Knowledge Base Access": "Access to global or organization-specific knowledge repositories.",
+    "Low-Code Innovation Sandbox": "Enable bottom-up innovation through app building and automation.",
+    "Innovation Hub Access": "Platform for collecting, evaluating, and implementing innovative ideas.",
+    "Social Learning Communities": "Collaborative learning spaces for peer interaction and knowledge sharing.",
+    "Live AI Avatar Streaming": "Real-time interactive sessions with AI avatars for live learning experiences.",
+    "HRIS/SSO Integrations": "Sync with HR systems to personalize content by job role.",
+    "Compliance & Security": "SOC2 & GDPR aligned, encryption, role-based access.",
+    "White-label Branding": "Customize the platform with your organization's branding and identity.",
+    "Guided Self-Onboarding": "Structured onboarding process with checklists and templates.",
+    "Standard Support": "Customer support and assistance channels.",
+    "Dedicated SME Support": "Subject Matter Expert support for content review and validation.",
+    "Dedicated Learning Experience Designer (LXD)": "Professional learning design partner for course creation and optimization."
   };
 
   const comparisonFeatures = [
     {
-      category: "Core Learning Features",
+      category: "Learning Intelligence",
       features: [
-        { name: "AI Hyper-Personalized Learning Engine", core: true, enterprise: true },
-        { name: "AI Avatar-Powered Content Creation", core: true, enterprise: true },
-        { name: "Real-Time Adaptive Gamification", core: true, enterprise: true },
-        { name: "Smart Nudging & Behavioral Triggers", core: true, enterprise: true },
+        { 
+          name: "AI Hyper-Personalized Learning Engine", 
+          core: "✓ Adaptive based on role & goals", 
+          enterprise: "✓ Advanced with RAG + behavior modeling",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "AI Avatar-Powered Content Creation", 
+          core: "✓ 20 min/user/month", 
+          enterprise: "✓ 40+ min/user/month + pooled capacity",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Skill Gap Engine", 
+          core: "✓ Standard taxonomy", 
+          enterprise: "✓ Custom org taxonomy mapping",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Smart Nudging", 
+          core: "✓ Slack/email reminders", 
+          enterprise: "✓ Event-driven workflows",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Human-in-the-Loop Intelligence", 
+          core: "✓ Peer-based review", 
+          enterprise: "✓ SME workflows + traceable edits",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Organization-Specific AI Mentor", 
+          core: "", 
+          enterprise: "✓ AI trained on client content",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        }
       ]
     },
     {
-      category: "Intelligence & Analytics",
+      category: "Learning Tools",
       features: [
-        { name: "Human-in-the-Loop Intelligence", core: true, enterprise: true },
-        { name: "Executive-Ready Analytics Dashboard", core: true, enterprise: true },
-        { name: "Knowledge Base Transformation", core: true, enterprise: true },
-        { name: "Taxonomist Skill Gap Engine", core: true, enterprise: true },
+        { 
+          name: "Real-Time Adaptive Gamification", 
+          core: "✓ Individual progress mechanics", 
+          enterprise: "✓ Team-based challenges + deeper logic",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "SOP to Microlearning Converter", 
+          core: "✓ Convert docs to bite-sized modules", 
+          enterprise: "✓ Plus tagging, versioning, and permissions",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Learning Journey Templates", 
+          core: "✓ Predefined templates", 
+          enterprise: "✓ Fully customizable per team/role",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        }
       ]
     },
     {
-      category: "Enterprise Features",
+      category: "Analytics & Insights",
       features: [
-        { name: "Organization-Specific AI Mentor", core: false, enterprise: true },
-        { name: "Enterprise-Grade Security & Compliance", core: false, enterprise: true },
-        { name: "Low-Code / No-Code Innovation Sandbox", core: false, enterprise: true },
-        { name: "SSO/HRIS Integrations", core: false, enterprise: true },
+        { 
+          name: "Learner Dashboard", 
+          core: "✓ Progress & activity data", 
+          enterprise: "✓ Org-wide dashboards, KPIs, CSV exports",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        }
+      ]
+    },
+    {
+      category: "Knowledge & Innovation",
+      features: [
+        { 
+          name: "Shared Knowledge Base Access", 
+          core: "✓ Global content search", 
+          enterprise: "✓ Private org-level KB with search indexing",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Low-Code Innovation Sandbox", 
+          core: "", 
+          enterprise: "✓ Build internal tools using drag-and-drop logic",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Innovation Hub Access", 
+          core: "", 
+          enterprise: "✓ Run idea campaigns, collect and evaluate ideas",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        }
+      ]
+    },
+    {
+      category: "Live & Social",
+      features: [
+        { 
+          name: "Social Learning Communities", 
+          core: "✓ Open community forums", 
+          enterprise: "✓ Moderated team channels & mentoring",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Live AI Avatar Streaming", 
+          core: "", 
+          enterprise: "✓ Included or discounted",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        }
+      ]
+    },
+    {
+      category: "Integrations & Security",
+      features: [
+        { 
+          name: "HRIS/SSO Integrations", 
+          core: "", 
+          enterprise: "✓ Enterprise-ready identity control",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Compliance & Security", 
+          core: "✓ Standard encrypted platform", 
+          enterprise: "✓ SOC2, GDPR, audit logs, RBAC",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "White-label Branding", 
+          core: "", 
+          enterprise: "✓ Custom logo, URL, brand tone",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        }
+      ]
+    },
+    {
+      category: "Onboarding & Support",
+      features: [
+        { 
+          name: "Guided Self-Onboarding", 
+          core: "✓ Checklist, templates", 
+          enterprise: "✓ Dedicated onboarding manager",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Standard Support", 
+          core: "✓ Email support", 
+          enterprise: "✓ Priority support + Success Manager",
+          coreAvailable: true,
+          enterpriseAvailable: true
+        }
+      ]
+    },
+    {
+      category: "Content Support",
+      features: [
+        { 
+          name: "Dedicated SME Support", 
+          core: "", 
+          enterprise: "✓ Content review by expert",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        },
+        { 
+          name: "Dedicated Learning Experience Designer (LXD)", 
+          core: "", 
+          enterprise: "✓ Learning design partner for course creation",
+          coreAvailable: false,
+          enterpriseAvailable: true
+        }
       ]
     }
   ];
@@ -131,16 +308,20 @@ const PlanComparisonSection = () => {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="py-4 px-6 text-center">
-                            {feature.core ? (
-                              <Check className="h-6 w-6 text-future-green mx-auto" />
+                          <TableCell className="py-4 px-6">
+                            {feature.coreAvailable ? (
+                              <div className="text-sm text-business-black/80">
+                                {feature.core}
+                              </div>
                             ) : (
                               <X className="h-6 w-6 text-gray-300 mx-auto" />
                             )}
                           </TableCell>
-                          <TableCell className="py-4 px-6 text-center">
-                            {feature.enterprise ? (
-                              <Check className="h-6 w-6 text-business-black mx-auto" />
+                          <TableCell className="py-4 px-6">
+                            {feature.enterpriseAvailable ? (
+                              <div className="text-sm text-business-black/80">
+                                {feature.enterprise}
+                              </div>
                             ) : (
                               <X className="h-6 w-6 text-gray-300 mx-auto" />
                             )}
