@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -5,6 +6,8 @@ import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 
 const Pricing = () => {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
+
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
     "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
@@ -23,9 +26,10 @@ const Pricing = () => {
   const plans = [
     {
       name: "Core",
-      price: "$49",
+      price: billingCycle === 'annually' ? "$39" : "$49",
       period: "per month/per user",
-      description: "Perfect for growing businesses",
+      yearlyNote: billingCycle === 'annually' ? "billed annually" : "billed monthly",
+      description: "Everything you need to get started",
       features: [
         "AI Hyper-Personalized Learning Engine",
         "AI Avatar-Powered Content Creation",
@@ -36,21 +40,23 @@ const Pricing = () => {
         "Knowledge Base Transformation",
         "Taxonomist Skill Gap Engine"
       ],
-      popular: false
+      popular: false,
+      hasFreeTrial: true
     },
     {
       name: "Enterprise",
       subtitle: "Everything in Core, plus:",
       price: "Custom pricing",
-      period: "contact us",
-      description: "Tailored for large organizations",
+      period: "",
+      description: "Advanced features for growing teams",
       features: [
         "Organization-Specific AI Mentor",
         "Enterprise-Grade Security & Compliance",
         "Low-Code / No-Code Innovation Sandbox",
         "SSO/HRIS Integrations"
       ],
-      popular: true
+      popular: true,
+      hasFreeTrial: false
     }
   ];
 
@@ -60,15 +66,37 @@ const Pricing = () => {
         {/* Header Section */}
         <div className="bg-white py-16 lg:py-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 font-inter leading-tight tracking-tight">
+            <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
-            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
-              Empower your organization to transform learning with adaptive AI.
+            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
+              Choose the perfect plan for your business needs
             </p>
             
-            {/* Trust badges */}
-            
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-12">
+              <span className={`text-base font-medium transition-colors ${billingCycle === 'monthly' ? 'text-business-black' : 'text-business-black/60'}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annually' : 'monthly')}
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-business-black/20 transition-colors focus:outline-none focus:ring-2 focus:ring-business-black focus:ring-offset-2"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-business-black transition-transform ${
+                    billingCycle === 'annually' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-base font-medium transition-colors ${billingCycle === 'annually' ? 'text-business-black' : 'text-business-black/60'}`}>
+                Annually
+              </span>
+              {billingCycle === 'annually' && (
+                <span className="bg-future-green text-business-black text-xs font-medium px-2 py-1 rounded-full ml-2">
+                  Save 20%
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -83,9 +111,16 @@ const Pricing = () => {
                     plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-gray-300'
                   }`}
                 >
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-business-black text-white px-4 py-2 rounded-full text-sm font-medium">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
                   
                   <div className="text-center mb-8">
-                    <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
+                    <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 font-inter ${
                       plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
                     }`}>
                       {plan.name}
@@ -94,16 +129,28 @@ const Pricing = () => {
                       {plan.description}
                     </p>
                     <div className="mb-4">
-                      <span className="text-5xl font-medium text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
+                      <span className="text-4xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
                       </span>
-                      <span className="text-business-black/60 ml-2 font-inter font-normal">
-                        {plan.period}
-                      </span>
+                      {plan.period && (
+                        <span className="text-business-black/60 ml-2 font-inter font-normal text-sm">
+                          {plan.period}
+                        </span>
+                      )}
                     </div>
+                    {plan.yearlyNote && (
+                      <p className="text-sm text-business-black/60 font-normal font-inter mb-2">
+                        {plan.yearlyNote}
+                      </p>
+                    )}
                     {plan.subtitle && (
                       <p className="text-sm text-business-black/60 font-normal font-inter">
                         {plan.subtitle}
+                      </p>
+                    )}
+                    {plan.hasFreeTrial && (
+                      <p className="text-sm text-future-green font-medium font-inter mt-2">
+                        Start your free 14-day trial
                       </p>
                     )}
                   </div>
@@ -142,10 +189,10 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    className={`w-full py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
+                    className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
                       plan.popular
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                        : 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
+                        : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
                     }`}
                   >
                     {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
