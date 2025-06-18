@@ -67,9 +67,9 @@ export const useNavigation = () => {
       id: 'features'
     },
     {
-      name: 'Contact',
-      href: '#contact',
-      id: 'contact'
+      name: 'Pricing',
+      href: '/pricing',
+      id: 'pricing'
     }
   ];
 
@@ -78,7 +78,13 @@ export const useNavigation = () => {
   };
 
   const scrollToSection = (href: string) => {
-    scrollToSectionWithOffset(href);
+    if (href.startsWith('/')) {
+      // Navigate to page
+      window.location.href = href;
+    } else {
+      // Scroll to section
+      scrollToSectionWithOffset(href);
+    }
     setIsMobileMenuOpen(false);
   };
 
