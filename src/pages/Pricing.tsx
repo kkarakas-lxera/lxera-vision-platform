@@ -83,13 +83,6 @@ const Pricing = () => {
                     plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-business-black text-white px-6 py-2 rounded-full text-sm font-medium font-inter">
-                        Enterprise Ready
-                      </span>
-                    </div>
-                  )}
                   
                   <div className="text-center mb-8">
                     <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
@@ -129,13 +122,13 @@ const Pricing = () => {
                             {hasExplanation && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button className="ml-2 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200 hover:scale-110 group">
-                                    <Info className="h-4 w-4 text-future-green/70 group-hover:text-future-green transition-colors duration-200" />
+                                  <button className="ml-2 p-1 hover:bg-business-black/10 rounded-full transition-all duration-200 hover:scale-110 group">
+                                    <Info className="h-4 w-4 text-business-black/70 group-hover:text-business-black transition-colors duration-200" />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent 
                                   side="left" 
-                                  className="max-w-xs bg-white border border-future-green/20 shadow-lg p-3 text-sm text-business-black/80 font-inter"
+                                  className="max-w-xs bg-white border border-business-black/20 shadow-lg p-3 text-sm text-business-black/80 font-inter"
                                   sideOffset={8}
                                 >
                                   {featureExplanations[feature]}
