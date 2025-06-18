@@ -24,11 +24,11 @@ const Pricing = () => {
     },
     {
       name: "Enterprise",
+      subtitle: "Everything in Core, plus:",
       price: "Custom",
       period: "contact us",
       description: "Tailored for large organizations",
       features: [
-        "Everything in Core, plus:",
         "Enterprise-Grade Security & Compliance",
         "Low-Code / No-Code Innovation Sandbox",
         "SSO/HRIS integrations",
@@ -76,6 +76,11 @@ const Pricing = () => {
                   <h3 className="text-2xl font-bold text-business-black mb-2">
                     {plan.name}
                   </h3>
+                  {plan.subtitle && (
+                    <p className="text-sm text-business-black/60 mb-2 font-medium">
+                      {plan.subtitle}
+                    </p>
+                  )}
                   <p className="text-business-black/60 mb-6">
                     {plan.description}
                   </p>
