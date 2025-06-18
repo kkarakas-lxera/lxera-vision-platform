@@ -40,7 +40,7 @@ const Pricing = () => {
       hasFreeTrial: true
     },
     {
-      name: "",
+      name: "Enterprise",
       subtitle: "Everything in Core, plus:",
       price: "Custom pricing",
       period: "",
@@ -51,7 +51,7 @@ const Pricing = () => {
         "Low-Code / No-Code Innovation Sandbox",
         "SSO/HRIS Integrations"
       ],
-      popular: true,
+      popular: false,
       hasFreeTrial: false
     }
   ];
@@ -158,12 +158,12 @@ const Pricing = () => {
 
                   <Button
                     className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
-                      plan.popular
+                      plan.name === 'Enterprise'
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
                         : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
                     }`}
                   >
-                    {plan.popular ? 'Contact Sales' : 'Get Started'}
+                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
                   </Button>
                 </div>
               ))}
