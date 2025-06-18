@@ -1,9 +1,7 @@
-
 import { Button } from "@/components/ui/button";
-import { Check, Info, Star, Zap, ArrowRight, Users, Shield, Sparkles } from "lucide-react";
+import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 
 const Pricing = () => {
@@ -27,7 +25,7 @@ const Pricing = () => {
       name: "Core",
       price: "$199",
       period: "per month",
-      description: "Perfect for growing businesses ready to scale learning",
+      description: "Perfect for growing businesses",
       features: [
         "AI Hyper-Personalized Learning Engine",
         "AI Avatar-Powered Content Creation",
@@ -38,153 +36,115 @@ const Pricing = () => {
         "Knowledge Base Transformation",
         "Taxonomist Skill Gap Engine"
       ],
-      popular: false,
-      highlight: "Most Popular",
-      users: "Up to 100 users"
+      popular: false
     },
     {
       name: "Enterprise",
       subtitle: "Everything in Core, plus:",
       price: "Custom",
       period: "contact us",
-      description: "Tailored for large organizations with advanced needs",
+      description: "Tailored for large organizations",
       features: [
         "Organization-Specific AI Mentor",
         "Enterprise-Grade Security & Compliance",
         "Low-Code / No-Code Innovation Sandbox",
-        "SSO/HRIS Integrations",
-        "White-label Branding",
-        "Dedicated Success Manager",
-        "Priority Support"
+        "SSO/HRIS Integrations"
       ],
-      popular: true,
-      highlight: "Enterprise Ready",
-      users: "Unlimited users"
+      popular: true
     }
   ];
 
   return (
-    <div className="min-h-screen bg-smart-beige">
-      <Navigation />
-      
-      <TooltipProvider>
-        {/* Enhanced Header Section - matching home page hero style */}
-        <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
-          <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
-          
-          <div className="max-w-7xl mx-auto relative z-10 text-center">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-future-green/20 text-business-black text-sm font-medium mb-6">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Transparent, Simple Pricing
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium text-business-black mb-6 leading-tight tracking-tight font-inter">
-              Choose Your
-              <span className="block" style={{ color: '#B1B973' }}>Learning Journey</span>
+    <TooltipProvider>
+      <div className="min-h-screen bg-smart-beige">
+        {/* Header Section */}
+        <div className="bg-white py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
+            <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+              Simple, Transparent Pricing
             </h1>
-            <p className="text-lg sm:text-xl text-business-black/85 max-w-4xl mx-auto mb-10 leading-relaxed font-normal font-inter">
-              Transform your organization with AI-powered learning. Start your journey today with our comprehensive plans designed for every stage of growth.
+            <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+              Choose the perfect plan for your team. No hidden fees, no surprises.
             </p>
             
-            {/* Enhanced Trust badges */}
-            <div className="flex flex-wrap justify-center items-center gap-6 text-base text-business-black/60">
-              <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl">
-                <Star className="h-5 w-5 text-future-green" />
-                <span className="font-medium">14-day free trial</span>
+            {/* Trust badges */}
+            <div className="flex justify-center items-center gap-6 text-sm text-business-black/60">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-future-green" />
+                <span>14-day free trial</span>
               </div>
-              <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl">
-                <Zap className="h-5 w-5 text-future-green" />
-                <span className="font-medium">No credit card required</span>
-              </div>
-              <div className="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-xl">
-                <Shield className="h-5 w-5 text-future-green" />
-                <span className="font-medium">Cancel anytime</span>
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-future-green" />
+                <span>No credit card required</span>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Enhanced Pricing Cards - matching home page section style */}
-        <section className="w-full py-16 px-6 bg-gradient-to-b from-smart-beige/70 via-future-green/5 to-smart-beige/60 relative overflow-hidden font-inter">
-          <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/30 via-transparent to-future-green/8"></div>
-          
-          <div className="max-w-6xl mx-auto relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Pricing Cards */}
+        <div className="py-16 lg:py-24">
+          <div className="max-w-5xl mx-auto px-6 lg:px-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {plans.map((plan, index) => (
                 <div
                   key={plan.name}
-                  className={`relative bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 rounded-3xl p-10 shadow-2xl transition-all duration-500 hover:shadow-3xl hover:-translate-y-3 border-2 group lxera-shadow ${
-                    plan.popular 
-                      ? 'border-business-black scale-105 hover:from-smart-beige/90 hover:via-business-black/15 hover:to-smart-beige/70' 
-                      : 'border-future-green/30 hover:border-future-green hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70'
-                  } lxera-hover`}
+                  className={`relative bg-white rounded-3xl p-8 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group ${
+                    plan.popular ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10' : 'border border-gray-200 hover:border-future-green/30'
+                  }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-business-black text-white px-8 py-3 rounded-full text-base font-bold shadow-xl">
-                        {plan.highlight}
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-business-black text-white px-6 py-2 rounded-full text-sm font-semibold">
+                        Enterprise Ready
                       </span>
                     </div>
                   )}
                   
-                  <div className="text-center mb-10">
-                    <div className="flex items-center justify-center mb-4">
-                      <h3 className={`text-3xl font-bold transition-colors duration-300 font-inter ${
-                        plan.popular ? 'text-business-black' : 'text-business-black group-hover:text-future-green'
-                      }`}>
-                        {plan.name}
-                      </h3>
-                      {!plan.popular && (
-                        <span className="ml-3 bg-future-green/20 text-business-black px-3 py-1 rounded-full text-sm font-medium">
-                          {plan.highlight}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-lg text-business-black/70 mb-6 leading-relaxed font-normal font-inter">
+                  <div className="text-center mb-8">
+                    <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${
+                      plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-future-green'
+                    }`}>
+                      {plan.name}
+                    </h3>
+                    <p className="text-business-black/60 mb-6">
                       {plan.description}
                     </p>
-                    <div className="mb-6">
-                      <span className="text-6xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
+                    <div className="mb-4">
+                      <span className="text-5xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block">
                         {plan.price}
                       </span>
-                      <span className="text-xl text-business-black/60 ml-3 font-normal font-inter">
+                      <span className="text-business-black/60 ml-2">
                         {plan.period}
                       </span>
                     </div>
-                    <div className="flex items-center justify-center text-business-black/60 mb-2">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium font-inter">{plan.users}</span>
-                    </div>
                     {plan.subtitle && (
-                      <p className="text-base text-business-black/70 font-medium bg-smart-beige/30 px-4 py-2 rounded-xl font-inter">
+                      <p className="text-sm text-business-black/60 font-medium">
                         {plan.subtitle}
                       </p>
                     )}
                   </div>
 
-                  <ul className="space-y-5 mb-10">
+                  <ul className="space-y-4 mb-8">
                     {plan.features.map((feature, featureIndex) => {
                       const hasExplanation = featureExplanations[feature];
                       
                       return (
                         <li key={featureIndex}>
-                          <div className="flex items-start group/feature">
-                            <Check className={`h-6 w-6 mr-4 flex-shrink-0 mt-0.5 group-hover/feature:scale-110 transition-transform duration-200 ${
+                          <div className="flex items-center group/feature">
+                            <Check className={`h-5 w-5 mr-3 flex-shrink-0 group-hover/feature:scale-110 transition-transform duration-200 ${
                               plan.popular ? 'text-business-black' : 'text-future-green'
                             }`} />
-                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200 leading-relaxed font-normal font-inter">
-                              {feature}
-                            </span>
+                            <span className="text-business-black/80 flex-1 group-hover/feature:text-business-black transition-colors duration-200">{feature}</span>
                             {hasExplanation && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button className="ml-3 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200 hover:scale-110 group">
+                                  <button className="ml-2 p-1 hover:bg-future-green/10 rounded-full transition-all duration-200 hover:scale-110 group">
                                     <Info className="h-4 w-4 text-future-green/70 group-hover:text-future-green transition-colors duration-200" />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent 
                                   side="left" 
-                                  className="max-w-xs bg-white border border-future-green/20 shadow-xl p-4 text-sm text-business-black/80"
+                                  className="max-w-xs bg-white border border-future-green/20 shadow-lg p-3 text-sm text-business-black/80"
                                   sideOffset={8}
                                 >
                                   {featureExplanations[feature]}
@@ -198,39 +158,31 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl font-inter ${
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                       plan.popular
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                        : 'bg-future-green hover:bg-emerald text-business-black hover:text-white hover:shadow-future-green/25'
+                        : 'bg-future-green hover:bg-future-green/90 text-white hover:shadow-future-green/25'
                     }`}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
                   </Button>
                 </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Plan Comparison Section */}
         <PlanComparisonSection />
 
-        {/* Enhanced FAQ Section - matching home page section style */}
-        <section className="w-full py-16 px-6 bg-gradient-to-b from-future-green/8 via-smart-beige/60 to-future-green/12 relative overflow-hidden font-inter">
-          <div className="absolute inset-0 bg-gradient-to-br from-future-green/4 via-smart-beige/70 to-future-green/10"></div>
-          
-          <div className="max-w-5xl mx-auto relative z-10">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
-                Frequently Asked Questions
-              </h2>
-              <p className="text-xl text-business-black/70 font-normal font-inter">
-                Everything you need to know about our pricing and plans
-              </p>
-            </div>
+        {/* Enhanced FAQ Section */}
+        <div className="py-16 lg:py-24 bg-white">
+          <div className="max-w-4xl mx-auto px-6 lg:px-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black text-center mb-12">
+              Frequently Asked Questions
+            </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
               {[
                 {
                   question: "Can I change my plan anytime?",
@@ -247,32 +199,22 @@ const Pricing = () => {
                 {
                   question: "Do you offer custom pricing for large teams?",
                   answer: "Yes! For teams over 100 users, we offer custom pricing and additional enterprise features. Contact our sales team for a personalized quote."
-                },
-                {
-                  question: "What kind of support do you provide?",
-                  answer: "Core plans include email support and extensive documentation. Enterprise plans get priority support, dedicated success managers, and phone support."
-                },
-                {
-                  question: "How secure is my data?",
-                  answer: "We take security seriously with SOC2 compliance, GDPR alignment, end-to-end encryption, and role-based access controls for all enterprise features."
                 }
               ].map((faq, index) => (
-                <div key={index} className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-future-green/20 lxera-shadow lxera-hover">
-                  <h3 className="text-xl font-bold text-business-black mb-4 leading-tight font-inter">
+                <div key={index} className="bg-smart-beige/30 rounded-2xl p-6 hover:bg-smart-beige/50 transition-all duration-300 hover:shadow-md group">
+                  <h3 className="text-xl font-semibold text-business-black mb-3 group-hover:text-future-green transition-colors duration-300">
                     {faq.question}
                   </h3>
-                  <p className="text-business-black/70 leading-relaxed font-normal font-inter">
+                  <p className="text-business-black/70 leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-        </section>
-      </TooltipProvider>
-      
-      <Footer />
-    </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 };
 
