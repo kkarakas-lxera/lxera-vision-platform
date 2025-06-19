@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -170,11 +169,11 @@ const PlanComparisonSection = () => {
             <div className="px-6 py-4">
               <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
-            <div className="px-6 py-4 text-center">
+            <div className="px-6 py-4 text-center bg-white border-2 border-business-black rounded-t-2xl">
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
-            <div className="px-6 py-4 text-center bg-gray-100 rounded-t-2xl">
+            <div className="px-6 py-4 text-center bg-gray-100 border-2 border-gray-300 rounded-t-2xl">
               <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
             </div>
@@ -201,14 +200,14 @@ const PlanComparisonSection = () => {
                         {feature.name}
                       </span>
                     </div>
-                    <div className="px-6 flex items-center justify-center">
+                    <div className="px-6 flex items-center justify-center bg-white border-l-2 border-r-2 border-business-black">
                       {feature.core ? (
                         <Check className="h-5 w-5 text-business-black" />
                       ) : (
                         <X className="h-5 w-5 text-red-500" />
                       )}
                     </div>
-                    <div className="px-6 flex items-center justify-center bg-gray-100">
+                    <div className="px-6 flex items-center justify-center bg-gray-100 border-l-2 border-r-2 border-gray-300">
                       {feature.enterprise ? (
                         <Check className="h-5 w-5 text-business-black" />
                       ) : (
