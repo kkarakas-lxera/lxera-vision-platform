@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -235,7 +234,7 @@ const WorkforceReskilling = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg rounded-xl"
+                className="border-white text-white hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg rounded-xl"
               >
                 Get Assessment
               </Button>

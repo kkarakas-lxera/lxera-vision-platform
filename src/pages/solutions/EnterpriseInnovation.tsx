@@ -293,7 +293,7 @@ const EnterpriseInnovation = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg rounded-xl"
+                className="border-white text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-lg rounded-xl"
               >
                 Schedule Assessment
               </Button>
