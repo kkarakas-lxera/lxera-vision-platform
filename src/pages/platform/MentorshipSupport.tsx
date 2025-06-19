@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -221,7 +220,7 @@ const MentorshipSupport = () => {
             </Button>
           </div>
         </div>
-      </Section>
+      </section>
 
       <Footer />
     </div>
