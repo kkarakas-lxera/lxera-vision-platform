@@ -238,9 +238,9 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
 
   return (
     <>
-      <div className="hidden lg:flex items-center space-x-8 font-inter">
+      <div className="hidden lg:flex items-center space-x-6 font-inter">
         <NavigationMenu>
-          <NavigationMenuList className="flex items-center space-x-8">
+          <NavigationMenuList className="flex items-center space-x-6">
             {menuItems.map((item) => (
               <NavigationMenuItem key={item.name}>
                 {item.hasDropdown ? (
@@ -260,7 +260,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter px-2 ${
+                    className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter ${
                       activeSection === item.id ? 'text-future-green' : ''
                     }`}
                     aria-current={activeSection === item.id ? 'page' : undefined}
@@ -279,7 +279,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         {/* Request Demo Button - Header version with distinct color */}
         <Button
           onClick={handleRequestDemo}
-          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter ml-2"
+          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
           aria-label="Request a demo"
         >
           Request a demo
