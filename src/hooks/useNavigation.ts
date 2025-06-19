@@ -14,7 +14,7 @@ export const useNavigation = () => {
     };
 
     const handleSectionChange = () => {
-      const sections = ['platform', 'how-it-works', 'features', 'contact'];
+      const sections = ['platform', 'solutions', 'features', 'contact'];
       const scrollPosition = window.scrollY + 100;
       
       for (const section of sections) {
@@ -57,9 +57,28 @@ export const useNavigation = () => {
       id: 'platform'
     },
     {
-      name: 'How It Works',
-      href: '#how-it-works',
-      id: 'how-it-works'
+      name: 'Solutions',
+      href: '#solutions',
+      id: 'solutions',
+      hasDropdown: true,
+      dropdownItems: [
+        {
+          category: 'By Use Case',
+          items: [
+            { name: 'Personalized Learning', href: '/solutions/personalized-learning' },
+            { name: 'Upskilling Frontline Workers', href: '/solutions/upskilling-frontline' },
+            { name: 'Citizen Innovation Enablement', href: '/solutions/citizen-innovation' }
+          ]
+        },
+        {
+          category: 'By Industry',
+          items: [
+            { name: 'Banking & Finance', href: '/solutions/banking-finance' },
+            { name: 'Technology', href: '/solutions/technology' },
+            { name: 'Education', href: '/solutions/education' }
+          ]
+        }
+      ]
     },
     {
       name: 'Features',
