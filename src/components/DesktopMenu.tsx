@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -247,7 +246,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 {item.hasDropdown ? (
                   <>
                     <NavigationMenuTrigger
-                      className={`text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent ${
+                      className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent ${
                         activeSection === item.id ? 'text-future-green' : ''
                       }`}
                     >
@@ -261,7 +260,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter ${
+                    className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter ${
                       activeSection === item.id ? 'text-future-green' : ''
                     }`}
                     aria-current={activeSection === item.id ? 'page' : undefined}

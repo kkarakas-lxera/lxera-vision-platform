@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -195,7 +194,7 @@ const MobileMenu = ({
                   <>
                     <button
                       onClick={() => toggleDropdown(item.name)}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
                         activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
@@ -248,7 +247,7 @@ const MobileMenu = ({
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-3 text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
                       activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
