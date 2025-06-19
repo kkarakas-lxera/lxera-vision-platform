@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -164,7 +165,7 @@ const MobileMenu = ({
   return (
     <div className="lg:hidden">
       {/* Mobile Menu Button and Request Demo */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         <Button
           onClick={handleRequestDemo}
           className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
@@ -187,7 +188,7 @@ const MobileMenu = ({
       {/* Enhanced Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
-          <div className="max-w-7xl mx-auto px-6 py-4 space-y-2">
+          <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
             {menuItems.map((item, index) => (
               <div key={item.name}>
                 {item.hasDropdown ? (
