@@ -1,8 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
+import Navigation from "@/components/Navigation";
 
 const Pricing = () => {
   const featureExplanations: {[key: string]: string} = {
@@ -59,6 +61,8 @@ const Pricing = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-smart-beige font-inter">
+        <Navigation />
+        
         {/* Header Section */}
         <div className="bg-white py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
