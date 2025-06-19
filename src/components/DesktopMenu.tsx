@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -36,49 +35,55 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     setIsDemoModalOpen(true);
   };
 
-  // Define the solutions with icons and colors matching Writer.com style
+  // Define the solutions with warmer, more human-friendly colors and design
   const solutionsItems = [
     {
       name: "AI-Personalized Learning",
       href: "/solutions/ai-personalized-learning",
       icon: Brain,
-      color: "bg-purple-100",
-      iconColor: "text-purple-600"
+      color: "bg-gradient-to-br from-pink-100 to-rose-100",
+      iconColor: "text-pink-600",
+      description: "Adaptive learning that grows with you"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
       href: "/solutions/workforce-reskilling-upskilling",
       icon: Users,
-      color: "bg-blue-100",
-      iconColor: "text-blue-600"
+      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
+      iconColor: "text-blue-600",
+      description: "Empowering team growth together"
     },
     {
       name: "Citizen-Led Innovation",
       href: "/solutions/citizen-led-innovation", 
       icon: Lightbulb,
-      color: "bg-green-100",
-      iconColor: "text-green-600"
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Community-driven solutions"
     },
     {
-      name: "Learning Analytics & Engagement Insights",
+      name: "Learning Analytics & Insights",
       href: "/solutions/learning-analytics-engagement",
       icon: BarChart3,
-      color: "bg-orange-100", 
-      iconColor: "text-orange-600"
+      color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
+      iconColor: "text-emerald-600",
+      description: "Understanding your learning journey"
     },
     {
-      name: "AI Mentorship & 24/7 Support",
+      name: "AI Mentorship & Support",
       href: "/solutions/ai-mentorship-support",
       icon: MessageCircle,
-      color: "bg-cyan-100",
-      iconColor: "text-cyan-600" 
+      color: "bg-gradient-to-br from-purple-100 to-violet-100",
+      iconColor: "text-purple-600",
+      description: "Always here to help and guide"
     },
     {
-      name: "Enterprise Innovation Enablement",
+      name: "Enterprise Innovation",
       href: "/solutions/enterprise-innovation-enablement",
       icon: Building2,
-      color: "bg-amber-100",
-      iconColor: "text-amber-600"
+      color: "bg-gradient-to-br from-slate-100 to-gray-100",
+      iconColor: "text-slate-600",
+      description: "Transform your organization"
     }
   ];
 
@@ -101,29 +106,42 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                         activeSection === item.id ? 'w-full' : 'w-0 group-hover:w-full'
                       }`}></span>
                     </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-white border border-gray-200 shadow-xl rounded-lg p-4 min-w-[380px]">
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-medium text-business-black/60 mb-3 font-inter uppercase tracking-wider">
-                          BY USE CASE
-                        </h4>
-                        <div className="grid grid-cols-1 gap-1">
+                    <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+                          <h4 className="text-sm font-medium text-business-black/70 font-inter">
+                            Solutions for every team
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
                           {solutionsItems.map((solution, index) => {
                             const IconComponent = solution.icon;
                             return (
                               <button
                                 key={index}
                                 onClick={() => scrollToSection(solution.href)}
-                                className="flex items-center w-full text-left p-2 hover:bg-gray-50 rounded-md transition-all duration-200 group"
+                                className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                               >
-                                <div className={`w-8 h-8 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
-                                  <IconComponent className={`w-4 h-4 ${solution.iconColor}`} />
+                                <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                                  <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
                                 </div>
-                                <span className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-200">
-                                  {solution.name}
-                                </span>
+                                <div className="flex-1">
+                                  <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                                    {solution.name}
+                                  </div>
+                                  <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                                    {solution.description}
+                                  </div>
+                                </div>
                               </button>
                             );
                           })}
+                        </div>
+                        <div className="pt-3 mt-4 border-t border-gray-200/50">
+                          <p className="text-xs text-business-black/50 font-inter text-center">
+                            Designed with ❤️ for human-centered innovation
+                          </p>
                         </div>
                       </div>
                     </NavigationMenuContent>

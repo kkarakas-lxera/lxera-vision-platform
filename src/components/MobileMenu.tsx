@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -41,49 +40,55 @@ const MobileMenu = ({
     setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
   };
 
-  // Define the solutions with icons and colors matching Writer.com style
+  // Define the solutions with warmer, more human-friendly colors and design
   const solutionsItems = [
     {
       name: "AI-Personalized Learning",
       href: "/solutions/ai-personalized-learning",
       icon: Brain,
-      color: "bg-purple-100",
-      iconColor: "text-purple-600"
+      color: "bg-gradient-to-br from-pink-100 to-rose-100",
+      iconColor: "text-pink-600",
+      description: "Adaptive learning that grows with you"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
       href: "/solutions/workforce-reskilling-upskilling",
       icon: Users,
-      color: "bg-blue-100",
-      iconColor: "text-blue-600"
+      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
+      iconColor: "text-blue-600",
+      description: "Empowering team growth together"
     },
     {
       name: "Citizen-Led Innovation",
       href: "/solutions/citizen-led-innovation", 
       icon: Lightbulb,
-      color: "bg-green-100",
-      iconColor: "text-green-600"
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Community-driven solutions"
     },
     {
-      name: "Learning Analytics & Engagement Insights",
+      name: "Learning Analytics & Insights",
       href: "/solutions/learning-analytics-engagement",
       icon: BarChart3,
-      color: "bg-orange-100", 
-      iconColor: "text-orange-600"
+      color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
+      iconColor: "text-emerald-600",
+      description: "Understanding your learning journey"
     },
     {
-      name: "AI Mentorship & 24/7 Support",
+      name: "AI Mentorship & Support",
       href: "/solutions/ai-mentorship-support",
       icon: MessageCircle,
-      color: "bg-cyan-100",
-      iconColor: "text-cyan-600" 
+      color: "bg-gradient-to-br from-purple-100 to-violet-100",
+      iconColor: "text-purple-600",
+      description: "Always here to help and guide"
     },
     {
-      name: "Enterprise Innovation Enablement",
+      name: "Enterprise Innovation",
       href: "/solutions/enterprise-innovation-enablement",
       icon: Building2,
-      color: "bg-amber-100",
-      iconColor: "text-amber-600"
+      color: "bg-gradient-to-br from-slate-100 to-gray-100",
+      iconColor: "text-slate-600",
+      description: "Transform your organization"
     }
   ];
 
@@ -133,9 +138,12 @@ const MobileMenu = ({
                       )}
                     </button>
                     {expandedDropdown === item.name && (
-                      <div className="ml-4 mt-2 space-y-1">
-                        <div className="px-4 py-1 text-xs font-medium text-business-black/60 font-inter uppercase tracking-wider">
-                          By Use Case
+                      <div className="ml-2 mt-3 space-y-2 bg-gradient-to-r from-smart-beige/30 to-future-green/10 rounded-xl p-4">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+                          <div className="text-xs font-medium text-business-black/70 font-inter">
+                            Solutions for every team
+                          </div>
                         </div>
                         {solutionsItems.map((solution, subIndex) => {
                           const IconComponent = solution.icon;
@@ -143,17 +151,27 @@ const MobileMenu = ({
                             <button
                               key={subIndex}
                               onClick={() => scrollToSection(solution.href)}
-                              className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
+                              className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                             >
-                              <div className={`w-7 h-7 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
+                              <div className={`w-8 h-8 rounded-xl ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                                 <IconComponent className={`w-4 h-4 ${solution.iconColor}`} />
                               </div>
-                              <span className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-200">
-                                {solution.name}
-                              </span>
+                              <div className="flex-1">
+                                <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                                  {solution.name}
+                                </div>
+                                <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                                  {solution.description}
+                                </div>
+                              </div>
                             </button>
                           );
                         })}
+                        <div className="pt-2 mt-3 border-t border-gray-200/30">
+                          <p className="text-xs text-business-black/50 font-inter text-center">
+                            Designed with ❤️ for human-centered innovation
+                          </p>
+                        </div>
                       </div>
                     )}
                   </>
