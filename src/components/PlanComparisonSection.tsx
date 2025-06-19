@@ -1,3 +1,4 @@
+
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -195,7 +196,7 @@ const PlanComparisonSection = () => {
               {category.features.map((feature, featureIndex) => (
                 <div key={featureIndex}>
                   <div className="grid grid-cols-3 gap-0 py-4 border-t border-gray-100">
-                    <div className="px-6 flex items-center">
+                    <div className="px-6 flex items-center bg-gray-50">
                       <span className="text-sm text-black font-inter font-normal">
                         {feature.name}
                       </span>
