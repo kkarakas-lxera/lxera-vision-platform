@@ -1,4 +1,3 @@
-
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -41,8 +40,7 @@ const HeroSection = () => {
                   Learning & Innovation
                 </span>
                 <span className="block">
-                  <span style={{ color: '#B1B973' }}>Experience </span>
-                  <span className="text-business-black">Platform</span>
+                  <span style={{ color: '#B1B973' }}>Experience Platform</span>
                 </span>
               </h1>
             </div>
