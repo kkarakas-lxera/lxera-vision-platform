@@ -133,8 +133,8 @@ const MobileMenu = ({
                       )}
                     </button>
                     {expandedDropdown === item.name && (
-                      <div className="ml-4 mt-2 space-y-2">
-                        <div className="px-4 py-2 text-sm font-medium text-business-black/60 font-inter uppercase tracking-wider">
+                      <div className="ml-4 mt-2 space-y-1">
+                        <div className="px-4 py-1 text-xs font-medium text-business-black/60 font-inter uppercase tracking-wider">
                           By Use Case
                         </div>
                         {solutionsItems.map((solution, subIndex) => {
@@ -143,10 +143,10 @@ const MobileMenu = ({
                             <button
                               key={subIndex}
                               onClick={() => scrollToSection(solution.href)}
-                              className="flex items-center w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
+                              className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
                             >
-                              <div className={`w-10 h-10 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
-                                <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
+                              <div className={`w-7 h-7 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
+                                <IconComponent className={`w-4 h-4 ${solution.iconColor}`} />
                               </div>
                               <span className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-200">
                                 {solution.name}

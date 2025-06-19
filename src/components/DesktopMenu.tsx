@@ -101,24 +101,24 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                         activeSection === item.id ? 'w-full' : 'w-0 group-hover:w-full'
                       }`}></span>
                     </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-white border border-gray-200 shadow-xl rounded-lg p-8 min-w-[420px]">
+                    <NavigationMenuContent className="bg-white border border-gray-200 shadow-xl rounded-lg p-4 min-w-[380px]">
                       <div className="space-y-1">
-                        <h4 className="text-sm font-medium text-business-black/60 mb-6 font-inter uppercase tracking-wider">
+                        <h4 className="text-xs font-medium text-business-black/60 mb-3 font-inter uppercase tracking-wider">
                           BY USE CASE
                         </h4>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-1">
                           {solutionsItems.map((solution, index) => {
                             const IconComponent = solution.icon;
                             return (
                               <button
                                 key={index}
                                 onClick={() => scrollToSection(solution.href)}
-                                className="flex items-center w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
+                                className="flex items-center w-full text-left p-2 hover:bg-gray-50 rounded-md transition-all duration-200 group"
                               >
-                                <div className={`w-12 h-12 rounded-full ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200`}>
-                                  <IconComponent className={`w-6 h-6 ${solution.iconColor}`} />
+                                <div className={`w-8 h-8 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
+                                  <IconComponent className={`w-4 h-4 ${solution.iconColor}`} />
                                 </div>
-                                <span className="text-business-black font-medium font-inter group-hover:text-future-green transition-colors duration-200">
+                                <span className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-200">
                                   {solution.name}
                                 </span>
                               </button>
