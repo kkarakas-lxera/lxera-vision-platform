@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -43,7 +44,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Brain,
       color: "bg-gradient-to-br from-pink-100 to-rose-100",
       iconColor: "text-pink-600",
-      description: "Adaptive learning that grows with you"
+      description: "Personalized content and pathways — powered by AI"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
@@ -51,39 +52,39 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Users,
       color: "bg-gradient-to-br from-blue-100 to-indigo-100",
       iconColor: "text-blue-600",
-      description: "Empowering team growth together"
+      description: "Close skill gaps and future-proof your teams"
     },
     {
-      name: "Citizen-Led Innovation",
-      href: "/solutions/citizen-led-innovation", 
+      name: "Citizen Developer Enablement",
+      href: "/solutions/citizen-developer-enablement", 
       icon: Lightbulb,
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",
-      description: "Community-driven solutions"
+      description: "Equip business users to build and automate without coding"
     },
     {
       name: "Learning Analytics & Insights",
-      href: "/solutions/learning-analytics-engagement",
+      href: "/solutions/learning-analytics-insights",
       icon: BarChart3,
       color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
       iconColor: "text-emerald-600",
-      description: "Understanding your learning journey"
+      description: "Turn engagement data into actionable insights"
     },
     {
-      name: "AI Mentorship & Support",
-      href: "/solutions/ai-mentorship-support",
+      name: "Scalable Learning Support & Mentorship",
+      href: "/solutions/scalable-learning-support-mentorship",
       icon: MessageCircle,
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
-      description: "Always here to help and guide"
+      description: "24/7 guidance to keep learners engaged and on track"
     },
     {
-      name: "Enterprise Innovation",
+      name: "Enterprise Innovation Enablement",
       href: "/solutions/enterprise-innovation-enablement",
       icon: Building2,
       color: "bg-gradient-to-br from-slate-100 to-gray-100",
       iconColor: "text-slate-600",
-      description: "Transform your organization"
+      description: "Empower every level of the organization to drive transformation"
     }
   ];
 
