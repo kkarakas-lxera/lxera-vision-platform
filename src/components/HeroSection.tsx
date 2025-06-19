@@ -22,9 +22,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 relative overflow-hidden font-inter">
+    <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-8 sm:pb-12 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
       {/* Simple background gradient without animated elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-future-green/8 via-transparent to-smart-beige/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Main content - side by side layout with much bigger video */}

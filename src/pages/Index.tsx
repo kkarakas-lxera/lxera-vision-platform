@@ -11,16 +11,32 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-smart-beige">
+    <div className="min-h-screen">
       <Navigation />
-      <HeroSection />
-      <WhyLXERASection />
-      <TransformationStartsSection />
-      <HowItWorksSection />
-      <PlatformHighlightsSection />
-      <BuiltForInnovatorsSection />
-      <ContactSection />
-      <Footer />
+      <div className="transition-all duration-1000 ease-in-out">
+        <HeroSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <WhyLXERASection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <TransformationStartsSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <HowItWorksSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <PlatformHighlightsSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <BuiltForInnovatorsSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <ContactSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <Footer />
+      </div>
     </div>
   );
 };
