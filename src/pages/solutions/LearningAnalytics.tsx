@@ -100,7 +100,7 @@ const LearningAnalytics = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
               Explore Analytics
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -108,7 +108,7 @@ const LearningAnalytics = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
+              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
               View Demo
             </Button>
@@ -271,7 +271,7 @@ const LearningAnalytics = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-green-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+                className="bg-white text-green-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Start Analytics Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -279,7 +279,7 @@ const LearningAnalytics = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg"
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg rounded-xl"
               >
                 Schedule Demo
               </Button>
