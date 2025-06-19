@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -238,9 +239,9 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
 
   return (
     <>
-      <div className="hidden lg:flex items-center space-x-4 font-inter">
+      <div className="hidden lg:flex items-center space-x-3 font-inter">
         <NavigationMenu>
-          <NavigationMenuList className="flex items-center space-x-4">
+          <NavigationMenuList className="flex items-center space-x-3">
             {menuItems.map((item) => (
               <NavigationMenuItem key={item.name}>
                 {item.hasDropdown ? (
