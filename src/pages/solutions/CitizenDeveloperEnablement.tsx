@@ -95,7 +95,7 @@ const CitizenDeveloperEnablement = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
               Start Building Free
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -103,7 +103,7 @@ const CitizenDeveloperEnablement = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
+              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
               Watch Tutorial
             </Button>
@@ -224,7 +224,7 @@ const CitizenDeveloperEnablement = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+                className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Start Building Now
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -232,7 +232,7 @@ const CitizenDeveloperEnablement = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
+                className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
               >
                 Request Demo
               </Button>
