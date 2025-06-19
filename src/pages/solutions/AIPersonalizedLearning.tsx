@@ -219,7 +219,7 @@ const AIPersonalizedLearning = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-pink-600 hover:border-white px-8 py-4 text-lg rounded-xl"
+                className="border-white text-white hover:bg-white hover:text-pink-600 hover:border-white px-8 py-4 text-lg rounded-xl bg-white/10"
               >
                 Schedule Demo
               </Button>
