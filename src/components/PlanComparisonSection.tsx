@@ -166,10 +166,10 @@ const PlanComparisonSection = () => {
         <div className="bg-white rounded-2xl overflow-hidden">
           {/* Table Header */}
           <div className="grid grid-cols-3 gap-0 pb-8">
-            <div className="px-6 py-4">
+            <div className="px-6 py-4 bg-gray-50">
               <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
-            <div className="px-6 py-4 text-center bg-future-green/20 border-2 border-future-green rounded-t-2xl">
+            <div className="px-6 py-4 text-center bg-future-green/30 border-2 border-future-green rounded-t-2xl">
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
@@ -184,11 +184,13 @@ const PlanComparisonSection = () => {
             <div key={categoryIndex}>
               {/* Category Header */}
               <div className="grid grid-cols-3 gap-0 border-t border-gray-200 py-6">
-                <div className="px-6 col-span-3">
+                <div className="px-6 col-span-1 bg-gray-50">
                   <h4 className="text-lg font-medium text-black font-inter">
                     {category.category}
                   </h4>
                 </div>
+                <div className="col-span-1 bg-future-green/30 border-l-2 border-r-2 border-future-green"></div>
+                <div className="col-span-1 bg-smart-beige border-l-2 border-r-2 border-business-black/20"></div>
               </div>
               
               {/* Category Features */}
@@ -200,7 +202,7 @@ const PlanComparisonSection = () => {
                         {feature.name}
                       </span>
                     </div>
-                    <div className="px-6 flex items-center justify-center bg-future-green/20 border-l-2 border-r-2 border-future-green">
+                    <div className="px-6 flex items-center justify-center bg-future-green/30 border-l-2 border-r-2 border-future-green">
                       {feature.core ? (
                         <Check className="h-5 w-5 text-business-black" />
                       ) : (
