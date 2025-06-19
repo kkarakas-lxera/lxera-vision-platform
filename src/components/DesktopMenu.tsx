@@ -238,9 +238,9 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
 
   return (
     <>
-      <div className="hidden lg:flex items-center space-x-6 font-inter">
+      <div className="hidden lg:flex items-center space-x-4 font-inter">
         <NavigationMenu>
-          <NavigationMenuList className="flex items-center space-x-6">
+          <NavigationMenuList className="flex items-center space-x-4">
             {menuItems.map((item) => (
               <NavigationMenuItem key={item.name}>
                 {item.hasDropdown ? (
