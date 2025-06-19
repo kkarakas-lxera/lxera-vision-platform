@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
 import Solutions from "./pages/Solutions";
 import Resources from "./pages/Resources";
+import SuccessStories from "./pages/resources/SuccessStories";
 import AIPersonalizedLearning from "./pages/solutions/AIPersonalizedLearning";
 import WorkforceReskilling from "./pages/solutions/WorkforceReskilling";
 import CitizenDeveloperEnablement from "./pages/solutions/CitizenDeveloperEnablement";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/solutions" element={<Solutions />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/resources/success-stories" element={<SuccessStories />} />
             <Route path="/solutions/ai-personalized-learning" element={<AIPersonalizedLearning />} />
             <Route path="/solutions/workforce-reskilling-upskilling" element={<WorkforceReskilling />} />
             <Route path="/solutions/citizen-developer-enablement" element={<CitizenDeveloperEnablement />} />
