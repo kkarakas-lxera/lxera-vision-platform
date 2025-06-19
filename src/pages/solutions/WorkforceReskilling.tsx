@@ -5,34 +5,45 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users, CheckCircle, TrendingUp, Target, Award } from "lucide-react";
+import { ArrowRight, Users, CheckCircle, TrendingUp, Target, Award, Clock, BookOpen } from "lucide-react";
 
 const WorkforceReskilling = () => {
-  const features = [
+  const timelineSteps = [
     {
       icon: Target,
-      title: "Skills Gap Analysis",
-      description: "Identify current skill levels and future requirements across your organization"
+      title: "Skills Assessment",
+      description: "Comprehensive analysis of current capabilities and future requirements",
+      duration: "Week 1-2",
+      color: "bg-blue-500"
+    },
+    {
+      icon: BookOpen,
+      title: "Learning Path Design",
+      description: "Customized roadmaps aligned with career goals and business needs",
+      duration: "Week 3",
+      color: "bg-green-500"
     },
     {
       icon: TrendingUp,
-      title: "Career Pathway Mapping",
-      description: "Clear roadmaps for employee growth and development aligned with business needs"
+      title: "Skill Development",
+      description: "Interactive learning modules with real-world applications",
+      duration: "Week 4-12",
+      color: "bg-purple-500"
     },
     {
       icon: Award,
-      title: "Progress Tracking",
-      description: "Real-time monitoring of skill development and certification achievements"
+      title: "Certification & Recognition",
+      description: "Industry-recognized credentials and internal acknowledgment",
+      duration: "Week 13+",
+      color: "bg-orange-500"
     }
   ];
 
-  const benefits = [
-    "60% reduction in skill gaps",
-    "95% employee retention rate",
-    "Future-ready workforce",
-    "Career advancement clarity",
-    "Measurable skill development",
-    "Industry-aligned training"
+  const metrics = [
+    { label: "Skills Gap Reduction", value: "60%", icon: Target },
+    { label: "Employee Retention", value: "95%", icon: Users },
+    { label: "Career Advancement", value: "78%", icon: TrendingUp },
+    { label: "Training ROI", value: "340%", icon: Award }
   ];
 
   return (
@@ -44,44 +55,158 @@ const WorkforceReskilling = () => {
       />
       <Navigation />
       
-      {/* Hero Section */}
+      {/* Hero Section - Timeline Inspired */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-fade-in-up">
-              <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-sm font-medium">
-                Workforce Development
-              </Badge>
-              <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 leading-tight">
-                Workforce
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"> Reskilling</span>
-              </h1>
-              <p className="text-xl text-business-black/70 mb-8 leading-relaxed">
-                Close skill gaps and future-proof your teams. Comprehensive reskilling and upskilling programs that align with your business strategy and employee career goals.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
-                >
-                  Schedule Demo
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
-                >
-                  Learn More
-                </Button>
+          <div className="text-center mb-16">
+            <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-sm font-medium">
+              <Clock className="w-4 h-4 mr-2" />
+              Workforce Development
+            </Badge>
+            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
+              Future-Proof Your
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Workforce</span>
+            </h1>
+            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Transform your team's capabilities with strategic reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges today.
+            </p>
+          </div>
+
+          {/* Metrics Dashboard */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {metrics.map((metric, index) => {
+              const IconComponent = metric.icon;
+              return (
+                <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <CardContent className="pt-6">
+                    <IconComponent className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{metric.value}</div>
+                    <div className="text-sm text-business-black/70">{metric.label}</div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+            >
+              Start Reskilling Program
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
+            >
+              Download Framework
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Timeline Process Section */}
+      <section className="py-20 px-6 lg:px-12 bg-white/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+              Your Reskilling Journey
+            </h2>
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+              A proven 4-step process that transforms your workforce capabilities
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Timeline Line */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full hidden lg:block"></div>
+            
+            <div className="space-y-12">
+              {timelineSteps.map((step, index) => {
+                const IconComponent = step.icon;
+                const isEven = index % 2 === 0;
+                
+                return (
+                  <div key={index} className={`flex items-center ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} animate-fade-in-up`} style={{ animationDelay: `${index * 200}ms` }}>
+                    <div className={`w-full lg:w-5/12 ${isEven ? 'lg:pr-12' : 'lg:pl-12'}`}>
+                      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+                        <CardHeader>
+                          <div className="flex items-center mb-4">
+                            <div className={`w-12 h-12 ${step.color} rounded-full flex items-center justify-center mr-4`}>
+                              <IconComponent className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-xl font-bold text-business-black">{step.title}</CardTitle>
+                              <Badge variant="outline" className="mt-1">{step.duration}</Badge>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <CardDescription className="text-business-black/70 leading-relaxed text-base">
+                            {step.description}
+                          </CardDescription>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    
+                    {/* Timeline Node */}
+                    <div className="hidden lg:flex w-2/12 justify-center">
+                      <div className={`w-8 h-8 ${step.color} rounded-full border-4 border-white shadow-lg flex items-center justify-center`}>
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="w-full lg:w-5/12"></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Results Section */}
+      <section className="py-20 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+                Measurable Impact
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {[
+                  "60% reduction in skill gaps",
+                  "95% employee retention rate", 
+                  "Future-ready workforce",
+                  "Career advancement clarity",
+                  "Measurable skill development",
+                  "Industry-aligned training"
+                ].map((benefit, index) => (
+                  <div key={index} className="flex items-center space-x-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                    <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <span className="text-lg text-business-black/80">{benefit}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="relative animate-fade-in-scale">
-              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl p-8 shadow-2xl">
-                <Users className="w-24 h-24 text-blue-600 mx-auto mb-6" />
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-business-black mb-4">Team Development</h3>
-                  <p className="text-business-black/70">Building tomorrow's workforce today</p>
+            
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8">
+              <div className="text-center mb-6">
+                <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+                <div className="text-4xl font-bold text-blue-600 mb-2">95%</div>
+                <div className="text-xl font-semibold text-business-black mb-4">Retention Rate</div>
+              </div>
+              <div className="text-business-black/70 text-center leading-relaxed">
+                Employees who participate in our reskilling programs show exceptional retention and career satisfaction rates
+              </div>
+              <div className="mt-6 pt-6 border-t border-blue-200">
+                <div className="text-sm text-business-black/60 text-center">
+                  "The most comprehensive workforce development program we've ever implemented"
+                </div>
+                <div className="text-sm font-medium text-blue-600 text-center mt-2">
+                  - Fortune 500 HR Director
                 </div>
               </div>
             </div>
@@ -89,94 +214,30 @@ const WorkforceReskilling = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
-              Key Features
-            </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Comprehensive tools to identify, plan, and execute successful reskilling initiatives
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-xl font-bold text-business-black">
-                      {feature.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-business-black/70 text-center leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-8">
-                Proven Impact
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                    <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                    <span className="text-business-black/80">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">95%</div>
-              <div className="text-business-black font-semibold mb-4">Retention Rate</div>
-              <div className="text-business-black/70">
-                Employees who participate in our reskilling programs show exceptional retention rates
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-blue-600 to-indigo-600">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
-              Future-Proof Your Workforce
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Start Your Workforce Transformation
             </h2>
-            <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">
-              Start building the skills your organization needs for tomorrow. Our comprehensive reskilling platform makes workforce transformation achievable.
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              Don't let skill gaps hold your organization back. Build the workforce of tomorrow, today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+                className="bg-white text-blue-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
               >
-                Get Started Today
+                Launch Program Today
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg"
               >
-                Contact Sales
+                Get Assessment
               </Button>
             </div>
           </div>
