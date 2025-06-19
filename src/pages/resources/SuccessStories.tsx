@@ -4,236 +4,219 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Quote, Lightbulb, Users, Zap, Target, Rocket, TrendingUp, Brain, MessageCircle, Star } from "lucide-react";
+import { Quote, Target, Rocket, Users, Brain, TrendingUp, Zap, CheckCircle, ArrowRight, Lightbulb } from "lucide-react";
 
 const SuccessStories = () => {
+  const heroStats = [
+    { value: "65%", label: "Faster onboarding", icon: TrendingUp },
+    { value: "92%", label: "AI accuracy rate", icon: Target },
+    { value: "3min", label: "Path generation", icon: Zap },
+    { value: "100%", label: "User satisfaction", icon: CheckCircle }
+  ];
+
   const storyCategories = [
     {
       title: "Pilot Program Insights",
       icon: Target,
-      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
-      iconColor: "text-blue-600",
+      gradient: "from-blue-500 to-indigo-600",
+      bgColor: "bg-blue-50",
       stories: [
         {
           title: "Early Adopter Validation",
           description: "In a closed pilot with 5 early adopters, LXERA helped identify skill gaps and generate personalized learning paths in under 3 minutes using our AI engine.",
-          type: "Pilot Results",
-          metrics: "3min avg. path generation",
-          tag: "Validated"
+          metric: "3min avg generation",
+          tag: "Validated",
+          tagColor: "bg-blue-100 text-blue-800"
         },
         {
           title: "Rapid Learning Path Creation",
           description: "During internal testing, our AI engine achieved 92% accuracy in learner intent detection after just the first 3 interactions.",
-          type: "AI Performance",
-          metrics: "92% accuracy rate",
-          tag: "Technical"
+          metric: "92% accuracy rate",
+          tag: "Technical",
+          tagColor: "bg-blue-100 text-blue-800"
         }
       ]
     },
     {
-      title: "Future Impact Stories",
+      title: "Future Impact Vision",
       icon: Rocket,
-      color: "bg-gradient-to-br from-purple-100 to-violet-100",
-      iconColor: "text-purple-600",
+      gradient: "from-purple-500 to-pink-600",
+      bgColor: "bg-purple-50",
       stories: [
         {
           title: "The Retail Revolution",
-          description: "Picture this: A mid-sized retail company enables 120 frontline employees to become citizen innovators through LXERA's AI-guided studio — all without a single line of code. Within 6 weeks, 3 internal tools are launched by the employees themselves.",
-          type: "Vision Story",
-          metrics: "120 employees empowered",
-          tag: "Future Impact"
+          description: "Picture this: A mid-sized retail company enables 120 frontline employees to become citizen innovators through LXERA's AI-guided studio — all without a single line of code. Within 6 weeks, 3 internal tools are launched.",
+          metric: "120 employees empowered",
+          tag: "Future Impact",
+          tagColor: "bg-purple-100 text-purple-800"
         },
         {
           title: "Manufacturing Transformation",
-          description: "Imagine a manufacturing team where every worker becomes an innovation catalyst. Through LXERA's personalized learning engine, 200+ floor workers master digital skills and create 15 process improvements in their first quarter.",
-          type: "What We're Building For",
-          metrics: "15 innovations created",
-          tag: "Transformative"
+          description: "Imagine a manufacturing team where every worker becomes an innovation catalyst. Through LXERA's personalized engine, 200+ floor workers master digital skills and create 15 process improvements.",
+          metric: "15 innovations created",
+          tag: "Transformative",
+          tagColor: "bg-purple-100 text-purple-800"
         }
       ]
     },
     {
       title: "Co-Creation Highlights",
       icon: Users,
-      color: "bg-gradient-to-br from-emerald-100 to-teal-100",
-      iconColor: "text-emerald-600",
+      gradient: "from-emerald-500 to-teal-600",
+      bgColor: "bg-emerald-50",
       stories: [
         {
           title: "Cross-Industry Expert Collaboration",
           description: "We co-developed our AI onboarding model with input from digital learning experts across 3 industries. The result? A 92% accuracy in learner intent detection after the first 3 interactions.",
-          type: "Expert Partnership",
-          metrics: "3 industries consulted",
-          tag: "Collaborative"
+          metric: "3 industries consulted",
+          tag: "Collaborative",
+          tagColor: "bg-emerald-100 text-emerald-800"
         },
         {
           title: "Advisory Board Innovation",
           description: "Working with learning and development leaders, we refined our mentorship algorithms to provide contextually relevant guidance that adapts to individual learning styles and pace.",
-          type: "Advisory Input",
-          metrics: "Real-world relevance",
-          tag: "Expert-Driven"
+          metric: "Real-world relevance",
+          tag: "Expert-Driven",
+          tagColor: "bg-emerald-100 text-emerald-800"
         }
       ]
     },
     {
       title: "Team Breakthrough Stories",
       icon: Brain,
-      color: "bg-gradient-to-br from-amber-100 to-yellow-100",
-      iconColor: "text-amber-600",
+      gradient: "from-amber-500 to-orange-600",
+      bgColor: "bg-amber-50",
       stories: [
         {
           title: "Walking the Talk",
           description: "Our own product team used LXERA's learning engine to reskill on prompt engineering and build a smarter onboarding AI agent — in just 2 weeks.",
-          type: "Internal Success",
-          metrics: "2 weeks to mastery",
-          tag: "Proven"
+          metric: "2 weeks to mastery",
+          tag: "Proven",
+          tagColor: "bg-amber-100 text-amber-800"
         },
         {
           title: "Innovation Lab Results",
           description: "Using our prototype studio, our non-technical team members built two AI-powered microtools for customer feedback analysis — with zero coding experience required.",
-          type: "Internal Innovation",
-          metrics: "2 tools built by non-tech team",
-          tag: "Empowering"
+          metric: "2 tools built by non-tech team",
+          tag: "Empowering",
+          tagColor: "bg-amber-100 text-amber-800"
         }
       ]
-    }
-  ];
-
-  const keyMetrics = [
-    {
-      number: "65%",
-      label: "Reduction in onboarding time",
-      description: "AI-powered personalization accelerates learning paths"
-    },
-    {
-      number: "92%",
-      label: "AI accuracy in learning needs detection",
-      description: "Even in pilot testing, precision was remarkable"
-    },
-    {
-      number: "3min",
-      label: "Average time to generate personalized paths",
-      description: "From assessment to customized learning journey"
-    },
-    {
-      number: "100%",
-      label: "Of pilot users found value immediately",
-      description: "Early validation of our human-centered approach"
     }
   ];
 
   const testimonials = [
     {
       quote: "The AI accuracy in identifying learning needs was unreal — even in the pilot. It felt like the platform knew me.",
-      author: "Early User",
+      author: "Sarah M.",
       role: "Pilot Program Participant",
-      company: "Manufacturing Partner"
+      company: "Manufacturing Partner",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b332c593?w=100&h=100&fit=crop&crop=face"
     },
     {
       quote: "We built tools we never thought possible without our technical team. LXERA made citizen development actually accessible.",
-      author: "Team Lead",
-      role: "Internal Innovation",
-      company: "LXERA Team"
+      author: "Michael R.",
+      role: "Team Lead",
+      company: "LXERA Internal",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
     },
     {
       quote: "The personalization wasn't just smart — it was intuitive. Like having a mentor who understood exactly what I needed to learn next.",
-      author: "Learning Professional",
-      role: "Co-Creation Partner",
-      company: "Industry Expert"
+      author: "Dr. Emma T.",
+      role: "Learning Professional",
+      company: "Industry Expert",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-business-black/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige/50 via-white to-gray-50">
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-16 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter">
-            Success <span className="text-business-black">Stories</span>
-          </h1>
-          <p className="text-xl text-business-black/70 mb-8 max-w-3xl mx-auto font-inter">
-            Early Results That Inspire the Future
-          </p>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 lg:p-8 max-w-4xl mx-auto border border-gray-200/50">
-            <p className="text-lg text-business-black/80 font-inter leading-relaxed">
-              While LXERA is still in its early stages, we've already seen powerful signs of what's possible. 
-              From closed pilots and internal innovation to cross-industry co-creation, here's a glimpse into 
-              the value LXERA is already creating.
+      <section className="pt-32 pb-20 px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-business-black/5 via-transparent to-future-green/10"></div>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16">
+            <Badge className="mb-6 bg-future-green/20 text-business-black border-0 px-6 py-2 text-sm">
+              Early Results & Future Vision
+            </Badge>
+            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-8 font-inter leading-tight">
+              Success <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">Stories</span>
+            </h1>
+            <p className="text-xl lg:text-2xl text-business-black/70 mb-12 max-w-4xl mx-auto font-inter leading-relaxed">
+              Real results from pilot programs, internal breakthroughs, and the future we're building together
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Key Metrics */}
-      <section className="py-16 px-6 lg:px-12 bg-gradient-to-r from-business-black/5 to-gray-100/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-4 font-inter">
-              Early Results
-            </h2>
-            <p className="text-xl text-business-black/70 font-inter">
-              Real metrics from our pilot programs and internal testing
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {keyMetrics.map((metric, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm">
-                <CardContent className="pt-6">
-                  <div className="text-4xl font-bold text-business-black mb-2 font-inter">
-                    {metric.number}
+          {/* Hero Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {heroStats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                    <div className="w-12 h-12 bg-gradient-to-br from-future-green to-emerald rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-3xl font-bold text-business-black mb-2 font-inter">
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-business-black/60 font-inter">
+                      {stat.label}
+                    </div>
                   </div>
-                  <div className="text-lg font-semibold text-business-black mb-2 font-inter">
-                    {metric.label}
-                  </div>
-                  <div className="text-sm text-business-black/60 font-inter">
-                    {metric.description}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Story Categories */}
-      <section className="py-16 px-6 lg:px-12">
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           {storyCategories.map((category, categoryIndex) => {
             const IconComponent = category.icon;
             return (
-              <div key={categoryIndex} className="mb-16">
-                <div className="flex items-center mb-8">
-                  <div className={`w-12 h-12 rounded-2xl ${category.color} flex items-center justify-center mr-4`}>
-                    <IconComponent className={`w-6 h-6 ${category.iconColor}`} />
+              <div key={categoryIndex} className="mb-20">
+                {/* Category Header */}
+                <div className="flex items-center mb-12">
+                  <div className={`w-16 h-16 bg-gradient-to-r ${category.gradient} rounded-3xl flex items-center justify-center mr-6 shadow-lg`}>
+                    <IconComponent className="w-8 h-8 text-white" />
                   </div>
-                  <h2 className="text-3xl font-bold text-business-black font-inter">{category.title}</h2>
+                  <div>
+                    <h2 className="text-4xl font-bold text-business-black font-inter mb-2">{category.title}</h2>
+                    <div className="w-24 h-1 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Stories Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {category.stories.map((story, storyIndex) => (
-                    <Card key={storyIndex} className="hover:shadow-lg transition-all duration-300 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <Badge variant="secondary" className="bg-business-black/10 text-business-black border-0">
+                    <Card key={storyIndex} className="group hover:shadow-2xl transition-all duration-500 hover:scale-102 border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
+                      <div className={`h-2 bg-gradient-to-r ${category.gradient}`}></div>
+                      <CardHeader className="pb-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <Badge className={`${story.tagColor} border-0 px-3 py-1`}>
                             {story.tag}
                           </Badge>
-                          <div className="text-sm text-business-black/50 font-inter">
-                            {story.metrics}
+                          <div className="text-sm font-semibold text-business-black/60 bg-gray-50 px-3 py-1 rounded-full">
+                            {story.metric}
                           </div>
                         </div>
-                        <CardTitle className="text-xl font-semibold text-business-black font-inter mb-2">
+                        <CardTitle className="text-2xl font-bold text-business-black font-inter mb-3 group-hover:text-emerald transition-colors duration-300">
                           {story.title}
                         </CardTitle>
-                        <div className="text-sm text-business-black/60 font-inter mb-3">
-                          {story.type}
-                        </div>
                       </CardHeader>
                       <CardContent>
-                        <CardDescription className="text-business-black/70 font-inter text-base leading-relaxed">
+                        <CardDescription className="text-business-black/70 font-inter text-lg leading-relaxed">
                           {story.description}
                         </CardDescription>
+                        <div className="mt-6 flex items-center text-emerald group-hover:text-business-black transition-colors duration-300">
+                          <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-300" />
+                          <span className="font-semibold">Learn more</span>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -245,36 +228,47 @@ const SuccessStories = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/30 to-business-black/5">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-gray-50 to-smart-beige/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-4 font-inter">
-              Voices from the <span className="text-business-black">Journey</span>
+          <div className="text-center mb-16">
+            <Badge className="mb-6 bg-business-black text-white px-6 py-2">
+              Voices from Our Journey
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6 font-inter">
+              What People Are <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">Saying</span>
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto font-inter">
               Real feedback from early users, partners, and our own team
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <Quote className="w-8 h-8 text-business-black/20 mb-4" />
-                  <CardDescription className="text-business-black/80 font-inter text-base leading-relaxed italic">
+              <Card key={index} className="hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/90 backdrop-blur-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-future-green to-emerald"></div>
+                <CardHeader className="pb-6">
+                  <Quote className="w-10 h-10 text-future-green/30 mb-4" />
+                  <CardDescription className="text-business-black/80 font-inter text-lg leading-relaxed italic">
                     "{testimonial.quote}"
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="border-t border-gray-200/50 pt-4">
-                    <div className="font-semibold text-business-black font-inter">
-                      {testimonial.author}
-                    </div>
-                    <div className="text-sm text-business-black/60 font-inter">
-                      {testimonial.role}
-                    </div>
-                    <div className="text-sm text-business-black/50 font-inter">
-                      {testimonial.company}
+                  <div className="flex items-center">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.author}
+                      className="w-12 h-12 rounded-full mr-4 object-cover"
+                    />
+                    <div>
+                      <div className="font-bold text-business-black font-inter">
+                        {testimonial.author}
+                      </div>
+                      <div className="text-sm text-business-black/60 font-inter">
+                        {testimonial.role}
+                      </div>
+                      <div className="text-xs text-business-black/50 font-inter">
+                        {testimonial.company}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -285,23 +279,29 @@ const SuccessStories = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-business-black to-business-black/90 rounded-3xl p-8 lg:p-12 text-white">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 font-inter">
-              Be Part of the Next Success Story
+      <section className="py-20 px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-business-black via-business-black/95 to-business-black"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Ccircle cx="30" cy="30" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+        <div className="max-w-5xl mx-auto text-center relative">
+          <div className="mb-8">
+            <Lightbulb className="w-16 h-16 text-future-green mx-auto mb-6" />
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-inter">
+              Be Part of the Next <span className="text-future-green">Success Story</span>
             </h2>
-            <p className="text-xl text-white/80 mb-8 font-inter">
-              Join our pilot program and help shape the future of learning and innovation.
+            <p className="text-xl text-white/80 mb-12 font-inter max-w-3xl mx-auto leading-relaxed">
+              Join our pilot program and help shape the future of learning and innovation. 
+              Experience firsthand what makes LXERA different.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-white text-business-black hover:bg-gray-100 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                Request Pilot Access
-              </Button>
-              <Button variant="outline" className="border-white/30 text-white hover:bg-white hover:text-business-black px-8 py-3 rounded-xl">
-                Schedule a Demo
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <Button className="bg-future-green text-business-black hover:bg-emerald px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg font-semibold">
+              Request Pilot Access
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button variant="outline" className="border-white/30 text-white hover:bg-white hover:text-business-black px-8 py-4 rounded-xl text-lg font-semibold">
+              Schedule a Demo
+            </Button>
           </div>
         </div>
       </section>
