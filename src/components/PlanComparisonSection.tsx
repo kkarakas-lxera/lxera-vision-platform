@@ -170,11 +170,11 @@ const PlanComparisonSection = () => {
             <div className="px-6 py-4 bg-gray-50">
               <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
-            <div className="px-6 py-4 text-center bg-lxera-blue border-l border-r border-lxera-blue">
+            <div className="px-6 py-4 text-center bg-white border-l border-r border-gray-200">
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
-            <div className="px-6 py-4 text-center bg-light-green border-l border-r border-light-green">
+            <div className="px-6 py-4 text-center bg-gray-100 border-l border-r border-gray-200">
               <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
             </div>
@@ -190,8 +190,8 @@ const PlanComparisonSection = () => {
                     {category.category}
                   </h4>
                 </div>
-                <div className="px-6 py-6 bg-lxera-blue border-l border-r border-lxera-blue"></div>
-                <div className="px-6 py-6 bg-light-green border-l border-r border-light-green"></div>
+                <div className="px-6 py-6 bg-white border-l border-r border-gray-200"></div>
+                <div className="px-6 py-6 bg-gray-100 border-l border-r border-gray-200"></div>
               </div>
               
               {/* Category Features */}
@@ -202,14 +202,14 @@ const PlanComparisonSection = () => {
                       {feature.name}
                     </span>
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-lxera-blue border-l border-r border-lxera-blue border-t border-gray-100">
+                  <div className="px-6 py-4 flex items-center justify-center bg-white border-l border-r border-gray-200 border-t border-gray-100">
                     {feature.core ? (
                       <Check className="h-5 w-5 text-business-black" />
                     ) : (
                       <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-light-green border-l border-r border-light-green border-t border-gray-100">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gray-100 border-l border-r border-gray-200 border-t border-gray-100">
                     {feature.enterprise ? (
                       <Check className="h-5 w-5 text-business-black" />
                     ) : (

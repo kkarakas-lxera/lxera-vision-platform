@@ -1,5 +1,4 @@
 
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -86,9 +85,11 @@ const Pricing = () => {
                   className={`relative rounded-3xl p-8 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group ${
                     plan.name === 'Enterprise' 
                       ? 'bg-gray-100 border-2 border-gray-300' 
-                      : plan.popular 
-                        ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10 bg-white' 
-                        : 'border border-gray-200 hover:border-gray-300 bg-white'
+                      : plan.name === 'Core'
+                        ? 'bg-white border-2 border-gray-200'
+                        : plan.popular 
+                          ? 'border-4 border-business-black scale-105 bg-gradient-to-br from-business-black/5 to-business-black/10 bg-white' 
+                          : 'border border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
                   {plan.popular && (
@@ -222,4 +223,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-
