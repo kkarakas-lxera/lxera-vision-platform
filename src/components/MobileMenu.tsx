@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2 } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -39,6 +40,52 @@ const MobileMenu = ({
   const toggleDropdown = (itemName: string) => {
     setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
   };
+
+  // Define the solutions with icons and colors matching Writer.com style
+  const solutionsItems = [
+    {
+      name: "AI-Personalized Learning",
+      href: "/solutions/ai-personalized-learning",
+      icon: Brain,
+      color: "bg-purple-100",
+      iconColor: "text-purple-600"
+    },
+    {
+      name: "Workforce Reskilling & Upskilling", 
+      href: "/solutions/workforce-reskilling-upskilling",
+      icon: Users,
+      color: "bg-blue-100",
+      iconColor: "text-blue-600"
+    },
+    {
+      name: "Citizen-Led Innovation",
+      href: "/solutions/citizen-led-innovation", 
+      icon: Lightbulb,
+      color: "bg-green-100",
+      iconColor: "text-green-600"
+    },
+    {
+      name: "Learning Analytics & Engagement Insights",
+      href: "/solutions/learning-analytics-engagement",
+      icon: BarChart3,
+      color: "bg-orange-100", 
+      iconColor: "text-orange-600"
+    },
+    {
+      name: "AI Mentorship & 24/7 Support",
+      href: "/solutions/ai-mentorship-support",
+      icon: MessageCircle,
+      color: "bg-cyan-100",
+      iconColor: "text-cyan-600" 
+    },
+    {
+      name: "Enterprise Innovation Enablement",
+      href: "/solutions/enterprise-innovation-enablement",
+      icon: Building2,
+      color: "bg-amber-100",
+      iconColor: "text-amber-600"
+    }
+  ];
 
   return (
     <div className="lg:hidden">
@@ -87,22 +134,26 @@ const MobileMenu = ({
                     </button>
                     {expandedDropdown === item.name && (
                       <div className="ml-4 mt-2 space-y-2">
-                        {item.dropdownItems?.map((category, categoryIndex) => (
-                          <div key={categoryIndex}>
-                            <div className="px-4 py-2 text-sm font-medium text-business-black/70 font-inter">
-                              {category.category}
-                            </div>
-                            {category.items.map((subItem, subIndex) => (
-                              <button
-                                key={subIndex}
-                                onClick={() => scrollToSection(subItem.href)}
-                                className="block w-full text-left px-6 py-2 text-sm text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 font-inter font-normal"
-                              >
-                                {subItem.name}
-                              </button>
-                            ))}
-                          </div>
-                        ))}
+                        <div className="px-4 py-2 text-sm font-medium text-business-black/60 font-inter uppercase tracking-wider">
+                          By Use Case
+                        </div>
+                        {solutionsItems.map((solution, subIndex) => {
+                          const IconComponent = solution.icon;
+                          return (
+                            <button
+                              key={subIndex}
+                              onClick={() => scrollToSection(solution.href)}
+                              className="flex items-center w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
+                            >
+                              <div className={`w-10 h-10 rounded-full ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200`}>
+                                <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
+                              </div>
+                              <span className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-200">
+                                {solution.name}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </>

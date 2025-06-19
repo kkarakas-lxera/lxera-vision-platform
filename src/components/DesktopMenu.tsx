@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import DemoModal from "./DemoModal";
 import { useState } from "react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2 } from "lucide-react";
 
 interface DesktopMenuProps {
   menuItems: Array<{
@@ -35,6 +36,52 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     setIsDemoModalOpen(true);
   };
 
+  // Define the solutions with icons and colors matching Writer.com style
+  const solutionsItems = [
+    {
+      name: "AI-Personalized Learning",
+      href: "/solutions/ai-personalized-learning",
+      icon: Brain,
+      color: "bg-purple-100",
+      iconColor: "text-purple-600"
+    },
+    {
+      name: "Workforce Reskilling & Upskilling", 
+      href: "/solutions/workforce-reskilling-upskilling",
+      icon: Users,
+      color: "bg-blue-100",
+      iconColor: "text-blue-600"
+    },
+    {
+      name: "Citizen-Led Innovation",
+      href: "/solutions/citizen-led-innovation", 
+      icon: Lightbulb,
+      color: "bg-green-100",
+      iconColor: "text-green-600"
+    },
+    {
+      name: "Learning Analytics & Engagement Insights",
+      href: "/solutions/learning-analytics-engagement",
+      icon: BarChart3,
+      color: "bg-orange-100", 
+      iconColor: "text-orange-600"
+    },
+    {
+      name: "AI Mentorship & 24/7 Support",
+      href: "/solutions/ai-mentorship-support",
+      icon: MessageCircle,
+      color: "bg-cyan-100",
+      iconColor: "text-cyan-600" 
+    },
+    {
+      name: "Enterprise Innovation Enablement",
+      href: "/solutions/enterprise-innovation-enablement",
+      icon: Building2,
+      color: "bg-amber-100",
+      iconColor: "text-amber-600"
+    }
+  ];
+
   return (
     <>
       <div className="hidden lg:flex items-center space-x-8 font-inter">
@@ -54,26 +101,30 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                         activeSection === item.id ? 'w-full' : 'w-0 group-hover:w-full'
                       }`}></span>
                     </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-white border border-gray-200 shadow-xl rounded-lg p-6 min-w-[400px]">
-                      <div className="grid grid-cols-1 gap-6">
-                        {item.dropdownItems?.map((category, categoryIndex) => (
-                          <div key={categoryIndex}>
-                            <h4 className="text-sm font-medium text-business-black mb-3 font-inter">
-                              {category.category}
-                            </h4>
-                            <div className="space-y-2">
-                              {category.items.map((subItem, subIndex) => (
-                                <button
-                                  key={subIndex}
-                                  onClick={() => scrollToSection(subItem.href)}
-                                  className="block w-full text-left px-3 py-2 text-sm text-business-black hover:text-future-green hover:bg-future-green/10 rounded-md transition-all duration-200 font-inter font-normal"
-                                >
-                                  {subItem.name}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                    <NavigationMenuContent className="bg-white border border-gray-200 shadow-xl rounded-lg p-8 min-w-[420px]">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-medium text-business-black/60 mb-6 font-inter uppercase tracking-wider">
+                          BY USE CASE
+                        </h4>
+                        <div className="space-y-3">
+                          {solutionsItems.map((solution, index) => {
+                            const IconComponent = solution.icon;
+                            return (
+                              <button
+                                key={index}
+                                onClick={() => scrollToSection(solution.href)}
+                                className="flex items-center w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
+                              >
+                                <div className={`w-12 h-12 rounded-full ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200`}>
+                                  <IconComponent className={`w-6 h-6 ${solution.iconColor}`} />
+                                </div>
+                                <span className="text-business-black font-medium font-inter group-hover:text-future-green transition-colors duration-200">
+                                  {solution.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </NavigationMenuContent>
                   </>
