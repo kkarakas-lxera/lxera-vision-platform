@@ -167,27 +167,14 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     }
   ];
 
-  // Updated highlighting effect - same expanding underline for all items
+  // Updated highlighting effect - same expanding underline for all items with black color
   const getHighlightingEffect = (itemName: string, isActive: boolean) => {
     const baseClasses = "text-base text-business-black transition-all duration-300 font-normal relative group transform font-inter bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent";
     
-    // Use the same expanding underline effect for all items with different gradient colors
-    switch (itemName) {
-      case 'Platform':
-        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
-      
-      case 'Solutions':
-        return `${baseClasses} ${isActive ? 'text-blue-600' : ''} hover:text-blue-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-blue-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
-      
-      case 'Pricing':
-        return `${baseClasses} ${isActive ? 'text-purple-600' : ''} hover:text-purple-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-purple-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
-      
-      case 'Resources':
-        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
-      
-      default:
-        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
-    }
+    // Use the same expanding underline effect for all items with black color
+    const underlineEffect = "hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-business-black before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100";
+    
+    return `${baseClasses} ${isActive ? 'text-business-black' : ''} hover:text-business-black ${underlineEffect}`;
   };
 
   const renderDropdownContent = (item: any) => {
