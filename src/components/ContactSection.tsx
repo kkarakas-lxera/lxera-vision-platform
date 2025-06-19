@@ -1,9 +1,11 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import DemoModal from "./DemoModal";
+import Loading from "./Loading";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -245,10 +247,7 @@ const ContactSection = () => {
               aria-label={isSubmitting ? "Submitting demo request" : "Submit demo request"}
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Submitting...
-                </>
+                <Loading text="Submitting..." size="sm" />
               ) : (
                 'Request Demo'
               )}

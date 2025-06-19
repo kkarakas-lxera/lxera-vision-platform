@@ -74,10 +74,10 @@ const HeroSection = () => {
               <p className="text-sm sm:text-base text-business-black/75 font-normal font-inter">
                 🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
               </p>
-              <div className="flex flex-row gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
                 <Button
                   size="lg"
-                  className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
+                  className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-6 py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation"
                   onClick={handleRequestDemo}
                   aria-label="Request a demo"
                 >
@@ -85,7 +85,7 @@ const HeroSection = () => {
                 </Button>
                 <Button
                   size="lg"
-                  className="bg-business-black text-white hover:bg-business-black/90 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+                  className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation"
                   aria-label="LXERA for Business"
                 >
                   LXERA for Business
@@ -107,15 +107,21 @@ const HeroSection = () => {
           <HeroStats />
         </div>
         
-        {/* Scroll indicator */}
+        {/* Scroll indicator - improved accessibility */}
         <div className="mt-4 sm:mt-6 animate-fade-in-up animate-delay-1200 text-center">
-          <div className="flex flex-col items-center space-y-2">
-            <p className="text-xs sm:text-sm text-business-black/60 font-normal font-inter">Discover more</p>
+          <button
+            onClick={handleScrollToContact}
+            className="flex flex-col items-center space-y-2 group focus:outline-none focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 rounded-lg p-2 transition-all duration-300 hover:scale-105"
+            aria-label="Scroll down to discover more content"
+          >
+            <p className="text-xs sm:text-sm text-business-black/60 font-normal font-inter group-hover:text-business-black/80 transition-colors">
+              Discover more
+            </p>
             <div className="relative">
-              <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 animate-bounce drop-shadow-lg text-future-green" />
+              <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 animate-bounce drop-shadow-lg text-future-green group-hover:text-future-green/80 transition-colors" />
               <div className="absolute inset-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full blur-sm animate-ping bg-future-green/25"></div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
