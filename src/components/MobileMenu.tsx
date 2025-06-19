@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2 } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -93,6 +93,75 @@ const MobileMenu = ({
     }
   ];
 
+  // Define platform items with icons and colors
+  const platformItems = [
+    {
+      name: "How LXERA Works",
+      href: "/platform/how-it-works",
+      icon: Target,
+      color: "bg-gradient-to-br from-blue-100 to-cyan-100",
+      iconColor: "text-blue-600",
+      description: "Discover the core methodology behind LXERA"
+    },
+    {
+      name: "AI Engine",
+      href: "/platform/ai-engine",
+      icon: Sparkles,
+      color: "bg-gradient-to-br from-purple-100 to-indigo-100",
+      iconColor: "text-purple-600",
+      description: "Advanced AI that powers personalized learning"
+    },
+    {
+      name: "Engagement & Insights",
+      href: "/platform/engagement-insights",
+      icon: BarChart3,
+      color: "bg-gradient-to-br from-emerald-100 to-teal-100",
+      iconColor: "text-emerald-600",
+      description: "Real-time analytics and engagement tracking"
+    },
+    {
+      name: "Innovation Hub",
+      href: "/platform/innovation-hub",
+      icon: Lightbulb,
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Collaborative space for innovation and ideation"
+    },
+    {
+      name: "Mentorship & Support Tools",
+      href: "/platform/mentorship-support",
+      icon: MessageCircle,
+      color: "bg-gradient-to-br from-rose-100 to-pink-100",
+      iconColor: "text-rose-600",
+      description: "AI-powered mentorship and support systems"
+    },
+    {
+      name: "Security & Data Privacy",
+      href: "/platform/security-privacy",
+      icon: Shield,
+      color: "bg-gradient-to-br from-gray-100 to-slate-100",
+      iconColor: "text-gray-600",
+      description: "Enterprise-grade security and privacy protection"
+    },
+    {
+      name: "Integrations",
+      href: "/platform/integrations",
+      icon: Plug,
+      color: "bg-gradient-to-br from-green-100 to-emerald-100",
+      iconColor: "text-green-600",
+      description: "Seamless integration with your existing tools"
+    }
+  ];
+
+  const renderDropdownItems = (itemName: string) => {
+    if (itemName === 'Platform') {
+      return platformItems;
+    } else if (itemName === 'Solutions') {
+      return solutionsItems;
+    }
+    return [];
+  };
+
   return (
     <div className="lg:hidden">
       {/* Mobile Menu Button and Request Demo */}
@@ -143,26 +212,26 @@ const MobileMenu = ({
                         <div className="flex items-center space-x-2 mb-3">
                           <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
                           <div className="text-xs font-medium text-business-black/70 font-inter">
-                            Solutions for every team
+                            {item.name === 'Platform' ? 'Platform Features' : 'Solutions for every team'}
                           </div>
                         </div>
-                        {solutionsItems.map((solution, subIndex) => {
-                          const IconComponent = solution.icon;
+                        {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
+                          const IconComponent = dropdownItem.icon;
                           return (
                             <button
                               key={subIndex}
-                              onClick={() => scrollToSection(solution.href)}
+                              onClick={() => scrollToSection(dropdownItem.href)}
                               className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                             >
-                              <div className={`w-8 h-8 rounded-xl ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                                <IconComponent className={`w-4 h-4 ${solution.iconColor}`} />
+                              <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                                <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
                               </div>
                               <div className="flex-1">
                                 <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
-                                  {solution.name}
+                                  {dropdownItem.name}
                                 </div>
                                 <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
-                                  {solution.description}
+                                  {dropdownItem.description}
                                 </div>
                               </div>
                             </button>

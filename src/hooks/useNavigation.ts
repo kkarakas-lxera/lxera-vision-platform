@@ -54,7 +54,22 @@ export const useNavigation = () => {
     {
       name: 'Platform',
       href: '#platform',
-      id: 'platform'
+      id: 'platform',
+      hasDropdown: true,
+      dropdownItems: [
+        {
+          category: 'Platform Features',
+          items: [
+            { name: 'How LXERA Works', href: '/platform/how-it-works' },
+            { name: 'AI Engine', href: '/platform/ai-engine' },
+            { name: 'Engagement & Insights', href: '/platform/engagement-insights' },
+            { name: 'Innovation Hub', href: '/platform/innovation-hub' },
+            { name: 'Mentorship & Support Tools', href: '/platform/mentorship-support' },
+            { name: 'Security & Data Privacy', href: '/platform/security-privacy' },
+            { name: 'Integrations', href: '/platform/integrations' }
+          ]
+        }
+      ]
     },
     {
       name: 'Solutions',
