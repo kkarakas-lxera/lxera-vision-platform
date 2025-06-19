@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useScrollOffset } from "./useScrollOffset";
 
@@ -90,14 +91,14 @@ export const useNavigation = () => {
       ]
     },
     {
-      name: 'Resources',
-      href: '/resources',
-      id: 'resources'
-    },
-    {
       name: 'Pricing',
       href: '/pricing',
       id: 'pricing'
+    },
+    {
+      name: 'Resources',
+      href: '/resources',
+      id: 'resources'
     }
   ];
 
