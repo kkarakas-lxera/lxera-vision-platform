@@ -209,7 +209,7 @@ const AIEngine = () => {
                 <div className="text-sm text-white/70">Uptime Guarantee</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">< 100ms</div>
+                <div className="text-3xl font-bold text-future-green mb-2">&lt; 100ms</div>
                 <div className="text-sm text-white/70">Response Time</div>
               </div>
               <div className="text-center">
