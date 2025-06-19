@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useScrollOffset } from "./useScrollOffset";
 
@@ -14,7 +13,7 @@ export const useNavigation = () => {
     };
 
     const handleSectionChange = () => {
-      const sections = ['platform', 'solutions', 'features', 'contact'];
+      const sections = ['platform', 'solutions', 'contact'];
       const scrollPosition = window.scrollY + 100;
       
       for (const section of sections) {
@@ -94,11 +93,6 @@ export const useNavigation = () => {
       name: 'Resources',
       href: '/resources',
       id: 'resources'
-    },
-    {
-      name: 'Features',
-      href: '#features',
-      id: 'features'
     },
     {
       name: 'Pricing',
