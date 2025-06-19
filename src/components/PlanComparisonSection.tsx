@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -174,7 +173,7 @@ const PlanComparisonSection = () => {
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
-            <div className="px-6 py-4 text-center bg-business-black/10 border-l border-gray-200">
+            <div className="px-6 py-4 text-center bg-gray-100 border-l border-gray-200">
               <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
             </div>
@@ -210,7 +209,7 @@ const PlanComparisonSection = () => {
                       <X className="h-5 w-5 text-red-500" />
                     )}
                   </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-business-black/10">
+                  <div className="px-6 py-4 flex items-center justify-center bg-gray-100">
                     {feature.enterprise ? (
                       <Check className="h-5 w-5 text-business-black" />
                     ) : (
