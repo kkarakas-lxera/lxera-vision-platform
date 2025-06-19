@@ -65,17 +65,12 @@ export const useNavigation = () => {
         {
           category: 'By Use Case',
           items: [
-            { name: 'Personalized Learning', href: '/solutions/personalized-learning' },
-            { name: 'Upskilling Frontline Workers', href: '/solutions/upskilling-frontline' },
-            { name: 'Citizen Innovation Enablement', href: '/solutions/citizen-innovation' }
-          ]
-        },
-        {
-          category: 'By Industry',
-          items: [
-            { name: 'Banking & Finance', href: '/solutions/banking-finance' },
-            { name: 'Technology', href: '/solutions/technology' },
-            { name: 'Education', href: '/solutions/education' }
+            { name: 'AI-Personalized Learning', href: '/solutions/ai-personalized-learning' },
+            { name: 'Workforce Reskilling & Upskilling', href: '/solutions/workforce-reskilling-upskilling' },
+            { name: 'Citizen-Led Innovation', href: '/solutions/citizen-led-innovation' },
+            { name: 'Learning Analytics & Engagement Insights', href: '/solutions/learning-analytics-engagement' },
+            { name: 'AI Mentorship & 24/7 Support', href: '/solutions/ai-mentorship-support' },
+            { name: 'Enterprise Innovation Enablement', href: '/solutions/enterprise-innovation-enablement' }
           ]
         }
       ]
