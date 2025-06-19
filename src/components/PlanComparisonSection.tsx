@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
