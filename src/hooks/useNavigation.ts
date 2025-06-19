@@ -58,7 +58,7 @@ export const useNavigation = () => {
     },
     {
       name: 'Solutions',
-      href: '#solutions',
+      href: '/solutions',
       id: 'solutions',
       hasDropdown: true,
       dropdownItems: [
