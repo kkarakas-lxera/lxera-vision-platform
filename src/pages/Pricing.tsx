@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -64,7 +63,7 @@ const Pricing = () => {
         <Navigation />
         
         {/* Header Section */}
-        <div className="bg-white py-8 lg:py-12">
+        <div className="bg-white py-4 lg:py-6 mt-16">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
@@ -76,7 +75,7 @@ const Pricing = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="py-12 lg:py-16">
+        <div className="py-8 lg:py-12">
           <div className="max-w-5xl mx-auto px-6 lg:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {plans.map((plan, index) => (
