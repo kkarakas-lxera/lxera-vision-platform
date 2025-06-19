@@ -91,6 +91,11 @@ export const useNavigation = () => {
       ]
     },
     {
+      name: 'Resources',
+      href: '/resources',
+      id: 'resources'
+    },
+    {
       name: 'Features',
       href: '#features',
       id: 'features'
