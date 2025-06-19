@@ -235,7 +235,7 @@ const WorkforceReskilling = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg rounded-xl"
+                className="border-white/30 text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg rounded-xl"
               >
                 Get Assessment
               </Button>

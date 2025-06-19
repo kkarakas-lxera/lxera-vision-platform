@@ -265,7 +265,7 @@ const ScalableLearningSupport = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-violet-600 border-white/30 text-white hover:bg-white hover:text-purple-600 px-8 py-4 text-lg rounded-xl"
+                className="border-white/30 text-white hover:bg-white hover:text-purple-600 px-8 py-4 text-lg rounded-xl"
               >
                 Schedule Demo
               </Button>
