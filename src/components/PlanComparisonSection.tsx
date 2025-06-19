@@ -1,3 +1,4 @@
+
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -163,17 +164,17 @@ const PlanComparisonSection = () => {
         </div>
 
         {/* Comparison Table */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+        <div className="bg-white rounded-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-3 gap-0 bg-gray-50 border-b border-gray-200">
+          <div className="grid grid-cols-3 gap-0 pb-8">
             <div className="px-6 py-4">
               <span className="text-lg font-medium text-black font-inter">Features</span>
             </div>
-            <div className="px-6 py-4 text-center bg-white border-l border-gray-200">
+            <div className="px-6 py-4 text-center">
               <div className="text-lg font-medium text-black font-inter">CORE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
-            <div className="px-6 py-4 text-center bg-gray-100 border-l border-gray-200">
+            <div className="px-6 py-4 text-center bg-gray-100 rounded-t-2xl">
               <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
               <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
             </div>
@@ -183,8 +184,8 @@ const PlanComparisonSection = () => {
           {comparisonFeatures.map((category, categoryIndex) => (
             <div key={categoryIndex}>
               {/* Category Header */}
-              <div className="grid grid-cols-3 gap-0 border-t border-gray-200 bg-gray-50">
-                <div className="px-6 py-5 col-span-3">
+              <div className="grid grid-cols-3 gap-0 border-t border-gray-200 py-6">
+                <div className="px-6 col-span-3">
                   <h4 className="text-lg font-medium text-black font-inter">
                     {category.category}
                   </h4>
@@ -193,28 +194,27 @@ const PlanComparisonSection = () => {
               
               {/* Category Features */}
               {category.features.map((feature, featureIndex) => (
-                <div 
-                  key={featureIndex}
-                  className="grid grid-cols-3 gap-0 border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
-                >
-                  <div className="px-6 py-4 flex items-center border-r border-gray-200">
-                    <span className="text-sm text-black font-inter font-normal">
-                      {feature.name}
-                    </span>
-                  </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-white border-r border-gray-200">
-                    {feature.core ? (
-                      <Check className="h-5 w-5 text-business-black" />
-                    ) : (
-                      <X className="h-5 w-5 text-red-500" />
-                    )}
-                  </div>
-                  <div className="px-6 py-4 flex items-center justify-center bg-gray-100">
-                    {feature.enterprise ? (
-                      <Check className="h-5 w-5 text-business-black" />
-                    ) : (
-                      <X className="h-5 w-5 text-red-500" />
-                    )}
+                <div key={featureIndex}>
+                  <div className="grid grid-cols-3 gap-0 py-4 border-t border-gray-100">
+                    <div className="px-6 flex items-center">
+                      <span className="text-sm text-black font-inter font-normal">
+                        {feature.name}
+                      </span>
+                    </div>
+                    <div className="px-6 flex items-center justify-center">
+                      {feature.core ? (
+                        <Check className="h-5 w-5 text-business-black" />
+                      ) : (
+                        <X className="h-5 w-5 text-red-500" />
+                      )}
+                    </div>
+                    <div className="px-6 flex items-center justify-center bg-gray-100">
+                      {feature.enterprise ? (
+                        <Check className="h-5 w-5 text-business-black" />
+                      ) : (
+                        <X className="h-5 w-5 text-red-500" />
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
