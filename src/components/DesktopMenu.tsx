@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import DemoModal from "./DemoModal";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy } from "lucide-react";
 
 interface DesktopMenuProps {
   menuItems: Array<{
@@ -148,6 +147,26 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     }
   ];
 
+  // Define resources items with icons and colors
+  const resourcesItems = [
+    {
+      name: "Blog",
+      href: "/resources/blog",
+      icon: BookOpen,
+      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
+      iconColor: "text-blue-600",
+      description: "Latest insights, trends, and best practices"
+    },
+    {
+      name: "Success Stories",
+      href: "/resources/success-stories",
+      icon: Trophy,
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Real transformations from our customers"
+    }
+  ];
+
   const renderDropdownContent = (item: any) => {
     if (item.name === 'Platform') {
       return (
@@ -219,6 +238,48 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                       </div>
                       <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
                         {solution.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="pt-3 mt-4 border-t border-gray-200/50">
+              <p className="text-xs text-business-black/50 font-inter text-center">
+                Designed with ❤️ for human-centered innovation
+              </p>
+            </div>
+          </div>
+        </NavigationMenuContent>
+      );
+    } else if (item.name === 'Resources') {
+      return (
+        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+              <h4 className="text-sm font-medium text-business-black/70 font-inter">
+                Learn & Explore
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {resourcesItems.map((resource, index) => {
+                const IconComponent = resource.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => scrollToSection(resource.href)}
+                    className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
+                  >
+                    <div className={`w-10 h-10 rounded-2xl ${resource.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                      <IconComponent className={`w-5 h-5 ${resource.iconColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                        {resource.name}
+                      </div>
+                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                        {resource.description}
                       </div>
                     </div>
                   </button>

@@ -98,7 +98,17 @@ export const useNavigation = () => {
     {
       name: 'Resources',
       href: '/resources',
-      id: 'resources'
+      id: 'resources',
+      hasDropdown: true,
+      dropdownItems: [
+        {
+          category: 'Learn & Explore',
+          items: [
+            { name: 'Blog', href: '/resources/blog' },
+            { name: 'Success Stories', href: '/resources/success-stories' }
+          ]
+        }
+      ]
     }
   ];
 

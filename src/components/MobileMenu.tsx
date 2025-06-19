@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -152,11 +152,33 @@ const MobileMenu = ({
     }
   ];
 
+  // Define resources items with icons and colors
+  const resourcesItems = [
+    {
+      name: "Blog",
+      href: "/resources/blog",
+      icon: BookOpen,
+      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
+      iconColor: "text-blue-600",
+      description: "Latest insights, trends, and best practices"
+    },
+    {
+      name: "Success Stories",
+      href: "/resources/success-stories",
+      icon: Trophy,
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Real transformations from our customers"
+    }
+  ];
+
   const renderDropdownItems = (itemName: string) => {
     if (itemName === 'Platform') {
       return platformItems;
     } else if (itemName === 'Solutions') {
       return solutionsItems;
+    } else if (itemName === 'Resources') {
+      return resourcesItems;
     }
     return [];
   };
@@ -211,7 +233,9 @@ const MobileMenu = ({
                         <div className="flex items-center space-x-2 mb-3">
                           <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
                           <div className="text-xs font-medium text-business-black/70 font-inter">
-                            {item.name === 'Platform' ? 'Platform Features' : 'Solutions for every team'}
+                            {item.name === 'Platform' ? 'Platform Features' : 
+                             item.name === 'Solutions' ? 'Solutions for every team' : 
+                             'Learn & Explore'}
                           </div>
                         </div>
                         {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
