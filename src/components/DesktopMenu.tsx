@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -261,7 +260,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter ${
+                    className={`text-base text-business-black hover:text-future-green transition-all duration-300 font-normal relative group transform hover:scale-105 font-inter px-2 ${
                       activeSection === item.id ? 'text-future-green' : ''
                     }`}
                     aria-current={activeSection === item.id ? 'page' : undefined}
@@ -280,7 +279,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         {/* Request Demo Button - Header version with distinct color */}
         <Button
           onClick={handleRequestDemo}
-          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter ml-2"
           aria-label="Request a demo"
         >
           Request a demo
