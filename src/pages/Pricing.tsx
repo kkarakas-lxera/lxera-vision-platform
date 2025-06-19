@@ -60,19 +60,19 @@ const Pricing = () => {
     <TooltipProvider>
       <div className="min-h-screen bg-smart-beige font-inter">
         {/* Header Section */}
-        <div className="bg-white py-16 lg:py-24">
+        <div className="bg-white py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
-            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-12 font-inter font-normal leading-relaxed">
+            <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
               Empower your organization to transform learning with adaptive AI.
             </p>
           </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="py-16 lg:py-24">
+        <div className="py-12 lg:py-16">
           <div className="max-w-5xl mx-auto px-6 lg:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {plans.map((plan, index) => (
