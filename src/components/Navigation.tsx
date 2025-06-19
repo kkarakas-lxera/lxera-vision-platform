@@ -1,6 +1,5 @@
 
 import { useNavigation } from "@/hooks/useNavigation";
-import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import DesktopMenu from "./DesktopMenu";
@@ -8,8 +7,6 @@ import MobileMenu from "./MobileMenu";
 import BackToTop from "./BackToTop";
 import SEO from "./SEO";
 import ScrollProgress from "./ScrollProgress";
-import HeaderSearch from "./HeaderSearch";
-import QuickActions from "./QuickActions";
 
 const Navigation = () => {
   const {
@@ -20,23 +17,6 @@ const Navigation = () => {
     handleMobileMenuToggle,
     scrollToSection
   } = useNavigation();
-
-  // Enhanced keyboard navigation
-  useKeyboardNavigation({
-    onEscape: () => {
-      if (isMobileMenuOpen) {
-        handleMobileMenuToggle();
-      }
-    },
-    isEnabled: true
-  });
-
-  const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
-    // Here you would implement actual search functionality
-    // For now, we'll just scroll to the contact section as an example
-    scrollToSection('#contact');
-  };
 
   return (
     <>
@@ -54,24 +34,17 @@ const Navigation = () => {
           <div className="flex justify-between items-center py-4 lg:py-6">
             <Logo />
             
-            {/* Desktop Navigation with Enhanced Features */}
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-6">
               <DesktopMenu 
                 menuItems={menuItems}
                 activeSection={activeSection}
                 scrollToSection={scrollToSection}
               />
-              
-              {/* Quick Actions */}
-              <QuickActions />
-              
-              {/* Search */}
-              <HeaderSearch onSearch={handleSearch} />
             </div>
 
             {/* Mobile Navigation */}
-            <div className="lg:hidden flex items-center space-x-3">
-              <HeaderSearch onSearch={handleSearch} />
+            <div className="lg:hidden">
               <MobileMenu
                 menuItems={menuItems}
                 activeSection={activeSection}
