@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -182,7 +183,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         return `${baseClasses} ${isActive ? 'text-purple-600' : ''} hover:text-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 rounded-lg px-3 py-2 -mx-3 -my-2`;
       
       case 'Resources':
-        return `${baseClasses} ${isActive ? 'text-amber-600' : ''} hover:text-amber-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-amber-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
+        return `${baseClasses} ${isActive ? 'text-emerald-600' : ''} hover:text-emerald-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
       
       default:
         return `${baseClasses} ${isActive ? 'text-future-green' : ''} hover:text-future-green hover:scale-105`;
