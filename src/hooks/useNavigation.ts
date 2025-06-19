@@ -6,11 +6,13 @@ export const useNavigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const { scrollToSection: scrollToSectionWithOffset } = useScrollOffset();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrolled = window.scrollY > 20;
+      setIsScrolled(scrolled);
     };
 
     const handleSectionChange = () => {
@@ -23,6 +25,12 @@ export const useNavigation = () => {
           const { offsetTop, offsetHeight } = element;
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
             setActiveSection(section);
+            
+            // Track recently viewed sections
+            setRecentlyViewed(prev => {
+              const updated = [section, ...prev.filter(s => s !== section)];
+              return updated.slice(0, 5); // Keep only last 5
+            });
             break;
           }
         }
@@ -35,17 +43,28 @@ export const useNavigation = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('scroll', handleSectionChange);
+    // Throttle scroll events for better performance
+    let ticking = false;
+    const throttledScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          handleSectionChange();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', throttledScroll, { passive: true });
     window.addEventListener('resize', handleResize);
     
-    // Set initial scroll state
+    // Set initial states
     handleScroll();
     handleSectionChange();
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('scroll', handleSectionChange);
+      window.removeEventListener('scroll', throttledScroll);
       window.removeEventListener('resize', handleResize);
     };
   }, [isMobileMenuOpen]);
@@ -121,7 +140,7 @@ export const useNavigation = () => {
       // Navigate to page
       window.location.href = href;
     } else {
-      // Scroll to section
+      // Scroll to section with enhanced animation
       scrollToSectionWithOffset(href);
     }
     setIsMobileMenuOpen(false);
@@ -131,6 +150,7 @@ export const useNavigation = () => {
     isScrolled,
     isMobileMenuOpen,
     activeSection,
+    recentlyViewed,
     menuItems,
     handleMobileMenuToggle,
     scrollToSection
