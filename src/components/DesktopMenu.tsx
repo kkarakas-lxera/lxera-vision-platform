@@ -167,25 +167,26 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     }
   ];
 
-  // Different highlighting effects for each menu item
+  // Updated highlighting effect - same expanding underline for all items
   const getHighlightingEffect = (itemName: string, isActive: boolean) => {
     const baseClasses = "text-base text-business-black transition-all duration-300 font-normal relative group transform font-inter bg-transparent hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent";
     
+    // Use the same expanding underline effect for all items with different gradient colors
     switch (itemName) {
       case 'Platform':
-        return `${baseClasses} ${isActive ? 'text-future-green' : ''} hover:text-future-green hover:scale-105 before:absolute before:inset-0 before:bg-gradient-to-r before:from-future-green/0 before:via-future-green/10 before:to-future-green/0 before:rounded-lg before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100`;
+        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
       
       case 'Solutions':
-        return `${baseClasses} ${isActive ? 'text-blue-600' : ''} hover:text-blue-600 hover:scale-105 after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-blue-400 after:to-blue-600 after:transition-all after:duration-300 after:transform after:-translate-x-1/2 hover:after:w-full`;
+        return `${baseClasses} ${isActive ? 'text-blue-600' : ''} hover:text-blue-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-blue-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
       
       case 'Pricing':
-        return `${baseClasses} ${isActive ? 'text-purple-600' : ''} hover:text-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 rounded-lg px-3 py-2 -mx-3 -my-2`;
+        return `${baseClasses} ${isActive ? 'text-purple-600' : ''} hover:text-purple-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-purple-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
       
       case 'Resources':
-        return `${baseClasses} ${isActive ? 'text-amber-600' : ''} hover:text-amber-600 hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-amber-500 before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
+        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
       
       default:
-        return `${baseClasses} ${isActive ? 'text-future-green' : ''} hover:text-future-green hover:scale-105`;
+        return `${baseClasses} ${isActive ? 'text-emerald' : ''} hover:text-emerald hover:scale-105 before:absolute before:bottom-0 before:left-0 before:w-full before:h-0.5 before:bg-gradient-to-r before:from-transparent before:via-emerald before:to-transparent before:scale-x-0 before:transition-transform before:duration-300 before:origin-center hover:before:scale-x-100`;
     }
   };
 
