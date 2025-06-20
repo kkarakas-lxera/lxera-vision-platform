@@ -1,216 +1,187 @@
 
-import { Linkedin, Youtube, Instagram, Github, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Facebook, Twitter, Linkedin, Youtube, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
-  const [email, setEmail] = useState("");
   const currentYear = new Date().getFullYear();
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Newsletter signup:', email);
-    setEmail("");
-    // Handle newsletter signup
-  };
-
+  
   return (
-    <footer className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/95">
-      <div className="max-w-7xl mx-auto">
-        {/* Newsletter Section */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-white mb-3">
-              Stay ahead of the innovation curve
-            </h3>
-            <p className="text-white/70 mb-6 max-w-2xl mx-auto">
-              Get insights on learning innovation, employee engagement, and the future of work delivered to your inbox.
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/90 border-0 focus:bg-white flex-1 rounded-xl"
-                required
-              />
-              <Button 
-                type="submit"
-                className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 font-semibold px-8 rounded-xl transition-all duration-300 hover:shadow-lg focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
-              >
-                Subscribe
-              </Button>
-            </form>
-          </div>
-        </div>
-
-        {/* Main Footer Content */}
-        <div className="grid md:grid-cols-5 gap-8 mb-12">
+    <footer className="bg-business-black text-white">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
-          <div className="md:col-span-2">
-            <div className="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-future-green to-light-green bg-clip-text text-transparent">
-              LXERA
+          <div className="space-y-6">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-future-green rounded-lg flex items-center justify-center">
+                <span className="text-business-black font-bold text-lg">L</span>
+              </div>
+              <span className="text-2xl font-bold">LXERA</span>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed">
-              The world's first Learning & Innovation Experience Platform. 
-              Empowering organizations to unleash employee potential through 
-              AI-driven personalized learning and innovation management.
+            <p className="text-white/70 leading-relaxed">
+              Transforming workplace learning through AI-powered personalization, 
+              innovation enablement, and scalable mentorship solutions.
             </p>
             <div className="flex space-x-4">
-              <a 
-                href="#" 
-                className="text-white/70 hover:text-future-green transition-all duration-300 hover:scale-110"
-                aria-label="Follow us on LinkedIn"
-              >
-                <Linkedin className="w-6 h-6" />
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
+                <Facebook className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
-                className="text-white/70 hover:text-future-green transition-all duration-300 hover:scale-110"
-                aria-label="Follow us on Twitter"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
+                <Twitter className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
-                className="text-white/70 hover:text-future-green transition-all duration-300 hover:scale-110"
-                aria-label="Follow us on YouTube"
-              >
-                <Youtube className="w-6 h-6" />
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
+                <Linkedin className="w-5 h-5" />
               </a>
-              <a 
-                href="#" 
-                className="text-white/70 hover:text-future-green transition-all duration-300 hover:scale-110"
-                aria-label="Follow us on Instagram"
-              >
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a 
-                href="#" 
-                className="text-white/70 hover:text-future-green transition-all duration-300 hover:scale-110"
-                aria-label="View our GitHub"
-              >
-                <Github className="w-6 h-6" />
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
+                <Youtube className="w-5 h-5" />
               </a>
             </div>
+          </div>
+
+          {/* Solutions */}
+          <div>
+            <h3 className="text-lg font-semibold mb-6">Solutions</h3>
+            <ul className="space-y-4">
+              <li>
+                <Link to="/solutions/ai-personalized-learning" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  AI-Personalized Learning
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/workforce-reskilling-upskilling" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Workforce Reskilling
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/citizen-developer-enablement" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Citizen Developer Enablement
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/learning-analytics-insights" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Learning Analytics
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/scalable-learning-support-mentorship" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Scalable Learning Support
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Platform */}
           <div>
-            <h4 className="font-semibold text-white mb-6 text-lg">Platform</h4>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6">Platform</h3>
+            <ul className="space-y-4">
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Features
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/platform/how-it-works" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  How It Works
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Pricing
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/platform/ai-engine" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  AI Engine
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Security
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/platform/engagement-insights" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Engagement Insights
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Integrations
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/platform/innovation-hub" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Innovation Hub
+                </Link>
+              </li>
+              <li>
+                <Link to="/platform/mentorship-support" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Mentorship Support
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h4 className="font-semibold text-white mb-6 text-lg">Company</h4>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6">Company</h3>
+            <ul className="space-y-4">
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  About
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/company/about" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  About Us
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                <Link to="/company/careers" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Careers
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                <Link to="/company/contact" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Contact
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                <Link to="/company/blog" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Blog
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support & Legal */}
-          <div>
-            <h4 className="font-semibold text-white mb-6 text-lg">Support & Legal</h4>
-            <ul className="space-y-3">
-              <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Help Center
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Privacy Policy
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Terms of Service
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
-                  Cookie Policy
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <Link to="/resources" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                  Resources
+                </Link>
               </li>
             </ul>
           </div>
         </div>
-        
-        {/* Bottom Section */}
-        <div className="border-t border-white/20 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-white/60 text-center md:text-left">
-              © {currentYear} LXERA. All rights reserved. Built with ❤️ for the future of learning.
+
+        {/* Contact Info */}
+        <div className="border-t border-white/10 mt-12 pt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-future-green/20 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-future-green" />
+              </div>
+              <div>
+                <p className="text-white/50 text-sm">Email</p>
+                <p className="text-white">hello@lxera.com</p>
+              </div>
             </div>
-            <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-white/60 hover:text-future-green transition-colors duration-300">
-                Status
-              </a>
-              <a href="#" className="text-white/60 hover:text-future-green transition-colors duration-300">
-                API Docs
-              </a>
-              <a href="mailto:hello@lxera.com" className="text-white/60 hover:text-future-green transition-colors duration-300 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                hello@lxera.com
-              </a>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-future-green/20 rounded-lg flex items-center justify-center">
+                <Phone className="w-5 h-5 text-future-green" />
+              </div>
+              <div>
+                <p className="text-white/50 text-sm">Phone</p>
+                <p className="text-white">+1 (555) 123-4567</p>
+              </div>
             </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-future-green/20 rounded-lg flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-future-green" />
+              </div>
+              <div>
+                <p className="text-white/50 text-sm">Location</p>
+                <p className="text-white">San Francisco, CA</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-white/50 text-sm">
+            © {currentYear} LXERA. All rights reserved.
+          </p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+              Privacy Policy
+            </a>
+            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+              Terms of Service
+            </a>
+            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+              Cookie Policy
+            </a>
           </div>
         </div>
       </div>
