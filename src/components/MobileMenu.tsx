@@ -40,7 +40,7 @@ const MobileMenu = ({
     setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
   };
 
-  // Define the solutions with enhanced organization
+  // Define the solutions with warmer, more human-friendly colors and design
   const solutionsItems = [
     {
       name: "AI-Personalized Learning",
@@ -48,8 +48,7 @@ const MobileMenu = ({
       icon: Brain,
       color: "bg-gradient-to-br from-pink-100 to-rose-100",
       iconColor: "text-pink-600",
-      description: "Personalized content and pathways — powered by AI",
-      priority: "high"
+      description: "Personalized content and pathways — powered by AI"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
@@ -57,17 +56,7 @@ const MobileMenu = ({
       icon: Users,
       color: "bg-gradient-to-br from-blue-100 to-indigo-100",
       iconColor: "text-blue-600",
-      description: "Close skill gaps and future-proof your teams",
-      priority: "high"
-    },
-    {
-      name: "Enterprise Innovation Enablement",
-      href: "/solutions/enterprise-innovation-enablement",
-      icon: Building2,
-      color: "bg-gradient-to-br from-slate-100 to-gray-100",
-      iconColor: "text-slate-600",
-      description: "Empower every level of the organization to drive transformation",
-      priority: "high"
+      description: "Close skill gaps and future-proof your teams"
     },
     {
       name: "Citizen Developer Enablement",
@@ -75,8 +64,7 @@ const MobileMenu = ({
       icon: Lightbulb,
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",
-      description: "Equip business users to build and automate without coding",
-      priority: "medium"
+      description: "Equip business users to build and automate without coding"
     },
     {
       name: "Learning Analytics & Insights",
@@ -84,8 +72,7 @@ const MobileMenu = ({
       icon: BarChart3,
       color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
       iconColor: "text-emerald-600",
-      description: "Turn engagement data into actionable insights",
-      priority: "medium"
+      description: "Turn engagement data into actionable insights"
     },
     {
       name: "Scalable Learning Support & Mentorship",
@@ -93,13 +80,20 @@ const MobileMenu = ({
       icon: MessageCircle,
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
-      description: "24/7 guidance to keep learners engaged and on track",
-      priority: "medium"
+      description: "24/7 guidance to keep learners engaged and on track"
+    },
+    {
+      name: "Enterprise Innovation Enablement",
+      href: "/solutions/enterprise-innovation-enablement",
+      icon: Building2,
+      color: "bg-gradient-to-br from-slate-100 to-gray-100",
+      iconColor: "text-slate-600",
+      description: "Empower every level of the organization to drive transformation"
     }
   ];
 
-  // Define platform items grouped by category
-  const platformCoreFeatures = [
+  // Define platform items with icons and colors
+  const platformItems = [
     {
       name: "How LXERA Works",
       href: "/platform/how-it-works",
@@ -131,10 +125,7 @@ const MobileMenu = ({
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",
       description: "Collaborative space for innovation and ideation"
-    }
-  ];
-
-  const platformSecurityIntegration = [
+    },
     {
       name: "Mentorship & Support Tools",
       href: "/platform/mentorship-support",
@@ -183,121 +174,11 @@ const MobileMenu = ({
 
   const renderDropdownItems = (itemName: string) => {
     if (itemName === 'Platform') {
-      return (
-        <div className="space-y-4">
-          {/* Core Features Section */}
-          <div className="space-y-3">
-            <h6 className="text-xs font-medium text-business-black/50 font-inter uppercase tracking-wide px-3">
-              Core Features
-            </h6>
-            {platformCoreFeatures.map((platform, index) => {
-              const IconComponent = platform.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => scrollToSection(platform.href)}
-                  className="flex items-center w-full text-left px-3 py-4 hover:bg-white/60 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/30 hover:shadow-md"
-                >
-                  <div className={`w-10 h-10 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                    <IconComponent className={`w-5 h-5 ${platform.iconColor}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300">
-                      {platform.name}
-                    </div>
-                    <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300 leading-relaxed">
-                      {platform.description}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Security & Integration Section */}
-          <div className="space-y-3 pt-3 border-t border-gray-200/40">
-            <h6 className="text-xs font-medium text-business-black/50 font-inter uppercase tracking-wide px-3">
-              Security & Integration
-            </h6>
-            {platformSecurityIntegration.map((platform, index) => {
-              const IconComponent = platform.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => scrollToSection(platform.href)}
-                  className="flex items-center w-full text-left px-3 py-4 hover:bg-white/60 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/30 hover:shadow-md"
-                >
-                  <div className={`w-10 h-10 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                    <IconComponent className={`w-5 h-5 ${platform.iconColor}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300">
-                      {platform.name}
-                    </div>
-                    <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300 leading-relaxed">
-                      {platform.description}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      );
+      return platformItems;
     } else if (itemName === 'Solutions') {
-      return solutionsItems.map((solution, index) => {
-        const IconComponent = solution.icon;
-        const isHighPriority = solution.priority === 'high';
-        return (
-          <button
-            key={index}
-            onClick={() => scrollToSection(solution.href)}
-            className={`flex items-center w-full text-left px-3 py-4 hover:bg-white/60 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/30 hover:shadow-md ${isHighPriority ? 'ring-1 ring-future-green/20' : ''}`}
-          >
-            <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
-              <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300">
-                  {solution.name}
-                </div>
-                {isHighPriority && (
-                  <div className="bg-future-green/20 text-future-green text-xs px-2 py-0.5 rounded-full font-medium">
-                    Popular
-                  </div>
-                )}
-              </div>
-              <div className="text-business-black/60 font-inter text-xs group-hover:text-business-black/70 transition-colors duration-300 leading-relaxed">
-                {solution.description}
-              </div>
-            </div>
-          </button>
-        );
-      });
+      return solutionsItems;
     } else if (itemName === 'Resources') {
-      return resourcesItems.map((resource, index) => {
-        const IconComponent = resource.icon;
-        return (
-          <button
-            key={index}
-            onClick={() => scrollToSection(resource.href)}
-            className="flex items-center w-full text-left px-3 py-4 hover:bg-white/60 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/30 hover:shadow-md"
-          >
-            <div className={`w-10 h-10 rounded-2xl ${resource.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-              <IconComponent className={`w-5 h-5 ${resource.iconColor}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300">
-                {resource.name}
-              </div>
-              <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300 leading-relaxed">
-                {resource.description}
-              </div>
-            </div>
-          </button>
-        );
-      });
+      return resourcesItems;
     }
     return [];
   };
@@ -328,38 +209,59 @@ const MobileMenu = ({
       {/* Enhanced Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
-          <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
+          <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
             {menuItems.map((item, index) => (
               <div key={item.name}>
                 {item.hasDropdown ? (
                   <>
                     <button
                       onClick={() => toggleDropdown(item.name)}
-                      className={`flex items-center justify-between w-full text-left px-4 py-4 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-xl transition-all duration-300 transform hover:translate-x-1 animate-fade-in font-semibold ${
+                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
                         activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <span>{item.name}</span>
                       {expandedDropdown === item.name ? (
-                        <ChevronDown className="h-5 w-5" />
+                        <ChevronDown className="h-4 w-4" />
                       ) : (
-                        <ChevronRight className="h-5 w-5" />
+                        <ChevronRight className="h-4 w-4" />
                       )}
                     </button>
                     {expandedDropdown === item.name && (
-                      <div className="ml-2 mt-4 space-y-3 bg-gradient-to-r from-smart-beige/30 to-future-green/10 rounded-2xl p-6">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="w-3 h-3 bg-gradient-to-r from-future-green to-emerald rounded-full shadow-sm"></div>
-                          <div className="text-sm font-semibold text-business-black/70 font-inter">
+                      <div className="ml-2 mt-3 space-y-2 bg-gradient-to-r from-smart-beige/30 to-future-green/10 rounded-xl p-4">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+                          <div className="text-xs font-medium text-business-black/70 font-inter">
                             {item.name === 'Platform' ? 'Platform Features' : 
                              item.name === 'Solutions' ? 'Solutions for every team' : 
                              'Learn & Explore'}
                           </div>
                         </div>
-                        {renderDropdownItems(item.name)}
-                        <div className="pt-4 mt-6 border-t border-gray-200/30">
-                          <p className="text-xs text-business-black/50 font-inter text-center italic">
+                        {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
+                          const IconComponent = dropdownItem.icon;
+                          return (
+                            <button
+                              key={subIndex}
+                              onClick={() => scrollToSection(dropdownItem.href)}
+                              className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
+                            >
+                              <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                                <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                                  {dropdownItem.name}
+                                </div>
+                                <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                                  {dropdownItem.description}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        <div className="pt-2 mt-3 border-t border-gray-200/30">
+                          <p className="text-xs text-business-black/50 font-inter text-center">
                             Designed with ❤️ for human-centered innovation
                           </p>
                         </div>
@@ -369,7 +271,7 @@ const MobileMenu = ({
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-4 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-xl transition-all duration-300 transform hover:translate-x-1 animate-fade-in font-semibold ${
+                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
                       activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
@@ -380,10 +282,10 @@ const MobileMenu = ({
                 )}
               </div>
             ))}
-            <div className="pt-6 border-t border-gray-200/50 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="pt-4 border-t border-gray-200/50 animate-fade-in" style={{ animationDelay: '200ms' }}>
               <Button 
                 variant="outline" 
-                className="w-full border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 rounded-xl py-4 font-semibold"
+                className="w-full border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 rounded-xl"
               >
                 Sign In
               </Button>

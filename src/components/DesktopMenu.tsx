@@ -43,8 +43,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Brain,
       color: "bg-gradient-to-br from-pink-100 to-rose-100",
       iconColor: "text-pink-600",
-      description: "Personalized content and pathways — powered by AI",
-      priority: "high"
+      description: "Personalized content and pathways — powered by AI"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
@@ -52,8 +51,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Users,
       color: "bg-gradient-to-br from-blue-100 to-indigo-100",
       iconColor: "text-blue-600",
-      description: "Close skill gaps and future-proof your teams",
-      priority: "high"
+      description: "Close skill gaps and future-proof your teams"
     },
     {
       name: "Citizen Developer Enablement",
@@ -61,8 +59,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Lightbulb,
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",
-      description: "Equip business users to build and automate without coding",
-      priority: "medium"
+      description: "Equip business users to build and automate without coding"
     },
     {
       name: "Learning Analytics & Insights",
@@ -70,8 +67,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: BarChart3,
       color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
       iconColor: "text-emerald-600",
-      description: "Turn engagement data into actionable insights",
-      priority: "medium"
+      description: "Turn engagement data into actionable insights"
     },
     {
       name: "Scalable Learning Support & Mentorship",
@@ -79,8 +75,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: MessageCircle,
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
-      description: "24/7 guidance to keep learners engaged and on track",
-      priority: "medium"
+      description: "24/7 guidance to keep learners engaged and on track"
     },
     {
       name: "Enterprise Innovation Enablement",
@@ -88,13 +83,12 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       icon: Building2,
       color: "bg-gradient-to-br from-slate-100 to-gray-100",
       iconColor: "text-slate-600",
-      description: "Empower every level of the organization to drive transformation",
-      priority: "high"
+      description: "Empower every level of the organization to drive transformation"
     }
   ];
 
-  // Define platform items grouped by category
-  const platformCoreFeatures = [
+  // Define platform items with icons and colors
+  const platformItems = [
     {
       name: "How LXERA Works",
       href: "/platform/how-it-works",
@@ -126,10 +120,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",
       description: "Collaborative space for innovation and ideation"
-    }
-  ];
-
-  const platformSecurityIntegration = [
+    },
     {
       name: "Mentorship & Support Tools",
       href: "/platform/mentorship-support",
@@ -189,79 +180,40 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
   const renderDropdownContent = (item: any) => {
     if (item.name === 'Platform') {
       return (
-        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-8 min-w-[580px]">
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-3 h-3 bg-gradient-to-r from-future-green to-emerald rounded-full shadow-sm"></div>
-              <h4 className="text-lg font-semibold text-business-black font-inter">
+        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+              <h4 className="text-sm font-medium text-business-black/70 font-inter">
                 Platform Features
               </h4>
             </div>
-            
-            {/* Core Features Section */}
-            <div className="space-y-4">
-              <h5 className="text-sm font-medium text-business-black/60 font-inter uppercase tracking-wide">
-                Core Features
-              </h5>
-              <div className="grid grid-cols-2 gap-4">
-                {platformCoreFeatures.map((platform, index) => {
-                  const IconComponent = platform.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => scrollToSection(platform.href)}
-                      className="flex items-start w-full text-left p-4 hover:bg-gradient-to-r hover:from-future-green/8 hover:to-emerald/8 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/20 hover:shadow-lg hover:scale-[1.02]"
-                    >
-                      <div className={`w-12 h-12 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg`}>
-                        <IconComponent className={`w-6 h-6 ${platform.iconColor}`} />
+            <div className="grid grid-cols-1 gap-2">
+              {platformItems.map((platform, index) => {
+                const IconComponent = platform.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => scrollToSection(platform.href)}
+                    className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
+                  >
+                    <div className={`w-10 h-10 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                      <IconComponent className={`w-5 h-5 ${platform.iconColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                        {platform.name}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300 mb-1">
-                          {platform.name}
-                        </div>
-                        <div className="text-business-black/60 font-inter text-xs leading-relaxed group-hover:text-business-black/75 transition-colors duration-300">
-                          {platform.description}
-                        </div>
+                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                        {platform.description}
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-
-            {/* Security & Integration Section */}
-            <div className="space-y-4 pt-4 border-t border-gray-200/40">
-              <h5 className="text-sm font-medium text-business-black/60 font-inter uppercase tracking-wide">
-                Security & Integration
-              </h5>
-              <div className="grid grid-cols-1 gap-3">
-                {platformSecurityIntegration.map((platform, index) => {
-                  const IconComponent = platform.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => scrollToSection(platform.href)}
-                      className="flex items-start w-full text-left p-4 hover:bg-gradient-to-r hover:from-future-green/8 hover:to-emerald/8 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/20 hover:shadow-lg hover:scale-[1.02]"
-                    >
-                      <div className={`w-12 h-12 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg`}>
-                        <IconComponent className={`w-6 h-6 ${platform.iconColor}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300 mb-1">
-                          {platform.name}
-                        </div>
-                        <div className="text-business-black/60 font-inter text-xs leading-relaxed group-hover:text-business-black/75 transition-colors duration-300">
-                          {platform.description}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="pt-4 mt-6 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center italic">
+            <div className="pt-3 mt-4 border-t border-gray-200/50">
+              <p className="text-xs text-business-black/50 font-inter text-center">
                 Designed with ❤️ for human-centered innovation
               </p>
             </div>
@@ -270,39 +222,31 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       );
     } else if (item.name === 'Solutions') {
       return (
-        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-8 min-w-[520px]">
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-3 h-3 bg-gradient-to-r from-future-green to-emerald rounded-full shadow-sm"></div>
-              <h4 className="text-lg font-semibold text-business-black font-inter">
+        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+              <h4 className="text-sm font-medium text-business-black/70 font-inter">
                 Solutions for every team
               </h4>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-2">
               {solutionsItems.map((solution, index) => {
                 const IconComponent = solution.icon;
-                const isHighPriority = solution.priority === 'high';
                 return (
                   <button
                     key={index}
                     onClick={() => scrollToSection(solution.href)}
-                    className={`flex flex-col items-start w-full text-left p-4 hover:bg-gradient-to-r hover:from-future-green/8 hover:to-emerald/8 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/20 hover:shadow-lg hover:scale-[1.02] ${isHighPriority ? 'ring-1 ring-future-green/20' : ''}`}
+                    className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
-                    <div className="flex items-start w-full mb-3">
-                      <div className={`w-12 h-12 rounded-2xl ${solution.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg flex-shrink-0`}>
-                        <IconComponent className={`w-6 h-6 ${solution.iconColor}`} />
-                      </div>
-                      {isHighPriority && (
-                        <div className="bg-future-green/20 text-future-green text-xs px-2 py-1 rounded-full font-medium">
-                          Popular
-                        </div>
-                      )}
+                    <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                      <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
                     </div>
-                    <div className="w-full">
-                      <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300 mb-2 leading-tight">
+                    <div className="flex-1">
+                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
                         {solution.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs leading-relaxed group-hover:text-business-black/75 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
                         {solution.description}
                       </div>
                     </div>
@@ -310,8 +254,8 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 );
               })}
             </div>
-            <div className="pt-4 mt-6 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center italic">
+            <div className="pt-3 mt-4 border-t border-gray-200/50">
+              <p className="text-xs text-business-black/50 font-inter text-center">
                 Designed with ❤️ for human-centered innovation
               </p>
             </div>
@@ -321,30 +265,30 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     } else if (item.name === 'Resources') {
       return (
         <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-3 h-3 bg-gradient-to-r from-future-green to-emerald rounded-full shadow-sm"></div>
-              <h4 className="text-lg font-semibold text-business-black font-inter">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
+              <h4 className="text-sm font-medium text-business-black/70 font-inter">
                 Learn & Explore
               </h4>
             </div>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-2">
               {resourcesItems.map((resource, index) => {
                 const IconComponent = resource.icon;
                 return (
                   <button
                     key={index}
                     onClick={() => scrollToSection(resource.href)}
-                    className="flex items-start w-full text-left p-4 hover:bg-gradient-to-r hover:from-future-green/8 hover:to-emerald/8 rounded-2xl transition-all duration-300 group border border-transparent hover:border-future-green/20 hover:shadow-lg hover:scale-[1.02]"
+                    className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
-                    <div className={`w-12 h-12 rounded-2xl ${resource.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg`}>
-                      <IconComponent className={`w-6 h-6 ${resource.iconColor}`} />
+                    <div className={`w-10 h-10 rounded-2xl ${resource.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                      <IconComponent className={`w-5 h-5 ${resource.iconColor}`} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-business-black font-semibold font-inter text-sm group-hover:text-future-green transition-colors duration-300 mb-1">
+                    <div className="flex-1">
+                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
                         {resource.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs leading-relaxed group-hover:text-business-black/75 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
                         {resource.description}
                       </div>
                     </div>
@@ -352,8 +296,8 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 );
               })}
             </div>
-            <div className="pt-4 mt-6 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center italic">
+            <div className="pt-3 mt-4 border-t border-gray-200/50">
+              <p className="text-xs text-business-black/50 font-inter text-center">
                 Designed with ❤️ for human-centered innovation
               </p>
             </div>
