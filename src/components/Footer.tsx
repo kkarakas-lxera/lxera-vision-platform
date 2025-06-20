@@ -1,5 +1,5 @@
 
-import { Linkedin, Youtube, Instagram, Github, Mail, Users, Briefcase, MessageSquare, BookOpen } from "lucide-react";
+import { Linkedin, Youtube, Instagram, Github, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -14,34 +14,6 @@ const Footer = () => {
     setEmail("");
     // Handle newsletter signup
   };
-
-  // Enhanced Company items with icons and descriptions
-  const companyItems = [
-    {
-      name: "About",
-      href: "#",
-      icon: Users,
-      description: "Our mission & story"
-    },
-    {
-      name: "Careers",
-      href: "#",
-      icon: Briefcase,
-      description: "Join our team"
-    },
-    {
-      name: "Contact",
-      href: "#",
-      icon: MessageSquare,
-      description: "Get in touch"
-    },
-    {
-      name: "Blog",
-      href: "#",
-      icon: BookOpen,
-      description: "Latest insights"
-    }
-  ];
 
   return (
     <footer className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/95">
@@ -158,37 +130,35 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Enhanced Company Section */}
+          {/* Company */}
           <div>
-            <h4 className="font-semibold text-white mb-6 text-lg flex items-center gap-2">
-              <div className="w-2 h-2 bg-future-green rounded-full"></div>
-              Company
-            </h4>
-            <div className="space-y-4">
-              {companyItems.map((item, index) => {
-                const IconComponent = item.icon;
-                return (
-                  <a 
-                    key={item.name}
-                    href={item.href} 
-                    className="group flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all duration-300 hover:scale-102"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-future-green/20 to-emerald/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-4 h-4 text-future-green" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-white font-medium text-sm group-hover:text-future-green transition-colors duration-300">
-                        {item.name}
-                      </div>
-                      <div className="text-white/60 text-xs mt-1 group-hover:text-white/80 transition-colors duration-300">
-                        {item.description}
-                      </div>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
+            <h4 className="font-semibold text-white mb-6 text-lg">Company</h4>
+            <ul className="space-y-3">
+              <li>
+                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                  About
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                  Careers
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                  Contact
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/70 hover:text-future-green transition-colors duration-300 relative group">
+                  Blog
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-future-green transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+            </ul>
           </div>
 
           {/* Support & Legal */}
