@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -250,10 +251,10 @@ const MobileMenu = ({
                                 <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
                               </div>
                               <div className="flex-1">
-                                <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                                <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
                                   {dropdownItem.name}
                                 </div>
-                                <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                                <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
                                   {dropdownItem.description}
                                 </div>
                               </div>

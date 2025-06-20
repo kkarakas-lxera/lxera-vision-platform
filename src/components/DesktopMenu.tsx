@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -201,10 +202,10 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                       <IconComponent className={`w-5 h-5 ${platform.iconColor}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
                         {platform.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
                         {platform.description}
                       </div>
                     </div>
@@ -243,10 +244,10 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                       <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
                         {solution.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
                         {solution.description}
                       </div>
                     </div>
@@ -285,10 +286,10 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                       <IconComponent className={`w-5 h-5 ${resource.iconColor}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
+                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
                         {resource.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
                         {resource.description}
                       </div>
                     </div>
