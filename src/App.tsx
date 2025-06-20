@@ -24,6 +24,10 @@ import InnovationHub from "./pages/platform/InnovationHub";
 import MentorshipSupport from "./pages/platform/MentorshipSupport";
 import SecurityPrivacy from "./pages/platform/SecurityPrivacy";
 import Integrations from "./pages/platform/Integrations";
+import About from "./pages/company/About";
+import Careers from "./pages/company/Careers";
+import Contact from "./pages/company/Contact";
+import CompanyBlog from "./pages/company/Blog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +59,10 @@ const App = () => (
             <Route path="/platform/mentorship-support" element={<MentorshipSupport />} />
             <Route path="/platform/security-privacy" element={<SecurityPrivacy />} />
             <Route path="/platform/integrations" element={<Integrations />} />
+            <Route path="/company/about" element={<About />} />
+            <Route path="/company/careers" element={<Careers />} />
+            <Route path="/company/contact" element={<Contact />} />
+            <Route path="/company/blog" element={<CompanyBlog />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
