@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -184,28 +183,6 @@ const MobileMenu = ({
     return [];
   };
 
-  const getDropdownHoverClass = (itemName: string) => {
-    if (itemName === 'Platform') {
-      return 'hover:bg-blue-50/80 hover:border-blue-200/40';
-    } else if (itemName === 'Solutions') {
-      return 'hover:bg-orange-50/80 hover:border-orange-200/40';
-    } else if (itemName === 'Resources') {
-      return 'hover:bg-violet-50/80 hover:border-violet-200/40';
-    }
-    return 'hover:bg-white/50 hover:border-future-green/20';
-  };
-
-  const getDropdownTextColor = (itemName: string) => {
-    if (itemName === 'Platform') {
-      return 'group-hover:text-blue-700';
-    } else if (itemName === 'Solutions') {
-      return 'group-hover:text-orange-700';
-    } else if (itemName === 'Resources') {
-      return 'group-hover:text-violet-700';
-    }
-    return 'group-hover:text-future-green';
-  };
-
   return (
     <div className="lg:hidden">
       {/* Mobile Menu Button and Request Demo */}
@@ -267,13 +244,13 @@ const MobileMenu = ({
                             <button
                               key={subIndex}
                               onClick={() => scrollToSection(dropdownItem.href)}
-                              className={`flex items-center w-full text-left px-3 py-3 rounded-xl transition-all duration-300 group border border-transparent ${getDropdownHoverClass(item.name)}`}
+                              className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                             >
                               <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                                 <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
                               </div>
                               <div className="flex-1">
-                                <div className={`text-business-black font-medium font-inter text-sm transition-colors duration-300 ${getDropdownTextColor(item.name)}`}>
+                                <div className="text-business-black font-medium font-inter text-sm group-hover:text-future-green transition-colors duration-300">
                                   {dropdownItem.name}
                                 </div>
                                 <div className="text-business-black/60 font-inter text-xs mt-1 group-hover:text-business-black/70 transition-colors duration-300">
