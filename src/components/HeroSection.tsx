@@ -31,14 +31,14 @@ const HeroSection = () => {
         <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-8 sm:mb-12">
           {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
           <div className="w-full lg:w-2/5 space-y-3 sm:space-y-4 px-2 sm:px-0">
-            {/* Headline - responsive sizing */}
+            {/* Headline - responsive sizing with better line control */}
             <div className="animate-fade-in-up">
-              <h1 className="headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black leading-tight tracking-tight font-inter">
-                <span className="block">
+              <h1 className="headline text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-medium text-business-black leading-tight tracking-tight font-inter">
+                <span className="block whitespace-nowrap">
                   LXERA: The First
                 </span>
-                <span className="block" style={{ color: '#B1B973' }}>
-                  Learning & Innovation
+                <span className="block whitespace-nowrap" style={{ color: '#B1B973' }}>
+                  Learning &amp; Innovation
                 </span>
                 <span className="block">
                   <span style={{ color: '#B1B973' }}>Experience </span>
