@@ -88,8 +88,8 @@ const AIPersonalizedLearning = () => {
                   <div className="text-sm text-business-black/70">Engagement Rate</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-600">10M+</div>
-                  <div className="text-sm text-business-black/70">Learners</div>
+                  <div className="text-3xl font-bold text-pink-600">1K+</div>
+                  <div className="text-sm text-business-black/70">Early Users</div>
                 </div>
               </div>
             </div>
