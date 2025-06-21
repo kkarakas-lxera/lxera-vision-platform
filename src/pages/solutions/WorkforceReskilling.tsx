@@ -217,7 +217,7 @@ const WorkforceReskilling = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-blue-50/80 via-white/70 to-indigo-50/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-blue-200/50">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
             <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Transform Your Strategic Workforce
             </h2>
@@ -230,7 +230,7 @@ const WorkforceReskilling = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
+                className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
               >
                 Schedule Enterprise Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -238,7 +238,7 @@ const WorkforceReskilling = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+                className="border-2 border-blue-600/30 bg-white/10 backdrop-blur-sm text-business-black hover:bg-white hover:text-blue-600 hover:border-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2"
               >
                 Request Strategic Assessment
               </Button>

@@ -174,20 +174,20 @@ const LearningAnalytics = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-12 shadow-2xl border border-green-200/50">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Ready to Transform Your Learning Strategy?
             </h2>
-            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
+            <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
               Join industry leaders using our analytics to drive strategic workforce transformation.
             </p>
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
               Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 border-0"
+                className="bg-white text-green-600 hover:bg-green-50 hover:text-green-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4 border-0"
               >
                 Schedule Strategic Demo
                 <ArrowRight className="w-6 h-6 ml-3" />
@@ -195,9 +195,9 @@ const LearningAnalytics = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-3 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
+                className="border-3 border-green-600/30 bg-white/10 backdrop-blur-sm text-business-black hover:bg-white hover:text-green-600 hover:border-green-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4"
               >
-                Request Executive Assessment
+                Request Strategic Assessment
               </Button>
             </div>
           </div>
