@@ -58,26 +58,26 @@ const InnovationHub = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/10 px-4 py-2 rounded-full text-future-green font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
             <Lightbulb className="w-4 h-4 mr-2" />
             Innovation Enablement
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             Innovation
-            <span className="text-future-green"> Hub</span>
+            <span className="text-emerald"> Hub</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Empower your organization with comprehensive innovation tools that transform ideas 
             into impact through AI-augmented collaboration and prototyping capabilities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Explore Innovation Tools
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -106,12 +106,12 @@ const InnovationHub = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group overflow-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-emerald/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-future-green" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-emerald" />
                       </div>
-                      <Sparkles className="w-5 h-5 text-future-green/60" />
+                      <Sparkles className="w-5 h-5 text-emerald/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-future-green transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
                       {feature.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -135,7 +135,7 @@ const InnovationHub = () => {
       </section>
 
       {/* Innovation Process */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -150,7 +150,7 @@ const InnovationHub = () => {
             {innovationProcess.map((phase, index) => (
               <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative">
                 <CardHeader>
-                  <div className="w-16 h-16 bg-gradient-to-br from-future-green to-emerald rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald to-emerald rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-white font-bold text-lg">{index + 1}</span>
                   </div>
                   <CardTitle className="text-lg text-business-black mb-2">
@@ -171,7 +171,7 @@ const InnovationHub = () => {
                 </CardContent>
                 {index < innovationProcess.length - 1 && (
                   <div className="hidden md:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
-                    <ArrowRight className="w-8 h-8 text-future-green" />
+                    <ArrowRight className="w-8 h-8 text-emerald" />
                   </div>
                 )}
               </Card>
@@ -190,7 +190,7 @@ const InnovationHub = () => {
             Empower your teams with the tools and processes they need to drive meaningful innovation
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Start Innovating
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
