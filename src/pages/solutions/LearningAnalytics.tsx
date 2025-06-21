@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +34,8 @@ const LearningAnalytics = () => {
     "Organizational capability analysis"
   ];
 
+  console.log("Learning Analytics page loaded - checking CTA button styling");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
       <SEO 
@@ -62,7 +63,7 @@ const LearningAnalytics = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-emerald-600 hover:to-green-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4 border-0"
+              className="!bg-gradient-to-r !from-green-600 !to-emerald-600 !text-white hover:!from-emerald-600 hover:!to-green-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4 !border-0"
             >
               Schedule Enterprise Demo
               <ArrowRight className="w-6 h-6 ml-3" />
@@ -70,7 +71,7 @@ const LearningAnalytics = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
+              className="!border-3 !border-business-black/30 !bg-white/90 backdrop-blur-sm !text-business-black hover:!bg-business-black hover:!text-white hover:!border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
             >
               View Executive Brief
             </Button>
@@ -187,7 +188,8 @@ const LearningAnalytics = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-green-600 hover:bg-green-50 hover:text-green-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 border-0"
+                className="!bg-white !text-green-600 hover:!bg-green-50 hover:!text-green-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 !border-0"
+                onClick={() => console.log("Primary CTA clicked - should be white bg with green text")}
               >
                 Schedule Strategic Demo
                 <ArrowRight className="w-6 h-6 ml-3" />
@@ -195,7 +197,8 @@ const LearningAnalytics = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-3 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-green-600 hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
+                className="!border-3 !border-white/30 !bg-white/10 backdrop-blur-sm !text-white hover:!bg-white hover:!text-green-600 hover:!border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
+                onClick={() => console.log("Secondary CTA clicked - should be white outline with white text")}
               >
                 Request Strategic Assessment
               </Button>
