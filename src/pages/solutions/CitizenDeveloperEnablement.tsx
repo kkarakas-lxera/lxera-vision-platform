@@ -55,7 +55,7 @@ const CitizenDeveloperEnablement = () => {
               <Lightbulb className="w-4 h-4 mr-2" />
               No-Code Platform • Beta Access
             </Badge>
-            <h1 className="text-3xl lg:text-5xl font-bold text-business-black mb-6 leading-tight">
+            <h1 className="text-3xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
               No-Code Solutions for
               <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Business Teams</span>
             </h1>
@@ -114,7 +114,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               How No-Code Development Works
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -135,7 +135,7 @@ const CitizenDeveloperEnablement = () => {
                     <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-8 h-8 text-amber-600" />
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-amber-600 transition-colors">
+                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-amber-600 transition-colors">
                       {step.title}
                     </CardTitle>
                   </CardHeader>
@@ -165,7 +165,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Popular Use Cases
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -194,15 +194,15 @@ const CitizenDeveloperEnablement = () => {
           <div className="bg-gradient-to-r from-amber-600 to-yellow-600 rounded-3xl p-12 text-center text-white">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <div className="text-4xl font-bold mb-2">65%</div>
+                <div className="text-4xl font-semibold mb-2">65%</div>
                 <div className="text-white/90">Faster Delivery</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">40%</div>
+                <div className="text-4xl font-semibold mb-2">40%</div>
                 <div className="text-white/90">Cost Reduction</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">90%</div>
+                <div className="text-4xl font-semibold mb-2">90%</div>
                 <div className="text-white/90">Pilot Satisfaction</div>
               </div>
             </div>
@@ -214,7 +214,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Ready to Join Our No-Code Pilot?
             </h2>
             <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
