@@ -88,63 +88,63 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     }
   ];
 
-  // Define platform items with icons and colors
+  // Updated Platform items with Writer-inspired design and technical badges
   const platformItems = [
     {
       name: "How LXERA Works",
       href: "/platform/how-it-works",
       icon: Target,
-      color: "bg-gradient-to-br from-blue-100 to-cyan-100",
-      iconColor: "text-blue-600",
-      description: "Discover the core methodology behind LXERA"
+      badge: "Core",
+      description: "Discover the methodology behind LXERA",
+      gradient: "from-blue-600 via-blue-500 to-cyan-500"
     },
     {
       name: "AI Engine",
       href: "/platform/ai-engine",
       icon: Sparkles,
-      color: "bg-gradient-to-br from-purple-100 to-indigo-100",
-      iconColor: "text-purple-600",
-      description: "Advanced AI that powers personalized learning"
+      badge: "AI/ML",
+      description: "Advanced AI that powers personalized learning",
+      gradient: "from-purple-600 via-violet-500 to-indigo-500"
     },
     {
       name: "Engagement & Insights",
       href: "/platform/engagement-insights",
       icon: BarChart3,
-      color: "bg-gradient-to-br from-emerald-100 to-teal-100",
-      iconColor: "text-emerald-600",
-      description: "Real-time analytics and engagement tracking"
+      badge: "Analytics",
+      description: "Real-time analytics and engagement tracking",
+      gradient: "from-emerald-600 via-teal-500 to-green-500"
     },
     {
       name: "Innovation Hub",
       href: "/platform/innovation-hub",
       icon: Lightbulb,
-      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
-      iconColor: "text-amber-600",
-      description: "Collaborative space for innovation and ideation"
+      badge: "Innovation",
+      description: "Collaborative space for innovation and ideation",
+      gradient: "from-yellow-600 via-amber-500 to-orange-500"
     },
     {
       name: "Mentorship & Support Tools",
       href: "/platform/mentorship-support",
       icon: MessageCircle,
-      color: "bg-gradient-to-br from-rose-100 to-pink-100",
-      iconColor: "text-rose-600",
-      description: "AI-powered mentorship and support systems"
+      badge: "Support",
+      description: "AI-powered mentorship and support systems",
+      gradient: "from-rose-600 via-pink-500 to-red-500"
     },
     {
       name: "Security & Data Privacy",
       href: "/platform/security-privacy",
       icon: Shield,
-      color: "bg-gradient-to-br from-gray-100 to-slate-100",
-      iconColor: "text-gray-600",
-      description: "Enterprise-grade security and privacy protection"
+      badge: "Security",
+      description: "Enterprise-grade security and privacy protection",
+      gradient: "from-gray-600 via-slate-500 to-zinc-500"
     },
     {
       name: "Integrations",
       href: "/platform/integrations",
       icon: Plug,
-      color: "bg-gradient-to-br from-green-100 to-emerald-100",
-      iconColor: "text-green-600",
-      description: "Seamless integration with your existing tools"
+      badge: "API",
+      description: "Seamless integration with your existing tools",
+      gradient: "from-green-600 via-emerald-500 to-teal-500"
     }
   ];
 
@@ -181,42 +181,64 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
   const renderDropdownContent = (item: any) => {
     if (item.name === 'Platform') {
       return (
-        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
-              <h4 className="text-sm font-medium text-business-black/70 font-inter">
-                Platform Features
-              </h4>
+        <NavigationMenuContent className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 backdrop-blur-xl border border-gray-200/50 shadow-2xl rounded-2xl p-0 min-w-[520px] overflow-hidden">
+          <div className="relative">
+            {/* Writer-inspired header with gradient */}
+            <div className="bg-gradient-to-r from-business-black via-gray-800 to-business-black p-6 text-white">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-8 h-8 bg-future-green rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-business-black" />
+                </div>
+                <h3 className="text-lg font-semibold">Platform Features</h3>
+              </div>
+              <p className="text-gray-300 text-sm">Comprehensive learning and innovation ecosystem</p>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            
+            {/* Platform items with Writer-inspired cards */}
+            <div className="p-6 space-y-3">
               {platformItems.map((platform, index) => {
                 const IconComponent = platform.icon;
                 return (
                   <button
                     key={index}
                     onClick={() => scrollToSection(platform.href)}
-                    className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
+                    className="flex items-start w-full text-left p-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-blue-200/30 hover:shadow-md"
                   >
-                    <div className={`w-10 h-10 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                      <IconComponent className={`w-5 h-5 ${platform.iconColor}`} />
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${platform.gradient} flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-business-black font-semibold font-inter text-sm">
+                            {platform.name}
+                          </span>
+                          <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md font-mono font-medium">
+                            {platform.badge}
+                          </span>
+                        </div>
+                        <p className="text-business-black/60 font-inter text-xs leading-relaxed">
+                          {platform.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
-                        {platform.name}
-                      </div>
-                      <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
-                        {platform.description}
-                      </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
                     </div>
                   </button>
                 );
               })}
             </div>
-            <div className="pt-3 mt-4 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center">
-                Designed with ❤️ for human-centered innovation
-              </p>
+            
+            {/* Writer-inspired footer */}
+            <div className="px-6 pb-6 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>Built for enterprise scale</span>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>All systems operational</span>
+                </div>
+              </div>
             </div>
           </div>
         </NavigationMenuContent>
