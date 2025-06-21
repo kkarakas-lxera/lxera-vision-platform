@@ -77,10 +77,10 @@ const SecurityPrivacy = () => {
             your learners, and your organization are protected by industry-leading standards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Security Overview
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Compliance Details
             </Button>
           </div>
@@ -212,10 +212,10 @@ const SecurityPrivacy = () => {
             Learn more about our comprehensive approach to protecting your most valuable asset: data
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Download Security Brief
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/integrations">
                 Integrations <ArrowRight className="w-4 h-4 ml-2" />
               </Link>

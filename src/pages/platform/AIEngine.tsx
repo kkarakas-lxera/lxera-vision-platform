@@ -97,10 +97,10 @@ const AIEngine = () => {
             and drives engagement through advanced machine learning and behavioral analysis.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               See AI in Action
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Technical Overview
             </Button>
           </div>
@@ -231,10 +231,10 @@ const AIEngine = () => {
             See how our AI engine can transform learning outcomes in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request AI Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/engagement-insights">
                 Explore Insights <ArrowRight className="w-4 h-4 ml-2" />
               </Link>

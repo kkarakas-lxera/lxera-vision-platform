@@ -77,10 +77,10 @@ const InnovationHub = () => {
             into impact through AI-augmented collaboration and prototyping capabilities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Explore Innovation Tools
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Innovation Process Guide
             </Button>
           </div>
@@ -190,10 +190,10 @@ const InnovationHub = () => {
             Empower your teams with the tools and processes they need to drive meaningful innovation
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Start Innovating
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/mentorship-support">
                 Mentorship Support <ArrowRight className="w-4 h-4 ml-2" />
               </Link>

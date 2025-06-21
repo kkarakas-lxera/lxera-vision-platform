@@ -86,10 +86,10 @@ const Integrations = () => {
             create a unified learning ecosystem that works within your current workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               View All Integrations
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               API Documentation
             </Button>
           </div>
@@ -215,10 +215,10 @@ const Integrations = () => {
             Explore our integrations and discover how LXERA fits seamlessly into your existing workflow
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Browse Integrations
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/solutions">
                 Explore Solutions <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
