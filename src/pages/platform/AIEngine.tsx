@@ -2,77 +2,77 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Users, BarChart3, Target, Zap, Shield, Sparkles, ArrowRight, CheckCircle, TrendingUp } from "lucide-react";
+import { Brain, Users, BarChart3, Target, Zap, Eye, Sparkles, ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const AIEngine = () => {
   const aiCapabilities = [
     {
-      title: "Organizational Intelligence Analysis",
-      description: "Deep insights into enterprise capabilities, strategic gaps, and transformation readiness across all business units",
+      title: "Learner Profiling",
+      description: "Deep understanding of individual learning patterns, preferences, and goals",
       icon: Users,
       features: [
-        "Enterprise capability mapping",
-        "Strategic development pathways", 
-        "Innovation readiness assessment",
-        "Organizational transformation indicators"
+        "Behavioral pattern analysis",
+        "Learning style identification", 
+        "Skill gap assessment",
+        "Motivation profiling"
       ]
     },
     {
-      title: "Strategic Impact Forecasting",
-      description: "AI-powered prediction of transformation ROI, business outcomes, and competitive advantage opportunities",
-      icon: TrendingUp,
+      title: "Behavioral Analysis",
+      description: "Real-time monitoring and prediction of learner engagement and outcomes",
+      icon: Eye,
       features: [
-        "Transformation success modeling",
-        "Business ROI forecasting",
-        "Strategic risk assessment",
-        "Competitive advantage analysis"
+        "Engagement tracking",
+        "Performance prediction",
+        "Risk identification",
+        "Intervention triggers"
       ]
     },
     {
-      title: "Innovation Acceleration Engine",
-      description: "Intelligent systems that identify strategic opportunities while accelerating organizational capability development",
+      title: "Motivation Modeling",
+      description: "Understanding what drives each learner to optimize their experience",
       icon: Zap,
       features: [
-        "Strategic opportunity identification",
-        "Enterprise transformation acceleration",
-        "Competitive readiness optimization",
-        "Strategic capability advancement"
+        "Intrinsic motivation mapping",
+        "Reward system optimization",
+        "Challenge level calibration",
+        "Achievement recognition"
       ]
     },
     {
-      title: "Executive Decision Intelligence",
-      description: "Strategic insights and recommendations tailored for C-suite and executive leadership decision-making",
+      title: "Adaptive Decisions",
+      description: "Intelligent content and pathway adjustments based on real-time data",
       icon: Brain,
       features: [
-        "Executive strategic insights",
-        "Business planning support",
-        "Competitive positioning analysis",
-        "Organizational transformation guidance"
+        "Dynamic content curation",
+        "Pathway optimization",
+        "Difficulty adjustment",
+        "Timing recommendations"
       ]
     }
   ];
 
   const solutions = [
     {
-      title: "Strategic Enterprise Planning",
-      description: "AI-driven insights for future capability requirements and competitive positioning gaps",
-      impact: "90% more accurate strategic planning"
+      title: "Skill Gap Detection",
+      description: "Automatically identify and address competency gaps across teams",
+      impact: "85% faster skill assessment"
     },
     {
-      title: "Innovation Pipeline Acceleration", 
-      description: "Intelligent identification and development of innovation capabilities across the enterprise",
-      impact: "3x faster innovation delivery"
+      title: "Learning Style Adaptation", 
+      description: "Personalize content delivery to match individual preferences",
+      impact: "60% higher engagement"
     },
     {
-      title: "Transformation Risk Management",
-      description: "Predictive analytics to identify and address strategic transformation challenges proactively",
-      impact: "75% reduction in transformation risks"
+      title: "Performance Prediction",
+      description: "Forecast learner outcomes and proactively intervene",
+      impact: "40% improvement in completion rates"
     },
     {
-      title: "Executive Performance Enhancement",
-      description: "AI-powered recommendations for strategic capability building and competitive advantage",
-      impact: "60% improvement in strategic effectiveness"
+      title: "Content Optimization",
+      description: "Continuously improve learning materials based on effectiveness data",
+      impact: "50% reduction in learning time"
     }
   ];
 
@@ -83,24 +83,24 @@ const AIEngine = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Brain className="w-4 h-4 mr-2" />
-            Enterprise Intelligence Platform
+            Intelligent Platform Core
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            AI Engine for
-            <span className="text-business-black"> Enterprise Transformation</span>
+            AI
+            <span className="text-business-black"> Engine</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            The strategic intelligence core that powers enterprise transformation for organizational leaders. 
-            Drive measurable competitive advantage through AI-powered insights and predictive analytics.
+            The intelligent heart of LXERA that powers personalization, predicts outcomes, 
+            and drives engagement through advanced machine learning and behavioral analysis.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Schedule Executive Demo
+              See AI in Action
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Download Strategic Brief
+              Technical Overview
             </Button>
           </div>
         </div>
@@ -111,10 +111,10 @@ const AIEngine = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Four Pillars of Enterprise Intelligence
+              Four Pillars of Intelligence
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Advanced AI capabilities designed for organizational leaders driving strategic transformation and competitive advantage
+              Our AI engine combines multiple sophisticated models to create truly personalized experiences
             </p>
           </div>
 
@@ -159,10 +159,10 @@ const AIEngine = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Solutions Powered by AI
+              Solutions Powered by AI
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              See how our AI engine drives measurable organizational transformation and strategic outcomes
+              See how our AI engine drives measurable improvements across key learning scenarios
             </p>
           </div>
 
@@ -190,7 +190,7 @@ const AIEngine = () => {
         </div>
       </section>
 
-      {/* Enterprise Specifications */}
+      {/* Technical Specs Preview */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
@@ -199,21 +199,21 @@ const AIEngine = () => {
                 Enterprise-Grade AI Architecture
               </CardTitle>
               <CardDescription className="text-white/70 text-lg">
-                Built for scale, security, and strategic transformation
+                Built for scale, security, and continuous learning
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">99.9%</div>
-                <div className="text-sm text-white/70">Enterprise Uptime SLA</div>
+                <div className="text-sm text-white/70">Uptime Guarantee</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">SOC2</div>
-                <div className="text-sm text-white/70">Compliance Ready</div>
+                <div className="text-3xl font-bold text-future-green mb-2">&lt; 100ms</div>
+                <div className="text-sm text-white/70">Response Time</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">24/7</div>
-                <div className="text-sm text-white/70">Strategic Intelligence</div>
+                <div className="text-sm text-white/70">Learning & Adapting</div>
               </div>
             </CardContent>
           </Card>
@@ -224,18 +224,18 @@ const AIEngine = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Transform Your Organization with Strategic AI
+            Experience the Power of AI-Driven Learning
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Join industry leaders using our AI engine to drive measurable transformation and competitive advantage
+            See how our AI engine can transform learning outcomes in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Request Strategic Demo
+              Request AI Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/engagement-insights">
-                Explore Strategic Insights <ArrowRight className="w-4 h-4 ml-2" />
+                Explore Insights <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>

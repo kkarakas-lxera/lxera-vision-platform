@@ -2,57 +2,57 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Users, Brain, Target, ArrowRight, Activity, Zap, Eye, DollarSign } from "lucide-react";
+import { BarChart3, Eye, TrendingUp, Users, Brain, Target, ArrowRight, Activity, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const EngagementInsights = () => {
   const dashboardFeatures = [
     {
-      title: "Executive Strategy Dashboard",
-      description: "C-suite insights for enterprise transformation progress, strategic ROI measurement, and competitive advantage tracking",
+      title: "Real-time Engagement Tracking",
+      description: "Monitor learner activity, session duration, and interaction patterns as they happen",
+      icon: Activity,
+      metrics: ["Active sessions", "Time on task", "Click-through rates", "Completion velocity"]
+    },
+    {
+      title: "Predictive Outcome Analytics",
+      description: "AI-powered forecasting of learner success and potential intervention points",
       icon: TrendingUp,
-      metrics: ["Strategic transformation ROI", "Enterprise capability growth", "Innovation pipeline health", "Competitive readiness scores"]
+      metrics: ["Success probability", "Risk indicators", "Performance trends", "Completion forecasts"]
     },
     {
-      title: "Predictive Business Analytics",
-      description: "AI-powered forecasting of organizational transformation success, capability development outcomes, and business impact",
+      title: "Emotional Analytics",
+      description: "Understanding learner sentiment and motivation through behavioral cues",
       icon: Brain,
-      metrics: ["Success probability forecasts", "Strategic risk insights", "Capability development trends", "Business alignment metrics"]
+      metrics: ["Engagement levels", "Frustration indicators", "Motivation patterns", "Satisfaction scores"]
     },
     {
-      title: "Innovation Impact Tracking",
-      description: "Monitor innovation initiatives, strategic transformation progress, and competitive advantage development",
-      icon: Zap,
-      metrics: ["Innovation project success", "Strategic maturity progress", "Competitive positioning", "Future readiness index"]
-    },
-    {
-      title: "Enterprise Transformation Insights",
-      description: "Comprehensive analytics on organizational development, strategic capabilities, and enterprise-wide transformation",
+      title: "Multi-level Dashboards",
+      description: "Tailored views for learners, managers, and administrators with relevant insights",
       icon: Users,
-      metrics: ["Strategic capability progress", "Executive development ROI", "Organizational evolution", "Competitive advantage impact"]
+      metrics: ["Personal progress", "Team performance", "Organizational impact", "Strategic alignment"]
     }
   ];
 
-  const strategicInsights = [
+  const insights = [
     {
-      title: "Strategic Investment Optimization",
-      description: "Identify highest-impact capability investments and optimize resource allocation for maximum business value",
-      impact: "4x improvement in strategic ROI"
+      title: "Learning Path Optimization",
+      description: "Identify most effective content sequences and learning pathways",
+      impact: "35% improvement in completion rates"
     },
     {
-      title: "Early Transformation Risk Detection",
-      description: "Proactive identification of organizational transformation challenges before they impact strategic initiatives",
-      impact: "70% reduction in transformation risks"
+      title: "Early Warning System",
+      description: "Proactive identification of at-risk learners before they disengage",
+      impact: "60% reduction in dropout rates"
     },
     {
-      title: "Innovation Capability Enhancement",
-      description: "Measure and optimize organizational innovation capacity and strategic transformation readiness",
-      impact: "60% faster innovation cycles"
+      title: "Content Performance",
+      description: "Measure which materials drive the highest engagement and learning outcomes",
+      impact: "50% increase in content effectiveness"
     },
     {
-      title: "Strategic Enterprise Planning",
-      description: "Data-driven insights for future capability requirements and competitive advantage development",
-      impact: "90% more accurate strategic forecasting"
+      title: "ROI Measurement",
+      description: "Track learning investment returns through performance and business metrics",
+      impact: "Quantifiable business impact"
     }
   ];
 
@@ -63,23 +63,24 @@ const EngagementInsights = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <BarChart3 className="w-4 h-4 mr-2" />
-            Enterprise Intelligence & Analytics
+            Data-Driven Learning
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Strategic Insights &
-            <span className="text-business-black"> Analytics Dashboard</span>
+            Engagement &
+            <span className="text-business-black"> Insights</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Transform organizational data into strategic intelligence. Executive-level analytics designed for organizational leaders driving measurable competitive advantage.
+            Transform learning data into actionable insights with real-time analytics, 
+            predictive outcomes, and comprehensive dashboards that drive smarter decisions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              View Executive Dashboard
+              View Demo Dashboard
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Strategic Analytics Overview
+              Analytics Overview
             </Button>
           </div>
         </div>
@@ -90,10 +91,10 @@ const EngagementInsights = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Executive Intelligence Dashboards
+              Visual Dashboards That Drive Decisions
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Strategic analytics suite providing actionable insights for enterprise transformation and competitive advantage
+              Comprehensive analytics suite providing insights at every level of your organization
             </p>
           </div>
 
@@ -132,20 +133,20 @@ const EngagementInsights = () => {
         </div>
       </section>
 
-      {/* Strategic Insights Impact */}
+      {/* Insights Impact */}
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Intelligence That Drives Results
+              Actionable Insights That Drive Results
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              See how data-driven strategic decisions accelerate enterprise transformation and competitive advantage
+              See how data-driven decisions transform learning outcomes and business impact
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {strategicInsights.map((insight, index) => (
+            {insights.map((insight, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
@@ -168,99 +169,18 @@ const EngagementInsights = () => {
         </div>
       </section>
 
-      {/* ROI Impact Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
-            <CardHeader className="text-center pb-8">
-              <CardTitle className="text-3xl mb-4">
-                Measurable Strategic Impact
-              </CardTitle>
-              <CardDescription className="text-white/70 text-lg">
-                Real ROI metrics that matter to organizational leaders
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">340%</div>
-                <div className="text-sm text-white/70">Average Strategic ROI</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">75%</div>
-                <div className="text-sm text-white/70">Faster Transformation</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">90%</div>
-                <div className="text-sm text-white/70">Strategic Alignment</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* C-Suite Benefits */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Built for Executive Decision-Making
-            </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Strategic insights designed specifically for C-suite and senior leadership needs
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: DollarSign,
-                title: "Strategic ROI Transparency",
-                description: "Clear visibility into strategic investment returns and competitive advantage metrics"
-              },
-              {
-                icon: Target,
-                title: "Business Alignment", 
-                description: "Ensure all transformation initiatives support broader organizational strategic goals"
-              },
-              {
-                icon: TrendingUp,
-                title: "Competitive Advantage",
-                description: "Data-driven insights that create sustainable competitive differentiation"
-              }
-            ].map((benefit, index) => {
-              const IconComponent = benefit.icon;
-              return (
-                <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  <CardHeader>
-                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-8 h-8 text-business-black" />
-                    </div>
-                    <CardTitle className="text-lg text-business-black mb-2">
-                      {benefit.title}
-                    </CardTitle>
-                    <CardDescription className="text-business-black/60">
-                      {benefit.description}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Transform Strategic Decision-Making with Data
+            Turn Learning Data Into Strategic Advantage
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Discover how strategic intelligence transforms enterprise transformation and competitive positioning
+            Discover insights that transform how your organization approaches learning and development
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Schedule Executive Demo
+              Explore Analytics
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/innovation-hub">

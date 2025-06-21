@@ -1,59 +1,58 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle, Shield, Target } from "lucide-react";
+import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const MentorshipSupport = () => {
   const supportFeatures = [
     {
-      title: "Executive Advisory & AI Guidance",
-      description: "Strategic support system combining AI intelligence with executive coaching for organizational transformation",
+      title: "AI Chat Support",
+      description: "Intelligent 24/7 assistance that understands context and provides personalized guidance",
       icon: Brain,
-      benefits: ["C-suite strategic guidance", "Transformation coaching", "Leadership development pathways", "Executive decision support"]
+      benefits: ["Instant responses", "Context awareness", "Learning continuity", "Personalized help"]
     },
     {
-      title: "Strategic Mentorship Matching",
-      description: "Intelligent connection of leaders with industry experts and transformation specialists based on strategic objectives",
+      title: "Mentor Matching Logic",
+      description: "Smart algorithms that connect learners with the most suitable mentors based on multiple factors",
       icon: Users,
-      benefits: ["Industry expert networks", "Transformation specialist access", "Strategic objective alignment", "Leadership peer connections"]
+      benefits: ["Skill alignment", "Personality matching", "Goal compatibility", "Availability sync"]
     },
     {
-      title: "24/7 Strategic Communication",
-      description: "Always-available strategic support through multiple channels for critical decision-making and transformation guidance",
+      title: "Live Chat & Video",
+      description: "Real-time communication tools for immediate support and face-to-face interactions",
       icon: MessageCircle,
-      benefits: ["Executive hotline access", "Strategic video sessions", "Transformation war rooms", "Crisis support channels"]
+      benefits: ["Real-time help", "Video sessions", "Screen sharing", "Group discussions"]
     },
     {
-      title: "Global Strategic Support",
-      description: "Round-the-clock support ensuring organizational transformation initiatives never stall due to time zones or availability",
+      title: "24/7 Availability",
+      description: "Round-the-clock support ensuring learners never feel stuck or abandoned",
       icon: Clock,
-      benefits: ["Global transformation support", "Multi-timezone coverage", "Strategic escalation protocols", "Emergency transformation guidance"]
+      benefits: ["Always available", "Global time zones", "Instant escalation", "Emergency support"]
     }
   ];
 
   const scalabilityFeatures = [
     {
-      title: "Intelligent Strategic Triage",
-      description: "AI-powered routing of strategic challenges to the most appropriate transformation experts and resources",
-      impact: "95% faster strategic response"
+      title: "Automated Triage",
+      description: "Smart routing of support requests to the most appropriate resource",
+      impact: "90% faster response times"
     },
     {
-      title: "Strategic Knowledge Intelligence",
-      description: "AI-enhanced access to transformation methodologies, best practices, and organizational change resources",
-      impact: "80% self-service strategic guidance"
+      title: "Knowledge Base Integration",
+      description: "AI-powered search and suggestions from comprehensive learning resources",
+      impact: "75% self-service resolution"
     },
     {
-      title: "Leadership Network Orchestration",
-      description: "Facilitated connections between transformation leaders for peer learning and strategic collaboration",
-      impact: "4x increase in strategic partnerships"
+      title: "Peer Learning Networks",
+      description: "Facilitated connections between learners with complementary skills and needs",
+      impact: "3x increase in peer collaboration"
     },
     {
-      title: "Expert Resource Optimization",
-      description: "Strategic allocation of transformation experts and industry specialists across multiple organizational initiatives",
-      impact: "6x improvement in expert utilization"
+      title: "Expert Pool Management",
+      description: "Efficient allocation of subject matter experts across multiple learners and topics",
+      impact: "5x improvement in expert utilization"
     }
   ];
 
@@ -64,24 +63,24 @@ const MentorshipSupport = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
-            <Shield className="w-4 h-4 mr-2" />
-            Strategic Transformation Support
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
+            <Heart className="w-4 h-4 mr-2" />
+            Always-On Support
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Executive Mentorship &
-            <span className="text-business-black"> Strategic Support</span>
+            Mentorship &
+            <span className="text-business-black"> Support Tools</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Comprehensive support ecosystem designed for HR, L&D, Innovation and Digital Transformation Leaders. 
-            From strategic guidance to transformation expertise - success support is always available.
+            Scalable, personalized support that ensures no learner is ever alone on their journey. 
+            From AI-powered guidance to expert mentorship, help is always available.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Access Strategic Support
+              Experience Support Tools
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Strategic Support Overview
+              Support Overview
             </Button>
           </div>
         </div>
@@ -92,10 +91,10 @@ const MentorshipSupport = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Transformation Support Ecosystem
+              Comprehensive Support Ecosystem
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Multi-layered support system ensuring organizational transformation leaders get strategic guidance when critical decisions are needed
+              Multiple layers of support ensure learners get the right help at the right time
             </p>
           </div>
 
@@ -135,15 +134,15 @@ const MentorshipSupport = () => {
         </div>
       </section>
 
-      {/* Strategic Scalability Focus */}
+      {/* Scalability Focus */}
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Built for Strategic Scale and Personalization
+              Built for Scale and Personalization
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Advanced systems that maintain executive-level strategic guidance while supporting enterprise-scale transformation initiatives
+              Advanced systems that maintain personal touch while supporting thousands of learners
             </p>
           </div>
 
@@ -171,84 +170,33 @@ const MentorshipSupport = () => {
         </div>
       </section>
 
-      {/* Strategic Support Stats */}
+      {/* Support Stats */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-3xl mb-4">
-                Strategic Support That Drives Success
+                Support That Never Sleeps
               </CardTitle>
               <CardDescription className="text-white/70 text-lg">
-                Committed to transformation leader success across all time zones and strategic initiatives
+                Committed to learner success around the clock
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">&lt; 2min</div>
-                <div className="text-sm text-white/70">Strategic Response Time</div>
+                <div className="text-3xl font-bold text-future-green mb-2">&lt; 30sec</div>
+                <div className="text-sm text-white/70">Average AI Response</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">98%</div>
-                <div className="text-sm text-white/70">Strategic Success Rate</div>
+                <div className="text-3xl font-bold text-future-green mb-2">95%</div>
+                <div className="text-sm text-white/70">Satisfaction Rate</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">24/7</div>
-                <div className="text-sm text-white/70">Global Strategic Coverage</div>
+                <div className="text-sm text-white/70">Global Availability</div>
               </div>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Executive Benefits */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Support Benefits for Leaders
-            </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Specifically designed support benefits that accelerate transformation success for organizational leaders
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Target,
-                title: "Strategic Acceleration",
-                description: "Fast-track transformation initiatives with expert guidance and proven methodologies"
-              },
-              {
-                icon: Users,
-                title: "Leadership Network Access", 
-                description: "Connect with industry transformation leaders and executive peer networks"
-              },
-              {
-                icon: Brain,
-                title: "AI-Enhanced Decision Support",
-                description: "Strategic intelligence that augments executive decision-making and transformation planning"
-              }
-            ].map((benefit, index) => {
-              const IconComponent = benefit.icon;
-              return (
-                <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  <CardHeader>
-                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-8 h-8 text-business-black" />
-                    </div>
-                    <CardTitle className="text-lg text-business-black mb-2">
-                      {benefit.title}
-                    </CardTitle>
-                    <CardDescription className="text-business-black/60">
-                      {benefit.description}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
         </div>
       </section>
 
@@ -256,18 +204,18 @@ const MentorshipSupport = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Never Face Transformation Alone
+            Never Leave Learners Behind
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Discover how comprehensive strategic support transforms organizational transformation success and leadership effectiveness
+            Discover how comprehensive support transforms learning outcomes and learner satisfaction
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Access Strategic Support
+              Try Support Tools
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/security-privacy">
-                Security & Compliance <ArrowRight className="w-4 h-4 ml-2" />
+                Security & Privacy <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>

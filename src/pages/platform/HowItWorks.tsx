@@ -9,53 +9,53 @@ const HowItWorks = () => {
   const journeySteps = [
     {
       step: "1",
-      title: "Strategic Assessment & Alignment",
-      description: "Comprehensive organizational analysis aligning workforce capabilities with strategic business objectives and competitive positioning",
+      title: "Onboarding & Profiling",
+      description: "AI creates personalized learner profiles based on skills, goals, and learning preferences",
       icon: Users,
-      features: ["Enterprise capability assessment", "Strategic business alignment", "Executive dashboard configuration", "Organizational readiness planning"]
+      features: ["Skill assessment", "Learning style analysis", "Goal setting", "Team integration"]
     },
     {
       step: "2", 
-      title: "Strategic Capability Development",
-      description: "Scalable capability building programs that drive innovation and competitive advantage across all organizational levels",
+      title: "Personalized Content",
+      description: "Dynamic content curation based on individual needs and organizational objectives",
       icon: Brain,
-      features: ["Strategic capability pathways", "Innovation enablement programs", "Cross-functional collaboration", "Executive development initiatives"]
+      features: ["Adaptive pathways", "Content recommendations", "Skill gap detection", "Progress tracking"]
     },
     {
       step: "3",
-      title: "Organizational Transformation",
-      description: "Active transformation experiences that deliver measurable business outcomes through strategic capability development and innovation",
+      title: "Active Learning",
+      description: "Engaging experiences with real-time support and collaboration tools",
       icon: Zap,
-      features: ["Strategic transformation projects", "Innovation acceleration", "Organizational collaboration", "Executive strategic mentorship"]
+      features: ["Interactive modules", "Peer collaboration", "AI mentorship", "Innovation projects"]
     },
     {
       step: "4",
-      title: "Business Impact Measurement",
-      description: "Executive-level analytics demonstrating ROI and organizational transformation progress with strategic business insights",
+      title: "Insights & Growth",
+      description: "Continuous feedback loop with analytics driving improvement and innovation",
       icon: BarChart3,
-      features: ["Executive business reporting", "Strategic ROI measurement", "Transformation impact analytics", "Competitive advantage metrics"]
+      features: ["Performance analytics", "Engagement insights", "Impact measurement", "Future planning"]
     }
   ];
 
   const touchpoints = [
     {
-      title: "Executive Strategic Guidance",
-      description: "Strategic support for organizational transformation and competitive advantage development",
+      title: "AI-Powered Guidance",
+      description: "24/7 intelligent support that adapts to learning patterns",
       icon: Brain
     },
     {
-      title: "Cross-Organizational Innovation",
-      description: "Structured environments for driving enterprise-wide transformation and strategic initiatives",
+      title: "Peer Collaboration",
+      description: "Connect with colleagues for shared learning experiences",
       icon: Users
     },
     {
-      title: "Strategic Advisory Network", 
-      description: "Access to industry leaders and organizational transformation specialists",
+      title: "Expert Mentorship", 
+      description: "Access to subject matter experts and industry leaders",
       icon: MessageCircle
     },
     {
-      title: "Centers of Strategic Excellence",
-      description: "Dedicated environments for strategic experimentation and competitive capability development",
+      title: "Innovation Labs",
+      description: "Hands-on spaces for experimentation and creative problem-solving",
       icon: Lightbulb
     }
   ];
@@ -67,24 +67,24 @@ const HowItWorks = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Target className="w-4 h-4 mr-2" />
-            Enterprise Transformation Platform
+            Platform Overview
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            How LXERA Drives
-            <span className="text-business-black"> Enterprise Transformation</span>
+            How LXERA
+            <span className="text-business-black"> Works</span>
           </h1>
           <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
-            A comprehensive platform designed for organizational leaders driving strategic transformation. 
-            From strategic alignment to measurable business outcomes - see how we accelerate competitive advantage.
+            Discover the intelligent ecosystem that transforms learning into innovation. 
+            From personalized onboarding to measurable business impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Schedule Executive Demo
+              See It In Action
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Download Strategic Overview
+              Download Overview
             </Button>
           </div>
         </div>
@@ -95,10 +95,10 @@ const HowItWorks = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Enterprise Transformation Journey
+              The Complete Learning Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              A proven methodology for driving organizational transformation through strategic capability development and innovation
+              Follow the intelligent path from initial engagement to transformative innovation
             </p>
           </div>
 
@@ -150,10 +150,10 @@ const HowItWorks = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Support Throughout Transformation
+              Support Throughout Your Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Comprehensive support system designed for organizational leaders driving enterprise-wide change
+              Multiple touchpoints ensure learners are never alone in their growth journey
             </p>
           </div>
 
@@ -184,18 +184,18 @@ const HowItWorks = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Ready to Drive Enterprise Transformation?
+            Ready to Transform Your Learning Experience?
           </h2>
           <p className="text-lg text-business-black/70 mb-8">
-            Join forward-thinking organizations using LXERA to accelerate strategic transformation and competitive advantage
+            Discover how LXERA can revolutionize learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Schedule Strategic Consultation
+              Request Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/ai-engine">
-                Explore Strategic Capabilities <ArrowRight className="w-4 h-4 ml-2" />
+                Explore AI Engine <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
