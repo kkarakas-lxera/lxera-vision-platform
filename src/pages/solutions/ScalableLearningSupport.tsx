@@ -10,20 +10,20 @@ const ScalableLearningSupport = () => {
   const supportFeatures = [
     {
       icon: MessageSquare,
-      title: "AI-Powered Chatbot",
-      description: "Instant answers to learner questions with intelligent, context-aware responses",
+      title: "AI-Powered Support Intelligence",
+      description: "Instant answers to learner questions with intelligent, context-aware responses designed for enterprise teams",
       availability: "24/7 Available"
     },
     {
       icon: Users2,
-      title: "Peer Learning Network",
-      description: "Connect learners with mentors and peers for collaborative learning experiences",
+      title: "Strategic Mentorship Network",
+      description: "Connect teams with expert mentors and peers for collaborative learning experiences that drive business results",
       availability: "Global Community"
     },
     {
       icon: Globe,
-      title: "Multi-Language Support",
-      description: "Learning assistance in 50+ languages with cultural context awareness",
+      title: "Multi-Language Enterprise Support",
+      description: "Learning assistance in 50+ languages with cultural context awareness for global organizations",
       availability: "Worldwide"
     }
   ];
@@ -31,32 +31,32 @@ const ScalableLearningSupport = () => {
   const testimonials = [
     {
       name: "Sarah Chen",
-      role: "Learning Manager, TechCorp",
+      role: "L&D Director, TechCorp",
       image: "👩‍💼",
-      quote: "The AI support has transformed our learning experience. Instant help, anytime, anywhere.",
+      quote: "The AI support has transformed our enterprise learning experience. Strategic help, anytime, anywhere.",
       rating: 5
     },
     {
       name: "Michael Rodriguez", 
       role: "HR Director, GlobalInc",
       image: "👨‍💼",
-      quote: "Our employees love the peer mentorship feature. It's created a real learning community.",
+      quote: "Our teams love the strategic mentorship feature. It's created a real learning community across our organization.",
       rating: 5
     },
     {
       name: "Lisa Thompson",
-      role: "Training Coordinator",
+      role: "Digital Transformation Director",
       image: "👩‍🏫",
-      quote: "24/7 support means our global teams never have to wait for help. Game-changing!",
+      quote: "24/7 support means our global teams never have to wait for strategic guidance. Absolutely transformational!",
       rating: 5
     }
   ];
 
   const communityStats = [
-    { number: "2M+", label: "Active Learners", icon: Users2 },
-    { number: "50K+", label: "Mentors Available", icon: Star },
+    { number: "50K+", label: "Enterprise Learners", icon: Users2 },
+    { number: "5K+", label: "Strategic Mentors", icon: Star },
     { number: "99.9%", label: "Uptime Guarantee", icon: Shield },
-    { number: "<2min", label: "Average Response", icon: Clock }
+    { number: "<1min", label: "Average Response", icon: Clock }
   ];
 
   return (
@@ -74,14 +74,14 @@ const ScalableLearningSupport = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200 px-4 py-2 text-sm font-medium">
               <Headphones className="w-4 h-4 mr-2" />
-              Support & Mentorship Platform
+              Enterprise Support & Mentorship Platform
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
-              Learning Support That
+              Strategic Learning Support That
               <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block"> Never Sleeps</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Combine the power of AI with human expertise. Provide instant, intelligent support while building thriving learning communities that scale with your organization.
+              Combine the power of AI with human expertise to provide instant, intelligent support while building thriving learning communities. Designed for HR Directors, L&D Directors, and Digital Transformation leaders across Finance, Technology, EdTech, and Government sectors.
             </p>
           </div>
 
@@ -106,7 +106,7 @@ const ScalableLearningSupport = () => {
               size="lg"
               className="bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
-              Join Community
+              Schedule Enterprise Demo
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
@@ -114,7 +114,7 @@ const ScalableLearningSupport = () => {
               size="lg"
               className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
-              Try AI Assistant
+              Request Strategic Brief
             </Button>
           </div>
         </div>
@@ -125,10 +125,10 @@ const ScalableLearningSupport = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
-              Comprehensive Support Ecosystem
+              Comprehensive Enterprise Support Ecosystem
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              From AI-powered instant help to human mentorship, we've got every learning need covered
+              From AI-powered instant help to strategic human mentorship, we've got every enterprise learning need covered
             </p>
           </div>
 
@@ -206,16 +206,16 @@ const ScalableLearningSupport = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
-                Support That Scales
+                Enterprise Support That Scales
               </h2>
               <div className="space-y-4">
                 {[
                   "90% faster response times",
-                  "24/7 support availability",
+                  "24/7 strategic support availability",
                   "Peer-to-peer learning networks",
                   "AI-powered assistance",
                   "Scalable mentorship programs",
-                  "Global learning communities"
+                  "Global enterprise communities"
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-4 animate-fade-in group" style={{ animationDelay: `${index * 100}ms` }}>
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-violet-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -232,11 +232,11 @@ const ScalableLearningSupport = () => {
               <div className="text-5xl font-semibold text-purple-600 mb-2">24/7</div>
               <div className="text-xl font-semibold text-business-black mb-4">Always Available</div>
               <div className="text-business-black/70 leading-relaxed mb-6">
-                AI-powered support provides instant assistance around the clock, ensuring no learner is ever stuck
+                AI-powered support provides instant strategic assistance around the clock, ensuring no enterprise learner is ever stuck
               </div>
               <div className="bg-white/60 rounded-2xl p-4">
-                <div className="text-2xl font-semibold text-purple-600 mb-1">90%</div>
-                <div className="text-sm text-business-black/70">Faster Resolution</div>
+                <div className="text-2xl font-semibold text-purple-600 mb-1">95%</div>
+                <div className="text-sm text-business-black/70">Director Satisfaction</div>
               </div>
             </div>
           </div>
@@ -248,17 +248,17 @@ const ScalableLearningSupport = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
-              Build Your Learning Community
+              Build Your Strategic Learning Community
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Transform how your organization provides learning support. Combine AI efficiency with human connection.
+              Transform how your enterprise provides learning support. Combine AI efficiency with human strategic connection across your organization.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-white text-purple-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Start Community
+                Schedule Enterprise Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -266,7 +266,7 @@ const ScalableLearningSupport = () => {
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-purple-600 hover:border-white px-8 py-4 text-lg rounded-xl"
               >
-                Schedule Demo
+                Request Strategic Brief
               </Button>
             </div>
           </div>

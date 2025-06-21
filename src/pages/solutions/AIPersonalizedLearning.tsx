@@ -12,24 +12,24 @@ const AIPersonalizedLearning = () => {
     {
       icon: Target,
       title: "Adaptive Content Delivery",
-      description: "AI algorithms adjust content difficulty and format based on individual learning patterns"
+      description: "AI algorithms adjust content difficulty and format based on individual learning patterns and organizational needs"
     },
     {
       icon: BarChart3,
       title: "Learning Path Optimization",
-      description: "Dynamic pathways that evolve with learner progress and preferences"
+      description: "Dynamic pathways that evolve with learner progress and align with strategic business objectives"
     },
     {
       icon: Users,
       title: "Real-time Difficulty Adjustment",
-      description: "Instant calibration of content complexity to maintain optimal challenge"
+      description: "Instant calibration of content complexity to maintain optimal challenge across your workforce"
     }
   ];
 
   const benefits = [
     "40% faster skill acquisition",
-    "85% learner engagement rate",
-    "Personalized for every individual",
+    "85% workforce engagement rate",
+    "Personalized for every team member",
     "Real-time progress tracking",
     "Adaptive assessment system",
     "Multi-modal learning support"
@@ -52,21 +52,21 @@ const AIPersonalizedLearning = () => {
             <div className="lg:col-span-7 animate-fade-in-up">
               <Badge className="mb-6 bg-pink-100 text-pink-700 border-pink-200 px-4 py-2 text-sm font-medium">
                 <Brain className="w-4 h-4 mr-2" />
-                AI-Powered Solution • Early Access
+                AI-Powered Enterprise Solution
               </Badge>
               <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
-                Learning That
-                <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to You</span>
+                Strategic Learning That
+                <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to Your Workforce</span>
               </h1>
               <p className="text-xl text-business-black/70 mb-8 leading-relaxed max-w-2xl">
-                Advanced AI technology that creates personalized learning experiences, adapting content, pace, and methodology to each individual's unique learning style.
+                Advanced AI technology that creates personalized learning experiences for enterprise teams. Adapting content, pace, and methodology to drive strategic workforce development across Finance, Technology, EdTech, and Government sectors.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-rose-600 hover:to-pink-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0 group"
                 >
-                  Request Early Access
+                  Schedule Enterprise Demo
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
@@ -74,7 +74,7 @@ const AIPersonalizedLearning = () => {
                   size="lg"
                   className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
                 >
-                  Book Beta Demo
+                  View Executive Brief
                 </Button>
               </div>
               
@@ -89,8 +89,8 @@ const AIPersonalizedLearning = () => {
                   <div className="text-sm text-business-black/70">Engagement Rate</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-semibold text-pink-600">1K+</div>
-                  <div className="text-sm text-business-black/70">Early Users</div>
+                  <div className="text-3xl font-semibold text-pink-600">50K+</div>
+                  <div className="text-sm text-business-black/70">Enterprise Users</div>
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@ const AIPersonalizedLearning = () => {
                   <Brain className="w-20 h-20 text-pink-600 mx-auto mb-6" />
                   <div className="text-center">
                     <h3 className="text-2xl font-semibold text-business-black mb-4">Smart Learning Engine</h3>
-                    <p className="text-business-black/70">AI that understands how you learn best</p>
+                    <p className="text-business-black/70">AI that understands how your workforce learns best</p>
                   </div>
                 </div>
                 <div className="absolute -top-4 -right-4 bg-yellow-400 rounded-full p-3 animate-pulse">
@@ -118,10 +118,10 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
-              How AI Transforms Learning
+              How AI Transforms Enterprise Learning
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Discover the intelligent features that make every learning experience unique and effective
+              Discover the intelligent features designed for HR Directors, L&D Directors, and Digital Transformation leaders
             </p>
           </div>
           
@@ -161,7 +161,7 @@ const AIPersonalizedLearning = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
               <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
-                Proven Results with Early Adopters
+                Proven Results with Enterprise Partners
               </h2>
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
@@ -184,12 +184,12 @@ const AIPersonalizedLearning = () => {
                   </div>
                   <div className="text-xl font-semibold text-business-black mb-4">Faster Learning</div>
                   <div className="text-business-black/70 leading-relaxed">
-                    Forward-thinking teams using our AI-powered personalization see dramatic improvements in learning speed and retention rates
+                    Enterprise organizations using our AI-powered personalization see dramatic improvements in learning speed and strategic capability development
                   </div>
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-rose-600 text-white p-4 rounded-2xl shadow-lg">
                   <div className="text-2xl font-semibold">95%</div>
-                  <div className="text-sm">Early User Satisfaction</div>
+                  <div className="text-sm">Director Satisfaction</div>
                 </div>
               </div>
             </div>
@@ -202,20 +202,20 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-pink-50/80 via-white/70 to-rose-50/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-pink-200/50">
             <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
-              Join Our Select Group of Early Adopters
+              Ready to Transform Your Learning Strategy?
             </h2>
             <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join innovative teams already transforming their learning experience with AI-powered personalization.
+              Join strategic leaders across Finance, Technology, EdTech, and Government sectors already transforming their workforce development with AI-powered personalization.
             </p>
             <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
-              Limited beta access available for forward-thinking organizations.
+              Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-rose-600 hover:to-pink-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0"
               >
-                Request Early Access
+                Schedule Enterprise Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -223,7 +223,7 @@ const AIPersonalizedLearning = () => {
                 size="lg"
                 className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
               >
-                Book Beta Demo
+                Request Strategic Brief
               </Button>
             </div>
           </div>

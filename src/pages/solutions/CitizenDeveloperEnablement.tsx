@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,31 +11,31 @@ const CitizenDeveloperEnablement = () => {
     {
       step: "01",
       icon: Puzzle,
-      title: "Drag & Drop Builder",
-      description: "Visual interface for creating applications without writing a single line of code",
-      features: ["Pre-built components", "Visual workflow designer", "Real-time preview"]
+      title: "Visual Application Builder",
+      description: "Enterprise-grade interface for creating applications without coding expertise, designed for business leaders",
+      features: ["Pre-built enterprise components", "Visual workflow designer", "Real-time collaboration"]
     },
     {
       step: "02", 
       icon: Workflow,
-      title: "Process Automation",
-      description: "Automate repetitive tasks and create efficient workflows effortlessly",
-      features: ["Workflow templates", "Integration connectors", "Automated triggers"]
+      title: "Strategic Process Automation",
+      description: "Automate critical business processes and create efficient workflows that align with organizational objectives",
+      features: ["Enterprise workflow templates", "Integration connectors", "Automated approval chains"]
     },
     {
       step: "03",
       icon: Rocket,
-      title: "Instant Deployment",
-      description: "Deploy your applications instantly to production with one click",
-      features: ["Cloud deployment", "Mobile responsive", "Security built-in"]
+      title: "Enterprise Deployment",
+      description: "Deploy your applications instantly to production with enterprise-grade security and scalability",
+      features: ["Secure cloud deployment", "Mobile responsive design", "Enterprise security built-in"]
     }
   ];
 
   const useCases = [
-    { icon: Users, title: "HR Management", description: "Employee onboarding workflows" },
-    { icon: Code, title: "Data Collection", description: "Custom forms and surveys" },
-    { icon: Zap, title: "Approval Processes", description: "Automated approval chains" },
-    { icon: Workflow, title: "Project Tracking", description: "Custom project dashboards" }
+    { icon: Users, title: "HR Management", description: "Employee onboarding and performance workflows" },
+    { icon: Code, title: "Data Collection", description: "Custom forms and strategic reporting" },
+    { icon: Zap, title: "Approval Processes", description: "Automated approval and governance chains" },
+    { icon: Workflow, title: "Project Tracking", description: "Executive dashboards and project oversight" }
   ];
 
   return (
@@ -54,14 +53,14 @@ const CitizenDeveloperEnablement = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-amber-100 text-amber-700 border-amber-200 px-4 py-2 text-sm font-medium">
               <Lightbulb className="w-4 h-4 mr-2" />
-              No-Code Platform • Beta Access
+              Enterprise No-Code Platform
             </Badge>
             <h1 className="text-3xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
-              No-Code Solutions for
-              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Business Teams</span>
+              Strategic No-Code Solutions for
+              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Enterprise Teams</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Join forward-thinking teams building powerful applications with zero coding. Enable business users to create solutions using intuitive drag-and-drop tools.
+              Empower HR Directors, L&D Directors, and Digital Transformation leaders to build powerful applications with zero coding. Create strategic solutions using intuitive drag-and-drop tools across Finance, Technology, EdTech, and Government sectors.
             </p>
           </div>
 
@@ -73,21 +72,21 @@ const CitizenDeveloperEnablement = () => {
                   <Code className="w-10 h-10 text-amber-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-business-black mb-2">Visual Builder</h3>
-                <p className="text-business-black/70 text-sm">Drag, drop, and create</p>
+                <p className="text-business-black/70 text-sm">Drag, drop, and create enterprise solutions</p>
               </div>
               <div className="text-center">
                 <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-10 h-10 text-amber-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-business-black mb-2">Auto-Deploy</h3>
-                <p className="text-business-black/70 text-sm">Instantly go live</p>
+                <p className="text-business-black/70 text-sm">Instantly deploy to production</p>
               </div>
               <div className="text-center">
                 <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Workflow className="w-10 h-10 text-amber-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-business-black mb-2">Smart Automation</h3>
-                <p className="text-business-black/70 text-sm">Workflows that work</p>
+                <p className="text-business-black/70 text-sm">Strategic workflows that work</p>
               </div>
             </div>
           </div>
@@ -97,7 +96,7 @@ const CitizenDeveloperEnablement = () => {
               size="lg"
               className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
             >
-              Request Beta Access
+              Schedule Enterprise Demo
               <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
             <Button
@@ -105,7 +104,7 @@ const CitizenDeveloperEnablement = () => {
               size="lg"
               className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
             >
-              Watch Demo
+              View Executive Brief
             </Button>
           </div>
         </div>
@@ -116,10 +115,10 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              How No-Code Development Works
+              How Enterprise No-Code Development Works
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              From idea to deployment in three simple steps
+              From strategic vision to enterprise deployment in three simple steps
             </p>
           </div>
 
@@ -167,10 +166,10 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Popular Use Cases
+              Strategic Use Cases for Enterprise Leaders
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              See how pilot teams are solving real problems with no-code development
+              See how strategic teams are solving real business challenges with no-code development
             </p>
           </div>
 
@@ -203,8 +202,8 @@ const CitizenDeveloperEnablement = () => {
                 <div className="text-white/90">Cost Reduction</div>
               </div>
               <div>
-                <div className="text-4xl font-semibold mb-2">90%</div>
-                <div className="text-white/90">Pilot Satisfaction</div>
+                <div className="text-4xl font-semibold mb-2">95%</div>
+                <div className="text-white/90">Executive Satisfaction</div>
               </div>
             </div>
           </div>
@@ -216,20 +215,20 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Ready to Join Our No-Code Pilot?
+              Ready to Transform Your Enterprise Operations?
             </h2>
             <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join innovative teams who are already building solutions with no-code. Limited beta access for forward-thinking organizations.
+              Join strategic leaders across Finance, Technology, EdTech, and Government sectors who are already building solutions with enterprise no-code. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
             </p>
             <p className="text-base text-business-black/60 mb-8 max-w-2xl mx-auto">
-              Trusted by select pilot partners across various industries.
+              Trusted by mid-size enterprise partners across various industries.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
               >
-                Apply for Beta Access
+                Schedule Enterprise Demo
                 <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
               <Button
@@ -237,7 +236,7 @@ const CitizenDeveloperEnablement = () => {
                 size="lg"
                 className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
               >
-                Request Pilot Demo
+                Request Strategic Brief
               </Button>
             </div>
           </div>

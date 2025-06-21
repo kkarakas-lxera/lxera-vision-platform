@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,60 +11,60 @@ const EnterpriseInnovation = () => {
     {
       phase: "Discover",
       icon: Lightbulb,
-      title: "Innovation Discovery",
-      description: "Identify opportunities and challenges across your organization",
+      title: "Strategic Innovation Discovery",
+      description: "Identify opportunities and challenges across your enterprise organization with strategic focus",
       duration: "2-4 weeks",
-      deliverables: ["Innovation audit", "Opportunity mapping", "Stakeholder analysis"]
+      deliverables: ["Innovation audit", "Strategic opportunity mapping", "Executive stakeholder analysis"]
     },
     {
       phase: "Design",
       icon: Target,
-      title: "Strategy Development", 
-      description: "Create comprehensive innovation strategies aligned with business goals",
+      title: "Strategic Framework Development", 
+      description: "Create comprehensive innovation strategies aligned with enterprise business goals and objectives",
       duration: "4-6 weeks",
-      deliverables: ["Innovation roadmap", "Resource allocation", "Success metrics"]
+      deliverables: ["Innovation roadmap", "Strategic resource allocation", "Executive success metrics"]
     },
     {
       phase: "Deploy",
       icon: Rocket,
-      title: "Implementation",
-      description: "Execute innovation initiatives with continuous monitoring and optimization",
+      title: "Enterprise Implementation",
+      description: "Execute innovation initiatives with continuous monitoring and strategic optimization",
       duration: "12+ weeks",
-      deliverables: ["Pilot programs", "Scaled deployment", "Impact measurement"]
+      deliverables: ["Strategic pilot programs", "Enterprise-wide deployment", "Strategic impact measurement"]
     }
   ];
 
   const caseStudies = [
     {
-      company: "Global Manufacturing Corp",
-      industry: "Manufacturing",
-      challenge: "Outdated processes limiting growth",
-      solution: "Cross-functional innovation labs",
-      result: "300% increase in new product launches",
+      company: "Global Financial Services Corp",
+      industry: "Finance Services",
+      challenge: "Legacy processes limiting digital transformation",
+      solution: "Cross-functional innovation labs with strategic focus",
+      result: "300% increase in digital product launches",
       icon: Building2
     },
     {
-      company: "Tech Solutions Inc",
+      company: "Enterprise Tech Solutions Inc",
       industry: "Technology",
-      challenge: "Siloed departments hindering collaboration",
-      solution: "Innovation culture transformation",
-      result: "50% faster time-to-market",
+      challenge: "Siloed departments hindering strategic collaboration",
+      solution: "Innovation culture transformation across leadership",
+      result: "50% faster strategic time-to-market",
       icon: Zap
     },
     {
-      company: "Healthcare Network",
-      industry: "Healthcare",
-      challenge: "Limited patient engagement solutions",
-      solution: "Rapid prototyping framework",
-      result: "95% patient satisfaction improvement",
+      company: "Government Innovation Network",
+      industry: "Government",
+      challenge: "Limited citizen engagement solutions",
+      solution: "Rapid prototyping framework for public services",
+      result: "95% citizen satisfaction improvement",
       icon: Trophy
     }
   ];
 
   const roiMetrics = [
-    { metric: "ROI Increase", value: "340%", description: "Average return on innovation investment" },
+    { metric: "Strategic ROI Increase", value: "340%", description: "Average return on innovation investment" },
     { metric: "Time-to-Market", value: "3x", description: "Faster innovation cycles" },
-    { metric: "Employee Engagement", value: "85%", description: "Innovation participation rate" },
+    { metric: "Leadership Engagement", value: "85%", description: "Innovation participation rate" },
     { metric: "Success Rate", value: "92%", description: "Innovation project completion" }
   ];
 
@@ -84,14 +83,14 @@ const EnterpriseInnovation = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-orange-100 text-orange-700 border-orange-200 px-4 py-2 text-sm font-medium">
               <Building2 className="w-4 h-4 mr-2" />
-              Enterprise Innovation Platform
+              Strategic Enterprise Innovation Platform
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
-              Innovation at
+              Strategic Innovation at
               <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent block"> Enterprise Scale</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Transform your organization into an innovation powerhouse. Break down silos, accelerate ideation, and deliver breakthrough solutions that drive competitive advantage.
+              Transform your organization into a strategic innovation powerhouse. Break down silos, accelerate ideation, and deliver breakthrough solutions that drive competitive advantage across Finance, Technology, EdTech, and Government sectors.
             </p>
           </div>
 
@@ -113,7 +112,7 @@ const EnterpriseInnovation = () => {
               size="lg"
               className="bg-gradient-to-r from-orange-600 to-red-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
-              Launch Innovation Program
+              Schedule Strategic Demo
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
@@ -121,7 +120,7 @@ const EnterpriseInnovation = () => {
               size="lg"
               className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
-              View Case Studies
+              View Executive Case Studies
             </Button>
           </div>
         </div>
@@ -132,10 +131,10 @@ const EnterpriseInnovation = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
-              Proven Innovation Methodology
+              Proven Strategic Innovation Methodology
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Our structured approach to enterprise innovation transformation
+              Our structured approach to enterprise innovation transformation for strategic leaders
             </p>
           </div>
 
@@ -235,16 +234,16 @@ const EnterpriseInnovation = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
-                Enterprise Innovation Impact
+                Strategic Enterprise Innovation Impact
               </h2>
               <div className="space-y-4">
                 {[
                   "3x faster innovation cycles",
-                  "Cross-functional collaboration",
+                  "Strategic cross-functional collaboration",
                   "Idea-to-market acceleration", 
                   "Innovation culture building",
                   "Knowledge sharing platforms",
-                  "Prototype development tools"
+                  "Rapid prototype development tools"
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-4 animate-fade-in group" style={{ animationDelay: `${index * 100}ms` }}>
                     <div className="w-8 h-8 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -259,13 +258,13 @@ const EnterpriseInnovation = () => {
             <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-3xl p-12 text-center shadow-xl">
               <TrendingUp className="w-16 h-16 text-orange-600 mx-auto mb-6" />
               <div className="text-5xl font-bold text-orange-600 mb-2">340%</div>
-              <div className="text-xl font-semibold text-business-black mb-4">Innovation ROI</div>
+              <div className="text-xl font-semibold text-business-black mb-4">Strategic Innovation ROI</div>
               <div className="text-business-black/70 leading-relaxed mb-6">
-                Organizations implementing our innovation framework see exceptional returns on their innovation investments
+                Enterprise organizations implementing our strategic innovation framework see exceptional returns on their innovation investments
               </div>
               <div className="bg-white/60 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-orange-600 mb-1">92%</div>
-                <div className="text-sm text-business-black/70">Success Rate</div>
+                <div className="text-sm text-business-black/70">Strategic Success Rate</div>
               </div>
             </div>
           </div>
@@ -277,17 +276,17 @@ const EnterpriseInnovation = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to Lead Innovation?
+              Ready to Lead Strategic Innovation?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join industry leaders who are transforming their organizations through strategic innovation. The future belongs to those who innovate today.
+              Join strategic leaders across Finance, Technology, EdTech, and Government sectors who are transforming their organizations through strategic innovation. The future belongs to those who innovate strategically today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-white text-orange-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Start Innovation Journey
+                Schedule Strategic Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -295,7 +294,7 @@ const EnterpriseInnovation = () => {
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-lg rounded-xl"
               >
-                Schedule Assessment
+                Request Executive Assessment
               </Button>
             </div>
           </div>
