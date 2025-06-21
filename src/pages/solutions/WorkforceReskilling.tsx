@@ -68,7 +68,7 @@ const WorkforceReskilling = () => {
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Strategic Workforce Today</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Partner with strategic leaders transforming their enterprise capabilities through comprehensive reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges across Finance, Technology, EdTech, and Government sectors.
+              Partner with strategic leaders transforming their enterprise capabilities through comprehensive reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges across your organization.
             </p>
           </div>
 
@@ -225,7 +225,7 @@ const WorkforceReskilling = () => {
               Don't let skill gaps limit your strategic objectives. Join forward-thinking HR Directors, L&D Directors, and Digital Transformation leaders building tomorrow's workforce today.
             </p>
             <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
-              Designed for mid-size organizations in Finance, Technology, EdTech, and Government sectors ready to lead transformation.
+              Designed for mid-size organizations ready to lead transformation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

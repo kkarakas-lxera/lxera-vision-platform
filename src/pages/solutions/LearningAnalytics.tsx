@@ -56,7 +56,7 @@ const LearningAnalytics = () => {
             <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Intelligence Platform</span>
           </h1>
           <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Transform learning data into strategic insights for enterprise organizations. Get comprehensive analytics that demonstrate ROI and drive organizational transformation across Finance, Technology, EdTech, and Government sectors.
+            Transform learning data into strategic insights for enterprise organizations. Get comprehensive analytics that demonstrate ROI and drive organizational transformation.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -179,7 +179,7 @@ const LearningAnalytics = () => {
               Ready to Transform Your Learning Strategy?
             </h2>
             <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join industry leaders across Finance, Technology, EdTech, and Government sectors using our analytics to drive strategic workforce transformation.
+              Join industry leaders using our analytics to drive strategic workforce transformation.
             </p>
             <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
               Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.

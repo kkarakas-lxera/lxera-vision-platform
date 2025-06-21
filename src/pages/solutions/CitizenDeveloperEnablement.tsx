@@ -60,7 +60,7 @@ const CitizenDeveloperEnablement = () => {
               <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Enterprise Teams</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Empower HR Directors, L&D Directors, and Digital Transformation leaders to build powerful applications with zero coding. Create strategic solutions using intuitive drag-and-drop tools across Finance, Technology, EdTech, and Government sectors.
+              Empower HR Directors, L&D Directors, and Digital Transformation leaders to build powerful applications with zero coding. Create strategic solutions using intuitive drag-and-drop tools.
             </p>
           </div>
 
@@ -218,7 +218,7 @@ const CitizenDeveloperEnablement = () => {
               Ready to Transform Your Enterprise Operations?
             </h2>
             <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join strategic leaders across Finance, Technology, EdTech, and Government sectors who are already building solutions with enterprise no-code. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
+              Join strategic leaders who are already building solutions with enterprise no-code. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
             </p>
             <p className="text-base text-business-black/60 mb-8 max-w-2xl mx-auto">
               Trusted by mid-size enterprise partners across various industries.

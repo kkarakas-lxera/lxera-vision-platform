@@ -90,7 +90,7 @@ const EnterpriseInnovation = () => {
               <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent block"> Enterprise Scale</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Transform your organization into a strategic innovation powerhouse. Break down silos, accelerate ideation, and deliver breakthrough solutions that drive competitive advantage across Finance, Technology, EdTech, and Government sectors.
+              Transform your organization into a strategic innovation powerhouse. Break down silos, accelerate ideation, and deliver breakthrough solutions that drive competitive advantage.
             </p>
           </div>
 
@@ -279,7 +279,7 @@ const EnterpriseInnovation = () => {
               Ready to Lead Strategic Innovation?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join strategic leaders across Finance, Technology, EdTech, and Government sectors who are transforming their organizations through strategic innovation. The future belongs to those who innovate strategically today.
+              Join strategic leaders who are transforming their organizations through strategic innovation. The future belongs to those who innovate strategically today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

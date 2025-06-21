@@ -59,7 +59,7 @@ const AIPersonalizedLearning = () => {
                 <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to Your Workforce</span>
               </h1>
               <p className="text-xl text-business-black/70 mb-8 leading-relaxed max-w-2xl">
-                Advanced AI technology that creates personalized learning experiences for enterprise teams. Adapting content, pace, and methodology to drive strategic workforce development across Finance, Technology, EdTech, and Government sectors.
+                Advanced AI technology that creates personalized learning experiences for enterprise teams. Adapting content, pace, and methodology to drive strategic workforce development across your organization.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button
@@ -205,7 +205,7 @@ const AIPersonalizedLearning = () => {
               Ready to Transform Your Learning Strategy?
             </h2>
             <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join strategic leaders across Finance, Technology, EdTech, and Government sectors already transforming their workforce development with AI-powered personalization.
+              Join strategic leaders already transforming their workforce development with AI-powered personalization.
             </p>
             <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
               Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.

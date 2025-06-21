@@ -81,7 +81,7 @@ const ScalableLearningSupport = () => {
               <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block"> Never Sleeps</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Combine the power of AI with human expertise to provide instant, intelligent support while building thriving learning communities. Designed for HR Directors, L&D Directors, and Digital Transformation leaders across Finance, Technology, EdTech, and Government sectors.
+              Combine the power of AI with human expertise to provide instant, intelligent support while building thriving learning communities. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
             </p>
           </div>
 
