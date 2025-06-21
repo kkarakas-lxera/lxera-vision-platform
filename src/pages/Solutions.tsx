@@ -78,7 +78,7 @@ const Solutions = () => {
             <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium">
               Solutions Portfolio
             </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 leading-tight">
+            <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 leading-tight">
               Transform Learning with
               <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent"> AI-Powered Solutions</span>
             </h1>
@@ -108,7 +108,7 @@ const Solutions = () => {
                     <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${useCase.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                       <IconComponent className="w-8 h-8 text-white" />
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-emerald transition-colors duration-300">
+                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-emerald transition-colors duration-300">
                       {useCase.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/70 leading-relaxed">
@@ -143,7 +143,7 @@ const Solutions = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Ready to Transform Your Organization?
             </h2>
             <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">

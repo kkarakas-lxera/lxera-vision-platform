@@ -63,7 +63,7 @@ const WorkforceReskilling = () => {
               <Clock className="w-4 h-4 mr-2" />
               Workforce Development • Beta Program
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
               Build Tomorrow's
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Workforce Today</span>
             </h1>
@@ -80,7 +80,7 @@ const WorkforceReskilling = () => {
                 <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                   <CardContent className="pt-6">
                     <IconComponent className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{metric.value}</div>
+                    <div className="text-3xl font-semibold text-blue-600 mb-2">{metric.value}</div>
                     <div className="text-sm text-business-black/70">{metric.label}</div>
                   </CardContent>
                 </Card>
@@ -111,7 +111,7 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Your Reskilling Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -138,7 +138,7 @@ const WorkforceReskilling = () => {
                               <IconComponent className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <CardTitle className="text-xl font-bold text-business-black">{step.title}</CardTitle>
+                              <CardTitle className="text-xl font-semibold text-business-black">{step.title}</CardTitle>
                               <Badge variant="outline" className="mt-1">{step.duration}</Badge>
                             </div>
                           </div>
@@ -172,7 +172,7 @@ const WorkforceReskilling = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
                 Early Results with Pilot Teams
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -195,7 +195,7 @@ const WorkforceReskilling = () => {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8">
               <div className="text-center mb-6">
                 <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                <div className="text-4xl font-bold text-blue-600 mb-2">92%</div>
+                <div className="text-4xl font-semibold text-blue-600 mb-2">92%</div>
                 <div className="text-xl font-semibold text-business-black mb-4">Pilot Retention</div>
               </div>
               <div className="text-business-black/70 text-center leading-relaxed">
@@ -218,7 +218,7 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-blue-600 to-indigo-600">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Join Our Workforce Transformation Pilot
             </h2>
             <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">

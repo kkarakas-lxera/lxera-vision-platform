@@ -54,7 +54,7 @@ const AIPersonalizedLearning = () => {
                 <Brain className="w-4 h-4 mr-2" />
                 AI-Powered Solution • Early Access
               </Badge>
-              <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
+              <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
                 Learning That
                 <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to You</span>
               </h1>
@@ -81,15 +81,15 @@ const AIPersonalizedLearning = () => {
               {/* Stats Row */}
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-600">40%</div>
+                  <div className="text-3xl font-semibold text-pink-600">40%</div>
                   <div className="text-sm text-business-black/70">Faster Learning</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-600">85%</div>
+                  <div className="text-3xl font-semibold text-pink-600">85%</div>
                   <div className="text-sm text-business-black/70">Engagement Rate</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-pink-600">1K+</div>
+                  <div className="text-3xl font-semibold text-pink-600">1K+</div>
                   <div className="text-sm text-business-black/70">Early Users</div>
                 </div>
               </div>
@@ -100,7 +100,7 @@ const AIPersonalizedLearning = () => {
                 <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl p-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
                   <Brain className="w-20 h-20 text-pink-600 mx-auto mb-6" />
                   <div className="text-center">
-                    <h3 className="text-2xl font-bold text-business-black mb-4">Smart Learning Engine</h3>
+                    <h3 className="text-2xl font-semibold text-business-black mb-4">Smart Learning Engine</h3>
                     <p className="text-business-black/70">AI that understands how you learn best</p>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               How AI Transforms Learning
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -139,7 +139,7 @@ const AIPersonalizedLearning = () => {
                     <div className="relative w-20 h-20 bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-10 h-10 text-pink-600" />
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-pink-600 transition-colors mb-4">
+                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-pink-600 transition-colors mb-4">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -160,7 +160,7 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
-              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
                 Proven Results with Early Adopters
               </h2>
               <div className="space-y-4">
@@ -180,7 +180,7 @@ const AIPersonalizedLearning = () => {
                 <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-3xl p-12 text-center shadow-xl">
                   <div className="flex items-center justify-center mb-6">
                     <Zap className="w-8 h-8 text-pink-600 mr-3" />
-                    <div className="text-5xl font-bold text-pink-600">40%</div>
+                    <div className="text-5xl font-semibold text-pink-600">40%</div>
                   </div>
                   <div className="text-xl font-semibold text-business-black mb-4">Faster Learning</div>
                   <div className="text-business-black/70 leading-relaxed">
@@ -188,7 +188,7 @@ const AIPersonalizedLearning = () => {
                   </div>
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-rose-600 text-white p-4 rounded-2xl shadow-lg">
-                  <div className="text-2xl font-bold">95%</div>
+                  <div className="text-2xl font-semibold">95%</div>
                   <div className="text-sm">Early User Satisfaction</div>
                 </div>
               </div>
@@ -201,7 +201,7 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-pink-600 to-rose-600">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Join Our Select Group of Early Adopters
             </h2>
             <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">

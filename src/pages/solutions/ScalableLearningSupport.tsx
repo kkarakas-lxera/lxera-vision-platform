@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +76,7 @@ const ScalableLearningSupport = () => {
               <Headphones className="w-4 h-4 mr-2" />
               Support & Mentorship Platform
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
               Learning Support That
               <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block"> Never Sleeps</span>
             </h1>
@@ -94,7 +93,7 @@ const ScalableLearningSupport = () => {
                 <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
                   <CardContent className="pt-6">
                     <IconComponent className="w-8 h-8 text-purple-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                    <div className="text-3xl font-bold text-purple-600 mb-2">{stat.number}</div>
+                    <div className="text-3xl font-semibold text-purple-600 mb-2">{stat.number}</div>
                     <div className="text-sm text-business-black/70">{stat.label}</div>
                   </CardContent>
                 </Card>
@@ -125,7 +124,7 @@ const ScalableLearningSupport = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Comprehensive Support Ecosystem
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -145,7 +144,7 @@ const ScalableLearningSupport = () => {
                         {feature.availability}
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-purple-600 transition-colors">
+                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-purple-600 transition-colors">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -165,7 +164,7 @@ const ScalableLearningSupport = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               What Our Community Says
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -206,7 +205,7 @@ const ScalableLearningSupport = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
                 Support That Scales
               </h2>
               <div className="space-y-4">
@@ -230,13 +229,13 @@ const ScalableLearningSupport = () => {
             
             <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-3xl p-12 text-center shadow-xl">
               <Clock className="w-16 h-16 text-purple-600 mx-auto mb-6" />
-              <div className="text-5xl font-bold text-purple-600 mb-2">24/7</div>
+              <div className="text-5xl font-semibold text-purple-600 mb-2">24/7</div>
               <div className="text-xl font-semibold text-business-black mb-4">Always Available</div>
               <div className="text-business-black/70 leading-relaxed mb-6">
                 AI-powered support provides instant assistance around the clock, ensuring no learner is ever stuck
               </div>
               <div className="bg-white/60 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-purple-600 mb-1">90%</div>
+                <div className="text-2xl font-semibold text-purple-600 mb-1">90%</div>
                 <div className="text-sm text-business-black/70">Faster Resolution</div>
               </div>
             </div>
@@ -248,7 +247,7 @@ const ScalableLearningSupport = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-purple-600 to-violet-600">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Build Your Learning Community
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
