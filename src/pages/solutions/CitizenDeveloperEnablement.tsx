@@ -57,10 +57,10 @@ const CitizenDeveloperEnablement = () => {
             </Badge>
             <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
               Strategic No-Code Solutions for
-              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Enterprise Teams</span>
+              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Modern Organizations</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Empower HR Directors, L&D Directors, and Digital Transformation leaders to build powerful applications with zero coding. Create strategic solutions using intuitive drag-and-drop tools.
+              Empower your organization to build powerful applications with zero coding. Create strategic solutions that drive business transformation using intuitive drag-and-drop tools designed for enterprise success.
             </p>
           </div>
 
@@ -166,10 +166,10 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Use Cases for Enterprise Leaders
+              Strategic Use Cases for Enterprise Organizations
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              See how strategic teams are solving real business challenges with no-code development
+              See how strategic organizations are solving real business challenges with no-code development
             </p>
           </div>
 
@@ -218,10 +218,10 @@ const CitizenDeveloperEnablement = () => {
               Ready to Transform Your Enterprise Operations?
             </h2>
             <p className="text-lg text-white/90 mb-4 max-w-2xl mx-auto">
-              Join strategic leaders who are already building solutions with enterprise no-code. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
+              Join forward-thinking organizations already building solutions with enterprise no-code. Designed for strategic leaders ready to drive digital transformation.
             </p>
             <p className="text-base text-white/80 mb-8 max-w-2xl mx-auto">
-              Trusted by mid-size enterprise partners across various industries.
+              Trusted by enterprise partners across various industries.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
