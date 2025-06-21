@@ -116,7 +116,7 @@ const AIPersonalizedLearning = () => {
         </div>
       </section>
 
-      {/* Interactive Features Section */}
+      {/* Interactive Features Section - Fixed Layout */}
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -128,23 +128,28 @@ const AIPersonalizedLearning = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Fixed Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <Card key={index} className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2" style={{ animationDelay: `${index * 150}ms` }}>
-                  <CardHeader className="text-center pb-4">
+                <Card 
+                  key={index} 
+                  className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative min-h-[300px] flex flex-col" 
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <CardHeader className="text-center pb-4 flex-shrink-0">
                     <div className="relative w-20 h-20 bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-10 h-10 text-pink-600" />
-                      <div className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs px-2 py-1 rounded-full">
+                      <div className="absolute -top-3 -right-3 bg-pink-600 text-white text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
                         {feature.metric}
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-pink-600 transition-colors">
+                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-pink-600 transition-colors mb-4">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-grow flex items-center justify-center">
                     <CardDescription className="text-business-black/70 text-center leading-relaxed">
                       {feature.description}
                     </CardDescription>
