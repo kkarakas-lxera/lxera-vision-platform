@@ -175,7 +175,7 @@ const Pricing = () => {
                     )}
 
                     {plan.subtitle && (
-                      <div className="bg-business-black/10 rounded-lg px-4 py-2 mb-4 border border-business-black/20">
+                      <div className="bg-business-black/10 rounded-xl px-4 py-2 mb-4 border border-business-black/20">
                         <p className="text-sm font-medium text-business-black font-inter">
                           {plan.subtitle}
                         </p>
