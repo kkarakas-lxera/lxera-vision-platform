@@ -122,9 +122,11 @@ const Pricing = () => {
                       )}
                     </div>
                     {plan.subtitle && (
-                      <p className="text-sm text-business-black/60 font-normal font-inter">
-                        {plan.subtitle}
-                      </p>
+                      <div className="bg-business-black/10 rounded-lg px-4 py-2 mb-4 border border-business-black/20">
+                        <p className="text-sm font-medium text-business-black font-inter">
+                          {plan.subtitle}
+                        </p>
+                      </div>
                     )}
                   </div>
 
