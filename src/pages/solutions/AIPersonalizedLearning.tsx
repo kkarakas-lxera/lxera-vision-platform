@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,20 +11,17 @@ const AIPersonalizedLearning = () => {
     {
       icon: Target,
       title: "Adaptive Content Delivery",
-      description: "AI algorithms adjust content difficulty and format based on individual learning patterns",
-      metric: "40% faster learning"
+      description: "AI algorithms adjust content difficulty and format based on individual learning patterns"
     },
     {
       icon: BarChart3,
       title: "Learning Path Optimization",
-      description: "Dynamic pathways that evolve with learner progress and preferences",
-      metric: "85% engagement rate"
+      description: "Dynamic pathways that evolve with learner progress and preferences"
     },
     {
       icon: Users,
       title: "Real-time Difficulty Adjustment",
-      description: "Instant calibration of content complexity to maintain optimal challenge",
-      metric: "90% satisfaction"
+      description: "Instant calibration of content complexity to maintain optimal challenge"
     }
   ];
 
@@ -141,9 +137,6 @@ const AIPersonalizedLearning = () => {
                   <CardHeader className="text-center pb-4 flex-shrink-0">
                     <div className="relative w-20 h-20 bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-10 h-10 text-pink-600" />
-                      <div className="absolute -top-3 -right-3 bg-pink-600 text-white text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
-                        {feature.metric}
-                      </div>
                     </div>
                     <CardTitle className="text-xl font-bold text-business-black group-hover:text-pink-600 transition-colors mb-4">
                       {feature.title}
