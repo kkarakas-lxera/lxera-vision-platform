@@ -200,20 +200,20 @@ const AIPersonalizedLearning = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-3xl p-12 shadow-2xl border border-pink-200/50">
-            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
+          <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-3xl p-12 shadow-2xl border border-pink-200/50">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Ready to Transform Your Learning Strategy?
             </h2>
-            <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
               Join strategic leaders already transforming their workforce development with AI-powered personalization.
             </p>
-            <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
               Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0"
+                className="bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0"
               >
                 Schedule Enterprise Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -221,7 +221,7 @@ const AIPersonalizedLearning = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-pink-600/30 bg-white/10 backdrop-blur-sm text-business-black hover:bg-white hover:text-pink-600 hover:border-pink-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-pink-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
               >
                 Request Strategic Brief
               </Button>

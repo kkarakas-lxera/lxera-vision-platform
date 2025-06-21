@@ -217,20 +217,20 @@ const WorkforceReskilling = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
-            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
+          <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Transform Your Strategic Workforce
             </h2>
-            <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
               Don't let skill gaps limit your strategic objectives. Join forward-thinking HR Directors, L&D Directors, and Digital Transformation leaders building tomorrow's workforce today.
             </p>
-            <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
               Designed for mid-size organizations ready to lead transformation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
+                className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0"
               >
                 Schedule Enterprise Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -238,7 +238,7 @@ const WorkforceReskilling = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-blue-600/30 bg-white/10 backdrop-blur-sm text-business-black hover:bg-white hover:text-blue-600 hover:border-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-blue-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
               >
                 Request Strategic Assessment
               </Button>

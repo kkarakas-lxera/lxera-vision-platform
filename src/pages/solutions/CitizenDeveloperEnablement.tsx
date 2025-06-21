@@ -213,20 +213,20 @@ const CitizenDeveloperEnablement = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <div className="bg-gradient-to-br from-amber-500 to-yellow-500 rounded-3xl p-12 shadow-2xl">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
               Ready to Transform Your Enterprise Operations?
             </h2>
-            <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
+            <p className="text-lg text-white/90 mb-4 max-w-2xl mx-auto">
               Join strategic leaders who are already building solutions with enterprise no-code. Designed for HR Directors, L&D Directors, and Digital Transformation leaders.
             </p>
-            <p className="text-base text-business-black/60 mb-8 max-w-2xl mx-auto">
+            <p className="text-base text-white/80 mb-8 max-w-2xl mx-auto">
               Trusted by mid-size enterprise partners across various industries.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
+                className="bg-white text-amber-600 hover:bg-amber-50 hover:text-amber-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 border-0"
               >
                 Schedule Enterprise Demo
                 <ArrowRight className="w-6 h-6 ml-3" />
@@ -234,7 +234,7 @@ const CitizenDeveloperEnablement = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
+                className="border-3 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-amber-600 hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
               >
                 Request Strategic Brief
               </Button>
