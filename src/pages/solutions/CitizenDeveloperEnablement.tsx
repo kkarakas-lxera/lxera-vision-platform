@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,9 +42,9 @@ const CitizenDeveloperEnablement = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-smart-beige to-yellow-50">
       <SEO 
-        title="Low Code Platform - Citizen Developer Enablement - LXERA"
-        description="Enable business users to build and automate with low-code solutions. Join innovative teams creating applications without traditional coding."
-        keywords="low-code, no-code, citizen developer, business automation, process automation, MVP"
+        title="No Code Platform - Citizen Developer Enablement - LXERA"
+        description="Enable business users to build and automate with no-code solutions. Join innovative teams creating applications without traditional coding."
+        keywords="no-code, citizen developer, business automation, process automation, MVP"
       />
       <Navigation />
       
@@ -53,14 +54,14 @@ const CitizenDeveloperEnablement = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-amber-100 text-amber-700 border-amber-200 px-4 py-2 text-sm font-medium">
               <Lightbulb className="w-4 h-4 mr-2" />
-              Low-Code Platform • Beta Access
+              No-Code Platform • Beta Access
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
-              Low-Code Solutions for
+              No-Code Solutions for
               <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Business Teams</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Join forward-thinking teams building powerful applications with minimal coding. Enable business users to create solutions using intuitive drag-and-drop tools.
+              Join forward-thinking teams building powerful applications with zero coding. Enable business users to create solutions using intuitive drag-and-drop tools.
             </p>
           </div>
 
@@ -115,7 +116,7 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
-              How Low-Code Development Works
+              How No-Code Development Works
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               From idea to deployment in three simple steps
@@ -169,7 +170,7 @@ const CitizenDeveloperEnablement = () => {
               Popular Use Cases
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              See how pilot teams are solving real problems with low-code development
+              See how pilot teams are solving real problems with no-code development
             </p>
           </div>
 
@@ -215,10 +216,10 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
-              Ready to Join Our Low-Code Pilot?
+              Ready to Join Our No-Code Pilot?
             </h2>
             <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join innovative teams who are already building solutions with low-code. Limited beta access for forward-thinking organizations.
+              Join innovative teams who are already building solutions with no-code. Limited beta access for forward-thinking organizations.
             </p>
             <p className="text-base text-business-black/60 mb-8 max-w-2xl mx-auto">
               Trusted by select pilot partners across various industries.
