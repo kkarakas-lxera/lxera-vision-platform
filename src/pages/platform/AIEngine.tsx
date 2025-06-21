@@ -78,26 +78,26 @@ const AIEngine = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-lxera-blue/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-lxera-blue/10 px-4 py-2 rounded-full text-lxera-blue font-medium text-sm mb-6">
             <Brain className="w-4 h-4 mr-2" />
             Intelligent Platform Core
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             AI
-            <span className="text-emerald"> Engine</span>
+            <span className="text-lxera-blue"> Engine</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             The intelligent heart of LXERA that powers personalization, predicts outcomes, 
             and drives engagement through advanced machine learning and behavioral analysis.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-lxera-blue text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               See AI in Action
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -126,12 +126,12 @@ const AIEngine = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group overflow-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-emerald" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-lxera-blue/20 to-lxera-blue/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-lxera-blue" />
                       </div>
-                      <Sparkles className="w-5 h-5 text-emerald/60" />
+                      <Sparkles className="w-5 h-5 text-lxera-blue/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-lxera-blue transition-colors">
                       {capability.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -142,7 +142,7 @@ const AIEngine = () => {
                     <ul className="space-y-3">
                       {capability.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-center text-sm text-business-black/70">
-                          <CheckCircle className="w-4 h-4 text-emerald mr-3 flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-lxera-blue mr-3 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -156,7 +156,7 @@ const AIEngine = () => {
       </section>
 
       {/* Solutions Powered Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-lxera-blue/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -175,8 +175,8 @@ const AIEngine = () => {
                     <CardTitle className="text-lg text-business-black">
                       {solution.title}
                     </CardTitle>
-                    <div className="bg-emerald/10 px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium text-emerald">
+                    <div className="bg-lxera-blue/10 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-lxera-blue">
                         {solution.impact}
                       </span>
                     </div>
@@ -205,15 +205,15 @@ const AIEngine = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">99.9%</div>
+                <div className="text-3xl font-bold text-lxera-blue mb-2">99.9%</div>
                 <div className="text-sm text-white/70">Uptime Guarantee</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">&lt; 100ms</div>
+                <div className="text-3xl font-bold text-lxera-blue mb-2">&lt; 100ms</div>
                 <div className="text-sm text-white/70">Response Time</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">24/7</div>
+                <div className="text-3xl font-bold text-lxera-blue mb-2">24/7</div>
                 <div className="text-sm text-white/70">Learning & Adapting</div>
               </div>
             </CardContent>
@@ -231,7 +231,7 @@ const AIEngine = () => {
             See how our AI engine can transform learning outcomes in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-lxera-blue text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request AI Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">

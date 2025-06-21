@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,26 +57,26 @@ const EngagementInsights = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <BarChart3 className="w-4 h-4 mr-2" />
             Data-Driven Learning
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             Engagement &
-            <span className="text-emerald"> Insights</span>
+            <span className="text-business-black"> Insights</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Transform learning data into actionable insights with real-time analytics, 
             predictive outcomes, and comprehensive dashboards that drive smarter decisions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               View Demo Dashboard
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -106,12 +105,12 @@ const EngagementInsights = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-emerald" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-business-black" />
                       </div>
-                      <Eye className="w-5 h-5 text-emerald/60" />
+                      <Eye className="w-5 h-5 text-business-black/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {feature.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -121,7 +120,7 @@ const EngagementInsights = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
                       {feature.metrics.map((metric, metricIndex) => (
-                        <div key={metricIndex} className="text-sm text-business-black/70 bg-smart-beige/30 rounded-lg px-3 py-2">
+                        <div key={metricIndex} className="text-sm text-business-black/70 bg-future-green/10 rounded-lg px-3 py-2">
                           {metric}
                         </div>
                       ))}
@@ -135,7 +134,7 @@ const EngagementInsights = () => {
       </section>
 
       {/* Insights Impact */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -154,8 +153,8 @@ const EngagementInsights = () => {
                     <CardTitle className="text-lg text-business-black">
                       {insight.title}
                     </CardTitle>
-                    <div className="bg-emerald/10 px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium text-emerald">
+                    <div className="bg-future-green/20 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-business-black">
                         {insight.impact}
                       </span>
                     </div>
@@ -180,7 +179,7 @@ const EngagementInsights = () => {
             Discover insights that transform how your organization approaches learning and development
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Explore Analytics
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -190,7 +189,7 @@ const EngagementInsights = () => {
             </Button>
           </div>
         </div>
-      </section>
+      </Section>
 
       <Footer />
     </div>

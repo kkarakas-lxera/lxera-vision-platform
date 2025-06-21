@@ -58,13 +58,13 @@ const MentorshipSupport = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-light-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-light-green/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
             <Heart className="w-4 h-4 mr-2" />
             Always-On Support
           </div>
@@ -106,7 +106,7 @@ const MentorshipSupport = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-14 h-14 bg-gradient-to-br from-light-green/20 to-light-green/20 rounded-2xl flex items-center justify-center">
                         <IconComponent className="w-7 h-7 text-emerald" />
                       </div>
                       <Zap className="w-5 h-5 text-emerald/60" />
@@ -136,7 +136,7 @@ const MentorshipSupport = () => {
       </section>
 
       {/* Scalability Focus */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-light-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
