@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,9 +41,9 @@ const CitizenDeveloperEnablement = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-smart-beige to-yellow-50">
       <SEO 
-        title="Citizen Developer Enablement - LXERA"
-        description="Equip business users to build and automate without coding. Enable citizen developers to create solutions that drive business value."
-        keywords="citizen developer, no-code, low-code, business automation, process automation"
+        title="Low Code Platform - Citizen Developer Enablement - LXERA"
+        description="Enable business users to build and automate with low-code solutions. Join innovative teams creating applications without traditional coding."
+        keywords="low-code, no-code, citizen developer, business automation, process automation, MVP"
       />
       <Navigation />
       
@@ -54,14 +53,14 @@ const CitizenDeveloperEnablement = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-amber-100 text-amber-700 border-amber-200 px-4 py-2 text-sm font-medium">
               <Lightbulb className="w-4 h-4 mr-2" />
-              Citizen Development Platform
+              Low-Code Platform • Beta Access
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
-              Build Apps Without
-              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Writing Code</span>
+              Low-Code Solutions for
+              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Business Teams</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Empower your business users to create powerful applications and automate processes using intuitive drag-and-drop tools. No technical expertise required.
+              Join forward-thinking teams building powerful applications with minimal coding. Enable business users to create solutions using intuitive drag-and-drop tools.
             </p>
           </div>
 
@@ -97,7 +96,7 @@ const CitizenDeveloperEnablement = () => {
               size="lg"
               className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
-              Start Building Free
+              Request Beta Access
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
@@ -105,7 +104,7 @@ const CitizenDeveloperEnablement = () => {
               size="lg"
               className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
-              Watch Tutorial
+              Watch Demo
             </Button>
           </div>
         </div>
@@ -116,7 +115,7 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
-              How Citizen Development Works
+              How Low-Code Development Works
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               From idea to deployment in three simple steps
@@ -170,7 +169,7 @@ const CitizenDeveloperEnablement = () => {
               Popular Use Cases
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              See how business users are solving real problems with citizen development
+              See how pilot teams are solving real problems with low-code development
             </p>
           </div>
 
@@ -195,16 +194,16 @@ const CitizenDeveloperEnablement = () => {
           <div className="bg-gradient-to-r from-amber-600 to-yellow-600 rounded-3xl p-12 text-center text-white">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <div className="text-4xl font-bold mb-2">80%</div>
+                <div className="text-4xl font-bold mb-2">65%</div>
                 <div className="text-white/90">Faster Delivery</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">50%</div>
+                <div className="text-4xl font-bold mb-2">40%</div>
                 <div className="text-white/90">Cost Reduction</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">95%</div>
-                <div className="text-white/90">User Satisfaction</div>
+                <div className="text-4xl font-bold mb-2">90%</div>
+                <div className="text-white/90">Pilot Satisfaction</div>
               </div>
             </div>
           </div>
@@ -216,17 +215,20 @@ const CitizenDeveloperEnablement = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
-              Ready to Democratize Development?
+              Ready to Join Our Low-Code Pilot?
             </h2>
-            <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">
-              Join thousands of business users who are already building solutions without code. Start your citizen development journey today.
+            <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
+              Join innovative teams who are already building solutions with low-code. Limited beta access for forward-thinking organizations.
+            </p>
+            <p className="text-base text-business-black/60 mb-8 max-w-2xl mx-auto">
+              Trusted by select pilot partners across various industries.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Start Building Now
+                Apply for Beta Access
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -234,7 +236,7 @@ const CitizenDeveloperEnablement = () => {
                 size="lg"
                 className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
               >
-                Request Demo
+                Request Pilot Demo
               </Button>
             </div>
           </div>
