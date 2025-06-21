@@ -11,36 +11,36 @@ const LearningAnalytics = () => {
   const coreFeatures = [
     {
       icon: BarChart3,
-      title: "Real-time Dashboards",
-      description: "Monitor learning progress and engagement across your organization in real-time"
+      title: "Enterprise Dashboards",
+      description: "Comprehensive learning insights tailored for organizational decision-makers and strategic planning"
     },
     {
       icon: Target,
-      title: "Performance Analytics", 
-      description: "Identify learning gaps and optimize training programs based on data-driven insights"
+      title: "Strategic Performance Analytics", 
+      description: "Identify skills gaps and optimize workforce development programs with enterprise-grade insights"
     },
     {
       icon: Eye,
-      title: "Predictive Insights",
-      description: "Forecast learning outcomes and predict skill development trajectories"
+      title: "Predictive Workforce Intelligence",
+      description: "Forecast learning outcomes and predict organizational capability development trajectories"
     }
   ];
 
   const keyBenefits = [
-    "Real-time progress tracking",
-    "Automated report generation", 
-    "ROI measurement tools",
-    "Predictive modeling",
-    "Custom dashboard creation",
-    "Performance gap analysis"
+    "Executive-level progress reporting",
+    "Automated compliance documentation", 
+    "Strategic ROI measurement",
+    "Predictive workforce modeling",
+    "C-suite dashboard creation",
+    "Organizational capability analysis"
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
       <SEO 
         title="Learning Analytics & Insights - LXERA"
-        description="Transform learning data into actionable insights. Advanced analytics to measure, track, and optimize learning outcomes across your organization."
-        keywords="learning analytics, data insights, learning metrics, performance tracking, educational data"
+        description="Transform learning data into strategic insights. Advanced analytics to measure, track, and optimize learning outcomes across your enterprise organization."
+        keywords="learning analytics, data insights, learning metrics, performance tracking, educational data, enterprise learning"
       />
       <Navigation />
       
@@ -49,14 +49,14 @@ const LearningAnalytics = () => {
         <div className="max-w-6xl mx-auto text-center">
           <Badge className="mb-6 bg-green-100 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
             <BarChart3 className="w-4 h-4 mr-2" />
-            Analytics Platform
+            Enterprise Analytics Platform
           </Badge>
           <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 leading-tight">
-            Data-Driven
-            <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Learning Intelligence</span>
+            Strategic Learning
+            <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Intelligence Platform</span>
           </h1>
           <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Transform learning data into actionable insights for your MVP. Get essential analytics that prove ROI and optimize learning outcomes.
+            Transform learning data into strategic insights for enterprise organizations. Get comprehensive analytics that demonstrate ROI and drive organizational transformation across Finance, Technology, EdTech, and Government sectors.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -64,7 +64,7 @@ const LearningAnalytics = () => {
               size="lg"
               className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-emerald-600 hover:to-green-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4 border-0"
             >
-              Start Free Trial
+              Schedule Enterprise Demo
               <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
             <Button
@@ -72,7 +72,7 @@ const LearningAnalytics = () => {
               size="lg"
               className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
             >
-              View Live Demo
+              View Executive Brief
             </Button>
           </div>
         </div>
@@ -83,10 +83,10 @@ const LearningAnalytics = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Essential Analytics for Your MVP
+              Enterprise-Grade Analytics for Strategic Leaders
             </h2>
             <p className="text-lg text-business-black/70 max-w-2xl mx-auto">
-              Start with the core analytics you need to prove value and make data-driven decisions
+              Comprehensive insights designed for HR Directors, L&D Directors, and Digital Transformation leaders
             </p>
           </div>
 
@@ -121,10 +121,10 @@ const LearningAnalytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-                Start Small, Scale Smart
+                Built for Enterprise Scale & Strategic Impact
               </h2>
               <p className="text-lg text-business-black/70 mb-8">
-                Begin with essential analytics and expand as you grow. Perfect for teams just starting their data journey.
+                Comprehensive analytics platform designed for mid-size to large organizations seeking measurable learning transformation and strategic workforce development.
               </p>
               
               <div className="space-y-4">
@@ -142,14 +142,14 @@ const LearningAnalytics = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl">
               <div className="text-center mb-6">
                 <BarChart3 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-business-black mb-2">MVP Results</h3>
+                <h3 className="text-xl font-semibold text-business-black mb-2">Enterprise Implementation</h3>
               </div>
               
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-business-black">Quick Setup</span>
-                    <span className="text-xl font-semibold text-green-600">&lt; 1 Day</span>
+                    <span className="text-sm font-medium text-business-black">Deployment Timeline</span>
+                    <span className="text-xl font-semibold text-green-600">2-4 Weeks</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 h-2 rounded-full w-full"></div>
@@ -158,8 +158,8 @@ const LearningAnalytics = () => {
                 
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-business-black">Value Generated</span>
-                    <span className="text-xl font-semibold text-blue-600">Week 1</span>
+                    <span className="text-sm font-medium text-business-black">Strategic ROI Visibility</span>
+                    <span className="text-xl font-semibold text-blue-600">Month 1</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style={{ width: '85%' }}></div>
@@ -176,20 +176,20 @@ const LearningAnalytics = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-future-green/10 via-white/70 to-smart-beige/20 rounded-3xl p-12 shadow-2xl border border-future-green/20">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Ready to Start Your Analytics Journey?
+              Ready to Transform Your Learning Strategy?
             </h2>
             <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
-              Join forward-thinking teams using our analytics to optimize their learning programs and prove ROI.
+              Join industry leaders across Finance, Technology, EdTech, and Government sectors using our analytics to drive strategic workforce transformation.
             </p>
             <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
-              Perfect for MVPs and growing teams ready to make data-driven decisions.
+              Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-future-green/30 focus:ring-offset-4 border-0"
               >
-                Start Free Trial
+                Schedule Executive Demo
                 <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
               <Button
@@ -197,7 +197,7 @@ const LearningAnalytics = () => {
                 size="lg"
                 className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
               >
-                Schedule Demo
+                Request Strategic Brief
               </Button>
             </div>
           </div>
