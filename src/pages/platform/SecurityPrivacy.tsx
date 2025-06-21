@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,26 +57,26 @@ const SecurityPrivacy = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Shield className="w-4 h-4 mr-2" />
             Enterprise Trust
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             Security &
-            <span className="text-emerald"> Data Privacy</span>
+            <span className="text-business-black"> Data Privacy</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Built with enterprise-grade security and privacy-first design. Your data, 
             your learners, and your organization are protected by industry-leading standards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Security Overview
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -106,12 +105,12 @@ const SecurityPrivacy = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-emerald" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-business-black" />
                       </div>
-                      <Zap className="w-5 h-5 text-emerald/60" />
+                      <Zap className="w-5 h-5 text-business-black/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {feature.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -122,7 +121,7 @@ const SecurityPrivacy = () => {
                     <ul className="space-y-3">
                       {feature.features.map((item, itemIndex) => (
                         <li key={itemIndex} className="flex items-center text-sm text-business-black/70">
-                          <CheckCircle className="w-4 h-4 text-emerald mr-3 flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-future-green mr-3 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -136,7 +135,7 @@ const SecurityPrivacy = () => {
       </section>
 
       {/* Compliance Standards */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -153,11 +152,11 @@ const SecurityPrivacy = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <CardTitle className="text-lg text-business-black flex items-center">
-                      <Award className="w-5 h-5 text-emerald mr-2" />
+                      <Award className="w-5 h-5 text-future-green mr-2" />
                       {standard.standard}
                     </CardTitle>
-                    <div className="bg-emerald/10 px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium text-emerald">
+                    <div className="bg-future-green/20 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-business-black">
                         {standard.region}
                       </span>
                     </div>
@@ -186,15 +185,15 @@ const SecurityPrivacy = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">Zero</div>
+                <div className="text-3xl font-bold text-future-green mb-2">Zero</div>
                 <div className="text-sm text-white/70">Data Breaches</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">99.9%</div>
+                <div className="text-3xl font-bold text-future-green mb-2">99.9%</div>
                 <div className="text-sm text-white/70">Uptime SLA</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">24/7</div>
+                <div className="text-3xl font-bold text-future-green mb-2">24/7</div>
                 <div className="text-sm text-white/70">Security Monitoring</div>
               </div>
             </CardContent>
@@ -212,7 +211,7 @@ const SecurityPrivacy = () => {
             Learn more about our comprehensive approach to protecting your most valuable asset: data
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Download Security Brief
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">

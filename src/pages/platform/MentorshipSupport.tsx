@@ -58,26 +58,26 @@ const MentorshipSupport = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-light-green/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-light-green/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Heart className="w-4 h-4 mr-2" />
             Always-On Support
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             Mentorship &
-            <span className="text-emerald"> Support Tools</span>
+            <span className="text-business-black"> Support Tools</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Scalable, personalized support that ensures no learner is ever alone on their journey. 
             From AI-powered guidance to expert mentorship, help is always available.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Experience Support Tools
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -106,12 +106,12 @@ const MentorshipSupport = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-light-green/20 to-light-green/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-emerald" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-business-black" />
                       </div>
-                      <Zap className="w-5 h-5 text-emerald/60" />
+                      <Zap className="w-5 h-5 text-business-black/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {feature.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -122,7 +122,7 @@ const MentorshipSupport = () => {
                     <ul className="space-y-3">
                       {feature.benefits.map((benefit, benefitIndex) => (
                         <li key={benefitIndex} className="flex items-center text-sm text-business-black/70">
-                          <CheckCircle className="w-4 h-4 text-emerald mr-3 flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-future-green mr-3 flex-shrink-0" />
                           {benefit}
                         </li>
                       ))}
@@ -136,7 +136,7 @@ const MentorshipSupport = () => {
       </section>
 
       {/* Scalability Focus */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-light-green/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -155,8 +155,8 @@ const MentorshipSupport = () => {
                     <CardTitle className="text-lg text-business-black">
                       {feature.title}
                     </CardTitle>
-                    <div className="bg-emerald/10 px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium text-emerald">
+                    <div className="bg-future-green/20 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-business-black">
                         {feature.impact}
                       </span>
                     </div>
@@ -185,15 +185,15 @@ const MentorshipSupport = () => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">&lt; 30sec</div>
+                <div className="text-3xl font-bold text-future-green mb-2">&lt; 30sec</div>
                 <div className="text-sm text-white/70">Average AI Response</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">95%</div>
+                <div className="text-3xl font-bold text-future-green mb-2">95%</div>
                 <div className="text-sm text-white/70">Satisfaction Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald mb-2">24/7</div>
+                <div className="text-3xl font-bold text-future-green mb-2">24/7</div>
                 <div className="text-sm text-white/70">Global Availability</div>
               </div>
             </CardContent>
@@ -211,7 +211,7 @@ const MentorshipSupport = () => {
             Discover how comprehensive support transforms learning outcomes and learner satisfaction
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Try Support Tools
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">

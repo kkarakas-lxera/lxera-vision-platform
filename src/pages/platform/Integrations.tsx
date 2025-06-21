@@ -67,26 +67,26 @@ const Integrations = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <LinkIcon className="w-4 h-4 mr-2" />
             Seamless Connectivity
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
             Platform
-            <span className="text-emerald"> Integrations</span>
+            <span className="text-business-black"> Integrations</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Connect LXERA with your existing technology stack. From LMS platforms to collaboration tools, 
             create a unified learning ecosystem that works within your current workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               View All Integrations
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -115,12 +115,12 @@ const Integrations = () => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-emerald" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-7 h-7 text-business-black" />
                       </div>
-                      <Zap className="w-5 h-5 text-emerald/60" />
+                      <Zap className="w-5 h-5 text-business-black/60" />
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {category.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60 mb-4">
@@ -130,7 +130,7 @@ const Integrations = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
                       {category.platforms.map((platform, platformIndex) => (
-                        <div key={platformIndex} className="text-sm text-business-black/70 bg-smart-beige/30 rounded-lg px-3 py-2 text-center">
+                        <div key={platformIndex} className="text-sm text-business-black/70 bg-future-green/10 rounded-lg px-3 py-2 text-center">
                           {platform}
                         </div>
                       ))}
@@ -144,7 +144,7 @@ const Integrations = () => {
       </section>
 
       {/* Integration Benefits */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-business-black mb-6">
@@ -163,8 +163,8 @@ const Integrations = () => {
                     <CardTitle className="text-lg text-business-black">
                       {benefit.title}
                     </CardTitle>
-                    <div className="bg-emerald/10 px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium text-emerald">
+                    <div className="bg-future-green/20 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-business-black">
                         {benefit.impact}
                       </span>
                     </div>
@@ -195,7 +195,7 @@ const Integrations = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {apiFeatures.map((feature, index) => (
                   <div key={index} className="flex items-center text-white/90">
-                    <CheckCircle className="w-5 h-5 text-emerald mr-3 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-future-green mr-3 flex-shrink-0" />
                     {feature}
                   </div>
                 ))}
@@ -215,7 +215,7 @@ const Integrations = () => {
             Explore our integrations and discover how LXERA fits seamlessly into your existing workflow
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Browse Integrations
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">

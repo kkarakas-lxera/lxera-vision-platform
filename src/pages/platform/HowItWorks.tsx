@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,26 +61,26 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-emerald/5">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-emerald/10 px-4 py-2 rounded-full text-emerald font-medium text-sm mb-6">
+          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Target className="w-4 h-4 mr-2" />
             Platform Overview
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
             How LXERA
-            <span className="text-emerald"> Works</span>
+            <span className="text-business-black"> Works</span>
           </h1>
           <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
             Discover the intelligent ecosystem that transforms learning into innovation. 
             From personalized onboarding to measurable business impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               See It In Action
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -110,14 +109,14 @@ const HowItWorks = () => {
                 <Card key={index} className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-emerald/10 rounded-xl flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-emerald" />
+                      <div className="w-12 h-12 bg-future-green/10 rounded-xl flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-business-black" />
                       </div>
-                      <div className="w-8 h-8 bg-emerald rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      <div className="w-8 h-8 bg-future-green rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {step.step}
                       </div>
                     </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-emerald transition-colors">
+                    <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {step.title}
                     </CardTitle>
                     <CardDescription className="text-business-black/60">
@@ -128,7 +127,7 @@ const HowItWorks = () => {
                     <ul className="space-y-2">
                       {step.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-center text-sm text-business-black/70">
-                          <CheckCircle className="w-4 h-4 text-emerald mr-2 flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-future-green mr-2 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -136,7 +135,7 @@ const HowItWorks = () => {
                   </CardContent>
                   {index < journeySteps.length - 1 && (
                     <div className="hidden lg:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
-                      <ArrowRight className="w-8 h-8 text-emerald" />
+                      <ArrowRight className="w-8 h-8 text-future-green" />
                     </div>
                   )}
                 </Card>
@@ -147,7 +146,7 @@ const HowItWorks = () => {
       </section>
 
       {/* Support Touchpoints */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-emerald/10">
+      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-business-black mb-6">
@@ -164,8 +163,8 @@ const HowItWorks = () => {
               return (
                 <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <CardHeader>
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald/20 to-emerald/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-8 h-8 text-emerald" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
                     <CardTitle className="text-lg text-business-black">
                       {touchpoint.title}
@@ -191,7 +190,7 @@ const HowItWorks = () => {
             Discover how LXERA can revolutionize learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
