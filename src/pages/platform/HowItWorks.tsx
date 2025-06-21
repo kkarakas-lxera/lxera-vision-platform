@@ -71,7 +71,7 @@ const HowItWorks = () => {
             <Target className="w-4 h-4 mr-2" />
             Platform Overview
           </div>
-          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
             How LXERA
             <span className="text-business-black"> Works</span>
           </h1>
@@ -94,7 +94,7 @@ const HowItWorks = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               The Complete Learning Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -149,7 +149,7 @@ const HowItWorks = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               Support Throughout Your Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -183,7 +183,7 @@ const HowItWorks = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-business-black mb-6">
+          <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
             Ready to Transform Your Learning Experience?
           </h2>
           <p className="text-lg text-business-black/70 mb-8">

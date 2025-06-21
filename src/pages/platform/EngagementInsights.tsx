@@ -68,7 +68,7 @@ const EngagementInsights = () => {
             <BarChart3 className="w-4 h-4 mr-2" />
             Data-Driven Learning
           </div>
-          <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
             Engagement &
             <span className="text-business-black"> Insights</span>
           </h1>
@@ -91,7 +91,7 @@ const EngagementInsights = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               Visual Dashboards That Drive Decisions
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
@@ -138,7 +138,7 @@ const EngagementInsights = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               Actionable Insights That Drive Results
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
@@ -173,7 +173,7 @@ const EngagementInsights = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-business-black mb-6">
+          <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
             Turn Learning Data Into Strategic Advantage
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
