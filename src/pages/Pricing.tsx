@@ -116,13 +116,13 @@ const Pricing = () => {
                       {plan.description}
                     </p>
 
-                    {/* Simple Billing Toggle for Core Plan */}
+                    {/* Curved Billing Toggle for Core Plan */}
                     {plan.showBillingToggle && (
                       <div className="flex justify-center mb-6">
-                        <div className="inline-flex bg-gray-100 p-1 rounded-lg">
+                        <div className="inline-flex bg-gray-100 p-1 rounded-full">
                           <button
                             onClick={() => setBillingCycle('annually')}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                            className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                               billingCycle === 'annually'
                                 ? 'bg-white text-business-black shadow-sm'
                                 : 'text-business-black/60 hover:text-business-black'
@@ -137,7 +137,7 @@ const Pricing = () => {
                           </button>
                           <button
                             onClick={() => setBillingCycle('monthly')}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                            className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                               billingCycle === 'monthly'
                                 ? 'bg-white text-business-black shadow-sm'
                                 : 'text-business-black/60 hover:text-business-black'
