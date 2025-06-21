@@ -49,7 +49,7 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-7xl mx-auto relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 animate-fade-in-up">
-              <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-6 py-3 text-sm font-medium rounded-3xl">
+              <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium">
                 <Brain className="w-4 h-4 mr-2" />
                 Personalize Every Journey
               </Badge>
