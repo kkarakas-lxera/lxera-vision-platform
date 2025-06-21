@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +62,7 @@ const WorkforceReskilling = () => {
               <Clock className="w-4 h-4 mr-2" />
               Strategic Workforce Development Platform
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
               Build Tomorrow's
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Strategic Workforce Today</span>
             </h1>

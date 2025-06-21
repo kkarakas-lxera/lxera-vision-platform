@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +53,7 @@ const AIPersonalizedLearning = () => {
                 <Brain className="w-4 h-4 mr-2" />
                 AI-Powered Enterprise Solution
               </Badge>
-              <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
+              <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
                 Strategic Learning That
                 <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to Your Workforce</span>
               </h1>

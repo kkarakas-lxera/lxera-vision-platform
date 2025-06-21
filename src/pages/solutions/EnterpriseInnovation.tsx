@@ -85,7 +85,7 @@ const EnterpriseInnovation = () => {
               <Building2 className="w-4 h-4 mr-2" />
               Strategic Enterprise Innovation Platform
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
+            <h1 className="text-4xl lg:text-5xl font-bold text-business-black mb-6 leading-tight">
               Strategic Innovation at
               <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent block"> Enterprise Scale</span>
             </h1>

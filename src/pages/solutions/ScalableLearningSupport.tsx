@@ -76,7 +76,7 @@ const ScalableLearningSupport = () => {
               <Headphones className="w-4 h-4 mr-2" />
               Enterprise Support & Mentorship Platform
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
               Strategic Learning Support That
               <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block"> Never Sleeps</span>
             </h1>
