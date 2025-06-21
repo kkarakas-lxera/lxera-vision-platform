@@ -55,7 +55,7 @@ const CitizenDeveloperEnablement = () => {
               <Lightbulb className="w-4 h-4 mr-2" />
               Enterprise No-Code Platform
             </Badge>
-            <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
               Strategic No-Code Solutions for
               <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Enterprise Teams</span>
             </h1>

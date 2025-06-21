@@ -52,10 +52,11 @@ const LearningAnalytics = () => {
             <BarChart3 className="w-4 h-4 mr-2" />
             Enterprise Analytics Platform
           </Badge>
-          <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
             Strategic Learning
             <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Intelligence Platform</span>
           </h1>
+          
           <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
             Transform learning data into strategic insights for enterprise organizations. Get comprehensive analytics that demonstrate ROI and drive organizational transformation.
           </p>

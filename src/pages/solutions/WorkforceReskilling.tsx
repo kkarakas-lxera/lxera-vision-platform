@@ -62,7 +62,7 @@ const WorkforceReskilling = () => {
               <Clock className="w-4 h-4 mr-2" />
               Strategic Workforce Development Platform
             </Badge>
-            <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
               Build Tomorrow's
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Strategic Workforce Today</span>
             </h1>
@@ -110,7 +110,7 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Your Strategic Reskilling Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -171,7 +171,7 @@ const WorkforceReskilling = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
+              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
                 Enterprise Results with Strategic Partners
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -217,7 +217,7 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
-            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
               Transform Your Strategic Workforce
             </h2>
             <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">

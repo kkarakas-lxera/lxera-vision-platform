@@ -53,7 +53,7 @@ const AIPersonalizedLearning = () => {
                 <Brain className="w-4 h-4 mr-2" />
                 AI-Powered Enterprise Solution
               </Badge>
-              <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
+              <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
                 Strategic Learning That
                 <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to Your Workforce</span>
               </h1>
@@ -116,7 +116,7 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               How AI Transforms Enterprise Learning
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -159,7 +159,7 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
-              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
+              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
                 Proven Results with Enterprise Partners
               </h2>
               <div className="space-y-4">
@@ -200,7 +200,7 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-3xl p-12 shadow-2xl border border-pink-200/50">
-            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
               Ready to Transform Your Learning Strategy?
             </h2>
             <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
