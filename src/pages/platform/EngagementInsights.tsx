@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,50 +9,50 @@ const EngagementInsights = () => {
   const dashboardFeatures = [
     {
       title: "Executive Strategy Dashboard",
-      description: "C-suite insights for organizational transformation progress, ROI measurement, and strategic decision support",
+      description: "C-suite insights for enterprise transformation progress, strategic ROI measurement, and competitive advantage tracking",
       icon: TrendingUp,
-      metrics: ["Transformation ROI", "Strategic capability growth", "Innovation pipeline health", "Change readiness scores"]
+      metrics: ["Strategic transformation ROI", "Enterprise capability growth", "Innovation pipeline health", "Competitive readiness scores"]
     },
     {
-      title: "Predictive Transformation Analytics",
-      description: "AI-powered forecasting of organizational change success, skill development outcomes, and business impact",
+      title: "Predictive Business Analytics",
+      description: "AI-powered forecasting of organizational transformation success, capability development outcomes, and business impact",
       icon: Brain,
-      metrics: ["Success probability forecasts", "Risk mitigation insights", "Capability development trends", "Strategic alignment metrics"]
+      metrics: ["Success probability forecasts", "Strategic risk insights", "Capability development trends", "Business alignment metrics"]
     },
     {
-      title: "Innovation Impact Measurement",
-      description: "Track innovation initiatives, digital transformation progress, and competitive advantage development",
+      title: "Innovation Impact Tracking",
+      description: "Monitor innovation initiatives, strategic transformation progress, and competitive advantage development",
       icon: Zap,
-      metrics: ["Innovation project success", "Digital maturity progress", "Competitive positioning", "Future readiness index"]
+      metrics: ["Innovation project success", "Strategic maturity progress", "Competitive positioning", "Future readiness index"]
     },
     {
-      title: "Workforce Transformation Insights",
-      description: "Comprehensive analytics on talent development, skills transformation, and organizational capability building",
+      title: "Enterprise Transformation Insights",
+      description: "Comprehensive analytics on organizational development, strategic capabilities, and enterprise-wide transformation",
       icon: Users,
-      metrics: ["Skills transformation progress", "Leadership development ROI", "Team capability evolution", "Talent retention impact"]
+      metrics: ["Strategic capability progress", "Executive development ROI", "Organizational evolution", "Competitive advantage impact"]
     }
   ];
 
   const strategicInsights = [
     {
-      title: "Strategic Learning ROI Optimization",
-      description: "Identify highest-impact learning investments and optimize resource allocation for maximum business value",
-      impact: "4x improvement in learning ROI"
+      title: "Strategic Investment Optimization",
+      description: "Identify highest-impact capability investments and optimize resource allocation for maximum business value",
+      impact: "4x improvement in strategic ROI"
     },
     {
       title: "Early Transformation Risk Detection",
-      description: "Proactive identification of organizational change challenges before they impact strategic initiatives",
+      description: "Proactive identification of organizational transformation challenges before they impact strategic initiatives",
       impact: "70% reduction in transformation risks"
     },
     {
-      title: "Innovation Capability Assessment",
-      description: "Measure and optimize organizational innovation capacity and digital transformation readiness",
+      title: "Innovation Capability Enhancement",
+      description: "Measure and optimize organizational innovation capacity and strategic transformation readiness",
       impact: "60% faster innovation cycles"
     },
     {
-      title: "Strategic Workforce Planning",
-      description: "Data-driven insights for future skills requirements and organizational capability development",
-      impact: "90% more accurate workforce forecasting"
+      title: "Strategic Enterprise Planning",
+      description: "Data-driven insights for future capability requirements and competitive advantage development",
+      impact: "90% more accurate strategic forecasting"
     }
   ];
 
@@ -66,14 +65,14 @@ const EngagementInsights = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
             <BarChart3 className="w-4 h-4 mr-2" />
-            Strategic Intelligence & Analytics
+            Enterprise Intelligence & Analytics
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Strategic Insights &
             <span className="text-business-black"> Analytics Dashboard</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Transform organizational data into strategic intelligence. Executive-level analytics designed for HR, L&D, Innovation and Digital Transformation Leaders driving measurable change.
+            Transform organizational data into strategic intelligence. Executive-level analytics designed for organizational leaders driving measurable competitive advantage.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -94,7 +93,7 @@ const EngagementInsights = () => {
               Executive Intelligence Dashboards
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Strategic analytics suite providing actionable insights for organizational transformation and innovation leadership
+              Strategic analytics suite providing actionable insights for enterprise transformation and competitive advantage
             </p>
           </div>
 
@@ -141,7 +140,7 @@ const EngagementInsights = () => {
               Strategic Intelligence That Drives Results
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              See how data-driven strategic decisions accelerate organizational transformation and competitive advantage
+              See how data-driven strategic decisions accelerate enterprise transformation and competitive advantage
             </p>
           </div>
 
@@ -184,7 +183,7 @@ const EngagementInsights = () => {
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">340%</div>
-                <div className="text-sm text-white/70">Average Learning ROI</div>
+                <div className="text-sm text-white/70">Average Strategic ROI</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">75%</div>
@@ -207,7 +206,7 @@ const EngagementInsights = () => {
               Built for Executive Decision-Making
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Strategic insights designed specifically for C-suite, VP-level, and senior leadership needs
+              Strategic insights designed specifically for C-suite and senior leadership needs
             </p>
           </div>
 
@@ -215,13 +214,13 @@ const EngagementInsights = () => {
             {[
               {
                 icon: DollarSign,
-                title: "ROI Transparency",
-                description: "Clear visibility into learning investment returns and business impact metrics"
+                title: "Strategic ROI Transparency",
+                description: "Clear visibility into strategic investment returns and competitive advantage metrics"
               },
               {
                 icon: Target,
-                title: "Strategic Alignment", 
-                description: "Ensure all learning initiatives support broader organizational transformation goals"
+                title: "Business Alignment", 
+                description: "Ensure all transformation initiatives support broader organizational strategic goals"
               },
               {
                 icon: TrendingUp,
@@ -257,7 +256,7 @@ const EngagementInsights = () => {
             Transform Strategic Decision-Making with Data
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Discover how strategic intelligence transforms organizational transformation and competitive positioning
+            Discover how strategic intelligence transforms enterprise transformation and competitive positioning
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">

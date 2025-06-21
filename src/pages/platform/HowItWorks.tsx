@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,53 +9,53 @@ const HowItWorks = () => {
   const journeySteps = [
     {
       step: "1",
-      title: "Strategic Assessment & Onboarding",
-      description: "AI-powered organizational profiling that aligns learning strategy with business objectives and workforce transformation goals",
+      title: "Strategic Assessment & Alignment",
+      description: "Comprehensive organizational analysis aligning workforce capabilities with strategic business objectives and competitive positioning",
       icon: Users,
-      features: ["Enterprise skill gap analysis", "Strategic alignment mapping", "Leadership dashboard setup", "Organizational integration planning"]
+      features: ["Enterprise capability assessment", "Strategic business alignment", "Executive dashboard configuration", "Organizational readiness planning"]
     },
     {
       step: "2", 
-      title: "Intelligent Content Strategy",
-      description: "Dynamic learning ecosystems that scale across departments while maintaining alignment with innovation and transformation initiatives",
+      title: "Strategic Capability Development",
+      description: "Scalable capability building programs that drive innovation and competitive advantage across all organizational levels",
       icon: Brain,
-      features: ["Role-based learning pathways", "Innovation skill development", "Cross-functional collaboration tools", "Leadership development tracks"]
+      features: ["Strategic capability pathways", "Innovation enablement programs", "Cross-functional collaboration", "Executive development initiatives"]
     },
     {
       step: "3",
-      title: "Transformation Acceleration",
-      description: "Active learning experiences that drive measurable business outcomes through innovation projects and strategic skill development",
+      title: "Organizational Transformation",
+      description: "Active transformation experiences that deliver measurable business outcomes through strategic capability development and innovation",
       icon: Zap,
-      features: ["Innovation lab integration", "Digital transformation projects", "Cross-departmental collaboration", "Executive mentorship programs"]
+      features: ["Strategic transformation projects", "Innovation acceleration", "Organizational collaboration", "Executive strategic mentorship"]
     },
     {
       step: "4",
-      title: "Strategic Impact Measurement",
-      description: "Executive-level analytics that demonstrate ROI and organizational transformation progress with predictive insights",
+      title: "Business Impact Measurement",
+      description: "Executive-level analytics demonstrating ROI and organizational transformation progress with strategic business insights",
       icon: BarChart3,
-      features: ["C-suite dashboard reporting", "ROI measurement tools", "Transformation impact metrics", "Strategic planning insights"]
+      features: ["Executive business reporting", "Strategic ROI measurement", "Transformation impact analytics", "Competitive advantage metrics"]
     }
   ];
 
   const touchpoints = [
     {
-      title: "Executive Coaching & AI Guidance",
-      description: "Strategic support for leadership development and organizational change management",
+      title: "Executive Strategic Guidance",
+      description: "Strategic support for organizational transformation and competitive advantage development",
       icon: Brain
     },
     {
-      title: "Cross-Functional Innovation Teams",
-      description: "Structured collaboration environments for driving transformation initiatives",
+      title: "Cross-Organizational Innovation",
+      description: "Structured environments for driving enterprise-wide transformation and strategic initiatives",
       icon: Users
     },
     {
-      title: "Expert Advisory Network", 
-      description: "Access to industry thought leaders and transformation specialists",
+      title: "Strategic Advisory Network", 
+      description: "Access to industry leaders and organizational transformation specialists",
       icon: MessageCircle
     },
     {
-      title: "Innovation Centers of Excellence",
-      description: "Dedicated spaces for experimentation and strategic capability development",
+      title: "Centers of Strategic Excellence",
+      description: "Dedicated environments for strategic experimentation and competitive capability development",
       icon: Lightbulb
     }
   ];
@@ -70,15 +69,15 @@ const HowItWorks = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
             <Target className="w-4 h-4 mr-2" />
-            Strategic Transformation Platform
+            Enterprise Transformation Platform
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             How LXERA Drives
-            <span className="text-business-black"> Organizational Transformation</span>
+            <span className="text-business-black"> Enterprise Transformation</span>
           </h1>
           <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
-            A comprehensive platform designed for HR, L&D, Innovation and Digital Transformation Leaders. 
-            From strategic alignment to measurable business impact - see how we accelerate organizational change.
+            A comprehensive platform designed for organizational leaders driving strategic transformation. 
+            From strategic alignment to measurable business outcomes - see how we accelerate competitive advantage.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -96,10 +95,10 @@ const HowItWorks = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Transformation Journey
+              Enterprise Transformation Journey
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              A proven methodology for driving organizational change through strategic learning and innovation enablement
+              A proven methodology for driving organizational transformation through strategic capability development and innovation
             </p>
           </div>
 
@@ -154,7 +153,7 @@ const HowItWorks = () => {
               Strategic Support Throughout Transformation
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Comprehensive support system designed specifically for organizational leaders driving change
+              Comprehensive support system designed for organizational leaders driving enterprise-wide change
             </p>
           </div>
 
@@ -185,10 +184,10 @@ const HowItWorks = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Ready to Drive Strategic Transformation?
+            Ready to Drive Enterprise Transformation?
           </h2>
           <p className="text-lg text-business-black/70 mb-8">
-            Join forward-thinking leaders who are using LXERA to accelerate organizational innovation and workforce transformation
+            Join forward-thinking organizations using LXERA to accelerate strategic transformation and competitive advantage
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -196,7 +195,7 @@ const HowItWorks = () => {
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/ai-engine">
-                Explore AI Capabilities <ArrowRight className="w-4 h-4 ml-2" />
+                Explore Strategic Capabilities <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>

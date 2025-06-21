@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,71 +8,71 @@ import { Link } from "react-router-dom";
 const AIEngine = () => {
   const aiCapabilities = [
     {
-      title: "Organizational Intelligence Profiling",
-      description: "Deep insights into workforce capabilities, skill gaps, and transformation readiness across all levels",
+      title: "Organizational Intelligence Analysis",
+      description: "Deep insights into enterprise capabilities, strategic gaps, and transformation readiness across all business units",
       icon: Users,
       features: [
-        "Enterprise skill gap mapping",
-        "Leadership development pathways", 
+        "Enterprise capability mapping",
+        "Strategic development pathways", 
         "Innovation readiness assessment",
-        "Cultural transformation indicators"
+        "Organizational transformation indicators"
       ]
     },
     {
-      title: "Strategic Impact Prediction",
-      description: "AI-powered forecasting of learning ROI, transformation outcomes, and organizational change success",
+      title: "Strategic Impact Forecasting",
+      description: "AI-powered prediction of transformation ROI, business outcomes, and competitive advantage opportunities",
       icon: TrendingUp,
       features: [
-        "Transformation success prediction",
-        "ROI forecasting models",
-        "Risk mitigation insights",
-        "Strategic decision support"
+        "Transformation success modeling",
+        "Business ROI forecasting",
+        "Strategic risk assessment",
+        "Competitive advantage analysis"
       ]
     },
     {
-      title: "Innovation Catalyst Engine",
-      description: "Intelligent systems that identify and nurture innovation opportunities while accelerating capability development",
+      title: "Innovation Acceleration Engine",
+      description: "Intelligent systems that identify strategic opportunities while accelerating organizational capability development",
       icon: Zap,
       features: [
-        "Innovation opportunity identification",
-        "Digital transformation acceleration",
-        "Change readiness optimization",
-        "Strategic capability building"
+        "Strategic opportunity identification",
+        "Enterprise transformation acceleration",
+        "Competitive readiness optimization",
+        "Strategic capability advancement"
       ]
     },
     {
       title: "Executive Decision Intelligence",
-      description: "Strategic insights and recommendations tailored for C-suite and senior leadership decision-making",
+      description: "Strategic insights and recommendations tailored for C-suite and executive leadership decision-making",
       icon: Brain,
       features: [
-        "Executive dashboard insights",
-        "Strategic planning support",
-        "Competitive advantage analysis",
-        "Organizational change guidance"
+        "Executive strategic insights",
+        "Business planning support",
+        "Competitive positioning analysis",
+        "Organizational transformation guidance"
       ]
     }
   ];
 
   const solutions = [
     {
-      title: "Strategic Workforce Planning",
-      description: "AI-driven insights for future skills requirements and organizational capability gaps",
-      impact: "90% more accurate workforce planning"
+      title: "Strategic Enterprise Planning",
+      description: "AI-driven insights for future capability requirements and competitive positioning gaps",
+      impact: "90% more accurate strategic planning"
     },
     {
       title: "Innovation Pipeline Acceleration", 
-      description: "Intelligent identification and development of innovation talent across departments",
-      impact: "3x faster innovation project delivery"
+      description: "Intelligent identification and development of innovation capabilities across the enterprise",
+      impact: "3x faster innovation delivery"
     },
     {
-      title: "Transformation Risk Mitigation",
-      description: "Predictive analytics to identify and address change management challenges early",
+      title: "Transformation Risk Management",
+      description: "Predictive analytics to identify and address strategic transformation challenges proactively",
       impact: "75% reduction in transformation risks"
     },
     {
-      title: "Executive Performance Optimization",
-      description: "AI-powered recommendations for leadership development and strategic capability building",
-      impact: "60% improvement in leadership effectiveness"
+      title: "Executive Performance Enhancement",
+      description: "AI-powered recommendations for strategic capability building and competitive advantage",
+      impact: "60% improvement in strategic effectiveness"
     }
   ];
 
@@ -86,15 +85,15 @@ const AIEngine = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
             <Brain className="w-4 h-4 mr-2" />
-            Strategic Intelligence Platform
+            Enterprise Intelligence Platform
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             AI Engine for
-            <span className="text-business-black"> Organizational Transformation</span>
+            <span className="text-business-black"> Enterprise Transformation</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            The strategic intelligence core that powers organizational transformation for HR, L&D, Innovation and Digital Transformation Leaders. 
-            Drive measurable change through AI-powered insights and predictive analytics.
+            The strategic intelligence core that powers enterprise transformation for organizational leaders. 
+            Drive measurable competitive advantage through AI-powered insights and predictive analytics.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -112,10 +111,10 @@ const AIEngine = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Four Pillars of Strategic Intelligence
+              Four Pillars of Enterprise Intelligence
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Advanced AI capabilities designed specifically for organizational leaders driving transformation and innovation
+              Advanced AI capabilities designed for organizational leaders driving strategic transformation and competitive advantage
             </p>
           </div>
 

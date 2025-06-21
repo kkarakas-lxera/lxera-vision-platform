@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,28 +8,28 @@ import { Link } from "react-router-dom";
 const InnovationHub = () => {
   const hubFeatures = [
     {
-      title: "Strategic Innovation Labs",
-      description: "Executive-sponsored innovation environments for driving digital transformation and competitive advantage",
+      title: "Strategic Innovation Centers",
+      description: "Executive-sponsored innovation environments for driving enterprise transformation and competitive advantage",
       icon: Lightbulb,
-      capabilities: ["Digital transformation projects", "Strategic capability development", "Innovation pipeline management", "Executive innovation sponsorship"]
+      capabilities: ["Strategic transformation projects", "Enterprise capability development", "Innovation pipeline management", "Executive strategic sponsorship"]
     },
     {
-      title: "Cross-Functional Innovation Teams",
+      title: "Cross-Enterprise Innovation Teams",
       description: "Structured collaboration environments designed for organizational transformation and strategic innovation",
       icon: Users,
-      capabilities: ["Change management collaboration", "Strategic project workspaces", "Leadership innovation networks", "Transformation team coordination"]
+      capabilities: ["Enterprise transformation collaboration", "Strategic project environments", "Executive innovation networks", "Organizational team coordination"]
     },
     {
       title: "AI-Augmented Innovation Intelligence",
-      description: "Strategic innovation insights powered by AI to accelerate organizational transformation and competitive positioning",
+      description: "Strategic innovation insights powered by AI to accelerate enterprise transformation and competitive positioning",
       icon: Zap,
       capabilities: ["Strategic opportunity identification", "Innovation ROI optimization", "Competitive intelligence integration", "Transformation feasibility analysis"]
     },
     {
-      title: "Innovation Centers of Excellence",
-      description: "Organizational capability centers for scaling innovation culture and digital transformation expertise",
+      title: "Centers of Strategic Excellence",
+      description: "Organizational capability centers for scaling innovation culture and strategic transformation expertise",
       icon: Target,
-      capabilities: ["Innovation culture development", "Strategic capability scaling", "Transformation methodology", "Executive innovation coaching"]
+      capabilities: ["Innovation culture development", "Strategic capability scaling", "Transformation methodology", "Executive strategic coaching"]
     }
   ];
 
@@ -66,15 +65,15 @@ const InnovationHub = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
             <Rocket className="w-4 h-4 mr-2" />
-            Strategic Innovation Platform
+            Enterprise Innovation Platform
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Innovation Hub for
-            <span className="text-business-black"> Organizational Transformation</span>
+            <span className="text-business-black"> Enterprise Transformation</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Empower HR, L&D, Innovation and Digital Transformation Leaders with comprehensive innovation platforms 
-            that drive strategic transformation, competitive advantage, and organizational capability development.
+            Empower organizational leaders with comprehensive innovation platforms 
+            that drive strategic transformation, competitive advantage, and enterprise capability development.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
@@ -92,7 +91,7 @@ const InnovationHub = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Innovation Ecosystem
+              Enterprise Innovation Ecosystem
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
               Comprehensive innovation platform designed for organizational leaders driving transformation and competitive advantage
