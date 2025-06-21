@@ -2,7 +2,6 @@
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import WhyLXERASection from "@/components/WhyLXERASection";
-import PlatformShowcaseSection from "@/components/PlatformShowcaseSection";
 import TransformationStartsSection from "@/components/TransformationStartsSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
@@ -19,9 +18,6 @@ const Index = () => {
       </div>
       <div className="transition-all duration-1000 ease-in-out">
         <WhyLXERASection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
-        <PlatformShowcaseSection />
       </div>
       <div className="transition-all duration-1000 ease-in-out">
         <TransformationStartsSection />
