@@ -1,58 +1,59 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Users, Zap, Target, ArrowRight, Sparkles, Layers, Network } from "lucide-react";
+import { Lightbulb, Users, Zap, Target, ArrowRight, Sparkles, Network, TrendingUp, Rocket } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const InnovationHub = () => {
   const hubFeatures = [
     {
-      title: "Ideation Tools",
-      description: "AI-powered brainstorming and idea generation platforms for creative problem-solving",
+      title: "Strategic Innovation Labs",
+      description: "Executive-sponsored innovation environments for driving digital transformation and competitive advantage",
       icon: Lightbulb,
-      capabilities: ["Idea mapping", "Concept clustering", "Innovation challenges", "Inspiration feeds"]
+      capabilities: ["Digital transformation projects", "Strategic capability development", "Innovation pipeline management", "Executive innovation sponsorship"]
     },
     {
-      title: "Collaboration Environments",
-      description: "Virtual spaces designed for cross-functional teams to co-create and innovate together",
+      title: "Cross-Functional Innovation Teams",
+      description: "Structured collaboration environments designed for organizational transformation and strategic innovation",
       icon: Users,
-      capabilities: ["Virtual whiteboards", "Real-time collaboration", "Project workspaces", "Team matching"]
+      capabilities: ["Change management collaboration", "Strategic project workspaces", "Leadership innovation networks", "Transformation team coordination"]
     },
     {
-      title: "AI-Augmented Prototyping",
-      description: "Intelligent tools that help transform ideas into actionable prototypes and solutions",
+      title: "AI-Augmented Innovation Intelligence",
+      description: "Strategic innovation insights powered by AI to accelerate organizational transformation and competitive positioning",
       icon: Zap,
-      capabilities: ["Rapid prototyping", "AI suggestions", "Resource optimization", "Feasibility analysis"]
+      capabilities: ["Strategic opportunity identification", "Innovation ROI optimization", "Competitive intelligence integration", "Transformation feasibility analysis"]
     },
     {
-      title: "CoE Support Capabilities",
-      description: "Center of Excellence tools for scaling innovation across the organization",
+      title: "Innovation Centers of Excellence",
+      description: "Organizational capability centers for scaling innovation culture and digital transformation expertise",
       icon: Target,
-      capabilities: ["Best practice sharing", "Innovation metrics", "Success tracking", "Knowledge repository"]
+      capabilities: ["Innovation culture development", "Strategic capability scaling", "Transformation methodology", "Executive innovation coaching"]
     }
   ];
 
   const innovationProcess = [
     {
-      step: "Discover",
-      description: "Identify opportunities and challenges",
-      tools: ["Market insights", "Problem identification", "Trend analysis"]
+      step: "Strategic Discovery",
+      description: "Identify transformation opportunities and competitive advantage gaps",
+      tools: ["Market intelligence", "Strategic opportunity mapping", "Competitive analysis"]
     },
     {
-      step: "Ideate",
-      description: "Generate and refine innovative solutions",
-      tools: ["Brainstorming tools", "AI inspiration", "Concept development"]
+      step: "Innovation Strategy",
+      description: "Develop strategic innovation initiatives aligned with business objectives",
+      tools: ["Strategic planning tools", "Innovation portfolio management", "Executive alignment workshops"]
     },
     {
-      step: "Prototype",
-      description: "Build and test minimum viable solutions",
-      tools: ["Rapid prototyping", "User testing", "Feedback loops"]
+      step: "Transformation Execution",
+      description: "Implement strategic innovations with organizational change management",
+      tools: ["Change management frameworks", "Strategic project management", "Executive success tracking"]
     },
     {
-      step: "Scale",
-      description: "Implement and expand successful innovations",
-      tools: ["Implementation guides", "Success metrics", "Knowledge sharing"]
+      step: "Competitive Advantage",
+      description: "Scale successful innovations for sustainable competitive differentiation",
+      tools: ["Capability scaling frameworks", "Strategic impact measurement", "Organizational knowledge transfer"]
     }
   ];
 
@@ -63,24 +64,24 @@ const InnovationHub = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
-            <Lightbulb className="w-4 h-4 mr-2" />
-            Innovation Enablement
+          <div className="inline-flex items-center bg-future-green/20 px-6 py-3 rounded-3xl text-business-black font-medium text-sm mb-6">
+            <Rocket className="w-4 h-4 mr-2" />
+            Strategic Innovation Platform
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Innovation
-            <span className="text-business-black"> Hub</span>
+            Innovation Hub for
+            <span className="text-business-black"> Organizational Transformation</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Empower your organization with comprehensive innovation tools that transform ideas 
-            into impact through AI-augmented collaboration and prototyping capabilities.
+            Empower HR, L&D, Innovation and Digital Transformation Leaders with comprehensive innovation platforms 
+            that drive strategic transformation, competitive advantage, and organizational capability development.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Explore Innovation Tools
+              Explore Strategic Innovation Tools
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Innovation Process Guide
+              Download Innovation Framework
             </Button>
           </div>
         </div>
@@ -91,10 +92,10 @@ const InnovationHub = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Complete Innovation Ecosystem
+              Strategic Innovation Ecosystem
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Everything your teams need to innovate effectively, from initial ideation to scaled implementation
+              Comprehensive innovation platform designed for organizational leaders driving transformation and competitive advantage
             </p>
           </div>
 
@@ -138,10 +139,10 @@ const InnovationHub = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Structured Innovation Journey
+              Strategic Innovation Methodology
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Guide teams through a proven innovation process with integrated tools and support
+              Proven framework for driving organizational transformation through strategic innovation and competitive advantage development
             </p>
           </div>
 
@@ -179,22 +180,52 @@ const InnovationHub = () => {
         </div>
       </section>
 
+      {/* Strategic Impact Metrics */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
+            <CardHeader className="text-center pb-8">
+              <CardTitle className="text-3xl mb-4">
+                Strategic Innovation Impact
+              </CardTitle>
+              <CardDescription className="text-white/70 text-lg">
+                Measurable outcomes that drive competitive advantage
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-future-green mb-2">5x</div>
+                <div className="text-sm text-white/70">Innovation Project Success</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-future-green mb-2">80%</div>
+                <div className="text-sm text-white/70">Faster Time-to-Market</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-future-green mb-2">450%</div>
+                <div className="text-sm text-white/70">Innovation ROI</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Transform Ideas Into Business Impact
+            Drive Strategic Transformation Through Innovation
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Empower your teams with the tools and processes they need to drive meaningful innovation
+            Empower organizational leaders with the innovation platform that transforms ideas into competitive advantage
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Start Innovating
+              Schedule Strategic Innovation Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/mentorship-support">
-                Mentorship Support <ArrowRight className="w-4 h-4 ml-2" />
+                Executive Support <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
