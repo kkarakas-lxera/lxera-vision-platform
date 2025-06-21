@@ -142,7 +142,7 @@ const Solutions = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
+          <div className="bg-gradient-to-r from-future-green/10 via-white/70 to-smart-beige/20 rounded-3xl p-12 shadow-2xl animate-fade-in-scale border border-future-green/20">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Ready to Transform Your Organization?
             </h2>
@@ -153,7 +153,7 @@ const Solutions = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-future-green to-emerald text-business-black px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105"
+                className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0"
               >
                 Schedule a Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -161,7 +161,7 @@ const Solutions = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-business-black/30 text-business-black px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
               >
                 View Case Studies
               </Button>

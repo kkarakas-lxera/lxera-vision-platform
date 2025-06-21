@@ -16,7 +16,7 @@ const LearningAnalytics = () => {
     },
     {
       icon: Target,
-      title: "Performance Analytics",
+      title: "Performance Analytics", 
       description: "Identify learning gaps and optimize training programs based on data-driven insights"
     },
     {
@@ -24,13 +24,6 @@ const LearningAnalytics = () => {
       title: "Predictive Insights",
       description: "Forecast learning outcomes and predict skill development trajectories"
     }
-  ];
-
-  const dashboardMetrics = [
-    { label: "Active Learners", value: "12,487", change: "+15%", icon: Users, color: "text-blue-600" },
-    { label: "Course Completion", value: "94.2%", change: "+8%", icon: Target, color: "text-green-600" },
-    { label: "Engagement Score", value: "87.5", change: "+12%", icon: Activity, color: "text-purple-600" },
-    { label: "Skills Acquired", value: "3,241", change: "+23%", icon: TrendingUp, color: "text-orange-600" }
   ];
 
   const keyBenefits = [
@@ -63,50 +56,24 @@ const LearningAnalytics = () => {
             <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Learning Intelligence</span>
           </h1>
           <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Transform learning data into actionable insights. Make informed decisions and prove ROI with comprehensive analytics that reveal the true impact of your learning programs.
+            Transform learning data into actionable insights for your MVP. Get essential analytics that prove ROI and optimize learning outcomes.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-emerald-600 hover:to-green-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 border-0"
             >
-              View Live Demo
+              Start Free Trial
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
               variant="outline"
               size="lg"
-              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
+              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
             >
-              Start Free Trial
+              View Live Demo
             </Button>
-          </div>
-
-          {/* Live Dashboard Preview */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl animate-fade-in-scale">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-business-black mb-2">Live Analytics Dashboard</h3>
-              <p className="text-business-black/70">Real-time insights from your learning programs</p>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {dashboardMetrics.map((item, index) => {
-                const IconComponent = item.icon;
-                return (
-                  <Card key={index} className="border-0 bg-gradient-to-br from-white to-gray-50 shadow-lg">
-                    <CardContent className="pt-4 pb-4 px-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <IconComponent className={`w-5 h-5 ${item.color}`} />
-                        <Badge className="bg-green-100 text-green-700 text-xs">{item.change}</Badge>
-                      </div>
-                      <div className="text-2xl font-semibold text-business-black mb-1">{item.value}</div>
-                      <div className="text-xs text-business-black/70">{item.label}</div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
           </div>
         </div>
       </section>
@@ -116,10 +83,10 @@ const LearningAnalytics = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Essential Analytics Tools
+              Essential Analytics for Your MVP
             </h2>
             <p className="text-lg text-business-black/70 max-w-2xl mx-auto">
-              Get the complete picture of your learning ecosystem with these core analytics capabilities
+              Start with the core analytics you need to prove value and make data-driven decisions
             </p>
           </div>
 
@@ -154,10 +121,10 @@ const LearningAnalytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-                Transform Data Into Decisions
+                Start Small, Scale Smart
               </h2>
               <p className="text-lg text-business-black/70 mb-8">
-                Stop guessing about your learning programs' effectiveness. Get the insights you need to optimize and prove ROI.
+                Begin with essential analytics and expand as you grow. Perfect for teams just starting their data journey.
               </p>
               
               <div className="space-y-4">
@@ -175,27 +142,27 @@ const LearningAnalytics = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl">
               <div className="text-center mb-6">
                 <BarChart3 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-business-black mb-2">Proven Results</h3>
+                <h3 className="text-xl font-semibold text-business-black mb-2">MVP Results</h3>
               </div>
               
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-business-black">Learning Effectiveness</span>
-                    <span className="text-xl font-semibold text-green-600">85%</span>
+                    <span className="text-sm font-medium text-business-black">Quick Setup</span>
+                    <span className="text-xl font-semibold text-green-600">< 1 Day</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 h-2 rounded-full" style={{ width: '85%' }}></div>
+                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 h-2 rounded-full" style={{ width: '100%' }}></div>
                   </div>
                 </div>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-business-black">Training ROI</span>
-                    <span className="text-xl font-semibold text-blue-600">340%</span>
+                    <span className="text-sm font-medium text-business-black">Value Generated</span>
+                    <span className="text-xl font-semibold text-blue-600">Week 1</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style={{ width: '95%' }}></div>
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                   </div>
                 </div>
               </div>
@@ -205,19 +172,22 @@ const LearningAnalytics = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-green-600 to-emerald-600">
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Ready to Make Data-Driven Decisions?
+          <div className="bg-gradient-to-r from-future-green/10 via-white/70 to-smart-beige/20 rounded-3xl p-12 shadow-2xl border border-future-green/20">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+              Ready to Start Your Analytics Journey?
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join forward-thinking organizations using our analytics to optimize their learning programs and prove ROI.
+            <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
+              Join forward-thinking teams using our analytics to optimize their learning programs and prove ROI.
+            </p>
+            <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
+              Perfect for MVPs and growing teams ready to make data-driven decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-green-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+                className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -225,7 +195,7 @@ const LearningAnalytics = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-green-600 hover:border-white px-8 py-4 text-lg rounded-xl"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
               >
                 Schedule Demo
               </Button>

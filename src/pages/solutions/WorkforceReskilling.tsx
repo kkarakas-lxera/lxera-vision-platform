@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +90,7 @@ const WorkforceReskilling = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
             >
               Join Beta Program
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -99,7 +98,7 @@ const WorkforceReskilling = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
+              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
             >
               Request Pilot Access
             </Button>
@@ -215,22 +214,22 @@ const WorkforceReskilling = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-blue-600 to-indigo-600">
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
+          <div className="bg-gradient-to-r from-blue-50/80 via-white/70 to-indigo-50/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-blue-200/50">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Join Our Workforce Transformation Pilot
             </h2>
-            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
+            <p className="text-xl text-business-black/70 mb-4 max-w-2xl mx-auto">
               Don't let skill gaps hold your team back. Join forward-thinking organizations building tomorrow's workforce today.
             </p>
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-business-black/60 mb-8 max-w-2xl mx-auto">
               Limited pilot spots available for innovative teams ready to lead the transformation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
               >
                 Apply for Pilot Program
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -238,7 +237,7 @@ const WorkforceReskilling = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg rounded-xl bg-white/10"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
               >
                 Schedule Assessment
               </Button>
