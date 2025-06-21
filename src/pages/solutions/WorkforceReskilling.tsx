@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,10 +40,10 @@ const WorkforceReskilling = () => {
   ];
 
   const metrics = [
-    { label: "Skills Gap Reduction", value: "60%", icon: Target },
-    { label: "Employee Retention", value: "95%", icon: Users },
-    { label: "Career Advancement", value: "78%", icon: TrendingUp },
-    { label: "Training ROI", value: "340%", icon: Award }
+    { label: "Skills Gap Reduction", value: "45%", icon: Target },
+    { label: "Pilot Team Retention", value: "92%", icon: Users },
+    { label: "Career Advancement", value: "65%", icon: TrendingUp },
+    { label: "Training ROI", value: "280%", icon: Award }
   ];
 
   return (
@@ -60,14 +61,14 @@ const WorkforceReskilling = () => {
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-sm font-medium">
               <Clock className="w-4 h-4 mr-2" />
-              Workforce Development
+              Workforce Development • Beta Program
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
-              Future-Proof Your
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Workforce</span>
+              Build Tomorrow's
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Workforce Today</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Transform your team's capabilities with strategic reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges today.
+              Join innovative teams transforming their capabilities with strategic reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges with our proven framework.
             </p>
           </div>
 
@@ -92,7 +93,7 @@ const WorkforceReskilling = () => {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
-              Start Reskilling Program
+              Join Beta Program
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
@@ -100,7 +101,7 @@ const WorkforceReskilling = () => {
               size="lg"
               className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
-              Download Framework
+              Request Pilot Access
             </Button>
           </div>
         </div>
@@ -172,16 +173,16 @@ const WorkforceReskilling = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
-                Measurable Impact
+                Early Results with Pilot Teams
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
-                  "60% reduction in skill gaps",
-                  "95% employee retention rate", 
-                  "Future-ready workforce",
-                  "Career advancement clarity",
-                  "Measurable skill development",
-                  "Industry-aligned training"
+                  "45% reduction in skill gaps",
+                  "92% pilot team retention", 
+                  "Future-ready capabilities",
+                  "Clear career pathways",
+                  "Measurable skill growth",
+                  "Industry-validated training"
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                     <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0" />
@@ -194,18 +195,18 @@ const WorkforceReskilling = () => {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8">
               <div className="text-center mb-6">
                 <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                <div className="text-4xl font-bold text-blue-600 mb-2">95%</div>
-                <div className="text-xl font-semibold text-business-black mb-4">Retention Rate</div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">92%</div>
+                <div className="text-xl font-semibold text-business-black mb-4">Pilot Retention</div>
               </div>
               <div className="text-business-black/70 text-center leading-relaxed">
-                Employees who participate in our reskilling programs show exceptional retention and career satisfaction rates
+                Teams participating in our pilot reskilling programs show exceptional retention and career satisfaction rates
               </div>
               <div className="mt-6 pt-6 border-t border-blue-200">
                 <div className="text-sm text-business-black/60 text-center">
-                  "The most comprehensive workforce development program we've ever implemented"
+                  "The most impactful workforce development pilot we've participated in"
                 </div>
                 <div className="text-sm font-medium text-blue-600 text-center mt-2">
-                  - Fortune 500 HR Director
+                  - Innovation Team Lead
                 </div>
               </div>
             </div>
@@ -218,17 +219,20 @@ const WorkforceReskilling = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Start Your Workforce Transformation
+              Join Our Workforce Transformation Pilot
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Don't let skill gaps hold your organization back. Build the workforce of tomorrow, today.
+            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
+              Don't let skill gaps hold your team back. Join forward-thinking organizations building tomorrow's workforce today.
+            </p>
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+              Limited pilot spots available for innovative teams ready to lead the transformation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Launch Program Today
+                Apply for Pilot Program
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -236,7 +240,7 @@ const WorkforceReskilling = () => {
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg rounded-xl bg-white/10"
               >
-                Get Assessment
+                Schedule Assessment
               </Button>
             </div>
           </div>
