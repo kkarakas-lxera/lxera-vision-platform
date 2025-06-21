@@ -153,7 +153,7 @@ const Solutions = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-future-green to-emerald text-business-black hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold"
+                className="bg-gradient-to-r from-future-green to-emerald text-business-black px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105"
               >
                 Schedule a Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -161,7 +161,7 @@ const Solutions = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white transition-all duration-300 px-8 py-4 text-lg"
+                className="border-business-black/30 text-business-black px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
               >
                 View Case Studies
               </Button>

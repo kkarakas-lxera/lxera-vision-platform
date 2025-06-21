@@ -230,7 +230,7 @@ const About = () => {
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
             Join the companies already using LXERA to unlock their team's potential.
           </p>
-          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
+          <Button className="bg-future-green text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
             Get Started Today
           </Button>
         </div>
