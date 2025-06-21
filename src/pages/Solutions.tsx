@@ -142,28 +142,28 @@ const Solutions = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-future-green/10 via-white/70 to-smart-beige/20 rounded-3xl p-12 shadow-2xl animate-fade-in-scale border border-future-green/20">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
               Ready to Transform Your Organization?
             </h2>
-            <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
               Discover how our AI-powered solutions can revolutionize learning and innovation 
               in your organization. Let's build the future together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0"
+                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2 border-0"
               >
-                Schedule a Demo
+                Schedule Strategic Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
               >
-                View Case Studies
+                Request Executive Assessment
               </Button>
             </div>
           </div>
