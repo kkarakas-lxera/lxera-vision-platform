@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,21 +52,21 @@ const AIPersonalizedLearning = () => {
             <div className="lg:col-span-7 animate-fade-in-up">
               <Badge className="mb-6 bg-pink-100 text-pink-700 border-pink-200 px-4 py-2 text-sm font-medium">
                 <Brain className="w-4 h-4 mr-2" />
-                AI-Powered Solution
+                AI-Powered Solution • Early Access
               </Badge>
               <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
                 Learning That
                 <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent block"> Adapts to You</span>
               </h1>
               <p className="text-xl text-business-black/70 mb-8 leading-relaxed max-w-2xl">
-                Revolutionary AI technology that creates personalized learning experiences, adapting content, pace, and methodology to each individual's unique learning style.
+                Advanced AI technology that creates personalized learning experiences, adapting content, pace, and methodology to each individual's unique learning style.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl group"
                 >
-                  Experience AI Learning
+                  Request Early Access
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
@@ -73,7 +74,7 @@ const AIPersonalizedLearning = () => {
                   size="lg"
                   className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
                 >
-                  Watch Demo
+                  Book Beta Demo
                 </Button>
               </div>
               
@@ -160,7 +161,7 @@ const AIPersonalizedLearning = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
               <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
-                Proven Results
+                Proven Results with Early Adopters
               </h2>
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
@@ -183,12 +184,12 @@ const AIPersonalizedLearning = () => {
                   </div>
                   <div className="text-xl font-semibold text-business-black mb-4">Faster Learning</div>
                   <div className="text-business-black/70 leading-relaxed">
-                    Organizations using our AI-powered personalization see dramatic improvements in learning speed and retention rates
+                    Forward-thinking teams using our AI-powered personalization see dramatic improvements in learning speed and retention rates
                   </div>
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-rose-600 text-white p-4 rounded-2xl shadow-lg">
-                  <div className="text-2xl font-bold">98%</div>
-                  <div className="text-sm">Satisfaction</div>
+                  <div className="text-2xl font-bold">95%</div>
+                  <div className="text-sm">Early User Satisfaction</div>
                 </div>
               </div>
             </div>
@@ -201,17 +202,20 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to Revolutionize Learning?
+              Join Our Select Group of Early Adopters
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join thousands of organizations already transforming their learning experience with AI-powered personalization.
+            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
+              Join innovative teams already transforming their learning experience with AI-powered personalization.
+            </p>
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+              Limited beta access available for forward-thinking organizations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-white text-pink-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Start Free Trial
+                Request Early Access
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
@@ -219,7 +223,7 @@ const AIPersonalizedLearning = () => {
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-pink-600 hover:border-white px-8 py-4 text-lg rounded-xl bg-white/10"
               >
-                Schedule Demo
+                Book Beta Demo
               </Button>
             </div>
           </div>
