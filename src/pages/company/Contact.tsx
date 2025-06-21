@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,7 +113,7 @@ const Contact = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col gap-3">
-                      <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white transition-all duration-300 rounded-xl">
+                      <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white transition-all duration-300 rounded-xl hover:scale-105">
                         {option.action}
                       </Button>
                       <div className="text-sm text-business-black/60 text-center">
@@ -180,7 +179,7 @@ const Contact = () => {
                   />
                 </div>
                 
-                <Button className="w-full bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold py-3 rounded-xl text-lg transition-all duration-300">
+                <Button className="w-full bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
                   Send Message
                 </Button>
               </form>
@@ -240,7 +239,7 @@ const Contact = () => {
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
             Schedule a personalized demo to see how LXERA can transform your organization's learning experience.
           </p>
-          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
             Schedule Demo
           </Button>
         </div>

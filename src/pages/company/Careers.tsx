@@ -101,7 +101,7 @@ const Careers = () => {
             We're building a team of passionate innovators who believe in the power of learning 
             to transform organizations and unlock human potential.
           </p>
-          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
             View Open Positions
           </Button>
         </div>
@@ -143,7 +143,7 @@ const Careers = () => {
                         </div>
                       </div>
                     </div>
-                    <Button className="bg-business-black text-white hover:bg-future-green hover:text-business-black transition-all duration-300 rounded-xl">
+                    <Button className="bg-business-black text-white hover:bg-future-green hover:text-business-black transition-all duration-300 rounded-xl hover:scale-105">
                       Apply Now
                     </Button>
                   </div>
@@ -221,10 +221,10 @@ const Careers = () => {
             Don't see the perfect role? We're always looking for exceptional talent to join our mission.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+            <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
               Send Your Resume
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
               Learn More About Us
             </Button>
           </div>
