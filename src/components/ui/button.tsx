@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-business-black text-white hover:bg-business-black/90",
-        destructive: "bg-lxera-red text-white hover:bg-lxera-red/90",
-        outline: "border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white",
-        secondary: "bg-smart-beige text-business-black hover:bg-smart-beige/80",
-        ghost: "hover:bg-smart-beige hover:text-business-black",
-        link: "text-future-green underline-offset-4 hover:underline",
+        default: "bg-business-black text-white hover:bg-business-black/90 shadow-lg hover:shadow-xl transition-all duration-300",
+        destructive: "bg-lxera-red text-white hover:bg-lxera-red/90 shadow-lg hover:shadow-xl transition-all duration-300",
+        outline: "border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black shadow-lg hover:shadow-xl transition-all duration-300",
+        secondary: "bg-smart-beige text-business-black hover:bg-smart-beige/80 shadow-lg hover:shadow-xl transition-all duration-300",
+        ghost: "hover:bg-smart-beige/50 hover:text-business-black backdrop-blur-sm transition-all duration-300",
+        link: "text-future-green underline-offset-4 hover:underline transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        lg: "h-12 rounded-xl px-8 py-4 text-base font-semibold",
         icon: "h-10 w-10",
       },
     },

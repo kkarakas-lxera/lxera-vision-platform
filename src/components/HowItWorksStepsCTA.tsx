@@ -16,9 +16,9 @@ const HowItWorksStepsCTA = () => {
           {stepMap.map((step) => (
             <span
               key={step.number}
-              className="inline-flex items-center gap-2 border border-future-green bg-white py-2 px-4 rounded-full text-sm font-semibold text-future-green shadow-sm hover:bg-future-green/10 transition"
+              className="inline-flex items-center gap-2 border border-future-green/30 bg-white/80 backdrop-blur-sm py-2 px-4 rounded-full text-sm font-semibold text-future-green shadow-sm hover:bg-future-green/10 transition"
             >
-              <span className="bg-future-green text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2">
+              <span className="bg-gradient-to-r from-future-green to-emerald-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2 text-xs">
                 {step.number}
               </span>
               {step.label}
@@ -31,7 +31,7 @@ const HowItWorksStepsCTA = () => {
           </span>
           <Button
             size="lg"
-            className="bg-future-green text-business-black font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+            className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-8 py-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0"
           >
             Book a Demo
           </Button>
