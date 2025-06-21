@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 
 const PlanComparisonSection = () => {
@@ -175,8 +174,7 @@ const PlanComparisonSection = () => {
               <div className="text-sm text-black mt-1 font-inter font-normal">$199/month</div>
             </div>
             <div className="px-6 py-4 text-center bg-gray-100 border-l border-r border-gray-200">
-              <div className="text-lg font-medium text-black font-inter">ENTERPRISE</div>
-              <div className="text-sm text-black mt-1 font-inter font-normal">Custom pricing</div>
+              <div className="text-lg font-medium text-black font-inter">Enterprise</div>
             </div>
           </div>
 
