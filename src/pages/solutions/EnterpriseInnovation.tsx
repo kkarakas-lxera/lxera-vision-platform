@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -131,7 +130,7 @@ const EnterpriseInnovation = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Proven Strategic Innovation Methodology
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -184,7 +183,7 @@ const EnterpriseInnovation = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-6">
               Success Stories
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -234,7 +233,7 @@ const EnterpriseInnovation = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-8">
+              <h2 className="text-4xl lg:text-5xl font-medium text-business-black mb-8">
                 Strategic Enterprise Innovation Impact
               </h2>
               <div className="space-y-4">
@@ -276,7 +275,7 @@ const EnterpriseInnovation = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-orange-600 to-red-600">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl lg:text-5xl font-medium text-white mb-6">
               Ready to Lead Strategic Innovation?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
