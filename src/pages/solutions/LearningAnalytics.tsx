@@ -48,9 +48,9 @@ const LearningAnalytics = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-6 bg-green-100 text-green-700 border-green-200 px-4 py-2 text-sm font-medium">
+          <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium">
             <BarChart3 className="w-4 h-4 mr-2" />
-            Enterprise Analytics Platform
+            Measure Learning Impact
           </Badge>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
             Strategic Learning

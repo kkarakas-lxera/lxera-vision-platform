@@ -58,9 +58,9 @@ const WorkforceReskilling = () => {
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-sm font-medium">
+            <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium">
               <Clock className="w-4 h-4 mr-2" />
-              Strategic Workforce Development Platform
+              Transform Your Workforce
             </Badge>
             <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
               Build Tomorrow's
