@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Lightbulb, CheckCircle, Code, Zap, Workflow, Puzzle, Rocket, Users } from "lucide-react";
+import { ArrowRight, CheckCircle, Code, Zap, Workflow, Puzzle, Rocket, Users } from "lucide-react";
 
 const CitizenDeveloperEnablement = () => {
   const developmentSteps = [
@@ -51,10 +50,6 @@ const CitizenDeveloperEnablement = () => {
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium">
-              <Lightbulb className="w-4 h-4 mr-2" />
-              Build Without Code
-            </Badge>
             <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
               Strategic No-Code Solutions for
               <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Modern Organizations</span>
