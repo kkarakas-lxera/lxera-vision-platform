@@ -114,7 +114,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               How No-Code Development Works
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -165,7 +165,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               Popular Use Cases
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -214,7 +214,7 @@ const CitizenDeveloperEnablement = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
               Ready to Join Our No-Code Pilot?
             </h2>
             <p className="text-lg text-business-black/70 mb-4 max-w-2xl mx-auto">
