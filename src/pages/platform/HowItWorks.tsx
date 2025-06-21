@@ -72,19 +72,19 @@ const HowItWorks = () => {
             <Target className="w-4 h-4 mr-2" />
             Platform Overview
           </div>
-          <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
             How LXERA
             <span className="text-future-green"> Works</span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
             Discover the intelligent ecosystem that transforms learning into innovation. 
             From personalized onboarding to measurable business impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               See It In Action
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Download Overview
             </Button>
           </div>
@@ -95,10 +95,10 @@ const HowItWorks = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl font-bold text-business-black mb-6">
               The Complete Learning Journey
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               Follow the intelligent path from initial engagement to transformative innovation
             </p>
           </div>
@@ -150,10 +150,10 @@ const HowItWorks = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl font-bold text-business-black mb-6">
               Support Throughout Your Journey
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               Multiple touchpoints ensure learners are never alone in their growth journey
             </p>
           </div>
@@ -184,17 +184,17 @@ const HowItWorks = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-business-black mb-6">
+          <h2 className="text-3xl font-bold text-business-black mb-6">
             Ready to Transform Your Learning Experience?
           </h2>
-          <p className="text-xl text-business-black/70 mb-8">
+          <p className="text-lg text-business-black/70 mb-8">
             Discover how LXERA can revolutionize learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-future-green hover:bg-emerald text-white rounded-xl px-8">
+            <Button size="lg" className="bg-future-green text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/ai-engine">
                 Explore AI Engine <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
