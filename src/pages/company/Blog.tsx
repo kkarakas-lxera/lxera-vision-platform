@@ -1,170 +1,126 @@
 
-import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Calendar, Clock, User, Search, TrendingUp, BookOpen, Lightbulb, Users, Brain } from "lucide-react";
+import { Calendar, User, ArrowRight, TrendingUp, Lightbulb, Users } from "lucide-react";
 
 const Blog = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const featuredPost = {
+    title: "The Future of AI-Powered Learning: 5 Trends Shaping 2024",
+    excerpt: "Discover how artificial intelligence is revolutionizing workplace learning and what it means for your organization's growth strategy.",
+    author: "Dr. Sarah Chen",
+    date: "March 15, 2024",
+    readTime: "8 min read",
+    category: "AI & Innovation",
+    image: "/placeholder.svg"
+  };
+
+  const blogPosts = [
+    {
+      title: "Building a Culture of Continuous Learning",
+      excerpt: "Learn how leading organizations foster environments where learning becomes second nature and drives innovation.",
+      author: "Marcus Rodriguez",
+      date: "March 12, 2024",
+      readTime: "6 min read",
+      category: "Culture",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Measuring ROI in Corporate Learning Programs",
+      excerpt: "A comprehensive guide to tracking and demonstrating the business impact of your learning initiatives.",
+      author: "Aisha Patel",
+      date: "March 8, 2024",
+      readTime: "10 min read",
+      category: "Analytics",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Personalization at Scale: Making Learning Relevant",
+      excerpt: "How AI-driven personalization can deliver relevant learning experiences to thousands of employees simultaneously.",
+      author: "James Liu",
+      date: "March 5, 2024",
+      readTime: "7 min read",
+      category: "Personalization",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "The Rise of Peer-to-Peer Learning in Enterprise",
+      excerpt: "Why collaborative learning models are becoming essential for organizational knowledge sharing and growth.",
+      author: "Elena Vasquez",
+      date: "March 1, 2024",
+      readTime: "5 min read", 
+      category: "Collaboration",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Innovation Labs: Turning Learning into Business Impact",
+      excerpt: "How companies are using innovation labs to transform learning insights into tangible business outcomes.",
+      author: "David Kim",
+      date: "February 28, 2024",
+      readTime: "9 min read",
+      category: "Innovation",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Bridging the Skills Gap with AI-Powered Assessments",
+      excerpt: "Modern approaches to identifying and closing skill gaps using intelligent assessment technologies.",
+      author: "Sarah Chen",
+      date: "February 25, 2024",
+      readTime: "6 min read",
+      category: "Skills Development",
+      image: "/placeholder.svg"
+    }
+  ];
 
   const categories = [
-    { id: "all", name: "All Posts", count: 24 },
-    { id: "ai-learning", name: "AI & Learning", count: 8 },
-    { id: "innovation", name: "Innovation", count: 6 },
-    { id: "workplace", name: "Future of Work", count: 5 },
-    { id: "case-studies", name: "Case Studies", count: 3 },
-    { id: "product", name: "Product Updates", count: 2 }
+    { name: "AI & Innovation", count: 12, icon: Lightbulb },
+    { name: "Culture", count: 8, icon: Users },
+    { name: "Analytics", count: 6, icon: TrendingUp },
+    { name: "All Posts", count: 32, icon: null }
   ];
-
-  const featuredPost = {
-    title: "The Future of Workplace Learning: How AI is Revolutionizing Employee Development",
-    excerpt: "Discover how artificial intelligence is transforming the way organizations approach learning and development, creating personalized experiences that drive real business outcomes.",
-    author: "Dr. Sarah Chen",
-    date: "2024-06-15",
-    readTime: "8 min read",
-    category: "ai-learning",
-    image: "/placeholder.svg",
-    trending: true
-  };
-
-  const posts = [
-    {
-      title: "Building Innovation Culture: Lessons from 500+ Enterprises",
-      excerpt: "Key insights from organizations that successfully transformed their innovation capabilities using LXERA's platform.",
-      author: "Marcus Rodriguez",
-      date: "2024-06-12",
-      readTime: "6 min read",
-      category: "innovation",
-      image: "/placeholder.svg"
-    },
-    {
-      title: "Personalized Learning Paths: The Science Behind Effective Skill Development",
-      excerpt: "Understanding how AI-powered personalization creates more effective learning experiences for every individual.",
-      author: "Dr. Aisha Patel",
-      date: "2024-06-10",
-      readTime: "5 min read",
-      category: "ai-learning",
-      image: "/placeholder.svg"
-    },
-    {
-      title: "Remote Team Collaboration: Scaling Innovation Across Global Workforces",
-      excerpt: "Best practices for maintaining innovation momentum with distributed teams and virtual collaboration.",
-      author: "James Liu",
-      date: "2024-06-08",
-      readTime: "7 min read",
-      category: "workplace",
-      image: "/placeholder.svg"
-    },
-    {
-      title: "ROI of Learning: Measuring the Business Impact of Employee Development",
-      excerpt: "Data-driven approaches to quantifying the return on investment in learning and development initiatives.",
-      author: "Lisa Chen",
-      date: "2024-06-05",
-      readTime: "9 min read",
-      category: "case-studies",
-      image: "/placeholder.svg"
-    },
-    {
-      title: "LXERA 3.0: Introducing Advanced Analytics and Mentor AI",
-      excerpt: "Explore the latest platform updates including enhanced learning analytics and our new AI-powered mentorship features.",
-      author: "Product Team",
-      date: "2024-06-03",
-      readTime: "4 min read",
-      category: "product",
-      image: "/placeholder.svg"
-    },
-    {
-      title: "Citizen Development Revolution: Empowering Non-Technical Teams",
-      excerpt: "How low-code/no-code platforms are democratizing innovation and enabling every employee to become a creator.",
-      author: "Alex Thompson",
-      date: "2024-06-01",
-      readTime: "6 min read",
-      category: "innovation",
-      image: "/placeholder.svg"
-    }
-  ];
-
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "ai-learning": return Brain;
-      case "innovation": return Lightbulb;
-      case "workplace": return Users;
-      case "case-studies": return TrendingUp;
-      case "product": return BookOpen;
-      default: return BookOpen;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "ai-learning": return "bg-purple-100 text-purple-700";
-      case "innovation": return "bg-amber-100 text-amber-700";
-      case "workplace": return "bg-blue-100 text-blue-700";
-      case "case-studies": return "bg-emerald-100 text-emerald-700";
-      case "product": return "bg-rose-100 text-rose-700";
-      default: return "bg-gray-100 text-gray-700";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-smart-beige">
+      <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative py-24 px-6 lg:px-12 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 to-emerald/5"></div>
-        <div className="max-w-6xl mx-auto relative text-center">
-          <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6">
-            Insights for the
+      <section className="pt-32 pb-20 px-6 lg:px-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+            LXERA
             <span className="block bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
-              future of learning
+              Insights
             </span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Discover the latest trends, research, and best practices in workplace learning, 
-            innovation management, and organizational transformation.
+          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Discover the latest trends, insights, and best practices in AI-powered learning, 
+            innovation enablement, and organizational transformation.
           </p>
-          
-          {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-business-black/40 w-5 h-5" />
-            <Input
-              type="search"
-              placeholder="Search articles..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 bg-white/90 border-0 rounded-xl text-lg py-6"
-            />
-          </div>
+          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+            Subscribe to Updates
+          </Button>
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section className="py-8 px-6 lg:px-12">
+      {/* Categories */}
+      <section className="py-12 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap gap-4 justify-center">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                className={`rounded-full px-6 py-2 transition-all duration-300 ${
-                  selectedCategory === category.id 
-                    ? "bg-business-black text-white hover:bg-business-black/90" 
-                    : "border-business-black/30 text-business-black hover:bg-business-black hover:text-white"
-                }`}
-              >
-                {category.name} ({category.count})
-              </Button>
-            ))}
+          <div className="flex flex-wrap justify-center gap-4">
+            {categories.map((category, index) => {
+              const IconComponent = category.icon;
+              return (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="rounded-full border-business-black/20 hover:bg-future-green hover:text-business-black hover:border-future-green transition-all duration-300"
+                >
+                  {IconComponent && <IconComponent className="w-4 h-4 mr-2" />}
+                  {category.name} ({category.count})
+                </Button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -172,141 +128,110 @@ const Blog = () => {
       {/* Featured Post */}
       <section className="py-12 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
-          <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm overflow-hidden">
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-0">
-              <div className="relative h-64 lg:h-auto bg-gradient-to-br from-future-green/20 to-emerald/20">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-future-green to-emerald rounded-full"></div>
-                </div>
-                {featuredPost.trending && (
-                  <Badge className="absolute top-4 left-4 bg-future-green text-business-black border-0">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    Trending
-                  </Badge>
-                )}
+              <div className="bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center p-12">
+                <div className="w-full h-48 bg-gradient-to-br from-future-green to-emerald rounded-2xl"></div>
               </div>
-              <div className="p-8 lg:p-12">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge className={getCategoryColor(featuredPost.category)}>
-                    {categories.find(c => c.id === featuredPost.category)?.name}
-                  </Badge>
-                </div>
-                <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-4 group-hover:text-future-green transition-colors duration-300">
+              <CardContent className="p-8 flex flex-col justify-center">
+                <Badge className="bg-future-green text-business-black w-fit mb-4">
+                  Featured Post
+                </Badge>
+                <h2 className="text-2xl font-bold text-business-black mb-4 leading-tight">
                   {featuredPost.title}
                 </h2>
-                <p className="text-business-black/70 text-lg mb-6 leading-relaxed">
+                <p className="text-business-black/70 mb-6 leading-relaxed">
                   {featuredPost.excerpt}
                 </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-business-black/60">
-                    <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4" />
-                      <span className="text-sm">{featuredPost.author}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-sm">{featuredPost.date}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm">{featuredPost.readTime}</span>
-                    </div>
+                <div className="flex items-center gap-4 text-sm text-business-black/60 mb-6">
+                  <div className="flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    {featuredPost.author}
                   </div>
-                  <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105">
-                    Read Article
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {featuredPost.date}
+                  </div>
+                  <span>{featuredPost.readTime}</span>
                 </div>
-              </div>
+                <Button className="bg-business-black text-white hover:bg-future-green hover:text-business-black transition-all duration-300 rounded-xl w-fit">
+                  Read Article <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </CardContent>
             </div>
           </Card>
         </div>
       </section>
 
       {/* Blog Posts Grid */}
-      <section className="py-12 px-6 lg:px-12 bg-white/30">
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post, index) => {
-              const CategoryIcon = getCategoryIcon(post.category);
-              return (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm overflow-hidden">
-                  <div className="relative h-48 bg-gradient-to-br from-future-green/20 to-emerald/20">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <CategoryIcon className="w-12 h-12 text-future-green" />
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge className={getCategoryColor(post.category)}>
-                        {categories.find(c => c.id === post.category)?.name}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-xl text-business-black group-hover:text-future-green transition-colors duration-300">
-                      {post.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-business-black/70 mb-6 leading-relaxed">
-                      {post.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-business-black/60 mb-4">
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4" />
-                        <span>{post.author}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4" />
-                        <span>{post.readTime}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-business-black/60">{post.date}</span>
-                      <Button size="sm" className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105">
-                        Read More
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-business-black mb-6">
+              Latest Articles
+            </h2>
+            <p className="text-lg text-business-black/70">
+              Stay updated with the latest insights and trends
+            </p>
           </div>
-
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpen className="w-16 h-16 text-business-black/30 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-business-black mb-2">
-                No articles found
-              </h3>
-              <p className="text-business-black/60">
-                Try adjusting your search or filter criteria.
-              </p>
-            </div>
-          )}
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogPosts.map((post, index) => (
+              <Card key={index} className="border-0 bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group overflow-hidden">
+                <div className="h-48 bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center">
+                  <div className="w-32 h-32 bg-gradient-to-br from-future-green to-emerald rounded-xl group-hover:scale-110 transition-transform duration-300"></div>
+                </div>
+                <CardContent className="p-6">
+                  <Badge variant="secondary" className="bg-future-green/10 text-future-green mb-3">
+                    {post.category}
+                  </Badge>
+                  <h3 className="text-lg font-bold text-business-black mb-3 group-hover:text-future-green transition-colors duration-300 leading-tight">
+                    {post.title}
+                  </h3>
+                  <p className="text-business-black/70 text-sm mb-4 leading-relaxed">
+                    {post.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-business-black/60 mb-4">
+                    <div className="flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {post.author}
+                    </div>
+                    <span>{post.readTime}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-business-black/60">
+                    <Calendar className="w-3 h-3" />
+                    {post.date}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Newsletter Signup */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/90">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Stay informed with our newsletter
+          <h2 className="text-3xl font-bold text-white mb-6">
+            Stay in the Loop
           </h2>
-          <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            Get the latest insights on learning innovation, AI trends, and workplace transformation 
-            delivered to your inbox every week.
+          <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
+            Subscribe to our newsletter for the latest insights on AI-powered learning and innovation.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <Input
-              type="email"
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+            <input 
+              type="email" 
               placeholder="Enter your email"
-              className="bg-white/90 border-0 flex-1 rounded-xl"
+              className="flex-1 px-4 py-3 rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-future-green"
             />
-            <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 rounded-xl transition-all duration-300 hover:scale-105">
+            <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300">
               Subscribe
             </Button>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

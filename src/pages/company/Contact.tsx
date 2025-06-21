@@ -1,151 +1,126 @@
 
-import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, Clock, MessageSquare, Headphones, Building2, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Mail, Phone, MapPin, MessageCircle, Users, Headphones, Building } from "lucide-react";
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    company: "",
-    subject: "",
-    message: ""
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    // Handle form submission
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const contactMethods = [
+  const contactOptions = [
     {
-      icon: Mail,
-      title: "Email Us",
-      description: "Get in touch via email",
-      contact: "hello@lxera.com",
-      action: "Send Email",
-      color: "from-blue-500 to-indigo-500"
-    },
-    {
-      icon: Phone,
-      title: "Call Us",
-      description: "Speak with our team",
-      contact: "+1 (555) 123-4567",
-      action: "Call Now",
-      color: "from-emerald-500 to-teal-500"
-    },
-    {
-      icon: MessageSquare,
-      title: "Live Chat",
-      description: "Chat with support",
-      contact: "Available 24/7",
-      action: "Start Chat",
-      color: "from-purple-500 to-violet-500"
-    },
-    {
-      icon: MapPin,
-      title: "Visit Us",
-      description: "Our headquarters",
-      contact: "San Francisco, CA",
-      action: "Get Directions",
-      color: "from-amber-500 to-orange-500"
-    }
-  ];
-
-  const supportTypes = [
-    {
-      icon: Building2,
-      title: "Enterprise Sales",
-      description: "Discuss enterprise solutions and custom implementations",
+      icon: Building,
+      title: "Sales Inquiries",
+      description: "Learn how LXERA can transform your organization's learning strategy",
+      action: "Contact Sales",
       email: "sales@lxera.com"
     },
     {
       icon: Headphones,
       title: "Customer Support",
-      description: "Get help with your account, billing, or technical issues",
+      description: "Get help with your LXERA platform and account questions",
+      action: "Get Support",
       email: "support@lxera.com"
     },
     {
       icon: Users,
       title: "Partnerships",
-      description: "Explore partnership opportunities and integrations",
+      description: "Explore partnership opportunities and integration possibilities",
+      action: "Partner With Us",
       email: "partnerships@lxera.com"
+    },
+    {
+      icon: MessageCircle,
+      title: "General Inquiries",
+      description: "For press, media, or other general questions about LXERA",
+      action: "Send Message",
+      email: "hello@lxera.com"
     }
   ];
 
   const offices = [
     {
       city: "San Francisco",
-      address: "123 Innovation Drive, Suite 100",
-      timezone: "PST (UTC-8)",
-      hours: "9:00 AM - 6:00 PM"
+      address: "123 Innovation Drive, Suite 200",
+      zipcode: "San Francisco, CA 94107",
+      phone: "+1 (555) 123-4567",
+      isPrimary: true
     },
     {
       city: "New York",
-      address: "456 Business Plaza, Floor 15",
-      timezone: "EST (UTC-5)",
-      hours: "9:00 AM - 6:00 PM"
+      address: "456 Learning Avenue, Floor 15",
+      zipcode: "New York, NY 10001",
+      phone: "+1 (555) 234-5678",
+      isPrimary: false
     },
     {
       city: "London",
-      address: "789 Tech Avenue, Level 8",
-      timezone: "GMT (UTC+0)",
-      hours: "9:00 AM - 5:00 PM"
+      address: "789 Innovation Street",
+      zipcode: "London, UK EC1A 1BB",
+      phone: "+44 20 1234 5678",
+      isPrimary: false
     }
   ];
 
   return (
     <div className="min-h-screen bg-smart-beige">
+      <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative py-24 px-6 lg:px-12 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 to-emerald/5"></div>
-        <div className="max-w-6xl mx-auto relative text-center">
-          <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6">
-            Let's start a
+      <section className="pt-32 pb-20 px-6 lg:px-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+            Let's Start a
             <span className="block bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
-              conversation
+              Conversation
             </span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Whether you're ready to transform your organization's learning or just want to learn more, 
-            we're here to help. Reach out and let's explore what's possible together.
+          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Whether you're ready to transform your learning strategy or just want to learn more 
+            about LXERA, we're here to help you succeed.
           </p>
         </div>
       </section>
 
-      {/* Contact Methods */}
+      {/* Contact Options */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-            {contactMethods.map((method, index) => {
-              const IconComponent = method.icon;
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-business-black mb-6">
+              How Can We Help?
+            </h2>
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+              Choose the best way to connect with our team
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {contactOptions.map((option, index) => {
+              const IconComponent = option.icon;
               return (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm text-center">
+                <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm group">
                   <CardHeader>
-                    <div className={`w-16 h-16 bg-gradient-to-r ${method.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-emerald/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-future-green" />
                     </div>
-                    <CardTitle className="text-xl text-business-black">
-                      {method.title}
+                    <CardTitle className="text-xl text-business-black group-hover:text-future-green transition-colors duration-300">
+                      {option.title}
                     </CardTitle>
+                    <CardDescription className="text-business-black/60 mb-4">
+                      {option.description}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-business-black/60 mb-4">{method.description}</p>
-                    <p className="text-business-black font-medium mb-4">{method.contact}</p>
-                    <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105">
-                      {method.action}
-                    </Button>
+                    <div className="flex flex-col gap-3">
+                      <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white transition-all duration-300 rounded-xl">
+                        {option.action}
+                      </Button>
+                      <div className="text-sm text-business-black/60 text-center">
+                        {option.email}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -154,137 +129,63 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Form & Support Types */}
+      {/* Contact Form */}
       <section className="py-20 px-6 lg:px-12 bg-white/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
-            <div>
-              <h2 className="text-4xl font-bold text-business-black mb-6">
-                Send us a message
-              </h2>
-              <p className="text-business-black/70 mb-8 text-lg">
-                Fill out the form below and we'll get back to you within 24 hours.
-              </p>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-business-black mb-6">
+              Send Us a Message
+            </h2>
+            <p className="text-lg text-business-black/70">
+              Fill out the form below and we'll get back to you within 24 hours
+            </p>
+          </div>
+          
+          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+            <CardContent className="p-8">
+              <form className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-business-black font-medium mb-2">
-                      Full Name *
-                    </label>
-                    <Input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="bg-white/90 border-0 rounded-xl"
-                      required
-                    />
+                    <label className="block text-business-black font-medium mb-2">First Name</label>
+                    <Input placeholder="Your first name" className="border-business-black/20" />
                   </div>
                   <div>
-                    <label className="block text-business-black font-medium mb-2">
-                      Email Address *
-                    </label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="bg-white/90 border-0 rounded-xl"
-                      required
-                    />
+                    <label className="block text-business-black font-medium mb-2">Last Name</label>
+                    <Input placeholder="Your last name" className="border-business-black/20" />
                   </div>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-business-black font-medium mb-2">
-                      Company
-                    </label>
-                    <Input
-                      name="company"
-                      value={formData.company}
-                      onChange={handleInputChange}
-                      className="bg-white/90 border-0 rounded-xl"
-                    />
+                    <label className="block text-business-black font-medium mb-2">Email</label>
+                    <Input type="email" placeholder="your.email@company.com" className="border-business-black/20" />
                   </div>
                   <div>
-                    <label className="block text-business-black font-medium mb-2">
-                      Subject *
-                    </label>
-                    <Input
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      className="bg-white/90 border-0 rounded-xl"
-                      required
-                    />
+                    <label className="block text-business-black font-medium mb-2">Company</label>
+                    <Input placeholder="Your company name" className="border-business-black/20" />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-business-black font-medium mb-2">
-                    Message *
-                  </label>
-                  <Textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    className="bg-white/90 border-0 rounded-xl min-h-[120px]"
-                    required
+                  <label className="block text-business-black font-medium mb-2">Subject</label>
+                  <Input placeholder="What would you like to discuss?" className="border-business-black/20" />
+                </div>
+                
+                <div>
+                  <label className="block text-business-black font-medium mb-2">Message</label>
+                  <Textarea 
+                    placeholder="Tell us more about your learning goals and how we can help..."
+                    rows={5}
+                    className="border-business-black/20"
                   />
                 </div>
                 
-                <Button 
-                  type="submit"
-                  className="w-full bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105"
-                >
+                <Button className="w-full bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold py-3 rounded-xl text-lg transition-all duration-300">
                   Send Message
                 </Button>
               </form>
-            </div>
-
-            {/* Support Types */}
-            <div>
-              <h3 className="text-3xl font-bold text-business-black mb-6">
-                Choose the right team
-              </h3>
-              <p className="text-business-black/70 mb-8 text-lg">
-                Get directed to the right department for faster assistance.
-              </p>
-              
-              <div className="space-y-6">
-                {supportTypes.map((type, index) => {
-                  const IconComponent = type.icon;
-                  return (
-                    <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 bg-white/50 backdrop-blur-sm">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-future-green to-emerald rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <IconComponent className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-xl font-bold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300">
-                              {type.title}
-                            </h4>
-                            <p className="text-business-black/70 mb-3 leading-relaxed">
-                              {type.description}
-                            </p>
-                            <a 
-                              href={`mailto:${type.email}`}
-                              className="text-future-green hover:text-emerald font-medium transition-colors duration-300"
-                            >
-                              {type.email}
-                            </a>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -292,33 +193,38 @@ const Contact = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
-              Our Global Offices
+            <h2 className="text-3xl font-bold text-business-black mb-6">
+              Our Offices
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Visit us in person or connect virtually with our teams around the world.
+            <p className="text-lg text-business-black/70">
+              Find us around the world
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {offices.map((office, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm text-center">
+              <Card key={index} className="text-center border-0 bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-business-black group-hover:text-future-green transition-colors duration-300">
-                    {office.city}
-                  </CardTitle>
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <h3 className="text-xl font-bold text-business-black">{office.city}</h3>
+                    {office.isPrimary && (
+                      <Badge className="bg-future-green text-business-black">HQ</Badge>
+                    )}
+                  </div>
+                  <div className="space-y-3 text-business-black/70">
+                    <div className="flex items-center justify-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <div className="text-center">
+                        <div>{office.address}</div>
+                        <div>{office.zipcode}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span>{office.phone}</span>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start justify-center space-x-2">
-                    <MapPin className="w-5 h-5 text-future-green mt-0.5 flex-shrink-0" />
-                    <p className="text-business-black/70">{office.address}</p>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <Clock className="w-5 h-5 text-future-green" />
-                    <p className="text-business-black/70">{office.hours}</p>
-                  </div>
-                  <p className="text-sm text-business-black/60">{office.timezone}</p>
-                </CardContent>
               </Card>
             ))}
           </div>
@@ -328,17 +234,19 @@ const Contact = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/90">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to get started?
+          <h2 className="text-3xl font-bold text-white mb-6">
+            Ready to Get Started?
           </h2>
-          <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            Book a personalized demo and see how LXERA can transform learning in your organization.
+          <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
+            Schedule a personalized demo to see how LXERA can transform your organization's learning experience.
           </p>
-          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
-            Book a Demo
+          <Button className="bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300">
+            Schedule Demo
           </Button>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
