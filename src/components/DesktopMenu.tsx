@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import DemoModal from "./DemoModal";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, ArrowRight } from "lucide-react";
 
 interface DesktopMenuProps {
   menuItems: Array<{
