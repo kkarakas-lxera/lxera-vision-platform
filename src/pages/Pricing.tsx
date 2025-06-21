@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -42,7 +41,7 @@ const Pricing = () => {
         "Taxonomist Skill Gap Engine"
       ],
       popular: false,
-      hasFreeTrial: true,
+      hasFreeTrial: false,
       showBillingToggle: true
     },
     {
@@ -163,13 +162,6 @@ const Pricing = () => {
                       </p>
                     )}
 
-                    {/* Free Trial Note for Core Plan */}
-                    {plan.hasFreeTrial && (
-                      <p className="text-sm text-business-black/60 mb-4 font-inter">
-                        14-day free trial. No credit card required.
-                      </p>
-                    )}
-
                     {plan.subtitle && (
                       <div className="bg-business-black/10 rounded-lg px-4 py-2 mb-4 border border-business-black/20">
                         <p className="text-sm font-medium text-business-black font-inter">
@@ -219,7 +211,7 @@ const Pricing = () => {
                         : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
                     }`}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : plan.hasFreeTrial ? 'Try for free' : 'Get Started'}
+                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
                   </Button>
                 </div>
               ))}
