@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -94,15 +95,15 @@ const CitizenDeveloperEnablement = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
             >
               Request Beta Access
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
             <Button
               variant="outline"
               size="lg"
-              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
+              className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
             >
               Watch Demo
             </Button>
@@ -226,15 +227,15 @@ const CitizenDeveloperEnablement = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
+                className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
               >
                 Apply for Beta Access
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
+                className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
               >
                 Request Pilot Demo
               </Button>
