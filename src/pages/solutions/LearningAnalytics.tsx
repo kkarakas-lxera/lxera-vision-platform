@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +52,7 @@ const LearningAnalytics = () => {
             <BarChart3 className="w-4 h-4 mr-2" />
             Enterprise Analytics Platform
           </Badge>
-          <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 leading-tight">
+          <h1 className="text-4xl lg:text-5xl font-medium text-business-black mb-6 leading-tight">
             Strategic Learning
             <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Intelligence Platform</span>
           </h1>
