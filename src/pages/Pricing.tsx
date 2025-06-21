@@ -7,6 +7,8 @@ import PlanComparisonSection from "@/components/PlanComparisonSection";
 import Navigation from "@/components/Navigation";
 
 const Pricing = () => {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
+
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
     "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
@@ -25,8 +27,9 @@ const Pricing = () => {
   const plans = [
     {
       name: "Core",
-      price: "$49",
-      period: "per month/per user",
+      price: billingCycle === 'annually' ? "$29" : "$49",
+      period: billingCycle === 'annually' ? "per month/per user" : "per month/per user",
+      billingNote: billingCycle === 'annually' ? "Billed annually" : "Billed monthly",
       description: "Everything you need to get started",
       features: [
         "AI Hyper-Personalized Learning Engine",
@@ -39,7 +42,8 @@ const Pricing = () => {
         "Taxonomist Skill Gap Engine"
       ],
       popular: false,
-      hasFreeTrial: false
+      hasFreeTrial: true,
+      showBillingToggle: true
     },
     {
       name: "Enterprise",
@@ -54,7 +58,8 @@ const Pricing = () => {
         "SSO/HRIS Integrations"
       ],
       popular: false,
-      hasFreeTrial: false
+      hasFreeTrial: false,
+      showBillingToggle: false
     }
   ];
 
@@ -111,6 +116,35 @@ const Pricing = () => {
                     <p className="text-business-black/70 mb-6 font-inter font-normal">
                       {plan.description}
                     </p>
+
+                    {/* Billing Toggle for Core Plan */}
+                    {plan.showBillingToggle && (
+                      <div className="flex justify-center mb-6">
+                        <div className="bg-gray-100 rounded-lg p-1 flex">
+                          <button
+                            onClick={() => setBillingCycle('annually')}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                              billingCycle === 'annually'
+                                ? 'bg-white text-business-black shadow-sm'
+                                : 'text-business-black/60 hover:text-business-black'
+                            }`}
+                          >
+                            Annually
+                          </button>
+                          <button
+                            onClick={() => setBillingCycle('monthly')}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                              billingCycle === 'monthly'
+                                ? 'bg-white text-business-black shadow-sm'
+                                : 'text-business-black/60 hover:text-business-black'
+                            }`}
+                          >
+                            Monthly
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mb-4">
                       <span className="text-4xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
@@ -121,6 +155,21 @@ const Pricing = () => {
                         </span>
                       )}
                     </div>
+
+                    {/* Billing Note for Core Plan */}
+                    {plan.billingNote && (
+                      <p className="text-sm text-business-black/60 mb-4 font-inter">
+                        {plan.billingNote}
+                      </p>
+                    )}
+
+                    {/* Free Trial Note for Core Plan */}
+                    {plan.hasFreeTrial && (
+                      <p className="text-sm text-business-black/60 mb-4 font-inter">
+                        14-day free trial. No credit card required.
+                      </p>
+                    )}
+
                     {plan.subtitle && (
                       <div className="bg-business-black/10 rounded-lg px-4 py-2 mb-4 border border-business-black/20">
                         <p className="text-sm font-medium text-business-black font-inter">
@@ -170,7 +219,7 @@ const Pricing = () => {
                         : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
                     }`}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
+                    {plan.name === 'Enterprise' ? 'Contact Sales' : plan.hasFreeTrial ? 'Try for free' : 'Get Started'}
                   </Button>
                 </div>
               ))}
