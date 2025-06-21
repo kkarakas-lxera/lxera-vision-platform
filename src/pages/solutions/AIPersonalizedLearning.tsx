@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,10 +118,10 @@ const AIPersonalizedLearning = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              How AI Transforms Enterprise Learning
+              How AI Transforms Organizational Learning
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Discover the intelligent features designed for HR Directors, L&D Directors, and Digital Transformation leaders
+              Discover the intelligent features designed to drive strategic workforce transformation across your enterprise
             </p>
           </div>
           
@@ -188,7 +189,7 @@ const AIPersonalizedLearning = () => {
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-rose-600 text-white p-4 rounded-2xl shadow-lg">
                   <div className="text-2xl font-semibold">95%</div>
-                  <div className="text-sm">Director Satisfaction</div>
+                  <div className="text-sm">Leadership Satisfaction</div>
                 </div>
               </div>
             </div>
@@ -207,7 +208,7 @@ const AIPersonalizedLearning = () => {
               Join strategic leaders already transforming their workforce development with AI-powered personalization.
             </p>
             <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-              Designed for HR Directors, L&D Directors, and Digital Transformation leaders ready to make data-driven strategic decisions.
+              Designed for forward-thinking organizations ready to make data-driven strategic decisions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
