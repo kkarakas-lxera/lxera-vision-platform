@@ -67,7 +67,7 @@ const MentorshipSupport = () => {
             <Heart className="w-4 h-4 mr-2" />
             Always-On Support
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Mentorship &
             <span className="text-business-black"> Support Tools</span>
           </h1>
@@ -90,7 +90,7 @@ const MentorshipSupport = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Comprehensive Support Ecosystem
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
@@ -138,7 +138,7 @@ const MentorshipSupport = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Built for Scale and Personalization
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
@@ -203,7 +203,7 @@ const MentorshipSupport = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-6">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Never Leave Learners Behind
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
