@@ -116,30 +116,37 @@ const Pricing = () => {
                       {plan.description}
                     </p>
 
-                    {/* Billing Toggle for Core Plan */}
+                    {/* Enhanced Billing Toggle for Core Plan */}
                     {plan.showBillingToggle && (
                       <div className="flex justify-center mb-6">
-                        <div className="bg-gray-100 rounded-lg p-1 flex">
-                          <button
-                            onClick={() => setBillingCycle('annually')}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                              billingCycle === 'annually'
-                                ? 'bg-white text-business-black shadow-sm'
-                                : 'text-business-black/60 hover:text-business-black'
-                            }`}
-                          >
-                            Annually
-                          </button>
-                          <button
-                            onClick={() => setBillingCycle('monthly')}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                              billingCycle === 'monthly'
-                                ? 'bg-white text-business-black shadow-sm'
-                                : 'text-business-black/60 hover:text-business-black'
-                            }`}
-                          >
-                            Monthly
-                          </button>
+                        <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-1.5 shadow-inner border border-gray-200">
+                          <div className="flex relative">
+                            <button
+                              onClick={() => setBillingCycle('annually')}
+                              className={`relative px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform ${
+                                billingCycle === 'annually'
+                                  ? 'bg-white text-business-black shadow-lg scale-105 border border-gray-200'
+                                  : 'text-business-black/60 hover:text-business-black hover:bg-white/50'
+                              }`}
+                            >
+                              <span className="relative z-10">Annually</span>
+                              {billingCycle === 'annually' && (
+                                <div className="absolute -top-2 -right-2 bg-future-green text-business-black text-xs font-bold px-2 py-1 rounded-full transform rotate-12 shadow-md">
+                                  Save 40%
+                                </div>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setBillingCycle('monthly')}
+                              className={`relative px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform ${
+                                billingCycle === 'monthly'
+                                  ? 'bg-white text-business-black shadow-lg scale-105 border border-gray-200'
+                                  : 'text-business-black/60 hover:text-business-black hover:bg-white/50'
+                              }`}
+                            >
+                              <span className="relative z-10">Monthly</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -155,11 +162,18 @@ const Pricing = () => {
                       )}
                     </div>
 
-                    {/* Billing Note for Core Plan */}
+                    {/* Enhanced Billing Note for Core Plan */}
                     {plan.billingNote && (
-                      <p className="text-sm text-business-black/60 mb-4 font-inter">
-                        {plan.billingNote}
-                      </p>
+                      <div className="mb-4">
+                        <p className="text-sm text-business-black/60 font-inter">
+                          {plan.billingNote}
+                        </p>
+                        {billingCycle === 'annually' && (
+                          <p className="text-xs text-future-green font-medium mt-1 font-inter">
+                            💰 You save $240 per year per user
+                          </p>
+                        )}
+                      </div>
                     )}
 
                     {plan.subtitle && (
