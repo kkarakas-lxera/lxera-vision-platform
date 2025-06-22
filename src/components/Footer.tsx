@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Linkedin, Youtube, Mail } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -130,21 +131,6 @@ const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
-        </div>
-
-        {/* Contact Info */}
-        <div className="border-t border-white/10 mt-12 pt-8">
-          <div className="flex justify-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-future-green/20 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-future-green" />
-              </div>
-              <div>
-                <p className="text-white/50 text-sm">Email</p>
-                <p className="text-white">hello@lxera.com</p>
-              </div>
-            </div>
           </div>
         </div>
 
