@@ -1,11 +1,11 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, MessageCircle, Users, Headphones, Building } from "lucide-react";
+import { Mail, Phone, MapPin, MessageCircle, Users, Headphones, Building, Shield, Clock, Award, Zap } from "lucide-react";
 
 const Contact = () => {
   const contactOptions = [
@@ -39,27 +39,26 @@ const Contact = () => {
     }
   ];
 
-  const offices = [
+  const trustFactors = [
     {
-      city: "San Francisco",
-      address: "123 Innovation Drive, Suite 200",
-      zipcode: "San Francisco, CA 94107",
-      phone: "+1 (555) 123-4567",
-      isPrimary: true
+      icon: Shield,
+      title: "Enterprise Security",
+      description: "Bank-level security with SOC 2 compliance and end-to-end encryption"
     },
     {
-      city: "New York",
-      address: "456 Learning Avenue, Floor 15",
-      zipcode: "New York, NY 10001",
-      phone: "+1 (555) 234-5678",
-      isPrimary: false
+      icon: Clock,
+      title: "24/7 Support",
+      description: "Round-the-clock support from our dedicated customer success team"
     },
     {
-      city: "London",
-      address: "789 Innovation Street",
-      zipcode: "London, UK EC1A 1BB",
-      phone: "+44 20 1234 5678",
-      isPrimary: false
+      icon: Award,
+      title: "Proven Results",
+      description: "95% customer satisfaction rate with measurable learning outcomes"
+    },
+    {
+      icon: Zap,
+      title: "Quick Implementation",
+      description: "Get started in days, not months, with our streamlined onboarding"
     }
   ];
 
@@ -188,44 +187,35 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Office Locations */}
+      {/* Trust & Credibility Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Our Offices
+              Why Organizations Trust LXERA
             </h2>
-            <p className="text-lg text-business-black/70">
-              Find us around the world
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+              Join hundreds of forward-thinking organizations already transforming their learning experience
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            {offices.map((office, index) => (
-              <Card key={index} className="text-center border-0 bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <h3 className="text-xl font-bold text-business-black">{office.city}</h3>
-                    {office.isPrimary && (
-                      <Badge className="bg-future-green text-business-black">HQ</Badge>
-                    )}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {trustFactors.map((factor, index) => {
+              const IconComponent = factor.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-emerald/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <IconComponent className="w-8 h-8 text-future-green" />
                   </div>
-                  <div className="space-y-3 text-business-black/70">
-                    <div className="flex items-center justify-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <div className="text-center">
-                        <div>{office.address}</div>
-                        <div>{office.zipcode}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <span>{office.phone}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+                  <h3 className="text-lg font-semibold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300">
+                    {factor.title}
+                  </h3>
+                  <p className="text-business-black/70 text-sm leading-relaxed">
+                    {factor.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
