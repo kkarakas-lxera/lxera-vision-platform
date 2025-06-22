@@ -55,7 +55,7 @@ const AIPersonalizedLearning = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-pink-50/20 to-rose-50/20"></div>
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center animate-fade-in-up">
-            <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
+            <Badge className="mb-6 bg-pink-600/20 text-business-black border-pink-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
               <Brain className="w-4 h-4 mr-2" />
               AI-Personalized Learning
             </Badge>
@@ -116,7 +116,7 @@ const AIPersonalizedLearning = () => {
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-pink-600/20 to-rose-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
                     <CardTitle className="text-xl font-medium text-business-black group-hover:text-pink-600 transition-colors mb-4 font-inter">
@@ -136,7 +136,7 @@ const AIPersonalizedLearning = () => {
       </section>
 
       {/* What You Gain Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-future-green/20 to-emerald/10">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-pink-600/20 to-rose-600/10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             Smarter learning. Better outcomes.
