@@ -35,9 +35,9 @@ const IndustryUseCases = () => {
       {useCases.map((useCase, index) => {
         const IconComponent = useCase.icon;
         return (
-          <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
             <CardHeader className="text-center pb-4">
-              <div className={`w-16 h-16 bg-gradient-to-br ${useCase.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+              <div className={`w-16 h-16 bg-gradient-to-br ${useCase.color} rounded-3xl flex items-center justify-center mx-auto mb-4`}>
                 <IconComponent className="w-8 h-8 text-white" />
               </div>
               <CardTitle className="text-lg font-semibold text-business-black">
