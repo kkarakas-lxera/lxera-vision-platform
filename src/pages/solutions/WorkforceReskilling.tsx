@@ -5,39 +5,39 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star, Map } from "lucide-react";
 
 const WorkforceReskilling = () => {
   const features = [
     {
-      icon: Puzzle,
-      title: "Skills Taxonomy Integration",
-      description: "Uses real team data to map current capabilities and target critical skill gaps."
+      icon: Map,
+      title: "Real Skills Mapping",
+      description: "LXERA uses your team's actual skill data to understand where people are today and what they need to grow."
     },
     {
-      icon: Brain,
-      title: "AI-Curated Learning Paths",
-      description: "Generates personalized journeys based on goals, behaviors, and taxonomy-defined needs."
+      icon: Target,
+      title: "Personalized Learning Paths",
+      description: "Every team member gets a tailored journey based on their role, goals, and experience level."
     },
     {
       icon: BarChart3,
       title: "Live Skill Gap Analysis",
-      description: "Continuously evaluates progress against role-based or team-wide capability benchmarks."
+      description: "Learning progress is measured against targeted capabilities so gaps can be closed with focus."
     },
     {
-      icon: RefreshCw,
-      title: "Modular Microlearning Delivery",
-      description: "Fits reskilling into real workflows with bite-sized, goal-driven content."
+      icon: Puzzle,
+      title: "Flexible, Modular Content",
+      description: "Short, relevant learning moments that fit into daily work — not on top of it."
     },
     {
       icon: Globe,
-      title: "Enterprise-Scale Personalization",
-      description: "Delivers custom learning at scale across functions, levels, and geographies."
+      title: "Scalable Across Teams",
+      description: "Support individuals, departments, or entire organizations with learning that adapts at every level."
     },
     {
       icon: TrendingUp,
-      title: "Skills Intelligence for Leaders",
-      description: "Dashboards translate learning progress into business-readiness insights."
+      title: "Clear Progress Insights for Leaders",
+      description: "Track readiness, identify growth areas, and make informed decisions with real-time data."
     }
   ];
 
@@ -45,8 +45,8 @@ const WorkforceReskilling = () => {
     <div className="min-h-screen bg-gradient-to-br from-smart-beige to-white">
       <SEO 
         title="Workforce Reskilling & Upskilling - LXERA"
-        description="Bridge skill gaps with AI-personalized learning powered by real team skills data, intelligent pathing, and measurable outcomes."
-        keywords="workforce development, reskilling, upskilling, skills taxonomy, AI learning"
+        description="Empower your people to grow with personalized learning paths, real skill visibility, and measurable progress across teams."
+        keywords="workforce development, reskilling, upskilling, skills mapping, personalized learning"
       />
       <Navigation />
       
@@ -63,7 +63,7 @@ const WorkforceReskilling = () => {
               Workforce Reskilling & Upskilling
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
-              Bridge skill gaps with AI-personalized learning powered by real team skills data, intelligent pathing, and measurable outcomes.
+              Empower your people to grow with personalized learning paths, real skill visibility, and measurable progress across teams.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -89,10 +89,10 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
-            Transformation moves fast. Your teams need to keep up.
+            The pace of change outpaces traditional training.
           </h2>
           <p className="text-lg text-business-black/70 leading-relaxed font-inter">
-            Business models, technologies, and customer needs evolve rapidly. But most reskilling efforts rely on generic content and disconnected tools. Without a real understanding of what skills your teams actually have — and need — growth stalls. You don't just need training. You need clarity, intelligence, and speed.
+            As roles evolve, most teams are left behind by outdated programs and generic content. Without a clear view of existing capabilities, or the flexibility to adapt learning to each person's journey, it's hard to build a workforce ready for what's next.
           </p>
         </div>
       </section>
@@ -102,7 +102,7 @@ const WorkforceReskilling = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
-              AI-powered upskilling, built on real skills data.
+              Smarter learning journeys, built on real skills.
             </h2>
           </div>
           
@@ -139,10 +139,10 @@ const WorkforceReskilling = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-blue-600/20 to-indigo-600/10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
-            Build a resilient, future-ready workforce.
+            Help your teams grow with confidence and purpose.
           </h2>
           <p className="text-lg text-business-black/70 leading-relaxed font-inter">
-            LXERA turns reskilling from a guessing game into a data-backed growth engine. With real team skills at the core, your people gain confidence, your leaders gain visibility, and your business stays competitive — no matter how fast things change.
+            LXERA gives you the tools to reskill and upskill in a way that's focused, personal, and scalable. People stay motivated. Managers stay informed. And your business stays ready for whatever comes next.
           </p>
         </div>
       </section>
@@ -157,10 +157,10 @@ const WorkforceReskilling = () => {
               </div>
             </div>
             <blockquote className="text-xl lg:text-2xl text-business-black italic mb-6 leading-relaxed font-inter">
-              "LXERA gave us clarity on where we were, where we needed to go, and how to get there — all without overwhelming our teams. The platform helped us reskill faster and smarter."
+              "LXERA helped us connect learning to real capability building. Everyone knew exactly what to focus on, and the momentum was real."
             </blockquote>
             <cite className="text-business-black/70 font-medium font-inter">
-              — Head of Capability Development, Pilot Client
+              — Capability Development Lead, Pilot Program
             </cite>
           </div>
         </div>
@@ -171,7 +171,7 @@ const WorkforceReskilling = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
-              Power your people with skills that matter — today and tomorrow.
+              Start reskilling with clarity and purpose.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
