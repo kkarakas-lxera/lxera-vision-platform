@@ -11,20 +11,17 @@ const ScalableLearningSupport = () => {
     {
       icon: MessageSquare,
       title: "AI-Powered Support Intelligence",
-      description: "Instant answers to learner questions with intelligent, context-aware responses designed for enterprise teams",
-      availability: "24/7 Available"
+      description: "Instant answers to learner questions with intelligent, context-aware responses designed for enterprise teams"
     },
     {
       icon: Users2,
       title: "Strategic Mentorship Network",
-      description: "Connect teams with expert mentors and peers for collaborative learning experiences that drive business results",
-      availability: "Global Community"
+      description: "Connect teams with expert mentors and peers for collaborative learning experiences that drive business results"
     },
     {
       icon: Globe,
       title: "Multi-Language Enterprise Support",
-      description: "Learning assistance in 50+ languages with cultural context awareness for global organizations",
-      availability: "Worldwide"
+      description: "Learning assistance in 50+ languages with cultural context awareness for global organizations"
     }
   ];
 
@@ -138,11 +135,8 @@ const ScalableLearningSupport = () => {
               return (
                 <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up group" style={{ animationDelay: `${index * 150}ms` }}>
                   <CardHeader className="text-center pb-4">
-                    <div className="relative w-20 h-20 bg-gradient-to-br from-purple-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-10 h-10 text-purple-600" />
-                      <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                        {feature.availability}
-                      </div>
                     </div>
                     <CardTitle className="text-xl font-semibold text-business-black group-hover:text-purple-600 transition-colors">
                       {feature.title}
