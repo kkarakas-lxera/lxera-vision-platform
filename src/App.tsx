@@ -11,6 +11,8 @@ import Solutions from "./pages/Solutions";
 import Resources from "./pages/Resources";
 import SuccessStories from "./pages/resources/SuccessStories";
 import Blog from "./pages/resources/Blog";
+import ProductTour from "./pages/resources/ProductTour";
+import Glossary from "./pages/resources/Glossary";
 import AIPersonalizedLearning from "./pages/solutions/AIPersonalizedLearning";
 import AILearningSupport from "./pages/solutions/AILearningSupport";
 import WorkforceReskilling from "./pages/solutions/WorkforceReskilling";
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/resources" element={<Resources />} />
             <Route path="/resources/success-stories" element={<SuccessStories />} />
             <Route path="/resources/blog" element={<Blog />} />
+            <Route path="/resources/product-tour" element={<ProductTour />} />
+            <Route path="/resources/glossary" element={<Glossary />} />
             <Route path="/solutions/ai-personalized-learning" element={<AIPersonalizedLearning />} />
             <Route path="/solutions/ai-learning-support-mentorship" element={<AILearningSupport />} />
             <Route path="/solutions/workforce-reskilling-upskilling" element={<WorkforceReskilling />} />
