@@ -13,7 +13,6 @@ const EnterpriseInnovation = () => {
       icon: Lightbulb,
       title: "Strategic Innovation Discovery",
       description: "Identify opportunities and challenges across your enterprise organization with strategic focus",
-      duration: "2-4 weeks",
       deliverables: ["Innovation audit", "Strategic opportunity mapping", "Executive stakeholder analysis"]
     },
     {
@@ -21,7 +20,6 @@ const EnterpriseInnovation = () => {
       icon: Target,
       title: "Strategic Framework Development", 
       description: "Create comprehensive innovation strategies aligned with enterprise business goals and objectives",
-      duration: "4-6 weeks",
       deliverables: ["Innovation roadmap", "Strategic resource allocation", "Executive success metrics"]
     },
     {
@@ -29,7 +27,6 @@ const EnterpriseInnovation = () => {
       icon: Rocket,
       title: "Enterprise Implementation",
       description: "Execute innovation initiatives with continuous monitoring and strategic optimization",
-      duration: "12+ weeks",
       deliverables: ["Strategic pilot programs", "Enterprise-wide deployment", "Strategic impact measurement"]
     }
   ];
@@ -142,36 +139,51 @@ const EnterpriseInnovation = () => {
             {innovationFramework.map((phase, index) => {
               const IconComponent = phase.icon;
               return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up group" style={{ animationDelay: `${index * 200}ms` }}>
-                  <CardHeader className="text-center pb-4">
-                    <div className="relative">
-                      <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Card key={index} className="border-0 bg-white/90 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-500 animate-fade-in-up group relative overflow-hidden" style={{ animationDelay: `${index * 200}ms` }}>
+                  {/* Phase number indicator */}
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-bl-3xl flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">{index + 1}</span>
+                  </div>
+                  
+                  <CardHeader className="text-center pb-4 pt-8">
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                         <IconComponent className="w-10 h-10 text-orange-600" />
                       </div>
-                      <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white">
+                      <Badge className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-600 to-red-600 text-white border-0 shadow-lg">
                         {phase.phase}
                       </Badge>
                     </div>
-                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-orange-600 transition-colors">
+                    <CardTitle className="text-xl font-bold text-business-black group-hover:text-orange-600 transition-colors mb-4">
                       {phase.title}
                     </CardTitle>
-                    <Badge variant="outline" className="mt-2">{phase.duration}</Badge>
                   </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-business-black/70 leading-relaxed mb-6">
+                  <CardContent className="px-6 pb-6">
+                    <CardDescription className="text-business-black/70 leading-relaxed mb-6 text-center">
                       {phase.description}
                     </CardDescription>
                     
-                    <div className="space-y-2">
-                      <div className="text-sm font-semibold text-business-black mb-2">Key Deliverables:</div>
-                      {phase.deliverables.map((deliverable, i) => (
-                        <div key={i} className="flex items-center text-sm text-business-black/80">
-                          <CheckCircle className="w-3 h-3 text-orange-600 mr-2 flex-shrink-0" />
-                          {deliverable}
-                        </div>
-                      ))}
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-business-black mb-3 text-center">Key Deliverables</div>
+                      <div className="space-y-2">
+                        {phase.deliverables.map((deliverable, i) => (
+                          <div key={i} className="flex items-start text-sm text-business-black/80 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg px-3 py-2">
+                            <CheckCircle className="w-4 h-4 text-orange-600 mr-3 flex-shrink-0 mt-0.5" />
+                            <span>{deliverable}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
+                  
+                  {/* Connecting arrow for larger screens */}
+                  {index < innovationFramework.length - 1 && (
+                    <div className="hidden lg:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
+                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                  )}
                 </Card>
               );
             })}
