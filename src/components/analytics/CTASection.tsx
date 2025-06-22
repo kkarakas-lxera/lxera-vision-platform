@@ -6,7 +6,7 @@ const CTASection = () => (
     <div className="max-w-4xl mx-auto text-center">
       <div className="bg-gradient-to-br from-future-green to-emerald rounded-3xl p-12 shadow-2xl border border-future-green/20">
         <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 font-inter">
-          Unlock deeper learning with smarter insights.
+          Ready to understand your learners better?
         </h2>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
