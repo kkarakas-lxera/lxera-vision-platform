@@ -1,10 +1,11 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Lightbulb, CheckCircle, Rocket, Zap, Trophy, Building2, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Lightbulb, CheckCircle, Rocket, Zap, Trophy, Building2, Target, TrendingUp, Users, Brain, Sparkles } from "lucide-react";
 
 const EnterpriseInnovation = () => {
   const innovationFramework = [
@@ -31,30 +32,33 @@ const EnterpriseInnovation = () => {
     }
   ];
 
-  const caseStudies = [
+  const innovationPotentials = [
     {
-      company: "Global Financial Services Corp",
-      industry: "Finance Services",
-      challenge: "Legacy processes limiting digital transformation",
-      solution: "Cross-functional innovation labs with strategic focus",
-      result: "300% increase in digital product launches",
-      icon: Building2
+      scenario: "Manufacturing Innovation Revolution",
+      industry: "Manufacturing",
+      vision: "Transform 500+ frontline workers into innovation catalysts",
+      outcome: "15 breakthrough process improvements within 6 months",
+      impact: "30% reduction in operational inefficiencies",
+      icon: Building2,
+      gradient: "from-blue-500 to-cyan-500"
     },
     {
-      company: "Enterprise Tech Solutions Inc",
-      industry: "Technology",
-      challenge: "Siloed departments hindering strategic collaboration",
-      solution: "Innovation culture transformation across leadership",
-      result: "50% faster strategic time-to-market",
-      icon: Zap
+      scenario: "Financial Services Transformation",
+      industry: "Financial Services", 
+      vision: "Enable cross-functional innovation labs across global offices",
+      outcome: "3x faster digital product development cycles",
+      impact: "300% increase in customer-centric solutions",
+      icon: TrendingUp,
+      gradient: "from-emerald-500 to-teal-500"
     },
     {
-      company: "Government Innovation Network",
-      industry: "Government",
-      challenge: "Limited citizen engagement solutions",
-      solution: "Rapid prototyping framework for public services",
-      result: "95% citizen satisfaction improvement",
-      icon: Trophy
+      scenario: "Healthcare Innovation Network",
+      industry: "Healthcare",
+      vision: "Connect 1000+ healthcare professionals in collaborative innovation",
+      outcome: "Revolutionary patient care solutions through rapid prototyping",
+      impact: "50% improvement in patient outcome innovations",
+      icon: Users,
+      gradient: "from-purple-500 to-pink-500"
     }
   ];
 
@@ -191,45 +195,65 @@ const EnterpriseInnovation = () => {
         </div>
       </section>
 
-      {/* Case Studies */}
+      {/* Innovation Potential */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
+            <div className="flex items-center justify-center mb-6">
+              <Badge className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-2 border-0 shadow-lg">
+                <Brain className="w-4 h-4 mr-2" />
+                Innovation Potential
+                <Sparkles className="w-4 h-4 ml-2" />
+              </Badge>
+            </div>
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Success Stories
+              Envision Your Innovation Future
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Real enterprises, real results, real transformation
+              Picture the transformative possibilities when your organization embraces strategic innovation at scale
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {caseStudies.map((study, index) => {
-              const IconComponent = study.icon;
+            {innovationPotentials.map((potential, index) => {
+              const IconComponent = potential.icon;
               return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 150}ms` }}>
+                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up group overflow-hidden relative" style={{ animationDelay: `${index * 150}ms` }}>
+                  <div className={`h-1 bg-gradient-to-r ${potential.gradient}`}></div>
+                  
                   <CardHeader>
                     <div className="flex items-center mb-4">
-                      <IconComponent className="w-8 h-8 text-orange-600 mr-3" />
+                      <div className={`w-12 h-12 bg-gradient-to-r ${potential.gradient} rounded-2xl flex items-center justify-center mr-4`}>
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
                       <div>
-                        <CardTitle className="text-lg font-bold text-business-black">{study.company}</CardTitle>
-                        <Badge variant="outline" className="mt-1">{study.industry}</Badge>
+                        <CardTitle className="text-lg font-bold text-business-black">{potential.scenario}</CardTitle>
+                        <Badge variant="outline" className="mt-1">{potential.industry}</Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <div className="text-sm font-semibold text-business-black mb-1">Challenge:</div>
-                        <div className="text-sm text-business-black/70">{study.challenge}</div>
+                        <div className="text-sm font-semibold text-business-black mb-2 flex items-center">
+                          <Lightbulb className="w-4 h-4 mr-2 text-orange-600" />
+                          Vision:
+                        </div>
+                        <div className="text-sm text-business-black/70 italic">{potential.vision}</div>
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-business-black mb-1">Solution:</div>
-                        <div className="text-sm text-business-black/70">{study.solution}</div>
+                        <div className="text-sm font-semibold text-business-black mb-2 flex items-center">
+                          <Target className="w-4 h-4 mr-2 text-orange-600" />
+                          Potential Outcome:
+                        </div>
+                        <div className="text-sm text-business-black/70">{potential.outcome}</div>
                       </div>
-                      <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3">
-                        <div className="text-sm font-semibold text-business-black mb-1">Result:</div>
-                        <div className="text-sm font-bold text-orange-600">{study.result}</div>
+                      <div className={`bg-gradient-to-r ${potential.gradient.replace('from-', 'from-').replace('to-', 'to-')}/10 rounded-lg p-3`}>
+                        <div className="text-sm font-semibold text-business-black mb-1 flex items-center">
+                          <Rocket className="w-4 h-4 mr-2 text-orange-600" />
+                          Expected Impact:
+                        </div>
+                        <div className="text-sm font-bold text-orange-600">{potential.impact}</div>
                       </div>
                     </div>
                   </CardContent>
