@@ -34,29 +34,29 @@ const EnterpriseInnovation = () => {
 
   const innovationPotentials = [
     {
-      scenario: "Manufacturing Innovation Revolution",
-      industry: "Manufacturing",
-      vision: "Transform 500+ frontline workers into innovation catalysts",
-      outcome: "15 breakthrough process improvements within 6 months",
-      impact: "30% reduction in operational inefficiencies",
+      scenario: "Government Innovation Revolution",
+      industry: "Government",
+      vision: "Transform 500+ government employees into innovation catalysts across departments",
+      outcome: "15 breakthrough policy improvements and citizen service enhancements within 6 months",
+      impact: "30% reduction in bureaucratic inefficiencies and improved citizen satisfaction",
       icon: Building2,
       gradient: "from-orange-500 to-red-500"
     },
     {
       scenario: "Financial Services Transformation",
       industry: "Financial Services", 
-      vision: "Enable cross-functional innovation labs across global offices",
-      outcome: "3x faster digital product development cycles",
-      impact: "300% increase in customer-centric solutions",
+      vision: "Enable cross-functional innovation labs across global offices and regional branches",
+      outcome: "3x faster digital product development cycles and enhanced customer experience solutions",
+      impact: "300% increase in customer-centric solutions and market responsiveness",
       icon: TrendingUp,
       gradient: "from-orange-500 to-red-500"
     },
     {
       scenario: "Healthcare Innovation Network",
       industry: "Healthcare",
-      vision: "Connect 1000+ healthcare professionals in collaborative innovation",
-      outcome: "Revolutionary patient care solutions through rapid prototyping",
-      impact: "50% improvement in patient outcome innovations",
+      vision: "Connect 1000+ healthcare professionals in collaborative innovation and research initiatives",
+      outcome: "Revolutionary patient care solutions through rapid prototyping and cross-team collaboration",
+      impact: "50% improvement in patient outcome innovations and treatment effectiveness",
       icon: Users,
       gradient: "from-orange-500 to-red-500"
     }
