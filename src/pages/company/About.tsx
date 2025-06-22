@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Users, Target, Lightbulb } from "lucide-react";
+import { Heart, Users, Target, Lightbulb, ArrowRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -213,8 +213,12 @@ const About = () => {
                 We're just getting started, and we'd love to show you what we're building. 
                 Let's have a conversation about the future of learning.
               </p>
-              <Button className="bg-gradient-to-r from-future-green to-emerald hover:from-emerald hover:to-future-green text-business-black font-semibold px-8 py-3 rounded-2xl text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-lg border-0">
+              <Button 
+                size="lg"
+                className="bg-gradient-to-r from-future-green to-emerald hover:from-emerald hover:to-future-green text-business-black hover:text-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-future-green/30 focus:ring-offset-4 border-0"
+              >
                 Get in Touch
+                <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
             </div>
           </div>
