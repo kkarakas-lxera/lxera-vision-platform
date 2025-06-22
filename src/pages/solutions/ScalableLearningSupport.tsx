@@ -5,34 +5,39 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Globe, Shield, Target, TrendingUp, Zap, Bot, RefreshCw, BarChart3, Quote } from "lucide-react";
+import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Globe, Shield, Target, TrendingUp, Zap, Bot, RefreshCw, BarChart3, Quote, Puzzle } from "lucide-react";
 
 const ScalableLearningSupport = () => {
   const supportFeatures = [
     {
       icon: Bot,
-      title: "AI-Powered Learning Assistant",
-      description: "Instantly answers questions, suggests next steps, and keeps learners moving forward"
+      title: "AI Learning Assistant",
+      description: "Answers questions and offers support instantly, within the flow of learning"
     },
     {
       icon: RefreshCw,
       title: "Behavior-Based Nudges",
-      description: "Delivers intelligent prompts when learners slow down, disengage, or need encouragement"
+      description: "Detects hesitation or inactivity and delivers the right prompts at the right time"
     },
     {
-      icon: Users2,
-      title: "Mentor Matching Engine",
-      description: "Pairs users with the right coach, peer, or expert based on goals, context, and progress"
+      icon: MessageSquare,
+      title: "Mentor Matching",
+      description: "Connects learners with mentors or peers based on goals, challenges, and progress"
     },
     {
       icon: Globe,
-      title: "24/7 Availability",
-      description: "Always-on guidance — whether from AI or a human mentor — anytime, anywhere"
+      title: "Available Anytime",
+      description: "Support is accessible 24/7, whether through AI or human guidance"
     },
     {
       icon: BarChart3,
-      title: "Engagement Health Monitoring",
-      description: "Tracks user motivation in real time and proactively offers support before drop-off happens"
+      title: "Engagement Tracking",
+      description: "Monitors learner activity to surface early signs of disengagement"
+    },
+    {
+      icon: Puzzle,
+      title: "Personalized Learning Support Paths",
+      description: "Adapts learning support based on each learner's style, history, and preferences"
     }
   ];
 
@@ -71,7 +76,7 @@ const ScalableLearningSupport = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-smart-beige to-violet-50">
       <SEO 
         title="Scalable Learning Support & Mentorship - LXERA"
-        description="24/7 real-time guidance to keep learners engaged, motivated, and on track — powered by AI and human connection."
+        description="Real-time guidance that keeps learners engaged, motivated, and on track with personalized support."
         keywords="learning support, mentorship, AI guidance, real-time support, learning engagement"
       />
       <Navigation />
@@ -89,8 +94,7 @@ const ScalableLearningSupport = () => {
               <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block">& Mentorship</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              24/7 real-time guidance to keep learners engaged, motivated, and on track — 
-              powered by AI and human connection.
+              Real-time guidance that keeps learners engaged, motivated, and on track with personalized support.
             </p>
           </div>
 
@@ -133,11 +137,10 @@ const ScalableLearningSupport = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-            Most learning platforms leave users alone. We don't.
+            Most learning platforms stop at content. We go further.
           </h2>
           <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
-            LXERA is built for the new era of learning — where personalized support is just as important as personalized content. 
-            Without real-time guidance, learners drop off, feel stuck, or lose motivation. Scalable support isn't a luxury. It's essential.
+            LXERA is built for learners who need more than information. Without timely guidance, people lose momentum or drop off entirely. Supporting every learner shouldn't depend on the size of your team. It should scale effortlessly.
           </p>
         </div>
       </section>
@@ -147,11 +150,11 @@ const ScalableLearningSupport = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Smart support, at scale.
+              Smart support that meets learners where they are.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {supportFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
@@ -176,15 +179,14 @@ const ScalableLearningSupport = () => {
         </div>
       </section>
 
-      {/* What You Get Section */}
+      {/* What You Gain Section */}
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-            A support layer that grows with you.
+            Support that grows with your organization.
           </h2>
           <p className="text-xl text-business-black/70 max-w-4xl mx-auto leading-relaxed">
-            LXERA doesn't just scale content. It scales care. Whether you're guiding 20 learners or 2,000, 
-            our AI adapts to individual needs while offering managers visibility, insights, and peace of mind.
+            LXERA helps you offer meaningful support to every learner, without scaling your team. Whether you're guiding ten users or ten thousand, our system adapts in real time to provide personalized guidance and insight.
           </p>
         </div>
       </section>
@@ -196,7 +198,7 @@ const ScalableLearningSupport = () => {
             <CardContent className="p-12 text-center">
               <Quote className="w-16 h-16 text-purple-600 mx-auto mb-8" />
               <blockquote className="text-2xl text-business-black italic mb-8 leading-relaxed">
-                "LXERA's AI knew exactly when I was stuck and nudged me just right — then connected me with a mentor who'd been through the same challenge."
+                "LXERA's AI knew when I was stuck and nudged me to keep going. Then it connected me with a mentor who had faced the same challenge."
               </blockquote>
               <div className="text-business-black/70 font-medium">
                 — Early User, Pilot Program
@@ -254,7 +256,7 @@ const ScalableLearningSupport = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Turn learning into a guided, supported experience.
+              Give every learner the support they need to succeed.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
