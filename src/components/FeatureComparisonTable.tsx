@@ -103,23 +103,17 @@ const FeatureComparisonTable = () => {
                   <TableCell className="text-center py-6">
                     {row.traditional ? (
                       <div className="flex items-center justify-center">
-                        <div className="bg-green-100 rounded-full p-2">
-                          <Check className="w-5 h-5 text-green-600" />
-                        </div>
+                        <Check className="w-5 h-5 text-business-black" />
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
-                        <div className="bg-red-100 rounded-full p-2">
-                          <X className="w-5 h-5 text-red-500" />
-                        </div>
+                        <X className="w-5 h-5 text-red-500" />
                       </div>
                     )}
                   </TableCell>
                   <TableCell className="text-center py-6 rounded-r-2xl">
                     <div className="flex items-center justify-center">
-                      <div className="bg-gray-100 rounded-full p-2">
-                        <Check className="w-5 h-5 text-business-black" />
-                      </div>
+                      <Check className="w-5 h-5 text-business-black" />
                     </div>
                   </TableCell>
                 </TableRow>
