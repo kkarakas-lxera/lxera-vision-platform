@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -70,7 +71,7 @@ const ProductTour = () => {
         {/* Hero Section */}
         <section className="pt-32 pb-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-medium text-business-black leading-tight tracking-tight mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)', lineHeight: '1.1' }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-business-black leading-tight tracking-tight mb-6">
               Experience LXERA in Action
             </h1>
             <p className="lxera-subheadline mb-8">
@@ -98,7 +99,7 @@ const ProductTour = () => {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center mx-auto mb-4">
                       <IconComponent className="w-6 h-6 text-future-green" />
                     </div>
-                    <h3 className="font-medium text-business-black leading-snug mb-2" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', lineHeight: '1.3' }}>{feature.title}</h3>
+                    <h3 className="text-xl font-medium text-business-black mb-2">{feature.title}</h3>
                     <p className="lxera-card-description">{feature.description}</p>
                   </div>
                 );
@@ -111,7 +112,7 @@ const ProductTour = () => {
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-medium text-business-black leading-tight mb-4" style={{ fontSize: 'clamp(1.75rem, 3vw, 3rem)', lineHeight: '1.2' }}>
+              <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
                 What You'll Explore
               </h2>
               <p className="lxera-section-subtitle">
@@ -130,7 +131,7 @@ const ProductTour = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-medium text-business-black leading-snug" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', lineHeight: '1.3' }}>{step.title}</h3>
+                          <h3 className="text-xl font-medium text-business-black">{step.title}</h3>
                           <span className="lxera-caption bg-smart-beige px-2 py-1 rounded-full">
                             {step.duration}
                           </span>
@@ -152,7 +153,7 @@ const ProductTour = () => {
         {/* CTA Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-future-green/10 to-emerald/10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-medium text-business-black leading-tight mb-4" style={{ fontSize: 'clamp(1.75rem, 3vw, 3rem)', lineHeight: '1.2' }}>
+            <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
               Ready to Transform Your Learning?
             </h2>
             <p className="lxera-section-subtitle mb-8">
