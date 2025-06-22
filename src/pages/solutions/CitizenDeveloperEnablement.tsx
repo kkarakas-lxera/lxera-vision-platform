@@ -1,206 +1,191 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, CheckCircle, Code, Zap, Workflow, Puzzle, Rocket, Users } from "lucide-react";
+import { ArrowRight, Users, Lightbulb, Target, Zap, BookOpen, MessageCircle, TrendingUp, Puzzle, Rocket, Quote } from "lucide-react";
 
 const CitizenDeveloperEnablement = () => {
-  const developmentSteps = [
+  const enablementFeatures = [
     {
-      step: "01",
+      icon: BookOpen,
+      title: "Personalized Learning for Builders",
+      description: "Guided pathways for non-technical talent to learn automation, process design, and low-code tools."
+    },
+    {
+      icon: MessageCircle,
+      title: "Real-Time Help & Guidance",
+      description: "In-app support helps learners prototype confidently and avoid getting stuck."
+    },
+    {
+      icon: TrendingUp,
+      title: "Skill Recognition & Progress Tracking",
+      description: "Visual dashboards show what users are building — and how they're growing."
+    },
+    {
       icon: Puzzle,
-      title: "Visual Application Builder",
-      description: "Enterprise-grade interface for creating applications without coding expertise, designed for business leaders",
-      features: ["Pre-built enterprise components", "Visual workflow designer", "Real-time collaboration"]
+      title: "Templates & Jumpstart Toolkits",
+      description: "Ready-to-use assets make it easy to turn ideas into working solutions fast."
     },
     {
-      step: "02", 
-      icon: Workflow,
-      title: "Strategic Process Automation",
-      description: "Automate critical business processes and create efficient workflows that align with organizational objectives",
-      features: ["Enterprise workflow templates", "Integration connectors", "Automated approval chains"]
+      icon: Users,
+      title: "Mentorship & Collaboration Spaces",
+      description: "Learners connect with peers or mentors to test and improve their solutions."
     },
     {
-      step: "03",
       icon: Rocket,
-      title: "Enterprise Deployment",
-      description: "Deploy your applications instantly to production with enterprise-grade security and scalability",
-      features: ["Secure cloud deployment", "Mobile responsive design", "Enterprise security built-in"]
+      title: "Integrated with Your Tools & Data",
+      description: "Aligned with your internal systems so solutions can move into production easily."
     }
   ];
 
-  const useCases = [
-    { icon: Users, title: "HR Management", description: "Employee onboarding and performance workflows" },
-    { icon: Code, title: "Data Collection", description: "Custom forms and strategic reporting" },
-    { icon: Zap, title: "Approval Processes", description: "Automated approval and governance chains" },
-    { icon: Workflow, title: "Project Tracking", description: "Executive dashboards and project oversight" }
+  const empowermentStats = [
+    { number: "No", label: "Coding Required", icon: Zap },
+    { number: "Real-time", label: "Support", icon: MessageCircle },
+    { number: "Bottom-up", label: "Innovation", icon: Lightbulb },
+    { number: "Everyday", label: "Experts", icon: Users }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-smart-beige to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-smart-beige to-indigo-50">
       <SEO 
-        title="No Code Platform - Citizen Developer Enablement - LXERA"
-        description="Enable business users to build and automate with no-code solutions. Join innovative teams creating applications without traditional coding."
-        keywords="no-code, citizen developer, business automation, process automation, MVP"
+        title="Citizen Developer Enablement - LXERA"
+        description="Empower your people to solve problems, build tools, and innovate — no coding required."
+        keywords="citizen developer, no-code development, employee empowerment, innovation enablement, process automation"
       />
       <Navigation />
       
-      {/* Hero Section - Card Grid Focus */}
-      <section className="pt-32 pb-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
-              Strategic No-Code Solutions for
-              <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent block"> Modern Organizations</span>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-50/20 to-indigo-50/20"></div>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center animate-fade-in-up">
+            <Badge className="mb-6 bg-purple-600/20 text-business-black border-purple-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
+              <Users className="w-4 h-4 mr-2" />
+              Citizen Development
+            </Badge>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight font-inter">
+              Citizen Developer Enablement
             </h1>
-            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Empower your organization to build powerful applications with zero coding. Create strategic solutions that drive business transformation using intuitive drag-and-drop tools designed for enterprise success.
+            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
+              Empower your people to solve problems, build tools, and innovate — no coding required.
             </p>
-          </div>
 
-          {/* Interactive Demo Preview */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl mb-12 animate-fade-in-scale">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Code className="w-10 h-10 text-amber-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-business-black mb-2">Visual Builder</h3>
-                <p className="text-business-black/70 text-sm">Drag, drop, and create enterprise solutions</p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-10 h-10 text-amber-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-business-black mb-2">Auto-Deploy</h3>
-                <p className="text-business-black/70 text-sm">Instantly deploy to production</p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Workflow className="w-10 h-10 text-amber-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-business-black mb-2">Smart Automation</h3>
-                <p className="text-business-black/70 text-sm">Strategic workflows that work</p>
-              </div>
+            {/* Stats Dashboard */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {empowermentStats.map((stat, index) => {
+                const IconComponent = stat.icon;
+                return (
+                  <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
+                    <CardContent className="pt-6">
+                      <IconComponent className="w-8 h-8 text-purple-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                      <div className="text-2xl font-semibold text-purple-600 mb-2">{stat.number}</div>
+                      <div className="text-sm text-business-black/70">{stat.label}</div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-purple-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 border-0 group font-inter"
+              >
+                Request a Demo
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+              >
+                See How It Works
+              </Button>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white hover:from-yellow-600 hover:to-amber-600 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-amber-500/30 focus:ring-offset-4 border-0"
-            >
-              Schedule Enterprise Demo
-              <ArrowRight className="w-6 h-6 ml-3" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
-            >
-              View Executive Brief
-            </Button>
-          </div>
         </div>
       </section>
 
-      {/* Step-by-Step Process */}
-      <section className="py-20 px-6 lg:px-12 bg-white/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              How Enterprise No-Code Development Works
-            </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              From strategic vision to enterprise deployment in three simple steps
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {developmentSteps.map((step, index) => {
-              const IconComponent = step.icon;
-              return (
-                <Card key={index} className="relative border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up group overflow-hidden" style={{ animationDelay: `${index * 200}ms` }}>
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-amber-600 to-yellow-600 rounded-bl-3xl flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">{step.step}</span>
-                  </div>
-                  
-                  <CardHeader className="pb-4 pt-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 text-amber-600" />
-                    </div>
-                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-amber-600 transition-colors">
-                      {step.title}
-                    </CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <CardDescription className="text-business-black/70 leading-relaxed mb-6">
-                      {step.description}
-                    </CardDescription>
-                    
-                    <div className="space-y-2">
-                      {step.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="flex items-center text-sm text-business-black/80">
-                          <CheckCircle className="w-4 h-4 text-amber-600 mr-2 flex-shrink-0" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+      {/* The Challenge Section */}
+      <section className="py-20 px-6 lg:px-12 bg-white/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
+            Innovation shouldn't be limited to IT or leadership.
+          </h2>
+          <p className="text-lg text-business-black/70 leading-relaxed font-inter">
+            Your teams are full of people who understand day-to-day challenges — but they often lack the tools or confidence to create solutions. Without support, ideas stay stuck. Innovation becomes siloed. And opportunities for growth are missed.
+          </p>
         </div>
       </section>
 
-      {/* Use Cases Grid */}
+      {/* How LXERA Helps Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Strategic Use Cases for Enterprise Organizations
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
+              Turn everyday experts into solution creators.
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              See how strategic organizations are solving real business challenges with no-code development
-            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {useCases.map((useCase, index) => {
-              const IconComponent = useCase.icon;
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {enablementFeatures.map((feature, index) => {
+              const IconComponent = feature.icon;
               return (
-                <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group cursor-pointer" style={{ animationDelay: `${index * 100}ms` }}>
-                  <CardContent className="pt-6">
-                    <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                      <IconComponent className="w-6 h-6 text-amber-600" />
+                <Card 
+                  key={index} 
+                  className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <CardHeader className="text-center pb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600/20 to-indigo-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
-                    <h3 className="font-semibold text-business-black mb-2">{useCase.title}</h3>
-                    <p className="text-sm text-business-black/70">{useCase.description}</p>
+                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-purple-600 transition-colors mb-4 font-inter">
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-business-black/70 text-center leading-relaxed font-inter">
+                      {feature.description}
+                    </CardDescription>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
+        </div>
+      </section>
 
-          {/* Stats Section */}
-          <div className="bg-gradient-to-r from-amber-600 to-yellow-600 rounded-3xl p-12 text-center text-white">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <div className="text-4xl font-semibold mb-2">65%</div>
-                <div className="text-white/90">Faster Delivery</div>
-              </div>
-              <div>
-                <div className="text-4xl font-semibold mb-2">40%</div>
-                <div className="text-white/90">Cost Reduction</div>
-              </div>
-              <div>
-                <div className="text-4xl font-semibold mb-2">95%</div>
-                <div className="text-white/90">Executive Satisfaction</div>
+      {/* What You Gain Section */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-purple-600/20 to-indigo-600/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
+            A culture where innovation comes from everywhere.
+          </h2>
+          <p className="text-lg text-business-black/70 leading-relaxed font-inter">
+            LXERA creates the conditions for bottom-up innovation — giving people the skills, support, and confidence to solve real problems. As they build, they learn. As they learn, they drive transformation.
+          </p>
+        </div>
+      </section>
+
+      {/* Real Impact Section */}
+      <section className="py-20 px-6 lg:px-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl p-12 text-center shadow-xl">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Quote className="w-8 h-8 text-white" />
               </div>
             </div>
+            <blockquote className="text-xl lg:text-2xl text-business-black italic mb-6 leading-relaxed font-inter">
+              "I never thought I could build something that would change how we work — now I've done it twice."
+            </blockquote>
+            <cite className="text-business-black/70 font-medium font-inter">
+              — Operations Coordinator, Citizen Dev Pilot
+            </cite>
           </div>
         </div>
       </section>
@@ -208,30 +193,24 @@ const CitizenDeveloperEnablement = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-amber-500 to-yellow-500 rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Ready to Transform Your Enterprise Operations?
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-purple-200/50">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
+              Unleash the builders already on your team.
             </h2>
-            <p className="text-lg text-white/90 mb-4 max-w-2xl mx-auto">
-              Join forward-thinking organizations already building solutions with enterprise no-code. Designed for strategic leaders ready to drive digital transformation.
-            </p>
-            <p className="text-base text-white/80 mb-8 max-w-2xl mx-auto">
-              Trusted by enterprise partners across various industries.
-            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-amber-600 hover:bg-amber-50 hover:text-amber-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 border-0"
+                className="bg-white text-purple-600 hover:bg-purple-50 hover:text-purple-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
-                Schedule Enterprise Demo
-                <ArrowRight className="w-6 h-6 ml-3" />
+                Talk to an Expert
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-3 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-amber-600 hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-purple-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
-                Request Strategic Brief
+                Get Early Access
               </Button>
             </div>
           </div>
