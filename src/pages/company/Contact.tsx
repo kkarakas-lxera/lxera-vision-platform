@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, MessageCircle, Users, Headphones, Building, Shield, Clock, Award, Zap } from "lucide-react";
+import { Building, Headphones, Users, MessageCircle } from "lucide-react";
 
 const Contact = () => {
   const contactOptions = [
@@ -36,29 +36,6 @@ const Contact = () => {
       description: "For press, media, or other general questions about LXERA",
       action: "Send Message",
       email: "hello@lxera.com"
-    }
-  ];
-
-  const trustFactors = [
-    {
-      icon: Shield,
-      title: "Enterprise Security",
-      description: "Bank-level security with SOC 2 compliance and end-to-end encryption"
-    },
-    {
-      icon: Clock,
-      title: "24/7 Support",
-      description: "Round-the-clock support from our dedicated customer success team"
-    },
-    {
-      icon: Award,
-      title: "Proven Results",
-      description: "95% customer satisfaction rate with measurable learning outcomes"
-    },
-    {
-      icon: Zap,
-      title: "Quick Implementation",
-      description: "Get started in days, not months, with our streamlined onboarding"
     }
   ];
 
@@ -184,39 +161,6 @@ const Contact = () => {
               </form>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Trust & Credibility Section */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Why Organizations Trust LXERA
-            </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Join hundreds of forward-thinking organizations already transforming their learning experience
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {trustFactors.map((factor, index) => {
-              const IconComponent = factor.icon;
-              return (
-                <div key={index} className="text-center group">
-                  <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-emerald/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <IconComponent className="w-8 h-8 text-future-green" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-business-black mb-2 group-hover:text-future-green transition-colors duration-300">
-                    {factor.title}
-                  </h3>
-                  <p className="text-business-black/70 text-sm leading-relaxed">
-                    {factor.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </section>
 
