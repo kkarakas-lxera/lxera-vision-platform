@@ -1,8 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2 } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -161,7 +160,7 @@ const MobileMenu = ({
     }
   ];
 
-  // Define resources items with icons and colors
+  // Updated resources items with new subcategories
   const resourcesItems = [
     {
       name: "Blog",
@@ -172,12 +171,20 @@ const MobileMenu = ({
       description: "Latest insights, trends, and best practices"
     },
     {
-      name: "Success Stories",
-      href: "/resources/success-stories",
-      icon: Trophy,
-      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
-      iconColor: "text-amber-600",
-      description: "Real transformations from our customers"
+      name: "Product Tour",
+      href: "/resources/product-tour",
+      icon: Play,
+      color: "bg-gradient-to-br from-green-100 to-emerald-100",
+      iconColor: "text-green-600",
+      description: "Interactive walkthrough of LXERA features"
+    },
+    {
+      name: "Glossary",
+      href: "/resources/glossary",
+      icon: Book,
+      color: "bg-gradient-to-br from-purple-100 to-violet-100",
+      iconColor: "text-purple-600",
+      description: "Key terms and definitions in learning technology"
     }
   ];
 
