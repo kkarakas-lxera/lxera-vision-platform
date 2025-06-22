@@ -54,10 +54,75 @@
     @apply bg-smart-beige text-business-black font-inter;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'opsz' 32;
+    line-height: 1.6;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
+  /* Consistent Typography Hierarchy */
+  h1 {
+    @apply font-medium text-business-black leading-tight tracking-tight;
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1.1;
+  }
+
+  h2 {
+    @apply font-medium text-business-black leading-tight;
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    line-height: 1.2;
+  }
+
+  h3 {
+    @apply font-medium text-business-black leading-snug;
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    line-height: 1.3;
+  }
+
+  h4 {
+    @apply font-medium text-business-black leading-snug;
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    line-height: 1.4;
+  }
+
+  h5 {
+    @apply font-medium text-business-black leading-normal;
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+    line-height: 1.4;
+  }
+
+  h6 {
+    @apply font-medium text-business-black leading-normal;
+    font-size: clamp(1rem, 1.25vw, 1.25rem);
+    line-height: 1.4;
+  }
+
+  /* Body text consistency */
+  p {
+    @apply text-business-black/80 leading-relaxed;
+    font-size: clamp(0.875rem, 1.2vw, 1.125rem);
+    line-height: 1.6;
+  }
+
+  /* Link styling */
+  a {
+    @apply text-business-black transition-colors duration-200;
+  }
+
+  a:hover {
+    @apply text-future-green;
+  }
+
+  /* List styling */
+  ul, ol {
+    @apply text-business-black/80 leading-relaxed;
+  }
+
+  li {
+    line-height: 1.6;
+  }
+
+  /* Quote styling */
+  blockquote {
+    @apply text-business-black italic border-l-4 border-future-green/30 pl-6 font-medium;
+    line-height: 1.6;
   }
 
   /* Smooth scrolling for better transitions */

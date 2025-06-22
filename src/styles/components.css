@@ -14,6 +14,38 @@
   .lxera-hover {
     @apply transition-all duration-300 ease-out hover:scale-105 hover:shadow-lg;
   }
+  
+  /* Typography Utilities */
+  .lxera-headline {
+    @apply font-medium text-business-black leading-tight tracking-tight;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    line-height: 1.1;
+  }
+  
+  .lxera-subheadline {
+    @apply font-normal text-business-black/85 leading-relaxed;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    line-height: 1.6;
+  }
+  
+  .lxera-body-large {
+    @apply font-normal text-business-black/80 leading-relaxed;
+    font-size: clamp(1rem, 1.3vw, 1.125rem);
+    line-height: 1.6;
+  }
+  
+  .lxera-body {
+    @apply font-normal text-business-black/80 leading-relaxed;
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
+    line-height: 1.6;
+  }
+  
+  .lxera-caption {
+    @apply font-normal text-business-black/60 leading-normal;
+    font-size: clamp(0.75rem, 1vw, 0.875rem);
+    line-height: 1.5;
+  }
+
   /* Enhanced section transitions */
   .section-transition {
     @apply relative;
@@ -61,16 +93,45 @@
   }
   /* Consistent button styling */
   .lxera-btn-primary {
-    @apply bg-future-green text-business-black hover:bg-emerald hover:text-white font-semibold rounded-full transition-all duration-300 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2;
+    @apply bg-future-green text-business-black hover:bg-emerald hover:text-white font-medium rounded-full transition-all duration-300 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2;
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
   }
   .lxera-btn-secondary {
-    @apply bg-business-black text-white hover:bg-business-black/90 font-semibold rounded-full transition-all duration-300 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2;
+    @apply bg-business-black text-white hover:bg-business-black/90 font-medium rounded-full transition-all duration-300 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2;
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
   }
   /* Consistent text color utilities */
   .lxera-text-primary { @apply text-business-black; }
   .lxera-text-secondary { @apply text-business-black/80; }
   .lxera-text-muted { @apply text-business-black/60; }
   .lxera-text-accent { @apply text-future-green; }
+  
+  /* Card title consistency */
+  .lxera-card-title {
+    @apply font-medium text-business-black leading-snug;
+    font-size: clamp(1.25rem, 1.8vw, 1.5rem);
+    line-height: 1.3;
+  }
+  
+  .lxera-card-description {
+    @apply font-normal text-business-black/70 leading-relaxed;
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
+    line-height: 1.6;
+  }
+  
+  /* Section header consistency */
+  .lxera-section-title {
+    @apply font-medium text-business-black leading-tight;
+    font-size: clamp(2rem, 3.5vw, 3.5rem);
+    line-height: 1.2;
+  }
+  
+  .lxera-section-subtitle {
+    @apply font-normal text-business-black/80 leading-relaxed;
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in-up,
