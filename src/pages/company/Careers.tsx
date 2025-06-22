@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Heart, Zap, Target } from "lucide-react";
+import { MapPin, Clock, Users, Heart, Zap, Target, ArrowRight } from "lucide-react";
 
 const Careers = () => {
   const openRoles = [
@@ -91,7 +91,7 @@ const Careers = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
             Join the Future of
             <span className="block bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
               Learning Innovation
@@ -111,7 +111,7 @@ const Careers = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Open Positions
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -158,7 +158,7 @@ const Careers = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Why Work at LXERA?
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -193,7 +193,7 @@ const Careers = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               What We Look For
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -214,17 +214,25 @@ const Careers = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/90">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
             Ready to Make an Impact?
           </h2>
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
             Don't see the perfect role? We're always looking for exceptional talent to join our mission.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-future-green text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
+            <Button 
+              size="lg"
+              className="bg-future-green text-business-black hover:text-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-future-green/30 focus:ring-offset-4 border-0"
+            >
               Send Your Resume
+              <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
-            <Button variant="outline" className="border-white text-white font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-business-black hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+            >
               Learn More About Us
             </Button>
           </div>
