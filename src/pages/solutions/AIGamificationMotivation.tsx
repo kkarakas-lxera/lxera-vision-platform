@@ -204,10 +204,24 @@ const AIGamificationMotivation = () => {
       {/* Features Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <SectionHeader
-            title="Gamification Features"
-            subtitle="Discover how our AI-powered gamification system creates engaging, personalized learning experiences that motivate and inspire continuous growth."
-          />
+          <div className="text-center mb-20 animate-fade-in-up relative">
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+                Gamification Features
+              </h2>
+              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
+                Discover how our AI-powered gamification system creates engaging, personalized learning experiences that motivate and inspire continuous growth.
+              </p>
+              
+              {/* Enhanced decorative line */}
+              <div className="mt-8 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+                <div className="relative">
+                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
+                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {gamificationFeatures.map((feature, index) => {
@@ -258,10 +272,24 @@ const AIGamificationMotivation = () => {
       {/* Benefits Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <SectionHeader
-            title="Proven Results"
-            subtitle="See the measurable impact of AI-powered gamification on learning engagement, completion rates, and overall performance."
-          />
+          <div className="text-center mb-20 animate-fade-in-up relative">
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+                Proven Results
+              </h2>
+              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
+                See the measurable impact of AI-powered gamification on learning engagement, completion rates, and overall performance.
+              </p>
+              
+              {/* Enhanced decorative line */}
+              <div className="mt-8 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+                <div className="relative">
+                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
+                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((benefit, index) => {
@@ -290,10 +318,24 @@ const AIGamificationMotivation = () => {
       {/* How It Works Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <SectionHeader
-            title="How AI Gamification Works"
-            subtitle="Our intelligent system analyzes learner behavior and preferences to create personalized gamification experiences that drive engagement and motivation."
-          />
+          <div className="text-center mb-20 animate-fade-in-up relative">
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+                How AI Gamification Works
+              </h2>
+              <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
+                Our intelligent system analyzes learner behavior and preferences to create personalized gamification experiences that drive engagement and motivation.
+              </p>
+              
+              {/* Enhanced decorative line */}
+              <div className="mt-8 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+                <div className="relative">
+                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
+                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '0ms' }}>
