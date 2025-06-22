@@ -8,24 +8,21 @@ const testimonials = [
     author: "Sarah Chen",
     role: "Chief Learning Officer",
     company: "TechCorp Industries",
-    impact: "85% retention increase",
-    image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=100&h=100&fit=crop&crop=faces"
+    impact: "85% retention increase"
   },
   {
     quote: "The AI-powered personalization is game-changing. Our teams are learning faster and more effectively than ever.",
     author: "Marcus Rodriguez",
-    role: "VP of Human Resources", 
+    role: "VP of Human Resources",
     company: "Global Solutions Inc",
-    impact: "60% faster completion",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=100&h=100&fit=crop&crop=faces"
+    impact: "60% faster completion"
   },
   {
     quote: "Implementation was seamless, and the ROI was evident within the first quarter. Highly recommended.",
     author: "Dr. Emily Watson",
     role: "Director of Training",
     company: "MedTech Alliance",
-    impact: "3x engagement boost",
-    image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=100&h=100&fit=crop&crop=faces"
+    impact: "3x engagement boost"
   }
 ];
 
@@ -54,24 +51,16 @@ const TestimonialCarousel = () => {
               "{testimonials[currentIndex].quote}"
             </blockquote>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {/* Human avatar */}
-              <div className="flex items-center gap-4">
-                <img 
-                  src={testimonials[currentIndex].image}
-                  alt={testimonials[currentIndex].author}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-future-green/20"
-                />
-                <div className="text-center sm:text-left">
-                  <cite className="text-business-black font-semibold not-italic">
-                    {testimonials[currentIndex].author}
-                  </cite>
-                  <p className="text-business-black/70 text-sm">
-                    {testimonials[currentIndex].role}
-                  </p>
-                  <p className="text-business-black/60 text-sm">
-                    {testimonials[currentIndex].company}
-                  </p>
-                </div>
+              <div className="text-center sm:text-left">
+                <cite className="text-business-black font-semibold not-italic">
+                  {testimonials[currentIndex].author}
+                </cite>
+                <p className="text-business-black/70 text-sm">
+                  {testimonials[currentIndex].role}
+                </p>
+                <p className="text-business-black/60 text-sm">
+                  {testimonials[currentIndex].company}
+                </p>
               </div>
               <div className="bg-future-green/20 text-future-green px-4 py-2 rounded-full text-sm font-medium">
                 {testimonials[currentIndex].impact}

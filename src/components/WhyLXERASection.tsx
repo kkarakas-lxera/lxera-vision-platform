@@ -1,4 +1,3 @@
-
 import AnimatedBackground from "./AnimatedBackground";
 import SectionHeader from "./SectionHeader";
 import { capabilitiesData } from "@/data/capabilitiesData";
@@ -32,48 +31,6 @@ const WhyLXERASection = () => {
                 <div className="relative">
                   <div className="w-32 sm:w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
                   <div className="absolute inset-0 w-32 sm:w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Human-centered introduction with real use case imagery */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <div className="lg:col-span-2">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=800&h=400&fit=crop"
-                  alt="Professional using smartwatch and technology"
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 text-white">
-                  <h3 className="text-2xl font-semibold mb-2">Learning Meets Innovation</h3>
-                  <p className="text-lg opacity-90">Real teams achieving measurable transformation</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="relative overflow-hidden rounded-xl shadow-md">
-                <img 
-                  src="https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=200&fit=crop"
-                  alt="Modern learning environment"
-                  className="w-full h-32 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div className="absolute bottom-3 left-3 text-white text-sm font-medium">
-                  Flexible Learning Spaces
-                </div>
-              </div>
-              <div className="relative overflow-hidden rounded-xl shadow-md">
-                <img 
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=200&fit=crop&crop=faces"
-                  alt="Team collaboration"
-                  className="w-full h-32 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div className="absolute bottom-3 left-3 text-white text-sm font-medium">
-                  Team Innovation
                 </div>
               </div>
             </div>
