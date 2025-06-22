@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,7 +103,7 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Form */}
+      {/* Contact Form - Enhanced Curved Design */}
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
@@ -116,48 +115,66 @@ const Contact = () => {
             </p>
           </div>
           
-          <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardContent className="p-8">
-              <form className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden">
+            <CardContent className="p-10">
+              <form className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <label className="block text-business-black font-medium mb-2">First Name</label>
-                    <Input placeholder="Your first name" className="border-business-black/20" />
+                    <label className="block text-business-black font-medium mb-3 text-lg">First Name</label>
+                    <Input 
+                      placeholder="Your first name" 
+                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
+                    />
                   </div>
                   <div>
-                    <label className="block text-business-black font-medium mb-2">Last Name</label>
-                    <Input placeholder="Your last name" className="border-business-black/20" />
+                    <label className="block text-business-black font-medium mb-3 text-lg">Last Name</label>
+                    <Input 
+                      placeholder="Your last name" 
+                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
+                    />
                   </div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <label className="block text-business-black font-medium mb-2">Email</label>
-                    <Input type="email" placeholder="your.email@company.com" className="border-business-black/20" />
+                    <label className="block text-business-black font-medium mb-3 text-lg">Email</label>
+                    <Input 
+                      type="email" 
+                      placeholder="your.email@company.com" 
+                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
+                    />
                   </div>
                   <div>
-                    <label className="block text-business-black font-medium mb-2">Company</label>
-                    <Input placeholder="Your company name" className="border-business-black/20" />
+                    <label className="block text-business-black font-medium mb-3 text-lg">Company</label>
+                    <Input 
+                      placeholder="Your company name" 
+                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
+                    />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-business-black font-medium mb-2">Subject</label>
-                  <Input placeholder="What would you like to discuss?" className="border-business-black/20" />
-                </div>
-                
-                <div>
-                  <label className="block text-business-black font-medium mb-2">Message</label>
-                  <Textarea 
-                    placeholder="Tell us more about your learning goals and how we can help..."
-                    rows={5}
-                    className="border-business-black/20"
+                  <label className="block text-business-black font-medium mb-3 text-lg">Subject</label>
+                  <Input 
+                    placeholder="What would you like to discuss?" 
+                    className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
                   />
                 </div>
                 
-                <Button className="w-full bg-future-green text-business-black font-semibold py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
-                  Send Message
-                </Button>
+                <div>
+                  <label className="block text-business-black font-medium mb-3 text-lg">Message</label>
+                  <Textarea 
+                    placeholder="Tell us more about your learning goals and how we can help..."
+                    rows={6}
+                    className="border-business-black/20 rounded-2xl px-6 py-4 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg resize-none"
+                  />
+                </div>
+                
+                <div className="pt-4">
+                  <Button className="w-full bg-gradient-to-r from-future-green to-emerald text-business-black font-semibold py-6 rounded-2xl text-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    Send Message
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
