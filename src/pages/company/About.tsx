@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Users, Target, Lightbulb, Award, Globe } from "lucide-react";
+import { Heart, Users, Target, Lightbulb } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -27,20 +27,7 @@ const About = () => {
       title: "Purpose-Driven Impact",
       description: "We measure success by the positive transformation we create in organizations and the lives of learners.",
       color: "from-emerald to-teal-500"
-    },
-    {
-      icon: Lightbulb,
-      title: "Continuous Innovation",
-      description: "We're always learning, experimenting, and pushing boundaries to create the future of workplace learning.",
-      color: "from-future-green to-purple-400"
     }
-  ];
-
-  const stats = [
-    { number: "500K+", label: "Learners Empowered" },
-    { number: "1000+", label: "Organizations Transformed" },
-    { number: "95%", label: "Engagement Rate" },
-    { number: "50+", label: "Countries Served" }
   ];
 
   const team = [
@@ -57,26 +44,12 @@ const About = () => {
       background: "AI Research Scientist, MIT graduate",
       quote: "The best AI doesn't replace human judgment—it amplifies human wisdom and creativity.",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
-    },
-    {
-      name: "Dr. Aisha Patel",
-      role: "Head of Learning Science",
-      background: "PhD in Educational Psychology, Stanford",
-      quote: "Learning is deeply personal. Our role is to create experiences that honor each person's unique journey.",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face"
-    },
-    {
-      name: "James Liu",
-      role: "Head of Product",
-      background: "Former Product Lead at leading EdTech companies",
-      quote: "Great products feel like magic, but they're built with deep empathy for real human needs.",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
     }
   ];
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Flowing gradient background - spans entire page like Writer's design */}
+      {/* Flowing gradient background */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-smart-beige via-white to-smart-beige"></div>
         <div className="absolute inset-0 bg-gradient-to-tr from-future-green/20 via-transparent via-transparent to-purple-400/20"></div>
@@ -87,76 +60,62 @@ const About = () => {
       <div className="relative z-10">
         <Navigation />
         
-        {/* Hero Section - More human, conversational */}
+        {/* Hero Section */}
         <section className="relative pt-32 pb-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
-                We're humans building
+                We're building
                 <span className="block bg-gradient-to-r from-future-green via-emerald to-purple-400 bg-clip-text text-transparent">
                   the future of learning
                 </span>
               </h1>
               <p className="text-lg text-business-black/70 max-w-3xl mx-auto leading-relaxed">
-                LXERA started with a simple belief: every person deserves the chance to grow, learn, and unlock their potential. 
-                We're a team of dreamers, builders, and lifelong learners who happen to be really good with AI.
+                LXERA is on a mission to make learning personal, engaging, and transformative. 
+                We're a small team of passionate builders creating AI-powered solutions that help people unlock their potential.
               </p>
-            </div>
-            
-            {/* Stats with softer, more human styling */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center p-6 rounded-3xl bg-white/40 backdrop-blur-sm border border-white/30 hover:bg-white/60 transition-all duration-300 hover:scale-105">
-                  <div className="text-3xl lg:text-4xl font-bold text-business-black mb-2">
-                    {stat.number}
-                  </div>
-                  <div className="text-business-black/70 font-medium">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
 
-        {/* Mission Section - More personal storytelling */}
+        {/* Mission Section */}
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <h2 className="text-3xl font-bold text-business-black mb-6">
-                  Why We Wake Up Every Day
+                  Our Mission
                 </h2>
                 <p className="text-lg text-business-black/70 mb-8 leading-relaxed">
-                  We've all been there—sitting in training that doesn't click, struggling with skills that seem out of reach, 
-                  or watching brilliant ideas get lost in bureaucracy. We started LXERA because we believe learning should 
-                  be personal, engaging, and transformative.
+                  We believe learning should be personal, engaging, and transformative. Too often, people struggle 
+                  with one-size-fits-all training that doesn't fit their needs or learning style. We're changing that 
+                  with AI that adapts to each learner.
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-future-green rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-business-black/80">Every learner gets a personalized journey that actually fits their life</span>
+                    <span className="text-business-black/80">Personalized learning paths that adapt to you</span>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-future-green rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-business-black/80">AI that feels helpful, not intimidating—like having a patient mentor</span>
+                    <span className="text-business-black/80">AI mentorship that's always available when you need it</span>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-future-green rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-business-black/80">Innovation that spreads naturally when people feel empowered</span>
+                    <span className="text-business-black/80">Technology that feels human, not intimidating</span>
                   </div>
                 </div>
               </div>
               <div>
                 <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/30 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-future-green/20 to-transparent rounded-bl-3xl"></div>
-                  <Globe className="w-16 h-16 text-future-green mb-6 relative z-10" />
+                  <Lightbulb className="w-16 h-16 text-future-green mb-6 relative z-10" />
                   <h3 className="text-xl font-bold text-business-black mb-4 relative z-10">
-                    A Global Community
+                    Early Stage, Big Vision
                   </h3>
                   <p className="text-business-black/70 leading-relaxed relative z-10">
-                    From a startup founder in São Paulo learning to code, to a factory manager in Detroit mastering lean processes, 
-                    to a marketing team in Tokyo exploring AI tools—we're honored to be part of everyone's growth story.
+                    We're in the early stages of building something transformative. Every day, we're learning, 
+                    iterating, and getting closer to our vision of making learning truly personal for everyone.
                   </p>
                 </div>
               </div>
@@ -164,7 +123,7 @@ const About = () => {
           </div>
         </section>
 
-        {/* Values Section - Softer, more organic */}
+        {/* Values Section */}
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -172,11 +131,11 @@ const About = () => {
                 What Drives Us
               </h2>
               <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-                These aren't just words on a wall—they're the principles that guide every conversation, every line of code, and every decision we make.
+                These principles guide every decision we make as we build LXERA.
               </p>
             </div>
             
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-3 gap-8">
               {values.map((value, index) => {
                 const IconComponent = value.icon;
                 return (
@@ -205,15 +164,15 @@ const About = () => {
           </div>
         </section>
 
-        {/* Team Section - More personal with quotes */}
+        {/* Team Section */}
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-business-black mb-6">
-                Meet the Humans Behind LXERA
+                Meet the Founders
               </h2>
               <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-                We're educators, technologists, designers, and dreamers from all over the world, united by our passion for human potential.
+                We're a small but passionate team with big dreams and the experience to make them reality.
               </p>
             </div>
             
@@ -243,19 +202,19 @@ const About = () => {
           </div>
         </section>
 
-        {/* CTA Section - Warmer, more inviting */}
+        {/* CTA Section */}
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-4xl mx-auto text-center">
             <div className="bg-white/30 backdrop-blur-sm rounded-3xl p-12 border border-white/30">
               <h2 className="text-3xl font-bold text-business-black mb-6">
-                Ready to unlock your team's potential?
+                Join Us on This Journey
               </h2>
               <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">
-                We'd love to show you how LXERA can help your people grow, learn, and innovate. 
-                No sales pitch—just a genuine conversation about your goals.
+                We're just getting started, and we'd love to show you what we're building. 
+                Let's have a conversation about the future of learning.
               </p>
               <Button className="bg-gradient-to-r from-future-green to-emerald hover:from-emerald hover:to-future-green text-business-black font-semibold px-8 py-3 rounded-2xl text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-lg border-0">
-                Let's Chat
+                Get in Touch
               </Button>
             </div>
           </div>
