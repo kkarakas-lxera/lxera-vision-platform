@@ -215,7 +215,7 @@ const WorkforceReskilling = () => {
             </div>
           </div>
         </div>
-      </Section>
+      </section>
 
       <Footer />
     </div>
