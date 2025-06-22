@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import WhyLXERASection from "@/components/WhyLXERASection";
 import TransformationStartsSection from "@/components/TransformationStartsSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import TestimonialSection from "@/components/TestimonialSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
 import BuiltForInnovatorsSection from "@/components/BuiltForInnovatorsSection";
 import ContactSection from "@/components/ContactSection";
@@ -24,6 +25,9 @@ const Index = () => {
       </div>
       <div className="transition-all duration-1000 ease-in-out">
         <HowItWorksSection />
+      </div>
+      <div className="transition-all duration-1000 ease-in-out">
+        <TestimonialSection />
       </div>
       <div className="transition-all duration-1000 ease-in-out">
         <PlatformHighlightsSection />
