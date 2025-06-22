@@ -155,7 +155,7 @@ const AIGamificationMotivation = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 font-semibold px-10 py-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
+                className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-semibold px-10 py-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
               >
                 Schedule Consultation
                 <ArrowRight className="w-5 h-5 ml-2" />
