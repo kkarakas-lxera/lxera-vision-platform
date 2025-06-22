@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -70,7 +71,7 @@ const Pricing = () => {
         {/* Header Section */}
         <div className="bg-white py-4 lg:py-6 mt-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter leading-tight tracking-tight">
+            <h1 className="text-4xl lg:text-6xl font-normal text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
             <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
