@@ -59,7 +59,7 @@ const AIPersonalizedLearning = () => {
               <Brain className="w-4 h-4 mr-2" />
               AI-Personalized Learning
             </Badge>
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-semibold text-business-black mb-6 leading-tight font-inter">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight font-inter">
               AI-Personalized Learning
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
@@ -68,7 +68,7 @@ const AIPersonalizedLearning = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-rose-600 hover:to-pink-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0 group font-inter"
+                className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-rose-600 hover:to-pink-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0 group font-inter"
               >
                 Request a Demo
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -76,7 +76,7 @@ const AIPersonalizedLearning = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
               >
                 Experience It Now
               </Button>
@@ -88,7 +88,7 @@ const AIPersonalizedLearning = () => {
       {/* The Challenge Section */}
       <section className="py-20 px-6 lg:px-12 bg-white/50">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-8 font-inter">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             One-size-fits-all learning doesn't work anymore.
           </h2>
           <p className="text-lg text-business-black/70 leading-relaxed font-inter">
@@ -101,7 +101,7 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 font-inter">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
               AI that learns the learner.
             </h2>
           </div>
@@ -117,7 +117,7 @@ const AIPersonalizedLearning = () => {
                   <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
-                  <CardTitle className="text-xl font-semibold text-business-black group-hover:text-pink-600 transition-colors mb-4 font-inter">
+                  <CardTitle className="text-xl font-medium text-business-black group-hover:text-pink-600 transition-colors mb-4 font-inter">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
@@ -135,7 +135,7 @@ const AIPersonalizedLearning = () => {
       {/* What You Gain Section */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-future-green/20 to-emerald/10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-8 font-inter">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             Smarter learning. Better outcomes.
           </h2>
           <p className="text-lg text-business-black/70 leading-relaxed font-inter">
@@ -156,7 +156,7 @@ const AIPersonalizedLearning = () => {
             <blockquote className="text-xl lg:text-2xl text-business-black italic mb-6 leading-relaxed font-inter">
               "It was the first time a platform adapted to me — not the other way around. LXERA understood how I learn and kept me going."
             </blockquote>
-            <cite className="text-business-black/70 font-semibold font-inter">
+            <cite className="text-business-black/70 font-medium font-inter">
               — Early User, Personalization Pilot
             </cite>
           </div>
@@ -167,13 +167,13 @@ const AIPersonalizedLearning = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-3xl p-12 shadow-2xl border border-pink-200/50">
-            <h2 className="text-3xl lg:text-4xl font-semibold text-white mb-8 font-inter">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
               Make every learning experience personal and powerful.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
+                className="bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
                 Talk to an Expert
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -181,7 +181,7 @@ const AIPersonalizedLearning = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-pink-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-pink-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
                 Get Early Access
               </Button>
