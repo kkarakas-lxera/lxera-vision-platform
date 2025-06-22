@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -167,11 +166,6 @@ const Pricing = () => {
                         <p className="text-sm text-business-black/60 font-inter">
                           {plan.billingNote}
                         </p>
-                        {billingCycle === 'annually' && (
-                          <p className="text-xs text-future-green font-medium mt-1 font-inter">
-                            Save $240 per year per user
-                          </p>
-                        )}
                       </div>
                     )}
 
