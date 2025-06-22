@@ -1,3 +1,4 @@
+
 import { 
   Bot,
   Shield, 
@@ -119,7 +120,7 @@ const PlatformHighlightsSection = () => {
                   lxera-shadow text-center group 
                   hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 
                   hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up
-                  font-inter
+                  font-inter rounded-3xl
                   "
                 style={{
                   animationDelay: `${250 + index * 60}ms`,
