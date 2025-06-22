@@ -5,44 +5,47 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, BarChart3, CheckCircle, TrendingUp, Target, Eye, Activity, Users, Brain, Zap } from "lucide-react";
+import { BarChart3, Brain, TrendingUp, Eye, Activity, Compass, RefreshCw, Crystal } from "lucide-react";
 
 const LearningAnalytics = () => {
   const coreFeatures = [
     {
       icon: BarChart3,
-      title: "Real-Time Engagement Tracking",
-      description: "Understand how learners interact, how often they engage, and where drop-off risks occur."
+      title: "Live Engagement Tracking",
+      description: "See how learners interact with content and identify drop-off points quickly."
     },
     {
       icon: Brain,
-      title: "Emotional & Motivational Analytics", 
-      description: "LXERA's AI evaluates emotional cues and behavioral signals to predict burnout, confusion, or disengagement."
+      title: "Motivation & Emotional Analysis", 
+      description: "Detects patterns of confusion, fatigue, or momentum based on behavior."
     },
     {
       icon: TrendingUp,
-      title: "Skill Mastery & Progress Mapping",
-      description: "Visual dashboards track individual and team progress, highlighting strengths and knowledge gaps."
+      title: "Progress Dashboards",
+      description: "Tracks individual and team progress, showing where support or recognition is needed."
     },
     {
-      icon: Zap,
-      title: "AI-Powered Feedback Loops",
-      description: "Learner activity triggers personalized nudges, support, or content adjustments — instantly."
+      icon: RefreshCw,
+      title: "Responsive Feedback Loops",
+      description: "Adjusts learning content and nudges based on real-time activity."
     },
     {
-      icon: Eye,
+      icon: Crystal,
       title: "Predictive Learning Insights",
-      description: "Anticipate who may need help before they know it, and intervene with tailored guidance."
+      description: "Flags who might fall behind so you can intervene before performance drops."
+    },
+    {
+      icon: Compass,
+      title: "Skill Gap Intelligence",
+      description: "Maps current skills to learning progress and highlights opportunities for development."
     }
   ];
-
-  console.log("Learning Analytics page loaded - checking CTA button styling");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
       <SEO 
         title="Learning Analytics & Insights - LXERA"
-        description="Transform learning data into strategic insights. Advanced analytics to measure, track, and optimize learning outcomes across your enterprise organization."
+        description="Understand engagement and performance in real time to improve outcomes with intelligent learning data."
         keywords="learning analytics, data insights, learning metrics, performance tracking, educational data, enterprise learning"
       />
       <Navigation />
@@ -60,22 +63,20 @@ const LearningAnalytics = () => {
           </h1>
           
           <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Turn engagement, behavior, and performance data into real-time, actionable intelligence — powered by AI.
+            Understand engagement and performance in real time to improve outcomes with intelligent learning data.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
-              variant="ghost"
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-emerald-600 hover:to-green-600 text-white hover:text-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-green-500/30 focus:ring-offset-4 border-0"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
               Request a Demo
-              <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               size="lg"
-              className="border-3 border-business-black/30 bg-white/90 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-business-black/30 focus:ring-offset-4"
+              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-300"
             >
               See How It Works
             </Button>
@@ -87,10 +88,10 @@ const LearningAnalytics = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-            If you can't measure it, you can't improve it.
+            Knowing who clicked isn't enough.
           </h2>
           <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
-            Traditional learning platforms track clicks and completions — but that's not enough. To truly elevate performance, you need to understand how people learn, when they struggle, and what motivates them. You need analytics that do more than report — they respond.
+            Traditional learning platforms tell you who completed a course. LXERA helps you understand how they engaged, what they felt, and when they needed help. Data should do more than measure—it should guide decisions.
           </p>
         </div>
       </section>
@@ -100,7 +101,7 @@ const LearningAnalytics = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              AI-powered visibility. Smarter decisions.
+              Turn data into action, instantly.
             </h2>
           </div>
 
@@ -133,15 +134,15 @@ const LearningAnalytics = () => {
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-            From data to decisions — instantly.
+            Clear visibility. Smarter decisions.
           </h2>
           <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
-            LXERA translates complex learning behaviors into simple, actionable insights for L&D teams, managers, and mentors. Empower your organization with data that drives strategy, not just reporting.
+            LXERA equips L&D teams and managers with insights that go far beyond completion rates. You'll know who's engaged, who's thriving, and where to focus your attention—before issues arise.
           </p>
         </div>
       </section>
 
-      {/* Real-World Impact */}
+      {/* Real Impact */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-xl border border-green-200/50">
@@ -151,7 +152,7 @@ const LearningAnalytics = () => {
               </div>
             </div>
             <blockquote className="text-xl text-business-black/80 font-medium mb-6 italic leading-relaxed">
-              "LXERA gave us insight into our team's learning health at a glance. We didn't just track progress — we anticipated problems and responded faster."
+              "We didn't just track progress. LXERA helped us predict challenges and respond faster to support our people."
             </blockquote>
             <cite className="text-business-black/60 font-medium">
               — Head of L&D, Pilot Organization
@@ -165,23 +166,18 @@ const LearningAnalytics = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl p-12 shadow-2xl border border-green-200/50">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Unlock smarter learning with real-time intelligence.
+              Unlock deeper learning with smarter insights.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                variant="ghost"
                 size="lg"
-                className="bg-white hover:bg-green-50 text-green-600 hover:text-green-700 font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4 border-0"
-                onClick={() => console.log("Primary CTA clicked - should be white bg with green text")}
+                className="bg-white text-green-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Get a Demo
-                <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
               <Button
-                variant="ghost"
                 size="lg"
-                className="border-3 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-green-600 hover:border-white font-semibold px-12 py-6 text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl focus:ring-4 focus:ring-white/30 focus:ring-offset-4"
-                onClick={() => console.log("Secondary CTA clicked - should be white outline with white text")}
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-green-600 hover:border-white transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Explore Platform
               </Button>
