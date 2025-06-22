@@ -1,3 +1,4 @@
+
 import AnimatedBackground from "./AnimatedBackground";
 import SectionHeader from "./SectionHeader";
 import { capabilitiesData } from "@/data/capabilitiesData";
@@ -36,12 +37,12 @@ const WhyLXERASection = () => {
             </div>
           </div>
 
-          {/* Card Grid in "Built for Innovators" design */}
+          {/* Card Grid with curved styling */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
             {filteredCapabilities.map((capability, index) => (
               <div
                 key={capability.title}
-                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up"
+                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 lxera-shadow text-center group hover:from-smart-beige/90 hover:via-future-green/15 hover:to-smart-beige/70 hover:shadow-xl transition-all duration-500 lxera-hover animate-fade-in-up rounded-3xl"
                 style={{
                   animationDelay: `${300 + index * 100}ms`,
                 }}
