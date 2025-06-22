@@ -71,7 +71,7 @@ const Contact = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
             Let's Start a
             <span className="block bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
               Conversation
@@ -88,7 +88,7 @@ const Contact = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               How Can We Help?
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -133,7 +133,7 @@ const Contact = () => {
       <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Send Us a Message
             </h2>
             <p className="text-lg text-business-black/70">
@@ -193,7 +193,7 @@ const Contact = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Our Offices
             </h2>
             <p className="text-lg text-business-black/70">
@@ -234,7 +234,7 @@ const Contact = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black to-business-black/90">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
