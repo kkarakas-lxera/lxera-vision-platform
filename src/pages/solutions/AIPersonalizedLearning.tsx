@@ -10,32 +10,32 @@ import { ArrowRight, Brain, CheckCircle, Users, Target, BarChart3, Zap, Star, Se
 const AIPersonalizedLearning = () => {
   const features = [
     {
-      icon: "🧠",
+      icon: Brain,
       title: "Behavior-Based Personalization",
       description: "LXERA adapts content based on how users interact, reflect, and respond."
     },
     {
-      icon: "🔍",
+      icon: Search,
       title: "Goal-Driven Learning Journeys",
       description: "Every learner's experience is shaped by their goals, skill gaps, and intent."
     },
     {
-      icon: "📚",
+      icon: BookOpen,
       title: "Content Tailoring in Real Time",
       description: "Our AI engine adjusts content difficulty, format, and sequence on the fly."
     },
     {
-      icon: "🎯",
+      icon: Target,
       title: "Adaptive Learning Styles",
       description: "Matches delivery style to user preferences — visual, auditory, action-based, or mixed."
     },
     {
-      icon: "💡",
+      icon: Lightbulb,
       title: "Microlearning & Modular Paths",
       description: "Breaks content into personalized, digestible modules that suit learners' schedules."
     },
     {
-      icon: "🌟",
+      icon: Zap,
       title: "Motivational Response Tracking",
       description: "Detects emotional signals and adapts the learning pace to sustain focus and flow."
     }
@@ -107,27 +107,30 @@ const AIPersonalizedLearning = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card 
-                key={index} 
-                className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <CardHeader className="text-center pb-4">
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl font-medium text-business-black group-hover:text-pink-600 transition-colors mb-4 font-inter">
-                    {feature.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-business-black/70 text-center leading-relaxed font-inter">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <Card 
+                  key={index} 
+                  className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <CardHeader className="text-center pb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-business-black" />
+                    </div>
+                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-pink-600 transition-colors mb-4 font-inter">
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-business-black/70 text-center leading-relaxed font-inter">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
