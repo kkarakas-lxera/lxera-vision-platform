@@ -29,7 +29,7 @@ const BuiltForInnovatorsSection = () => {
 
   return (
     <>
-      <section className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 font-inter">
+      <section className="w-full py-20 sm:py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 via-future-green/5 to-smart-beige/70 font-inter">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up font-inter">
             Built for Innovators. Designed for Impact.
@@ -77,7 +77,7 @@ const BuiltForInnovatorsSection = () => {
         </div>
       </section>
 
-      {/* Enhanced Section Separator */}
+      {/* Enhanced Section Separator - standardized height */}
       <div className="relative">
         <div className="h-20 bg-gradient-to-b from-smart-beige/70 via-white/30 to-smart-beige/40 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/5 to-transparent"></div>

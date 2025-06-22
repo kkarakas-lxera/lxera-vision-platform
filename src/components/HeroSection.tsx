@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
+      <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-20 sm:pb-24 px-2 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         {/* Simple background gradient without animated elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
         
@@ -131,9 +132,9 @@ const HeroSection = () => {
         />
       </section>
 
-      {/* Enhanced Section Separator */}
+      {/* Enhanced Section Separator - standardized height */}
       <div className="relative">
-        <div className="h-16 bg-gradient-to-b from-smart-beige/80 via-smart-beige/60 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
+        <div className="h-20 bg-gradient-to-b from-smart-beige/80 via-smart-beige/60 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/5 to-transparent"></div>
       </div>
     </>

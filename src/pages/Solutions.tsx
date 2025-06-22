@@ -81,7 +81,7 @@ const Solutions = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 lg:px-12">
+      <section className="pt-32 pb-20 sm:pb-24 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto text-center">
           <div className="animate-fade-in-up">
             <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full">
@@ -100,7 +100,7 @@ const Solutions = () => {
       </section>
 
       {/* Solutions Grid */}
-      <section className="pb-20 px-6 lg:px-12">
+      <section className="pb-20 sm:pb-24 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {useCases.map((useCase, index) => {
@@ -149,7 +149,7 @@ const Solutions = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12">
+      <section className="py-20 sm:py-24 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">

@@ -97,7 +97,7 @@ const ContactSection = () => {
 
   if (isSubmitted) {
     return (
-      <section id="contact" className="w-full py-20 px-6 lg:px-12 bg-business-black">
+      <section id="contact" className="w-full py-20 sm:py-24 px-6 lg:px-12 bg-business-black">
         <div className="max-w-4xl mx-auto text-center">
           <div className="animate-fade-in-scale">
             <CheckCircle2 className="w-16 h-16 text-future-green mx-auto mb-6" />
@@ -124,7 +124,7 @@ const ContactSection = () => {
   }
 
   return (
-    <section id="contact" className="w-full py-20 px-6 lg:px-12 bg-business-black" role="region" aria-labelledby="contact-heading">
+    <section id="contact" className="w-full py-20 sm:py-24 px-6 lg:px-12 bg-business-black" role="region" aria-labelledby="contact-heading">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h2 id="contact-heading" className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white mb-6 animate-fade-in-up">
