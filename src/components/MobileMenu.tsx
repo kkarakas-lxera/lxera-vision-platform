@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -254,14 +255,14 @@ const MobileMenu = ({
                               onClick={() => scrollToSection(dropdownItem.href)}
                               className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                             >
-                              <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                              <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
                                 <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
                               </div>
-                              <div className="flex-1">
-                                <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300 mb-1">
                                   {dropdownItem.name}
                                 </div>
-                                <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
+                                <div className="text-business-black/60 font-inter text-xs transition-colors duration-300 line-clamp-1">
                                   {dropdownItem.description}
                                 </div>
                               </div>

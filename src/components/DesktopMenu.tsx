@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -230,7 +231,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       );
     } else if (item.name === 'Solutions') {
       return (
-        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
+        <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[450px]">
           <div className="space-y-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
@@ -247,14 +248,14 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                     onClick={() => scrollToSection(solution.href)}
                     className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
-                    <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                    <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
                       <IconComponent className={`w-5 h-5 ${solution.iconColor}`} />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300 mb-1">
                         {solution.name}
                       </div>
-                      <div className="text-business-black/60 font-inter text-xs mt-1 transition-colors duration-300">
+                      <div className="text-business-black/60 font-inter text-xs transition-colors duration-300 line-clamp-1">
                         {solution.description}
                       </div>
                     </div>
