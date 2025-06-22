@@ -49,7 +49,7 @@ const CitizenDeveloperEnablement = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-smart-beige to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-smart-beige to-green-50">
       <SEO 
         title="Citizen Developer Enablement - LXERA"
         description="Empower your people to solve problems, build tools, and innovate — no coding required."
@@ -59,10 +59,10 @@ const CitizenDeveloperEnablement = () => {
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-50/20 to-indigo-50/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/20 to-green-50/20"></div>
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center animate-fade-in-up">
-            <Badge className="mb-6 bg-purple-600/20 text-business-black border-purple-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
+            <Badge className="mb-6 bg-emerald-600/20 text-business-black border-emerald-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
               <Users className="w-4 h-4 mr-2" />
               Citizen Development
             </Badge>
@@ -80,8 +80,8 @@ const CitizenDeveloperEnablement = () => {
                 return (
                   <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
                     <CardContent className="pt-6">
-                      <IconComponent className="w-8 h-8 text-purple-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                      <div className="text-2xl font-semibold text-purple-600 mb-2">{stat.number}</div>
+                      <IconComponent className="w-8 h-8 text-emerald-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                      <div className="text-2xl font-semibold text-emerald-600 mb-2">{stat.number}</div>
                       <div className="text-sm text-business-black/70">{stat.label}</div>
                     </CardContent>
                   </Card>
@@ -92,7 +92,7 @@ const CitizenDeveloperEnablement = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-purple-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 border-0 group font-inter"
+                className="bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:from-green-600 hover:to-emerald-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 border-0 group font-inter"
               >
                 Request a Demo
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -140,10 +140,10 @@ const CitizenDeveloperEnablement = () => {
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600/20 to-indigo-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-600/20 to-green-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
-                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-purple-600 transition-colors mb-4 font-inter">
+                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-emerald-600 transition-colors mb-4 font-inter">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -160,7 +160,7 @@ const CitizenDeveloperEnablement = () => {
       </section>
 
       {/* What You Gain Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-purple-600/20 to-indigo-600/10">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-emerald-600/20 to-green-600/10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             A culture where innovation comes from everywhere.
@@ -174,9 +174,9 @@ const CitizenDeveloperEnablement = () => {
       {/* Real Impact Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl p-12 text-center shadow-xl">
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-12 text-center shadow-xl">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Quote className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -193,14 +193,14 @@ const CitizenDeveloperEnablement = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-purple-200/50">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl p-12 shadow-2xl border border-emerald-200/50">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
               Unleash the builders already on your team.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-purple-600 hover:bg-purple-50 hover:text-purple-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
+                className="bg-white text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
                 Talk to an Expert
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -208,7 +208,7 @@ const CitizenDeveloperEnablement = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-purple-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-emerald-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
                 Get Early Access
               </Button>
