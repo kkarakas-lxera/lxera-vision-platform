@@ -32,11 +32,11 @@ const TransformationStartsSection = () => {
             <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
           </div>
 
-          {/* CTA Button - Updated to match homepage styling */}
+          {/* CTA Button - Standardized sizing */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
+              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
               aria-label="Get Early Access"
             >
               Get Early Access
