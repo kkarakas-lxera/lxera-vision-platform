@@ -1,7 +1,4 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -9,11 +6,14 @@ import SEO from "@/components/SEO";
 import AnalyticsDashboardPreview from "@/components/AnalyticsDashboardPreview";
 import FeatureComparisonTable from "@/components/FeatureComparisonTable";
 import IndustryUseCases from "@/components/IndustryUseCases";
-import { BarChart3, Brain, TrendingUp, Eye, Activity, Compass, RefreshCw, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import HeroSection from "@/components/analytics/HeroSection";
+import MetricsSection from "@/components/analytics/MetricsSection";
+import CoreFeaturesGrid from "@/components/analytics/CoreFeaturesGrid";
+import CTASection from "@/components/analytics/CTASection";
+import { BarChart3, Brain, TrendingUp, RefreshCw, Zap, Compass } from "lucide-react";
 import { useState } from "react";
 
 const LearningAnalytics = () => {
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const coreFeatures = [
@@ -61,38 +61,6 @@ const LearningAnalytics = () => {
     }
   ];
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSection(expandedSection === sectionId ? null : sectionId);
-  };
-
-  const MetricsSection = () => (
-    <section className="py-16 px-6 lg:px-12 bg-gradient-to-r from-green-50 to-emerald-50">
-      <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-          Proven Results
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">75%</div>
-            <p className="text-business-black/70">Faster issue identification</p>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">89%</div>
-            <p className="text-business-black/70">Accuracy in predicting frustration</p>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">60%</div>
-            <p className="text-business-black/70">Increase in completion rates</p>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">85%</div>
-            <p className="text-business-black/70">Accuracy predicting at-risk learners</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
       <SEO 
@@ -102,43 +70,7 @@ const LearningAnalytics = () => {
       />
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 lg:px-12">
-        <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Data-Driven Learning
-          </Badge>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
-            Learning Analytics &
-            <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent block"> Insights</span>
-          </h1>
-          
-          <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Understand engagement and performance in real time to improve outcomes with intelligent learning data.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
-              aria-label="Request a demo of learning analytics features"
-            >
-              Request a Demo
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-300"
-              aria-label="See how learning analytics works"
-            >
-              See How It Works
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics Section */}
+      <HeroSection />
       <MetricsSection />
 
       {/* The Challenge Section */}
@@ -181,7 +113,7 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* How LXERA Helps */}
+      {/* Core Features Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -189,56 +121,7 @@ const LearningAnalytics = () => {
               Turn data into action, instantly.
             </h2>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coreFeatures.map((feature, index) => {
-              const IconComponent = feature.icon;
-              const isExpanded = expandedSection === `feature-${index}`;
-              
-              return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group rounded-3xl">
-                  <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 text-business-black" />
-                    </div>
-                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-business-black/80 transition-colors">
-                      {feature.title}
-                    </CardTitle>
-                    <Badge className="bg-business-black/10 text-business-black text-xs px-2 py-1 rounded-full">
-                      {feature.metric}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-business-black/70 leading-relaxed text-center mb-4">
-                      {feature.description}
-                    </CardDescription>
-                    
-                    <button
-                      onClick={() => toggleSection(`feature-${index}`)}
-                      className="w-full flex items-center justify-center text-business-black/70 hover:text-business-black text-sm font-medium transition-colors"
-                      aria-expanded={isExpanded}
-                      aria-controls={`feature-details-${index}`}
-                    >
-                      {isExpanded ? 'Less details' : 'More details'}
-                      {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 ml-1" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 ml-1" />
-                      )}
-                    </button>
-                    
-                    {isExpanded && (
-                      <div id={`feature-details-${index}`} className="mt-4 p-4 bg-gray-50 rounded-3xl">
-                        <p className="text-sm text-business-black/70 leading-relaxed">
-                          {feature.details}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <CoreFeaturesGrid features={coreFeatures} />
         </div>
       </section>
 
@@ -284,31 +167,7 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl p-12 shadow-2xl border border-green-200/50">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Unlock deeper learning with smarter insights.
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-white text-green-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
-              >
-                Get a Demo
-              </Button>
-              <Button
-                size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-green-600 hover:border-white transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
-              >
-                Explore Platform
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <CTASection />
       <Footer />
     </div>
   );
