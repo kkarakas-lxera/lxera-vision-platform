@@ -1,4 +1,3 @@
-
 import { Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -118,8 +117,8 @@ const FeatureComparisonTable = () => {
                   </TableCell>
                   <TableCell className="text-center py-6 rounded-r-2xl">
                     <div className="flex items-center justify-center">
-                      <div className="bg-green-100 rounded-full p-2">
-                        <Check className="w-5 h-5 text-green-600" />
+                      <div className="bg-gray-100 rounded-full p-2">
+                        <Check className="w-5 h-5 text-business-black" />
                       </div>
                     </div>
                   </TableCell>
