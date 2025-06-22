@@ -64,9 +64,9 @@ const About = () => {
         <section className="relative pt-32 pb-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6">
+              <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
                 We're building
-                <span className="block bg-gradient-to-r from-future-green via-emerald to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-future-green via-emerald to-purple-400 bg-clip-text text-transparent block">
                   the future of learning
                 </span>
               </h1>
@@ -83,7 +83,7 @@ const About = () => {
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <h2 className="text-3xl font-bold text-business-black mb-6">
+                <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
                   Our Mission
                 </h2>
                 <p className="text-lg text-business-black/70 mb-8 leading-relaxed">
@@ -127,7 +127,7 @@ const About = () => {
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-business-black mb-6">
+              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
                 What Drives Us
               </h2>
               <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -168,7 +168,7 @@ const About = () => {
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-business-black mb-6">
+              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
                 Meet the Founders
               </h2>
               <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
@@ -206,7 +206,7 @@ const About = () => {
         <section className="py-20 px-6 lg:px-12">
           <div className="max-w-4xl mx-auto text-center">
             <div className="bg-white/30 backdrop-blur-sm rounded-3xl p-12 border border-white/30">
-              <h2 className="text-3xl font-bold text-business-black mb-6">
+              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
                 Join Us on This Journey
               </h2>
               <p className="text-lg text-business-black/70 mb-8 max-w-2xl mx-auto">
