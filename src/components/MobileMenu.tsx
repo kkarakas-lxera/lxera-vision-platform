@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy } from "lucide-react";
+import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2 } from "lucide-react";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -82,6 +82,14 @@ const MobileMenu = ({
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
       description: "Real-time guidance to keep learners engaged and on track"
+    },
+    {
+      name: "AI Gamification & Motivation",
+      href: "/solutions/ai-gamification-motivation",
+      icon: Gamepad2,
+      color: "bg-gradient-to-br from-orange-100 to-red-100",
+      iconColor: "text-orange-600",
+      description: "Boost engagement with dynamic rewards and intelligent challenges"
     },
     {
       name: "Enterprise Innovation Enablement",

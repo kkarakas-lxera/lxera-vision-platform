@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { ArrowRight, Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2 } from "lucide-react";
+import { ArrowRight, Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Gamepad2 } from "lucide-react";
 
 const Solutions = () => {
   const [activeCard, setActiveCard] = useState<string | null>(null);
@@ -55,6 +55,15 @@ const Solutions = () => {
       features: ["24/7 AI Support", "Personalized Mentorship", "Instant Feedback"],
       color: "from-indigo-500 to-purple-500",
       bgColor: "bg-gradient-to-br from-indigo-50 to-purple-50"
+    },
+    {
+      id: "ai-gamification",
+      title: "AI Gamification & Motivation",
+      description: "Boost engagement with dynamic rewards and intelligent challenges",
+      icon: Gamepad2,
+      features: ["Dynamic Reward Systems", "Intelligent Challenges", "Progress Gamification"],
+      color: "from-orange-500 to-red-500",
+      bgColor: "bg-gradient-to-br from-orange-50 to-red-50"
     },
     {
       id: "enterprise-innovation",
