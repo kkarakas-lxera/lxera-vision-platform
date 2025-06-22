@@ -10,27 +10,33 @@ const HeroSection = () => (
         <BarChart3 className="w-4 h-4 mr-2" />
         Data-Driven Learning
       </Badge>
-      <h1 className="text-4xl lg:text-5xl xl:text-6xl font-semibold text-business-black mb-6 leading-tight">
-        Learning Analytics &
-        <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent block"> Insights</span>
+      
+      {/* Updated hero title to match homepage style */}
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight font-inter">
+        <span className="block">
+          Learning Analytics &
+        </span>
+        <span className="block" style={{ color: '#B1B973' }}>
+          Actionable Insights
+        </span>
       </h1>
       
       <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
-        Understand engagement and performance in real time to improve outcomes with intelligent learning data.
+        Transform learning data into strategic decisions with real-time analytics, predictive outcomes, and intelligent insights that drive measurable results.
       </p>
       
+      {/* Updated CTA buttons to match homepage design */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
         <Button
           size="lg"
-          className="bg-gradient-to-r from-future-green to-emerald text-business-black hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl font-inter hover:scale-105"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
           aria-label="Request a demo of learning analytics features"
         >
           Request a Demo
         </Button>
         <Button
-          variant="outline"
           size="lg"
-          className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-300 font-inter hover:scale-105"
+          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
           aria-label="See how learning analytics works"
         >
           See How It Works
