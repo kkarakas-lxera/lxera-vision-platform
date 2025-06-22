@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -166,12 +167,12 @@ const LearningAnalytics = () => {
           
           {isLoading ? (
             <div className="space-y-4">
-              <Skeleton className="h-48 w-full rounded-2xl" />
+              <Skeleton className="h-48 w-full rounded-3xl" />
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Skeleton className="h-24 rounded-xl" />
-                <Skeleton className="h-24 rounded-xl" />
-                <Skeleton className="h-24 rounded-xl" />
-                <Skeleton className="h-24 rounded-xl" />
+                <Skeleton className="h-24 rounded-3xl" />
+                <Skeleton className="h-24 rounded-3xl" />
+                <Skeleton className="h-24 rounded-3xl" />
+                <Skeleton className="h-24 rounded-3xl" />
               </div>
             </div>
           ) : (
@@ -195,9 +196,9 @@ const LearningAnalytics = () => {
               const isExpanded = expandedSection === `feature-${index}`;
               
               return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group">
+                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group rounded-3xl">
                   <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                       <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
                     <CardTitle className="text-xl font-semibold text-business-black group-hover:text-business-black/80 transition-colors">
@@ -227,7 +228,7 @@ const LearningAnalytics = () => {
                     </button>
                     
                     {isExpanded && (
-                      <div id={`feature-details-${index}`} className="mt-4 p-4 bg-gray-50 rounded-xl">
+                      <div id={`feature-details-${index}`} className="mt-4 p-4 bg-gray-50 rounded-3xl">
                         <p className="text-sm text-business-black/70 leading-relaxed">
                           {feature.details}
                         </p>
