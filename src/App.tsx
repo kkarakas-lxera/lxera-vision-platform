@@ -17,6 +17,7 @@ import CitizenDeveloperEnablement from "./pages/solutions/CitizenDeveloperEnable
 import LearningAnalytics from "./pages/solutions/LearningAnalytics";
 import ScalableLearningSupport from "./pages/solutions/ScalableLearningSupport";
 import EnterpriseInnovation from "./pages/solutions/EnterpriseInnovation";
+import AIGamificationMotivation from "./pages/solutions/AIGamificationMotivation";
 import HowItWorks from "./pages/platform/HowItWorks";
 import AIEngine from "./pages/platform/AIEngine";
 import EngagementInsights from "./pages/platform/EngagementInsights";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/solutions/learning-analytics-insights" element={<LearningAnalytics />} />
             <Route path="/solutions/scalable-learning-support-mentorship" element={<ScalableLearningSupport />} />
             <Route path="/solutions/enterprise-innovation-enablement" element={<EnterpriseInnovation />} />
+            <Route path="/solutions/ai-gamification-motivation" element={<AIGamificationMotivation />} />
             <Route path="/platform/how-it-works" element={<HowItWorks />} />
             <Route path="/platform/ai-engine" element={<AIEngine />} />
             <Route path="/platform/engagement-insights" element={<EngagementInsights />} />
