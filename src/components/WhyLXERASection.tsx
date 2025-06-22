@@ -9,12 +9,7 @@ const WhyLXERASection = () => {
 
   return (
     <>
-      {/* Smooth transition overlay */}
-      <div className="relative">
-        <div className="h-8 bg-gradient-to-b from-smart-beige/80 via-smart-beige/60 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
-      </div>
-
-      <section id="platform" className="w-full pt-8 pb-16 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
+      <section id="platform" className="w-full pt-16 pb-20 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/10"></div>
         <AnimatedBackground />
         <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-0">
@@ -81,6 +76,12 @@ const WhyLXERASection = () => {
           </p>
         </div>
       </section>
+
+      {/* Enhanced Section Separator */}
+      <div className="relative">
+        <div className="h-16 bg-gradient-to-b from-future-green/12 via-smart-beige/40 to-future-green/15 transition-all duration-1000 ease-in-out"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/8 to-transparent"></div>
+      </div>
     </>
   );
 };

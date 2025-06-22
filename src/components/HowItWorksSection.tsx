@@ -14,12 +14,7 @@ const HowItWorksSection = () => {
 
   return (
     <>
-      {/* Smooth transition overlay */}
-      <div className="relative">
-        <div className="h-8 bg-gradient-to-b from-future-green/18 via-smart-beige/30 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
-      </div>
-
-      <section id="how-it-works" className="w-full py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
+      <section id="how-it-works" className="w-full py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-6xl mx-auto text-center">
           {/* Section Header matching other sections */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up">
@@ -103,6 +98,12 @@ const HowItWorksSection = () => {
           />
         )}
       </section>
+
+      {/* Enhanced Section Separator */}
+      <div className="relative">
+        <div className="h-16 bg-gradient-to-b from-smart-beige/60 via-white/40 to-smart-beige/30 transition-all duration-1000 ease-in-out"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/5 to-transparent"></div>
+      </div>
     </>
   );
 };

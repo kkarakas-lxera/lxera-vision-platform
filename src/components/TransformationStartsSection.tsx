@@ -5,12 +5,7 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 const TransformationStartsSection = () => {
   return (
     <>
-      {/* Smooth transition overlay */}
-      <div className="relative">
-        <div className="h-8 bg-gradient-to-b from-future-green/12 via-smart-beige/40 to-future-green/15 transition-all duration-1000 ease-in-out"></div>
-      </div>
-
-      <section className="w-full py-16 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-20 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-4xl mx-auto relative z-10">
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-fade-in-up font-inter">
@@ -57,6 +52,12 @@ const TransformationStartsSection = () => {
           </div>
         </div>
       </section>
+
+      {/* Enhanced Section Separator */}
+      <div className="relative">
+        <div className="h-16 bg-gradient-to-b from-future-green/18 via-smart-beige/30 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/10 to-transparent"></div>
+      </div>
     </>
   );
 };
