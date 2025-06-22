@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SectionHeader from "@/components/SectionHeader";
-import { ArrowRight, Gamepad2, Trophy, Target, Zap, Star, Users, BarChart3, Brain, Sparkles, Award, TrendingUp } from "lucide-react";
+import { ArrowRight, Gamepad2, Trophy, Target, Zap, Star, Users, BarChart3, Brain, Sparkles, Award, TrendingUp, Play } from "lucide-react";
 
 const AIGamificationMotivation = () => {
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const [hoveredBenefit, setHoveredBenefit] = useState<number | null>(null);
 
   const gamificationFeatures = [
     {
@@ -102,25 +103,29 @@ const AIGamificationMotivation = () => {
       title: "Increased Engagement",
       description: "Boost learning engagement by up to 90% through personalized gamification",
       icon: Zap,
-      stat: "90%"
+      stat: "90%",
+      color: "from-amber-400 to-yellow-500"
     },
     {
       title: "Higher Completion Rates",
       description: "Achieve 85% higher course completion rates with motivational AI",
       icon: Trophy,
-      stat: "85%"
+      stat: "85%",
+      color: "from-emerald-400 to-green-500"
     },
     {
       title: "Improved Retention",
       description: "Enhance knowledge retention by 75% through engaging experiences",
       icon: Brain,
-      stat: "75%"
+      stat: "75%",
+      color: "from-blue-400 to-indigo-500"
     },
     {
       title: "Better Performance",
       description: "See 60% improvement in learning outcomes and skill development",
       icon: TrendingUp,
-      stat: "60%"
+      stat: "60%",
+      color: "from-purple-400 to-pink-500"
     }
   ];
 
@@ -129,33 +134,34 @@ const AIGamificationMotivation = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in-up">
-            <Badge className="mb-6 bg-orange-100 text-orange-800 border-orange-200 px-4 py-2 text-sm font-medium rounded-full">
+      <section className="pt-32 pb-24 px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 via-transparent to-red-100/30 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-20 animate-fade-in-up">
+            <Badge className="mb-8 bg-orange-100 text-orange-800 border-orange-200 px-6 py-3 text-base font-medium rounded-full shadow-sm">
               AI Gamification & Motivation
             </Badge>
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight font-inter">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
               Boost Engagement with
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent"> AI-Powered Gamification</span>
+              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent block mt-2"> AI-Powered Gamification</span>
             </h1>
-            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
+            <p className="text-xl text-business-black/70 mb-16 max-w-4xl mx-auto leading-relaxed font-inter">
               Transform learning into an engaging adventure. Our AI-driven gamification system creates 
               personalized challenges, dynamic rewards, and intelligent motivation that keeps learners 
               engaged and achieving their goals.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                className="bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
               >
                 Try Interactive Demo
-                <Gamepad2 className="w-5 h-5 ml-2" />
+                <Play className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-semibold px-10 py-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
+                className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-semibold px-12 py-5 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
               >
                 Schedule Consultation
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -163,37 +169,57 @@ const AIGamificationMotivation = () => {
             </div>
           </div>
 
-          {/* Hero Visual */}
-          <div className="relative max-w-5xl mx-auto">
-            <div className="bg-gradient-to-r from-orange-100 via-red-50 to-pink-100 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-                    <Trophy className="w-8 h-8 text-white" />
+          {/* Enhanced Hero Visual - Now with Interactive Demo Preview */}
+          <div className="relative max-w-6xl mx-auto">
+            <div className="bg-gradient-to-r from-orange-100 via-red-50 to-pink-100 rounded-3xl p-16 shadow-2xl animate-fade-in-scale border border-orange-200/50">
+              <div className="text-center mb-12">
+                <h3 className="text-2xl font-semibold text-business-black mb-4 font-inter">Experience Gamification Elements</h3>
+                <p className="text-business-black/70 font-inter">Interactive preview of our AI-powered gamification features</p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="text-center group cursor-pointer">
+                  <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+                    <Trophy className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="font-semibold text-business-black mb-2 font-inter">Dynamic Rewards</h3>
+                  <h4 className="font-semibold text-business-black mb-3 font-inter group-hover:text-orange-600 transition-colors">Dynamic Rewards</h4>
                   <p className="text-sm text-business-black/70 font-inter">Personalized achievement systems</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-                    <Target className="w-8 h-8 text-white" />
+                  <div className="mt-3 bg-orange-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-orange-400 to-red-500 h-full w-3/4 rounded-full transition-all duration-1000 group-hover:w-full"></div>
                   </div>
-                  <h3 className="font-semibold text-business-black mb-2 font-inter">Smart Challenges</h3>
+                </div>
+                
+                <div className="text-center group cursor-pointer">
+                  <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+                    <Target className="w-10 h-10 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-business-black mb-3 font-inter group-hover:text-blue-600 transition-colors">Smart Challenges</h4>
                   <p className="text-sm text-business-black/70 font-inter">AI-adaptive difficulty levels</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-teal-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-                    <TrendingUp className="w-8 h-8 text-white" />
+                  <div className="mt-3 bg-blue-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-400 to-purple-500 h-full w-2/3 rounded-full transition-all duration-1000 group-hover:w-full"></div>
                   </div>
-                  <h3 className="font-semibold text-business-black mb-2 font-inter">Progress Tracking</h3>
+                </div>
+                
+                <div className="text-center group cursor-pointer">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-teal-500 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+                    <TrendingUp className="w-10 h-10 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-business-black mb-3 font-inter group-hover:text-green-600 transition-colors">Progress Tracking</h4>
                   <p className="text-sm text-business-black/70 font-inter">Visual learning journeys</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-rose-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-                    <Users className="w-8 h-8 text-white" />
+                  <div className="mt-3 bg-green-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-green-400 to-teal-500 h-full w-4/5 rounded-full transition-all duration-1000 group-hover:w-full"></div>
                   </div>
-                  <h3 className="font-semibold text-business-black mb-2 font-inter">Social Elements</h3>
+                </div>
+                
+                <div className="text-center group cursor-pointer">
+                  <div className="w-20 h-20 bg-gradient-to-r from-pink-400 to-rose-500 rounded-2xl flex items-center justify-center mb-6 mx-auto transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+                    <Users className="w-10 h-10 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-business-black mb-3 font-inter group-hover:text-pink-600 transition-colors">Social Elements</h4>
                   <p className="text-sm text-business-black/70 font-inter">Team collaboration & competition</p>
+                  <div className="mt-3 bg-pink-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-pink-400 to-rose-500 h-full w-1/2 rounded-full transition-all duration-1000 group-hover:w-full"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,93 +227,186 @@ const AIGamificationMotivation = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* Features Section - Enhanced Grid Layout */}
+      <section className="py-24 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 animate-fade-in-up relative">
+          <div className="text-center mb-24 animate-fade-in-up relative">
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 Gamification Features
               </h2>
               <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
                 Discover how our AI-powered gamification system creates engaging, personalized learning experiences that motivate and inspire continuous growth.
               </p>
               
-              {/* Enhanced decorative line */}
-              <div className="mt-8 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+              <div className="mt-12 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
                 <div className="relative">
-                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
-                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
+                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-orange-500 to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
+                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-red-500/50 to-transparent animate-shimmer rounded-full"></div>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {gamificationFeatures.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <Card
-                  key={feature.id}
-                  className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl border-0 ${feature.bgColor} animate-fade-in-up`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  onMouseEnter={() => setActiveFeature(feature.id)}
-                  onMouseLeave={() => setActiveFeature(null)}
-                >
-                  <CardHeader className="pb-4">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="w-8 h-8 text-white" />
-                    </div>
-                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-orange-600 transition-colors duration-300 font-inter">
-                      {feature.title}
-                    </CardTitle>
-                    <CardDescription className="text-business-black/70 leading-relaxed font-inter">
-                      {feature.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
-                      {feature.details.map((detail, detailIndex) => (
-                        <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
-                          <Star className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      variant="ghost"
-                      className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter`}
+          {/* Varied Layout - First 3 in grid, next 3 in different arrangement */}
+          <div className="space-y-16">
+            {/* First Row - 3 Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {gamificationFeatures.slice(0, 3).map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <Card
+                    key={feature.id}
+                    className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl border-0 ${feature.bgColor} animate-fade-in-up relative overflow-hidden`}
+                    style={{ animationDelay: `${index * 150}ms` }}
+                    onMouseEnter={() => setActiveFeature(feature.id)}
+                    onMouseLeave={() => setActiveFeature(null)}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <CardHeader className="pb-4 relative z-10">
+                      <div className={`w-18 h-18 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg`}>
+                        <IconComponent className="w-9 h-9 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-semibold text-business-black group-hover:text-orange-600 transition-colors duration-300 font-inter">
+                        {feature.title}
+                      </CardTitle>
+                      <CardDescription className="text-business-black/70 leading-relaxed font-inter">
+                        {feature.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="relative z-10">
+                      <ul className="space-y-3 mb-8">
+                        {feature.details.map((detail, detailIndex) => (
+                          <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
+                            <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        variant="ghost"
+                        className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
+                      >
+                        Learn More
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Second Row - 2 Cards + 1 Featured */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                  {gamificationFeatures.slice(3, 5).map((feature, index) => {
+                    const IconComponent = feature.icon;
+                    return (
+                      <Card
+                        key={feature.id}
+                        className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl border-0 ${feature.bgColor} animate-fade-in-up relative overflow-hidden`}
+                        style={{ animationDelay: `${(index + 3) * 150}ms` }}
+                        onMouseEnter={() => setActiveFeature(feature.id)}
+                        onMouseLeave={() => setActiveFeature(null)}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <CardHeader className="pb-4 relative z-10">
+                          <div className={`w-18 h-18 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg`}>
+                            <IconComponent className="w-9 h-9 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-semibold text-business-black group-hover:text-orange-600 transition-colors duration-300 font-inter">
+                            {feature.title}
+                          </CardTitle>
+                          <CardDescription className="text-business-black/70 leading-relaxed font-inter">
+                            {feature.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="relative z-10">
+                          <ul className="space-y-3 mb-8">
+                            {feature.details.map((detail, detailIndex) => (
+                              <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
+                                <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
+                                {detail}
+                              </li>
+                            ))}
+                          </ul>
+                          <Button
+                            variant="ghost"
+                            className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
+                          >
+                            Learn More
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Featured Card */}
+              <div className="lg:col-span-1">
+                {(() => {
+                  const feature = gamificationFeatures[5];
+                  const IconComponent = feature.icon;
+                  return (
+                    <Card
+                      key={feature.id}
+                      className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl border-0 ${feature.bgColor} animate-fade-in-up relative overflow-hidden h-full`}
+                      style={{ animationDelay: '750ms' }}
+                      onMouseEnter={() => setActiveFeature(feature.id)}
+                      onMouseLeave={() => setActiveFeature(null)}
                     >
-                      Learn More
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <CardHeader className="pb-4 relative z-10">
+                        <div className={`w-18 h-18 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg`}>
+                          <IconComponent className="w-9 h-9 text-white" />
+                        </div>
+                        <CardTitle className="text-xl font-semibold text-business-black group-hover:text-orange-600 transition-colors duration-300 font-inter">
+                          {feature.title}
+                        </CardTitle>
+                        <CardDescription className="text-business-black/70 leading-relaxed font-inter">
+                          {feature.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="relative z-10">
+                        <ul className="space-y-3 mb-8">
+                          {feature.details.map((detail, detailIndex) => (
+                            <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
+                              <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
+                              {detail}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button
+                          variant="ghost"
+                          className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
+                        >
+                          Learn More
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* Benefits Section - Enhanced with Interactive Elements */}
+      <section className="py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige to-orange-50/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 animate-fade-in-up relative">
+          <div className="text-center mb-24 animate-fade-in-up relative">
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 Proven Results
               </h2>
               <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
                 See the measurable impact of AI-powered gamification on learning engagement, completion rates, and overall performance.
               </p>
-              
-              {/* Enhanced decorative line */}
-              <div className="mt-8 flex justify-center animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
-                <div className="relative">
-                  <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-future-green to-transparent animate-pulse-slow shadow-lg rounded-full"></div>
-                  <div className="absolute inset-0 w-40 h-1.5 bg-gradient-to-r from-transparent via-emerald/50 to-transparent animate-shimmer rounded-full"></div>
-                </div>
-              </div>
             </div>
           </div>
           
@@ -297,16 +416,35 @@ const AIGamificationMotivation = () => {
               return (
                 <Card
                   key={index}
-                  className="text-center bg-white/70 backdrop-blur-sm border-orange-100 hover:shadow-xl transition-all duration-300 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="text-center bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-2xl transition-all duration-500 animate-fade-in-up group cursor-pointer relative overflow-hidden"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                  onMouseEnter={() => setHoveredBenefit(index)}
+                  onMouseLeave={() => setHoveredBenefit(null)}
                 >
-                  <CardContent className="pt-8">
-                    <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                      <IconComponent className="w-8 h-8 text-white" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <CardContent className="pt-10 pb-8 relative z-10">
+                    <div className={`w-20 h-20 bg-gradient-to-r ${benefit.color} rounded-2xl flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all duration-300 shadow-lg`}>
+                      <IconComponent className="w-10 h-10 text-white" />
                     </div>
-                    <div className="text-4xl font-bold text-orange-600 mb-2 font-inter">{benefit.stat}</div>
-                    <h3 className="text-lg font-semibold text-business-black mb-3 font-inter">{benefit.title}</h3>
-                    <p className="text-business-black/70 text-sm leading-relaxed font-inter">{benefit.description}</p>
+                    <div className="text-5xl font-bold text-orange-600 mb-4 font-inter group-hover:scale-110 transition-transform duration-300">
+                      {benefit.stat}
+                    </div>
+                    <h3 className="text-xl font-semibold text-business-black mb-4 font-inter group-hover:text-orange-600 transition-colors duration-300">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-business-black/70 text-sm leading-relaxed font-inter mb-6">
+                      {benefit.description}
+                    </p>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className={`bg-gradient-to-r ${benefit.color} h-full rounded-full transition-all duration-1000 ease-out`}
+                        style={{ 
+                          width: hoveredBenefit === index ? `${parseInt(benefit.stat)}%` : '0%' 
+                        }}
+                      ></div>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -315,12 +453,12 @@ const AIGamificationMotivation = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 animate-fade-in-up relative">
+      {/* How It Works Section - Single Column Layout for Variety */}
+      <section className="py-24 px-6 lg:px-12 bg-white/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-24 animate-fade-in-up relative">
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 How AI Gamification Works
               </h2>
               <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 max-w-4xl mx-auto animate-slide-in-right leading-relaxed font-medium font-inter" style={{animationDelay: '0.4s'}}>
@@ -337,66 +475,131 @@ const AIGamificationMotivation = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <Brain className="w-10 h-10 text-white" />
+          {/* Vertical Timeline Layout */}
+          <div className="space-y-16">
+            <div className="flex flex-col lg:flex-row items-center gap-12 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+              <div className="lg:w-1/2">
+                <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mb-8 mx-auto lg:mx-0 shadow-xl">
+                  <Brain className="w-12 h-12 text-white" />
+                </div>
+                <h3 className="text-3xl font-semibold text-business-black mb-6 font-inter text-center lg:text-left">Analyze & Understand</h3>
+                <p className="text-business-black/70 leading-relaxed font-inter text-lg text-center lg:text-left">
+                  AI analyzes learning patterns, preferences, and engagement levels to understand what motivates each individual learner.
+                </p>
               </div>
-              <h3 className="text-2xl font-semibold text-business-black mb-4 font-inter">Analyze & Understand</h3>
-              <p className="text-business-black/70 leading-relaxed font-inter">
-                AI analyzes learning patterns, preferences, and engagement levels to understand what motivates each individual learner.
-              </p>
+              <div className="lg:w-1/2">
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 shadow-lg">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-business-black/70 font-inter">Analyzing learning patterns...</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-white/70 rounded-lg p-3 text-sm text-business-black/80 font-inter">Learning Style: Visual Learner</div>
+                    <div className="bg-white/70 rounded-lg p-3 text-sm text-business-black/80 font-inter">Engagement Peak: Morning Sessions</div>
+                    <div className="bg-white/70 rounded-lg p-3 text-sm text-business-black/80 font-inter">Motivation Driver: Achievement Badges</div>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="text-center animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              <div className="w-20 h-20 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <Sparkles className="w-10 h-10 text-white" />
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-12 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              <div className="lg:w-1/2">
+                <div className="w-24 h-24 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center mb-8 mx-auto lg:mx-0 shadow-xl">
+                  <Sparkles className="w-12 h-12 text-white" />
+                </div>
+                <h3 className="text-3xl font-semibold text-business-black mb-6 font-inter text-center lg:text-left">Personalize & Adapt</h3>
+                <p className="text-business-black/70 leading-relaxed font-inter text-lg text-center lg:text-left">
+                  Creates personalized challenges, rewards, and motivational elements that adapt in real-time based on learner response and progress.
+                </p>
               </div>
-              <h3 className="text-2xl font-semibold text-business-black mb-4 font-inter">Personalize & Adapt</h3>
-              <p className="text-business-black/70 leading-relaxed font-inter">
-                Creates personalized challenges, rewards, and motivational elements that adapt in real-time based on learner response and progress.
-              </p>
+              <div className="lg:w-1/2">
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-8 shadow-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/70 rounded-lg p-4 text-center">
+                      <Trophy className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                      <div className="text-xs text-business-black/80 font-inter">Custom Badge</div>
+                    </div>
+                    <div className="bg-white/70 rounded-lg p-4 text-center">
+                      <Target className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                      <div className="text-xs text-business-black/80 font-inter">Smart Challenge</div>
+                    </div>
+                    <div className="bg-white/70 rounded-lg p-4 text-center">
+                      <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                      <div className="text-xs text-business-black/80 font-inter">Achievement</div>
+                    </div>
+                    <div className="bg-white/70 rounded-lg p-4 text-center">
+                      <Zap className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                      <div className="text-xs text-business-black/80 font-inter">Power-up</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="text-center animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-              <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-teal-500 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <Award className="w-10 h-10 text-white" />
+            <div className="flex flex-col lg:flex-row items-center gap-12 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+              <div className="lg:w-1/2">
+                <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-teal-500 rounded-full flex items-center justify-center mb-8 mx-auto lg:mx-0 shadow-xl">
+                  <Award className="w-12 h-12 text-white" />
+                </div>
+                <h3 className="text-3xl font-semibold text-business-black mb-6 font-inter text-center lg:text-left">Engage & Motivate</h3>
+                <p className="text-business-black/70 leading-relaxed font-inter text-lg text-center lg:text-left">
+                  Delivers engaging experiences through dynamic rewards, intelligent challenges, and continuous motivation to drive learning success.
+                </p>
               </div>
-              <h3 className="text-2xl font-semibold text-business-black mb-4 font-inter">Engage & Motivate</h3>
-              <p className="text-business-black/70 leading-relaxed font-inter">
-                Delivers engaging experiences through dynamic rewards, intelligent challenges, and continuous motivation to drive learning success.
-              </p>
+              <div className="lg:w-1/2">
+                <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-8 shadow-lg">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between bg-white/70 rounded-lg p-4">
+                      <span className="text-sm text-business-black/80 font-inter">Course Progress</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div className="bg-gradient-to-r from-green-400 to-teal-500 h-2 rounded-full w-4/5"></div>
+                        </div>
+                        <span className="text-sm font-semibold text-green-600">80%</span>
+                      </div>
+                    </div>
+                    <div className="bg-white/70 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">🎉</div>
+                      <div className="text-sm text-business-black/80 font-inter">Milestone Achieved!</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* CTA Section - Enhanced */}
+      <section className="py-24 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
-            <Gamepad2 className="w-16 h-16 text-white mx-auto mb-6" />
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6 font-inter">
-              Ready to Gamify Your Learning Experience?
-            </h2>
-            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto font-inter">
-              Transform your learning programs with AI-powered gamification that boosts engagement, 
-              increases completion rates, and drives measurable results.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white font-inter"
-              >
-                Start Free Demo
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button
-                size="lg"
-                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl font-inter"
-              >
-                Schedule Consultation
-              </Button>
+          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-16 shadow-2xl animate-fade-in-scale relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+            <div className="relative z-10">
+              <Gamepad2 className="w-20 h-20 text-white mx-auto mb-8" />
+              <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
+                Ready to Gamify Your Learning Experience?
+              </h2>
+              <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto font-inter leading-relaxed">
+                Transform your learning programs with AI-powered gamification that boosts engagement, 
+                increases completion rates, and drives measurable results.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <Button
+                  size="lg"
+                  className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white font-inter"
+                >
+                  Start Free Demo
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  size="lg"
+                  className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl font-inter"
+                >
+                  Schedule Consultation
+                </Button>
+              </div>
             </div>
           </div>
         </div>
