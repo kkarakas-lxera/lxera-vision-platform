@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Star, Globe, Shield } from "lucide-react";
+import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Star, Globe, Shield, Target, TrendingUp, Zap } from "lucide-react";
 
 const ScalableLearningSupport = () => {
   const supportFeatures = [
@@ -54,6 +54,30 @@ const ScalableLearningSupport = () => {
     { number: "5K+", label: "Strategic Mentors", icon: Star },
     { number: "99.9%", label: "Uptime Guarantee", icon: Shield },
     { number: "<1min", label: "Average Response", icon: Clock }
+  ];
+
+  const enterpriseSuccessMetrics = [
+    {
+      icon: TrendingUp,
+      title: "Enhanced Learning Outcomes",
+      description: "AI-powered support leads to 85% improvement in learning completion rates and knowledge retention",
+      metric: "85%",
+      label: "Improvement Rate"
+    },
+    {
+      icon: Target,
+      title: "Strategic ROI Focus",
+      description: "Enterprise learning support designed to deliver measurable business impact and skill development ROI",
+      metric: "300%",
+      label: "Expected ROI"
+    },
+    {
+      icon: Zap,
+      title: "Operational Excellence",
+      description: "Streamlined support processes reduce L&D operational overhead while increasing learner satisfaction",
+      metric: "60%",
+      label: "Cost Reduction"
+    }
   ];
 
   return (
@@ -154,42 +178,45 @@ const ScalableLearningSupport = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Built for Enterprise Success Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              What Our Community Says
+              Built for Enterprise Success
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Real stories from organizations transforming their learning support
+              Designed with enterprise outcomes in mind, our platform delivers measurable results for strategic learning initiatives
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center mb-4">
-                    <div className="text-4xl mr-4">{testimonial.image}</div>
-                    <div>
-                      <div className="font-semibold text-business-black">{testimonial.name}</div>
-                      <div className="text-sm text-business-black/70">{testimonial.role}</div>
+            {enterpriseSuccessMetrics.map((metric, index) => {
+              const IconComponent = metric.icon;
+              return (
+                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-purple-600">{metric.metric}</div>
+                        <div className="text-xs text-business-black/60">{metric.label}</div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  
-                  <p className="text-business-black/80 italic leading-relaxed">
-                    "{testimonial.quote}"
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <div className="mb-4">
+                      <div className="font-semibold text-business-black mb-2">{metric.title}</div>
+                    </div>
+                    
+                    <p className="text-business-black/70 text-sm leading-relaxed">
+                      {metric.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
