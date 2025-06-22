@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -347,10 +346,10 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Request Demo Button - Header version with distinct color */}
+        {/* Request Demo Button - Header version with consistent styling */}
         <Button
           onClick={handleRequestDemo}
-          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+          className="lxera-btn-secondary px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
           aria-label="Request a demo"
         >
           Request a demo
@@ -359,7 +358,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
         {/* Enhanced Sign In Button */}
         <Button 
           variant="outline" 
-          className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3 font-inter font-normal"
+          className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-2xl px-6 py-3 font-inter font-normal"
         >
           Sign In
         </Button>
