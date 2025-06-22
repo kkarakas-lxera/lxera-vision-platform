@@ -1,11 +1,10 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { BarChart3, Brain, TrendingUp, Eye, Activity, Compass, RefreshCw, Crystal } from "lucide-react";
+import { BarChart3, Brain, TrendingUp, Eye, Activity, Compass, RefreshCw, Zap } from "lucide-react";
 
 const LearningAnalytics = () => {
   const coreFeatures = [
@@ -30,7 +29,7 @@ const LearningAnalytics = () => {
       description: "Adjusts learning content and nudges based on real-time activity."
     },
     {
-      icon: Crystal,
+      icon: Zap,
       title: "Predictive Learning Insights",
       description: "Flags who might fall behind so you can intervene before performance drops."
     },
