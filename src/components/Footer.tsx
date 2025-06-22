@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
 
@@ -11,11 +10,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-future-green rounded-lg flex items-center justify-center">
-                <span className="text-business-black font-bold text-lg">L</span>
-              </div>
-              <span className="text-2xl font-bold">LXERA</span>
+            <div className="flex items-center">
+              <img
+                src="/lovable-uploads/e58b6587-011b-46a1-8bb3-b893367ce27a.png"
+                alt="Company logo"
+                className="h-8 object-contain"
+                draggable={false}
+              />
             </div>
             <p className="text-white/70 leading-relaxed">
               Transforming workplace learning through AI-powered personalization, 
@@ -137,7 +138,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-white/50 text-sm">
-            © {currentYear} LXERA. All rights reserved.
+            © {currentYear} All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
