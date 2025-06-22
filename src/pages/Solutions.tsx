@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { ArrowRight, Brain, Users, Lightbulb, BarChart3, MessageCircle, Building
 const Solutions = () => {
   const [activeCard, setActiveCard] = useState<string | null>(null);
 
+  // Reordered useCases array
   const useCases = [
     {
       id: "ai-personalized-learning",
@@ -30,20 +30,11 @@ const Solutions = () => {
       bgColor: "bg-gradient-to-br from-blue-50 to-cyan-50"
     },
     {
-      id: "citizen-innovation",
-      title: "Citizen-Led Innovation",
-      description: "Empower communities to drive innovation and solve local challenges",
-      icon: Lightbulb,
-      features: ["Community Collaboration", "Innovation Challenges", "Local Impact Measurement"],
-      color: "from-emerald-500 to-teal-500",
-      bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50"
-    },
-    {
-      id: "learning-analytics",
-      title: "Learning Analytics & Engagement Insights",
-      description: "Data-driven insights to optimize learning outcomes and engagement",
-      icon: BarChart3,
-      features: ["Performance Analytics", "Engagement Metrics", "Predictive Insights"],
+      id: "ai-gamification",
+      title: "AI Gamification & Motivation",
+      description: "Boost engagement with dynamic rewards and intelligent challenges",
+      icon: Gamepad2,
+      features: ["Dynamic Reward Systems", "Intelligent Challenges", "Progress Gamification"],
       color: "from-orange-500 to-red-500",
       bgColor: "bg-gradient-to-br from-orange-50 to-red-50"
     },
@@ -57,13 +48,22 @@ const Solutions = () => {
       bgColor: "bg-gradient-to-br from-indigo-50 to-purple-50"
     },
     {
-      id: "ai-gamification",
-      title: "AI Gamification & Motivation",
-      description: "Boost engagement with dynamic rewards and intelligent challenges",
-      icon: Gamepad2,
-      features: ["Dynamic Reward Systems", "Intelligent Challenges", "Progress Gamification"],
+      id: "learning-analytics",
+      title: "Learning Analytics & Engagement Insights",
+      description: "Data-driven insights to optimize learning outcomes and engagement",
+      icon: BarChart3,
+      features: ["Performance Analytics", "Engagement Metrics", "Predictive Insights"],
       color: "from-orange-500 to-red-500",
       bgColor: "bg-gradient-to-br from-orange-50 to-red-50"
+    },
+    {
+      id: "citizen-innovation",
+      title: "Citizen Developer Enablement",
+      description: "Empower business users to build and automate without coding",
+      icon: Lightbulb,
+      features: ["No-Code Tools", "Automation Workflows", "Self-Service Development"],
+      color: "from-emerald-500 to-teal-500",
+      bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50"
     },
     {
       id: "enterprise-innovation",

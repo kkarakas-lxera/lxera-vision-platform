@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -36,7 +35,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     setIsDemoModalOpen(true);
   };
 
-  // Define the solutions with warmer, more human-friendly colors and design
+  // Define the solutions with warmer, more human-friendly colors and design - reordered
   const solutionsItems = [
     {
       name: "AI-Personalized Learning",
@@ -55,20 +54,12 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       description: "Close skill gaps and future-proof your teams"
     },
     {
-      name: "Citizen Developer Enablement",
-      href: "/solutions/citizen-developer-enablement", 
-      icon: Lightbulb,
-      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
-      iconColor: "text-amber-600",
-      description: "Equip business users to build and automate without coding"
-    },
-    {
-      name: "Learning Analytics & Insights",
-      href: "/solutions/learning-analytics-insights",
-      icon: BarChart3,
-      color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
-      iconColor: "text-emerald-600",
-      description: "Turn engagement data into actionable insights"
+      name: "AI Gamification & Motivation",
+      href: "/solutions/ai-gamification-motivation",
+      icon: Gamepad2,
+      color: "bg-gradient-to-br from-orange-100 to-red-100",
+      iconColor: "text-orange-600",
+      description: "Boost engagement with dynamic rewards and intelligent challenges"
     },
     {
       name: "AI Mentorship & Support",
@@ -79,12 +70,20 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       description: "Real-time guidance to keep learners engaged and on track"
     },
     {
-      name: "AI Gamification & Motivation",
-      href: "/solutions/ai-gamification-motivation",
-      icon: Gamepad2,
-      color: "bg-gradient-to-br from-orange-100 to-red-100",
-      iconColor: "text-orange-600",
-      description: "Boost engagement with dynamic rewards and intelligent challenges"
+      name: "Learning Analytics & Insights",
+      href: "/solutions/learning-analytics-insights",
+      icon: BarChart3,
+      color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
+      iconColor: "text-emerald-600",
+      description: "Turn engagement data into actionable insights"
+    },
+    {
+      name: "Citizen Developer Enablement",
+      href: "/solutions/citizen-developer-enablement", 
+      icon: Lightbulb,
+      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
+      iconColor: "text-amber-600",
+      description: "Equip business users to build and automate without coding"
     },
     {
       name: "Enterprise Innovation Enablement",
