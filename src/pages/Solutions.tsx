@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,8 +49,8 @@ const Solutions = () => {
     },
     {
       id: "ai-mentorship",
-      title: "AI Mentorship & 24/7 Support",
-      description: "Always-available AI guidance and mentorship for continuous learning",
+      title: "AI Mentorship & Support",
+      description: "Real-time guidance to keep learners engaged and on track",
       icon: MessageCircle,
       features: ["24/7 AI Support", "Personalized Mentorship", "Instant Feedback"],
       color: "from-indigo-500 to-purple-500",

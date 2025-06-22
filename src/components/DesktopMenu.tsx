@@ -71,12 +71,12 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
       description: "Turn engagement data into actionable insights"
     },
     {
-      name: "Scalable Learning Support & Mentorship",
+      name: "AI Mentorship & Support",
       href: "/solutions/scalable-learning-support-mentorship",
       icon: MessageCircle,
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
-      description: "24/7 guidance to keep learners engaged and on track"
+      description: "Real-time guidance to keep learners engaged and on track"
     },
     {
       name: "Enterprise Innovation Enablement",
