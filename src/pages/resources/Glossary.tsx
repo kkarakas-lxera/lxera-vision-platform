@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -120,7 +119,7 @@ const Glossary = () => {
         {/* Hero Section */}
         <section className="pt-32 pb-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="mb-6">
+            <h1 className="font-medium text-business-black leading-tight tracking-tight mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)', lineHeight: '1.1' }}>
               Learning Technology Glossary
             </h1>
             <p className="lxera-subheadline mb-8">
@@ -153,7 +152,7 @@ const Glossary = () => {
             {Object.entries(groupedTerms).map(([category, terms]) => (
               terms.length > 0 && (
                 <div key={category} className="mb-12">
-                  <h2 className="text-2xl mb-6 pb-2 border-b border-future-green/30">
+                  <h2 className="font-medium text-business-black leading-tight text-2xl mb-6 pb-2 border-b border-future-green/30" style={{ fontSize: 'clamp(1.75rem, 3vw, 3rem)', lineHeight: '1.2' }}>
                     {category}
                   </h2>
                   <div className="space-y-6">
@@ -168,7 +167,7 @@ const Glossary = () => {
                                 <IconComponent className={`w-6 h-6 ${item.color}`} />
                               </div>
                               <div className="flex-1">
-                                <h3 className="mb-2">
+                                <h3 className="font-medium text-business-black leading-snug mb-2" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', lineHeight: '1.3' }}>
                                   {item.term}
                                 </h3>
                                 <p className="lxera-card-description leading-relaxed mb-3">
@@ -190,7 +189,7 @@ const Glossary = () => {
             {filteredTerms.length === 0 && (
               <div className="text-center py-12">
                 <BookOpen className="w-16 h-16 text-business-black/30 mx-auto mb-4" />
-                <h3 className="mb-2">No terms found</h3>
+                <h3 className="font-medium text-business-black leading-snug mb-2" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', lineHeight: '1.3' }}>No terms found</h3>
                 <p className="lxera-body text-business-black/60">
                   Try adjusting your search or browse all categories above.
                 </p>
@@ -202,7 +201,7 @@ const Glossary = () => {
         {/* CTA Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-future-green/10 to-emerald/10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="mb-4">
+            <h2 className="font-medium text-business-black leading-tight mb-4" style={{ fontSize: 'clamp(1.75rem, 3vw, 3rem)', lineHeight: '1.2' }}>
               Can't Find What You're Looking For?
             </h2>
             <p className="lxera-section-subtitle mb-8">
