@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -52,8 +51,8 @@ const Glossary = () => {
       color: "text-indigo-600"
     },
     {
-      term: "Learning Experience Platform (LXP)",
-      definition: "A learner-centric platform that provides personalized, social, and collaborative learning experiences driven by AI and user-generated content.",
+      term: "LXIP (Learning Experience Innovation Platform)",
+      definition: "LXERA's proprietary framework that combines personalized learning, real-time support, and innovation enablement to empower individuals and organizations to grow through continuous, intelligent development.",
       category: "Platforms",
       icon: BookOpen,
       color: "text-teal-600"
