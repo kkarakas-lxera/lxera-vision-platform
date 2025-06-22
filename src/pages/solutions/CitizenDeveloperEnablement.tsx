@@ -59,7 +59,7 @@ const CitizenDeveloperEnablement = () => {
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/20 to-green-50/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-100/30 to-future-green/20"></div>
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center animate-fade-in-up">
             <Badge className="mb-6 bg-emerald-600/20 text-business-black border-emerald-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
@@ -78,7 +78,7 @@ const CitizenDeveloperEnablement = () => {
               {empowermentStats.map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
-                  <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
+                  <Card key={index} className="text-center border-0 bg-gradient-to-br from-emerald-100/80 to-future-green/40 backdrop-blur-sm hover:from-emerald-200/80 hover:to-future-green/60 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
                     <CardContent className="pt-6">
                       <IconComponent className="w-8 h-8 text-emerald-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
                       <div className="text-2xl font-semibold text-emerald-600 mb-2">{stat.number}</div>
@@ -92,7 +92,7 @@ const CitizenDeveloperEnablement = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:from-green-600 hover:to-emerald-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 border-0 group font-inter"
+                className="bg-gradient-to-r from-emerald-600 to-future-green text-white hover:from-emerald-700 hover:to-emerald-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 border-0 group font-inter"
               >
                 Request a Demo
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -100,7 +100,7 @@ const CitizenDeveloperEnablement = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+                className="border-2 border-emerald-600/30 bg-future-green/20 backdrop-blur-sm text-business-black hover:bg-emerald-600 hover:text-white hover:border-emerald-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 font-inter"
               >
                 See How It Works
               </Button>
@@ -110,7 +110,7 @@ const CitizenDeveloperEnablement = () => {
       </section>
 
       {/* The Challenge Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/50">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-future-green/30 to-emerald-100/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             Innovation shouldn't be limited to IT or leadership.
@@ -122,7 +122,7 @@ const CitizenDeveloperEnablement = () => {
       </section>
 
       {/* How LXERA Helps Section */}
-      <section className="py-20 px-6 lg:px-12">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-emerald-50 to-future-green/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
@@ -136,14 +136,14 @@ const CitizenDeveloperEnablement = () => {
               return (
                 <Card 
                   key={index} 
-                  className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
+                  className="group border-0 bg-gradient-to-br from-emerald-100/70 to-future-green/30 backdrop-blur-sm shadow-lg hover:shadow-2xl hover:from-emerald-200/80 hover:to-future-green/50 transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-600/20 to-green-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 text-business-black" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-future-green rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-white" />
                     </div>
-                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-emerald-600 transition-colors mb-4 font-inter">
+                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-emerald-700 transition-colors mb-4 font-inter">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -160,7 +160,7 @@ const CitizenDeveloperEnablement = () => {
       </section>
 
       {/* What You Gain Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-emerald-600/20 to-green-600/10">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-emerald-600/20 to-future-green/30">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             A culture where innovation comes from everywhere.
@@ -172,11 +172,11 @@ const CitizenDeveloperEnablement = () => {
       </section>
 
       {/* Real Impact Section */}
-      <section className="py-20 px-6 lg:px-12">
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-emerald-50 to-future-green/20">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-12 text-center shadow-xl">
+          <div className="bg-gradient-to-br from-emerald-100 to-future-green/60 rounded-3xl p-12 text-center shadow-xl">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-future-green rounded-full flex items-center justify-center mx-auto mb-6">
                 <Quote className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -193,7 +193,7 @@ const CitizenDeveloperEnablement = () => {
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl p-12 shadow-2xl border border-emerald-200/50">
+          <div className="bg-gradient-to-br from-emerald-600 to-future-green rounded-3xl p-12 shadow-2xl border border-emerald-200/50">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
               Unleash the builders already on your team.
             </h2>
