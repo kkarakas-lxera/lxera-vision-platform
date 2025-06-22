@@ -62,7 +62,7 @@ const LearningAnalytics = () => {
   ];
 
   return (
-    <div className="min-h-screen font-inter">
+    <div className="min-h-screen font-inter bg-gradient-to-br from-teal-50 via-smart-beige to-cyan-50">
       <SEO 
         title="Learning Analytics & Insights - LXERA"
         description="Understand engagement and performance in real time to improve outcomes with intelligent learning data."
@@ -70,13 +70,13 @@ const LearningAnalytics = () => {
       />
       <Navigation />
       
-      {/* Hero Section - Consistent brand background */}
-      <div className="bg-gradient-to-br from-smart-beige via-smart-beige to-future-green/20">
+      {/* Hero Section - Teal/Cyan brand background */}
+      <div className="bg-gradient-to-br from-teal-50 via-smart-beige to-cyan-50">
         <HeroSection />
       </div>
 
-      {/* Metrics Section - Brand green accent */}
-      <div className="bg-gradient-to-r from-future-green/20 to-emerald/10">
+      {/* Metrics Section - Teal accent */}
+      <div className="bg-gradient-to-r from-teal-600/20 to-cyan-600/10">
         <MetricsSection />
       </div>
 
@@ -92,8 +92,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Dashboard Preview Section - Consistent beige background */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 to-future-green/10">
+      {/* Dashboard Preview Section - Teal background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-teal-50/60 to-cyan-50/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
@@ -132,8 +132,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Feature Comparison Section - Subtle beige background */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/30 to-future-green/5">
+      {/* Feature Comparison Section - Subtle teal background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-teal-50/30 to-cyan-50/20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
@@ -162,8 +162,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* What You Gain Section - Brand beige background */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/60 to-future-green/20">
+      {/* What You Gain Section - Teal background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-teal-600/20 to-cyan-600/10">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-8 leading-tight">
             Clear visibility. Smarter decisions.
@@ -174,8 +174,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* CTA Section - Brand gradient background */}
-      <div className="bg-gradient-to-br from-future-green to-emerald">
+      {/* CTA Section - Teal gradient background */}
+      <div className="bg-gradient-to-br from-teal-600 to-cyan-600">
         <CTASection />
       </div>
 
