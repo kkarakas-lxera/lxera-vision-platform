@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,7 +27,7 @@ const Pricing = () => {
   const plans = [
     {
       name: "Core",
-      price: billingCycle === 'annually' ? "$29" : "$49",
+      price: billingCycle === 'annually' ? "$39" : "$49",
       period: billingCycle === 'annually' ? "per month/per user" : "per month/per user",
       billingNote: billingCycle === 'annually' ? "Billed annually" : "Billed monthly",
       description: "Everything you need to get started",
