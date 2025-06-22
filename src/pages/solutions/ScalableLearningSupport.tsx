@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -261,9 +260,8 @@ const ScalableLearningSupport = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
-                variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-purple-600 hover:border-white px-8 py-4 text-lg rounded-xl"
+                className="bg-white/20 text-white hover:bg-white/30 hover:shadow-lg border border-white/30 transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Learn More
               </Button>
