@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -152,7 +153,7 @@ const Glossary = () => {
             {Object.entries(groupedTerms).map(([category, terms]) => (
               terms.length > 0 && (
                 <div key={category} className="mb-12">
-                  <h2 className="text-2xl font-medium text-business-black mb-6 pb-2 border-b border-future-green/30">
+                  <h2 className="lxera-section-title text-2xl mb-6 pb-2 border-b border-future-green/30">
                     {category}
                   </h2>
                   <div className="space-y-6">
@@ -167,13 +168,13 @@ const Glossary = () => {
                                 <IconComponent className={`w-6 h-6 ${item.color}`} />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-xl font-medium text-business-black mb-2">
+                                <h3 className="lxera-card-title mb-2">
                                   {item.term}
                                 </h3>
-                                <p className="lxera-body-large text-business-black/80 leading-relaxed">
+                                <p className="lxera-card-description leading-relaxed mb-3">
                                   {item.definition}
                                 </p>
-                                <span className="inline-block mt-3 text-xs font-medium text-business-black/60 bg-smart-beige px-2 py-1 rounded-full">
+                                <span className="lxera-caption bg-smart-beige px-2 py-1 rounded-full">
                                   {item.category}
                                 </span>
                               </div>
@@ -189,7 +190,7 @@ const Glossary = () => {
             {filteredTerms.length === 0 && (
               <div className="text-center py-12">
                 <BookOpen className="w-16 h-16 text-business-black/30 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-business-black mb-2">No terms found</h3>
+                <h3 className="lxera-card-title mb-2">No terms found</h3>
                 <p className="lxera-body text-business-black/60">
                   Try adjusting your search or browse all categories above.
                 </p>

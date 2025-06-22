@@ -99,8 +99,8 @@ const ProductTour = () => {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center mx-auto mb-4">
                       <IconComponent className="w-6 h-6 text-future-green" />
                     </div>
-                    <h3 className="font-medium text-business-black mb-2">{feature.title}</h3>
-                    <p className="lxera-body text-business-black/70">{feature.description}</p>
+                    <h3 className="lxera-card-title mb-2">{feature.title}</h3>
+                    <p className="lxera-card-description">{feature.description}</p>
                   </div>
                 );
               })}
@@ -132,7 +132,7 @@ const ProductTour = () => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="lxera-card-title">{step.title}</h3>
-                          <span className="text-xs font-medium text-business-black/60 bg-smart-beige px-2 py-1 rounded-full">
+                          <span className="lxera-caption bg-smart-beige px-2 py-1 rounded-full">
                             {step.duration}
                           </span>
                         </div>
