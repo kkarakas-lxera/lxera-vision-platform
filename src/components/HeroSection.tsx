@@ -94,8 +94,34 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right side - Video (responsive sizing) */}
+          {/* Right side - Human-centered imagery alongside video */}
           <div className="w-full lg:w-3/5 lg:pl-8 mt-6 sm:mt-8 lg:mt-6 px-2 sm:px-0">
+            {/* Human imagery showing people using technology */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="relative overflow-hidden rounded-xl shadow-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop&crop=faces"
+                  alt="Team collaborating with laptops"
+                  className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <div className="absolute bottom-3 left-3 text-white text-sm font-medium">
+                  Collaborative Learning
+                </div>
+              </div>
+              <div className="relative overflow-hidden rounded-xl shadow-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&crop=faces"
+                  alt="Woman using laptop for learning"
+                  className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <div className="absolute bottom-3 left-3 text-white text-sm font-medium">
+                  Personalized Experience
+                </div>
+              </div>
+            </div>
+            
             <div className="transform lg:scale-110 lg:translate-x-4 lg:translate-y-2">
               <HeroVideoPreview />
             </div>
