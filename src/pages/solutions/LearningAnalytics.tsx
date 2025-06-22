@@ -62,7 +62,7 @@ const LearningAnalytics = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen font-inter">
       <SEO 
         title="Learning Analytics & Insights - LXERA"
         description="Understand engagement and performance in real time to improve outcomes with intelligent learning data."
@@ -70,36 +70,36 @@ const LearningAnalytics = () => {
       />
       <Navigation />
       
-      {/* Hero Section - Light background */}
-      <div className="bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
+      {/* Hero Section - Consistent brand background */}
+      <div className="bg-gradient-to-br from-smart-beige via-smart-beige to-future-green/20">
         <HeroSection />
       </div>
 
-      {/* Metrics Section - Green accent background */}
-      <div className="bg-gradient-to-r from-green-100 to-emerald-100">
+      {/* Metrics Section - Brand green accent */}
+      <div className="bg-gradient-to-r from-future-green/20 to-emerald/10">
         <MetricsSection />
       </div>
 
-      {/* The Challenge Section - White background */}
+      {/* The Challenge Section - Clean white background */}
       <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+          <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-8 leading-tight">
             Knowing who clicked isn't enough.
           </h2>
-          <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl text-business-black/70 max-w-4xl mx-auto leading-relaxed font-inter">
             Traditional learning platforms tell you who completed a course. LXERA helps you understand how they engaged, what they felt, and when they needed help. Data should do more than measure—it should guide decisions.
           </p>
         </div>
       </section>
 
-      {/* Dashboard Preview Section - Light beige background */}
-      <section className="py-20 px-6 lg:px-12 bg-smart-beige/30">
+      {/* Dashboard Preview Section - Consistent beige background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/50 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
               See your data in action
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-xl text-business-black/70 max-w-3xl mx-auto font-inter">
               Get instant insights into learner engagement, performance, and areas needing attention.
             </p>
           </div>
@@ -120,11 +120,11 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Core Features Section - White background */}
+      {/* Core Features Section - Clean white background */}
       <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
               Turn data into action, instantly.
             </h2>
           </div>
@@ -132,14 +132,14 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Feature Comparison Section - Light gray background */}
-      <section className="py-20 px-6 lg:px-12 bg-gray-50">
+      {/* Feature Comparison Section - Subtle beige background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/30 to-future-green/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
               Beyond traditional analytics
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-xl text-business-black/70 max-w-3xl mx-auto font-inter">
               See how LXERA's intelligent analytics compare to standard LMS reporting.
             </p>
           </div>
@@ -147,14 +147,14 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Industry Use Cases - White background */}
+      {/* Industry Use Cases - Clean white background */}
       <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-6 leading-tight">
               Real-world impact across industries
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-xl text-business-black/70 max-w-3xl mx-auto font-inter">
               See how organizations are using LXERA analytics to transform their learning outcomes.
             </p>
           </div>
@@ -162,20 +162,20 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* What You Gain Section - Light beige background */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/40 to-future-green/20">
+      {/* What You Gain Section - Brand beige background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/60 to-future-green/20">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+          <h2 className="text-3xl lg:text-4xl font-semibold text-business-black mb-8 leading-tight">
             Clear visibility. Smarter decisions.
           </h2>
-          <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl text-business-black/70 max-w-4xl mx-auto leading-relaxed font-inter">
             LXERA equips L&D teams and managers with insights that go far beyond completion rates. You'll know who's engaged, who's thriving, and where to focus your attention—before issues arise.
           </p>
         </div>
       </section>
 
-      {/* CTA Section - Green gradient background */}
-      <div className="bg-gradient-to-br from-green-500 to-emerald-500">
+      {/* CTA Section - Brand gradient background */}
+      <div className="bg-gradient-to-br from-future-green to-emerald">
         <CTASection />
       </div>
 

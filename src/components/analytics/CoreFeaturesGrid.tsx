@@ -30,26 +30,26 @@ const CoreFeaturesGrid = ({ features }: CoreFeaturesGridProps) => {
         const isExpanded = expandedSection === `feature-${index}`;
         
         return (
-          <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group rounded-3xl">
+          <Card key={index} className="border-0 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group rounded-3xl hover:scale-105">
             <CardHeader className="text-center pb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <IconComponent className="w-8 h-8 text-business-black" />
               </div>
-              <CardTitle className="text-xl font-semibold text-business-black group-hover:text-business-black/80 transition-colors">
+              <CardTitle className="text-xl font-semibold text-business-black group-hover:text-business-black/80 transition-colors font-inter">
                 {feature.title}
               </CardTitle>
-              <Badge className="bg-business-black/10 text-business-black text-xs px-2 py-1 rounded-full">
+              <Badge className="bg-future-green/20 text-business-black text-xs px-2 py-1 rounded-full font-inter">
                 {feature.metric}
               </Badge>
             </CardHeader>
             <CardContent>
-              <CardDescription className="text-business-black/70 leading-relaxed text-center mb-4">
+              <CardDescription className="text-business-black/70 leading-relaxed text-center mb-4 font-inter">
                 {feature.description}
               </CardDescription>
               
               <button
                 onClick={() => toggleSection(`feature-${index}`)}
-                className="w-full flex items-center justify-center text-business-black/70 hover:text-business-black text-sm font-medium transition-colors"
+                className="w-full flex items-center justify-center text-business-black/70 hover:text-business-black text-sm font-medium transition-colors font-inter"
                 aria-expanded={isExpanded}
                 aria-controls={`feature-details-${index}`}
               >
@@ -62,8 +62,8 @@ const CoreFeaturesGrid = ({ features }: CoreFeaturesGridProps) => {
               </button>
               
               {isExpanded && (
-                <div id={`feature-details-${index}`} className="mt-4 p-4 bg-gray-50 rounded-3xl">
-                  <p className="text-sm text-business-black/70 leading-relaxed">
+                <div id={`feature-details-${index}`} className="mt-4 p-4 bg-smart-beige/20 rounded-3xl">
+                  <p className="text-sm text-business-black/70 leading-relaxed font-inter">
                     {feature.details}
                   </p>
                 </div>
