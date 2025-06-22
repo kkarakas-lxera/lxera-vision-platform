@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import DemoModal from "./DemoModal";
 import { ArrowRight } from "lucide-react";
@@ -9,7 +9,7 @@ const StickyDemoButton = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   // Show sticky button after user scrolls past hero section
-  useEffect(() => {
+  useState(() => {
     const handleScroll = () => {
       const heroHeight = window.innerHeight;
       setIsVisible(window.scrollY > heroHeight * 0.8);
