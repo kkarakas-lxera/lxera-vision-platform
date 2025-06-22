@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, MessageCircle, Bot, Brain, Users, Clock, Zap, Target, Quote, Globe, Shield, Eye } from "lucide-react";
+import { ArrowRight, MessageCircle, Bot, Brain, Users, Clock, Zap, Target, Quote, Eye } from "lucide-react";
 
 const AILearningSupport = () => {
   const supportFeatures = [
@@ -51,7 +51,7 @@ const AILearningSupport = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-smart-beige to-cyan-50">
       <SEO 
-        title="AI Learning Support & Mentorship - LXERA"
+        title="Learning Support & Mentorship - LXERA"
         description="Give every learner their own intelligent mentor — always available, always supportive, and tuned to their personal growth."
         keywords="AI mentorship, learning support, intelligent mentor, real-time guidance, personalized learning"
       />
