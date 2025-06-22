@@ -54,7 +54,7 @@
   .stagger-5 { animation-delay: 500ms; }
   /* Enhanced card styling for consistency */
   .lxera-card {
-    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500;
+    @apply bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-xl transition-all duration-500;
   }
   .lxera-card-hover {
     @apply hover:bg-white hover:scale-102 hover:shadow-2xl;
@@ -131,8 +131,17 @@
     transform: scaleX(1);
     animation: underline-slide 0.35s cubic-bezier(.29,1.59,.26,.92);
   }
-  /* Slightly round badge corners + radius utility for icon/buttons */
-  .lxera-rounded-md {
-    border-radius: 0.625rem !important;
+  /* Enhanced rounded corners for all card-like elements */
+  .lxera-rounded-lg {
+    border-radius: 1.5rem !important;
+  }
+  .lxera-rounded-xl {
+    border-radius: 2rem !important;
+  }
+  .lxera-rounded-2xl {
+    border-radius: 2.5rem !important;
+  }
+  .lxera-rounded-3xl {
+    border-radius: 3rem !important;
   }
 }
