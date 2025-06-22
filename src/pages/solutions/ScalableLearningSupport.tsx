@@ -1,35 +1,46 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Globe, Shield, Target, TrendingUp, Zap } from "lucide-react";
+import { ArrowRight, Users2, CheckCircle, MessageSquare, Clock, Headphones, Globe, Shield, Target, TrendingUp, Zap, Bot, RefreshCw, BarChart3, Quote } from "lucide-react";
 
 const ScalableLearningSupport = () => {
   const supportFeatures = [
     {
-      icon: MessageSquare,
-      title: "AI-Powered Learning Assistance",
-      description: "Get instant help with learning questions through our intelligent support system"
+      icon: Bot,
+      title: "AI-Powered Learning Assistant",
+      description: "Instantly answers questions, suggests next steps, and keeps learners moving forward"
+    },
+    {
+      icon: RefreshCw,
+      title: "Behavior-Based Nudges",
+      description: "Delivers intelligent prompts when learners slow down, disengage, or need encouragement"
     },
     {
       icon: Users2,
-      title: "Peer Learning Network",
-      description: "Connect with other learners and mentors in your organization for collaborative learning"
+      title: "Mentor Matching Engine",
+      description: "Pairs users with the right coach, peer, or expert based on goals, context, and progress"
     },
     {
       icon: Globe,
-      title: "Always Available Support",
-      description: "Access learning help whenever you need it, designed to scale with your team"
+      title: "24/7 Availability",
+      description: "Always-on guidance — whether from AI or a human mentor — anytime, anywhere"
+    },
+    {
+      icon: BarChart3,
+      title: "Engagement Health Monitoring",
+      description: "Tracks user motivation in real time and proactively offers support before drop-off happens"
     }
   ];
 
   const communityStats = [
     { number: "24/7", label: "Support Available", icon: Clock },
     { number: "AI", label: "Powered Help", icon: Zap },
-    { number: "Peer", label: "Learning Network", icon: Users2 },
-    { number: "MVP", label: "Ready Features", icon: Shield }
+    { number: "Real-time", label: "Guidance", icon: Users2 },
+    { number: "Smart", label: "Support at Scale", icon: Shield }
   ];
 
   const enterpriseSuccessMetrics = [
@@ -60,8 +71,8 @@ const ScalableLearningSupport = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-smart-beige to-violet-50">
       <SEO 
         title="Scalable Learning Support & Mentorship - LXERA"
-        description="Scale your learning support with AI-powered assistance and peer mentorship networks. Provide learning support that grows with your organization."
-        keywords="learning support, mentorship, peer learning, AI assistance, scalable support, learning community"
+        description="24/7 real-time guidance to keep learners engaged, motivated, and on track — powered by AI and human connection."
+        keywords="learning support, mentorship, AI guidance, real-time support, learning engagement"
       />
       <Navigation />
       
@@ -74,12 +85,12 @@ const ScalableLearningSupport = () => {
               Learning Support
             </Badge>
             <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
-              Learning Support That
-              <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block"> Never Sleeps</span>
+              Scalable Learning Support
+              <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent block">& Mentorship</span>
             </h1>
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Combine AI-powered assistance with peer learning to provide consistent support for your team. 
-              Built to help learners overcome obstacles and stay on track with their learning goals.
+              24/7 real-time guidance to keep learners engaged, motivated, and on track — 
+              powered by AI and human connection.
             </p>
           </div>
 
@@ -104,7 +115,7 @@ const ScalableLearningSupport = () => {
               size="lg"
               className="bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
             >
-              Try Support Features
+              Request a Demo
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
@@ -112,25 +123,35 @@ const ScalableLearningSupport = () => {
               size="lg"
               className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg rounded-xl"
             >
-              Learn More
+              Explore the Platform
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Support Features */}
+      {/* The Challenge Section */}
       <section className="py-20 px-6 lg:px-12 bg-white/30">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+            Most learning platforms leave users alone. We don't.
+          </h2>
+          <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
+            LXERA is built for the new era of learning — where personalized support is just as important as personalized content. 
+            Without real-time guidance, learners drop off, feel stuck, or lose motivation. Scalable support isn't a luxury. It's essential.
+          </p>
+        </div>
+      </section>
+
+      {/* How LXERA Helps Section */}
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Core Support Features
+              Smart support, at scale.
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Essential support tools to help your team learn effectively
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {supportFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
@@ -155,8 +176,38 @@ const ScalableLearningSupport = () => {
         </div>
       </section>
 
-      {/* Built for Growth Section */}
+      {/* What You Get Section */}
+      <section className="py-20 px-6 lg:px-12 bg-white/30">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+            A support layer that grows with you.
+          </h2>
+          <p className="text-xl text-business-black/70 max-w-4xl mx-auto leading-relaxed">
+            LXERA doesn't just scale content. It scales care. Whether you're guiding 20 learners or 2,000, 
+            our AI adapts to individual needs while offering managers visibility, insights, and peace of mind.
+          </p>
+        </div>
+      </section>
+
+      {/* Real Impact Section */}
       <section className="py-20 px-6 lg:px-12">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 to-violet-50 overflow-hidden">
+            <CardContent className="p-12 text-center">
+              <Quote className="w-16 h-16 text-purple-600 mx-auto mb-8" />
+              <blockquote className="text-2xl text-business-black italic mb-8 leading-relaxed">
+                "LXERA's AI knew exactly when I was stuck and nudged me just right — then connected me with a mentor who'd been through the same challenge."
+              </blockquote>
+              <div className="text-business-black/70 font-medium">
+                — Early User, Pilot Program
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Built for Growth Section */}
+      <section className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
@@ -198,72 +249,26 @@ const ScalableLearningSupport = () => {
         </div>
       </section>
 
-      {/* Benefits & Results */}
-      <section className="py-20 px-6 lg:px-12 bg-white/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-                Support That Scales
-              </h2>
-              <div className="space-y-4">
-                {[
-                  "Quick response to learning questions",
-                  "Always available help system",
-                  "Peer-to-peer learning connections",
-                  "AI-powered learning assistance",
-                  "Scalable support structure",
-                  "Team learning communities"
-                ].map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-4 animate-fade-in group" style={{ animationDelay: `${index * 100}ms` }}>
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-violet-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <CheckCircle className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-lg text-business-black/80 group-hover:text-business-black transition-colors">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-3xl p-12 text-center shadow-xl">
-              <Clock className="w-16 h-16 text-purple-600 mx-auto mb-6" />
-              <div className="text-4xl font-semibold text-purple-600 mb-2">Always On</div>
-              <div className="text-xl font-semibold text-business-black mb-4">Learning Support</div>
-              <div className="text-business-black/70 leading-relaxed mb-6">
-                AI-powered support provides assistance around the clock, ensuring learners can get help when they need it
-              </div>
-              <div className="bg-white/60 rounded-2xl p-4">
-                <div className="text-2xl font-semibold text-purple-600 mb-1">Ready</div>
-                <div className="text-sm text-business-black/70">To Support Learning</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-purple-600 to-violet-600">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 shadow-2xl">
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Start Supporting Your Learners
+              Turn learning into a guided, supported experience.
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Try our learning support features and see how they can help your team learn more effectively.
-            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="bg-white text-purple-600 hover:bg-gray-50 hover:shadow-lg transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Try Support Features
+                Talk to an Expert
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 size="lg"
                 className="bg-white/20 text-white hover:bg-white/30 hover:shadow-lg border border-white/30 transition-all duration-300 px-8 py-4 text-lg font-semibold rounded-xl"
               >
-                Learn More
+                Get Early Access
               </Button>
             </div>
           </div>
