@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,30 +48,6 @@ const ScalableLearningSupport = () => {
     { number: "Smart", label: "Support at Scale", icon: Shield }
   ];
 
-  const enterpriseSuccessMetrics = [
-    {
-      icon: TrendingUp,
-      title: "Improved Learning Outcomes",
-      description: "AI-powered support helps learners stay engaged and complete their learning goals",
-      metric: "Better",
-      label: "Completion Rates"
-    },
-    {
-      icon: Target,
-      title: "Focused Learning Support",
-      description: "Streamlined assistance that helps learners overcome obstacles quickly",
-      metric: "Faster",
-      label: "Problem Resolution"
-    },
-    {
-      icon: Zap,
-      title: "Scalable Solution",
-      description: "Support system that grows with your organization without overwhelming resources",
-      metric: "Scales",
-      label: "With Your Team"
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-smart-beige to-purple-50">
       <SEO 
@@ -96,7 +73,7 @@ const ScalableLearningSupport = () => {
               Real-time guidance that keeps learners engaged, motivated, and on track with personalized support.
             </p>
 
-            {/* Community Stats Dashboard */}
+            {/* Stats Dashboard */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {communityStats.map((stat, index) => {
                 const IconComponent = stat.icon;
@@ -125,7 +102,7 @@ const ScalableLearningSupport = () => {
                 size="lg"
                 className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
               >
-                Explore the Platform
+                See How It Works
               </Button>
             </div>
           </div>
@@ -188,7 +165,7 @@ const ScalableLearningSupport = () => {
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
             Support that grows with your organization.
           </h2>
-          <p className="text-xl text-business-black/70 leading-relaxed font-inter">
+          <p className="text-lg text-business-black/70 leading-relaxed font-inter">
             LXERA helps you offer meaningful support to every learner, without scaling your team. Whether you're guiding ten users or ten thousand, our system adapts in real time to provide personalized guidance and insight.
           </p>
         </div>
@@ -209,49 +186,6 @@ const ScalableLearningSupport = () => {
             <cite className="text-business-black/70 font-medium font-inter">
               — Early User, Pilot Program
             </cite>
-          </div>
-        </div>
-      </section>
-
-      {/* Built for Growth Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
-              Built for Learning Success
-            </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto font-inter">
-              Simple, effective support features designed to help learners succeed
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {enterpriseSuccessMetrics.map((metric, index) => {
-              const IconComponent = metric.icon;
-              return (
-                <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-violet-600" />
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-violet-600">{metric.metric}</div>
-                        <div className="text-xs text-business-black/60">{metric.label}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <div className="font-semibold text-business-black mb-2">{metric.title}</div>
-                    </div>
-                    
-                    <p className="text-business-black/70 text-sm leading-relaxed">
-                      {metric.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
           </div>
         </div>
       </section>

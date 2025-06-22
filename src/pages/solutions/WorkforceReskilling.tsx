@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star, Map } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star, Map, Quote } from "lucide-react";
 
 const WorkforceReskilling = () => {
   const features = [
@@ -41,8 +41,15 @@ const WorkforceReskilling = () => {
     }
   ];
 
+  const communityStats = [
+    { number: "Skills-based", label: "Development", icon: Map },
+    { number: "Personalized", label: "Learning Paths", icon: Target },
+    { number: "Real-time", label: "Progress", icon: TrendingUp },
+    { number: "Scalable", label: "Solutions", icon: Globe }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-smart-beige to-indigo-50">
       <SEO 
         title="Workforce Reskilling & Upskilling - LXERA"
         description="Empower your people to grow with personalized learning paths, real skill visibility, and measurable progress across teams."
@@ -65,6 +72,23 @@ const WorkforceReskilling = () => {
             <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
               Empower your people to grow with personalized learning paths, real skill visibility, and measurable progress across teams.
             </p>
+
+            {/* Stats Dashboard */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {communityStats.map((stat, index) => {
+                const IconComponent = stat.icon;
+                return (
+                  <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${index * 100}ms` }}>
+                    <CardContent className="pt-6">
+                      <IconComponent className="w-8 h-8 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                      <div className="text-2xl font-semibold text-blue-600 mb-2">{stat.number}</div>
+                      <div className="text-sm text-business-black/70">{stat.label}</div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
@@ -153,7 +177,7 @@ const WorkforceReskilling = () => {
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-12 text-center shadow-xl">
             <div className="mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Star className="w-8 h-8 text-white" />
+                <Quote className="w-8 h-8 text-white" />
               </div>
             </div>
             <blockquote className="text-xl lg:text-2xl text-business-black italic mb-6 leading-relaxed font-inter">
@@ -166,7 +190,7 @@ const WorkforceReskilling = () => {
         </div>
       </section>
 
-      {/* Closing CTA Section */}
+      {/* CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
@@ -191,7 +215,7 @@ const WorkforceReskilling = () => {
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
       <Footer />
     </div>
