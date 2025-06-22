@@ -1,9 +1,9 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useState } from "react";
 import { Search, BookOpen, Brain, Users, Target, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Glossary = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -199,22 +199,22 @@ const Glossary = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 px-6 bg-gradient-to-r from-future-green/10 to-emerald/10">
+        {/* CTA Section - Updated with consistent design */}
+        <section className="py-20 px-6 bg-business-black">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
+            <h2 className="text-3xl md:text-4xl font-medium text-white leading-tight mb-4">
               Can't Find What You're Looking For?
             </h2>
-            <p className="lxera-section-subtitle mb-8">
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
               Our team is here to help you understand any learning technology concept or LXERA feature.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="lxera-btn-secondary px-8 py-4">
+              <Button className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[48px]">
                 Contact Support
-              </button>
-              <button className="border border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 rounded-full transition-all duration-300">
+              </Button>
+              <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-business-black px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]">
                 Suggest a Term
-              </button>
+              </Button>
             </div>
           </div>
         </section>

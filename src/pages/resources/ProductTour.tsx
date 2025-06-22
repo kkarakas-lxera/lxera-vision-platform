@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -81,7 +80,7 @@ const ProductTour = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button className="lxera-btn-secondary px-8 py-4 text-lg">
+              <Button className="lxera-btn-primary px-8 py-4 text-lg">
                 <Play className="w-5 h-5 mr-2" />
                 Start Interactive Tour
               </Button>
@@ -150,20 +149,20 @@ const ProductTour = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 px-6 bg-gradient-to-r from-future-green/10 to-emerald/10">
+        {/* CTA Section - Updated with consistent design */}
+        <section className="py-20 px-6 bg-business-black">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
+            <h2 className="text-3xl md:text-4xl font-medium text-white leading-tight mb-4">
               Ready to Transform Your Learning?
             </h2>
-            <p className="lxera-section-subtitle mb-8">
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
               After the tour, see how LXERA can be customized for your organization's specific needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="lxera-btn-secondary px-8 py-4">
+              <Button className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[48px]">
                 Request Live Demo
               </Button>
-              <Button variant="outline" className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4">
+              <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-business-black px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]">
                 Contact Sales
               </Button>
             </div>

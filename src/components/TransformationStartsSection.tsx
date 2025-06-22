@@ -27,7 +27,7 @@ const TransformationStartsSection = () => {
             <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
           </div>
 
-          {/* CTA Button - Standardized sizing */}
+          {/* CTA Button - Updated with consistent styling */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"

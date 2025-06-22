@@ -31,7 +31,7 @@ const HowItWorksStepsCTA = () => {
           </span>
           <Button
             size="lg"
-            className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0 min-h-[48px]"
+            className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
           >
             Book a Demo
           </Button>
