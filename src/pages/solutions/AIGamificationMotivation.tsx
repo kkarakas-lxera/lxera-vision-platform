@@ -86,8 +86,8 @@ const AIGamificationMotivation = () => {
       title: "Engagement Analytics",
       description: "Deep insights into engagement patterns and motivation drivers",
       icon: BarChart3,
-      color: "from-emerald-500 to-cyan-500",
-      bgColor: "bg-gradient-to-br from-emerald-50 to-cyan-50",
+      color: "from-slate-600 to-gray-800",
+      bgColor: "bg-gradient-to-br from-slate-50 to-gray-50",
       details: [
         "Real-time engagement monitoring",
         "Motivation pattern analysis",
