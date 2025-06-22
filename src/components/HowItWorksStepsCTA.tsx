@@ -31,7 +31,7 @@ const HowItWorksStepsCTA = () => {
           </span>
           <Button
             size="lg"
-            className="lxera-btn-primary px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
+            className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
           >
             Book a Demo
           </Button>
