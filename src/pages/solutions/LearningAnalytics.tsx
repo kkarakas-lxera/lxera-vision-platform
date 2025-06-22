@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -281,25 +280,6 @@ const LearningAnalytics = () => {
           <p className="text-lg text-business-black/70 max-w-4xl mx-auto leading-relaxed">
             LXERA equips L&D teams and managers with insights that go far beyond completion rates. You'll know who's engaged, who's thriving, and where to focus your attention—before issues arise.
           </p>
-        </div>
-      </section>
-
-      {/* Real Impact */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-xl border border-green-200/50">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <blockquote className="text-xl text-business-black/80 font-medium mb-6 italic leading-relaxed">
-              "We didn't just track progress. LXERA helped us predict challenges and respond faster to support our people."
-            </blockquote>
-            <cite className="text-business-black/60 font-medium">
-              — Head of L&D, Pilot Organization
-            </cite>
-          </div>
         </div>
       </section>
 
