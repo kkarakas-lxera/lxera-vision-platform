@@ -1,245 +1,192 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { ArrowRight, Users, CheckCircle, TrendingUp, Target, Award, Clock, BookOpen } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star } from "lucide-react";
 
 const WorkforceReskilling = () => {
-  const timelineSteps = [
+  const features = [
     {
-      icon: Target,
-      title: "Skills Assessment",
-      description: "Comprehensive analysis of current capabilities and future strategic requirements",
-      duration: "Week 1-2",
-      color: "bg-blue-500"
+      icon: Puzzle,
+      title: "Skills Taxonomy Integration",
+      description: "Uses real team data to map current capabilities and target critical skill gaps."
     },
     {
-      icon: BookOpen,
-      title: "Learning Path Design",
-      description: "Customized roadmaps aligned with career advancement and organizational objectives",
-      duration: "Week 3",
-      color: "bg-green-500"
+      icon: Brain,
+      title: "AI-Curated Learning Paths",
+      description: "Generates personalized journeys based on goals, behaviors, and taxonomy-defined needs."
+    },
+    {
+      icon: BarChart3,
+      title: "Live Skill Gap Analysis",
+      description: "Continuously evaluates progress against role-based or team-wide capability benchmarks."
+    },
+    {
+      icon: RefreshCw,
+      title: "Modular Microlearning Delivery",
+      description: "Fits reskilling into real workflows with bite-sized, goal-driven content."
+    },
+    {
+      icon: Globe,
+      title: "Enterprise-Scale Personalization",
+      description: "Delivers custom learning at scale across functions, levels, and geographies."
     },
     {
       icon: TrendingUp,
-      title: "Skill Development",
-      description: "Interactive learning modules with real-world enterprise applications",
-      duration: "Week 4-12",
-      color: "bg-purple-500"
-    },
-    {
-      icon: Award,
-      title: "Certification & Recognition",
-      description: "Industry-recognized credentials and internal advancement pathways",
-      duration: "Week 13+",
-      color: "bg-orange-500"
+      title: "Skills Intelligence for Leaders",
+      description: "Dashboards translate learning progress into business-readiness insights."
     }
   ];
 
-  const metrics = [
-    { label: "Skills Gap Reduction", value: "45%", icon: Target },
-    { label: "Enterprise Team Retention", value: "92%", icon: Users },
-    { label: "Career Advancement", value: "65%", icon: TrendingUp },
-    { label: "Strategic ROI", value: "280%", icon: Award }
-  ];
-
   return (
-    <div className="min-h-screen bg-smart-beige">
+    <div className="min-h-screen bg-gradient-to-br from-smart-beige to-white">
       <SEO 
         title="Workforce Reskilling & Upskilling - LXERA"
-        description="Close skill gaps and future-proof your teams with comprehensive reskilling and upskilling programs powered by AI."
-        keywords="workforce development, reskilling, upskilling, career development, skill gaps"
+        description="Bridge skill gaps with AI-personalized learning powered by real team skills data, intelligent pathing, and measurable outcomes."
+        keywords="workforce development, reskilling, upskilling, skills taxonomy, AI learning"
       />
       <Navigation />
       
-      {/* Hero Section - Timeline Inspired */}
-      <section className="pt-32 pb-20 px-6 lg:px-12">
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 lg:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 to-indigo-50/20"></div>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center animate-fade-in-up">
+            <Badge className="mb-6 bg-blue-600/20 text-business-black border-blue-600/30 px-4 py-2 text-sm font-medium rounded-full font-inter">
+              <Users className="w-4 h-4 mr-2" />
+              Skills-Based Development
+            </Badge>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight font-inter">
+              Workforce Reskilling & Upskilling
+            </h1>
+            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed font-inter">
+              Bridge skill gaps with AI-personalized learning powered by real team skills data, intelligent pathing, and measurable outcomes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0 group font-inter"
+              >
+                Request a Demo
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+              >
+                See How It Works
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Challenge Section */}
+      <section className="py-20 px-6 lg:px-12 bg-white/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
+            Transformation moves fast. Your teams need to keep up.
+          </h2>
+          <p className="text-lg text-business-black/70 leading-relaxed font-inter">
+            Business models, technologies, and customer needs evolve rapidly. But most reskilling efforts rely on generic content and disconnected tools. Without a real understanding of what skills your teams actually have — and need — growth stalls. You don't just need training. You need clarity, intelligence, and speed.
+          </p>
+        </div>
+      </section>
+
+      {/* How LXERA Helps Section */}
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full">
-              <Clock className="w-4 h-4 mr-2" />
-              Transform Your Workforce
-            </Badge>
-            <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
-              Build Tomorrow's
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block"> Strategic Workforce Today</span>
-            </h1>
-            <p className="text-xl text-business-black/70 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Partner with strategic leaders transforming their enterprise capabilities through comprehensive reskilling programs. Bridge skill gaps, boost retention, and prepare for tomorrow's challenges across your organization.
-            </p>
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 font-inter">
+              AI-powered upskilling, built on real skills data.
+            </h2>
           </div>
-
-          {/* Metrics Dashboard */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {metrics.map((metric, index) => {
-              const IconComponent = metric.icon;
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
               return (
-                <Card key={index} className="text-center border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <CardContent className="pt-6">
-                    <IconComponent className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                    <div className="text-3xl font-semibold text-blue-600 mb-2">{metric.value}</div>
-                    <div className="text-sm text-business-black/70">{metric.label}</div>
+                <Card 
+                  key={index} 
+                  className="group border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 animate-fade-in-up hover:-translate-y-2 rounded-3xl p-6 relative"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <CardHeader className="text-center pb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600/20 to-indigo-600/30 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-business-black" />
+                    </div>
+                    <CardTitle className="text-xl font-medium text-business-black group-hover:text-blue-600 transition-colors mb-4 font-inter">
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-business-black/70 text-center leading-relaxed font-inter">
+                      {feature.description}
+                    </CardDescription>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0"
-            >
-              Schedule Enterprise Demo
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
-            >
-              Request Strategic Assessment
-            </Button>
-          </div>
         </div>
       </section>
 
-      {/* Timeline Process Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Your Strategic Reskilling Journey
-            </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              A proven 4-step process designed for enterprise workforce transformation
-            </p>
-          </div>
-
-          <div className="relative">
-            {/* Timeline Line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full hidden lg:block"></div>
-            
-            <div className="space-y-12">
-              {timelineSteps.map((step, index) => {
-                const IconComponent = step.icon;
-                const isEven = index % 2 === 0;
-                
-                return (
-                  <div key={index} className={`flex items-center ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} animate-fade-in-up`} style={{ animationDelay: `${index * 200}ms` }}>
-                    <div className={`w-full lg:w-5/12 ${isEven ? 'lg:pr-12' : 'lg:pl-12'}`}>
-                      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-                        <CardHeader>
-                          <div className="flex items-center mb-4">
-                            <div className={`w-12 h-12 ${step.color} rounded-full flex items-center justify-center mr-4`}>
-                              <IconComponent className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-xl font-semibold text-business-black">{step.title}</CardTitle>
-                              <Badge variant="outline" className="mt-1">{step.duration}</Badge>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <CardDescription className="text-business-black/70 leading-relaxed text-base">
-                            {step.description}
-                          </CardDescription>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    
-                    {/* Timeline Node */}
-                    <div className="hidden lg:flex w-2/12 justify-center">
-                      <div className={`w-8 h-8 ${step.color} rounded-full border-4 border-white shadow-lg flex items-center justify-center`}>
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="w-full lg:w-5/12"></div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      {/* What You Gain Section */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-blue-600/20 to-indigo-600/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
+            Build a resilient, future-ready workforce.
+          </h2>
+          <p className="text-lg text-business-black/70 leading-relaxed font-inter">
+            LXERA turns reskilling from a guessing game into a data-backed growth engine. With real team skills at the core, your people gain confidence, your leaders gain visibility, and your business stays competitive — no matter how fast things change.
+          </p>
         </div>
       </section>
 
-      {/* Results Section */}
+      {/* Real Impact Section */}
       <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-                Enterprise Results with Strategic Partners
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  "45% reduction in skill gaps",
-                  "92% enterprise team retention", 
-                  "Future-ready workforce capabilities",
-                  "Clear advancement pathways",
-                  "Measurable strategic skill growth",
-                  "Industry-validated training programs"
-                ].map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                    <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                    <span className="text-lg text-business-black/80">{benefit}</span>
-                  </div>
-                ))}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-12 text-center shadow-xl">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Star className="w-8 h-8 text-white" />
               </div>
             </div>
-            
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8">
-              <div className="text-center mb-6">
-                <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                <div className="text-4xl font-semibold text-blue-600 mb-2">92%</div>
-                <div className="text-xl font-semibold text-business-black mb-4">Enterprise Retention</div>
-              </div>
-              <div className="text-business-black/70 text-center leading-relaxed">
-                Strategic teams participating in our reskilling programs show exceptional retention and advancement satisfaction rates
-              </div>
-              <div className="mt-6 pt-6 border-t border-blue-200">
-                <div className="text-sm text-business-black/60 text-center">
-                  "The most impactful workforce development strategy we've implemented"
-                </div>
-                <div className="text-sm font-medium text-blue-600 text-center mt-2">
-                  - Digital Transformation Director
-                </div>
-              </div>
-            </div>
+            <blockquote className="text-xl lg:text-2xl text-business-black italic mb-6 leading-relaxed font-inter">
+              "LXERA gave us clarity on where we were, where we needed to go, and how to get there — all without overwhelming our teams. The platform helped us reskill faster and smarter."
+            </blockquote>
+            <cite className="text-business-black/70 font-medium font-inter">
+              — Head of Capability Development, Pilot Client
+            </cite>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Closing CTA Section */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-3xl p-12 shadow-2xl border border-blue-200/50">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
-              Transform Your Strategic Workforce
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
+              Power your people with skills that matter — today and tomorrow.
             </h2>
-            <p className="text-xl text-white/90 mb-4 max-w-2xl mx-auto">
-              Don't let skill gaps limit your strategic objectives. Join forward-thinking HR Directors, L&D Directors, and Digital Transformation leaders building tomorrow's workforce today.
-            </p>
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-              Designed for mid-size organizations ready to lead transformation.
-            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0"
+                className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
-                Schedule Enterprise Demo
+                Talk to an Expert
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-blue-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-blue-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
-                Request Strategic Assessment
+                Get Early Access
               </Button>
             </div>
           </div>
