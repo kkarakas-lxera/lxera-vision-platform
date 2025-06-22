@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -130,11 +129,6 @@ const Pricing = () => {
                             }`}
                           >
                             Annual
-                            {billingCycle === 'annually' && (
-                              <span className="ml-2 text-xs bg-future-green text-business-black px-2 py-0.5 rounded-full font-semibold">
-                                Save $39
-                              </span>
-                            )}
                           </button>
                           <button
                             onClick={() => setBillingCycle('monthly')}
