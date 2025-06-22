@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -136,7 +137,7 @@ const ProductTour = () => {
                           </span>
                         </div>
                         <p className="lxera-card-description mb-4">{step.description}</p>
-                        <Button variant="outline" className="border-future-green/30 text-future-green hover:bg-future-green hover:text-business-black">
+                        <Button className="bg-business-black text-white hover:bg-business-black/90 rounded-full px-6 py-2">
                           <Play className="w-4 h-4 mr-2" />
                           Start This Section
                         </Button>
@@ -149,7 +150,7 @@ const ProductTour = () => {
           </div>
         </section>
 
-        {/* CTA Section - Updated with consistent design */}
+        {/* CTA Section */}
         <section className="py-20 px-6 bg-business-black">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-medium text-white leading-tight mb-4">
