@@ -198,13 +198,13 @@ const LearningAnalytics = () => {
               return (
                 <Card key={index} className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 text-green-600" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-8 h-8 text-business-black" />
                     </div>
-                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-green-600 transition-colors">
+                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-business-black/80 transition-colors">
                       {feature.title}
                     </CardTitle>
-                    <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    <Badge className="bg-business-black/10 text-business-black text-xs px-2 py-1 rounded-full">
                       {feature.metric}
                     </Badge>
                   </CardHeader>
@@ -215,7 +215,7 @@ const LearningAnalytics = () => {
                     
                     <button
                       onClick={() => toggleSection(`feature-${index}`)}
-                      className="w-full flex items-center justify-center text-green-600 hover:text-green-700 text-sm font-medium transition-colors"
+                      className="w-full flex items-center justify-center text-business-black/70 hover:text-business-black text-sm font-medium transition-colors"
                       aria-expanded={isExpanded}
                       aria-controls={`feature-details-${index}`}
                     >
@@ -228,7 +228,7 @@ const LearningAnalytics = () => {
                     </button>
                     
                     {isExpanded && (
-                      <div id={`feature-details-${index}`} className="mt-4 p-4 bg-green-50 rounded-xl">
+                      <div id={`feature-details-${index}`} className="mt-4 p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-business-black/70 leading-relaxed">
                           {feature.details}
                         </p>
