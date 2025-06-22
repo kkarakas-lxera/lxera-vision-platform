@@ -64,7 +64,7 @@ const About = () => {
         <section className="relative pt-32 pb-20 px-6 lg:px-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight">
                 We're building
                 <span className="bg-gradient-to-r from-future-green via-emerald to-purple-400 bg-clip-text text-transparent block">
                   the future of learning

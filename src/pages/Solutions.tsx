@@ -77,7 +77,7 @@ const Solutions = () => {
             <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full">
               Solutions Portfolio
             </Badge>
-            <h1 className="text-4xl lg:text-6xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight">
               Transform Learning with
               <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent"> AI-Powered Solutions</span>
             </h1>

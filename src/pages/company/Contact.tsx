@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,7 +70,7 @@ const Contact = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6 leading-tight">
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight">
             Let's Start a
             <span className="block bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
               Conversation

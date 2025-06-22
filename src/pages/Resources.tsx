@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,7 +139,7 @@ const Resources = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-business-black mb-6 font-inter">
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 font-inter leading-tight">
             Learning <span className="text-future-green">Resources</span>
           </h1>
           <p className="text-xl text-business-black/70 mb-8 max-w-3xl mx-auto font-inter">
@@ -168,7 +167,7 @@ const Resources = () => {
                   <div className={`w-12 h-12 rounded-2xl ${category.color} flex items-center justify-center mr-4`}>
                     <IconComponent className={`w-6 h-6 ${category.iconColor}`} />
                   </div>
-                  <h2 className="text-3xl font-bold text-business-black font-inter">{category.title}</h2>
+                  <h2 className="text-3xl font-medium text-business-black font-inter">{category.title}</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -211,7 +210,7 @@ const Resources = () => {
       <section className="py-16 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/30 to-future-green/10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-business-black mb-4 font-inter">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-4 font-inter">
               Community & <span className="text-future-green">Collaboration</span>
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto font-inter">
@@ -251,7 +250,7 @@ const Resources = () => {
       <section className="py-16 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-business-black to-business-black/90 rounded-3xl p-8 lg:p-12 text-white">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 font-inter">
+            <h2 className="text-3xl lg:text-4xl font-medium mb-4 font-inter">
               Need Something Specific?
             </h2>
             <p className="text-xl text-white/80 mb-8 font-inter">

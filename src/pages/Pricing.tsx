@@ -70,7 +70,7 @@ const Pricing = () => {
         {/* Header Section */}
         <div className="bg-white py-4 lg:py-6 mt-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <h1 className="text-4xl lg:text-6xl font-normal text-business-black mb-6 font-inter leading-tight tracking-tight">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
             </h1>
             <p className="text-xl text-business-black/85 max-w-3xl mx-auto mb-8 font-inter font-normal leading-relaxed">
@@ -106,7 +106,7 @@ const Pricing = () => {
                   
                   <div className="text-center mb-8">
                     {plan.name && (
-                      <h3 className={`text-2xl font-bold mb-2 transition-colors duration-300 font-inter ${
+                      <h3 className={`text-2xl font-medium mb-2 transition-colors duration-300 font-inter ${
                         plan.popular ? 'text-business-black group-hover:text-business-black' : 'text-business-black group-hover:text-business-black'
                       }`}>
                         {plan.name}
@@ -145,7 +145,7 @@ const Pricing = () => {
                     )}
 
                     <div className="mb-4">
-                      <span className="text-4xl font-bold text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
+                      <span className="text-4xl font-medium text-business-black group-hover:scale-110 transition-transform duration-300 inline-block font-inter">
                         {plan.price}
                       </span>
                       {plan.period && (
