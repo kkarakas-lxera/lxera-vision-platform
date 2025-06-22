@@ -62,7 +62,7 @@ const LearningAnalytics = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
+    <div className="min-h-screen">
       <SEO 
         title="Learning Analytics & Insights - LXERA"
         description="Understand engagement and performance in real time to improve outcomes with intelligent learning data."
@@ -70,11 +70,18 @@ const LearningAnalytics = () => {
       />
       <Navigation />
       
-      <HeroSection />
-      <MetricsSection />
+      {/* Hero Section - Light background */}
+      <div className="bg-gradient-to-br from-green-50 via-smart-beige to-emerald-50">
+        <HeroSection />
+      </div>
 
-      {/* The Challenge Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/30">
+      {/* Metrics Section - Green accent background */}
+      <div className="bg-gradient-to-r from-green-100 to-emerald-100">
+        <MetricsSection />
+      </div>
+
+      {/* The Challenge Section - White background */}
+      <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
             Knowing who clicked isn't enough.
@@ -85,8 +92,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Dashboard Preview Section */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* Dashboard Preview Section - Light beige background */}
+      <section className="py-20 px-6 lg:px-12 bg-smart-beige/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
@@ -113,8 +120,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Core Features Section */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* Core Features Section - White background */}
+      <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
@@ -125,8 +132,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Feature Comparison Section */}
-      <section className="py-20 px-6 lg:px-12 bg-white/30">
+      {/* Feature Comparison Section - Light gray background */}
+      <section className="py-20 px-6 lg:px-12 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
@@ -140,8 +147,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* Industry Use Cases */}
-      <section className="py-20 px-6 lg:px-12">
+      {/* Industry Use Cases - White background */}
+      <section className="py-20 px-6 lg:px-12 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
@@ -155,8 +162,8 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      {/* What You Gain Section */}
-      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
+      {/* What You Gain Section - Light beige background */}
+      <section className="py-20 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/40 to-future-green/20">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
             Clear visibility. Smarter decisions.
@@ -167,7 +174,11 @@ const LearningAnalytics = () => {
         </div>
       </section>
 
-      <CTASection />
+      {/* CTA Section - Green gradient background */}
+      <div className="bg-gradient-to-br from-green-500 to-emerald-500">
+        <CTASection />
+      </div>
+
       <Footer />
     </div>
   );
