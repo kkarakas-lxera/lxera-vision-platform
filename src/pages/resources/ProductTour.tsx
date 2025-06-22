@@ -71,7 +71,7 @@ const ProductTour = () => {
         {/* Hero Section */}
         <section className="pt-32 pb-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="lxera-headline mb-6">
+            <h1>
               Experience LXERA in Action
             </h1>
             <p className="lxera-subheadline mb-8">
@@ -99,7 +99,7 @@ const ProductTour = () => {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center mx-auto mb-4">
                       <IconComponent className="w-6 h-6 text-future-green" />
                     </div>
-                    <h3 className="lxera-card-title mb-2">{feature.title}</h3>
+                    <h3 className="mb-2">{feature.title}</h3>
                     <p className="lxera-card-description">{feature.description}</p>
                   </div>
                 );
@@ -112,7 +112,7 @@ const ProductTour = () => {
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="lxera-section-title mb-4">
+              <h2 className="mb-4">
                 What You'll Explore
               </h2>
               <p className="lxera-section-subtitle">
@@ -131,7 +131,7 @@ const ProductTour = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="lxera-card-title">{step.title}</h3>
+                          <h3>{step.title}</h3>
                           <span className="lxera-caption bg-smart-beige px-2 py-1 rounded-full">
                             {step.duration}
                           </span>
@@ -153,7 +153,7 @@ const ProductTour = () => {
         {/* CTA Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-future-green/10 to-emerald/10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="lxera-section-title mb-4">
+            <h2 className="mb-4">
               Ready to Transform Your Learning?
             </h2>
             <p className="lxera-section-subtitle mb-8">
