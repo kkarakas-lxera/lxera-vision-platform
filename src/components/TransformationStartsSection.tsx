@@ -5,51 +5,57 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 const TransformationStartsSection = () => {
   return (
     <>
-      {/* Minimal transition */}
+      {/* Smooth transition overlay */}
       <div className="relative">
-        <div className="h-px bg-gradient-to-r from-transparent via-future-green/20 to-transparent"></div>
+        <div className="h-8 bg-gradient-to-b from-future-green/12 via-smart-beige/40 to-future-green/15 transition-all duration-1000 ease-in-out"></div>
       </div>
 
-      <section className="w-full py-20 px-6 text-center bg-white relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-16 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-4xl mx-auto relative z-10">
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-business-black mb-8 animate-fade-in-up font-inter">
-            Where Learning Meets Innovation
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-fade-in-up font-inter">
+            Your Transformation Starts Here
           </h2>
           
-          <p className="text-lg sm:text-xl text-business-black/70 max-w-2xl mx-auto mb-12 animate-fade-in-up animate-delay-200 font-light font-inter leading-relaxed">
-            Experience how AI-powered learning transforms teams into innovation engines.
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200 font-normal font-inter">
+            LXERA helps future-ready teams move beyond learning and into innovation.
           </p>
           
-          {/* Minimal accent */}
-          <div className="flex justify-center mb-12 animate-fade-in-up animate-delay-400">
-            <div className="w-16 h-px bg-future-green"></div>
+          <div className="bg-gradient-to-r from-smart-beige/60 via-future-green/20 to-smart-beige/40 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto animate-fade-in-scale animate-delay-600 border border-future-green/30 hover:from-smart-beige/70 hover:via-future-green/25 hover:to-smart-beige/50 hover:shadow-xl transition-all duration-500 lxera-hover">
+            <p className="text-business-black/80 font-normal text-base font-inter">
+              Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
+            </p>
           </div>
 
-          {/* Clean CTA */}
-          <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in-up animate-delay-600">
+          {/* Animated Down Arrow Indicator above the CTA button */}
+          <div className="flex justify-center mt-6 animate-bounce-slow">
+            <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
+          </div>
+
+          {/* CTA Button - Standardized sizing */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"
-              className="bg-business-black text-white hover:bg-business-black/90 font-normal px-8 py-4 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md font-inter min-h-[48px] border-0"
-              aria-label="Explore the journey"
+              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
+              aria-label="Get Early Access"
             >
-              Explore the journey
-              <ArrowRight size={16} className="ml-2" />
+              Get Early Access
+              <ArrowRight size={18} className="ml-2" />
             </Button>
           </div>
 
-          {/* Minimal scroll indicator */}
-          <div className="flex justify-center mt-16 animate-fade-in-up animate-delay-800">
-            <div className="flex flex-col items-center space-y-2">
-              <div className="w-px h-8 bg-business-black/20"></div>
-              <ArrowDown className="w-4 h-4 animate-bounce text-business-black/40" />
-            </div>
+          <div className="flex justify-center mt-8 space-x-2 animate-fade-in animate-delay-800">
+            {[1, 2, 3, 4].map((step, index) => (
+              <div 
+                key={step}
+                className="w-2 h-2 rounded-full animate-pulse-slow bg-future-green/60"
+                style={{
+                  animationDelay: `${1000 + index * 200}ms`,
+                }}
+              ></div>
+            ))}
           </div>
         </div>
-
-        {/* Subtle geometric elements */}
-        <div className="absolute top-20 right-20 w-2 h-2 rounded-full bg-future-green/20"></div>
-        <div className="absolute bottom-20 left-20 w-1 h-12 bg-future-green/20"></div>
       </section>
     </>
   );
