@@ -18,19 +18,19 @@ const CTASection = () => {
       <div className="w-full lg:w-1/2 space-y-6">
         {/* Quote snippet */}
         <div className="text-left">
-          <span className="block text-business-black/70 lxera-body font-medium italic leading-tight">
+          <span className="block text-business-black/70 text-base font-medium italic leading-tight">
             "Built with real teams. Designed for transformation."
           </span>
         </div>
         
         <div className="text-left animate-fade-in-up animate-delay-600 space-y-4">
-          <p className="lxera-body text-business-black/75 font-medium">
+          <p className="text-base text-business-black/75 font-medium">
             🚀 <strong className="text-business-black">Early access open</strong> for innovative teams
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
               size="lg"
-              className="lxera-btn-primary px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
+              className="bg-gradient-to-r from-future-green to-emerald-600 text-business-black hover:from-emerald-600 hover:to-future-green font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 border-0 min-h-[48px]"
               onClick={handleScrollToContact}
               aria-label="Request a demo"
             >
@@ -40,7 +40,7 @@ const CTASection = () => {
             <Button
               size="lg"
               variant="outline"
-              className="lxera-btn-secondary px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 min-h-[48px]"
+              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 min-h-[48px]"
               aria-label="LXERA for Business"
             >
               LXERA for Business

@@ -152,17 +152,17 @@ const Solutions = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
-            <h2 className="lxera-section-title text-white mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
               Ready to Transform Your Organization?
             </h2>
-            <p className="lxera-body-large text-white/90 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
               Discover how our AI-powered solutions can revolutionize learning and innovation 
               in your organization. Let's build the future together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2 border-0"
               >
                 Schedule Strategic Demo
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -170,7 +170,7 @@ const Solutions = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
               >
                 Request Executive Assessment
               </Button>

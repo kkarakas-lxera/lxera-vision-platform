@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +92,7 @@ const AILearningSupport = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="lxera-btn-primary bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-cyan-600 hover:to-teal-600 px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2"
+                className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-cyan-600 hover:to-teal-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 border-0 group font-inter"
               >
                 Request a Demo
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -99,7 +100,7 @@ const AILearningSupport = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+                className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
               >
                 Explore the Platform
               </Button>
@@ -193,13 +194,13 @@ const AILearningSupport = () => {
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-teal-500 to-cyan-500 rounded-3xl p-12 shadow-2xl border border-teal-200/50">
-            <h2 className="lxera-section-title text-white mb-8">
+            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-8 font-inter">
               Reimagine mentorship — personal, intelligent, and always there.
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-teal-600 hover:bg-teal-50 hover:text-teal-700 px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
+                className="bg-white text-teal-600 hover:bg-teal-50 hover:text-teal-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
                 Talk to an Expert
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -207,7 +208,7 @@ const AILearningSupport = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-teal-600 hover:border-white px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-teal-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
                 Get Early Access
               </Button>
