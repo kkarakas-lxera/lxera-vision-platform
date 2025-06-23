@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -70,7 +71,7 @@ const ProductTour = () => {
         {/* Hero Section */}
         <section className="pt-32 pb-24 px-6 bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-business-black leading-tight tracking-tight mb-6">
+            <h1 className="lxera-headline mb-6">
               Experience LXERA in Action
             </h1>
             <p className="lxera-subheadline mb-8">
@@ -97,7 +98,7 @@ const ProductTour = () => {
                     <div className="w-12 h-12 rounded-2xl bg-business-black flex items-center justify-center mx-auto mb-4">
                       <IconComponent className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xl font-medium text-business-black mb-2">{feature.title}</h3>
+                    <h3 className="lxera-card-title mb-2">{feature.title}</h3>
                     <p className="lxera-card-description">{feature.description}</p>
                   </div>
                 );
@@ -113,7 +114,7 @@ const ProductTour = () => {
         <section className="py-24 px-6 bg-gradient-to-br from-blue-50/30 via-white/80 to-purple-50/20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
+              <h2 className="lxera-section-title mb-4">
                 What You'll Explore
               </h2>
               <p className="lxera-section-subtitle">
@@ -132,13 +133,13 @@ const ProductTour = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-xl font-medium text-business-black">{step.title}</h3>
+                          <h3 className="lxera-card-title">{step.title}</h3>
                           <span className="lxera-caption bg-smart-beige px-2 py-1 rounded-full">
                             {step.duration}
                           </span>
                         </div>
                         <p className="lxera-card-description mb-4">{step.description}</p>
-                        <Button className="bg-business-black text-white hover:bg-business-black/90 rounded-full px-6 py-2">
+                        <Button className="lxera-btn-secondary rounded-full px-6 py-2">
                           Start This Section
                         </Button>
                       </div>
@@ -160,10 +161,10 @@ const ProductTour = () => {
         {/* CTA Section */}
         <section className="py-24 px-6 bg-business-black">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-medium text-white leading-tight mb-4">
+            <h2 className="lxera-section-title text-white mb-4">
               Ready to Transform Your Learning?
             </h2>
-            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="lxera-body-large text-white/80 mb-8 max-w-2xl mx-auto">
               After the tour, see how LXERA can be customized for your organization's specific needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
