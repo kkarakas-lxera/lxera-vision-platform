@@ -394,12 +394,12 @@ const AIGamificationMotivation = () => {
               return (
                 <Card
                   key={index}
-                  className="text-center bg-white/80 backdrop-blur-sm border-orange-100 hover:shadow-2xl transition-all duration-500 animate-fade-in-up group cursor-pointer relative overflow-hidden"
+                  className="text-center bg-white/90 backdrop-blur-sm border-2 border-orange-100/80 hover:shadow-2xl transition-all duration-500 animate-fade-in-up group cursor-pointer relative overflow-hidden hover:border-orange-200"
                   style={{ animationDelay: `${index * 150}ms` }}
                   onMouseEnter={() => setHoveredBenefit(index)}
                   onMouseLeave={() => setHoveredBenefit(null)}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-orange-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <CardContent className="pt-10 pb-8 relative z-10">
                     <div className={`w-20 h-20 bg-gradient-to-r ${benefit.color} rounded-2xl flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all duration-300 shadow-lg`}>
                       <IconComponent className="w-10 h-10 text-white" />
