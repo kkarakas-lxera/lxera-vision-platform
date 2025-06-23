@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -151,8 +150,12 @@ const ProductTour = () => {
           </div>
         </section>
 
-        {/* Enhanced Section Separator */}
-        <div className="h-16 bg-gradient-to-b from-purple-50/20 via-smart-beige/30 to-business-black"></div>
+        {/* Improved Section Separator */}
+        <div className="relative h-24">
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-50/20 via-gray-100/50 to-gray-900/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-business-black/10 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-business-black"></div>
+        </div>
 
         {/* CTA Section */}
         <section className="py-24 px-6 bg-business-black">
