@@ -41,150 +41,133 @@ const MobileMenu = ({
     setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
   };
 
-  // Define the solutions with warmer, more human-friendly colors and design - reordered
+  // Define the solutions with clean circular icons
   const solutionsItems = [
     {
       name: "AI-Personalized Learning",
       href: "/solutions/ai-personalized-learning",
       icon: Brain,
-      color: "bg-gradient-to-br from-pink-100 to-rose-100",
-      iconColor: "text-pink-600",
+      color: "bg-pink-500",
       description: "Personalized content and pathways — powered by AI"
     },
     {
       name: "Workforce Reskilling & Upskilling", 
       href: "/solutions/workforce-reskilling-upskilling",
       icon: Users,
-      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
-      iconColor: "text-blue-600",
+      color: "bg-blue-500",
       description: "Close skill gaps and future-proof your teams"
     },
     {
       name: "AI Gamification & Motivation",
       href: "/solutions/ai-gamification-motivation",
       icon: Gamepad2,
-      color: "bg-gradient-to-br from-orange-100 to-red-100",
-      iconColor: "text-orange-600",
+      color: "bg-orange-500",
       description: "Boost engagement with dynamic rewards and intelligent challenges"
     },
     {
       name: "AI Mentorship & Support",
       href: "/solutions/scalable-learning-support-mentorship",
       icon: MessageCircle,
-      color: "bg-gradient-to-br from-purple-100 to-violet-100",
-      iconColor: "text-purple-600",
+      color: "bg-purple-500",
       description: "Real-time guidance to keep learners engaged and on track"
     },
     {
       name: "Learning Analytics & Insights",
       href: "/solutions/learning-analytics-insights",
       icon: BarChart3,
-      color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
-      iconColor: "text-emerald-600",
+      color: "bg-emerald-500", 
       description: "Turn engagement data into actionable insights"
     },
     {
       name: "Citizen Developer Enablement",
       href: "/solutions/citizen-developer-enablement", 
       icon: Lightbulb,
-      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
-      iconColor: "text-amber-600",
+      color: "bg-amber-500",
       description: "Equip business users to build and automate without coding"
     },
     {
       name: "Enterprise Innovation Enablement",
       href: "/solutions/enterprise-innovation-enablement",
       icon: Building2,
-      color: "bg-gradient-to-br from-slate-100 to-gray-100",
-      iconColor: "text-slate-600",
+      color: "bg-slate-500",
       description: "Empower every level of the organization to drive transformation"
     }
   ];
 
-  // Define platform items with icons and colors
+  // Define platform items with clean circular icons
   const platformItems = [
     {
       name: "How LXERA Works",
       href: "/platform/how-it-works",
       icon: Target,
-      color: "bg-gradient-to-br from-blue-100 to-cyan-100",
-      iconColor: "text-blue-600",
+      color: "bg-blue-500",
       description: "Discover the core methodology behind LXERA"
     },
     {
       name: "AI Engine",
       href: "/platform/ai-engine",
       icon: Sparkles,
-      color: "bg-gradient-to-br from-purple-100 to-indigo-100",
-      iconColor: "text-purple-600",
+      color: "bg-purple-500",
       description: "Advanced AI that powers personalized learning"
     },
     {
       name: "Engagement & Insights",
       href: "/platform/engagement-insights",
       icon: BarChart3,
-      color: "bg-gradient-to-br from-emerald-100 to-teal-100",
-      iconColor: "text-emerald-600",
+      color: "bg-emerald-500",
       description: "Real-time analytics and engagement tracking"
     },
     {
       name: "Innovation Hub",
       href: "/platform/innovation-hub",
       icon: Lightbulb,
-      color: "bg-gradient-to-br from-yellow-100 to-amber-100",
-      iconColor: "text-amber-600",
+      color: "bg-amber-500",
       description: "Collaborative space for innovation and ideation"
     },
     {
       name: "Mentorship & Support Tools",
       href: "/platform/mentorship-support",
       icon: MessageCircle,
-      color: "bg-gradient-to-br from-rose-100 to-pink-100",
-      iconColor: "text-rose-600",
+      color: "bg-rose-500",
       description: "AI-powered mentorship and support systems"
     },
     {
       name: "Security & Data Privacy",
       href: "/platform/security-privacy",
       icon: Shield,
-      color: "bg-gradient-to-br from-gray-100 to-slate-100",
-      iconColor: "text-gray-600",
+      color: "bg-gray-500",
       description: "Enterprise-grade security and privacy protection"
     },
     {
       name: "Integrations",
       href: "/platform/integrations",
       icon: Plug,
-      color: "bg-gradient-to-br from-green-100 to-emerald-100",
-      iconColor: "text-green-600",
+      color: "bg-green-500",
       description: "Seamless integration with your existing tools"
     }
   ];
 
-  // Updated resources items with new subcategories
+  // Updated resources items
   const resourcesItems = [
     {
       name: "Blog",
       href: "/resources/blog",
       icon: BookOpen,
-      color: "bg-gradient-to-br from-blue-100 to-indigo-100",
-      iconColor: "text-blue-600",
+      color: "bg-blue-500",
       description: "Latest insights, trends, and best practices"
     },
     {
       name: "Product Tour",
       href: "/resources/product-tour",
       icon: Play,
-      color: "bg-gradient-to-br from-green-100 to-emerald-100",
-      iconColor: "text-green-600",
+      color: "bg-green-500",
       description: "Interactive walkthrough of LXERA features"
     },
     {
       name: "Glossary",
       href: "/resources/glossary",
       icon: Book,
-      color: "bg-gradient-to-br from-purple-100 to-violet-100",
-      iconColor: "text-purple-600",
+      color: "bg-purple-500",
       description: "Key terms and definitions in learning technology"
     }
   ];
@@ -206,7 +189,7 @@ const MobileMenu = ({
       <div className="flex items-center space-x-3">
         <Button
           onClick={handleRequestDemo}
-          className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
           aria-label="Request a demo"
         >
           Request a Demo
@@ -215,7 +198,7 @@ const MobileMenu = ({
           variant="ghost"
           size="icon"
           onClick={handleMobileMenuToggle}
-          className="text-business-black hover:text-emerald hover:bg-emerald/10 transition-all duration-300"
+          className="text-business-black hover:text-business-black/70 hover:bg-gray-100 transition-all duration-300"
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
         >
@@ -223,36 +206,35 @@ const MobileMenu = ({
         </Button>
       </div>
 
-      {/* Enhanced Mobile Menu Dropdown with better visibility using emerald green */}
+      {/* Clean Mobile Menu Dropdown with white background */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-lg shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
-          <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
+        <div className="absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-200 z-40 animate-slide-in-right">
+          <div className="max-w-7xl mx-auto px-6 py-6 space-y-1">
             {menuItems.map((item, index) => (
               <div key={item.name}>
                 {item.hasDropdown ? (
                   <>
                     <button
                       onClick={() => toggleDropdown(item.name)}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-emerald hover:bg-emerald/15 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                        activeSection === item.id ? 'text-emerald bg-emerald/15 shadow-lg border-2 border-emerald/60 font-semibold' : ''
+                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
+                        activeSection === item.id ? 'bg-gray-100' : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <span>{item.name}</span>
+                      <span>{item.name.toUpperCase()}</span>
                       {expandedDropdown === item.name ? (
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
                       ) : (
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4 text-gray-500" />
                       )}
                     </button>
                     {expandedDropdown === item.name && (
-                      <div className="ml-2 mt-3 space-y-2 bg-gradient-to-r from-smart-beige/20 to-emerald/10 rounded-xl p-4 border border-emerald/25">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className="w-2 h-2 bg-gradient-to-r from-emerald to-emerald/80 rounded-full"></div>
-                          <div className="text-xs font-medium text-business-black/70 font-inter">
-                            {item.name === 'Platform' ? 'Platform Features' : 
-                             item.name === 'Solutions' ? 'Solutions for every team' : 
-                             'Learn & Explore'}
+                      <div className="ml-4 mt-2 space-y-1 bg-gray-50 rounded-xl p-4">
+                        <div className="mb-3">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                            {item.name === 'Platform' ? 'PLATFORM FEATURES' : 
+                             item.name === 'Solutions' ? 'CAPABILITIES' : 
+                             'RESOURCES'}
                           </div>
                         </div>
                         {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
@@ -261,48 +243,43 @@ const MobileMenu = ({
                             <button
                               key={subIndex}
                               onClick={() => scrollToSection(dropdownItem.href)}
-                              className="flex items-center w-full text-left px-3 py-3 hover:bg-emerald/12 rounded-xl transition-all duration-300 group border border-transparent hover:border-emerald/50 hover:shadow-sm"
+                              className="flex items-center w-full text-left px-3 py-3 hover:bg-white rounded-lg transition-all duration-200 group"
                             >
-                              <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
-                                <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
+                              <div className={`w-8 h-8 rounded-full ${dropdownItem.color} flex items-center justify-center mr-3 flex-shrink-0`}>
+                                <IconComponent className="w-4 h-4 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-business-black font-medium font-inter text-sm transition-colors duration-300 mb-1">
+                                <div className="text-business-black font-medium text-sm mb-0.5">
                                   {dropdownItem.name}
                                 </div>
-                                <div className="text-business-black/60 font-inter text-xs transition-colors duration-300 line-clamp-1">
+                                <div className="text-gray-600 text-xs line-clamp-2">
                                   {dropdownItem.description}
                                 </div>
                               </div>
                             </button>
                           );
                         })}
-                        <div className="pt-2 mt-3 border-t border-gray-200/30">
-                          <p className="text-xs text-business-black/50 font-inter text-center">
-                            Designed with ❤️ for human-centered innovation
-                          </p>
-                        </div>
                       </div>
                     )}
                   </>
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-emerald hover:bg-emerald/15 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                      activeSection === item.id ? 'text-emerald bg-emerald/15 shadow-lg border-2 border-emerald/60 font-semibold' : ''
+                    className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
+                      activeSection === item.id ? 'bg-gray-100' : ''
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                     aria-current={activeSection === item.id ? 'page' : undefined}
                   >
-                    {item.name}
+                    {item.name.toUpperCase()}
                   </button>
                 )}
               </div>
             ))}
-            <div className="pt-4 border-t border-gray-200/50 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
               <Button 
                 variant="outline" 
-                className="w-full border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 rounded-xl"
+                className="w-full border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 rounded-xl font-medium"
               >
                 Sign In
               </Button>
