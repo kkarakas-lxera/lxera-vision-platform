@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -126,8 +125,7 @@ const EnterpriseInnovation = () => {
               size="lg"
               className="bg-gradient-to-r from-orange-500 to-red-500 text-white hover:shadow-xl transition-all duration-300 px-8 py-4 text-base font-medium rounded-xl border-0 font-inter"
             >
-              Schedule Strategic Demo
-              <ArrowRight className="w-5 h-5 ml-2" />
+              Request a Demo
             </Button>
             <Button
               variant="outline"
@@ -321,30 +319,26 @@ const EnterpriseInnovation = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Final CTA Section */}
       <section className="py-24 px-6 lg:px-12 bg-gradient-to-r from-orange-500 to-red-500">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-3xl p-16 shadow-2xl border border-white/20">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-white mb-8 font-inter">
-              Ready to Lead Strategic Innovation?
+              Lead your industry. Build the future.
             </h2>
-            <p className="text-lg sm:text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed font-normal font-inter">
-              Join strategic leaders who are transforming their organizations through strategic innovation. The future belongs to those who innovate strategically today.
-            </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl transition-all duration-300 px-8 py-4 text-base font-medium rounded-xl border-0 font-inter"
+                className="bg-white text-orange-600 hover:bg-orange-50 hover:shadow-xl transition-all duration-300 px-8 py-4 text-base font-medium rounded-xl border-0 font-inter"
               >
-                Schedule Strategic Demo
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Request a Demo
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="border-2 border-white text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-base rounded-xl font-normal font-inter"
               >
-                Request Executive Assessment
+                Get Early Access
               </Button>
             </div>
           </div>

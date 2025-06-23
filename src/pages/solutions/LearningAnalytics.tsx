@@ -105,7 +105,6 @@ const LearningAnalytics = () => {
                 className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-cyan-600 hover:to-teal-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 border-0 group font-inter"
               >
                 Request a Demo
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
                 variant="outline"
@@ -270,8 +269,7 @@ const LearningAnalytics = () => {
                 size="lg"
                 className="bg-white text-teal-600 hover:bg-teal-50 hover:text-teal-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
               >
-                Talk to an Expert
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Request a Demo
               </Button>
               <Button
                 variant="outline"
