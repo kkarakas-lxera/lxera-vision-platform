@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,7 +133,7 @@ const EnterpriseInnovation = () => {
               size="lg"
               className="border-2 border-business-black/20 bg-white/80 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-base rounded-xl font-inter font-normal"
             >
-              View Executive Case Studies
+              Get Early Access
             </Button>
           </div>
         </div>
