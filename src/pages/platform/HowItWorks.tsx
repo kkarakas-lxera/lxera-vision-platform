@@ -85,6 +85,7 @@ const HowItWorks = () => {
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Watch How It Works
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
@@ -194,7 +195,7 @@ const HowItWorks = () => {
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
+              Talk to Our Experts
             </Button>
           </div>
         </div>
