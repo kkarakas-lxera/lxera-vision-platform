@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -31,9 +32,9 @@ const HeroSection = () => {
           <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-6 sm:mb-8 md:mb-12">
             {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
             <div className="w-full lg:w-2/5 space-y-2 sm:space-y-3 md:space-y-4 px-1 sm:px-2 lg:px-0">
-              {/* Headline - responsive sizing with better line control */}
+              {/* Headline - increased text sizes by one level across all breakpoints */}
               <div className="animate-fade-in-up">
-                <h1 className="headline text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-medium text-business-black leading-tight tracking-tight font-inter">
+                <h1 className="headline text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-medium text-business-black leading-tight tracking-tight font-inter">
                   <span className="block">
                     LXERA: The First
                   </span>
@@ -47,9 +48,9 @@ const HeroSection = () => {
                 </h1>
               </div>
 
-              {/* Subheadline - responsive sizing */}
+              {/* Subheadline - increased text sizes */}
               <div className="animate-fade-in-up animate-delay-200">
-                <p className="subheadline text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-business-black/85 font-normal leading-relaxed font-inter">
+                <p className="subheadline text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-business-black/85 font-normal leading-relaxed font-inter">
                   Empower your teams to{" "}
                   <b className="text-business-black font-medium">learn faster,</b>{" "}
                   <b className="text-business-black font-medium">innovate deeper,</b>{" "}
