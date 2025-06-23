@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
@@ -224,7 +223,7 @@ const MobileMenu = ({
                           }`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <span>{item.name.toUpperCase()}</span>
+                          <span>{item.name}</span>
                           {expandedDropdown === item.name ? (
                             <ChevronDown className="h-4 w-4 text-gray-500" />
                           ) : (
@@ -278,7 +277,7 @@ const MobileMenu = ({
                         style={{ animationDelay: `${index * 50}ms` }}
                         aria-current={activeSection === item.id ? 'page' : undefined}
                       >
-                        {item.name.toUpperCase()}
+                        {item.name}
                       </button>
                     )}
                   </div>
