@@ -81,7 +81,6 @@ const ProductTour = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button className="lxera-btn-primary px-8 py-4 text-lg">
-                <Play className="w-5 h-5 mr-2" />
                 Request a Demo
               </Button>
               <Button variant="outline" className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg">
