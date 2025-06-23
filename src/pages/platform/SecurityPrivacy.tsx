@@ -1,4 +1,3 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,7 +71,7 @@ const SecurityPrivacy = () => {
             Security &
             <span className="text-business-black"> Data Privacy</span>
           </h1>
-          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
             Built with enterprise-grade security and privacy-first design. Your data, 
             your learners, and your organization are protected by industry-leading standards.
           </p>
@@ -82,7 +81,6 @@ const SecurityPrivacy = () => {
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Watch How It Works
-              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
