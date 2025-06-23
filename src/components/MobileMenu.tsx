@@ -218,8 +218,8 @@ const MobileMenu = ({
                       <>
                         <button
                           onClick={() => toggleDropdown(item.name)}
-                          className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
-                            activeSection === item.id ? 'bg-gray-100' : ''
+                          className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-future-green/20 rounded-lg transition-all duration-200 animate-fade-in ${
+                            activeSection === item.id ? 'bg-future-green/30' : ''
                           }`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
@@ -247,7 +247,7 @@ const MobileMenu = ({
                                     <button
                                       key={subIndex}
                                       onClick={() => scrollToSection(dropdownItem.href)}
-                                      className="flex items-center w-full text-left px-3 py-3 hover:bg-white rounded-lg transition-all duration-200 group"
+                                      className="flex items-center w-full text-left px-3 py-3 hover:bg-future-green/20 text-business-black rounded-lg transition-all duration-200 group"
                                     >
                                       <div className={`w-8 h-8 rounded-full ${dropdownItem.color} flex items-center justify-center mr-3 flex-shrink-0`}>
                                         <IconComponent className="w-4 h-4 text-white" />
@@ -271,8 +271,8 @@ const MobileMenu = ({
                     ) : (
                       <button
                         onClick={() => scrollToSection(item.href)}
-                        className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
-                          activeSection === item.id ? 'bg-gray-100' : ''
+                        className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-future-green/20 rounded-lg transition-all duration-200 animate-fade-in ${
+                          activeSection === item.id ? 'bg-future-green/30' : ''
                         }`}
                         style={{ animationDelay: `${index * 50}ms` }}
                         aria-current={activeSection === item.id ? 'page' : undefined}
@@ -285,7 +285,7 @@ const MobileMenu = ({
                 <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
                   <Button 
                     variant="outline" 
-                    className="w-full border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 rounded-xl font-medium"
+                    className="w-full border-2 border-gray-300 text-business-black hover:bg-future-green/20 hover:border-future-green/50 transition-all duration-200 rounded-xl font-medium"
                   >
                     Sign In
                   </Button>
