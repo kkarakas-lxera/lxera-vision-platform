@@ -139,7 +139,7 @@ const ContactSection = () => {
             <Button 
               size="lg" 
               onClick={handleBookDemo}
-              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-8 py-4 rounded-xl font-normal transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
               aria-label="Book a product demonstration"
             >
               Book a Demo
@@ -147,7 +147,7 @@ const ContactSection = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-2 border-white text-business-black bg-white hover:bg-white/90 hover:text-business-black text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+              className="border-2 border-white text-business-black bg-white hover:bg-white/90 hover:text-business-black text-lg px-8 py-4 rounded-xl font-normal transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
               aria-label="Contact our sales team"
             >
               Contact Sales
@@ -157,7 +157,7 @@ const ContactSection = () => {
         
         <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 animate-fade-in-up" style={{animationDelay: '0.6s'}} noValidate>
           <div className="text-center mb-6">
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-normal text-white mb-2">
               Get Started Today
             </h3>
             <p className="text-white/70">
@@ -243,7 +243,7 @@ const ContactSection = () => {
               type="submit"
               size="lg"
               disabled={isSubmitting}
-              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-12 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-12 py-4 rounded-xl font-normal transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
               aria-label={isSubmitting ? "Submitting demo request" : "Submit demo request"}
             >
               {isSubmitting ? (
