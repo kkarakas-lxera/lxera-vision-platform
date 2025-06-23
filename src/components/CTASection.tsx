@@ -34,7 +34,7 @@ const CTASection = () => {
               onClick={handleScrollToContact}
               aria-label="Request a demo"
             >
-              Request a demo
+              Request a Demo
               <ArrowRight size={18} className="ml-2" />
             </Button>
             <Button

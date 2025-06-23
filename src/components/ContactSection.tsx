@@ -249,7 +249,7 @@ const ContactSection = () => {
               {isSubmitting ? (
                 <Loading text="Submitting..." size="sm" />
               ) : (
-                'Request Demo'
+                'Request a Demo'
               )}
             </Button>
             

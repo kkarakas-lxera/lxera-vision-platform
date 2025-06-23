@@ -82,7 +82,7 @@ const HeroSection = () => {
                     onClick={handleRequestDemo}
                     aria-label="Request a demo"
                   >
-                    Request a demo
+                    Request a Demo
                   </Button>
                   <Button
                     size="lg"
