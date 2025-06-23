@@ -100,7 +100,7 @@ const WorkforceReskilling = () => {
                 size="lg"
                 className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
               >
-                See How It Works
+                Get Early Access
               </Button>
             </div>
           </div>
