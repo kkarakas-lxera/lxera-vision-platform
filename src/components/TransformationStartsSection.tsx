@@ -5,14 +5,14 @@ import { ArrowDown } from "lucide-react";
 const TransformationStartsSection = () => {
   return (
     <>
-      <section className="w-full py-20 sm:py-24 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-12 sm:py-16 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-4xl mx-auto relative z-10">
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 animate-fade-in-up font-inter">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-4 animate-fade-in-up font-inter">
             Your Transformation Starts Here
           </h2>
           
-          <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-4 animate-fade-in-up animate-delay-200 font-normal font-inter">
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-6 animate-fade-in-up animate-delay-200 font-normal font-inter">
             LXERA helps future-ready teams move beyond learning and into innovation.
           </p>
           
@@ -23,12 +23,12 @@ const TransformationStartsSection = () => {
           </div>
 
           {/* Animated Down Arrow Indicator above the CTA button */}
-          <div className="flex justify-center mt-6 animate-bounce-slow">
+          <div className="flex justify-center mt-4 animate-bounce-slow">
             <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
           </div>
 
           {/* CTA Button - Updated with consistent styling */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 animate-fade-in-up animate-delay-700">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"
               className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
@@ -38,7 +38,7 @@ const TransformationStartsSection = () => {
             </Button>
           </div>
 
-          <div className="flex justify-center mt-8 space-x-2 animate-fade-in animate-delay-800">
+          <div className="flex justify-center mt-6 space-x-2 animate-fade-in animate-delay-800">
             {[1, 2, 3, 4].map((step, index) => (
               <div 
                 key={step}
@@ -52,9 +52,9 @@ const TransformationStartsSection = () => {
         </div>
       </section>
 
-      {/* Enhanced Section Separator - standardized height */}
+      {/* Enhanced Section Separator - reduced height */}
       <div className="relative">
-        <div className="h-20 bg-gradient-to-b from-future-green/18 via-smart-beige/30 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
+        <div className="h-12 bg-gradient-to-b from-future-green/18 via-smart-beige/30 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/10 to-transparent"></div>
       </div>
     </>
