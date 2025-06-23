@@ -95,8 +95,8 @@ const ProductTour = () => {
                 const IconComponent = feature.icon;
                 return (
                   <div key={index} className="lxera-card p-6 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-future-green/20 to-emerald/20 flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-6 h-6 text-future-green" />
+                    <div className="w-12 h-12 rounded-2xl bg-business-black flex items-center justify-center mx-auto mb-4">
+                      <IconComponent className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="text-xl font-medium text-business-black mb-2">{feature.title}</h3>
                     <p className="lxera-card-description">{feature.description}</p>
