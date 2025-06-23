@@ -155,16 +155,14 @@ const AIGamificationMotivation = () => {
                 size="lg"
                 className="bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
               >
-                Try Interactive Demo
-                <Play className="w-5 h-5 ml-2" />
+                Request a Demo
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-semibold px-12 py-5 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
               >
-                Schedule Consultation
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Get Early Access
               </Button>
             </div>
           </div>
@@ -590,14 +588,13 @@ const AIGamificationMotivation = () => {
                   size="lg"
                   className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white font-inter"
                 >
-                  Start Free Demo
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  Request a Demo
                 </Button>
                 <Button
                   size="lg"
                   className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl font-inter"
                 >
-                  Schedule Consultation
+                  Get Early Access
                 </Button>
               </div>
             </div>
