@@ -133,15 +133,15 @@ const Footer = () => {
             © {currentYear} All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            <Link to="/legal/privacy-policy" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Privacy Policy
-            </a>
-            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            </Link>
+            <Link to="/legal/terms-of-service" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Terms of Service
-            </a>
-            <a href="#" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            </Link>
+            <Link to="/legal/cookie-policy" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Cookie Policy
-            </a>
+            </Link>
           </div>
         </div>
       </div>
