@@ -1,14 +1,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Users, Target, ArrowRight, Quote } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 const About = () => {
-  const [activeValue, setActiveValue] = useState(0);
-
   const values = [
     {
       icon: Heart,
@@ -48,70 +45,79 @@ const About = () => {
     <div className="min-h-screen bg-white">
       <Navigation />
       
-      {/* Hero Section - Clean and Simple */}
-      <section className="pt-32 pb-24 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight">
-            We're building the future of learning
-          </h1>
-          <p className="text-xl text-business-black/70 max-w-2xl mx-auto leading-relaxed">
-            LXERA is on a mission to make learning personal, engaging, and transformative. 
-            We're passionate builders creating AI-powered solutions that help people unlock their potential.
-          </p>
+      {/* Hero Section - Ultra Clean */}
+      <section className="pt-32 pb-20 px-6 lg:px-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center space-y-6">
+            <div className="inline-block px-4 py-2 bg-future-green/10 rounded-full">
+              <span className="text-sm font-medium text-business-black">About LXERA</span>
+            </div>
+            <h1 className="text-5xl lg:text-7xl font-light text-business-black leading-tight">
+              Building the future of
+              <span className="block font-medium" style={{ color: '#7AE5C6' }}>learning</span>
+            </h1>
+            <p className="text-xl text-business-black/60 max-w-3xl mx-auto leading-relaxed font-light">
+              We're passionate builders creating AI-powered solutions that help people unlock their potential through personalized, engaging, and transformative learning experiences.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Story Section - Personal and Human */}
-      <section className="py-24 px-6 lg:px-12 bg-gray-50/50">
+      {/* Story Section - Minimal */}
+      <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
-              Our Story
-            </h2>
-            <div className="w-16 h-1 bg-future-green mx-auto mb-12"></div>
-          </div>
-          
-          <div className="prose lg:prose-lg mx-auto text-business-black/80 leading-relaxed">
-            <p className="text-lg mb-6">
-              We started LXERA because we believe learning should be personal, engaging, and transformative. 
-              Too often, people struggle with one-size-fits-all training that doesn't fit their needs or learning style.
-            </p>
-            <p className="text-lg mb-6">
-              We're changing that with AI that adapts to each learner, creating experiences that feel less like 
-              traditional training and more like having a thoughtful mentor who truly understands you.
-            </p>
-            <p className="text-lg">
-              We're in the early stages of building something transformative. Every day, we're learning, 
-              iterating, and getting closer to our vision of making learning truly personal for everyone.
-            </p>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-8 leading-tight">
+                Our Story
+              </h2>
+              <div className="space-y-6 text-lg text-business-black/70 leading-relaxed font-light">
+                <p>
+                  We started LXERA because we believe learning should be personal, engaging, and transformative. Too often, people struggle with one-size-fits-all training that doesn't fit their needs.
+                </p>
+                <p>
+                  We're changing that with AI that adapts to each learner, creating experiences that feel less like traditional training and more like having a thoughtful mentor who truly understands you.
+                </p>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="aspect-square bg-gradient-to-br from-future-green/20 to-smart-beige/50 rounded-3xl flex items-center justify-center">
+                <div className="w-32 h-32 bg-future-green/30 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-future-green rounded-full"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Values Section - Clean Cards */}
-      <section className="py-24 px-6 lg:px-12">
+      {/* Values Section - Cards Redesign */}
+      <section className="py-20 px-6 lg:px-12 bg-smart-beige/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+            <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-4">
               What Drives Us
             </h2>
-            <div className="w-16 h-1 bg-future-green mx-auto"></div>
           </div>
           
-          <div className="grid lg:grid-cols-3 gap-12">
+          <div className="grid lg:grid-cols-3 gap-8">
             {values.map((value, index) => {
               const IconComponent = value.icon;
               return (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-business-black rounded-full flex items-center justify-center mx-auto mb-6">
-                    <IconComponent className="w-8 h-8 text-white" />
+                <div key={index} className="bg-white rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-business-black rounded-xl flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-business-black mb-3 leading-tight">
+                        {value.title}
+                      </h3>
+                      <p className="text-business-black/60 leading-relaxed text-sm">
+                        {value.description}
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-business-black mb-4">
-                    {value.title}
-                  </h3>
-                  <p className="text-business-black/70 leading-relaxed">
-                    {value.description}
-                  </p>
                 </div>
               );
             })}
@@ -119,34 +125,35 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section - Human Focus */}
-      <section className="py-24 px-6 lg:px-12 bg-gray-50/50">
-        <div className="max-w-6xl mx-auto">
+      {/* Team Section - Simplified */}
+      <section className="py-20 px-6 lg:px-12">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-8">
+            <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-4">
               Meet the Founders
             </h2>
-            <div className="w-16 h-1 bg-future-green mx-auto mb-4"></div>
-            <p className="text-lg text-business-black/70">
-              Passionate leaders with big dreams and the experience to make them reality.
+            <p className="text-lg text-business-black/60 font-light">
+              Passionate leaders with big dreams and the experience to make them reality
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-16">
+          <div className="grid md:grid-cols-2 gap-12">
             {team.map((member, index) => (
-              <div key={index} className="text-center">
-                <img 
-                  src={member.image} 
-                  alt={member.name}
-                  className="w-32 h-32 rounded-full object-cover mx-auto mb-6 shadow-lg"
-                />
-                <h3 className="text-2xl font-semibold text-business-black mb-2">{member.name}</h3>
-                <p className="text-future-green font-medium mb-3">{member.role}</p>
-                <p className="text-sm text-business-black/60 mb-6">{member.background}</p>
+              <div key={index} className="text-center group">
+                <div className="relative mb-6">
+                  <img 
+                    src={member.image} 
+                    alt={member.name}
+                    className="w-40 h-40 rounded-full object-cover mx-auto shadow-lg group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-2xl font-medium text-business-black mb-2">{member.name}</h3>
+                <p className="text-future-green font-medium mb-2">{member.role}</p>
+                <p className="text-sm text-business-black/50 mb-6">{member.background}</p>
                 
-                <div className="bg-white rounded-lg p-6 shadow-sm">
-                  <Quote className="w-8 h-8 text-future-green/30 mx-auto mb-4" />
-                  <blockquote className="text-business-black/80 italic leading-relaxed">
+                <div className="bg-smart-beige/50 rounded-xl p-6">
+                  <Quote className="w-6 h-6 text-future-green/40 mx-auto mb-4" />
+                  <blockquote className="text-business-black/70 italic leading-relaxed">
                     "{member.quote}"
                   </blockquote>
                 </div>
@@ -156,22 +163,21 @@ const About = () => {
         </div>
       </section>
 
-      {/* Simple CTA Section */}
-      <section className="py-24 px-6 lg:px-12">
+      {/* CTA Section - Minimal */}
+      <section className="py-20 px-6 lg:px-12 bg-business-black">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl lg:text-4xl font-light text-white mb-6 leading-tight">
             Join Us on This Journey
           </h2>
-          <p className="text-lg text-business-black/70 mb-10 leading-relaxed">
-            We're just getting started, and we'd love to show you what we're building. 
-            Let's have a conversation about the future of learning.
+          <p className="text-lg text-white/70 mb-10 leading-relaxed font-light">
+            We're just getting started. Let's have a conversation about the future of learning.
           </p>
           <Button 
             size="lg"
-            className="bg-future-green hover:bg-emerald text-business-black hover:text-white font-semibold px-12 py-6 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105 focus:ring-4 focus:ring-future-green/30 focus:ring-offset-4 border-0"
+            className="bg-future-green hover:bg-future-green/90 text-business-black font-medium px-8 py-4 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105"
           >
             Get in Touch
-            <ArrowRight className="w-6 h-6 ml-3" />
+            <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
       </section>
