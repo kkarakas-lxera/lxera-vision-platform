@@ -1,58 +1,59 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle } from "lucide-react";
+import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle, Bot, Target, Eye, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const MentorshipSupport = () => {
   const supportFeatures = [
     {
-      title: "AI Chat Support",
-      description: "Intelligent 24/7 assistance that understands context and provides personalized guidance",
-      icon: Brain,
-      benefits: ["Instant responses", "Context awareness", "Learning continuity", "Personalized help"]
+      title: "AI Behavior Monitoring",
+      description: "Intelligent system that continuously monitors learner behavior and detects patterns indicating confusion or disengagement",
+      icon: Eye,
+      benefits: ["Real-time behavior analysis", "Stuck pattern detection", "Engagement monitoring", "Proactive intervention"]
     },
     {
-      title: "Mentor Matching Logic",
-      description: "Smart algorithms that connect learners with the most suitable mentors based on multiple factors",
-      icon: Users,
-      benefits: ["Skill alignment", "Personality matching", "Goal compatibility", "Availability sync"]
+      title: "Personalized AI Mentor",
+      description: "Each learner gets a dedicated AI chatbot mentor, fine-tuned and trained on their learning data and company knowledge base",
+      icon: Bot,
+      benefits: ["One-to-one AI mentorship", "Personalized guidance", "Company-specific knowledge", "Adaptive learning support"]
     },
     {
-      title: "Live Chat & Video",
-      description: "Real-time communication tools for immediate support and face-to-face interactions",
-      icon: MessageCircle,
-      benefits: ["Real-time help", "Video sessions", "Screen sharing", "Group discussions"]
-    },
-    {
-      title: "24/7 Availability",
-      description: "Round-the-clock support ensuring learners never feel stuck or abandoned",
-      icon: Clock,
-      benefits: ["Always available", "Global time zones", "Instant escalation", "Emergency support"]
-    }
-  ];
-
-  const scalabilityFeatures = [
-    {
-      title: "Automated Triage",
-      description: "Smart routing of support requests to the most appropriate resource",
-      impact: "90% faster response times"
+      title: "Smart Intervention System",
+      description: "AI automatically intervenes when learners get stuck, offering contextual help and support at the right moment",
+      icon: Target,
+      benefits: ["Automatic intervention", "Contextual assistance", "Timely support delivery", "Learning continuity"]
     },
     {
       title: "Knowledge Base Integration",
-      description: "AI-powered search and suggestions from comprehensive learning resources",
-      impact: "75% self-service resolution"
+      description: "AI mentors are trained on your organization's knowledge base to provide relevant, company-specific guidance",
+      icon: BookOpen,
+      benefits: ["Company knowledge access", "Relevant content delivery", "Organizational alignment", "Custom guidance"]
+    }
+  ];
+
+  const aiMentorshipFeatures = [
+    {
+      title: "Behavioral Pattern Recognition",
+      description: "AI analyzes learning patterns to identify when learners are struggling or stuck",
+      impact: "85% faster problem detection"
     },
     {
-      title: "Peer Learning Networks",
-      description: "Facilitated connections between learners with complementary skills and needs",
-      impact: "3x increase in peer collaboration"
+      title: "Personalized AI Chatbot",
+      description: "Dedicated AI mentor for each learner, trained on their specific data and progress",
+      impact: "3x more relevant guidance"
     },
     {
-      title: "Expert Pool Management",
-      description: "Efficient allocation of subject matter experts across multiple learners and topics",
-      impact: "5x improvement in expert utilization"
+      title: "Company Knowledge Training",
+      description: "AI mentors trained on organizational knowledge base for contextual support",
+      impact: "90% more accurate responses"
+    },
+    {
+      title: "Proactive Intervention",
+      description: "AI automatically offers help when learners show signs of being stuck or confused",
+      impact: "70% reduction in dropout rates"
     }
   ];
 
@@ -65,36 +66,37 @@ const MentorshipSupport = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Heart className="w-4 h-4 mr-2" />
-            Always-On Support
+            AI-Powered Mentorship
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Mentorship &
             <span className="text-business-black"> Support Tools</span>
           </h1>
           <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Scalable, personalized support that ensures no learner is ever alone on their journey. 
-            From AI-powered guidance to expert mentorship, help is always available.
+            AI that monitors learner behavior, detects when they're stuck, and provides personalized mentorship 
+            through dedicated chatbot mentors trained on your company's knowledge base.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Talk to Our Experts
+              Watch How It Works
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Support Features */}
+      {/* AI Mentorship Features */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Comprehensive Support Ecosystem
+              AI-Powered Mentorship Ecosystem
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Multiple layers of support ensure learners get the right help at the right time
+              Intelligent systems that understand learner behavior and provide personalized support when needed most
             </p>
           </div>
 
@@ -134,20 +136,20 @@ const MentorshipSupport = () => {
         </div>
       </section>
 
-      {/* Scalability Focus */}
+      {/* How AI Mentorship Works */}
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Built for Scale and Personalization
+              Intelligent Mentorship at Scale
             </h2>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Advanced systems that maintain personal touch while supporting thousands of learners
+              Each learner receives a personalized AI mentor trained on their data and your company's knowledge
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {scalabilityFeatures.map((feature, index) => (
+            {aiMentorshipFeatures.map((feature, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
@@ -170,30 +172,30 @@ const MentorshipSupport = () => {
         </div>
       </section>
 
-      {/* Support Stats */}
+      {/* AI Mentor Benefits */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-3xl mb-4">
-                Support That Never Sleeps
+                AI Mentorship That Never Sleeps
               </CardTitle>
               <CardDescription className="text-white/70 text-lg">
-                Committed to learner success around the clock
+                Personalized AI mentors trained on your company's knowledge base
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">&lt; 30sec</div>
-                <div className="text-sm text-white/70">Average AI Response</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-future-green mb-2">95%</div>
-                <div className="text-sm text-white/70">Satisfaction Rate</div>
-              </div>
-              <div className="text-center">
                 <div className="text-3xl font-bold text-future-green mb-2">24/7</div>
-                <div className="text-sm text-white/70">Global Availability</div>
+                <div className="text-sm text-white/70">AI Mentor Availability</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-future-green mb-2">1:1</div>
+                <div className="text-sm text-white/70">Personalized Mentorship</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-future-green mb-2">Smart</div>
+                <div className="text-sm text-white/70">Behavioral Detection</div>
               </div>
             </CardContent>
           </Card>
@@ -204,18 +206,18 @@ const MentorshipSupport = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Never Leave Learners Behind
+            Give Every Learner Their Personal AI Mentor
           </h2>
           <p className="text-xl text-business-black/70 mb-8">
-            Discover how comprehensive support transforms learning outcomes and learner satisfaction
+            Discover how AI-powered mentorship transforms learning outcomes with personalized, intelligent support
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Try Support Tools
+              Try AI Mentorship
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/security-privacy">
-                Security & Privacy <ArrowRight className="w-4 h-4 ml-2" />
+                Explore AI Engine <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
