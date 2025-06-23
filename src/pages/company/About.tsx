@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, Target, ArrowRight, Quote, Coffee, Lightbulb, Smile } from "lucide-react";
+import { Heart, Users, Target, Quote, Coffee, Lightbulb, Smile } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -246,7 +245,6 @@ const About = () => {
             className="bg-gradient-to-r from-future-green to-emerald-500 hover:from-emerald-500 hover:to-future-green text-business-black font-medium px-8 py-4 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
             Let's Talk
-            <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
       </section>
