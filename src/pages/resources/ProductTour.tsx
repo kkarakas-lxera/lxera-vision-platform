@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -159,10 +160,10 @@ const ProductTour = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[48px]">
-                Request Live Demo
+                Request a Demo
               </Button>
-              <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-business-black px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]">
-                Contact Sales
+              <Button className="bg-white text-business-black hover:bg-gray-50 border-2 border-white px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]">
+                Get Early Access
               </Button>
             </div>
           </div>
