@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,17 +82,17 @@ const Solutions = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 sm:pb-24 px-6 lg:px-12">
+      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-7xl mx-auto text-center">
           <div className="animate-fade-in-up">
-            <Badge className="mb-6 bg-future-green/20 text-business-black border-future-green/30 px-4 py-2 text-sm font-medium rounded-full">
+            <Badge className="mb-4 sm:mb-6 bg-future-green/20 text-business-black border-future-green/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-full">
               Solutions Portfolio
             </Badge>
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-4 sm:mb-6 leading-tight px-2 sm:px-0">
               Transform Learning with
-              <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent"> AI-Powered Solutions</span>
+              <span className="bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent block sm:inline"> AI-Powered Solutions</span>
             </h1>
-            <p className="text-xl text-business-black/70 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-business-black/70 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-2 sm:px-0">
               Discover our comprehensive suite of AI-driven solutions designed to revolutionize learning, 
               development, and innovation across organizations and communities.
             </p>
@@ -100,9 +101,9 @@ const Solutions = () => {
       </section>
 
       {/* Solutions Grid */}
-      <section className="pb-20 sm:pb-24 px-6 lg:px-12">
+      <section className="pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {useCases.map((useCase, index) => {
               const IconComponent = useCase.icon;
               return (
@@ -113,32 +114,32 @@ const Solutions = () => {
                   onMouseEnter={() => setActiveCard(useCase.id)}
                   onMouseLeave={() => setActiveCard(null)}
                 >
-                  <CardHeader className="pb-4">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${useCase.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="w-8 h-8 text-white" />
+                  <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                    <div className={`w-12 sm:w-14 md:w-16 h-12 sm:h-14 md:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${useCase.color} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 text-white" />
                     </div>
-                    <CardTitle className="text-xl font-semibold text-business-black group-hover:text-emerald transition-colors duration-300">
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-business-black group-hover:text-emerald transition-colors duration-300 leading-tight">
                       {useCase.title}
                     </CardTitle>
-                    <CardDescription className="text-business-black/70 leading-relaxed">
+                    <CardDescription className="text-sm sm:text-base text-business-black/70 leading-relaxed">
                       {useCase.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
+                  <CardContent className="p-4 sm:p-6 pt-0">
+                    <ul className="space-y-2 mb-4 sm:mb-6">
                       {useCase.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center text-sm text-business-black/80">
-                          <div className="w-2 h-2 bg-future-green rounded-full mr-3 flex-shrink-0"></div>
+                        <li key={featureIndex} className="flex items-center text-xs sm:text-sm text-business-black/80">
+                          <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-future-green rounded-full mr-2 sm:mr-3 flex-shrink-0"></div>
                           {feature}
                         </li>
                       ))}
                     </ul>
                     <Button
                       variant="ghost"
-                      className={`w-full group-hover:bg-gradient-to-r ${useCase.color} group-hover:text-white transition-all duration-300 font-medium`}
+                      className={`w-full group-hover:bg-gradient-to-r ${useCase.color} group-hover:text-white transition-all duration-300 font-medium text-sm sm:text-base py-2 sm:py-3`}
                     >
                       Learn More
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                      <ArrowRight className="w-3 sm:w-4 h-3 sm:h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -149,28 +150,28 @@ const Solutions = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 sm:py-24 px-6 lg:px-12">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl p-12 shadow-2xl animate-fade-in-scale">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
+          <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl animate-fade-in-scale">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium text-white mb-4 sm:mb-6 leading-tight">
               Ready to Transform Your Organization?
             </h2>
-            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
               Discover how our AI-powered solutions can revolutionize learning and innovation 
               in your organization. Let's build the future together.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2 sm:px-0">
               <Button
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2 border-0"
+                className="bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-semibold px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2 border-0"
               >
                 Schedule Strategic Demo
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white font-semibold px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
+                className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white font-semibold px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
               >
                 Request Executive Assessment
               </Button>
