@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,7 +111,7 @@ const AIGamificationMotivation = () => {
       description: "Achieve 85% higher course completion rates with motivational AI",
       icon: Trophy,
       stat: "85%",
-      color: "from-emerald-400 to-green-500"
+      color: "from-green-400 to-emerald-500"
     },
     {
       title: "Improved Retention",
@@ -394,12 +393,20 @@ const AIGamificationMotivation = () => {
               return (
                 <Card
                   key={index}
-                  className="text-center bg-white/90 backdrop-blur-sm border-2 border-orange-100/80 hover:shadow-2xl transition-all duration-500 animate-fade-in-up group cursor-pointer relative overflow-hidden hover:border-orange-200"
+                  className={`text-center backdrop-blur-sm border-2 hover:shadow-2xl transition-all duration-500 animate-fade-in-up group cursor-pointer relative overflow-hidden ${
+                    benefit.title === "Higher Completion Rates" 
+                      ? "bg-gradient-to-br from-green-50 to-emerald-50/80 border-green-200/60 hover:border-green-300" 
+                      : "bg-white/90 border-orange-100/80 hover:border-orange-200"
+                  }`}
                   style={{ animationDelay: `${index * 150}ms` }}
                   onMouseEnter={() => setHoveredBenefit(index)}
                   onMouseLeave={() => setHoveredBenefit(null)}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-orange-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                    benefit.title === "Higher Completion Rates"
+                      ? "bg-gradient-to-br from-green-100/60 to-emerald-100/40"
+                      : "bg-gradient-to-br from-white/60 to-orange-50/40"
+                  }`}></div>
                   <CardContent className="pt-10 pb-8 relative z-10">
                     <div className={`w-20 h-20 bg-gradient-to-r ${benefit.color} rounded-2xl flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all duration-300 shadow-lg`}>
                       <IconComponent className="w-10 h-10 text-white" />
