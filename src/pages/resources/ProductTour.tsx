@@ -69,7 +69,7 @@ const ProductTour = () => {
         <Navigation />
         
         {/* Hero Section */}
-        <section className="pt-32 pb-20 px-6">
+        <section className="pt-32 pb-24 px-6 bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-business-black leading-tight tracking-tight mb-6">
               Experience LXERA in Action
@@ -107,8 +107,11 @@ const ProductTour = () => {
           </div>
         </section>
 
+        {/* Enhanced Section Separator */}
+        <div className="h-16 bg-gradient-to-b from-smart-beige via-white/50 to-blue-50/30"></div>
+
         {/* Tour Sections */}
-        <section className="py-20 px-6">
+        <section className="py-24 px-6 bg-gradient-to-br from-blue-50/30 via-white/80 to-purple-50/20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-medium text-business-black leading-tight mb-4">
@@ -137,7 +140,6 @@ const ProductTour = () => {
                         </div>
                         <p className="lxera-card-description mb-4">{step.description}</p>
                         <Button className="bg-business-black text-white hover:bg-business-black/90 rounded-full px-6 py-2">
-                          <Play className="w-4 h-4 mr-2" />
                           Start This Section
                         </Button>
                       </div>
@@ -149,8 +151,11 @@ const ProductTour = () => {
           </div>
         </section>
 
+        {/* Enhanced Section Separator */}
+        <div className="h-16 bg-gradient-to-b from-purple-50/20 via-smart-beige/30 to-business-black"></div>
+
         {/* CTA Section */}
-        <section className="py-20 px-6 bg-business-black">
+        <section className="py-24 px-6 bg-business-black">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-medium text-white leading-tight mb-4">
               Ready to Transform Your Learning?
