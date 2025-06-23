@@ -223,9 +223,9 @@ const MobileMenu = ({
         </Button>
       </div>
 
-      {/* Enhanced Mobile Menu Dropdown with improved transparency and green highlights */}
+      {/* Enhanced Mobile Menu Dropdown with better visibility and green highlights */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white/75 backdrop-blur-lg shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
+        <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-lg shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
           <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
             {menuItems.map((item, index) => (
               <div key={item.name}>
@@ -233,8 +233,8 @@ const MobileMenu = ({
                   <>
                     <button
                       onClick={() => toggleDropdown(item.name)}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/20 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                        activeSection === item.id ? 'text-future-green bg-future-green/20 shadow-md border border-future-green/30' : ''
+                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/25 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                        activeSection === item.id ? 'text-future-green bg-future-green/25 shadow-lg border-2 border-future-green/50 font-medium' : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -288,8 +288,8 @@ const MobileMenu = ({
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/20 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                      activeSection === item.id ? 'text-future-green bg-future-green/20 shadow-md border border-future-green/30' : ''
+                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/25 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                      activeSection === item.id ? 'text-future-green bg-future-green/25 shadow-lg border-2 border-future-green/50 font-medium' : ''
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                     aria-current={activeSection === item.id ? 'page' : undefined}
