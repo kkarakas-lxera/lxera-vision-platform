@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -135,7 +134,7 @@ const ContactSection = () => {
             Join forward-thinking organizations already revolutionizing their learning and development approach.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+          <div className="flex justify-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
             <Button 
               size="lg" 
               onClick={handleBookDemo}
@@ -143,14 +142,6 @@ const ContactSection = () => {
               aria-label="Book a product demonstration"
             >
               Book a Demo
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-2 border-white text-business-black bg-white hover:bg-white/90 hover:text-business-black text-lg px-8 py-4 rounded-xl font-normal transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-white/50 focus:ring-offset-2"
-              aria-label="Contact our sales team"
-            >
-              Contact Sales
             </Button>
           </div>
         </div>
