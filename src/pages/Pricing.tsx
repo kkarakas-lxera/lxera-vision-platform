@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
@@ -262,6 +263,8 @@ const Pricing = () => {
             </div>
           </div>
         </div>
+
+        <Footer />
       </div>
     </TooltipProvider>
   );
