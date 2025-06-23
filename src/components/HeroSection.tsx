@@ -107,21 +107,17 @@ const HeroSection = () => {
             <HeroStats />
           </div>
           
-          {/* Scroll indicator - improved accessibility */}
+          {/* Discover more indicator - centered and non-clickable */}
           <div className="mt-3 sm:mt-4 md:mt-6 animate-fade-in-up animate-delay-1200 text-center">
-            <button
-              onClick={handleScrollToContact}
-              className="flex flex-col items-center space-y-1 sm:space-y-2 group focus:outline-none focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 rounded-lg p-2 transition-all duration-300 hover:scale-105"
-              aria-label="Scroll down to discover more content"
-            >
-              <p className="text-xs sm:text-sm text-business-black/60 font-normal font-inter group-hover:text-business-black/80 transition-colors">
+            <div className="flex flex-col items-center space-y-1 sm:space-y-2 pointer-events-none">
+              <p className="text-xs sm:text-sm text-business-black/60 font-normal font-inter">
                 Discover more
               </p>
               <div className="relative">
-                <ArrowDown className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 animate-bounce drop-shadow-lg text-future-green group-hover:text-future-green/80 transition-colors" />
+                <ArrowDown className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 animate-bounce drop-shadow-lg text-future-green" />
                 <div className="absolute inset-0 w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 rounded-full blur-sm animate-ping bg-future-green/25"></div>
               </div>
-            </button>
+            </div>
           </div>
         </div>
 
