@@ -209,89 +209,91 @@ const MobileMenu = ({
 
       {/* Mobile Menu Dropdown with improved scrolling */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-200 z-40 animate-slide-in-right max-h-[80vh] overflow-hidden">
-          <ScrollArea className="h-full max-h-[80vh]">
-            <div className="max-w-7xl mx-auto px-6 py-6 space-y-1">
-              {menuItems.map((item, index) => (
-                <div key={item.name}>
-                  {item.hasDropdown ? (
-                    <>
+        <div className="absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-200 z-50 animate-slide-in-right">
+          <div className="max-w-7xl mx-auto">
+            <ScrollArea className="h-[calc(100vh-120px)] w-full">
+              <div className="px-6 py-6 space-y-1">
+                {menuItems.map((item, index) => (
+                  <div key={item.name}>
+                    {item.hasDropdown ? (
+                      <>
+                        <button
+                          onClick={() => toggleDropdown(item.name)}
+                          className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
+                            activeSection === item.id ? 'bg-gray-100' : ''
+                          }`}
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <span>{item.name.toUpperCase()}</span>
+                          {expandedDropdown === item.name ? (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-gray-500" />
+                          )}
+                        </button>
+                        {expandedDropdown === item.name && (
+                          <div className="ml-4 mt-2 bg-gray-50 rounded-xl p-4">
+                            <div className="mb-3">
+                              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                {item.name === 'Platform' ? 'Platform features' : 
+                                 item.name === 'Solutions' ? 'Capabilities' : 
+                                 'Resources'}
+                              </div>
+                            </div>
+                            <div className="max-h-80 overflow-y-auto">
+                              <div className="space-y-1 pr-2">
+                                {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
+                                  const IconComponent = dropdownItem.icon;
+                                  return (
+                                    <button
+                                      key={subIndex}
+                                      onClick={() => scrollToSection(dropdownItem.href)}
+                                      className="flex items-center w-full text-left px-3 py-3 hover:bg-white rounded-lg transition-all duration-200 group"
+                                    >
+                                      <div className={`w-8 h-8 rounded-full ${dropdownItem.color} flex items-center justify-center mr-3 flex-shrink-0`}>
+                                        <IconComponent className="w-4 h-4 text-white" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-business-black font-medium text-sm mb-0.5">
+                                          {dropdownItem.name}
+                                        </div>
+                                        <div className="text-gray-600 text-xs line-clamp-2">
+                                          {dropdownItem.description}
+                                        </div>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <button
-                        onClick={() => toggleDropdown(item.name)}
-                        className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
+                        onClick={() => scrollToSection(item.href)}
+                        className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
                           activeSection === item.id ? 'bg-gray-100' : ''
                         }`}
                         style={{ animationDelay: `${index * 50}ms` }}
+                        aria-current={activeSection === item.id ? 'page' : undefined}
                       >
-                        <span>{item.name.toUpperCase()}</span>
-                        {expandedDropdown === item.name ? (
-                          <ChevronDown className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-500" />
-                        )}
+                        {item.name.toUpperCase()}
                       </button>
-                      {expandedDropdown === item.name && (
-                        <div className="ml-4 mt-2 bg-gray-50 rounded-xl p-4">
-                          <div className="mb-3">
-                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                              {item.name === 'Platform' ? 'PLATFORM FEATURES' : 
-                               item.name === 'Solutions' ? 'CAPABILITIES' : 
-                               'RESOURCES'}
-                            </div>
-                          </div>
-                          <ScrollArea className="max-h-64">
-                            <div className="space-y-1 pr-2">
-                              {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
-                                const IconComponent = dropdownItem.icon;
-                                return (
-                                  <button
-                                    key={subIndex}
-                                    onClick={() => scrollToSection(dropdownItem.href)}
-                                    className="flex items-center w-full text-left px-3 py-3 hover:bg-white rounded-lg transition-all duration-200 group"
-                                  >
-                                    <div className={`w-8 h-8 rounded-full ${dropdownItem.color} flex items-center justify-center mr-3 flex-shrink-0`}>
-                                      <IconComponent className="w-4 h-4 text-white" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-business-black font-medium text-sm mb-0.5">
-                                        {dropdownItem.name}
-                                      </div>
-                                      <div className="text-gray-600 text-xs line-clamp-2">
-                                        {dropdownItem.description}
-                                      </div>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </ScrollArea>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => scrollToSection(item.href)}
-                      className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-gray-50 rounded-lg transition-all duration-200 animate-fade-in ${
-                        activeSection === item.id ? 'bg-gray-100' : ''
-                      }`}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                      aria-current={activeSection === item.id ? 'page' : undefined}
-                    >
-                      {item.name.toUpperCase()}
-                    </button>
-                  )}
+                    )}
+                  </div>
+                ))}
+                <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 rounded-xl font-medium"
+                  >
+                    Sign In
+                  </Button>
                 </div>
-              ))}
-              <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 rounded-xl font-medium"
-                >
-                  Sign In
-                </Button>
               </div>
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          </div>
         </div>
       )}
     </div>
