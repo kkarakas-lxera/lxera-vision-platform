@@ -127,9 +127,9 @@ const HeroSection = () => {
         />
       </section>
 
-      {/* Enhanced Section Separator - standardized height */}
+      {/* Enhanced Section Separator - consistent height */}
       <div className="relative">
-        <div className="h-12 sm:h-16 md:h-20 bg-gradient-to-b from-smart-beige/80 via-smart-beige/60 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
+        <div className="h-8 bg-gradient-to-b from-smart-beige/80 via-smart-beige/60 to-future-green/8 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/5 to-transparent"></div>
       </div>
     </>
