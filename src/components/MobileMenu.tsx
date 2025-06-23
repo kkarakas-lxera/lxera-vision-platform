@@ -135,7 +135,7 @@ const MobileMenu = ({
       name: "Security & Data Privacy",
       href: "/platform/security-privacy",
       icon: Shield,
-      color: "bg-gray-500",
+      color: "bg-indigo-500",
       description: "Enterprise-grade security and privacy protection"
     },
     {
