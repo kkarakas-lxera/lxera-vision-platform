@@ -89,7 +89,7 @@ const Integrations = () => {
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Explore AI Engine
+              Talk to Our Experts
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -216,11 +216,11 @@ const Integrations = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Browse Integrations
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/solutions">
-                Explore Solutions <ArrowRight className="w-4 h-4 ml-2" />
+                Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
