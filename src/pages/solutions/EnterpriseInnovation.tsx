@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -337,7 +336,7 @@ const EnterpriseInnovation = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-base rounded-xl font-normal font-inter"
+                className="border-2 border-white bg-white/20 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-base rounded-xl font-normal font-inter"
               >
                 Get Early Access
               </Button>
