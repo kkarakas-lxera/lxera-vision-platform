@@ -1,4 +1,3 @@
-
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero w-full pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
+      <section className="hero w-full pt-28 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         {/* Simple background gradient without animated elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
         
