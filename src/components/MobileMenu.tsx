@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -222,9 +223,9 @@ const MobileMenu = ({
         </Button>
       </div>
 
-      {/* Enhanced Mobile Menu Dropdown */}
+      {/* Enhanced Mobile Menu Dropdown with improved transparency and green highlights */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
+        <div className="absolute top-full left-0 right-0 bg-white/75 backdrop-blur-lg shadow-xl border-t border-gray-200/50 z-40 animate-slide-in-right">
           <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
             {menuItems.map((item, index) => (
               <div key={item.name}>
@@ -232,8 +233,8 @@ const MobileMenu = ({
                   <>
                     <button
                       onClick={() => toggleDropdown(item.name)}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                        activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
+                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/20 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                        activeSection === item.id ? 'text-future-green bg-future-green/20 shadow-md border border-future-green/30' : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -245,7 +246,7 @@ const MobileMenu = ({
                       )}
                     </button>
                     {expandedDropdown === item.name && (
-                      <div className="ml-2 mt-3 space-y-2 bg-gradient-to-r from-smart-beige/30 to-future-green/10 rounded-xl p-4">
+                      <div className="ml-2 mt-3 space-y-2 bg-gradient-to-r from-smart-beige/20 to-future-green/15 rounded-xl p-4 border border-future-green/20">
                         <div className="flex items-center space-x-2 mb-3">
                           <div className="w-2 h-2 bg-gradient-to-r from-future-green to-emerald rounded-full"></div>
                           <div className="text-xs font-medium text-business-black/70 font-inter">
@@ -260,7 +261,7 @@ const MobileMenu = ({
                             <button
                               key={subIndex}
                               onClick={() => scrollToSection(dropdownItem.href)}
-                              className="flex items-center w-full text-left px-3 py-3 hover:bg-white/50 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
+                              className="flex items-center w-full text-left px-3 py-3 hover:bg-future-green/15 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/40 hover:shadow-sm"
                             >
                               <div className={`w-8 h-8 rounded-xl ${dropdownItem.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
                                 <IconComponent className={`w-4 h-4 ${dropdownItem.iconColor}`} />
@@ -287,8 +288,8 @@ const MobileMenu = ({
                 ) : (
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/10 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
-                      activeSection === item.id ? 'text-future-green bg-future-green/10' : ''
+                    className={`block w-full text-left px-4 py-3 text-base text-business-black hover:text-future-green hover:bg-future-green/20 rounded-lg transition-all duration-300 transform hover:translate-x-2 animate-fade-in ${
+                      activeSection === item.id ? 'text-future-green bg-future-green/20 shadow-md border border-future-green/30' : ''
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                     aria-current={activeSection === item.id ? 'page' : undefined}
