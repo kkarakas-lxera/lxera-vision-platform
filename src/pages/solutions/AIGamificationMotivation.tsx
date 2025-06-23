@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -273,7 +274,7 @@ const AIGamificationMotivation = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="relative z-10">
-                      <ul className="space-y-3 mb-8">
+                      <ul className="space-y-3">
                         {feature.details.map((detail, detailIndex) => (
                           <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
                             <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -281,13 +282,6 @@ const AIGamificationMotivation = () => {
                           </li>
                         ))}
                       </ul>
-                      <Button
-                        variant="ghost"
-                        className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
-                      >
-                        Learn More
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                      </Button>
                     </CardContent>
                   </Card>
                 );
@@ -321,7 +315,7 @@ const AIGamificationMotivation = () => {
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="relative z-10">
-                          <ul className="space-y-3 mb-8">
+                          <ul className="space-y-3">
                             {feature.details.map((detail, detailIndex) => (
                               <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
                                 <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -329,13 +323,6 @@ const AIGamificationMotivation = () => {
                               </li>
                             ))}
                           </ul>
-                          <Button
-                            variant="ghost"
-                            className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
-                          >
-                            Learn More
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                          </Button>
                         </CardContent>
                       </Card>
                     );
@@ -369,7 +356,7 @@ const AIGamificationMotivation = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="relative z-10">
-                        <ul className="space-y-3 mb-8">
+                        <ul className="space-y-3">
                           {feature.details.map((detail, detailIndex) => (
                             <li key={detailIndex} className="flex items-start text-sm text-business-black/80 font-inter">
                               <Star className="w-4 h-4 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -377,13 +364,6 @@ const AIGamificationMotivation = () => {
                             </li>
                           ))}
                         </ul>
-                        <Button
-                          variant="ghost"
-                          className={`w-full group-hover:bg-gradient-to-r ${feature.color} group-hover:text-white transition-all duration-300 font-medium font-inter rounded-xl py-3`}
-                        >
-                          Learn More
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </Button>
                       </CardContent>
                     </Card>
                   );
