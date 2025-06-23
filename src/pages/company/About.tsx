@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, Target, ArrowRight, Quote } from "lucide-react";
+import { Heart, Users, Target, ArrowRight, Quote, Coffee, Lightbulb, Smile } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -9,20 +9,20 @@ const About = () => {
   const values = [
     {
       icon: Heart,
-      title: "Human-Centered Innovation",
-      description: "We believe technology should amplify human potential, not replace it. Every feature we build starts with understanding real human needs.",
+      title: "Human-First Everything",
+      description: "We're real people building for real people. Every line of code we write starts with asking: 'How can this make someone's day a little better?' Technology should feel like having a helpful friend, not a cold machine.",
       color: "from-pink-500 to-rose-400"
     },
     {
       icon: Users,
-      title: "Inclusive Learning",
-      description: "Learning opportunities should be accessible to everyone, regardless of background, role, or experience level.",
+      title: "Learning for Everyone",
+      description: "Whether you're a CEO or an intern, a tech wizard or someone who still calls IT for help—everyone deserves to grow. We believe the best ideas come from the most unexpected places.",
       color: "from-blue-500 to-cyan-400"
     },
     {
-      icon: Target,
-      title: "Purpose-Driven Impact",
-      description: "We measure success by the positive transformation we create in organizations and the lives of learners.",
+      icon: Lightbulb,
+      title: "Purpose Over Profit",
+      description: "Sure, we want to build a sustainable business, but what gets us up in the morning is knowing we helped someone unlock a skill they never thought they had. Those 'aha!' moments? That's our fuel.",
       color: "from-purple-500 to-indigo-400"
     }
   ];
@@ -32,17 +32,36 @@ const About = () => {
       name: "Sarah Chen",
       role: "CEO & Co-Founder",
       background: "Former Chief Learning Officer at Fortune 500 companies",
-      quote: "I believe every person has untapped potential. My mission is to unlock that through technology that actually serves humanity.",
+      quote: "I've seen too many brilliant people held back by training that just doesn't click. My mission? Making learning feel less like homework and more like discovery. Also, I make terrible coffee but amazing learning experiences.",
       image: "https://images.unsplash.com/photo-1494790108755-2616b812b3c4?w=400&h=400&fit=crop&crop=face",
-      accent: "bg-gradient-to-br from-emerald-400 to-teal-500"
+      accent: "bg-gradient-to-br from-emerald-400 to-teal-500",
+      funFact: "🎸 Plays guitar (badly) to destress",
+      hobby: "Weekend hiker & terrible cook"
     },
     {
       name: "Marcus Rodriguez",
       role: "CTO & Co-Founder", 
       background: "AI Research Scientist, MIT graduate",
-      quote: "The best AI doesn't replace human judgment—it amplifies human wisdom and creativity.",
+      quote: "I believe AI should be like a really good teacher—patient, encouraging, and never makes you feel dumb for asking questions. When my grandma can use our AI and love it, I know we've built something special.",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      accent: "bg-gradient-to-br from-violet-400 to-purple-500"
+      accent: "bg-gradient-to-br from-violet-400 to-purple-500",
+      funFact: "☕ 6-cup-a-day coffee addict",
+      hobby: "Weekend rock climber & board game enthusiast"
+    }
+  ];
+
+  const quirks = [
+    {
+      icon: Coffee,
+      text: "Our office runs on coffee and curiosity (mostly coffee)"
+    },
+    {
+      icon: Smile,
+      text: "We celebrate every user's 'aha!' moment with virtual high-fives"
+    },
+    {
+      icon: Lightbulb,
+      text: "Best ideas happen during our Tuesday 'Walk & Talk' meetings"
     }
   ];
 
@@ -50,28 +69,29 @@ const About = () => {
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation />
       
-      {/* Hero Section - Colorful gradient */}
+      {/* Hero Section - More personal and warm */}
       <section className="pt-32 pb-20 px-6 lg:px-12 bg-gradient-to-br from-future-green/10 via-smart-beige/50 to-purple-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center space-y-6">
             <div className="inline-block px-6 py-3 bg-gradient-to-r from-future-green/20 to-blue-100 rounded-full border border-future-green/30">
-              <span className="text-sm font-medium bg-gradient-to-r from-business-black to-emerald-700 bg-clip-text text-transparent">About LXERA</span>
+              <span className="text-sm font-medium bg-gradient-to-r from-business-black to-emerald-700 bg-clip-text text-transparent">Hi there! We're LXERA</span>
             </div>
             <h1 className="text-5xl lg:text-7xl font-light text-business-black leading-tight">
-              Building the future of
-              <span className="block font-medium bg-gradient-to-r from-future-green via-emerald-500 to-teal-500 bg-clip-text text-transparent">learning</span>
+              We're the humans behind
+              <span className="block font-medium bg-gradient-to-r from-future-green via-emerald-500 to-teal-500 bg-clip-text text-transparent">tomorrow's learning</span>
             </h1>
             <p className="text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-light">
-              We're passionate builders creating AI-powered solutions that help people unlock their potential through 
-              <span className="text-purple-600 font-medium"> personalized</span>, 
-              <span className="text-blue-600 font-medium"> engaging</span>, and 
-              <span className="text-emerald-600 font-medium"> transformative</span> learning experiences.
+              Two caffeine-fueled dreamers who got tired of watching amazing people struggle with boring, 
+              one-size-fits-all training. So we built something better—an AI that actually 
+              <span className="text-purple-600 font-medium"> gets you</span>, 
+              <span className="text-blue-600 font-medium"> adapts to you</span>, and 
+              <span className="text-emerald-600 font-medium"> grows with you</span>.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Story Section - Subtle color accents */}
+      {/* Story Section - More personal narrative */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -81,10 +101,13 @@ const About = () => {
               </h2>
               <div className="space-y-6 text-lg text-business-black/70 leading-relaxed font-light">
                 <p>
-                  We started LXERA because we believe learning should be <span className="text-blue-600 font-medium">personal</span>, <span className="text-purple-600 font-medium">engaging</span>, and <span className="text-emerald-600 font-medium">transformative</span>. Too often, people struggle with one-size-fits-all training that doesn't fit their needs.
+                  It started with a simple frustration: Why does workplace learning have to be so... <em>boring</em>? Sarah was watching brilliant employees check out during training sessions, and Marcus was building AI that could understand complex human behavior—but somehow, learning platforms still treated everyone like they were the same person.
                 </p>
                 <p>
-                  We're changing that with AI that adapts to each learner, creating experiences that feel less like traditional training and more like having a thoughtful mentor who truly understands you.
+                  One late-night conversation over (way too much) coffee later, LXERA was born. We're not just building software; we're crafting experiences that make people think, <span className="text-blue-600 font-medium">"Wow, this actually makes sense!"</span>
+                </p>
+                <p>
+                  <span className="text-emerald-600 font-medium">The best part?</span> Every day, we get messages from users who discovered they were capable of more than they ever imagined. That's the stuff that keeps us going.
                 </p>
               </div>
             </div>
@@ -102,13 +125,36 @@ const About = () => {
         </div>
       </section>
 
-      {/* Values Section - Colorful cards */}
+      {/* Fun Office Quirks Section */}
+      <section className="py-16 px-6 lg:px-12 bg-gradient-to-r from-smart-beige/30 to-future-green/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h3 className="text-2xl font-medium text-business-black mb-8">
+            A Few Things You Should Know About Us
+          </h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            {quirks.map((quirk, index) => {
+              const IconComponent = quirk.icon;
+              return (
+                <div key={index} className="flex items-center space-x-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
+                  <IconComponent className="w-6 h-6 text-future-green flex-shrink-0" />
+                  <p className="text-business-black/70 text-sm">{quirk.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Values Section - More human language */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-blue-50/30 via-smart-beige/30 to-purple-50/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-4">
-              What <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Drives</span> Us
+              What <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Actually</span> Matters to Us
             </h2>
+            <p className="text-lg text-business-black/60 font-light">
+              These aren't just values we put on a wall—they're how we actually show up every day.
+            </p>
           </div>
           
           <div className="grid lg:grid-cols-3 gap-8">
@@ -136,15 +182,15 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section - Colorful accents */}
+      {/* Team Section - More personal with fun facts */}
       <section className="py-20 px-6 lg:px-12">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-4">
-              Meet the <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Founders</span>
+              Meet the <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Humans</span>
             </h2>
             <p className="text-lg text-business-black/60 font-light">
-              Passionate leaders with <span className="text-purple-600 font-medium">big dreams</span> and the experience to make them reality
+              Two people with <span className="text-purple-600 font-medium">wildly different backgrounds</span> but the same obsession with making learning not suck.
             </p>
           </div>
           
@@ -161,7 +207,17 @@ const About = () => {
                 </div>
                 <h3 className="text-2xl font-medium text-business-black mb-2">{member.name}</h3>
                 <p className="bg-gradient-to-r from-future-green to-emerald-600 bg-clip-text text-transparent font-medium mb-2">{member.role}</p>
-                <p className="text-sm text-business-black/50 mb-6">{member.background}</p>
+                <p className="text-sm text-business-black/50 mb-4">{member.background}</p>
+                
+                {/* Fun facts */}
+                <div className="flex justify-center space-x-4 mb-6 text-sm">
+                  <span className="bg-future-green/10 px-3 py-1 rounded-full text-business-black/60">
+                    {member.funFact}
+                  </span>
+                  <span className="bg-blue-100/50 px-3 py-1 rounded-full text-business-black/60">
+                    {member.hobby}
+                  </span>
+                </div>
                 
                 <div className="bg-gradient-to-br from-smart-beige/50 via-white/50 to-blue-50/50 rounded-2xl p-6 backdrop-blur-sm border border-white/50">
                   <Quote className="w-6 h-6 text-future-green/60 mx-auto mb-4" />
@@ -175,20 +231,21 @@ const About = () => {
         </div>
       </section>
 
-      {/* CTA Section - Gradient background */}
+      {/* CTA Section - More personal invitation */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black via-gray-900 to-purple-900">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-light text-white mb-6 leading-tight">
-            Join Us on This <span className="bg-gradient-to-r from-future-green to-emerald-400 bg-clip-text text-transparent">Journey</span>
+            Want to Chat About <span className="bg-gradient-to-r from-future-green to-emerald-400 bg-clip-text text-transparent">Learning?</span>
           </h2>
           <p className="text-lg text-white/70 mb-10 leading-relaxed font-light">
-            We're just getting started. Let's have a conversation about the future of learning.
+            Seriously, we love talking about this stuff. Whether you have 5 employees or 50,000, 
+            let's figure out how to make learning work better for your people.
           </p>
           <Button 
             size="lg"
             className="bg-gradient-to-r from-future-green to-emerald-500 hover:from-emerald-500 hover:to-future-green text-business-black font-medium px-8 py-4 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
-            Get in Touch
+            Let's Talk
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
