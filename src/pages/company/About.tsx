@@ -103,8 +103,8 @@ const About = () => {
               const IconComponent = value.icon;
               return (
                 <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-future-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <IconComponent className="w-8 h-8 text-future-green" />
+                  <div className="w-16 h-16 bg-business-black rounded-full flex items-center justify-center mx-auto mb-6">
+                    <IconComponent className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-business-black mb-4">
                     {value.title}
