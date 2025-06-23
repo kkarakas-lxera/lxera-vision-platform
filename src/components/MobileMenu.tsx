@@ -75,7 +75,7 @@ const MobileMenu = ({
       name: "Learning Analytics & Insights",
       href: "/solutions/learning-analytics-insights",
       icon: BarChart3,
-      color: "bg-emerald-500", 
+      color: "bg-teal-500", 
       description: "Turn engagement data into actionable insights"
     },
     {
