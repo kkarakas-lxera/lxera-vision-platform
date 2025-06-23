@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,11 +68,11 @@ const SecurityPrivacy = () => {
             <Shield className="w-4 h-4 mr-2" />
             Enterprise Trust
           </div>
-          <h1 className="text-5xl lg:text-6xl font-bold text-business-black mb-6">
+          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Security &
             <span className="text-business-black"> Data Privacy</span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
             Built with enterprise-grade security and privacy-first design. Your data, 
             your learners, and your organization are protected by industry-leading standards.
           </p>
@@ -91,10 +92,10 @@ const SecurityPrivacy = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Comprehensive Security Framework
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               Every aspect of LXERA is designed with security and privacy as foundational principles
             </p>
           </div>
@@ -139,10 +140,10 @@ const SecurityPrivacy = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-business-black mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Global Compliance Standards
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
               Certified and audited against the world's most stringent data protection standards
             </p>
           </div>
@@ -205,10 +206,10 @@ const SecurityPrivacy = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-business-black mb-6">
+          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
             Security You Can Trust
           </h2>
-          <p className="text-xl text-business-black/70 mb-8">
+          <p className="text-lg text-business-black/70 mb-8">
             Learn more about our comprehensive approach to protecting your most valuable asset: data
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
