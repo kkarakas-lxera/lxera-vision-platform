@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
@@ -189,7 +190,7 @@ const MobileMenu = ({
       <div className="flex items-center space-x-3">
         <Button
           onClick={handleRequestDemo}
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
+          className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
           aria-label="Request a demo"
         >
           Request a Demo
