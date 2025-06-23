@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -74,10 +75,10 @@ const HeroSection = () => {
                 <p className="text-xs sm:text-sm md:text-base text-business-black/75 font-normal font-inter">
                   🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <div className="flex flex-row gap-2 sm:gap-3">
                   <Button
                     size="lg"
-                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-4 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation flex-1"
                     onClick={handleRequestDemo}
                     aria-label="Request a demo"
                   >
@@ -85,7 +86,7 @@ const HeroSection = () => {
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-4 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation flex-1"
                     aria-label="LXERA for Business"
                   >
                     LXERA for Business
