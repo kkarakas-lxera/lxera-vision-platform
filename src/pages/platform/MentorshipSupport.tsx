@@ -213,11 +213,11 @@ const MentorshipSupport = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Try AI Mentorship
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/platform/security-privacy">
-                Explore AI Engine <ArrowRight className="w-4 h-4 ml-2" />
+                Explore Security & Privacy <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
