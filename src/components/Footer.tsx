@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
+import { Linkedin } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -24,16 +25,7 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
                 <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
-                <Youtube className="w-5 h-5" />
               </a>
             </div>
           </div>
