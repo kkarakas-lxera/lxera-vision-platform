@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,19 +68,19 @@ const SecurityPrivacy = () => {
             <Shield className="w-4 h-4 mr-2" />
             Enterprise Trust
           </div>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
             Security &
-            <span className="text-business-black"> Data Privacy</span>
+            <span className="text-business-black block mt-2"> Data Privacy</span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 max-w-4xl mx-auto mb-12 leading-relaxed font-normal font-inter">
             Built with enterprise-grade security and privacy-first design. Your data, 
             your learners, and your organization are protected by industry-leading standards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>
@@ -90,10 +91,10 @@ const SecurityPrivacy = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Comprehensive Security Framework
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Every aspect of LXERA is designed with security and privacy as foundational principles
             </p>
           </div>
@@ -138,10 +139,10 @@ const SecurityPrivacy = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Global Compliance Standards
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Certified and audited against the world's most stringent data protection standards
             </p>
           </div>
@@ -176,10 +177,10 @@ const SecurityPrivacy = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
             <CardHeader className="text-center pb-8">
-              <CardTitle className="text-3xl mb-4">
+              <CardTitle className="text-3xl sm:text-4xl font-medium mb-4 font-inter">
                 Trust Through Transparency
               </CardTitle>
-              <CardDescription className="text-white/70 text-lg">
+              <CardDescription className="text-white/70 text-lg sm:text-xl font-inter">
                 Our commitment to security and privacy by the numbers
               </CardDescription>
             </CardHeader>
@@ -204,17 +205,17 @@ const SecurityPrivacy = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
             Security You Can Trust
           </h2>
-          <p className="text-lg text-business-black/70 mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 mb-8 leading-relaxed font-normal font-inter">
             Learn more about our comprehensive approach to protecting your most valuable asset: data
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>

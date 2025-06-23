@@ -67,19 +67,19 @@ const AIEngine = () => {
             <Sparkles className="w-4 h-4 mr-2" />
             AI Engine
           </div>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
             The Intelligence Behind
-            <span className="text-business-black"> LXERA</span>
+            <span className="text-business-black block mt-2"> LXERA</span>
           </h1>
-          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 max-w-4xl mx-auto mb-12 leading-relaxed font-normal font-inter">
             Discover the advanced AI capabilities that power personalized learning experiences 
             and drive measurable innovation outcomes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -91,10 +91,10 @@ const AIEngine = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Core AI Capabilities
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Advanced artificial intelligence features that make learning personal, engaging, and effective
             </p>
           </div>
@@ -138,10 +138,10 @@ const AIEngine = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Advanced Technology Stack
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Built on cutting-edge AI technologies for superior learning experiences
             </p>
           </div>
@@ -172,17 +172,17 @@ const AIEngine = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
             Experience AI-Powered Learning
           </h2>
-          <p className="text-lg text-business-black/70 mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 mb-8 leading-relaxed font-normal font-inter">
             See how LXERA's AI engine can transform learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>

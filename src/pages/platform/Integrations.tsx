@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,19 +77,19 @@ const Integrations = () => {
             <LinkIcon className="w-4 h-4 mr-2" />
             Seamless Connectivity
           </div>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
             Platform
-            <span className="text-business-black"> Integrations</span>
+            <span className="text-business-black block mt-2"> Integrations</span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 max-w-4xl mx-auto mb-12 leading-relaxed font-normal font-inter">
             Connect LXERA with your existing technology stack. From LMS platforms to collaboration tools, 
             create a unified learning ecosystem that works within your current workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>
@@ -99,10 +100,10 @@ const Integrations = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Connect With Your Tech Stack
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Pre-built integrations with the tools and platforms your organization already uses
             </p>
           </div>
@@ -146,10 +147,10 @@ const Integrations = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Integration Benefits
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Streamline workflows and maximize the value of your existing technology investments
             </p>
           </div>
@@ -183,10 +184,10 @@ const Integrations = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-2xl bg-gradient-to-br from-business-black to-business-black/90 text-white overflow-hidden">
             <CardHeader className="text-center pb-8">
-              <CardTitle className="text-3xl mb-4">
+              <CardTitle className="text-3xl sm:text-4xl font-medium mb-4 font-inter">
                 Developer-Friendly APIs
               </CardTitle>
-              <CardDescription className="text-white/70 text-lg">
+              <CardDescription className="text-white/70 text-lg sm:text-xl font-inter">
                 Build custom integrations with our comprehensive API suite
               </CardDescription>
             </CardHeader>
@@ -207,17 +208,17 @@ const Integrations = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
             Ready to Connect Your Systems?
           </h2>
-          <p className="text-xl text-business-black/70 mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 mb-8 leading-relaxed font-normal font-inter">
             Explore our integrations and discover how LXERA fits seamlessly into your existing workflow
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               <Link to="/solutions">
                 Talk to Our Experts
               </Link>

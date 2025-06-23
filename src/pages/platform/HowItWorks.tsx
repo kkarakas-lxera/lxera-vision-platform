@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,19 +72,19 @@ const HowItWorks = () => {
             <Target className="w-4 h-4 mr-2" />
             Platform Overview
           </div>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
             How LXERA
-            <span className="text-business-black"> Works</span>
+            <span className="text-business-black block mt-2"> Works</span>
           </h1>
-          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 max-w-4xl mx-auto mb-12 leading-relaxed font-normal font-inter">
             Discover the intelligent ecosystem that transforms learning into innovation. 
             From personalized onboarding to measurable business impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -95,10 +96,10 @@ const HowItWorks = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               The Complete Learning Journey
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Follow the intelligent path from initial engagement to transformative innovation
             </p>
           </div>
@@ -150,10 +151,10 @@ const HowItWorks = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Support Throughout Your Journey
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Multiple touchpoints ensure learners are never alone in their growth journey
             </p>
           </div>
@@ -184,17 +185,17 @@ const HowItWorks = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
             Ready to Transform Your Learning Experience?
           </h2>
-          <p className="text-lg text-business-black/70 mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 mb-8 leading-relaxed font-normal font-inter">
             Discover how LXERA can revolutionize learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>
