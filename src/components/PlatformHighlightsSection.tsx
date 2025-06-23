@@ -93,7 +93,7 @@ const highlightsData = [
 const PlatformHighlightsSection = () => {
   return (
     <>
-      <section className="w-full py-20 sm:py-24 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-7xl mx-auto relative z-0">
           {/* Section Header matching Built for Innovators */}
           <div className="text-center mb-12 animate-fade-in-up">
@@ -146,9 +146,9 @@ const PlatformHighlightsSection = () => {
         </div>
       </section>
 
-      {/* Enhanced Section Separator - standardized height */}
+      {/* Enhanced Section Separator - consistent height */}
       <div className="relative">
-        <div className="h-20 bg-gradient-to-b from-smart-beige/30 via-smart-beige/50 to-future-green/10 transition-all duration-1000 ease-in-out"></div>
+        <div className="h-8 bg-gradient-to-b from-smart-beige/30 via-smart-beige/50 to-future-green/10 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/8 to-transparent"></div>
       </div>
     </>

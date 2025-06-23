@@ -9,11 +9,11 @@ const WhyLXERASection = () => {
 
   return (
     <>
-      <section id="platform" className="w-full py-20 sm:py-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
+      <section id="platform" className="w-full py-16 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/10"></div>
         <AnimatedBackground />
         <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-0">
-          <div className="text-left mb-12 sm:mb-20 animate-fade-in-up relative">
+          <div className="text-left mb-12 animate-fade-in-up relative">
             <div className="relative z-10">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium text-business-black mb-4 sm:mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 What Makes LXERA Different
@@ -77,9 +77,9 @@ const WhyLXERASection = () => {
         </div>
       </section>
 
-      {/* Enhanced Section Separator - standardized height */}
+      {/* Enhanced Section Separator - consistent height */}
       <div className="relative">
-        <div className="h-20 bg-gradient-to-b from-future-green/12 via-smart-beige/40 to-future-green/15 transition-all duration-1000 ease-in-out"></div>
+        <div className="h-8 bg-gradient-to-b from-future-green/12 via-smart-beige/40 to-future-green/15 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/8 to-transparent"></div>
       </div>
     </>
