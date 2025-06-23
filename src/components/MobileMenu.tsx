@@ -114,7 +114,7 @@ const MobileMenu = ({
       name: "Engagement & Insights",
       href: "/platform/engagement-insights",
       icon: BarChart3,
-      color: "bg-emerald-500",
+      color: "bg-cyan-500",
       description: "Real-time analytics and engagement tracking"
     },
     {
