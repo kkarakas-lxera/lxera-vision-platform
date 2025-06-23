@@ -90,7 +90,6 @@ const Integrations = () => {
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Talk to Our Experts
-              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
@@ -220,7 +219,7 @@ const Integrations = () => {
             </Button>
             <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
               <Link to="/solutions">
-                Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
+                Talk to Our Experts
               </Link>
             </Button>
           </div>
