@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
@@ -286,7 +287,7 @@ const MobileMenu = ({
                 <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
                   <Button 
                     variant="outline" 
-                    className="w-full border-2 border-gray-300 text-business-black hover:bg-future-green/20 hover:border-future-green/50 transition-all duration-200 rounded-xl font-medium"
+                    className="w-full border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-200 rounded-xl font-medium"
                   >
                     Sign In
                   </Button>
@@ -301,3 +302,4 @@ const MobileMenu = ({
 };
 
 export default MobileMenu;
+
