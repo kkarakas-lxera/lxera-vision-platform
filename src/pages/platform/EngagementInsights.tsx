@@ -67,19 +67,19 @@ const EngagementInsights = () => {
             <BarChart3 className="w-4 h-4 mr-2" />
             Engagement & Insights
           </div>
-          <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-8 leading-tight font-inter">
             Turn Learning Data Into
-            <span className="text-business-black"> Actionable Insights</span>
+            <span className="text-business-black block mt-2"> Actionable Insights</span>
           </h1>
-          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 max-w-4xl mx-auto mb-12 leading-relaxed font-normal font-inter">
             Advanced analytics and engagement tracking that help you understand, optimize, 
             and accelerate learning outcomes across your organization.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -91,10 +91,10 @@ const EngagementInsights = () => {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Comprehensive Learning Analytics
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Get deep insights into learning patterns, engagement levels, and performance outcomes
             </p>
           </div>
@@ -138,10 +138,10 @@ const EngagementInsights = () => {
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
               Key Performance Metrics
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-business-black/70 max-w-3xl mx-auto leading-relaxed font-normal font-inter">
               Track the metrics that matter most for learning success and organizational impact
             </p>
           </div>
@@ -172,17 +172,17 @@ const EngagementInsights = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
             Start Measuring What Matters
           </h2>
-          <p className="text-lg text-business-black/70 mb-8">
+          <p className="text-lg sm:text-xl text-business-black/70 mb-8 leading-relaxed font-normal font-inter">
             Get actionable insights that drive better learning outcomes and business results
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Talk to Our Experts
             </Button>
           </div>
