@@ -77,10 +77,10 @@ const MentorshipSupport = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Experience Support Tools
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Support Overview
+              Talk to Our Experts
             </Button>
           </div>
         </div>

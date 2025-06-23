@@ -86,10 +86,11 @@ const Integrations = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              View All Integrations
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              API Documentation
+              Explore AI Engine
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>

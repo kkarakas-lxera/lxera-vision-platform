@@ -2,57 +2,56 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Users, Zap, Target, ArrowRight, Sparkles, Layers, Network } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Lightbulb, Users, Target, Brain, BarChart3, MessageCircle, ArrowRight, CheckCircle, Zap } from "lucide-react";
 
 const InnovationHub = () => {
   const hubFeatures = [
     {
-      title: "Ideation Tools",
-      description: "AI-powered brainstorming and idea generation platforms for creative problem-solving",
-      icon: Lightbulb,
-      capabilities: ["Idea mapping", "Concept clustering", "Innovation challenges", "Inspiration feeds"]
+      title: "AI-Powered Ideation",
+      description: "Generate innovative ideas with AI-driven insights and suggestions",
+      icon: Brain,
+      features: ["AI brainstorming", "Trend analysis", "Idea scoring", "Feasibility assessment"]
     },
     {
-      title: "Collaboration Environments",
-      description: "Virtual spaces designed for cross-functional teams to co-create and innovate together",
+      title: "Collaborative Project Spaces",
+      description: "Dedicated spaces for teams to collaborate on innovation projects",
       icon: Users,
-      capabilities: ["Virtual whiteboards", "Real-time collaboration", "Project workspaces", "Team matching"]
+      features: ["Team collaboration", "Project management", "Resource sharing", "Progress tracking"]
     },
     {
-      title: "AI-Augmented Prototyping",
-      description: "Intelligent tools that help transform ideas into actionable prototypes and solutions",
-      icon: Zap,
-      capabilities: ["Rapid prototyping", "AI suggestions", "Resource optimization", "Feasibility analysis"]
+      title: "Expert Mentorship",
+      description: "Connect with mentors and experts to guide innovation projects",
+      icon: MessageCircle,
+      features: ["Expert guidance", "Mentorship matching", "Knowledge sharing", "Feedback loops"]
     },
     {
-      title: "CoE Support Capabilities",
-      description: "Center of Excellence tools for scaling innovation across the organization",
-      icon: Target,
-      capabilities: ["Best practice sharing", "Innovation metrics", "Success tracking", "Knowledge repository"]
+      title: "Performance Analytics",
+      description: "Track the impact of innovation projects with detailed analytics",
+      icon: BarChart3,
+      features: ["Impact measurement", "Performance tracking", "ROI analysis", "Outcome prediction"]
     }
   ];
 
-  const innovationProcess = [
+  const innovationTools = [
     {
-      step: "Discover",
-      description: "Identify opportunities and challenges",
-      tools: ["Market insights", "Problem identification", "Trend analysis"]
+      name: "AI Idea Generator",
+      description: "Generate innovative ideas with AI-driven insights",
+      icon: Brain
     },
     {
-      step: "Ideate",
-      description: "Generate and refine innovative solutions",
-      tools: ["Brainstorming tools", "AI inspiration", "Concept development"]
+      name: "Project Management Tools",
+      description: "Manage innovation projects with ease",
+      icon: Target
     },
     {
-      step: "Prototype",
-      description: "Build and test minimum viable solutions",
-      tools: ["Rapid prototyping", "User testing", "Feedback loops"]
+      name: "Collaboration Platforms",
+      description: "Collaborate with team members in real-time",
+      icon: Users
     },
     {
-      step: "Scale",
-      description: "Implement and expand successful innovations",
-      tools: ["Implementation guides", "Success metrics", "Knowledge sharing"]
+      name: "Analytics Dashboards",
+      description: "Track the impact of innovation projects",
+      icon: BarChart3
     }
   ];
 
@@ -65,36 +64,38 @@ const InnovationHub = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center bg-future-green/20 px-4 py-2 rounded-full text-business-black font-medium text-sm mb-6">
             <Lightbulb className="w-4 h-4 mr-2" />
-            Innovation Enablement
+            Innovation Hub
           </div>
           <h1 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Innovation
-            <span className="text-business-black"> Hub</span>
+            Unleash Your Team's
+            <span className="text-business-black"> Innovation Potential</span>
           </h1>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-8">
-            Empower your organization with comprehensive innovation tools that transform ideas 
-            into impact through AI-augmented collaboration and prototyping capabilities.
+          <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+            A collaborative space for teams to generate, develop, and launch innovative ideas 
+            that drive measurable business impact.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Explore Innovation Tools
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Innovation Process Guide
+              Watch How It Works
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Hub Features */}
+      {/* Features Section */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Complete Innovation Ecosystem
+              Key Features
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Everything your teams need to innovate effectively, from initial ideation to scaled implementation
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+              Explore the core features that make the Innovation Hub a powerful tool for driving innovation
             </p>
           </div>
 
@@ -102,29 +103,29 @@ const InnovationHub = () => {
             {hubFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group overflow-hidden">
+                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-7 h-7 text-business-black" />
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-future-green/10 rounded-xl flex items-center justify-center mr-4">
+                        <IconComponent className="w-6 h-6 text-business-black" />
                       </div>
-                      <Sparkles className="w-5 h-5 text-business-black/60" />
                     </div>
                     <CardTitle className="text-xl text-business-black group-hover:text-business-black transition-colors">
                       {feature.title}
                     </CardTitle>
-                    <CardDescription className="text-business-black/60 mb-4">
+                    <CardDescription className="text-business-black/60">
                       {feature.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
-                      {feature.capabilities.map((capability, capIndex) => (
-                        <div key={capIndex} className="text-sm text-business-black/70 bg-future-green/10 rounded-lg px-3 py-2">
-                          {capability}
-                        </div>
+                    <ul className="space-y-2">
+                      {feature.features.map((item, itemIndex) => (
+                        <li key={itemIndex} className="flex items-center text-sm text-business-black/70">
+                          <CheckCircle className="w-4 h-4 text-future-green mr-2 flex-shrink-0" />
+                          {item}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </CardContent>
                 </Card>
               );
@@ -133,48 +134,37 @@ const InnovationHub = () => {
         </div>
       </section>
 
-      {/* Innovation Process */}
+      {/* Tools Section */}
       <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Structured Innovation Journey
+              Essential Innovation Tools
             </h2>
-            <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
-              Guide teams through a proven innovation process with integrated tools and support
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
+              Equip your teams with the tools they need to drive innovation
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {innovationProcess.map((phase, index) => (
-              <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative">
-                <CardHeader>
-                  <div className="w-16 h-16 bg-gradient-to-br from-future-green to-future-green rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-lg">{index + 1}</span>
-                  </div>
-                  <CardTitle className="text-lg text-business-black mb-2">
-                    {phase.step}
-                  </CardTitle>
-                  <CardDescription className="text-business-black/60 mb-4">
-                    {phase.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {phase.tools.map((tool, toolIndex) => (
-                      <li key={toolIndex} className="text-sm text-business-black/70 bg-white/50 rounded px-3 py-1">
-                        {tool}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                {index < innovationProcess.length - 1 && (
-                  <div className="hidden md:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
-                    <ArrowRight className="w-8 h-8 text-future-green" />
-                  </div>
-                )}
-              </Card>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {innovationTools.map((tool, index) => {
+              const IconComponent = tool.icon;
+              return (
+                <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <CardHeader>
+                    <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <IconComponent className="w-8 h-8 text-business-black" />
+                    </div>
+                    <CardTitle className="text-lg text-business-black">
+                      {tool.name}
+                    </CardTitle>
+                    <CardDescription className="text-business-black/60">
+                      {tool.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -183,19 +173,18 @@ const InnovationHub = () => {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-            Transform Ideas Into Business Impact
+            Start Innovating Today
           </h2>
-          <p className="text-xl text-business-black/70 mb-8">
-            Empower your teams with the tools and processes they need to drive meaningful innovation
+          <p className="text-lg text-business-black/70 mb-8">
+            Discover how the Innovation Hub can transform your organization's approach to innovation
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Start Innovating
+              Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              <Link to="/platform/mentorship-support">
-                Mentorship Support <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+              Talk to Our Experts
             </Button>
           </div>
         </div>

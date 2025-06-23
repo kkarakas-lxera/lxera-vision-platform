@@ -77,10 +77,11 @@ const SecurityPrivacy = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Security Overview
+              Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Compliance Details
+              Watch How It Works
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
@@ -212,12 +213,10 @@ const SecurityPrivacy = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              Download Security Brief
+              Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              <Link to="/platform/integrations">
-                Integrations <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+              Talk to Our Experts
             </Button>
           </div>
         </div>
