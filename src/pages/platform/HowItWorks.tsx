@@ -1,5 +1,3 @@
-
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -195,10 +193,8 @@ const HowItWorks = () => {
             <Button size="lg" className="bg-business-black text-white rounded-xl px-8 transition-all duration-300 hover:scale-105">
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
-              <Link to="/platform/ai-engine">
-                Explore AI Engine <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <Button variant="outline" size="lg" className="rounded-xl px-8 transition-all duration-300 hover:scale-105">
+              Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
