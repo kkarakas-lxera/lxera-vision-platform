@@ -695,6 +695,426 @@ export type Database = {
           },
         ]
       }
+      mm_audio_narrations: {
+        Row: {
+          audio_segments: Json | null
+          company_id: string
+          content_id: string
+          created_at: string | null
+          is_active: boolean | null
+          master_audio_id: string | null
+          narration_id: string
+          narration_name: string
+          narration_type: string | null
+          script_content: string | null
+          section_name: string | null
+          segments_audio_ids: string[] | null
+          segments_merged: boolean | null
+          session_id: string
+          status: string | null
+          synthesis_completed: boolean | null
+          total_duration_seconds: number | null
+          updated_at: string | null
+          voice_config: Json | null
+        }
+        Insert: {
+          audio_segments?: Json | null
+          company_id: string
+          content_id: string
+          created_at?: string | null
+          is_active?: boolean | null
+          master_audio_id?: string | null
+          narration_id?: string
+          narration_name: string
+          narration_type?: string | null
+          script_content?: string | null
+          section_name?: string | null
+          segments_audio_ids?: string[] | null
+          segments_merged?: boolean | null
+          session_id: string
+          status?: string | null
+          synthesis_completed?: boolean | null
+          total_duration_seconds?: number | null
+          updated_at?: string | null
+          voice_config?: Json | null
+        }
+        Update: {
+          audio_segments?: Json | null
+          company_id?: string
+          content_id?: string
+          created_at?: string | null
+          is_active?: boolean | null
+          master_audio_id?: string | null
+          narration_id?: string
+          narration_name?: string
+          narration_type?: string | null
+          script_content?: string | null
+          section_name?: string | null
+          segments_audio_ids?: string[] | null
+          segments_merged?: boolean | null
+          session_id?: string
+          status?: string | null
+          synthesis_completed?: boolean | null
+          total_duration_seconds?: number | null
+          updated_at?: string | null
+          voice_config?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mm_audio_narrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_audio_narrations_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "mm_audio_narrations_master_audio_id_fkey"
+            columns: ["master_audio_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_assets"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "mm_audio_narrations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
+      mm_multimedia_assets: {
+        Row: {
+          asset_id: string
+          asset_name: string
+          asset_type: string
+          company_id: string
+          content_id: string
+          created_at: string | null
+          duration_seconds: number | null
+          file_path: string
+          file_size_bytes: number | null
+          generation_config: Json | null
+          generation_prompt: string | null
+          is_active: boolean | null
+          mime_type: string | null
+          parent_asset_id: string | null
+          processing_time_seconds: number | null
+          public_url: string | null
+          quality_metrics: Json | null
+          section_name: string | null
+          session_id: string
+          slide_number: number | null
+          status: string | null
+          storage_bucket: string | null
+          storage_path: string | null
+          tokens_used: number | null
+          updated_at: string | null
+          version_number: number | null
+        }
+        Insert: {
+          asset_id?: string
+          asset_name: string
+          asset_type: string
+          company_id: string
+          content_id: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          file_path: string
+          file_size_bytes?: number | null
+          generation_config?: Json | null
+          generation_prompt?: string | null
+          is_active?: boolean | null
+          mime_type?: string | null
+          parent_asset_id?: string | null
+          processing_time_seconds?: number | null
+          public_url?: string | null
+          quality_metrics?: Json | null
+          section_name?: string | null
+          session_id: string
+          slide_number?: number | null
+          status?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tokens_used?: number | null
+          updated_at?: string | null
+          version_number?: number | null
+        }
+        Update: {
+          asset_id?: string
+          asset_name?: string
+          asset_type?: string
+          company_id?: string
+          content_id?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          file_path?: string
+          file_size_bytes?: number | null
+          generation_config?: Json | null
+          generation_prompt?: string | null
+          is_active?: boolean | null
+          mime_type?: string | null
+          parent_asset_id?: string | null
+          processing_time_seconds?: number | null
+          public_url?: string | null
+          quality_metrics?: Json | null
+          section_name?: string | null
+          session_id?: string
+          slide_number?: number | null
+          status?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tokens_used?: number | null
+          updated_at?: string | null
+          version_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mm_multimedia_assets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_multimedia_assets_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "mm_multimedia_assets_parent_asset_id_fkey"
+            columns: ["parent_asset_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_assets"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "mm_multimedia_assets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
+      mm_multimedia_sessions: {
+        Row: {
+          audio_files_generated: number | null
+          company_id: string
+          completed_at: string | null
+          content_id: string
+          content_sections: string[]
+          current_stage: string | null
+          employee_name: string
+          error_details: string | null
+          generation_config: Json | null
+          initiated_by: string | null
+          module_name: string
+          processing_duration_seconds: number | null
+          progress_percentage: number | null
+          retry_count: number | null
+          session_id: string
+          session_type: string | null
+          slides_generated: number | null
+          started_at: string | null
+          status: string | null
+          tokens_used: number | null
+          total_assets_generated: number | null
+          video_files_generated: number | null
+        }
+        Insert: {
+          audio_files_generated?: number | null
+          company_id: string
+          completed_at?: string | null
+          content_id: string
+          content_sections: string[]
+          current_stage?: string | null
+          employee_name: string
+          error_details?: string | null
+          generation_config?: Json | null
+          initiated_by?: string | null
+          module_name: string
+          processing_duration_seconds?: number | null
+          progress_percentage?: number | null
+          retry_count?: number | null
+          session_id?: string
+          session_type?: string | null
+          slides_generated?: number | null
+          started_at?: string | null
+          status?: string | null
+          tokens_used?: number | null
+          total_assets_generated?: number | null
+          video_files_generated?: number | null
+        }
+        Update: {
+          audio_files_generated?: number | null
+          company_id?: string
+          completed_at?: string | null
+          content_id?: string
+          content_sections?: string[]
+          current_stage?: string | null
+          employee_name?: string
+          error_details?: string | null
+          generation_config?: Json | null
+          initiated_by?: string | null
+          module_name?: string
+          processing_duration_seconds?: number | null
+          progress_percentage?: number | null
+          retry_count?: number | null
+          session_id?: string
+          session_type?: string | null
+          slides_generated?: number | null
+          started_at?: string | null
+          status?: string | null
+          tokens_used?: number | null
+          total_assets_generated?: number | null
+          video_files_generated?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mm_multimedia_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_multimedia_sessions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "mm_multimedia_sessions_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mm_slide_presentations: {
+        Row: {
+          company_id: string
+          content_id: string
+          created_at: string | null
+          html_asset_id: string | null
+          html_generated: boolean | null
+          is_active: boolean | null
+          pdf_asset_id: string | null
+          pdf_generated: boolean | null
+          pptx_asset_id: string | null
+          pptx_generated: boolean | null
+          presentation_id: string
+          presentation_name: string
+          presentation_type: string | null
+          session_id: string
+          slide_order: Json | null
+          status: string | null
+          template_used: string | null
+          theme_config: Json | null
+          total_slides: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          content_id: string
+          created_at?: string | null
+          html_asset_id?: string | null
+          html_generated?: boolean | null
+          is_active?: boolean | null
+          pdf_asset_id?: string | null
+          pdf_generated?: boolean | null
+          pptx_asset_id?: string | null
+          pptx_generated?: boolean | null
+          presentation_id?: string
+          presentation_name: string
+          presentation_type?: string | null
+          session_id: string
+          slide_order?: Json | null
+          status?: string | null
+          template_used?: string | null
+          theme_config?: Json | null
+          total_slides?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          content_id?: string
+          created_at?: string | null
+          html_asset_id?: string | null
+          html_generated?: boolean | null
+          is_active?: boolean | null
+          pdf_asset_id?: string | null
+          pdf_generated?: boolean | null
+          pptx_asset_id?: string | null
+          pptx_generated?: boolean | null
+          presentation_id?: string
+          presentation_name?: string
+          presentation_type?: string | null
+          session_id?: string
+          slide_order?: Json | null
+          status?: string | null
+          template_used?: string | null
+          theme_config?: Json | null
+          total_slides?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mm_slide_presentations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_slide_presentations_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "mm_slide_presentations_html_asset_id_fkey"
+            columns: ["html_asset_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_assets"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "mm_slide_presentations_pdf_asset_id_fkey"
+            columns: ["pdf_asset_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_assets"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "mm_slide_presentations_pptx_asset_id_fkey"
+            columns: ["pptx_asset_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_assets"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "mm_slide_presentations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mm_multimedia_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
