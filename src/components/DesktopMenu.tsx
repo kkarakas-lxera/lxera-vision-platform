@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import DemoModal from "./DemoModal";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
 
 interface DesktopMenuProps {
@@ -354,7 +355,6 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Request Demo Button - Header version with distinct color */}
         <Button
           onClick={handleRequestDemo}
           className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
@@ -363,13 +363,14 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           Request a Demo
         </Button>
 
-        {/* Enhanced Sign In Button */}
-        <Button 
-          variant="outline" 
-          className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3 font-inter font-normal"
-        >
-          Sign In
-        </Button>
+        <Link to="/login">
+          <Button 
+            variant="outline" 
+            className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3 font-inter font-normal"
+          >
+            Sign In
+          </Button>
+        </Link>
       </div>
 
       <DemoModal 

@@ -32,13 +32,7 @@ const Index = () => {
       );
     }
 
-    return (
-      <div className="fixed top-4 right-4 z-50">
-        <Link to="/login">
-          <Button>Sign In</Button>
-        </Link>
-      </div>
-    );
+    return null; // Remove the duplicate Sign In button - the Navigation component handles this
   };
 
   return (
