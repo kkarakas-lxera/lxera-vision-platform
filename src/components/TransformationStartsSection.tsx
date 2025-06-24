@@ -12,7 +12,7 @@ const TransformationStartsSection = () => {
             Your Transformation Starts Here
           </h2>
           
-          <p className="text-base sm:text-lg md:text-xl lg:text-xl text-business-black/80 max-w-2xl mx-auto mb-6 animate-fade-in-up animate-delay-200 font-normal font-inter">
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-6 animate-fade-in-up animate-delay-200 font-normal font-inter">
             LXERA helps future-ready teams move beyond learning and into innovation.
           </p>
           

@@ -31,9 +31,9 @@ const HeroSection = () => {
           <div className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-start lg:gap-6 mb-6 sm:mb-8 md:mb-12">
             {/* Left side - Headline and CTA content - keeping lg:w-2/5 */}
             <div className="w-full lg:w-2/5 space-y-2 sm:space-y-3 md:space-y-4 px-1 sm:px-2 lg:px-0">
-              {/* Headline - standardized to match other sections */}
+              {/* Headline - increased text sizes by one level across all breakpoints */}
               <div className="animate-fade-in-up">
-                <h1 className="headline text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-business-black leading-tight tracking-tight font-inter">
+                <h1 className="headline text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-medium text-business-black leading-tight tracking-tight font-inter">
                   <span className="block">
                     LXERA: The First
                   </span>
@@ -47,9 +47,9 @@ const HeroSection = () => {
                 </h1>
               </div>
 
-              {/* Subheadline - standardized sizing */}
+              {/* Subheadline - increased text sizes */}
               <div className="animate-fade-in-up animate-delay-200">
-                <p className="subheadline text-lg sm:text-xl md:text-xl lg:text-xl text-business-black/85 font-normal leading-relaxed font-inter">
+                <p className="subheadline text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-business-black/85 font-normal leading-relaxed font-inter">
                   Empower your teams to{" "}
                   <b className="text-business-black font-medium">learn faster,</b>{" "}
                   <b className="text-business-black font-medium">innovate deeper,</b>{" "}
@@ -58,26 +58,26 @@ const HeroSection = () => {
                 </p>
               </div>
 
-              {/* Divider - consistent with other sections */}
+              {/* Divider - smaller on mobile */}
               <div className="animate-fade-in-scale animate-delay-400">
-                <div className="w-32 sm:w-40 h-1.5 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent rounded-full"></div>
+                <div className="w-12 sm:w-16 md:w-20 lg:w-24 h-0.5 sm:h-1 animate-pulse-slow shadow-lg bg-gradient-to-r from-transparent via-future-green to-transparent"></div>
               </div>
 
-              {/* Quote snippet - standardized text size */}
+              {/* Quote snippet - responsive text size */}
               <div className="text-left">
-                <span className="block text-business-black/70 text-sm sm:text-base font-normal italic leading-tight font-inter">
+                <span className="block text-business-black/70 text-xs sm:text-sm md:text-base font-normal italic leading-tight font-inter">
                   "Designed for the new world of work, where speed, innovation, and learning are inseparable."
                 </span>
               </div>
               
               <div className="text-left animate-fade-in-up animate-delay-600 space-y-2 sm:space-y-3">
-                <p className="text-sm sm:text-base text-business-black/75 font-normal font-inter">
+                <p className="text-xs sm:text-sm md:text-base text-business-black/75 font-normal font-inter">
                   🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
                 </p>
                 <div className="flex flex-row gap-2 sm:gap-3">
                   <Button
                     size="lg"
-                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
                     onClick={handleRequestDemo}
                     aria-label="Request a demo"
                   >
@@ -85,7 +85,7 @@ const HeroSection = () => {
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
                     aria-label="Explore the Platform"
                   >
                     Explore the Platform

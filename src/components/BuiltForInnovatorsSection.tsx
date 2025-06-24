@@ -34,7 +34,7 @@ const BuiltForInnovatorsSection = () => {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up font-inter">
             Built for Innovators. Designed for Impact.
           </h2>
-          <p className="text-base sm:text-lg md:text-xl lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-normal font-inter">
+          <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-normal font-inter">
             LXERA is made for the teams shaping the future — not maintaining the past.
           </p>
           
@@ -53,9 +53,9 @@ const BuiltForInnovatorsSection = () => {
                       <item.icon className="w-8 h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                     </div>
                   </div>
-                  <p className="text-business-black/80 mb-3 text-sm sm:text-base font-normal font-inter">{item.text}</p>
+                  <p className="text-business-black/80 mb-3 font-normal font-inter">{item.text}</p>
                   <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100">
-                    <p className="text-xs sm:text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 font-normal font-inter">
+                    <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 font-normal font-inter">
                       {item.microcopy}
                     </p>
                   </div>
@@ -64,7 +64,7 @@ const BuiltForInnovatorsSection = () => {
             ))}
           </div>
           
-          <p className="text-business-black/70 mb-6 text-base sm:text-lg animate-fade-in-up animate-delay-700 font-normal font-inter">
+          <p className="text-business-black/70 mb-6 text-lg animate-fade-in-up animate-delay-700 font-normal font-inter">
             We're partnering with a select group of organizations to shape what's next.
           </p>
           
