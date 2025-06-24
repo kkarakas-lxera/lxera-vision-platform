@@ -20,7 +20,7 @@ import {
   GraduationCap,
   Home
 } from 'lucide-react';
-import { Logo } from '@/components/Logo';
+import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 

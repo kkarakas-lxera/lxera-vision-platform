@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,44 +8,50 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/Logo';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '@/components/Logo';
 
 const Login = () => {
-  const { user, userProfile, signIn, signUp, loading: authLoading } = useAuth();
+  const { user, userProfile, signIn, signUp, loading } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('login');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  // Redirect authenticated users
+  // Redirect if already logged in
   useEffect(() => {
-    if (user && userProfile) {
-      const from = location.state?.from?.pathname || getDefaultRedirect(userProfile.role);
-      window.location.replace(from);
+    if (user && userProfile && !loading) {
+      const from = (location.state as any)?.from?.pathname;
+      if (from) {
+        navigate(from);
+      } else {
+        // Redirect based on role
+        switch (userProfile.role) {
+          case 'super_admin':
+            navigate('/admin');
+            break;
+          case 'company_admin':
+            navigate('/dashboard');
+            break;
+          case 'learner':
+            navigate('/learn');
+            break;
+          default:
+            navigate('/');
+        }
+      }
     }
-  }, [user, userProfile, location]);
-
-  const getDefaultRedirect = (role: string) => {
-    switch (role) {
-      case 'super_admin':
-        return '/admin';
-      case 'company_admin':
-        return '/dashboard';
-      case 'learner':
-        return '/learn';
-      default:
-        return '/';
-    }
-  };
+  }, [user, userProfile, loading, navigate, location]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setIsLoading(true);
+    setError('');
 
     const { error } = await signIn(email, password);
     
@@ -54,28 +59,27 @@ const Login = () => {
       setError(error.message);
     }
     
-    setLoading(false);
+    setIsLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setIsLoading(true);
+    setError('');
+    setMessage('');
 
     const { error } = await signUp(email, password, fullName);
     
     if (error) {
       setError(error.message);
     } else {
-      setError(null);
-      setActiveTab('login');
-      // Show success message or handle email verification
+      setMessage('Please check your email for a verification link before signing in.');
     }
     
-    setLoading(false);
+    setIsLoading(false);
   };
 
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -83,20 +87,16 @@ const Login = () => {
     );
   }
 
-  if (user && userProfile) {
-    return <Navigate to={getDefaultRedirect(userProfile.role)} replace />;
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Logo />
-          <h1 className="mt-6 text-3xl font-bold text-gray-900">
-            Welcome to LXERA
-          </h1>
+          <div className="flex justify-center mb-6">
+            <Logo />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900">Welcome to LXERA</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account to continue
+            Sign in to your account or create a new one
           </p>
         </div>
 
@@ -104,22 +104,22 @@ const Login = () => {
           <CardHeader>
             <CardTitle>Authentication</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              Choose to sign in or create a new account
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="login" className="space-y-4">
+              
+              <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                  <div>
+                    <Label htmlFor="signin-email">Email</Label>
                     <Input
-                      id="email"
+                      id="signin-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -127,10 +127,10 @@ const Login = () => {
                       placeholder="Enter your email"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                  <div>
+                    <Label htmlFor="signin-password">Password</Label>
                     <Input
-                      id="password"
+                      id="signin-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -138,19 +138,8 @@ const Login = () => {
                       placeholder="Enter your password"
                     />
                   </div>
-                  {error && (
-                    <Alert className="border-red-200 bg-red-50">
-                      <AlertDescription className="text-red-800">
-                        {error}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={loading}
-                  >
-                    {loading ? (
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Signing In...
@@ -161,13 +150,13 @@ const Login = () => {
                   </Button>
                 </form>
               </TabsContent>
-
-              <TabsContent value="signup" className="space-y-4">
+              
+              <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                  <div>
+                    <Label htmlFor="signup-name">Full Name</Label>
                     <Input
-                      id="fullName"
+                      id="signup-name"
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -175,10 +164,10 @@ const Login = () => {
                       placeholder="Enter your full name"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signupEmail">Email</Label>
+                  <div>
+                    <Label htmlFor="signup-email">Email</Label>
                     <Input
-                      id="signupEmail"
+                      id="signup-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -186,50 +175,48 @@ const Login = () => {
                       placeholder="Enter your email"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signupPassword">Password</Label>
+                  <div>
+                    <Label htmlFor="signup-password">Password</Label>
                     <Input
-                      id="signupPassword"
+                      id="signup-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Create a password"
-                      minLength={6}
                     />
                   </div>
-                  {error && (
-                    <Alert className="border-red-200 bg-red-50">
-                      <AlertDescription className="text-red-800">
-                        {error}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={loading}
-                  >
-                    {loading ? (
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Creating Account...
                       </>
                     ) : (
-                      'Sign Up'
+                      'Create Account'
                     )}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
+
+            {error && (
+              <Alert className="mt-4 border-red-200 bg-red-50">
+                <AlertDescription className="text-red-700">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {message && (
+              <Alert className="mt-4 border-green-200 bg-green-50">
+                <AlertDescription className="text-green-700">
+                  {message}
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Having trouble? Contact your system administrator.
-          </p>
-        </div>
       </div>
     </div>
   );
