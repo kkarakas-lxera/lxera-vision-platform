@@ -19,7 +19,7 @@ const WhyLXERASection = () => {
                 Outcomes That Matter: How LXERA Drives Real Transformation
               </h2>
               <p className="text-base sm:text-lg lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-normal font-inter" style={{animationDelay: '0.4s'}}>
-                LXERA isn't just another platform—it's a transformation engine. Designed around four core pillars, every feature is built to deliver measurable impact and empower individuals, teams, and organizations to reach their full potential.
+                Four core pillars designed to deliver measurable impact and unlock your team's full potential.
               </p>
               
               {/* Enhanced decorative line */}
