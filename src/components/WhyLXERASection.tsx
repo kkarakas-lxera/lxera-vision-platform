@@ -15,7 +15,7 @@ const WhyLXERASection = () => {
         <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-0">
           <div className="text-left mb-12 animate-fade-in-up relative">
             <div className="relative z-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium text-business-black mb-4 sm:mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-4 sm:mb-6 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 Outcomes That Matter: How LXERA Drives Real Transformation
               </h2>
               <p className="text-base sm:text-lg md:text-xl lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-normal font-inter" style={{animationDelay: '0.4s'}}>
