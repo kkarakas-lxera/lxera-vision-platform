@@ -26,6 +26,7 @@ import CookiePolicy from "./pages/legal/CookiePolicy";
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import LearnDashboard from "./pages/learn/LearnDashboard";
 
 const queryClient = new QueryClient();
 
@@ -98,7 +99,7 @@ const App = () => (
                 <ProtectedRoute allowedRoles={['learner']}>
                   <DashboardLayout>
                     <Routes>
-                      <Route path="/" element={<div>Learner Dashboard</div>} />
+                      <Route path="/" element={<LearnDashboard />} />
                       <Route path="/courses" element={<div>My Courses</div>} />
                       <Route path="/progress" element={<div>Learning Progress</div>} />
                       <Route path="/certificates" element={<div>My Certificates</div>} />
