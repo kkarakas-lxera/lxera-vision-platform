@@ -20,7 +20,11 @@ import {
   TrendingUp,
   Database,
   HardDrive,
-  Loader2
+  Loader2,
+  FileText,
+  Brain,
+  Zap,
+  Target
 } from 'lucide-react';
 
 interface SystemStats {
@@ -28,6 +32,10 @@ interface SystemStats {
   totalUsers: number;
   totalCourses: number;
   activeUsers: number;
+  totalContentModules: number;
+  contentInProgress: number;
+  qualityAssessments: number;
+  enhancementSessions: number;
 }
 
 interface Company {
@@ -39,11 +47,21 @@ interface Company {
   created_at: string;
   userCount: number;
   courseCount: number;
+  contentModules: number;
+}
+
+interface ContentMetrics {
+  totalModules: number;
+  modulesInProgress: number;
+  modulesCompleted: number;
+  averageQualityScore: number;
+  enhancementSessions: number;
+  researchSessions: number;
 }
 
 interface RecentActivity {
   id: string;
-  type: 'user_created' | 'company_created' | 'course_generated';
+  type: 'user_created' | 'company_created' | 'course_generated' | 'content_created' | 'quality_assessment' | 'enhancement_completed';
   description: string;
   timestamp: string;
   company_name?: string;
@@ -51,8 +69,25 @@ interface RecentActivity {
 
 const AdminDashboard = () => {
   const { userProfile } = useAuth();
-  const [stats, setStats] = useState<SystemStats>({ totalCompanies: 0, totalUsers: 0, totalCourses: 0, activeUsers: 0 });
+  const [stats, setStats] = useState<SystemStats>({ 
+    totalCompanies: 0, 
+    totalUsers: 0, 
+    totalCourses: 0, 
+    activeUsers: 0,
+    totalContentModules: 0,
+    contentInProgress: 0,
+    qualityAssessments: 0,
+    enhancementSessions: 0
+  });
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [contentMetrics, setContentMetrics] = useState<ContentMetrics>({
+    totalModules: 0,
+    modulesInProgress: 0,
+    modulesCompleted: 0,
+    averageQualityScore: 0,
+    enhancementSessions: 0,
+    researchSessions: 0
+  });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -75,9 +110,17 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
+    const contentSubscription = supabase
+      .channel('content-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cm_module_content' }, () => {
+        fetchDashboardData();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(companiesSubscription);
       supabase.removeChannel(usersSubscription);
+      supabase.removeChannel(contentSubscription);
     };
   }, []);
 
@@ -86,10 +129,13 @@ const AdminDashboard = () => {
       setLoading(true);
       
       // Fetch system stats
-      const [companiesResult, usersResult, coursesResult] = await Promise.all([
+      const [companiesResult, usersResult, coursesResult, contentResult, assessmentsResult, enhancementsResult] = await Promise.all([
         supabase.from('companies').select('id, is_active'),
         supabase.from('users').select('id, is_active, last_login'),
-        supabase.from('cm_module_content').select('content_id')
+        supabase.from('cm_module_content').select('content_id'),
+        supabase.from('cm_module_content').select('content_id, status, company_id'),
+        supabase.from('cm_quality_assessments').select('assessment_id'),
+        supabase.from('cm_enhancement_sessions').select('session_id')
       ]);
 
       const totalCompanies = companiesResult.data?.filter(c => c.is_active).length || 0;
@@ -103,20 +149,59 @@ const AdminDashboard = () => {
         u.is_active && u.last_login && new Date(u.last_login) > thirtyDaysAgo
       ).length || 0;
 
-      setStats({ totalCompanies, totalUsers, totalCourses, activeUsers });
+      // Content management metrics
+      const totalContentModules = contentResult.data?.length || 0;
+      const contentInProgress = contentResult.data?.filter(c => c.status === 'draft' || c.status === 'quality_check').length || 0;
+      const qualityAssessments = assessmentsResult.data?.length || 0;
+      const enhancementSessions = enhancementsResult.data?.length || 0;
 
-      // Fetch companies with user and course counts
+      setStats({ 
+        totalCompanies, 
+        totalUsers, 
+        totalCourses, 
+        activeUsers,
+        totalContentModules,
+        contentInProgress,
+        qualityAssessments,
+        enhancementSessions
+      });
+
+      // Fetch content metrics
+      const { data: qualityData } = await supabase
+        .from('cm_quality_assessments')
+        .select('overall_score');
+      
+      const { data: researchData } = await supabase
+        .from('cm_research_sessions')
+        .select('research_id');
+
+      const averageQualityScore = qualityData && qualityData.length > 0 
+        ? qualityData.reduce((sum, q) => sum + (q.overall_score || 0), 0) / qualityData.length 
+        : 0;
+
+      setContentMetrics({
+        totalModules: totalContentModules,
+        modulesInProgress: contentInProgress,
+        modulesCompleted: totalContentModules - contentInProgress,
+        averageQualityScore: Math.round(averageQualityScore * 10) / 10,
+        enhancementSessions: enhancementSessions,
+        researchSessions: researchData?.length || 0
+      });
+
+      // Fetch companies with user and content counts
       const companiesWithCounts = await Promise.all(
         (companiesResult.data || []).map(async (company) => {
-          const [userCountResult, courseCountResult] = await Promise.all([
+          const [userCountResult, courseCountResult, contentCountResult] = await Promise.all([
             supabase.from('users').select('id').eq('company_id', company.id).eq('is_active', true),
+            supabase.from('cm_module_content').select('content_id').eq('company_id', company.id),
             supabase.from('cm_module_content').select('content_id').eq('company_id', company.id)
           ]);
           
           return {
             ...company,
             userCount: userCountResult.data?.length || 0,
-            courseCount: courseCountResult.data?.length || 0
+            courseCount: courseCountResult.data?.length || 0,
+            contentModules: contentCountResult.data?.length || 0
           };
         })
       );
@@ -132,7 +217,8 @@ const AdminDashboard = () => {
         return {
           ...company,
           userCount: counts?.userCount || 0,
-          courseCount: counts?.courseCount || 0
+          courseCount: counts?.courseCount || 0,
+          contentModules: counts?.contentModules || 0
         };
       });
 
@@ -142,7 +228,7 @@ const AdminDashboard = () => {
       const recentActivities: RecentActivity[] = [];
       
       // Recent companies
-      const recentCompanies = companiesData.slice(0, 5);
+      const recentCompanies = companiesData.slice(0, 3);
       recentCompanies.forEach(company => {
         recentActivities.push({
           id: `company-${company.id}`,
@@ -158,7 +244,7 @@ const AdminDashboard = () => {
         .from('users')
         .select('id, full_name, email, created_at, companies(name)')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       (recentUsers || []).forEach(user => {
         recentActivities.push({
@@ -170,20 +256,42 @@ const AdminDashboard = () => {
         });
       });
 
-      // Recent courses
-      const { data: recentCourses } = await supabase
+      // Recent content modules
+      const { data: recentContent } = await supabase
         .from('cm_module_content')
         .select('content_id, module_name, created_at, companies(name)')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
-      (recentCourses || []).forEach(course => {
+      (recentContent || []).forEach(content => {
         recentActivities.push({
-          id: `course-${course.content_id}`,
-          type: 'course_generated',
-          description: `Course "${course.module_name}" was generated`,
-          timestamp: course.created_at,
-          company_name: course.companies?.name
+          id: `content-${content.content_id}`,
+          type: 'content_created',
+          description: `Content module "${content.module_name}" was created`,
+          timestamp: content.created_at,
+          company_name: content.companies?.name
+        });
+      });
+
+      // Recent quality assessments
+      const { data: recentAssessments } = await supabase
+        .from('cm_quality_assessments')
+        .select(`
+          assessment_id, 
+          assessed_at, 
+          overall_score,
+          cm_module_content(module_name, companies(name))
+        `)
+        .order('assessed_at', { ascending: false })
+        .limit(2);
+
+      (recentAssessments || []).forEach(assessment => {
+        recentActivities.push({
+          id: `assessment-${assessment.assessment_id}`,
+          type: 'quality_assessment',
+          description: `Quality assessment completed (Score: ${assessment.overall_score}/10)`,
+          timestamp: assessment.assessed_at,
+          company_name: assessment.cm_module_content?.companies?.name
         });
       });
 
@@ -203,6 +311,9 @@ const AdminDashboard = () => {
       case 'company_created': return <Building2 className="h-4 w-4 text-blue-500" />;
       case 'user_created': return <Users className="h-4 w-4 text-green-500" />;
       case 'course_generated': return <BookOpen className="h-4 w-4 text-purple-500" />;
+      case 'content_created': return <FileText className="h-4 w-4 text-orange-500" />;
+      case 'quality_assessment': return <Target className="h-4 w-4 text-yellow-500" />;
+      case 'enhancement_completed': return <Zap className="h-4 w-4 text-pink-500" />;
       default: return <Activity className="h-4 w-4 text-gray-500" />;
     }
   };
@@ -232,21 +343,22 @@ const AdminDashboard = () => {
       <div>
         <h1 className="text-3xl font-bold">Super Admin Dashboard</h1>
         <p className="text-gray-600">
-          Welcome back, {userProfile?.full_name}. System overview and management.
+          Welcome back, {userProfile?.full_name}. System overview and content management.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="companies">Companies</TabsTrigger>
+          <TabsTrigger value="content">Content Management</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="health">Health</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* System Stats Cards */}
+          {/* Enhanced System Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -276,28 +388,26 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Courses Generated</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Content Modules</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalCourses}</div>
+                <div className="text-2xl font-bold">{stats.totalContentModules}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.totalCourses === 0 ? 'No courses generated yet' : 'Total courses created'}
+                  {stats.contentInProgress} in progress
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">System Health</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">AI Operations</CardTitle>
+                <Brain className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.totalCompanies > 0 ? '99.9%' : 'N/A'}
-                </div>
+                <div className="text-2xl font-bold">{stats.enhancementSessions}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.totalCompanies > 0 ? 'System uptime' : 'No activity to measure'}
+                  Enhancement sessions completed
                 </p>
               </CardContent>
             </Card>
@@ -307,7 +417,7 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest system events and user actions</CardDescription>
+              <CardDescription>Latest system events and content operations</CardDescription>
             </CardHeader>
             <CardContent>
               {recentActivity.length === 0 ? (
@@ -342,7 +452,7 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Companies Management</CardTitle>
-              <CardDescription>Manage all registered companies</CardDescription>
+              <CardDescription>Manage all registered companies and their content</CardDescription>
             </CardHeader>
             <CardContent>
               {companies.length === 0 ? (
@@ -359,7 +469,7 @@ const AdminDashboard = () => {
                       <TableHead>Domain</TableHead>
                       <TableHead>Plan</TableHead>
                       <TableHead>Users</TableHead>
-                      <TableHead>Courses</TableHead>
+                      <TableHead>Content Modules</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
                     </TableRow>
@@ -375,7 +485,7 @@ const AdminDashboard = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>{company.userCount}</TableCell>
-                        <TableCell>{company.courseCount}</TableCell>
+                        <TableCell>{company.contentModules}</TableCell>
                         <TableCell>
                           <Badge variant={company.is_active ? 'default' : 'destructive'}>
                             {company.is_active ? 'Active' : 'Inactive'}
@@ -387,6 +497,80 @@ const AdminDashboard = () => {
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="content" className="space-y-6">
+          {/* Content Management Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Modules</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentMetrics.totalModules}</div>
+                <p className="text-xs text-muted-foreground">
+                  Content modules created
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentMetrics.averageQualityScore}/10</div>
+                <p className="text-xs text-muted-foreground">
+                  Average quality assessment
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Enhancements</CardTitle>
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentMetrics.enhancementSessions}</div>
+                <p className="text-xs text-muted-foreground">
+                  AI enhancement sessions
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Research Sessions</CardTitle>
+                <Brain className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentMetrics.researchSessions}</div>
+                <p className="text-xs text-muted-foreground">
+                  AI research operations
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Content Generation Management</CardTitle>
+              <CardDescription>Monitor and manage AI-powered content generation across all companies</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Content Generation Dashboard</p>
+                <p className="text-sm">Advanced course generation tools will be available here</p>
+                <Button className="mt-4" disabled>
+                  Launch Content Generator
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -427,28 +611,30 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Success Rates</CardTitle>
-                <CardDescription>Course generation success metrics</CardDescription>
+                <CardTitle>Content Quality Trends</CardTitle>
+                <CardDescription>Quality metrics and improvement patterns</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8 text-muted-foreground">
                   <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No data available</p>
-                  <p className="text-sm">Analytics will appear when there's sufficient course generation activity</p>
+                  <p>Quality analytics available</p>
+                  <p className="text-sm">Average quality score: {contentMetrics.averageQualityScore}/10</p>
+                  <p className="text-sm">{stats.qualityAssessments} assessments completed</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Quality Metrics</CardTitle>
-                <CardDescription>Content quality scores and trends</CardDescription>
+                <CardTitle>AI Enhancement Metrics</CardTitle>
+                <CardDescription>Enhancement session effectiveness</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8 text-muted-foreground">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No quality data yet</p>
-                  <p className="text-sm">Quality metrics will be calculated as courses are generated and assessed</p>
+                  <p>Enhancement analytics</p>
+                  <p className="text-sm">{contentMetrics.enhancementSessions} enhancement sessions</p>
+                  <p className="text-sm">{contentMetrics.researchSessions} research operations</p>
                 </div>
               </CardContent>
             </Card>
@@ -472,8 +658,12 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Tables</span>
-                    <span className="text-sm font-medium">13 active</span>
+                    <span className="text-sm">Content Tables</span>
+                    <span className="text-sm font-medium">5 active</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">RLS Policies</span>
+                    <span className="text-sm font-medium">Enabled</span>
                   </div>
                 </div>
               </CardContent>
@@ -481,20 +671,22 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Storage Usage</CardTitle>
-                <CardDescription>System storage metrics</CardDescription>
+                <CardTitle>Content Storage</CardTitle>
+                <CardDescription>Content management metrics</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Database Size</span>
-                    <span className="text-sm font-medium">
-                      {stats.totalCourses === 0 ? 'Minimal' : 'Growing'}
-                    </span>
+                    <span className="text-sm">Content Modules</span>
+                    <span className="text-sm font-medium">{stats.totalContentModules}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Media Assets</span>
-                    <span className="text-sm font-medium">None stored</span>
+                    <span className="text-sm">Quality Assessments</span>
+                    <span className="text-sm font-medium">{stats.qualityAssessments}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Enhancement Sessions</span>
+                    <span className="text-sm font-medium">{stats.enhancementSessions}</span>
                   </div>
                 </div>
               </CardContent>
@@ -513,7 +705,13 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Processing Load</span>
-                    <span className="text-sm font-medium">Low</span>
+                    <span className="text-sm font-medium">
+                      {stats.contentInProgress > 0 ? 'Active' : 'Low'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Content Generation</span>
+                    <span className="text-sm font-medium">Ready</span>
                   </div>
                 </div>
               </CardContent>
