@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +21,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  contentManagerReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [contentManagerReady, setContentManagerReady] = useState(false);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -107,6 +108,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Initialize content manager when user profile is ready
+    if (userProfile?.company_id && userProfile?.id) {
+      setContentManagerReady(true);
+    } else {
+      setContentManagerReady(false);
+    }
+  }, [userProfile]);
+
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -152,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     refreshProfile,
+    contentManagerReady
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

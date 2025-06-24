@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useCompanyContent } from '@/hooks/useCompanyContent';
+import { CourseGenerationManager } from '@/components/admin/CourseGenerationManager';
+import { CompanyContentAnalytics } from '@/components/admin/CompanyContentAnalytics';
 import { 
   Users, 
   Building2, 
@@ -69,6 +71,7 @@ interface RecentActivity {
 
 const AdminDashboard = () => {
   const { userProfile } = useAuth();
+  const { stats: contentStats, loading: contentLoading } = useCompanyContent();
   const [stats, setStats] = useState<SystemStats>({ 
     totalCompanies: 0, 
     totalUsers: 0, 
@@ -348,10 +351,11 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="companies">Companies</TabsTrigger>
-          <TabsTrigger value="content">Content Management</TabsTrigger>
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="generation">Generation</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="health">Health</TabsTrigger>
@@ -388,13 +392,13 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Content Modules</CardTitle>
+                <CardTitle className="text-sm font-medium">Company Content</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalContentModules}</div>
+                <div className="text-2xl font-bold">{contentStats.totalModules}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.contentInProgress} in progress
+                  {contentStats.modulesInProgress} in progress
                 </p>
               </CardContent>
             </Card>
@@ -502,77 +506,13 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="content" className="space-y-6">
-          {/* Content Management Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Modules</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentMetrics.totalModules}</div>
-                <p className="text-xs text-muted-foreground">
-                  Content modules created
-                </p>
-              </CardContent>
-            </Card>
+          {/* Company Content Analytics */}
+          <CompanyContentAnalytics />
+        </TabsContent>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentMetrics.averageQualityScore}/10</div>
-                <p className="text-xs text-muted-foreground">
-                  Average quality assessment
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Enhancements</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentMetrics.enhancementSessions}</div>
-                <p className="text-xs text-muted-foreground">
-                  AI enhancement sessions
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Research Sessions</CardTitle>
-                <Brain className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentMetrics.researchSessions}</div>
-                <p className="text-xs text-muted-foreground">
-                  AI research operations
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Generation Management</CardTitle>
-              <CardDescription>Monitor and manage AI-powered content generation across all companies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Content Generation Dashboard</p>
-                <p className="text-sm">Advanced course generation tools will be available here</p>
-                <Button className="mt-4" disabled>
-                  Launch Content Generator
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="generation" className="space-y-6">
+          {/* Course Generation Management */}
+          <CourseGenerationManager />
         </TabsContent>
 
         <TabsContent value="monitoring" className="space-y-6">
