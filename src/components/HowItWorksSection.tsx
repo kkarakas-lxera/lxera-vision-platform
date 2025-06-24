@@ -17,10 +17,10 @@ const HowItWorksSection = () => {
       <section id="how-it-works" className="w-full py-16 px-6 lg:px-12 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-6xl mx-auto text-center">
           {/* Section Header matching other sections */}
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 animate-fade-in-up">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-business-black mb-8 animate-fade-in-up">
             How LXERA Works
           </h2>
-          <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
+          <p className="text-base sm:text-lg lg:text-xl text-business-black/80 mb-12 max-w-3xl mx-auto animate-fade-in-up animate-delay-200">
             From onboarding to innovation — in 4 steps that drive measurable results.
           </p>
           

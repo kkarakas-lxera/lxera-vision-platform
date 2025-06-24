@@ -97,10 +97,10 @@ const PlatformHighlightsSection = () => {
         <div className="max-w-7xl mx-auto relative z-0">
           {/* Section Header matching Built for Innovators */}
           <div className="text-center mb-12 animate-fade-in-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-8 font-inter">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-business-black mb-8 font-inter">
               Platform Highlights
             </h2>
-            <p className="text-lg sm:text-xl lg:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto font-normal font-inter">
+            <p className="text-base sm:text-lg lg:text-xl text-business-black/80 mb-2 max-w-3xl mx-auto font-normal font-inter">
               10+ features fueling impact, engagement, and innovation.
             </p>
           </div>

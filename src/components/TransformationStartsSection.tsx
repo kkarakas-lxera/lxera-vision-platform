@@ -8,11 +8,11 @@ const TransformationStartsSection = () => {
       <section className="w-full py-16 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-4xl mx-auto relative z-10">
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-4 animate-fade-in-up font-inter">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-business-black mb-4 animate-fade-in-up font-inter">
             Your Transformation Starts Here
           </h2>
           
-          <p className="text-lg sm:text-xl lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-6 animate-fade-in-up animate-delay-200 font-normal font-inter">
+          <p className="text-base sm:text-lg lg:text-xl text-business-black/70 max-w-2xl mx-auto mb-6 animate-fade-in-up animate-delay-200 font-normal font-inter">
             LXERA helps future-ready teams move beyond learning and into innovation.
           </p>
           
