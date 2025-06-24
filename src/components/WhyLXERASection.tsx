@@ -19,7 +19,7 @@ const WhyLXERASection = () => {
                 Outcomes That Matter: How LXERA Drives Real Transformation
               </h2>
               <p className="text-base sm:text-lg md:text-xl lg:text-xl text-business-black/80 max-w-4xl mr-auto animate-slide-in-right leading-relaxed font-normal font-inter" style={{animationDelay: '0.4s'}}>
-                LXERA is built to deliver measurable transformation—for individuals, teams, and organizations. Each feature is strategically designed to drive tangible results across four core pillars.
+                LXERA isn't just another platform. It's a transformation engine. Designed to deliver measurable impact across four core pillars, every feature empowers individuals, teams, and organizations to unlock their fullest potential.
               </p>
               
               {/* Enhanced decorative line */}
