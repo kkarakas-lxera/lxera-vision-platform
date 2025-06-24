@@ -1,43 +1,64 @@
 
-import Navigation from "@/components/Navigation";
-import HeroSection from "@/components/HeroSection";
-import WhyLXERASection from "@/components/WhyLXERASection";
-import TransformationStartsSection from "@/components/TransformationStartsSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
-import BuiltForInnovatorsSection from "@/components/BuiltForInnovatorsSection";
-import ContactSection from "@/components/ContactSection";
-import Footer from "@/components/Footer";
+import { Navigation } from "@/components/Navigation";
+import { HeroSection } from "@/components/HeroSection";
+import { WhyLXERASection } from "@/components/WhyLXERASection";
+import { HowItWorksSection } from "@/components/HowItWorksSection";
+import { PlatformHighlightsSection } from "@/components/PlatformHighlightsSection";
+import { IndustryUseCases } from "@/components/IndustryUseCases";
+import { TransformationStartsSection } from "@/components/TransformationStartsSection";
+import { CTASection } from "@/components/CTASection";
+import { Footer } from "@/components/Footer";
+import { ScrollProgress } from "@/components/ScrollProgress";
+import { BackToTop } from "@/components/BackToTop";
+import { SEO } from "@/components/SEO";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user, userProfile } = useAuth();
+
+  const getAuthSection = () => {
+    if (user && userProfile) {
+      const dashboardLink = userProfile.role === 'super_admin' ? '/admin' : 
+                           userProfile.role === 'company_admin' ? '/dashboard' : '/learn';
+      
+      return (
+        <div className="fixed top-4 right-4 z-50">
+          <Link to={dashboardLink}>
+            <Button>Go to Dashboard</Button>
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="fixed top-4 right-4 z-50">
+        <Link to="/login">
+          <Button>Sign In</Button>
+        </Link>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="transition-all duration-1000 ease-in-out">
+    <>
+      <SEO />
+      <ScrollProgress />
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        {getAuthSection()}
         <HeroSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
         <WhyLXERASection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
-        <TransformationStartsSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
         <HowItWorksSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
         <PlatformHighlightsSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
-        <BuiltForInnovatorsSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
-        <ContactSection />
-      </div>
-      <div className="transition-all duration-1000 ease-in-out">
+        <IndustryUseCases />
+        <TransformationStartsSection />
+        <CTASection />
         <Footer />
+        <BackToTop />
       </div>
-    </div>
+    </>
   );
 };
 
