@@ -18,6 +18,37 @@ const TestUserCreator = () => {
     setError('');
 
     try {
+      // First ensure we have a test company
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('domain', 'test.lxera.com')
+        .maybeSingle();
+
+      let companyId = companyData?.id;
+
+      if (!companyId) {
+        // Create test company first
+        const { data: newCompany, error: createCompanyError } = await supabase
+          .from('companies')
+          .insert({
+            name: 'LXERA Test Company',
+            domain: 'test.lxera.com',
+            plan_type: 'premium',
+            max_employees: 50,
+            max_courses: 20,
+            is_active: true
+          })
+          .select('id')
+          .single();
+
+        if (createCompanyError) {
+          setError(`Failed to create test company: ${createCompanyError.message}`);
+          return;
+        }
+        companyId = newCompany.id;
+      }
+
       // Create a test user through Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: 'learner@test.lxera.com',
@@ -45,6 +76,7 @@ const TestUserCreator = () => {
             email: 'learner@test.lxera.com',
             full_name: 'John Test Learner',
             role: 'learner',
+            company_id: companyId,
             password_hash: 'supabase_managed', // Placeholder
             is_active: true,
             email_verified: true,
@@ -54,6 +86,24 @@ const TestUserCreator = () => {
 
         if (updateError) {
           console.error('Error updating user profile:', updateError);
+        }
+
+        // Create employee record for the learner
+        const { error: employeeError } = await supabase
+          .from('employees')
+          .insert({
+            user_id: data.user.id,
+            company_id: companyId,
+            employee_id: 'EMP001',
+            department: 'Finance',
+            position: 'Financial Analyst',
+            current_role: 'analyst',
+            skill_level: 'intermediate',
+            is_active: true
+          });
+
+        if (employeeError) {
+          console.error('Error creating employee record:', employeeError);
         }
 
         setMessage('Test user created successfully! Email: learner@test.lxera.com, Password: password123');
