@@ -1,0 +1,49 @@
+# LXERA SaaS Platform Backend Requirements
+
+# Core FastAPI
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database & Authentication
+supabase==2.0.2
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Security & JWT
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Background tasks & WebSockets
+celery==5.3.4
+redis==5.0.1
+websockets==12.0
+
+# File handling
+aiofiles==23.2.1
+python-magic==0.4.27
+
+# HTTP requests
+httpx==0.25.2
+requests==2.31.0
+
+# Course Generator Dependencies
+openai==1.3.8
+tavily-python==0.3.0
+exa-py==1.0.7
+firecrawl-py==0.0.8
+jina==3.22.0
+
+# Data processing
+pandas==2.1.3
+openpyxl==3.1.2
+
+# Multimedia processing
+moviepy==1.0.3
+Pillow==10.1.0
+pydub==0.25.1
+
+# Utilities
+python-dotenv==1.0.0
+PyYAML==6.0.1

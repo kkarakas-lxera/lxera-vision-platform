@@ -1,0 +1,951 @@
+Ca<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lxera AI - Advanced Course Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a69bd;
+            --secondary-color: #1a1a2e;
+            --accent-color: #f39c12;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 15px rgba(0,0,0,0.08);
+            --shadow-hover: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header with Gradient */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-container {
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-item {
+            padding: 1.25rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-color);
+            background: rgba(74, 105, 189, 0.05);
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.blue { background: rgba(74, 105, 189, 0.1); }
+        .stat-icon.green { background: rgba(39, 174, 96, 0.1); }
+        .stat-icon.orange { background: rgba(243, 156, 18, 0.1); }
+        .stat-icon.red { background: rgba(231, 76, 60, 0.1); }
+
+        .stat-content h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Module Cards - Enhanced */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, #4a69bd 0%, #3c5aa6 100%);
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .module-number {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .module-header h3 {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            padding-right: 4rem;
+        }
+
+        .module-tools {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .tool-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .module-body {
+            padding: 1.5rem;
+        }
+
+        .module-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .module-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .module-stat {
+            text-align: center;
+        }
+
+        .module-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .module-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Content Viewer - Enhanced */
+        .content-viewer {
+            display: none;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .viewer-header {
+            background: linear-gradient(135deg, #4a69bd 0%, #3c5aa6 100%);
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .viewer-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            margin-left: 4rem;
+        }
+
+        .viewer-meta {
+            display: flex;
+            gap: 2rem;
+            margin-left: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Section Navigation */
+        .section-nav {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .section-btn {
+            padding: 1.25rem 2rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .section-btn:hover {
+            background: rgba(74, 105, 189, 0.05);
+            color: var(--primary-color);
+        }
+
+        .section-btn.active {
+            color: var(--primary-color);
+            background: white;
+        }
+
+        .section-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+        }
+
+        /* Content Display */
+        .content-display {
+            padding: 3rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .content-display::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .content-display::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        .content-display::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 5px;
+        }
+
+        .content-display::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .content-text {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .content-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .content-text h3 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2.5rem 0 1.5rem 0;
+        }
+
+        .content-text ul, .content-text ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-text li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-text strong {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Loading Animation */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .user-info {
+                position: static;
+                margin-top: 2rem;
+                background: rgba(255,255,255,0.2);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-display {
+                padding: 2rem 1.5rem;
+            }
+            
+            .viewer-title {
+                font-size: 1.5rem;
+                margin-left: 0;
+            }
+            
+            .viewer-meta {
+                margin-left: 0;
+            }
+            
+            .back-button {
+                position: static;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .nav-container, .section-nav, .back-button, .user-info {
+                display: none !important;
+            }
+            
+            .content-viewer {
+                box-shadow: none;
+            }
+            
+            .content-display {
+                max-height: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>Lxera AI Learning Platform</h1>
+            <p class="subtitle">Advanced Financial Analysis Training Program</p>
+            <div class="user-info">
+                <div class="user-avatar">KK</div>
+                <div>
+                    <div style="font-weight: 600;">Kubilaycan Karakas</div>
+                    <div style="font-size: 0.85rem; opacity: 0.8;">Junior Financial Analyst</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav">
+            <div class="nav-item active" onclick="showDashboard()">Dashboard</div>
+            <div class="nav-item" onclick="showModules()">Modules</div>
+            <div class="nav-item" onclick="showProgress()">Progress</div>
+            <div class="nav-item" onclick="showResources()">Resources</div>
+            <div class="nav-item" onclick="showCertificates()">Certificates</div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Dashboard View -->
+        <div id="dashboardView">
+            <!-- Stats Overview -->
+            <div class="stats-overview">
+                <div class="stat-card fade-in">
+                    <div class="stat-icon blue">
+                        <svg width="24" height="24" fill="#4a69bd" viewBox="0 0 20 20">
+                            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3>3</h3>
+                        <p>Total Modules</p>
+                    </div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="stat-icon green">
+                        <svg width="24" height="24" fill="#27ae60" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3>0</h3>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="stat-icon orange">
+                        <svg width="24" height="24" fill="#f39c12" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3>232</h3>
+                        <p>Minutes to Complete</p>
+                    </div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="stat-icon red">
+                        <svg width="24" height="24" fill="#e74c3c" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3>13,923</h3>
+                        <p>Total Words</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Grid -->
+            <h2 style="margin-bottom: 2rem; font-size: 1.75rem; font-weight: 600;">Your Learning Modules</h2>
+            <div id="moduleGrid" class="module-grid">
+                <!-- Modules will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Content Viewer -->
+        <div id="contentViewer" class="content-viewer">
+            <div class="viewer-header">
+                <button class="back-button" onclick="showDashboard()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"/>
+                    </svg>
+                    Back to Dashboard
+                </button>
+                <h2 class="viewer-title" id="moduleTitle">Module Title</h2>
+                <div class="viewer-meta">
+                    <div class="meta-badge">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H4v10h12V5h-2a1 1 0 100-2 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+                        </svg>
+                        <span id="wordCount">0 words</span>
+                    </div>
+                    <div class="meta-badge">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                        </svg>
+                        <span id="readTime">0 min read</span>
+                    </div>
+                    <div class="meta-badge">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                        </svg>
+                        <span id="difficulty">Intermediate</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-nav">
+                <button class="section-btn active" onclick="showSection('introduction')">Introduction</button>
+                <button class="section-btn" onclick="showSection('core_content')">Core Content</button>
+                <button class="section-btn" onclick="showSection('practical_applications')">Practical Applications</button>
+                <button class="section-btn" onclick="showSection('case_studies')">Case Studies</button>
+                <button class="section-btn" onclick="showSection('assessments')">Assessments</button>
+            </div>
+            
+            <div class="content-display">
+                <div id="contentText" class="content-text">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let modules = [];
+        let currentModule = null;
+        let currentSection = 'introduction';
+
+        // Load modules on startup
+        async function loadModules() {
+            const moduleFiles = [
+                'module1_financial_forecasting.json',
+                'module2_excel_techniques.json',
+                'module3_budget_management.json'
+            ];
+
+            try {
+                modules = await Promise.all(
+                    moduleFiles.map(async (file) => {
+                        const response = await fetch(file);
+                        return await response.json();
+                    })
+                );
+                displayModules();
+            } catch (error) {
+                console.error('Error loading modules:', error);
+                document.getElementById('moduleGrid').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <p>Unable to load course modules. Please ensure JSON files are in the same directory.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display module cards
+        function displayModules() {
+            const grid = document.getElementById('moduleGrid');
+            const tools = {
+                "Financial Forecasting Fundamentals for Business Performance": ["Excel", "SAP BPC", "PowerBI"],
+                "Advanced Excel Techniques for Financial Data Analysis": ["Excel", "PowerBI"],
+                "Budget Management and Variance Analysis": ["Excel", "SAP BPC"]
+            };
+            
+            grid.innerHTML = modules.map((module, index) => `
+                <div class="module-card slide-up" style="animation-delay: ${index * 0.1}s;" onclick="viewModule(${index})">
+                    <div class="module-header">
+                        <span class="module-number">Module ${index + 1}</span>
+                        <h3>${module.module_metadata.module_name}</h3>
+                        <div class="module-tools">
+                            ${tools[module.module_metadata.module_name].map(tool => 
+                                `<span class="tool-badge">${tool}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            ${getModuleDescription(module.module_metadata.module_name)}
+                        </p>
+                        <div class="module-stats">
+                            <div class="module-stat">
+                                <div class="module-stat-value">${module.module_metadata.total_words.toLocaleString()}</div>
+                                <div class="module-stat-label">Words</div>
+                            </div>
+                            <div class="module-stat">
+                                <div class="module-stat-value">${Math.ceil(module.module_metadata.total_words / 200)}</div>
+                                <div class="module-stat-label">Minutes</div>
+                            </div>
+                            <div class="module-stat">
+                                <div class="module-stat-value">5</div>
+                                <div class="module-stat-label">Sections</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get module description
+        function getModuleDescription(title) {
+            const descriptions = {
+                "Financial Forecasting Fundamentals for Business Performance": "Master predictive analytics and forecasting techniques to drive strategic business decisions and improve financial performance.",
+                "Advanced Excel Techniques for Financial Data Analysis": "Unlock the full potential of Excel with advanced functions, pivot tables, and data visualization for sophisticated financial modeling.",
+                "Budget Management and Variance Analysis": "Learn to create, manage, and analyze budgets effectively while identifying and addressing performance variances."
+            };
+            return descriptions[title] || "Enhance your financial analysis skills with this comprehensive module.";
+        }
+
+        // View specific module
+        function viewModule(index) {
+            currentModule = modules[index];
+            currentSection = 'introduction';
+            
+            // Update UI
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('contentViewer').style.display = 'block';
+            
+            // Update module info
+            document.getElementById('moduleTitle').textContent = currentModule.module_metadata.module_name;
+            document.getElementById('wordCount').textContent = `${currentModule.module_metadata.total_words.toLocaleString()} words`;
+            document.getElementById('readTime').textContent = `${Math.ceil(currentModule.module_metadata.total_words / 200)} min read`;
+            
+            // Reset section buttons
+            document.querySelectorAll('.section-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.section-btn').classList.add('active');
+            
+            // Show introduction
+            showSection('introduction');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Show specific section
+        function showSection(sectionName) {
+            currentSection = sectionName;
+            
+            // Update active button
+            document.querySelectorAll('.section-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(sectionName.replace('_', ' '))) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Display content
+            const content = currentModule.content[sectionName];
+            const formattedContent = formatContent(content);
+            document.getElementById('contentText').innerHTML = formattedContent;
+            
+            // Update progress
+            updateProgress();
+            
+            // Scroll to top of content
+            document.querySelector('.content-display').scrollTop = 0;
+        }
+
+        // Format content for display
+        function formatContent(content) {
+            if (!content) return '<p style="color: var(--text-secondary); text-align: center;">No content available for this section.</p>';
+            
+            // Process paragraphs
+            const paragraphs = content.split('\n\n');
+            return paragraphs.map(para => {
+                // Headings
+                if (para.startsWith('###')) {
+                    return `<h3>${para.replace(/^#+\s*/, '')}</h3>`;
+                } else if (para.startsWith('##')) {
+                    return `<h3>${para.replace(/^#+\s*/, '')}</h3>`;
+                }
+                // Bold text
+                else if (para.startsWith('**') && para.endsWith('**')) {
+                    return `<h3>${para.replace(/\*\*/g, '')}</h3>`;
+                }
+                // Lists
+                else if (para.startsWith('- ') || para.startsWith('* ')) {
+                    const items = para.split('\n').filter(item => item.trim());
+                    return `<ul>${items.map(item => `<li>${item.replace(/^[-*]\s*/, '')}</li>`).join('')}</ul>`;
+                }
+                // Numbered lists
+                else if (/^\d+\./.test(para)) {
+                    const items = para.split('\n').filter(item => item.trim());
+                    return `<ol>${items.map(item => `<li>${item.replace(/^\d+\.\s*/, '')}</li>`).join('')}</ol>`;
+                }
+                // Regular paragraphs
+                else if (para.trim()) {
+                    // Process inline formatting
+                    let formatted = para
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/`(.*?)`/g, '<code style="background: #f4f4f4; padding: 2px 6px; border-radius: 3px;">$1</code>');
+                    return `<p>${formatted}</p>`;
+                }
+                return '';
+            }).filter(p => p).join('');
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const sections = ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'];
+            const currentIndex = sections.indexOf(currentSection);
+            const progress = ((currentIndex + 1) / sections.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // Navigation functions
+        function showDashboard() {
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('contentViewer').style.display = 'none';
+            updateActiveNav(0);
+        }
+
+        function showModules() {
+            showDashboard(); // For now, same as dashboard
+            updateActiveNav(1);
+        }
+
+        function showProgress() {
+            alert('Progress tracking feature coming soon!');
+            updateActiveNav(2);
+        }
+
+        function showResources() {
+            alert('Additional resources coming soon!');
+            updateActiveNav(3);
+        }
+
+        function showCertificates() {
+            alert('Certificate feature coming soon!');
+            updateActiveNav(4);
+        }
+
+        function updateActiveNav(index) {
+            document.querySelectorAll('.nav-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+        }
+
+        // Initialize
+        window.onload = function() {
+            loadModules();
+            
+            // Add scroll tracking
+            document.querySelector('.content-display')?.addEventListener('scroll', function(e) {
+                const scrolled = e.target.scrollTop;
+                const height = e.target.scrollHeight - e.target.clientHeight;
+                const scrollProgress = (scrolled / height) * 100;
+                // Could update a reading progress indicator here
+            });
+        };
+    </script>
+</body>
+</html>

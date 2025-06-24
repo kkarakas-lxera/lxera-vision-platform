@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lxera AI - Personalized Course Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+        }
+
+        .nav-item {
+            padding: 0.5rem 1.5rem;
+            background: #f0f2f5;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: #e1e5ea;
+        }
+
+        .nav-item.active {
+            background: #4a69bd;
+            color: white;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Cards */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        .module-card h3 {
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .module-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Content Viewer */
+        .content-viewer {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #4a69bd 0%, #3c5aa6 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .content-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Section Tabs */
+        .section-tabs {
+            display: flex;
+            background: #f8f9fa;
+            overflow-x: auto;
+        }
+
+        .section-tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .section-tab:hover {
+            background: #e9ecef;
+        }
+
+        .section-tab.active {
+            background: white;
+            border-bottom-color: #4a69bd;
+            color: #4a69bd;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .content-text {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .content-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .content-text h3 {
+            color: #1a1a2e;
+            margin: 2rem 0 1rem 0;
+            font-size: 1.4rem;
+        }
+
+        .content-text ul, .content-text ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4a69bd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-area {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .nav-container, .section-tabs {
+                display: none;
+            }
+            
+            .content-viewer {
+                box-shadow: none;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <h1>Lxera AI Course Viewer</h1>
+            <p class="subtitle">Personalized Financial Analysis Training for Kubilaycan Karakas</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-container">
+        <div class="nav">
+            <div class="nav-item active" onclick="showModules()">Course Overview</div>
+            <div class="nav-item" onclick="showProgress()">My Progress</div>
+            <div class="nav-item" onclick="showResources()">Resources</div>
+            <div class="nav-item" onclick="showHelp()">Help</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Module Grid -->
+        <div id="moduleGrid" class="module-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading course modules...</p>
+            </div>
+        </div>
+
+        <!-- Content Viewer -->
+        <div id="contentViewer" class="content-viewer">
+            <div class="content-header">
+                <h2 id="moduleTitle">Module Title</h2>
+                <div class="content-meta">
+                    <div class="meta-item">
+                        <svg class="stat-icon" fill="white" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                        </svg>
+                        <span id="employeeName">Kubilaycan Karakas</span>
+                    </div>
+                    <div class="meta-item">
+                        <svg class="stat-icon" fill="white" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H4v10h12V5h-2a1 1 0 100-2 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+                        </svg>
+                        <span id="wordCount">0 words</span>
+                    </div>
+                    <div class="meta-item">
+                        <svg class="stat-icon" fill="white" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                        </svg>
+                        <span id="readTime">0 min read</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-tabs">
+                <div class="section-tab active" onclick="showSection('introduction')">Introduction</div>
+                <div class="section-tab" onclick="showSection('core_content')">Core Content</div>
+                <div class="section-tab" onclick="showSection('practical_applications')">Practical Applications</div>
+                <div class="section-tab" onclick="showSection('case_studies')">Case Studies</div>
+                <div class="section-tab" onclick="showSection('assessments')">Assessments</div>
+            </div>
+            
+            <div class="content-area">
+                <div id="contentText" class="content-text">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module data storage
+        let modules = [];
+        let currentModule = null;
+        let currentSection = 'introduction';
+
+        // Load module JSON files
+        async function loadModules() {
+            const moduleFiles = [
+                'module1_financial_forecasting.json',
+                'module2_excel_techniques.json',
+                'module3_budget_management.json'
+            ];
+
+            try {
+                modules = await Promise.all(
+                    moduleFiles.map(async (file) => {
+                        const response = await fetch(file);
+                        return await response.json();
+                    })
+                );
+                displayModules();
+            } catch (error) {
+                console.error('Error loading modules:', error);
+                document.getElementById('moduleGrid').innerHTML = `
+                    <div class="loading">
+                        <p>Error loading modules. Please ensure JSON files are in the same directory.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display module cards
+        function displayModules() {
+            const grid = document.getElementById('moduleGrid');
+            grid.innerHTML = modules.map((module, index) => `
+                <div class="module-card fade-in" onclick="viewModule(${index})">
+                    <h3>${module.module_metadata.module_name}</h3>
+                    <p style="color: #666; margin-top: 0.5rem;">
+                        ${getModuleDescription(module.module_metadata.module_name)}
+                    </p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <svg class="stat-icon" fill="#4a69bd" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H4v10h12V5h-2a1 1 0 100-2 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+                            </svg>
+                            ${module.module_metadata.total_words.toLocaleString()} words
+                        </div>
+                        <div class="stat">
+                            <svg class="stat-icon" fill="#4a69bd" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                            </svg>
+                            ${Math.ceil(module.module_metadata.total_words / 200)} min
+                        </div>
+                        <div class="stat">
+                            <svg class="stat-icon" fill="#4a69bd" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zM4 8h12v8H4V8z"/>
+                            </svg>
+                            Module ${index + 1}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get module description based on title
+        function getModuleDescription(title) {
+            const descriptions = {
+                "Financial Forecasting Fundamentals for Business Performance": "Master the art of predicting financial outcomes and driving strategic business decisions.",
+                "Advanced Excel Techniques for Financial Data Analysis": "Unlock powerful Excel features for sophisticated financial modeling and analysis.",
+                "Budget Management and Variance Analysis": "Learn to create, manage, and analyze budgets for optimal financial performance."
+            };
+            return descriptions[title] || "Enhance your financial analysis skills with this comprehensive module.";
+        }
+
+        // View specific module
+        function viewModule(index) {
+            currentModule = modules[index];
+            currentSection = 'introduction';
+            
+            // Hide module grid, show content viewer
+            document.getElementById('moduleGrid').style.display = 'none';
+            document.getElementById('contentViewer').style.display = 'block';
+            
+            // Update header
+            document.getElementById('moduleTitle').textContent = currentModule.module_metadata.module_name;
+            document.getElementById('employeeName').textContent = currentModule.module_metadata.employee_name;
+            document.getElementById('wordCount').textContent = `${currentModule.module_metadata.total_words.toLocaleString()} words`;
+            document.getElementById('readTime').textContent = `${Math.ceil(currentModule.module_metadata.total_words / 200)} min read`;
+            
+            // Show first section
+            showSection('introduction');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Show specific section
+        function showSection(sectionName) {
+            currentSection = sectionName;
+            
+            // Update active tab
+            document.querySelectorAll('.section-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Display content
+            const content = currentModule.content[sectionName];
+            const formattedContent = formatContent(content);
+            document.getElementById('contentText').innerHTML = formattedContent;
+            
+            // Scroll content area to top
+            document.querySelector('.content-area').scrollTop = 0;
+        }
+
+        // Format content for display
+        function formatContent(content) {
+            if (!content) return '<p>No content available for this section.</p>';
+            
+            // Split into paragraphs and format
+            const paragraphs = content.split('\n\n');
+            return paragraphs.map(para => {
+                // Check if it's a heading (starts with ##)
+                if (para.startsWith('##')) {
+                    return `<h3>${para.replace(/^#+\s*/, '')}</h3>`;
+                }
+                // Check if it's a list item
+                else if (para.startsWith('- ') || para.startsWith('* ')) {
+                    const items = para.split('\n').filter(item => item.trim());
+                    return `<ul>${items.map(item => `<li>${item.replace(/^[-*]\s*/, '')}</li>`).join('')}</ul>`;
+                }
+                // Check if it's a numbered list
+                else if (/^\d+\./.test(para)) {
+                    const items = para.split('\n').filter(item => item.trim());
+                    return `<ol>${items.map(item => `<li>${item.replace(/^\d+\.\s*/, '')}</li>`).join('')}</ol>`;
+                }
+                // Regular paragraph
+                else if (para.trim()) {
+                    return `<p>${para}</p>`;
+                }
+                return '';
+            }).join('');
+        }
+
+        // Navigation functions
+        function showModules() {
+            document.getElementById('moduleGrid').style.display = 'grid';
+            document.getElementById('contentViewer').style.display = 'none';
+            
+            // Update active nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showProgress() {
+            // Placeholder for progress tracking
+            alert('Progress tracking coming soon!');
+        }
+
+        function showResources() {
+            // Placeholder for resources
+            alert('Additional resources coming soon!');
+        }
+
+        function showHelp() {
+            // Placeholder for help
+            alert('Help section coming soon!');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            loadModules();
+        };
+    </script>
+</body>
+</html>

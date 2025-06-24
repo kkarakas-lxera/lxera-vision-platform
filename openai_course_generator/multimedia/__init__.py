@@ -1,0 +1,3 @@
+"""
+Multimedia generation package
+"""

@@ -1,0 +1,1 @@
+# Course Generator Integration Module
