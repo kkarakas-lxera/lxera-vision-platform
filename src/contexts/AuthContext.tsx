@@ -45,6 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
+      console.log('Fetching user profile for:', userId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('id, email, full_name, role, company_id, is_active, email_verified, position')
@@ -57,19 +59,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!data) {
-        console.log('No user profile found, creating default profile');
-        // Create a default profile if none exists
-        const defaultProfile: UserProfile = {
-          id: userId,
-          email: user?.email || '',
-          full_name: user?.user_metadata?.full_name || user?.email || 'User',
-          role: 'learner',
-          is_active: true,
-          email_verified: user?.email_confirmed_at ? true : false,
-        };
-        return defaultProfile;
+        console.log('No user profile found, this might be a new user');
+        return null;
       }
 
+      console.log('User profile fetched successfully:', data);
       return data as UserProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -79,27 +73,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
+      console.log('Refreshing profile for user:', user.id);
       const profile = await fetchUserProfile(user.id);
       setUserProfile(profile);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to defer Supabase calls and prevent deadlock
+          // Use setTimeout to defer profile fetching and prevent deadlock
           setTimeout(async () => {
+            if (!mounted) return;
+            
             const profile = await fetchUserProfile(session.user.id);
-            setUserProfile(profile);
-            setLoading(false);
-          }, 0);
+            if (mounted) {
+              setUserProfile(profile);
+              setLoading(false);
+            }
+          }, 100);
         } else {
           setUserProfile(null);
           setLoading(false);
@@ -108,20 +111,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        setLoading(false);
+        return;
+      }
+
       console.log('Initial session check:', session?.user?.email);
+      
       if (!session) {
         setLoading(false);
       }
+      // If there is a session, the auth state change listener will handle it
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
     // Initialize content manager when user profile is ready
     if (userProfile?.company_id && userProfile?.id) {
       setContentManagerReady(true);
+      console.log('ContentManager ready for company:', userProfile.company_id);
     } else {
       setContentManagerReady(false);
     }
@@ -130,15 +145,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting to sign in:', email);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      if (error) {
+        console.error('Sign in error:', error);
+        setLoading(false);
+      }
+      
       return { error };
     } catch (error) {
+      console.error('Sign in exception:', error);
+      setLoading(false);
       return { error };
-    } finally {
-      // Loading will be set to false by the auth state change
     }
   };
 
@@ -163,7 +186,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    console.log('Signing out user');
+    setLoading(true);
     await supabase.auth.signOut();
+    setUser(null);
+    setUserProfile(null);
+    setSession(null);
+    setContentManagerReady(false);
+    setLoading(false);
   };
 
   const value = {
