@@ -9,6 +9,480 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cm_content_sections: {
+        Row: {
+          character_count: number | null
+          company_id: string
+          content_id: string
+          created_at: string | null
+          enhancement_count: number | null
+          last_quality_score: number | null
+          parent_section_id: string | null
+          quality_issues: string[] | null
+          section_content: string
+          section_id: string
+          section_metadata: Json | null
+          section_name: string
+          status: string | null
+          updated_at: string | null
+          version_number: number | null
+          word_count: number | null
+        }
+        Insert: {
+          character_count?: number | null
+          company_id: string
+          content_id: string
+          created_at?: string | null
+          enhancement_count?: number | null
+          last_quality_score?: number | null
+          parent_section_id?: string | null
+          quality_issues?: string[] | null
+          section_content: string
+          section_id?: string
+          section_metadata?: Json | null
+          section_name: string
+          status?: string | null
+          updated_at?: string | null
+          version_number?: number | null
+          word_count?: number | null
+        }
+        Update: {
+          character_count?: number | null
+          company_id?: string
+          content_id?: string
+          created_at?: string | null
+          enhancement_count?: number | null
+          last_quality_score?: number | null
+          parent_section_id?: string | null
+          quality_issues?: string[] | null
+          section_content?: string
+          section_id?: string
+          section_metadata?: Json | null
+          section_name?: string
+          status?: string | null
+          updated_at?: string | null
+          version_number?: number | null
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_content_sections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_content_sections_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "cm_content_sections_parent_section_id_fkey"
+            columns: ["parent_section_id"]
+            isOneToOne: false
+            referencedRelation: "cm_content_sections"
+            referencedColumns: ["section_id"]
+          },
+        ]
+      }
+      cm_enhancement_sessions: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          content_id: string
+          content_regenerated: boolean | null
+          content_tokens_used: number | null
+          duration_seconds: number | null
+          enhancement_tokens_used: number | null
+          enhancement_type: string | null
+          error_details: string | null
+          initiated_by: string | null
+          integration_completed: boolean | null
+          quality_assessment_id: string | null
+          quality_score_after: number | null
+          quality_score_before: number | null
+          research_conducted: boolean | null
+          sections_preserved: string[] | null
+          sections_to_enhance: string[]
+          session_id: string
+          started_at: string | null
+          status: string | null
+          success: boolean | null
+          total_tokens_saved: number | null
+          word_count_after: number | null
+          word_count_before: number | null
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          content_id: string
+          content_regenerated?: boolean | null
+          content_tokens_used?: number | null
+          duration_seconds?: number | null
+          enhancement_tokens_used?: number | null
+          enhancement_type?: string | null
+          error_details?: string | null
+          initiated_by?: string | null
+          integration_completed?: boolean | null
+          quality_assessment_id?: string | null
+          quality_score_after?: number | null
+          quality_score_before?: number | null
+          research_conducted?: boolean | null
+          sections_preserved?: string[] | null
+          sections_to_enhance: string[]
+          session_id?: string
+          started_at?: string | null
+          status?: string | null
+          success?: boolean | null
+          total_tokens_saved?: number | null
+          word_count_after?: number | null
+          word_count_before?: number | null
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          content_id?: string
+          content_regenerated?: boolean | null
+          content_tokens_used?: number | null
+          duration_seconds?: number | null
+          enhancement_tokens_used?: number | null
+          enhancement_type?: string | null
+          error_details?: string | null
+          initiated_by?: string | null
+          integration_completed?: boolean | null
+          quality_assessment_id?: string | null
+          quality_score_after?: number | null
+          quality_score_before?: number | null
+          research_conducted?: boolean | null
+          sections_preserved?: string[] | null
+          sections_to_enhance?: string[]
+          session_id?: string
+          started_at?: string | null
+          status?: string | null
+          success?: boolean | null
+          total_tokens_saved?: number | null
+          word_count_after?: number | null
+          word_count_before?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_enhancement_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_enhancement_sessions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "cm_enhancement_sessions_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_enhancement_sessions_quality_assessment_id_fkey"
+            columns: ["quality_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "cm_quality_assessments"
+            referencedColumns: ["assessment_id"]
+          },
+        ]
+      }
+      cm_module_content: {
+        Row: {
+          assessments: string | null
+          assigned_to: string | null
+          case_studies: string | null
+          company_id: string
+          content_id: string
+          core_content: string | null
+          created_at: string | null
+          created_by: string | null
+          employee_name: string
+          introduction: string | null
+          last_quality_check: string | null
+          module_name: string
+          module_spec: Json
+          practical_applications: string | null
+          priority_level: string | null
+          research_context: Json | null
+          revision_count: number | null
+          section_word_counts: Json | null
+          session_id: string
+          status: string | null
+          total_word_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessments?: string | null
+          assigned_to?: string | null
+          case_studies?: string | null
+          company_id: string
+          content_id?: string
+          core_content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_name: string
+          introduction?: string | null
+          last_quality_check?: string | null
+          module_name: string
+          module_spec: Json
+          practical_applications?: string | null
+          priority_level?: string | null
+          research_context?: Json | null
+          revision_count?: number | null
+          section_word_counts?: Json | null
+          session_id: string
+          status?: string | null
+          total_word_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessments?: string | null
+          assigned_to?: string | null
+          case_studies?: string | null
+          company_id?: string
+          content_id?: string
+          core_content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_name?: string
+          introduction?: string | null
+          last_quality_check?: string | null
+          module_name?: string
+          module_spec?: Json
+          practical_applications?: string | null
+          priority_level?: string | null
+          research_context?: Json | null
+          revision_count?: number | null
+          section_word_counts?: Json | null
+          session_id?: string
+          status?: string | null
+          total_word_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_module_content_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_module_content_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_module_content_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_quality_assessments: {
+        Row: {
+          accuracy_score: number | null
+          assessed_at: string | null
+          assessed_by: string | null
+          assessment_criteria: string | null
+          assessment_duration_seconds: number | null
+          assessment_id: string
+          clarity_score: number | null
+          company_id: string
+          completeness_score: number | null
+          content_id: string
+          critical_issues: string[] | null
+          engagement_score: number | null
+          improvement_suggestions: string[] | null
+          module_context: Json | null
+          overall_score: number | null
+          passed: boolean | null
+          personalization_score: number | null
+          quality_feedback: string | null
+          requires_revision: boolean | null
+          section_scores: Json | null
+          sections_needing_work: string[] | null
+          word_count_assessment: Json | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          assessed_at?: string | null
+          assessed_by?: string | null
+          assessment_criteria?: string | null
+          assessment_duration_seconds?: number | null
+          assessment_id?: string
+          clarity_score?: number | null
+          company_id: string
+          completeness_score?: number | null
+          content_id: string
+          critical_issues?: string[] | null
+          engagement_score?: number | null
+          improvement_suggestions?: string[] | null
+          module_context?: Json | null
+          overall_score?: number | null
+          passed?: boolean | null
+          personalization_score?: number | null
+          quality_feedback?: string | null
+          requires_revision?: boolean | null
+          section_scores?: Json | null
+          sections_needing_work?: string[] | null
+          word_count_assessment?: Json | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          assessed_at?: string | null
+          assessed_by?: string | null
+          assessment_criteria?: string | null
+          assessment_duration_seconds?: number | null
+          assessment_id?: string
+          clarity_score?: number | null
+          company_id?: string
+          completeness_score?: number | null
+          content_id?: string
+          critical_issues?: string[] | null
+          engagement_score?: number | null
+          improvement_suggestions?: string[] | null
+          module_context?: Json | null
+          overall_score?: number | null
+          passed?: boolean | null
+          personalization_score?: number | null
+          quality_feedback?: string | null
+          requires_revision?: boolean | null
+          section_scores?: Json | null
+          sections_needing_work?: string[] | null
+          word_count_assessment?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_quality_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_quality_assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_quality_assessments_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+        ]
+      }
+      cm_research_sessions: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          content_id: string
+          current_examples: string[] | null
+          enhancement_session_id: string | null
+          error_details: string | null
+          industry_trends: string[] | null
+          key_insights: string[] | null
+          research_duration_seconds: number | null
+          research_id: string
+          research_package: Json | null
+          research_quality: number | null
+          research_results: Json | null
+          research_topics: string[]
+          research_type: string | null
+          started_at: string | null
+          status: string | null
+          success: boolean | null
+          tavily_queries_made: number | null
+          tokens_used: number | null
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          content_id: string
+          current_examples?: string[] | null
+          enhancement_session_id?: string | null
+          error_details?: string | null
+          industry_trends?: string[] | null
+          key_insights?: string[] | null
+          research_duration_seconds?: number | null
+          research_id?: string
+          research_package?: Json | null
+          research_quality?: number | null
+          research_results?: Json | null
+          research_topics: string[]
+          research_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          success?: boolean | null
+          tavily_queries_made?: number | null
+          tokens_used?: number | null
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          content_id?: string
+          current_examples?: string[] | null
+          enhancement_session_id?: string | null
+          error_details?: string | null
+          industry_trends?: string[] | null
+          key_insights?: string[] | null
+          research_duration_seconds?: number | null
+          research_id?: string
+          research_package?: Json | null
+          research_quality?: number | null
+          research_results?: Json | null
+          research_topics?: string[]
+          research_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          success?: boolean | null
+          tavily_queries_made?: number | null
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_research_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_research_sessions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "cm_module_content"
+            referencedColumns: ["content_id"]
+          },
+          {
+            foreignKeyName: "cm_research_sessions_enhancement_session_id_fkey"
+            columns: ["enhancement_session_id"]
+            isOneToOne: false
+            referencedRelation: "cm_enhancement_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string | null
