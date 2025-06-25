@@ -29,7 +29,7 @@ export interface ModuleContent {
   created_by?: string;
   updated_at?: string;
   total_word_count?: number;
-  module_spec?: any;
+  module_spec?: ModuleSpec;
   assigned_to?: string;
 }
 
@@ -64,6 +64,120 @@ export class ContentManager {
       };
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      throw error;
+    }
+  }
+
+  async get_company_analytics() {
+    try {
+      // Fetch modules
+      const { data: modules } = await supabase
+        .from('cm_module_content')
+        .select('*')
+        .eq('company_id', this.companyId);
+
+      // Fetch quality assessments
+      const { data: quality } = await supabase
+        .from('cm_quality_assessments')
+        .select('*')
+        .eq('company_id', this.companyId);
+
+      // Fetch enhancement sessions
+      const { data: enhancements } = await supabase
+        .from('cm_enhancement_sessions')
+        .select('*')
+        .eq('company_id', this.companyId);
+
+      return {
+        modules: modules || [],
+        quality: quality || [],
+        enhancements: enhancements || []
+      };
+    } catch (error) {
+      console.error('Error fetching company analytics:', error);
+      throw error;
+    }
+  }
+
+  async get_employee_progress(employeeId?: string) {
+    try {
+      const query = supabase
+        .from('course_assignments')
+        .select(`
+          *,
+          employees!inner(id, user_id, department, position),
+          cm_module_content!inner(module_name, status)
+        `)
+        .eq('company_id', this.companyId);
+
+      if (employeeId) {
+        query.eq('employee_id', employeeId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching employee progress:', error);
+      throw error;
+    }
+  }
+
+  async get_department_analytics() {
+    try {
+      const { data: employees } = await supabase
+        .from('employees')
+        .select(`
+          department,
+          courses_completed,
+          total_learning_hours,
+          last_activity
+        `)
+        .eq('company_id', this.companyId)
+        .eq('is_active', true);
+
+      if (!employees) return {};
+
+      const departmentStats = employees.reduce((acc: Record<string, {
+        total_employees: number;
+        total_courses_completed: number;
+        total_learning_hours: number;
+        avg_courses_per_employee: number;
+        avg_hours_per_employee: number;
+      }>, emp) => {
+        const dept = emp.department || 'Unassigned';
+        if (!acc[dept]) {
+          acc[dept] = {
+            total_employees: 0,
+            total_courses_completed: 0,
+            total_learning_hours: 0,
+            avg_courses_per_employee: 0,
+            avg_hours_per_employee: 0
+          };
+        }
+        
+        acc[dept].total_employees++;
+        acc[dept].total_courses_completed += emp.courses_completed || 0;
+        acc[dept].total_learning_hours += emp.total_learning_hours || 0;
+        
+        return acc;
+      }, {});
+
+      // Calculate averages
+      Object.keys(departmentStats).forEach(dept => {
+        const stats = departmentStats[dept];
+        stats.avg_courses_per_employee = stats.total_employees > 0 
+          ? Math.round((stats.total_courses_completed / stats.total_employees) * 10) / 10 
+          : 0;
+        stats.avg_hours_per_employee = stats.total_employees > 0 
+          ? Math.round((stats.total_learning_hours / stats.total_employees) * 10) / 10 
+          : 0;
+      });
+
+      return departmentStats;
+    } catch (error) {
+      console.error('Error fetching department analytics:', error);
       throw error;
     }
   }

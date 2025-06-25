@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
+import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
+import { CourseAssignmentTracker } from '@/components/admin/CourseManagement/CourseAssignmentTracker';
 
 interface Company {
   id: string;
@@ -55,6 +57,8 @@ const AdminDashboard = () => {
   });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userSheetOpen, setUserSheetOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [companySheetOpen, setCompanySheetOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -63,6 +67,11 @@ const AdminDashboard = () => {
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setUserSheetOpen(true);
+  };
+
+  const handleEditCompany = (company: Company) => {
+    setSelectedCompany(company);
+    setCompanySheetOpen(true);
   };
 
   const fetchDashboardData = async () => {
@@ -373,7 +382,7 @@ const AdminDashboard = () => {
                           {company.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                         <Badge variant="outline">{company.plan_type}</Badge>
-                        <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
+                        <Button variant="outline" size="sm" onClick={() => handleEditCompany(company)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
@@ -387,18 +396,7 @@ const AdminDashboard = () => {
 
         {/* Content Tab */}
         <TabsContent value="content">
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Management</CardTitle>
-              <CardDescription>Manage course modules and content</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Content management coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
+          <CourseAssignmentTracker />
         </TabsContent>
 
         {/* Activity Tab */}
@@ -424,6 +422,14 @@ const AdminDashboard = () => {
         open={userSheetOpen}
         onOpenChange={setUserSheetOpen}
         onUserUpdated={fetchDashboardData}
+      />
+
+      {/* Company Edit Sheet */}
+      <CompanyEditSheet
+        company={selectedCompany}
+        open={companySheetOpen}
+        onOpenChange={setCompanySheetOpen}
+        onCompanyUpdated={fetchDashboardData}
       />
     </div>
   );
