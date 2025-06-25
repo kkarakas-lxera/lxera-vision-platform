@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -116,7 +115,7 @@ export const CourseAssignmentTracker = () => {
     try {
       setLoading(true);
       const data = await contentManager.get_employee_progress();
-      setAssignments(data as Assignment[]);
+      setAssignments(data as unknown as Assignment[]);
     } catch (error) {
       console.error('Error fetching assignments:', error);
     } finally {

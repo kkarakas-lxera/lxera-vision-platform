@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCallback, useMemo } from 'react';
@@ -31,7 +30,7 @@ export interface ModuleContent {
   created_by?: string;
   updated_at?: string;
   total_word_count?: number;
-  module_spec?: ModuleSpec;
+  module_spec?: any; // Change to any for Json compatibility
   assigned_to?: string;
 }
 
@@ -129,8 +128,7 @@ export class ContentManager {
         .from('course_assignments')
         .select(`
           *,
-          employees!inner(id, user_id, department, position),
-          cm_module_content(module_name, status)
+          employees!inner(id, user_id, department, position)
         `);
       
       if (!this.isSuperAdmin && this.companyId) {
@@ -144,7 +142,23 @@ export class ContentManager {
       const { data, error } = await query;
       if (error) throw error;
 
-      return data || [];
+      // Fetch module content separately to avoid join issues
+      const assignmentsWithModules = await Promise.all(
+        (data || []).map(async (assignment) => {
+          const { data: moduleData } = await supabase
+            .from('cm_module_content')
+            .select('module_name, status')
+            .eq('content_id', assignment.course_id)
+            .single();
+
+          return {
+            ...assignment,
+            cm_module_content: moduleData
+          };
+        })
+      );
+
+      return assignmentsWithModules;
     } catch (error) {
       console.error('Error fetching employee progress:', error);
       throw error;
@@ -228,7 +242,7 @@ export class ContentManager {
       const { data, error } = await query;
 
       if (error) throw error;
-      return (data || []) as ModuleContent[];
+      return (data || []) as unknown as ModuleContent[];
     } catch (error) {
       console.error('Error listing modules:', error);
       throw error;
@@ -263,7 +277,7 @@ export class ContentManager {
         .single();
 
       if (error) throw error;
-      return data as ModuleContent;
+      return data as unknown as ModuleContent;
     } catch (error) {
       console.error('Error creating module:', error);
       throw error;
@@ -280,7 +294,7 @@ export class ContentManager {
         .single();
 
       if (error) throw error;
-      return data as ModuleContent;
+      return data as unknown as ModuleContent;
     } catch (error) {
       console.error('Error fetching module:', error);
       throw error;
