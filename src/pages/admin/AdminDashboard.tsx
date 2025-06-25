@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -206,12 +207,37 @@ const AdminDashboard = () => {
 
       {/* Tab Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-2 rounded-2xl shadow-sm">
-          <TabsTrigger value="overview" className="rounded-xl">Overview</TabsTrigger>
-          <TabsTrigger value="users" className="rounded-xl">Users</TabsTrigger>
-          <TabsTrigger value="companies" className="rounded-xl">Companies</TabsTrigger>
-          <TabsTrigger value="content" className="rounded-xl">Content</TabsTrigger>
-          <TabsTrigger value="activity" className="rounded-xl">Activity</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-1 rounded-2xl shadow-sm">
+          <TabsTrigger 
+            value="overview" 
+            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="users" 
+            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Users
+          </TabsTrigger>
+          <TabsTrigger 
+            value="companies" 
+            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Companies
+          </TabsTrigger>
+          <TabsTrigger 
+            value="content" 
+            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Content
+          </TabsTrigger>
+          <TabsTrigger 
+            value="activity" 
+            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -245,11 +271,11 @@ const AdminDashboard = () => {
                             <Building2 className="h-5 w-5 text-future-green" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-business-black">{company.name}</h3>
-                            <p className="text-sm text-business-black/60">{company.domain}</p>
+                            <h3 className="font-medium text-sm text-business-black">{company.name}</h3>
+                            <p className="text-xs text-business-black/60">{company.domain}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="rounded-lg">{company.plan_type}</Badge>
+                        <Badge variant="outline" className="rounded-lg text-xs">{company.plan_type}</Badge>
                       </div>
                     ))}
                   </div>
@@ -291,11 +317,11 @@ const AdminDashboard = () => {
                             )}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-business-black">{user.full_name}</h3>
-                            <p className="text-sm text-business-black/60">{user.email}</p>
+                            <h3 className="font-medium text-sm text-business-black">{user.full_name}</h3>
+                            <p className="text-xs text-business-black/60">{user.email}</p>
                           </div>
                         </div>
-                        <Badge variant={user.role === 'super_admin' ? 'destructive' : 'secondary'} className="rounded-lg">
+                        <Badge variant={user.role === 'super_admin' ? 'destructive' : 'secondary'} className="rounded-lg text-xs">
                           {user.role.replace('_', ' ')}
                         </Badge>
                       </div>
