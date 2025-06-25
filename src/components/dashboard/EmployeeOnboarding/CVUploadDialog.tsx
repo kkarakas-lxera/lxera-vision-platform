@@ -101,16 +101,18 @@ export function CVUploadDialog({
 
       setProgress(20);
 
-      // Try a simpler file path that matches the policy expectation
+      // Use the simplified file path format that matches our RLS policies
+      // Format: {company_id}/{filename}
       const fileName = `cv-${employee.id}-${Date.now()}.${file.name.split('.').pop()}`;
       const filePath = `${userProfile.company_id}/${fileName}`;
       
-      console.log('Simplified upload path:', { 
+      console.log('CV Upload attempt:', { 
         filePath, 
         employeeName: employee.name, 
         userRole: userProfile.role,
         companyId: userProfile.company_id,
-        fileName 
+        fileName,
+        bucketId: 'employee-cvs'
       });
       
       const { error: uploadError } = await supabase.storage
@@ -125,6 +127,7 @@ export function CVUploadDialog({
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
+      console.log('Upload successful, file path:', filePath);
       setProgress(40);
 
       // Step 2: Save file path to employee record
@@ -152,14 +155,15 @@ export function CVUploadDialog({
 
       if (analysisError) {
         console.error('Analysis error:', analysisError);
-        throw analysisError;
+        // Don't throw here - upload was successful, analysis can be retried
+        console.warn('CV analysis failed, but upload was successful');
       }
 
       setProgress(100);
       
       toast({
         title: 'Success',
-        description: 'CV uploaded and analyzed successfully',
+        description: 'CV uploaded successfully' + (analysisError ? ' (analysis will be retried)' : ' and analyzed'),
       });
 
       // Close dialog and refresh
@@ -174,7 +178,7 @@ export function CVUploadDialog({
       
       if (error instanceof Error) {
         if (error.message.includes('permission') || error.message.includes('policy')) {
-          errorMessage = 'Permission denied. Please ensure you have the correct role.';
+          errorMessage = 'Permission denied. Please check your role and company access.';
         } else if (error.message.includes('bucket')) {
           errorMessage = 'Storage configuration error. Please contact support.';
         } else {
@@ -275,7 +279,7 @@ export function CVUploadDialog({
           {progress === 100 && (
             <div className="flex items-center justify-center text-green-600">
               <CheckCircle className="h-5 w-5 mr-2" />
-              <span className="text-sm font-medium">Analysis complete!</span>
+              <span className="text-sm font-medium">Upload complete!</span>
             </div>
           )}
 
