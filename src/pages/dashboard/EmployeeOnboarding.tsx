@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { CSVImportWizard } from '@/components/dashboard/EmployeeOnboarding/CSVImportWizard';
+import { AddEmployees } from '@/components/dashboard/EmployeeOnboarding/AddEmployees';
 import { OnboardingProgress } from '@/components/dashboard/EmployeeOnboarding/OnboardingProgress';
 import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
 import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
@@ -35,7 +36,7 @@ interface EmployeeStatus {
 
 export default function EmployeeOnboarding() {
   const { userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState('import');
+  const [currentStep, setCurrentStep] = useState(1);
   const [importSessions, setImportSessions] = useState<ImportSession[]>([]);
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,13 +118,57 @@ export default function EmployeeOnboarding() {
 
   const stats = getOverallStats();
 
+  const steps = [
+    {
+      number: 1,
+      title: "Add New Team Members",
+      description: "Import employee information and basic details",
+      icon: Users,
+      completed: stats.total > 0
+    },
+    {
+      number: 2,
+      title: "Analyze Skills",
+      description: "Upload CVs and identify skill gaps",
+      icon: BarChart3,
+      completed: stats.analyzed > 0
+    },
+    {
+      number: 3,
+      title: "Assign Learning Paths",
+      description: "Generate personalized courses based on skill gaps",
+      icon: CheckCircle,
+      completed: stats.coursesGenerated > 0
+    }
+  ];
+
+  const canProceedToStep = (stepNumber: number) => {
+    if (stepNumber === 1) return true;
+    if (stepNumber === 2) return stats.total > 0;
+    if (stepNumber === 3) return stats.withCV > 0;
+    return false;
+  };
+
+  const nextStep = () => {
+    if (currentStep < 3 && canProceedToStep(currentStep + 1)) {
+      setCurrentStep(currentStep + 1);
+      toast.success(`Step ${currentStep + 1} unlocked! Let's continue.`);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-24 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -137,138 +182,168 @@ export default function EmployeeOnboarding() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Employee Onboarding</h1>
+        <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
         <p className="text-muted-foreground mt-1">
-          Bulk import employees, analyze CVs, and generate personalized learning paths
+          Add employees, analyze their skills, and create personalized learning paths
         </p>
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Step Progress */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Onboarding Progress</CardTitle>
+          <CardDescription>
+            Complete these steps to get your team members up and running
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-6">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.number;
+              const isCompleted = step.completed;
+              const isClickable = canProceedToStep(step.number);
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">CVs Uploaded</p>
-                <p className="text-2xl font-bold text-foreground">{stats.withCV}</p>
-                <p className="text-xs text-muted-foreground">
-                  {stats.total > 0 ? Math.round((stats.withCV / stats.total) * 100) : 0}% complete
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Skills Analyzed</p>
-                <p className="text-2xl font-bold text-foreground">{stats.analyzed}</p>
-                <p className="text-xs text-muted-foreground">
-                  {stats.total > 0 ? Math.round((stats.analyzed / stats.total) * 100) : 0}% complete
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Courses Generated</p>
-                <p className="text-2xl font-bold text-foreground">{stats.coursesGenerated}</p>
-                <p className="text-xs text-muted-foreground">
-                  {stats.total > 0 ? Math.round((stats.coursesGenerated / stats.total) * 100) : 0}% complete
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="import" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Import Employees
-          </TabsTrigger>
-          <TabsTrigger value="progress" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Progress Tracking
-          </TabsTrigger>
-          <TabsTrigger value="analysis" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Skills Analysis
-          </TabsTrigger>
-          <TabsTrigger value="courses" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Course Generation
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="import" className="space-y-4">
-          <CSVImportWizard
-            onImportComplete={fetchImportSessions}
-            importSessions={importSessions}
-          />
-          <BulkCVUpload
-            onUploadComplete={fetchEmployeeStatuses}
-          />
-        </TabsContent>
-
-        <TabsContent value="progress" className="space-y-4">
-          <OnboardingProgress
-            employees={employeeStatuses}
-            onRefresh={fetchEmployeeStatuses}
-          />
-        </TabsContent>
-
-        <TabsContent value="analysis" className="space-y-4">
-          <SkillsGapAnalysis
-            employees={employeeStatuses}
-          />
-        </TabsContent>
-
-        <TabsContent value="courses" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-foreground">Course Generation</CardTitle>
-              <CardDescription>
-                Generate personalized learning paths based on skills gap analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <div className="text-muted-foreground mb-4">
-                  Course generation integration coming soon...
+              return (
+                <div key={step.number} className="flex items-center">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                      isCompleted
+                        ? 'bg-green-600 border-green-600'
+                        : isActive
+                        ? 'bg-blue-600 border-blue-600'
+                        : isClickable
+                        ? 'border-gray-300 hover:border-blue-400 cursor-pointer'
+                        : 'border-gray-200'
+                    }`}
+                    onClick={() => isClickable && setCurrentStep(step.number)}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-white" />
+                    ) : (
+                      <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                    )}
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {step.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {step.description}
+                    </p>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className="flex-1 mx-4">
+                      <div className={`h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`} />
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  This will integrate with the existing ContentManager to generate 4-6 week courses
-                  targeting specific skills gaps identified during the analysis phase.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              );
+            })}
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-4 gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+              <div className="text-xs text-muted-foreground">Team Members</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">{stats.withCV}</div>
+              <div className="text-xs text-muted-foreground">CVs Uploaded</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">{stats.analyzed}</div>
+              <div className="text-xs text-muted-foreground">Skills Analyzed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">{stats.coursesGenerated}</div>
+              <div className="text-xs text-muted-foreground">Learning Paths</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step Content */}
+      <div className="space-y-4">
+        {currentStep === 1 && (
+          <div className="space-y-4">
+            <AddEmployees
+              onImportComplete={() => {
+                fetchImportSessions();
+                fetchEmployeeStatuses();
+              }}
+              importSessions={importSessions}
+              onNextStep={nextStep}
+            />
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="space-y-4">
+            <BulkCVUpload
+              onUploadComplete={fetchEmployeeStatuses}
+            />
+            <OnboardingProgress
+              employees={employeeStatuses}
+              onRefresh={fetchEmployeeStatuses}
+            />
+          </div>
+        )}
+
+        {currentStep === 3 && (
+          <div className="space-y-4">
+            <SkillsGapAnalysis
+              employees={employeeStatuses}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-foreground">Learning Path Generation</CardTitle>
+                <CardDescription>
+                  Generate personalized courses based on identified skill gaps
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <div className="text-muted-foreground mb-4">
+                    Course generation integration coming soon...
+                  </div>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    This will integrate with the existing ContentManager to generate 4-6 week courses
+                    targeting specific skills gaps identified during the analysis phase.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center pt-6">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Previous Step
+          </Button>
+
+          <div className="text-sm text-muted-foreground">
+            Step {currentStep} of {steps.length}
+          </div>
+
+          <Button
+            onClick={nextStep}
+            disabled={!canProceedToStep(currentStep + 1) || currentStep === 3}
+            className="flex items-center gap-2"
+          >
+            Next Step
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

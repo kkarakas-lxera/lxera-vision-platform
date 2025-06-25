@@ -47,9 +47,9 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Ready</Badge>;
       case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+        return <Badge className="bg-red-100 text-red-800">Needs Attention</Badge>;
       case 'in_progress':
       case 'processing':
         return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
@@ -84,11 +84,11 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
     return true;
   });
 
-  const getGapScoreColor = (score?: number) => {
-    if (!score) return 'text-gray-500';
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-orange-600';
-    return 'text-red-600';
+  const getReadinessLevel = (score?: number) => {
+    if (!score) return { text: 'Not Assessed', color: 'text-gray-500' };
+    if (score >= 80) return { text: 'Ready', color: 'text-green-600' };
+    if (score >= 60) return { text: 'Developing', color: 'text-orange-600' };
+    return { text: 'Needs Training', color: 'text-red-600' };
   };
 
   return (
@@ -98,9 +98,9 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-foreground">Employee Progress Tracking</CardTitle>
+              <CardTitle className="text-foreground">Skills Analysis & CV Upload</CardTitle>
               <CardDescription>
-                Monitor CV uploads, skills analysis, and course generation progress
+                Track CV uploads and review skill assessments for your team
               </CardDescription>
             </div>
             <Button
@@ -128,10 +128,10 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Employees</SelectItem>
-                <SelectItem value="needs_cv">Needs CV Upload</SelectItem>
-                <SelectItem value="needs_analysis">Needs Analysis</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="all">All Team Members</SelectItem>
+                <SelectItem value="needs_cv">Missing CV</SelectItem>
+                <SelectItem value="needs_analysis">Ready for Analysis</SelectItem>
+                <SelectItem value="completed">Fully Assessed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -160,9 +160,9 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                     <div className="flex items-center gap-4">
                       {employee.gap_score && (
                         <div className="text-right">
-                          <div className="text-sm text-muted-foreground">Skills Match</div>
-                          <div className={`font-bold ${getGapScoreColor(employee.gap_score)}`}>
-                            {employee.gap_score}%
+                          <div className="text-sm text-muted-foreground">Readiness Level</div>
+                          <div className={`font-bold ${getReadinessLevel(employee.gap_score).color}`}>
+                            {getReadinessLevel(employee.gap_score).text}
                           </div>
                         </div>
                       )}
@@ -209,7 +209,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                       <BarChart3 className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Skills Analysis</span>
+                          <span className="text-sm font-medium">Skills Assessment</span>
                           {getStatusIcon(employee.skills_analysis)}
                         </div>
                         {getStatusBadge(employee.skills_analysis)}
@@ -220,7 +220,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                       <CheckCircle className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Course Generation</span>
+                          <span className="text-sm font-medium">Learning Path</span>
                           {getStatusIcon(employee.course_generation)}
                         </div>
                         {getStatusBadge(employee.course_generation)}
@@ -241,7 +241,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
             <div className="text-2xl font-bold text-foreground">
               {employees.filter(e => e.cv_status === 'missing').length}
             </div>
-            <div className="text-sm text-muted-foreground">Need CV Upload</div>
+            <div className="text-sm text-muted-foreground">Missing CVs</div>
           </CardContent>
         </Card>
 
@@ -250,7 +250,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
             <div className="text-2xl font-bold text-orange-600">
               {employees.filter(e => e.cv_status === 'uploaded' && e.skills_analysis === 'pending').length}
             </div>
-            <div className="text-sm text-muted-foreground">Pending Analysis</div>
+            <div className="text-sm text-muted-foreground">Ready for Assessment</div>
           </CardContent>
         </Card>
 
@@ -259,7 +259,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
             <div className="text-2xl font-bold text-blue-600">
               {employees.filter(e => e.skills_analysis === 'completed' && e.course_generation === 'pending').length}
             </div>
-            <div className="text-sm text-muted-foreground">Ready for Courses</div>
+            <div className="text-sm text-muted-foreground">Ready for Learning Paths</div>
           </CardContent>
         </Card>
 
@@ -268,7 +268,7 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
             <div className="text-2xl font-bold text-green-600">
               {employees.filter(e => e.course_generation === 'completed').length}
             </div>
-            <div className="text-sm text-muted-foreground">Fully Onboarded</div>
+            <div className="text-sm text-muted-foreground">Ready to Learn</div>
           </CardContent>
         </Card>
       </div>

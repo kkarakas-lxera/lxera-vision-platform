@@ -267,8 +267,8 @@ export default function CompanyDashboard() {
                 <Upload className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">Onboard New Employees</div>
-                <div className="text-xs opacity-70">Import CSV & analyze CVs</div>
+                <div className="font-semibold">Add New Team Members</div>
+                <div className="text-xs opacity-70">Import & assess skills</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
             </Button>
@@ -283,7 +283,7 @@ export default function CompanyDashboard() {
                 <Target className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">Define Positions</div>
+                <div className="font-semibold">Define Roles</div>
                 <div className="text-xs text-muted-foreground">Set skill requirements</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
@@ -299,8 +299,8 @@ export default function CompanyDashboard() {
                 <BarChart3 className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">View Analytics</div>
-                <div className="text-xs text-muted-foreground">Skills insights & gaps</div>
+                <div className="font-semibold">Skills Insights</div>
+                <div className="text-xs text-muted-foreground">Team readiness & gaps</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
             </Button>

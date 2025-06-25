@@ -53,11 +53,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       case 'company_admin':
         return [
           { href: '/dashboard', icon: Home, label: 'Dashboard' },
-          { href: '/dashboard/onboarding', icon: Upload, label: 'Onboarding' },
-          { href: '/dashboard/positions', icon: Target, label: 'Positions' },
+          { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
+          { href: '/dashboard/positions', icon: Target, label: 'Roles' },
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
-          { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+          { href: '/dashboard/analytics', icon: BarChart3, label: 'Skills Insights' },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];
       case 'learner':

@@ -15,19 +15,22 @@ serve(async (req) => {
   try {
     const { employee_id, file_path } = await req.json()
 
+    // Validate required parameters
+    if (!employee_id || !file_path) {
+      throw new Error('Missing required parameters: employee_id and file_path')
+    }
+
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // For now, just update the employee record to trigger the analysis
-    // The actual analysis will be done by the cv-analysis-service.js script
+    // Update the employee record with CV file path and analysis timestamp
     const { error } = await supabase
       .from('employees')
       .update({ 
         cv_file_path: file_path,
-        cv_upload_status: 'pending_analysis',
-        cv_uploaded_at: new Date().toISOString()
+        skills_last_analyzed: new Date().toISOString()
       })
       .eq('id', employee_id)
 
@@ -38,7 +41,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'CV uploaded successfully. Analysis will begin shortly.' 
+        message: 'CV uploaded and queued for analysis successfully',
+        employee_id,
+        file_path
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

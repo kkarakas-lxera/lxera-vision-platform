@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CVUploadDialogProps {
   employee: {
@@ -31,6 +32,7 @@ export function CVUploadDialog({
   onUploadComplete 
 }: CVUploadDialogProps) {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -60,7 +62,15 @@ export function CVUploadDialog({
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      setError('Please select a file to upload');
+      return;
+    }
+    
+    if (!userProfile?.company_id) {
+      setError('Company information not found. Please try logging in again.');
+      return;
+    }
 
     setUploading(true);
     setError(null);
@@ -69,10 +79,10 @@ export function CVUploadDialog({
     try {
       // Step 1: Upload file to Supabase Storage
       const fileName = `cv-${employee.id}-${Date.now()}-${file.name}`;
-      const filePath = `cvs/${fileName}`;
+      const filePath = `${userProfile.company_id}/cvs/${employee.id}/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('documents')
+        .from('employee-cvs')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -116,7 +126,19 @@ export function CVUploadDialog({
 
     } catch (error) {
       console.error('Upload error:', error);
-      setError(error instanceof Error ? error.message : 'Upload failed');
+      let errorMessage = 'Upload failed';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('RLS')) {
+          errorMessage = 'Permission denied. Please check your access rights.';
+        } else if (error.message.includes('bucket')) {
+          errorMessage = 'Storage configuration error. Please contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
       setUploading(false);
       setAnalyzing(false);
     }

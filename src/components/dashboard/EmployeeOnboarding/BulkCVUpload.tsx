@@ -67,7 +67,23 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
   });
 
   const processFiles = async () => {
-    if (!userProfile?.company_id) return;
+    if (!userProfile?.company_id) {
+      toast({
+        title: 'Error',
+        description: 'Company information not found. Please try logging in again.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (files.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'No files selected for upload.',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     setIsProcessing(true);
 
@@ -106,10 +122,10 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
 
         // Upload file
         const fileName = `cv-${employeeId}-${Date.now()}.${fileInfo.file.name.split('.').pop()}`;
-        const filePath = `cvs/${fileName}`;
+        const filePath = `${userProfile.company_id}/cvs/${employeeId}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
-          .from('documents')
+          .from('employee-cvs')
           .upload(filePath, fileInfo.file);
 
         if (uploadError) throw uploadError;
@@ -144,11 +160,25 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
 
       } catch (error) {
         console.error(`Error processing ${fileInfo.employeeName}:`, error);
+        
+        let errorMessage = 'Processing failed';
+        if (error instanceof Error) {
+          if (error.message.includes('RLS') || error.message.includes('permission')) {
+            errorMessage = 'Permission denied';
+          } else if (error.message.includes('bucket')) {
+            errorMessage = 'Storage error';
+          } else if (error.message.includes('policy')) {
+            errorMessage = 'Access policy error';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { 
             ...f, 
             status: 'error', 
-            error: error instanceof Error ? error.message : 'Processing failed' 
+            error: errorMessage
           } : f
         ));
       }
