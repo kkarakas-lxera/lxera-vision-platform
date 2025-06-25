@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -159,7 +160,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-            <p className="text-xs text-muted-foreground">Active organizations</p>
+            <p className="text-xs text-black/80">Active organizations</p>
           </CardContent>
         </Card>
 
@@ -170,7 +171,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">{stats.activeUsers} active users</p>
+            <p className="text-xs text-black/80">{stats.activeUsers} active users</p>
           </CardContent>
         </Card>
 
@@ -181,7 +182,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCourses}</div>
-            <p className="text-xs text-muted-foreground">Generated content</p>
+            <p className="text-xs text-black/80">Generated content</p>
           </CardContent>
         </Card>
 
@@ -192,7 +193,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">Healthy</div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
+            <p className="text-xs text-black/80">All systems operational</p>
           </CardContent>
         </Card>
       </div>
