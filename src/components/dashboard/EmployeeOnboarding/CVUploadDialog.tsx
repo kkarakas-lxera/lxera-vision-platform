@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Upload, FileText, X, Loader2, CheckCircle } from 'lucide-react';
 import {
@@ -100,31 +101,28 @@ export function CVUploadDialog({
 
       setProgress(20);
 
-      // Step 1: Upload file to Supabase Storage
-      const fileName = `cv-${employee.id}-${Date.now()}-${file.name}`;
-      // Try simplified path first to debug RLS policy
+      // Step 1: Upload file to Supabase Storage with proper file path
+      const fileName = `cv-${employee.id}-${Date.now()}.${file.name.split('.').pop()}`;
       const filePath = `${userProfile.company_id}/cvs/${employee.id}/${fileName}`;
-      // Alternative: const filePath = `cvs/${fileName}`; // Uncomment to test simple path
       
-      // Debug authentication context
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Auth Debug:', { 
+      console.log('Uploading CV:', { 
         filePath, 
-        fileName, 
-        userRole: userProfile.role, 
+        employeeName: employee.name, 
+        userRole: userProfile.role,
         companyId: userProfile.company_id,
-        hasSession: !!session,
-        userId: session?.user?.id,
-        sessionExpiry: session?.expires_at
+        fileName 
       });
       
       const { error: uploadError } = await supabase.storage
         .from('employee-cvs')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        throw new Error(`Storage upload failed: ${uploadError.message}`);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
       setProgress(40);
@@ -135,7 +133,10 @@ export function CVUploadDialog({
         .update({ cv_file_path: filePath })
         .eq('id', employee.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Employee update error:', updateError);
+        throw updateError;
+      }
       
       setProgress(60);
       setUploading(false);
@@ -149,7 +150,10 @@ export function CVUploadDialog({
         }
       });
 
-      if (analysisError) throw analysisError;
+      if (analysisError) {
+        console.error('Analysis error:', analysisError);
+        throw analysisError;
+      }
 
       setProgress(100);
       
@@ -169,8 +173,8 @@ export function CVUploadDialog({
       let errorMessage = 'Upload failed';
       
       if (error instanceof Error) {
-        if (error.message.includes('RLS')) {
-          errorMessage = 'Permission denied. Please check your access rights.';
+        if (error.message.includes('permission') || error.message.includes('policy')) {
+          errorMessage = 'Permission denied. Please ensure you have the correct role.';
         } else if (error.message.includes('bucket')) {
           errorMessage = 'Storage configuration error. Please contact support.';
         } else {

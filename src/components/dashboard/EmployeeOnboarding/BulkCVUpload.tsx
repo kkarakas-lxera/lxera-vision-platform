@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
@@ -30,8 +31,6 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
 
   const extractEmployeeName = (filename: string): string => {
     // Remove extension and clean up common patterns
-    // Examples: "John_Doe_CV.pdf" → "John Doe"
-    //          "jane-smith-resume.docx" → "Jane Smith"
     const nameWithoutExt = filename.replace(/\.(pdf|docx?|txt)$/i, '');
     const cleanName = nameWithoutExt
       .replace(/[-_]?(cv|resume|CV|Resume)[-_]?/gi, '')
@@ -130,19 +129,27 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
           idx === i ? { ...f, status: 'uploading', progress: 20, employeeId } : f
         ));
 
-        // Upload file
+        // Upload file with proper file path structure
         const fileName = `cv-${employeeId}-${Date.now()}.${fileInfo.file.name.split('.').pop()}`;
         const filePath = `${userProfile.company_id}/cvs/${employeeId}/${fileName}`;
         
-        console.log('Bulk uploading CV:', { filePath, employeeName: fileInfo.employeeName, userRole: userProfile.role });
+        console.log('Bulk uploading CV:', { 
+          filePath, 
+          employeeName: fileInfo.employeeName, 
+          userRole: userProfile.role,
+          companyId: userProfile.company_id
+        });
         
         const { error: uploadError } = await supabase.storage
           .from('employee-cvs')
-          .upload(filePath, fileInfo.file);
+          .upload(filePath, fileInfo.file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) {
           console.error('Bulk storage upload error:', uploadError);
-          throw new Error(`Storage upload failed: ${uploadError.message}`);
+          throw new Error(`Upload failed: ${uploadError.message}`);
         }
 
         setFiles(prev => prev.map((f, idx) => 
@@ -150,10 +157,15 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
         ));
 
         // Update employee record
-        await supabase
+        const { error: updateError } = await supabase
           .from('employees')
           .update({ cv_file_path: filePath })
           .eq('id', employeeId);
+
+        if (updateError) {
+          console.error('Employee update error:', updateError);
+          throw updateError;
+        }
 
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, status: 'analyzing', progress: 70 } : f
@@ -167,7 +179,10 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
           }
         });
 
-        if (analysisError) throw analysisError;
+        if (analysisError) {
+          console.error('Analysis error:', analysisError);
+          throw analysisError;
+        }
 
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, status: 'complete', progress: 100 } : f
@@ -178,12 +193,10 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
         
         let errorMessage = 'Processing failed';
         if (error instanceof Error) {
-          if (error.message.includes('RLS') || error.message.includes('permission')) {
+          if (error.message.includes('permission') || error.message.includes('policy')) {
             errorMessage = 'Permission denied';
           } else if (error.message.includes('bucket')) {
             errorMessage = 'Storage error';
-          } else if (error.message.includes('policy')) {
-            errorMessage = 'Access policy error';
           } else {
             errorMessage = error.message;
           }

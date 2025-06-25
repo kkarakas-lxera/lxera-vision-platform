@@ -1606,6 +1606,13 @@ export type Database = {
           hierarchy_level: number
         }[]
       }
+      get_user_auth_data: {
+        Args: { user_uuid: string }
+        Returns: {
+          user_role: string
+          user_company_id: string
+        }[]
+      }
       get_user_company_id: {
         Args: { user_id: string }
         Returns: string
