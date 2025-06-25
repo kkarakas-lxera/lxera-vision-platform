@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseStorageService } from '@/lib/supabase-service';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -72,16 +73,39 @@ export function CVUploadDialog({
       return;
     }
 
+    // Security validation: Check user permissions
+    if (userProfile.role !== 'company_admin' && userProfile.role !== 'super_admin') {
+      setError('You do not have permission to upload CVs.');
+      return;
+    }
+
     setUploading(true);
     setError(null);
     setProgress(10);
 
     try {
-      // Step 1: Upload file to Supabase Storage
+      // Verify employee belongs to user's company
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .select('company_id')
+        .eq('id', employee.id)
+        .single();
+
+      if (employeeError) {
+        throw new Error('Employee not found');
+      }
+
+      if (employeeData.company_id !== userProfile.company_id) {
+        throw new Error('You can only upload CVs for employees in your company');
+      }
+
+      setProgress(20);
+
+      // Step 1: Upload file to Supabase Storage using service role
       const fileName = `cv-${employee.id}-${Date.now()}-${file.name}`;
       const filePath = `${userProfile.company_id}/cvs/${employee.id}/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseStorageService
         .from('employee-cvs')
         .upload(filePath, file);
 

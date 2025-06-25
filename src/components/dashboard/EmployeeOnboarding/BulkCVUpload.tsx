@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseStorageService } from '@/lib/supabase-service';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -76,6 +77,16 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
       return;
     }
     
+    // Security validation: Check user permissions
+    if (userProfile.role !== 'company_admin' && userProfile.role !== 'super_admin') {
+      toast({
+        title: 'Error',
+        description: 'You do not have permission to upload CVs.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     if (files.length === 0) {
       toast({
         title: 'Error',
@@ -124,7 +135,7 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
         const fileName = `cv-${employeeId}-${Date.now()}.${fileInfo.file.name.split('.').pop()}`;
         const filePath = `${userProfile.company_id}/cvs/${employeeId}/${fileName}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseStorageService
           .from('employee-cvs')
           .upload(filePath, fileInfo.file);
 
