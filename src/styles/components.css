@@ -100,11 +100,11 @@
     @apply bg-business-black text-white hover:bg-business-black/90 font-medium rounded-full transition-all duration-300 focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2;
     font-size: clamp(0.875rem, 1.1vw, 1rem);
   }
-  /* Consistent text color utilities */
+  /* Consistent text color utilities - Fixed to use emerald consistently */
   .lxera-text-primary { @apply text-business-black; }
   .lxera-text-secondary { @apply text-business-black/80; }
   .lxera-text-muted { @apply text-business-black/60; }
-  .lxera-text-accent { @apply text-future-green; }
+  .lxera-text-accent { @apply text-emerald; }
   
   /* Card title consistency */
   .lxera-card-title {
@@ -162,7 +162,7 @@
   }
   .play-btn-glow:hover,
   .play-btn-glow:focus {
-    box-shadow: 0 0 12px 2px #7AE5C6, 0 2px 16px 5px #7AE5C699;
+    box-shadow: 0 0 12px 2px #029c55, 0 2px 16px 5px #029c5599;
     outline: none;
   }
   /* Animated underline for Tab triggers */
@@ -178,7 +178,7 @@
     left: 30%;
     width: 40%;
     height: 3px;
-    background: linear-gradient(to right, #191919 60%, #7AE5C6 100%);
+    background: linear-gradient(to right, #191919 60%, #029c55 100%);
     border-radius: 2px;
     opacity: 0;
     transform: scaleX(0);

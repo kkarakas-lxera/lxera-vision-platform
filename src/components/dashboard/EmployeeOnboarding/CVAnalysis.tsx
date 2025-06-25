@@ -1,28 +1,32 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, XCircle, Plus, Trash2, Upload, FileText } from 'lucide-react';
-import { CVUpload } from '@/components/admin/FileUpload/CVUpload';
+import { 
+  FileText, 
+  User, 
+  Target, 
+  TrendingUp, 
+  CheckCircle2,
+  AlertCircle,
+  Eye
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-
-interface CVAnalysisProps {
-  employeeId: string;
-  companyId: string;
-  currentPosition?: string;
-  targetPosition?: string;
-  onAnalysisComplete?: (profileId: string) => void;
-}
+import { SkillBadge } from '@/components/dashboard/shared/SkillBadge';
 
 interface AnalysisResult {
   id: string;
+  employee_id: string;
+  cv_file_path: string;
   cv_summary: string;
-  extracted_skills: Array<{
-    skill_id: string | null;
+  extracted_skills: {
+    skill_id: string;
     skill_name: string;
     confidence: number;
     evidence: string;
@@ -30,347 +34,256 @@ interface AnalysisResult {
     proficiency_level: number;
     skill_path?: string;
     is_custom?: boolean;
-  }>;
-  skills_match_score?: number;
-  career_readiness_score?: number;
+  }[];
+  skills_match_score: number;
+  career_readiness_score: number;
+  current_position_id?: string;
+  target_position_id?: string;
   analyzed_at: string;
 }
 
-export function CVAnalysis({
-  employeeId,
-  companyId,
-  currentPosition,
-  targetPosition,
-  onAnalysisComplete
-}: CVAnalysisProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [processingStatus, setProcessingStatus] = useState<string>('');
-  const [cvUploaded, setCvUploaded] = useState(false);
+interface Employee {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  position?: string;
+  department?: string;
+}
 
-  // Check for existing analysis
+export function CVAnalysis() {
+  const { userProfile } = useAuth();
+  const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
+
   useEffect(() => {
-    checkExistingAnalysis();
-  }, [employeeId]);
+    if (userProfile?.company_id) {
+      fetchAnalyses();
+    }
+  }, [userProfile]);
 
-  const checkExistingAnalysis = async () => {
+  const fetchAnalyses = async () => {
+    if (!userProfile?.company_id) return;
+
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      // Fetch analyses with employee data
+      const { data: analysesData, error: analysesError } = await supabase
         .from('st_employee_skills_profile')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .single();
+        .select(`
+          *,
+          employees!inner(id, first_name, last_name, email, position, department, company_id)
+        `)
+        .eq('employees.company_id', userProfile.company_id)
+        .order('analyzed_at', { ascending: false });
 
-      if (data && !error) {
-        setAnalysisResult(data);
-        setCvUploaded(true);
-      }
-    } catch (err) {
-      console.log('No existing analysis found');
-    }
-  };
+      if (analysesError) throw analysesError;
 
-  const handleCVUpload = async (result: any) => {
-    if (result.success) {
-      setCvUploaded(true);
-      // Automatically start processing
-      await processCVAnalysis(result.filePath, result.fileName || 'cv.pdf');
-    }
-  };
+      // Transform the data to match our interface
+      const transformedAnalyses: AnalysisResult[] = (analysesData || []).map(item => ({
+        id: item.id,
+        employee_id: item.employee_id,
+        cv_file_path: item.cv_file_path,
+        cv_summary: item.cv_summary,
+        extracted_skills: Array.isArray(item.extracted_skills) 
+          ? item.extracted_skills.map((skill: any) => ({
+              skill_id: skill.skill_id || '',
+              skill_name: skill.skill_name || '',
+              confidence: skill.confidence || 0,
+              evidence: skill.evidence || '',
+              years_experience: skill.years_experience,
+              proficiency_level: skill.proficiency_level || 0,
+              skill_path: skill.skill_path,
+              is_custom: skill.is_custom || false
+            }))
+          : [],
+        skills_match_score: item.skills_match_score || 0,
+        career_readiness_score: item.career_readiness_score || 0,
+        current_position_id: item.current_position_id,
+        target_position_id: item.target_position_id,
+        analyzed_at: item.analyzed_at
+      }));
 
-  const processCVAnalysis = async (filePath: string, fileName: string) => {
-    setIsProcessing(true);
-    setProcessingStatus('Starting CV analysis...');
+      setAnalyses(transformedAnalyses);
 
-    try {
-      // Call Edge Function for CV processing
-      const { data, error } = await supabase.functions.invoke('cv-process', {
-        body: {
-          employeeId,
-          companyId,
-          filePath,
-          fileName,
-          currentPosition,
-          targetPosition
-        }
-      });
+      // Extract unique employees
+      const uniqueEmployees = analysesData?.map(item => item.employees).filter(Boolean) || [];
+      setEmployees(uniqueEmployees);
 
-      if (error) throw error;
-
-      if (data.success) {
-        setProcessingStatus('Analysis complete!');
-        toast({
-          title: 'CV Analysis Complete',
-          description: `Found ${data.skillsCount} skills. ${data.experienceYears} years of experience.`
-        });
-
-        // Fetch the full analysis result
-        await fetchAnalysisResult(data.profileId);
-        onAnalysisComplete?.(data.profileId);
-      }
-    } catch (error: any) {
-      console.error('CV processing error:', error);
-      setProcessingStatus('Analysis failed');
+    } catch (error) {
+      console.error('Error fetching analyses:', error);
       toast({
-        title: 'Analysis Failed',
-        description: error.message || 'An error occurred during CV analysis',
+        title: 'Error',
+        description: 'Failed to load CV analyses',
         variant: 'destructive'
       });
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
   };
 
-  const fetchAnalysisResult = async (profileId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('cv-analyze', {
-        body: { profileId, action: 'get' }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        setAnalysisResult(data.profile);
-      }
-    } catch (error) {
-      console.error('Error fetching analysis:', error);
-    }
+  const getEmployeeById = (employeeId: string) => {
+    return employees.find(emp => emp.id === employeeId);
   };
 
-  const handleAddSkill = async () => {
-    // Implementation for adding custom skills
-    toast({
-      title: 'Add Skill',
-      description: 'Feature coming soon!'
-    });
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
-  const handleRemoveSkill = async (skillName: string) => {
-    if (!analysisResult) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('cv-analyze', {
-        body: {
-          profileId: analysisResult.id,
-          action: 'remove-skill',
-          skillData: { skill_name: skillName }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        setAnalysisResult(data.profile);
-        toast({
-          title: 'Skill Removed',
-          description: `Removed ${skillName} from profile`
-        });
-      }
-    } catch (error) {
-      console.error('Error removing skill:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove skill',
-        variant: 'destructive'
-      });
-    }
+  const getScoreBadgeVariant = (score: number): "default" | "secondary" | "destructive" => {
+    if (score >= 80) return 'default';
+    if (score >= 60) return 'secondary';
+    return 'destructive';
   };
 
-  const getProficiencyLabel = (level: number) => {
-    const labels = ['None', 'Beginner', 'Basic', 'Intermediate', 'Advanced', 'Expert'];
-    return labels[level] || 'Unknown';
-  };
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
-  const getProficiencyColor = (level: number) => {
-    if (level >= 4) return 'bg-green-500';
-    if (level >= 3) return 'bg-blue-500';
-    if (level >= 2) return 'bg-yellow-500';
-    return 'bg-gray-500';
-  };
+  if (analyses.length === 0) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          No CV analyses found. Upload and analyze CVs to see results here.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
-      {!cvUploaded && (
-        <CVUpload
-          employeeId={employeeId}
-          companyId={companyId}
-          onUploadComplete={handleCVUpload}
-        />
-      )}
-
-      {/* Processing Status */}
-      {isProcessing && (
-        <Card>
-          <CardContent className="py-8">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-lg font-medium">{processingStatus}</p>
-              <Progress value={33} className="w-full max-w-xs" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Analysis Results */}
-      {analysisResult && !isProcessing && (
-        <div className="space-y-6">
-          {/* Summary Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>CV Analysis Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                {analysisResult.cv_summary}
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{analysisResult.extracted_skills.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Skills</p>
-                </div>
-                {analysisResult.skills_match_score && (
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{analysisResult.skills_match_score}%</p>
-                    <p className="text-sm text-muted-foreground">Current Role Match</p>
-                  </div>
-                )}
-                {analysisResult.career_readiness_score && (
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{analysisResult.career_readiness_score}%</p>
-                    <p className="text-sm text-muted-foreground">Target Role Ready</p>
-                  </div>
-                )}
-                <div className="text-center">
-                  <p className="text-2xl font-bold">
-                    {new Date(analysisResult.analyzed_at).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Analysis Date</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Skills Tabs */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Extracted Skills</CardTitle>
-                <Button size="sm" onClick={handleAddSkill}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Skill
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="technical">Technical</TabsTrigger>
-                  <TabsTrigger value="soft">Soft Skills</TabsTrigger>
-                  <TabsTrigger value="custom">Custom</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all" className="space-y-2 mt-4">
-                  {analysisResult.extracted_skills.map((skill, index) => (
-                    <SkillItem
-                      key={index}
-                      skill={skill}
-                      onRemove={() => handleRemoveSkill(skill.skill_name)}
-                    />
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="technical" className="space-y-2 mt-4">
-                  {analysisResult.extracted_skills
-                    .filter(s => !s.is_custom && s.skill_path?.includes('Technical'))
-                    .map((skill, index) => (
-                      <SkillItem
-                        key={index}
-                        skill={skill}
-                        onRemove={() => handleRemoveSkill(skill.skill_name)}
-                      />
-                    ))}
-                </TabsContent>
-
-                <TabsContent value="soft" className="space-y-2 mt-4">
-                  {analysisResult.extracted_skills
-                    .filter(s => !s.is_custom && s.skill_path?.includes('communication'))
-                    .map((skill, index) => (
-                      <SkillItem
-                        key={index}
-                        skill={skill}
-                        onRemove={() => handleRemoveSkill(skill.skill_name)}
-                      />
-                    ))}
-                </TabsContent>
-
-                <TabsContent value="custom" className="space-y-2 mt-4">
-                  {analysisResult.extracted_skills
-                    .filter(s => s.is_custom)
-                    .map((skill, index) => (
-                      <SkillItem
-                        key={index}
-                        skill={skill}
-                        onRemove={() => handleRemoveSkill(skill.skill_name)}
-                      />
-                    ))}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">CV Analysis Results</h2>
+          <p className="text-muted-foreground">
+            Review analyzed CVs and skills profiles
+          </p>
         </div>
-      )}
-    </div>
-  );
-}
-
-// Skill Item Component
-interface SkillItemProps {
-  skill: any;
-  onRemove: () => void;
-}
-
-function SkillItem({ skill, onRemove }: SkillItemProps) {
-  const getProficiencyColor = (level: number) => {
-    if (level >= 4) return 'bg-green-500';
-    if (level >= 3) return 'bg-blue-500';
-    if (level >= 2) return 'bg-yellow-500';
-    return 'bg-gray-500';
-  };
-
-  return (
-    <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{skill.skill_name}</span>
-          {skill.is_custom && (
-            <Badge variant="secondary" className="text-xs">Custom</Badge>
-          )}
-          <Badge variant="outline" className="text-xs">
-            {Math.round(skill.confidence * 100)}% confident
-          </Badge>
-        </div>
-        {skill.skill_path && (
-          <p className="text-xs text-muted-foreground mt-1">{skill.skill_path}</p>
-        )}
-        {skill.evidence && (
-          <p className="text-xs text-muted-foreground mt-1 italic">"{skill.evidence}"</p>
-        )}
+        <Badge variant="outline">
+          {analyses.length} Analyses
+        </Badge>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          <div className={`w-2 h-2 rounded-full ${getProficiencyColor(skill.proficiency_level)}`} />
-          <span className="text-sm">{skill.years_experience || 0}y</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+
+      <div className="grid gap-6">
+        {analyses.map((analysis) => {
+          const employee = getEmployeeById(analysis.employee_id);
+          
+          return (
+            <Card key={analysis.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">
+                        {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {employee?.position || 'No position specified'} • {employee?.department || 'No department'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getScoreBadgeVariant(analysis.career_readiness_score)}>
+                      {analysis.career_readiness_score}% Ready
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedAnalysis(analysis)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {/* Summary */}
+                <div>
+                  <h4 className="font-medium mb-2">CV Summary</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {analysis.cv_summary}
+                  </p>
+                </div>
+
+                {/* Scores */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Skills Match</span>
+                      <span className={`text-sm font-bold ${getScoreColor(analysis.skills_match_score)}`}>
+                        {analysis.skills_match_score}%
+                      </span>
+                    </div>
+                    <Progress value={analysis.skills_match_score} className="h-2" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Career Readiness</span>
+                      <span className={`text-sm font-bold ${getScoreColor(analysis.career_readiness_score)}`}>
+                        {analysis.career_readiness_score}%
+                      </span>
+                    </div>
+                    <Progress value={analysis.career_readiness_score} className="h-2" />
+                  </div>
+                </div>
+
+                {/* Top Skills */}
+                <div>
+                  <h4 className="font-medium mb-2">Extracted Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.extracted_skills.slice(0, 6).map((skill, index) => (
+                      <SkillBadge
+                        key={index}
+                        skill={skill}
+                        size="sm"
+                        showConfidence
+                      />
+                    ))}
+                    {analysis.extracted_skills.length > 6 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{analysis.extracted_skills.length - 6} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Analysis Date */}
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Analyzed {new Date(analysis.analyzed_at).toLocaleDateString()}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

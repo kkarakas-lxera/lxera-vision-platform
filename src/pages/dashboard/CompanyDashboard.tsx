@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,12 +132,12 @@ export default function CompanyDashboard() {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      // Fetch recent CV analyses
+      // Fetch recent CV analyses with proper employee fields
       const { data: analyses } = await supabase
         .from('st_employee_skills_profile')
         .select(`
           *,
-          employees!inner(first_name, last_name, company_id)
+          employees!inner(full_name, company_id)
         `)
         .eq('employees.company_id', userProfile.company_id)
         .order('analyzed_at', { ascending: false })
@@ -159,7 +160,7 @@ export default function CompanyDashboard() {
         activities.push({
           id: analysis.id,
           type: 'analysis',
-          message: `Analyzed CV for ${analysis.employees.first_name} ${analysis.employees.last_name}`,
+          message: `Analyzed CV for ${analysis.employees.full_name}`,
           timestamp: analysis.analyzed_at,
           icon: <CheckCircle2 className="h-4 w-4" />
         });
@@ -233,7 +234,7 @@ export default function CompanyDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {userProfile?.first_name}
+            Welcome back, {userProfile?.full_name}
           </h1>
           <p className="text-muted-foreground mt-1">
             Here's what's happening with your team's skills development

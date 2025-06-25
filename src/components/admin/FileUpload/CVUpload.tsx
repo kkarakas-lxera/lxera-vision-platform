@@ -1,194 +1,209 @@
-import React, { useState } from 'react';
-import { Upload, FileText, X, CheckCircle } from 'lucide-react';
+
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { toast } from '@/hooks/use-toast';
-import { uploadFile, STORAGE_BUCKETS, validateFile } from '@/lib/storage';
-import { FileUploadResult } from '@/types/storage';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { uploadFile } from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
+import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CVUploadProps {
-  employeeId: string;
-  companyId: string;
-  onUploadComplete?: (result: FileUploadResult) => void;
+  onUploadComplete?: (results: any[]) => void;
+  maxFiles?: number;
 }
 
-export function CVUpload({ employeeId, companyId, onUploadComplete }: CVUploadProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadResult, setUploadResult] = useState<FileUploadResult | null>(null);
+interface UploadedFile {
+  file: File;
+  id: string;
+  status: 'uploading' | 'processing' | 'complete' | 'error';
+  progress: number;
+  result?: any;
+  error?: string;
+}
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+export function CVUpload({ onUploadComplete, maxFiles = 10 }: CVUploadProps) {
+  const { toast } = useToast();
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-    // Validate file
-    const validation = validateFile(selectedFile, STORAGE_BUCKETS.EMPLOYEE_CVS);
-    if (!validation.valid) {
-      toast({
-        title: 'Invalid file',
-        description: validation.error,
-        variant: 'destructive',
-      });
-      return;
-    }
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
+      file,
+      id: Math.random().toString(36).substr(2, 9),
+      status: 'uploading' as const,
+      progress: 0
+    }));
 
-    setFile(selectedFile);
-    setUploadResult(null);
-  };
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setIsProcessing(true);
 
-  const handleUpload = async () => {
-    if (!file) return;
+    // Process each file
+    for (const uploadedFile of newFiles) {
+      try {
+        // Update progress
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === uploadedFile.id ? { ...f, progress: 25 } : f)
+        );
 
-    setUploading(true);
-    setUploadProgress(0);
+        // Upload to Supabase Storage
+        const fileName = `cv-${Date.now()}-${uploadedFile.file.name}`;
+        const filePath = `cvs/${fileName}`;
+        
+        await uploadFile(uploadedFile.file, 'documents', filePath);
 
-    try {
-      // Simulate progress (in real implementation, use XMLHttpRequest for progress)
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
+        // Update progress
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === uploadedFile.id ? { ...f, progress: 50, status: 'processing' } : f)
+        );
+
+        // Process CV with Supabase Edge Function
+        const { data, error } = await supabase.functions.invoke('cv-process', {
+          body: { filePath }
         });
-      }, 200);
 
-      const result = await uploadFile(
-        file,
-        STORAGE_BUCKETS.EMPLOYEE_CVS,
-        companyId,
-        employeeId,
-        'employee'
-      );
+        if (error) throw error;
 
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-      setUploadResult(result);
+        // Update as complete
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === uploadedFile.id ? { 
+            ...f, 
+            progress: 100, 
+            status: 'complete',
+            result: data 
+          } : f)
+        );
 
-      if (result.success) {
-        toast({
-          title: 'Upload successful',
-          description: 'CV has been uploaded successfully',
-        });
-        onUploadComplete?.(result);
-      } else {
-        toast({
-          title: 'Upload failed',
-          description: result.error || 'An error occurred during upload',
-          variant: 'destructive',
-        });
+      } catch (error) {
+        console.error('Error processing CV:', error);
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === uploadedFile.id ? { 
+            ...f, 
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          } : f)
+        );
       }
-    } catch (error) {
-      toast({
-        title: 'Upload error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
     }
+
+    setIsProcessing(false);
+
+    // Notify parent component
+    const results = uploadedFiles
+      .filter(f => f.status === 'complete')
+      .map(f => f.result);
+    
+    if (results.length > 0 && onUploadComplete) {
+      onUploadComplete(results);
+    }
+  }, [uploadedFiles, onUploadComplete]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+    },
+    maxFiles,
+    disabled: isProcessing
+  });
+
+  const removeFile = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
-  const handleRemoveFile = () => {
-    setFile(null);
-    setUploadResult(null);
-    setUploadProgress(0);
+  const getStatusIcon = (status: UploadedFile['status']) => {
+    switch (status) {
+      case 'uploading':
+      case 'processing':
+        return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />;
+      case 'complete':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+    }
   };
 
   return (
-    <Card className="p-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Upload CV/Resume</h3>
-          {uploadResult?.success && (
-            <CheckCircle className="h-5 w-5 text-green-500" />
-          )}
-        </div>
-
-        {!file ? (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
-            <div className="flex flex-col items-center space-y-4">
-              <Upload className="h-12 w-12 text-gray-400" />
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Drag and drop your CV here, or click to browse
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PDF or DOCX format, max 10MB
-                </p>
-              </div>
-              <label htmlFor="cv-upload" className="cursor-pointer">
-                <input
-                  id="cv-upload"
-                  type="file"
-                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button variant="outline" size="sm" as="span">
-                  Select File
-                </Button>
-              </label>
-            </div>
+    <div className="space-y-4">
+      {/* Drop Zone */}
+      <Card className={`border-2 border-dashed transition-colors ${
+        isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+      }`}>
+        <CardContent className="p-8">
+          <div
+            {...getRootProps()}
+            className="text-center cursor-pointer"
+          >
+            <input {...getInputProps()} />
+            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              {isDragActive ? 'Drop CVs here' : 'Upload CVs'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Drag and drop CV files here, or click to select files
+            </p>
+            <Button variant="outline" size="sm">
+              Select Files
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Supports PDF, DOC, and DOCX files (max {maxFiles} files)
+            </p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <FileText className="h-8 w-8 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-              {!uploading && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRemoveFile}
+        </CardContent>
+      </Card>
+
+      {/* File List */}
+      {uploadedFiles.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h4 className="font-semibold mb-3">Uploaded Files</h4>
+            <div className="space-y-3">
+              {uploadedFiles.map((uploadedFile) => (
+                <div
+                  key={uploadedFile.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            {uploading && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
+                  <div className="flex items-center space-x-3 flex-1">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{uploadedFile.file.name}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        {getStatusIcon(uploadedFile.status)}
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {uploadedFile.status}
+                        </span>
+                      </div>
+                      {(uploadedFile.status === 'uploading' || uploadedFile.status === 'processing') && (
+                        <Progress value={uploadedFile.progress} className="mt-2" />
+                      )}
+                      {uploadedFile.error && (
+                        <Alert className="mt-2">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-xs">
+                            {uploadedFile.error}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFile(uploadedFile.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Progress value={uploadProgress} />
-              </div>
-            )}
-
-            {!uploading && !uploadResult && (
-              <Button
-                onClick={handleUpload}
-                className="w-full"
-              >
-                Upload CV
-              </Button>
-            )}
-
-            {uploadResult?.success && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-700">
-                  CV uploaded successfully!
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  Path: {uploadResult.filePath}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
