@@ -20,7 +20,9 @@ import {
   GraduationCap,
   Home,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Upload,
+  Target
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -51,6 +53,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       case 'company_admin':
         return [
           { href: '/dashboard', icon: Home, label: 'Dashboard' },
+          { href: '/dashboard/onboarding', icon: Upload, label: 'Onboarding' },
+          { href: '/dashboard/positions', icon: Target, label: 'Positions' },
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
@@ -109,7 +113,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href;
+              const isActive = location.pathname === item.href || 
+                (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/learn' && 
+                 location.pathname.startsWith(item.href));
               
               return (
                 <Link

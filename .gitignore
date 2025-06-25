@@ -74,3 +74,16 @@ openai_course_generator/multimedia/input_data/
 *.db
 *.sqlite
 *.sqlite3
+
+# Large data files and repositories
+data/skills-taxonomy/skills-taxonomy-v2/
+data/large-datasets/
+
+# Virtual environments (additional)
+scripts/venv/
+
+# Supabase
+.branches
+.temp
+.import
+.migration_cache

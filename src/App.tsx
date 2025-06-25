@@ -33,6 +33,9 @@ import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
 import UsersManagement from "./pages/admin/users/UsersManagement";
 import CoursesManagement from "./pages/admin/courses/CoursesManagement";
 
+// Import company dashboard pages
+import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -86,10 +89,12 @@ const App = () => (
                 <ProtectedRoute allowedRoles={['company_admin']}>
                   <DashboardLayout>
                     <Routes>
-                      <Route path="/" element={<div>Company Dashboard</div>} />
-                      <Route path="/employees" element={<div>Employee Management</div>} />
+                      <Route path="/" element={<CompanyDashboard />} />
+                      <Route path="/onboarding" element={<div>Employee Onboarding Wizard</div>} />
+                      <Route path="/positions" element={<div>Position Management</div>} />
+                      <Route path="/employees" element={<div>Employee Skills Dashboard</div>} />
                       <Route path="/courses" element={<div>Course Management</div>} />
-                      <Route path="/analytics" element={<div>Company Analytics</div>} />
+                      <Route path="/analytics" element={<div>Skills Analytics</div>} />
                       <Route path="/settings" element={<div>Company Settings</div>} />
                     </Routes>
                   </DashboardLayout>
