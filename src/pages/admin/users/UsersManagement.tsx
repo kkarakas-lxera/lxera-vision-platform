@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { CompanySelector } from '@/components/admin/shared/CompanySelector';
 import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
+import { UserCreateSheet } from '@/components/admin/UserManagement/UserCreateSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -77,6 +78,7 @@ const UsersManagement = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userSheetOpen, setUserSheetOpen] = useState(false);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   useEffect(() => {
     if (selectedCompanyId) {
@@ -132,11 +134,15 @@ const UsersManagement = () => {
   };
 
   const handleCreateUser = () => {
-    // TODO: Implement create user modal
-    toast({
-      title: 'Coming Soon',
-      description: 'User creation will be implemented',
-    });
+    if (!selectedCompanyId) {
+      toast({
+        title: 'Select a Company',
+        description: 'Please select a company before creating a user',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setCreateSheetOpen(true);
   };
 
   const handleEditUser = (user: User) => {
@@ -547,6 +553,14 @@ const UsersManagement = () => {
             open={userSheetOpen}
             onOpenChange={setUserSheetOpen}
             onUserUpdated={fetchUsers}
+          />
+
+          {/* User Create Sheet */}
+          <UserCreateSheet
+            open={createSheetOpen}
+            onOpenChange={setCreateSheetOpen}
+            onUserCreated={fetchUsers}
+            preSelectedCompanyId={selectedCompanyId}
           />
         </>
       )}

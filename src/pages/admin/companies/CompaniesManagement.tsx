@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
+import { CompanyCreateSheet } from '@/components/admin/CompanyManagement/CompanyCreateSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -66,6 +67,7 @@ const CompaniesManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companySheetOpen, setCompanySheetOpen] = useState(false);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [sortField, setSortField] = useState<'name' | 'created_at' | 'employeeCount'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -129,11 +131,7 @@ const CompaniesManagement = () => {
   };
 
   const handleCreateCompany = () => {
-    // TODO: Implement create company modal
-    toast({
-      title: 'Coming Soon',
-      description: 'Company creation will be implemented',
-    });
+    setCreateSheetOpen(true);
   };
 
   const handleEditCompany = (company: Company) => {
@@ -486,6 +484,13 @@ const CompaniesManagement = () => {
         open={companySheetOpen}
         onOpenChange={setCompanySheetOpen}
         onCompanyUpdated={fetchCompanies}
+      />
+
+      {/* Company Create Sheet */}
+      <CompanyCreateSheet
+        open={createSheetOpen}
+        onOpenChange={setCreateSheetOpen}
+        onCompanyCreated={fetchCompanies}
       />
     </div>
   );
