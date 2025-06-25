@@ -206,7 +206,9 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Avg Skills Match</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {Math.round(positionAnalyses.reduce((sum, a) => sum + a.avg_gap_score, 0) / positionAnalyses.length || 0)}%
+                  {positionAnalyses.length > 0 
+                    ? Math.round(positionAnalyses.reduce((sum, a) => sum + a.avg_gap_score, 0) / positionAnalyses.length)
+                    : 0}%
                 </p>
               </div>
             </div>

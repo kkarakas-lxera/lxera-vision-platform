@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { PositionCreateSheet } from '@/components/dashboard/PositionManagement/PositionCreateSheet';
+import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
 import { PositionEditSheet } from '@/components/dashboard/PositionManagement/PositionEditSheet';
 import { toast } from 'sonner';
 
@@ -287,7 +287,7 @@ export default function PositionManagement() {
       </div>
 
       {/* Create Position Sheet */}
-      <PositionCreateSheet
+      <PositionCreateWizard
         open={createOpen}
         onOpenChange={setCreateOpen}
         onSuccess={() => {
