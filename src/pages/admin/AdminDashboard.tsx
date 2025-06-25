@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -207,34 +206,34 @@ const AdminDashboard = () => {
 
       {/* Tab Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-1 rounded-2xl shadow-sm">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-2 rounded-2xl shadow-sm">
           <TabsTrigger 
             value="overview" 
-            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger 
             value="users" 
-            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Users
           </TabsTrigger>
           <TabsTrigger 
             value="companies" 
-            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Companies
           </TabsTrigger>
           <TabsTrigger 
             value="content" 
-            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Content
           </TabsTrigger>
           <TabsTrigger 
             value="activity" 
-            className="rounded-xl px-6 py-3 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Activity
           </TabsTrigger>
