@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
 import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
+import { CompanyCreateSheet } from '@/components/admin/CompanyManagement/CompanyCreateSheet';
 import { CourseAssignmentTracker } from '@/components/admin/CourseManagement/CourseAssignmentTracker';
 
 interface Company {
@@ -46,6 +48,7 @@ interface User {
 
 const AdminDashboard = () => {
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,7 @@ const AdminDashboard = () => {
   const [userSheetOpen, setUserSheetOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companySheetOpen, setCompanySheetOpen] = useState(false);
+  const [companyCreateSheetOpen, setCompanyCreateSheetOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -72,6 +76,10 @@ const AdminDashboard = () => {
   const handleEditCompany = (company: Company) => {
     setSelectedCompany(company);
     setCompanySheetOpen(true);
+  };
+
+  const handleCreateCompany = () => {
+    setCompanyCreateSheetOpen(true);
   };
 
   const fetchDashboardData = async () => {
@@ -206,34 +214,34 @@ const AdminDashboard = () => {
 
       {/* Tab Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-2 rounded-2xl shadow-sm">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-1 rounded-2xl shadow-sm">
           <TabsTrigger 
             value="overview" 
-            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger 
             value="users" 
-            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Users
           </TabsTrigger>
           <TabsTrigger 
             value="companies" 
-            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Companies
           </TabsTrigger>
           <TabsTrigger 
             value="content" 
-            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Content
           </TabsTrigger>
           <TabsTrigger 
             value="activity" 
-            className="rounded-xl px-4 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Activity
           </TabsTrigger>
@@ -250,7 +258,14 @@ const AdminDashboard = () => {
                     <CardTitle className="text-xl">Recent Companies</CardTitle>
                     <CardDescription>Latest registered companies</CardDescription>
                   </div>
-                  <Button size="sm" variant="outline" className="rounded-xl">View All</Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="rounded-xl"
+                    onClick={() => navigate('/admin/companies')}
+                  >
+                    View All
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -290,7 +305,14 @@ const AdminDashboard = () => {
                     <CardTitle className="text-xl">Recent Users</CardTitle>
                     <CardDescription>Latest user registrations</CardDescription>
                   </div>
-                  <Button size="sm" variant="outline" className="rounded-xl">View All</Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="rounded-xl"
+                    onClick={() => navigate('/admin/users')}
+                  >
+                    View All
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -402,7 +424,7 @@ const AdminDashboard = () => {
                   <CardTitle className="text-xl">Company Management</CardTitle>
                   <CardDescription>Manage all registered companies</CardDescription>
                 </div>
-                <Button className="rounded-xl">
+                <Button className="rounded-xl" onClick={handleCreateCompany}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Company
                 </Button>
@@ -484,6 +506,13 @@ const AdminDashboard = () => {
         open={companySheetOpen}
         onOpenChange={setCompanySheetOpen}
         onCompanyUpdated={fetchDashboardData}
+      />
+
+      {/* Company Create Sheet */}
+      <CompanyCreateSheet
+        open={companyCreateSheetOpen}
+        onOpenChange={setCompanyCreateSheetOpen}
+        onCompanyCreated={fetchDashboardData}
       />
     </div>
   );

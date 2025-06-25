@@ -1268,6 +1268,69 @@ export type Database = {
           },
         ]
       }
+      st_file_uploads: {
+        Row: {
+          bucket_name: string
+          company_id: string
+          created_at: string | null
+          deleted_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          metadata: Json | null
+          mime_type: string
+          uploaded_by: string
+        }
+        Insert: {
+          bucket_name: string
+          company_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          metadata?: Json | null
+          mime_type: string
+          uploaded_by: string
+        }
+        Update: {
+          bucket_name?: string
+          company_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          metadata?: Json | null
+          mime_type?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_file_uploads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_file_uploads_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       st_import_session_items: {
         Row: {
           created_at: string | null
@@ -1521,6 +1584,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_import_files: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_storage_path: {
+        Args: {
+          p_bucket_name: string
+          p_company_id: string
+          p_entity_id: string
+          p_file_name: string
+        }
+        Returns: string
+      }
       get_skill_path: {
         Args: { skill_uuid: string }
         Returns: {
@@ -1548,6 +1624,15 @@ export type Database = {
           full_path: string
           relevance: number
         }[]
+      }
+      validate_file_upload: {
+        Args: {
+          p_bucket_name: string
+          p_file_name: string
+          p_file_size: number
+          p_mime_type: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

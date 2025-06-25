@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Sheet,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Building2 } from 'lucide-react';
@@ -129,7 +131,7 @@ export function CompanyCreateSheet({ open, onOpenChange, onCompanyCreated }: Com
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -140,117 +142,119 @@ export function CompanyCreateSheet({ open, onOpenChange, onCompanyCreated }: Com
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Company Info */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-foreground">
-                Company Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Acme Corporation"
-                className="text-foreground"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="domain" className="text-foreground">
-                Domain <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="domain"
-                value={formData.domain}
-                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
-                placeholder="acme.com"
-                className="text-foreground"
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the company's primary domain (e.g., example.com)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="logo_url" className="text-foreground">
-                Logo URL
-              </Label>
-              <Input
-                id="logo_url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                placeholder="https://example.com/logo.png"
-                className="text-foreground"
-              />
-            </div>
-          </div>
-
-          {/* Subscription Settings */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground">Subscription Settings</h4>
-            
-            <div className="space-y-2">
-              <Label htmlFor="plan_type" className="text-foreground">
-                Plan Type
-              </Label>
-              <Select value={formData.plan_type} onValueChange={(value) => setFormData({ ...formData, plan_type: value })}>
-                <SelectTrigger id="plan_type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trial">Trial (30 days)</SelectItem>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-6 py-4">
+            {/* Company Info */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="max_employees" className="text-foreground">
-                  Max Employees
+                <Label htmlFor="name" className="text-foreground">
+                  Company Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="max_employees"
-                  type="number"
-                  min="1"
-                  value={formData.max_employees}
-                  onChange={(e) => setFormData({ ...formData, max_employees: parseInt(e.target.value) || 1 })}
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Acme Corporation"
                   className="text-foreground"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="max_courses" className="text-foreground">
-                  Max Courses
+                <Label htmlFor="domain" className="text-foreground">
+                  Domain <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="max_courses"
-                  type="number"
-                  min="1"
-                  value={formData.max_courses}
-                  onChange={(e) => setFormData({ ...formData, max_courses: parseInt(e.target.value) || 1 })}
+                  id="domain"
+                  value={formData.domain}
+                  onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                  placeholder="acme.com"
+                  className="text-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the company's primary domain (e.g., example.com)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="logo_url" className="text-foreground">
+                  Logo URL
+                </Label>
+                <Input
+                  id="logo_url"
+                  value={formData.logo_url}
+                  onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                  placeholder="https://example.com/logo.png"
                   className="text-foreground"
                 />
               </div>
             </div>
 
-            <div className="rounded-lg bg-muted p-3">
-              <p className="text-sm text-muted-foreground">
-                Based on the selected plan:
-              </p>
-              <ul className="mt-2 text-sm space-y-1">
-                <li>• Company can have up to <span className="font-medium">{formData.max_employees}</span> employees</li>
-                <li>• Company can create up to <span className="font-medium">{formData.max_courses}</span> courses</li>
-                <li>• Company will start with <span className="font-medium">{formData.plan_type}</span> plan features</li>
-              </ul>
+            {/* Subscription Settings */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-foreground">Subscription Settings</h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="plan_type" className="text-foreground">
+                  Plan Type
+                </Label>
+                <Select value={formData.plan_type} onValueChange={(value) => setFormData({ ...formData, plan_type: value })}>
+                  <SelectTrigger id="plan_type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trial">Trial (30 days)</SelectItem>
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="max_employees" className="text-foreground">
+                    Max Employees
+                  </Label>
+                  <Input
+                    id="max_employees"
+                    type="number"
+                    min="1"
+                    value={formData.max_employees}
+                    onChange={(e) => setFormData({ ...formData, max_employees: parseInt(e.target.value) || 1 })}
+                    className="text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="max_courses" className="text-foreground">
+                    Max Courses
+                  </Label>
+                  <Input
+                    id="max_courses"
+                    type="number"
+                    min="1"
+                    value={formData.max_courses}
+                    onChange={(e) => setFormData({ ...formData, max_courses: parseInt(e.target.value) || 1 })}
+                    className="text-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-muted p-3">
+                <p className="text-sm text-muted-foreground">
+                  Based on the selected plan:
+                </p>
+                <ul className="mt-2 text-sm space-y-1">
+                  <li>• Company can have up to <span className="font-medium">{formData.max_employees}</span> employees</li>
+                  <li>• Company can create up to <span className="font-medium">{formData.max_courses}</span> courses</li>
+                  <li>• Company will start with <span className="font-medium">{formData.plan_type}</span> plan features</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
 
-        <SheetFooter>
+        <SheetFooter className="pt-4 border-t">
           <Button 
             variant="outline" 
             onClick={() => {
