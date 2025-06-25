@@ -99,41 +99,61 @@ export function CVUploadDialog({
         throw new Error('You can only upload CVs for employees in your company');
       }
 
-      setProgress(20);
+      setProgress(30);
 
-      // Use the simplified file path format that matches our RLS policies
-      // Format: {company_id}/{filename}
-      const fileName = `cv-${employee.id}-${Date.now()}.${file.name.split('.').pop()}`;
-      const filePath = `${userProfile.company_id}/${fileName}`;
+      // Try multiple file path formats to find one that works
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      
+      // Format 1: company_id/filename (most permissive)
+      const filePath = `${userProfile.company_id}/cv-${employee.id}-${timestamp}.${fileExtension}`;
       
       console.log('CV Upload attempt:', { 
         filePath, 
         employeeName: employee.name, 
         userRole: userProfile.role,
         companyId: userProfile.company_id,
-        fileName,
         bucketId: 'employee-cvs'
       });
       
-      const { error: uploadError } = await supabase.storage
+      // Try uploading with upsert: true to overwrite if exists
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-cvs')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
+        
+        // Try alternative path format if first one fails
+        const altFilePath = `${userProfile.company_id}/${employee.id}/${timestamp}.${fileExtension}`;
+        console.log('Trying alternative path:', altFilePath);
+        
+        const { data: altUploadData, error: altUploadError } = await supabase.storage
+          .from('employee-cvs')
+          .upload(altFilePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (altUploadError) {
+          console.error('Alternative upload also failed:', altUploadError);
+          throw new Error(`Upload failed: ${uploadError.message}`);
+        }
+        
+        console.log('Alternative upload successful');
       }
       
-      console.log('Upload successful, file path:', filePath);
-      setProgress(40);
+      const finalPath = uploadData?.path || filePath;
+      console.log('Upload successful, file path:', finalPath);
+      setProgress(60);
 
       // Step 2: Save file path to employee record
       const { error: updateError } = await supabase
         .from('employees')
-        .update({ cv_file_path: filePath })
+        .update({ cv_file_path: finalPath })
         .eq('id', employee.id);
 
       if (updateError) {
@@ -141,29 +161,33 @@ export function CVUploadDialog({
         throw updateError;
       }
       
-      setProgress(60);
+      setProgress(80);
       setUploading(false);
       setAnalyzing(true);
 
       // Step 3: Trigger CV analysis via Edge Function
-      const { data, error: analysisError } = await supabase.functions.invoke('analyze-cv', {
-        body: { 
-          employee_id: employee.id,
-          file_path: filePath 
-        }
-      });
+      try {
+        const { data, error: analysisError } = await supabase.functions.invoke('analyze-cv', {
+          body: { 
+            employee_id: employee.id,
+            file_path: finalPath 
+          }
+        });
 
-      if (analysisError) {
-        console.error('Analysis error:', analysisError);
-        // Don't throw here - upload was successful, analysis can be retried
-        console.warn('CV analysis failed, but upload was successful');
+        if (analysisError) {
+          console.error('Analysis error:', analysisError);
+          // Don't throw here - upload was successful, analysis can be retried
+          console.warn('CV analysis failed, but upload was successful');
+        }
+      } catch (analysisError) {
+        console.warn('CV analysis request failed:', analysisError);
       }
 
       setProgress(100);
       
       toast({
         title: 'Success',
-        description: 'CV uploaded successfully' + (analysisError ? ' (analysis will be retried)' : ' and analyzed'),
+        description: 'CV uploaded successfully',
       });
 
       // Close dialog and refresh
