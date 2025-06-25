@@ -613,6 +613,9 @@ export type Database = {
           company_id: string
           courses_completed: number | null
           created_at: string | null
+          current_position_id: string | null
+          cv_extracted_data: Json | null
+          cv_file_path: string | null
           department: string | null
           employee_id: string | null
           employee_role: string | null
@@ -625,6 +628,8 @@ export type Database = {
           manager_id: string | null
           position: string | null
           skill_level: string | null
+          skills_last_analyzed: string | null
+          target_position_id: string | null
           total_learning_hours: number | null
           updated_at: string | null
           user_id: string | null
@@ -634,6 +639,9 @@ export type Database = {
           company_id: string
           courses_completed?: number | null
           created_at?: string | null
+          current_position_id?: string | null
+          cv_extracted_data?: Json | null
+          cv_file_path?: string | null
           department?: string | null
           employee_id?: string | null
           employee_role?: string | null
@@ -646,6 +654,8 @@ export type Database = {
           manager_id?: string | null
           position?: string | null
           skill_level?: string | null
+          skills_last_analyzed?: string | null
+          target_position_id?: string | null
           total_learning_hours?: number | null
           updated_at?: string | null
           user_id?: string | null
@@ -655,6 +665,9 @@ export type Database = {
           company_id?: string
           courses_completed?: number | null
           created_at?: string | null
+          current_position_id?: string | null
+          cv_extracted_data?: Json | null
+          cv_file_path?: string | null
           department?: string | null
           employee_id?: string | null
           employee_role?: string | null
@@ -667,6 +680,8 @@ export type Database = {
           manager_id?: string | null
           position?: string | null
           skill_level?: string | null
+          skills_last_analyzed?: string | null
+          target_position_id?: string | null
           total_learning_hours?: number | null
           updated_at?: string | null
           user_id?: string | null
@@ -680,10 +695,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employees_current_position_id_fkey"
+            columns: ["current_position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "employees_manager_id_fkey"
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_target_position_id_fkey"
+            columns: ["target_position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
             referencedColumns: ["id"]
           },
           {
@@ -1115,6 +1144,313 @@ export type Database = {
           },
         ]
       }
+      st_company_positions: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          id: string
+          is_template: boolean | null
+          nice_to_have_skills: Json[] | null
+          position_code: string
+          position_level: string | null
+          position_title: string
+          required_skills: Json[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          id?: string
+          is_template?: boolean | null
+          nice_to_have_skills?: Json[] | null
+          position_code: string
+          position_level?: string | null
+          position_title: string
+          required_skills?: Json[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          id?: string
+          is_template?: boolean | null
+          nice_to_have_skills?: Json[] | null
+          position_code?: string
+          position_level?: string | null
+          position_title?: string
+          required_skills?: Json[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_company_positions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_company_positions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      st_employee_skills_profile: {
+        Row: {
+          analyzed_at: string | null
+          career_readiness_score: number | null
+          current_position_id: string | null
+          cv_file_path: string | null
+          cv_summary: string | null
+          employee_id: string
+          extracted_skills: Json[] | null
+          id: string
+          skills_match_score: number | null
+          target_position_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          analyzed_at?: string | null
+          career_readiness_score?: number | null
+          current_position_id?: string | null
+          cv_file_path?: string | null
+          cv_summary?: string | null
+          employee_id: string
+          extracted_skills?: Json[] | null
+          id?: string
+          skills_match_score?: number | null
+          target_position_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          analyzed_at?: string | null
+          career_readiness_score?: number | null
+          current_position_id?: string | null
+          cv_file_path?: string | null
+          cv_summary?: string | null
+          employee_id?: string
+          extracted_skills?: Json[] | null
+          id?: string
+          skills_match_score?: number | null
+          target_position_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_employee_skills_profile_current_position_id_fkey"
+            columns: ["current_position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_employee_skills_profile_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_employee_skills_profile_target_position_id_fkey"
+            columns: ["target_position_id"]
+            isOneToOne: false
+            referencedRelation: "st_company_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      st_import_session_items: {
+        Row: {
+          created_at: string | null
+          current_position_code: string | null
+          cv_filename: string | null
+          employee_email: string
+          employee_id: string | null
+          employee_name: string | null
+          error_message: string | null
+          id: string
+          import_session_id: string
+          processed_at: string | null
+          skills_profile_id: string | null
+          status: string | null
+          target_position_code: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_position_code?: string | null
+          cv_filename?: string | null
+          employee_email: string
+          employee_id?: string | null
+          employee_name?: string | null
+          error_message?: string | null
+          id?: string
+          import_session_id: string
+          processed_at?: string | null
+          skills_profile_id?: string | null
+          status?: string | null
+          target_position_code?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_position_code?: string | null
+          cv_filename?: string | null
+          employee_email?: string
+          employee_id?: string | null
+          employee_name?: string | null
+          error_message?: string | null
+          id?: string
+          import_session_id?: string
+          processed_at?: string | null
+          skills_profile_id?: string | null
+          status?: string | null
+          target_position_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_import_session_items_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_session_items_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "st_import_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_session_items_skills_profile_id_fkey"
+            columns: ["skills_profile_id"]
+            isOneToOne: false
+            referencedRelation: "st_employee_skills_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      st_import_sessions: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          csv_file_path: string | null
+          error_log: Json[] | null
+          failed: number | null
+          id: string
+          import_type: string | null
+          processed: number | null
+          status: string | null
+          successful: number | null
+          total_employees: number
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          csv_file_path?: string | null
+          error_log?: Json[] | null
+          failed?: number | null
+          id?: string
+          import_type?: string | null
+          processed?: number | null
+          status?: string | null
+          successful?: number | null
+          total_employees?: number
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          csv_file_path?: string | null
+          error_log?: Json[] | null
+          failed?: number | null
+          id?: string
+          import_type?: string | null
+          processed?: number | null
+          status?: string | null
+          successful?: number | null
+          total_employees?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_import_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "st_import_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      st_skills_taxonomy: {
+        Row: {
+          aliases: string[] | null
+          created_at: string | null
+          description: string | null
+          esco_uri: string | null
+          hierarchy_level: number
+          metadata: Json | null
+          parent_skill_id: string | null
+          skill_id: string
+          skill_name: string
+          skill_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          aliases?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          esco_uri?: string | null
+          hierarchy_level?: number
+          metadata?: Json | null
+          parent_skill_id?: string | null
+          skill_id?: string
+          skill_name: string
+          skill_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          aliases?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          esco_uri?: string | null
+          hierarchy_level?: number
+          metadata?: Json | null
+          parent_skill_id?: string | null
+          skill_id?: string
+          skill_name?: string
+          skill_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "st_skills_taxonomy_parent_skill_id_fkey"
+            columns: ["parent_skill_id"]
+            isOneToOne: false
+            referencedRelation: "st_skills_taxonomy"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1185,6 +1521,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_skill_path: {
+        Args: { skill_uuid: string }
+        Returns: {
+          skill_id: string
+          skill_name: string
+          skill_type: string
+          hierarchy_level: number
+        }[]
+      }
       get_user_company_id: {
         Args: { user_id: string }
         Returns: string
@@ -1192,6 +1537,17 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: string
+      }
+      search_skills: {
+        Args: { search_term: string; limit_count?: number }
+        Returns: {
+          skill_id: string
+          skill_name: string
+          skill_type: string
+          hierarchy_level: number
+          full_path: string
+          relevance: number
+        }[]
       }
     }
     Enums: {

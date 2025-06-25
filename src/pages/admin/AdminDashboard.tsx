@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -224,7 +223,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 {companies.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-black/80">
                     <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No companies found</p>
                   </div>
@@ -260,7 +259,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 {users.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-black/80">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No users found</p>
                   </div>
@@ -308,7 +307,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {users.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-black/80">
                   <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No users found</p>
                 </div>
@@ -363,7 +362,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {companies.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-black/80">
                   <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No companies found</p>
                 </div>
@@ -408,7 +407,7 @@ const AdminDashboard = () => {
               <CardDescription>Recent platform activity</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 text-black/80">
                 <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Activity feed coming soon</p>
               </div>
