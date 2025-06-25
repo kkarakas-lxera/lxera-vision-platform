@@ -68,24 +68,23 @@ const TestUserCreator = () => {
       }
 
       if (data.user) {
+        // Wait a moment for the trigger to create the user
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Now update the user record in our public.users table
         const { error: updateError } = await supabase
           .from('users')
-          .upsert({
-            id: data.user.id,
-            email: 'learner@test.lxera.com',
-            full_name: 'John Test Learner',
+          .update({
             role: 'learner',
             company_id: companyId,
-            password_hash: 'supabase_managed', // Placeholder
-            is_active: true,
-            email_verified: true,
             position: 'Financial Analyst',
             department: 'Finance'
-          });
+          })
+          .eq('id', data.user.id);
 
         if (updateError) {
           console.error('Error updating user profile:', updateError);
+          setError(`Failed to update user profile: ${updateError.message}`);
         }
 
         // Create employee record for the learner
@@ -171,24 +170,23 @@ const TestUserCreator = () => {
       }
 
       if (data.user) {
+        // Wait a moment for the trigger to create the user
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Update the user record with company info
         const { error: updateError } = await supabase
           .from('users')
-          .upsert({
-            id: data.user.id,
-            email: 'admin@test.lxera.com',
-            full_name: 'Jane Test Admin',
+          .update({
             role: 'company_admin',
             company_id: companyId,
-            password_hash: 'supabase_managed',
-            is_active: true,
-            email_verified: true,
             position: 'Learning Manager',
             department: 'HR'
-          });
+          })
+          .eq('id', data.user.id);
 
         if (updateError) {
           console.error('Error updating admin profile:', updateError);
+          setError(`Failed to update admin profile: ${updateError.message}`);
         }
 
         setMessage('Test company admin created successfully! Email: admin@test.lxera.com, Password: password123');
