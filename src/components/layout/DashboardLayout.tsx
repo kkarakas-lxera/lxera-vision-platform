@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -18,7 +18,9 @@ import {
   LogOut,
   BarChart3,
   GraduationCap,
-  Home
+  Home,
+  Menu,
+  ChevronLeft
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -31,6 +33,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { userProfile, signOut } = useAuth();
   const location = useLocation();
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const getNavigationItems = () => {
     if (!userProfile) return [];
@@ -79,15 +82,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     await signOut();
   };
 
+  const toggleSidebar = () => {
+    setSidebarExpanded(!sidebarExpanded);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-16 items-center justify-center border-b">
-          <Logo />
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 bg-white shadow-lg transition-all duration-300 ease-in-out",
+        sidebarExpanded ? "w-64" : "w-16"
+      )}>
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          {sidebarExpanded && <Logo />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8"
+          >
+            {sidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
         </div>
         
-        <nav className="mt-6 px-4">
+        <nav className="mt-6 px-2">
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -98,14 +116,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group",
                     isActive
                       ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                    !sidebarExpanded && "justify-center"
                   )}
+                  title={!sidebarExpanded ? item.label : undefined}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.label}
+                  <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                  {sidebarExpanded && <span>{item.label}</span>}
                 </Link>
               );
             })}
@@ -114,7 +134,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="pl-64">
+      <div className={cn(
+        "transition-all duration-300 ease-in-out",
+        sidebarExpanded ? "pl-64" : "pl-16"
+      )}>
         {/* Header */}
         <div className="flex h-16 items-center justify-between bg-white px-6 shadow-sm">
           <div className="flex items-center space-x-4">
