@@ -135,110 +135,121 @@ const AdminDashboard = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p>Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-future-green mx-auto mb-2"></div>
+          <p className="text-business-black/70">Loading admin dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600">Manage companies, users, and platform overview</p>
+    <div className="space-y-8 p-2">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold text-business-black">Admin Dashboard</h1>
+        <p className="text-lg text-business-black/60">Manage companies, users, and platform overview</p>
       </div>
 
-
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <Card className="hover:scale-105 transition-transform duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-lg font-semibold">Total Companies</CardTitle>
+            <div className="w-12 h-12 bg-future-green/10 rounded-2xl flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-future-green" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-            <p className="text-xs text-black/80">Active organizations</p>
+            <div className="text-3xl font-bold text-business-black mb-2">{stats.totalCompanies}</div>
+            <p className="text-sm text-business-black/60">Active organizations</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover:scale-105 transition-transform duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-lg font-semibold">Total Users</CardTitle>
+            <div className="w-12 h-12 bg-future-green/10 rounded-2xl flex items-center justify-center">
+              <Users className="h-6 w-6 text-future-green" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-black/80">{stats.activeUsers} active users</p>
+            <div className="text-3xl font-bold text-business-black mb-2">{stats.totalUsers}</div>
+            <p className="text-sm text-business-black/60">{stats.activeUsers} active users</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Course Modules</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover:scale-105 transition-transform duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-lg font-semibold">Course Modules</CardTitle>
+            <div className="w-12 h-12 bg-future-green/10 rounded-2xl flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-future-green" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCourses}</div>
-            <p className="text-xs text-black/80">Generated content</p>
+            <div className="text-3xl font-bold text-business-black mb-2">{stats.totalCourses}</div>
+            <p className="text-sm text-business-black/60">Generated content</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Platform Health</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover:scale-105 transition-transform duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-lg font-semibold">Platform Health</CardTitle>
+            <div className="w-12 h-12 bg-emerald/10 rounded-2xl flex items-center justify-center">
+              <Activity className="h-6 w-6 text-emerald" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">Healthy</div>
-            <p className="text-xs text-black/80">All systems operational</p>
+            <div className="text-3xl font-bold text-emerald mb-2">Healthy</div>
+            <p className="text-sm text-business-black/60">All systems operational</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tab Navigation */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="companies">Companies</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-2 rounded-2xl shadow-sm">
+          <TabsTrigger value="overview" className="rounded-xl">Overview</TabsTrigger>
+          <TabsTrigger value="users" className="rounded-xl">Users</TabsTrigger>
+          <TabsTrigger value="companies" className="rounded-xl">Companies</TabsTrigger>
+          <TabsTrigger value="content" className="rounded-xl">Content</TabsTrigger>
+          <TabsTrigger value="activity" className="rounded-xl">Activity</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-8 md:grid-cols-2">
             {/* Recent Companies */}
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Recent Companies</CardTitle>
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">Recent Companies</CardTitle>
                     <CardDescription>Latest registered companies</CardDescription>
                   </div>
-                  <Button size="sm">View All</Button>
+                  <Button size="sm" variant="outline" className="rounded-xl">View All</Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {companies.length === 0 ? (
-                  <div className="text-center py-8 text-black/80">
-                    <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No companies found</p>
+                  <div className="text-center py-12 text-business-black/60">
+                    <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-lg font-medium">No companies found</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {companies.slice(0, 3).map((company) => (
-                      <div key={company.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <Building2 className="h-6 w-6 text-blue-600" />
+                      <div key={company.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-future-green/10 rounded-xl flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-future-green" />
+                          </div>
                           <div>
-                            <h3 className="font-medium text-sm">{company.name}</h3>
-                            <p className="text-xs text-gray-600">{company.domain}</p>
+                            <h3 className="font-semibold text-business-black">{company.name}</h3>
+                            <p className="text-sm text-business-black/60">{company.domain}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="text-xs">{company.plan_type}</Badge>
+                        <Badge variant="outline" className="rounded-lg">{company.plan_type}</Badge>
                       </div>
                     ))}
                   </div>
@@ -250,35 +261,41 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Recent Users</CardTitle>
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">Recent Users</CardTitle>
                     <CardDescription>Latest user registrations</CardDescription>
                   </div>
-                  <Button size="sm">View All</Button>
+                  <Button size="sm" variant="outline" className="rounded-xl">View All</Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {users.length === 0 ? (
-                  <div className="text-center py-8 text-black/80">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No users found</p>
+                  <div className="text-center py-12 text-business-black/60">
+                    <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                      <Users className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-lg font-medium">No users found</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {users.slice(0, 3).map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          {user.is_active ? (
-                            <UserCheck className="h-6 w-6 text-green-600" />
-                          ) : (
-                            <UserX className="h-6 w-6 text-red-600" />
-                          )}
+                      <div key={user.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            user.is_active ? 'bg-emerald/10' : 'bg-red-50'
+                          }`}>
+                            {user.is_active ? (
+                              <UserCheck className="h-5 w-5 text-emerald" />
+                            ) : (
+                              <UserX className="h-5 w-5 text-red-500" />
+                            )}
+                          </div>
                           <div>
-                            <h3 className="font-medium text-sm">{user.full_name}</h3>
-                            <p className="text-xs text-gray-600">{user.email}</p>
+                            <h3 className="font-semibold text-business-black">{user.full_name}</h3>
+                            <p className="text-sm text-business-black/60">{user.email}</p>
                           </div>
                         </div>
-                        <Badge variant={user.role === 'super_admin' ? 'destructive' : 'secondary'} className="text-xs">
+                        <Badge variant={user.role === 'super_admin' ? 'destructive' : 'secondary'} className="rounded-lg">
                           {user.role.replace('_', ' ')}
                         </Badge>
                       </div>
@@ -295,11 +312,11 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>User Management</CardTitle>
+                <div className="space-y-1">
+                  <CardTitle className="text-xl">User Management</CardTitle>
                   <CardDescription>Manage all platform users</CardDescription>
                 </div>
-                <Button>
+                <Button className="rounded-xl">
                   <Plus className="h-4 w-4 mr-2" />
                   Create User
                 </Button>
@@ -307,33 +324,39 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {users.length === 0 ? (
-                <div className="text-center py-8 text-black/80">
-                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No users found</p>
+                <div className="text-center py-12 text-business-black/60">
+                  <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                    <Users className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-lg font-medium">No users found</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={user.id} className="flex items-center justify-between p-6 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">
                       <div className="flex items-center space-x-4">
-                        {user.is_active ? (
-                          <UserCheck className="h-8 w-8 text-green-600" />
-                        ) : (
-                          <UserX className="h-8 w-8 text-red-600" />
-                        )}
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                          user.is_active ? 'bg-emerald/10' : 'bg-red-50'
+                        }`}>
+                          {user.is_active ? (
+                            <UserCheck className="h-6 w-6 text-emerald" />
+                          ) : (
+                            <UserX className="h-6 w-6 text-red-500" />
+                          )}
+                        </div>
                         <div>
-                          <h3 className="font-medium">{user.full_name}</h3>
-                          <p className="text-sm text-gray-600">{user.email}</p>
+                          <h3 className="font-semibold text-lg text-business-black">{user.full_name}</h3>
+                          <p className="text-business-black/60">{user.email}</p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={user.role === 'super_admin' ? 'destructive' : user.role === 'company_admin' ? 'default' : 'secondary'}>
+                      <div className="flex items-center space-x-3">
+                        <Badge variant={user.role === 'super_admin' ? 'destructive' : user.role === 'company_admin' ? 'default' : 'secondary'} className="rounded-lg">
                           {user.role.replace('_', ' ')}
                         </Badge>
-                        <Badge variant={user.email_verified ? 'default' : 'outline'}>
+                        <Badge variant={user.email_verified ? 'default' : 'outline'} className="rounded-lg">
                           {user.email_verified ? 'Verified' : 'Unverified'}
                         </Badge>
-                        <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
+                        <Button variant="outline" size="sm" onClick={() => handleEditUser(user)} className="rounded-xl">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
@@ -350,11 +373,11 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Company Management</CardTitle>
+                <div className="space-y-1">
+                  <CardTitle className="text-xl">Company Management</CardTitle>
                   <CardDescription>Manage all registered companies</CardDescription>
                 </div>
-                <Button>
+                <Button className="rounded-xl">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Company
                 </Button>
@@ -362,27 +385,31 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {companies.length === 0 ? (
-                <div className="text-center py-8 text-black/80">
-                  <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No companies found</p>
+                <div className="text-center py-12 text-business-black/60">
+                  <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                    <Building2 className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-lg font-medium">No companies found</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {companies.map((company) => (
-                    <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={company.id} className="flex items-center justify-between p-6 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">
                       <div className="flex items-center space-x-4">
-                        <Building2 className="h-8 w-8 text-blue-600" />
+                        <div className="w-12 h-12 bg-future-green/10 rounded-xl flex items-center justify-center">
+                          <Building2 className="h-6 w-6 text-future-green" />
+                        </div>
                         <div>
-                          <h3 className="font-medium">{company.name}</h3>
-                          <p className="text-sm text-gray-600">{company.domain}</p>
+                          <h3 className="font-semibold text-lg text-business-black">{company.name}</h3>
+                          <p className="text-business-black/60">{company.domain}</p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={company.is_active ? 'default' : 'secondary'}>
+                      <div className="flex items-center space-x-3">
+                        <Badge variant={company.is_active ? 'default' : 'secondary'} className="rounded-lg">
                           {company.is_active ? 'Active' : 'Inactive'}
                         </Badge>
-                        <Badge variant="outline">{company.plan_type}</Badge>
-                        <Button variant="outline" size="sm" onClick={() => handleEditCompany(company)}>
+                        <Badge variant="outline" className="rounded-lg">{company.plan_type}</Badge>
+                        <Button variant="outline" size="sm" onClick={() => handleEditCompany(company)} className="rounded-xl">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
@@ -403,13 +430,15 @@ const AdminDashboard = () => {
         <TabsContent value="activity">
           <Card>
             <CardHeader>
-              <CardTitle>Activity Feed</CardTitle>
+              <CardTitle className="text-xl">Activity Feed</CardTitle>
               <CardDescription>Recent platform activity</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-black/80">
-                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Activity feed coming soon</p>
+              <div className="text-center py-16 text-business-black/60">
+                <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                  <Activity className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-lg font-medium">Activity feed coming soon</p>
               </div>
             </CardContent>
           </Card>
