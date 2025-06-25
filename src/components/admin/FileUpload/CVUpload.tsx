@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { uploadFile } from '@/lib/storage';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -62,10 +61,14 @@ export function CVUpload({ onUploadComplete, maxFiles = 10 }: CVUploadProps) {
 
         if (!userProfile?.company_id) throw new Error('Company ID not found');
 
-        // Use simplified upload for now
+        // Use the employee-cvs bucket with company_id path format
+        const companyFilePath = `${userProfile.company_id}/${fileName}`;
         const { error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(filePath, uploadedFile.file);
+          .from('employee-cvs')
+          .upload(companyFilePath, uploadedFile.file, {
+            cacheControl: '3600',
+            upsert: true
+          });
 
         if (uploadError) throw uploadError;
 
@@ -75,8 +78,8 @@ export function CVUpload({ onUploadComplete, maxFiles = 10 }: CVUploadProps) {
         );
 
         // Process CV with Supabase Edge Function
-        const { data, error } = await supabase.functions.invoke('cv-process', {
-          body: { filePath }
+        const { data, error } = await supabase.functions.invoke('analyze-cv', {
+          body: { filePath: companyFilePath }
         });
 
         if (error) throw error;
