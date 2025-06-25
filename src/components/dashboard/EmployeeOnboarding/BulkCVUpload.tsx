@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
@@ -129,11 +128,11 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
           idx === i ? { ...f, status: 'uploading', progress: 20, employeeId } : f
         ));
 
-        // Upload file with proper file path structure
+        // Try a simpler file path that matches existing pattern
         const fileName = `cv-${employeeId}-${Date.now()}.${fileInfo.file.name.split('.').pop()}`;
-        const filePath = `${userProfile.company_id}/cvs/${employeeId}/${fileName}`;
+        const filePath = `${userProfile.company_id}/${fileName}`;
         
-        console.log('Bulk uploading CV:', { 
+        console.log('Simplified bulk upload path:', { 
           filePath, 
           employeeName: fileInfo.employeeName, 
           userRole: userProfile.role,

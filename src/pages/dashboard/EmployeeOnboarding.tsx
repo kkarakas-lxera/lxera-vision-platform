@@ -19,7 +19,7 @@ interface ImportSession {
   processed: number;
   successful: number;
   failed: number;
-  status: string; // Allow any string for now
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
 }
 
@@ -53,7 +53,14 @@ export default function EmployeeOnboarding() {
         .limit(10);
 
       if (error) throw error;
-      setImportSessions((data || []) as ImportSession[]);
+      
+      // Transform the data to match our interface
+      const transformedData: ImportSession[] = (data || []).map(session => ({
+        ...session,
+        status: session.status as 'pending' | 'processing' | 'completed' | 'failed'
+      }));
+      
+      setImportSessions(transformedData);
     } catch (error) {
       console.error('Error fetching import sessions:', error);
     }

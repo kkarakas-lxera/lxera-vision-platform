@@ -101,11 +101,11 @@ export function CVUploadDialog({
 
       setProgress(20);
 
-      // Step 1: Upload file to Supabase Storage with proper file path
+      // Try a simpler file path that matches the policy expectation
       const fileName = `cv-${employee.id}-${Date.now()}.${file.name.split('.').pop()}`;
-      const filePath = `${userProfile.company_id}/cvs/${employee.id}/${fileName}`;
+      const filePath = `${userProfile.company_id}/${fileName}`;
       
-      console.log('Uploading CV:', { 
+      console.log('Simplified upload path:', { 
         filePath, 
         employeeName: employee.name, 
         userRole: userProfile.role,
