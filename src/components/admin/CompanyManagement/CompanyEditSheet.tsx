@@ -194,7 +194,7 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
                   <div className="flex items-center justify-between p-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Employees</p>
-                      <p className="text-2xl font-bold">{stats.totalEmployees}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.totalEmployees}</p>
                       <p className="text-xs text-muted-foreground">{stats.activeEmployees} active</p>
                     </div>
                     <Users className="h-8 w-8 text-muted-foreground" />
@@ -205,7 +205,7 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
                   <div className="flex items-center justify-between p-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Courses</p>
-                      <p className="text-2xl font-bold">{stats.totalCourses}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.totalCourses}</p>
                       <p className="text-xs text-muted-foreground">{stats.completedCourses} completed</p>
                     </div>
                     <BookOpen className="h-8 w-8 text-muted-foreground" />
@@ -215,8 +215,8 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
 
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Average Completion Rate</span>
-                  <span className="text-sm font-bold">{stats.averageCompletionRate}%</span>
+                  <span className="text-sm font-medium text-foreground">Average Completion Rate</span>
+                  <span className="text-sm font-bold text-foreground">{stats.averageCompletionRate}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
@@ -233,31 +233,34 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
           {/* Company Info */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Company Name</Label>
+              <Label htmlFor="name" className="text-foreground">Company Name</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="text-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="domain">Domain</Label>
+              <Label htmlFor="domain" className="text-foreground">Domain</Label>
               <Input
                 id="domain"
                 value={formData.domain}
                 onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
                 placeholder="example.com"
+                className="text-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logo_url">Logo URL</Label>
+              <Label htmlFor="logo_url" className="text-foreground">Logo URL</Label>
               <Input
                 id="logo_url"
                 value={formData.logo_url}
                 onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
                 placeholder="https://example.com/logo.png"
+                className="text-foreground"
               />
             </div>
           </div>
@@ -266,10 +269,10 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
 
           {/* Subscription Settings */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium">Subscription Settings</h4>
+            <h4 className="text-sm font-medium text-foreground">Subscription Settings</h4>
             
             <div className="space-y-2">
-              <Label htmlFor="plan_type">Plan Type</Label>
+              <Label htmlFor="plan_type" className="text-foreground">Plan Type</Label>
               <Select value={formData.plan_type} onValueChange={(value) => setFormData({ ...formData, plan_type: value })}>
                 <SelectTrigger id="plan_type">
                   <SelectValue />
@@ -285,22 +288,24 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="max_employees">Max Employees</Label>
+                <Label htmlFor="max_employees" className="text-foreground">Max Employees</Label>
                 <Input
                   id="max_employees"
                   type="number"
                   value={formData.max_employees}
                   onChange={(e) => setFormData({ ...formData, max_employees: parseInt(e.target.value) || 0 })}
+                  className="text-foreground"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="max_courses">Max Courses</Label>
+                <Label htmlFor="max_courses" className="text-foreground">Max Courses</Label>
                 <Input
                   id="max_courses"
                   type="number"
                   value={formData.max_courses}
                   onChange={(e) => setFormData({ ...formData, max_courses: parseInt(e.target.value) || 0 })}
+                  className="text-foreground"
                 />
               </div>
             </div>
@@ -312,7 +317,7 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Active Status</Label>
+                <Label className="text-foreground">Active Status</Label>
                 <div className="text-sm text-muted-foreground">
                   Company can access the platform
                 </div>
@@ -328,7 +333,7 @@ export function CompanyEditSheet({ company, open, onOpenChange, onCompanyUpdated
 
           {/* Metadata */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Company Information</h4>
+            <h4 className="text-sm font-medium text-foreground">Company Information</h4>
             <div className="text-sm space-y-1 text-muted-foreground">
               <p>Created: {new Date(company.created_at).toLocaleDateString()}</p>
               <p>Company ID: {company.id}</p>

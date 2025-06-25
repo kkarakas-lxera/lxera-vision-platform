@@ -34,20 +34,27 @@ export interface ModuleContent {
 }
 
 export class ContentManager {
-  private companyId: string;
+  private companyId: string | null;
   private userId: string;
+  private isSuperAdmin: boolean;
 
-  constructor(companyId: string, userId: string) {
+  constructor(companyId: string | null, userId: string, isSuperAdmin: boolean = false) {
     this.companyId = companyId;
     this.userId = userId;
+    this.isSuperAdmin = isSuperAdmin;
   }
 
   async get_analytics() {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('cm_module_content')
-        .select('*')
-        .eq('company_id', this.companyId);
+        .select('*');
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        query = query.eq('company_id', this.companyId);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -71,22 +78,37 @@ export class ContentManager {
   async get_company_analytics() {
     try {
       // Fetch modules
-      const { data: modules } = await supabase
+      let modulesQuery = supabase
         .from('cm_module_content')
-        .select('*')
-        .eq('company_id', this.companyId);
+        .select('*');
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        modulesQuery = modulesQuery.eq('company_id', this.companyId);
+      }
+      
+      const { data: modules } = await modulesQuery;
 
       // Fetch quality assessments
-      const { data: quality } = await supabase
+      let qualityQuery = supabase
         .from('cm_quality_assessments')
-        .select('*')
-        .eq('company_id', this.companyId);
+        .select('*');
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        qualityQuery = qualityQuery.eq('company_id', this.companyId);
+      }
+      
+      const { data: quality } = await qualityQuery;
 
       // Fetch enhancement sessions
-      const { data: enhancements } = await supabase
+      let enhancementsQuery = supabase
         .from('cm_enhancement_sessions')
-        .select('*')
-        .eq('company_id', this.companyId);
+        .select('*');
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        enhancementsQuery = enhancementsQuery.eq('company_id', this.companyId);
+      }
+      
+      const { data: enhancements } = await enhancementsQuery;
 
       return {
         modules: modules || [],
@@ -101,14 +123,17 @@ export class ContentManager {
 
   async get_employee_progress(employeeId?: string) {
     try {
-      const query = supabase
+      let query = supabase
         .from('course_assignments')
         .select(`
           *,
           employees!inner(id, user_id, department, position),
           cm_module_content!inner(module_name, status)
-        `)
-        .eq('company_id', this.companyId);
+        `);
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        query = query.eq('company_id', this.companyId);
+      }
 
       if (employeeId) {
         query.eq('employee_id', employeeId);
@@ -126,7 +151,7 @@ export class ContentManager {
 
   async get_department_analytics() {
     try {
-      const { data: employees } = await supabase
+      let query = supabase
         .from('employees')
         .select(`
           department,
@@ -134,8 +159,13 @@ export class ContentManager {
           total_learning_hours,
           last_activity
         `)
-        .eq('company_id', this.companyId)
         .eq('is_active', true);
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        query = query.eq('company_id', this.companyId);
+      }
+      
+      const { data: employees } = await query;
 
       if (!employees) return {};
 
@@ -184,11 +214,16 @@ export class ContentManager {
 
   async list_company_modules(): Promise<ModuleContent[]> {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('cm_module_content')
         .select('*')
-        .eq('company_id', this.companyId)
         .order('created_at', { ascending: false });
+      
+      if (!this.isSuperAdmin && this.companyId) {
+        query = query.eq('company_id', this.companyId);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
       return data || [];
@@ -200,8 +235,12 @@ export class ContentManager {
 
   async create_module_content(moduleSpec: ModuleSpec): Promise<ModuleContent> {
     try {
+      if (!this.companyId && !this.isSuperAdmin) {
+        throw new Error('Company ID is required to create module content');
+      }
+      
       const newModule = {
-        company_id: this.companyId,
+        company_id: this.companyId!,
         module_name: moduleSpec.module_name,
         employee_name: moduleSpec.employee_name,
         session_id: `session_${Date.now()}`,
@@ -251,14 +290,18 @@ export const useContentManager = () => {
   const { userProfile } = useAuth();
 
   const contentManager = useMemo(() => {
-    if (!userProfile?.company_id || !userProfile?.id) {
+    if (!userProfile?.id) {
       return null;
     }
-    return new ContentManager(userProfile.company_id, userProfile.id);
-  }, [userProfile?.company_id, userProfile?.id]);
+    
+    const isSuperAdmin = userProfile.role === 'super_admin';
+    const companyId = userProfile.company_id || null;
+    
+    return new ContentManager(companyId, userProfile.id, isSuperAdmin);
+  }, [userProfile?.company_id, userProfile?.id, userProfile?.role]);
 
   if (!contentManager) {
-    throw new Error('ContentManager not initialized. User must be authenticated with a company.');
+    throw new Error('ContentManager not initialized. User must be authenticated.');
   }
 
   return contentManager;

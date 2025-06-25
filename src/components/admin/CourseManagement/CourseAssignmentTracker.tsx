@@ -90,11 +90,17 @@ export const CourseAssignmentTracker = () => {
 
   const fetchDepartments = async () => {
     try {
-      const { data } = await supabase
+      let query = supabase
         .from('employees')
         .select('department')
-        .eq('company_id', userProfile?.company_id)
         .not('department', 'is', null);
+      
+      // Only filter by company if user is not super admin
+      if (userProfile?.role !== 'super_admin' && userProfile?.company_id) {
+        query = query.eq('company_id', userProfile.company_id);
+      }
+      
+      const { data } = await query;
 
       if (data) {
         const uniqueDepts = [...new Set(data.map(d => d.department))].filter(Boolean);

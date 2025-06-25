@@ -69,7 +69,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
       setFormData({
         full_name: user.full_name,
         role: user.role,
-        company_id: user.company_id || '',
+        company_id: user.company_id || 'none',
         position: user.position || '',
         department: user.department || '',
         is_active: user.is_active,
@@ -94,7 +94,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
         .update({
           full_name: formData.full_name,
           role: formData.role,
-          company_id: formData.company_id || null,
+          company_id: formData.company_id === 'none' ? null : formData.company_id,
           position: formData.position,
           department: formData.department,
           is_active: formData.is_active,
@@ -161,21 +161,22 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
           {/* User Info */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={user.email} disabled />
+              <Label className="text-foreground">Email</Label>
+              <Input value={user.email} disabled className="text-foreground" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name</Label>
+              <Label htmlFor="full_name" className="text-foreground">Full Name</Label>
               <Input
                 id="full_name"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                className="text-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role" className="text-foreground">Role</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger id="role">
                   <SelectValue />
@@ -189,13 +190,13 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+              <Label htmlFor="company" className="text-foreground">Company</Label>
               <Select value={formData.company_id} onValueChange={(value) => setFormData({ ...formData, company_id: value })}>
                 <SelectTrigger id="company">
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Company</SelectItem>
+                  <SelectItem value="none">No Company</SelectItem>
                   {companies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
@@ -207,22 +208,24 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
+                <Label htmlFor="position" className="text-foreground">Position</Label>
                 <Input
                   id="position"
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                   placeholder="e.g. Software Engineer"
+                  className="text-foreground"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
+                <Label htmlFor="department" className="text-foreground">Department</Label>
                 <Input
                   id="department"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   placeholder="e.g. Engineering"
+                  className="text-foreground"
                 />
               </div>
             </div>
@@ -234,7 +237,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Active Status</Label>
+                <Label className="text-foreground">Active Status</Label>
                 <div className="text-sm text-muted-foreground">
                   User can access the platform
                 </div>
@@ -247,7 +250,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Email Verified</Label>
+                <Label className="text-foreground">Email Verified</Label>
                 <div className="text-sm text-muted-foreground">
                   User has verified their email
                 </div>
@@ -263,7 +266,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
 
           {/* Metadata */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">User Information</h4>
+            <h4 className="text-sm font-medium text-foreground">User Information</h4>
             <div className="text-sm space-y-1 text-muted-foreground">
               <p>Created: {new Date(user.created_at).toLocaleDateString()}</p>
               {user.last_login && <p>Last Login: {new Date(user.last_login).toLocaleDateString()}</p>}
@@ -275,7 +278,7 @@ export function UserEditSheet({ user, open, onOpenChange, onUserUpdated }: UserE
 
           {/* Danger Zone */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-500" />
               Danger Zone
             </h4>
