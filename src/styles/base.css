@@ -1,4 +1,5 @@
 
+
 /* LXERA Base Styles */
 
 @layer base {
@@ -29,7 +30,7 @@
     --secondary-foreground: 25 25 25;
 
     --muted: 239 239 227;
-    --muted-foreground: 115 115 115;
+    --muted-foreground: 75 75 75; /* Darker for better contrast */
 
     --accent: 122 229 198; /* Future Green */
     --accent-foreground: 25 25 25;
