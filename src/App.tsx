@@ -28,6 +28,11 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import LearnDashboard from "./pages/learn/LearnDashboard";
 
+// Import admin pages
+import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
+import UsersManagement from "./pages/admin/users/UsersManagement";
+import CoursesManagement from "./pages/admin/courses/CoursesManagement";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -63,11 +68,11 @@ const App = () => (
                   <DashboardLayout>
                     <Routes>
                       <Route path="/" element={<AdminDashboard />} />
-                      <Route path="/companies" element={<div>Companies Management</div>} />
-                      <Route path="/users" element={<div>Users Management</div>} />
-                      <Route path="/courses" element={<div>Courses Management</div>} />
-                      <Route path="/analytics" element={<div>Analytics</div>} />
-                      <Route path="/settings" element={<div>Settings</div>} />
+                      <Route path="/companies" element={<CompaniesManagement />} />
+                      <Route path="/users" element={<UsersManagement />} />
+                      <Route path="/courses" element={<CoursesManagement />} />
+                      <Route path="/analytics" element={<div>Analytics Dashboard Coming Soon</div>} />
+                      <Route path="/settings" element={<div>Settings Page Coming Soon</div>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
