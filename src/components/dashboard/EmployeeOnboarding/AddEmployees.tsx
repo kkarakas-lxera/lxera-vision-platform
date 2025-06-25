@@ -1,10 +1,14 @@
+
 import React, { useState } from 'react';
-import { Upload, Download, Users, Plus, FileText } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, Users, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { CSVImportWizard } from './CSVImportWizard';
 
+// Define the interface to match what's used in the parent component
 interface ImportSession {
   id: string;
   import_type: string;
@@ -12,155 +16,211 @@ interface ImportSession {
   processed: number;
   successful: number;
   failed: number;
-  status: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
 }
 
 interface AddEmployeesProps {
-  onImportComplete: () => void;
+  onImportComplete?: () => void;
   importSessions: ImportSession[];
   onNextStep?: () => void;
 }
 
-export function AddEmployees({ onImportComplete, importSessions, onNextStep }: AddEmployeesProps) {
-  const [selectedMethod, setSelectedMethod] = useState<'bulk' | 'individual'>('bulk');
+export function AddEmployees({ 
+  onImportComplete, 
+  importSessions, 
+  onNextStep 
+}: AddEmployeesProps) {
+  const [showImportWizard, setShowImportWizard] = useState(false);
 
-  const downloadSampleCSV = () => {
-    const sampleData = [
-      ['name', 'email', 'position_code', 'department', 'target_position_code'],
-      ['John Smith', 'john.smith@company.com', 'DEV-001', 'Engineering', 'DEV-002'],
-      ['Jane Doe', 'jane.doe@company.com', 'PM-001', 'Operations', ''],
-      ['Mike Johnson', 'mike.johnson@company.com', 'DEV-001', 'Engineering', 'DEV-003']
-    ];
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-    const csvContent = sampleData.map(row => row.join(',')).join('\n');
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="h-4 w-4" />;
+      case 'failed': return <AlertCircle className="h-4 w-4" />;
+      default: return null;
+    }
+  };
+
+  const handleImportComplete = () => {
+    setShowImportWizard(false);
+    if (onImportComplete) onImportComplete();
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = `employee_email,employee_name,current_position,target_position,department
+john.doe@company.com,John Doe,Software Developer,Senior Software Developer,Engineering
+jane.smith@company.com,Jane Smith,Marketing Specialist,Marketing Manager,Marketing
+bob.johnson@company.com,Bob Johnson,Sales Representative,Account Manager,Sales`;
+    
     const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'employee_template.csv';
-    link.click();
-    URL.revokeObjectURL(url);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'employee_import_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   return (
     <div className="space-y-6">
-      {/* Method Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Add New Team Members
-          </CardTitle>
-          <CardDescription>
-            Choose how you'd like to add your team members to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button
-              variant={selectedMethod === 'bulk' ? 'default' : 'outline'}
-              size="lg"
-              onClick={() => setSelectedMethod('bulk')}
-              className="h-auto p-6 flex flex-col items-center gap-3"
-            >
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Upload className="h-6 w-6" />
-              </div>
-              <div className="text-center">
-                <div className="font-semibold">Bulk Import (Recommended)</div>
-                <div className="text-sm opacity-70">Upload CSV file with multiple employees</div>
-              </div>
-            </Button>
-
-            <Button
-              variant={selectedMethod === 'individual' ? 'default' : 'outline'}
-              size="lg"
-              onClick={() => setSelectedMethod('individual')}
-              className="h-auto p-6 flex flex-col items-center gap-3"
-            >
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Plus className="h-6 w-6" />
-              </div>
-              <div className="text-center">
-                <div className="font-semibold">Add Individually</div>
-                <div className="text-sm opacity-70">Enter employee details one by one</div>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Content based on selection */}
-      {selectedMethod === 'bulk' && (
-        <div className="space-y-4">
-          {/* Quick Start Guide */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-blue-800">Quick Start Guide</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-blue-700">
-                  <FileText className="h-4 w-4" />
-                  Download our template to get started quickly
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={downloadSampleCSV}
-                  className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Template
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <CSVImportWizard
-            onImportComplete={() => {
-              onImportComplete();
-              // Auto-advance to next step after successful import
-              if (onNextStep) {
-                setTimeout(() => {
-                  onNextStep();
-                }, 2000);
-              }
-            }}
-            importSessions={importSessions}
-          />
-        </div>
-      )}
-
-      {selectedMethod === 'individual' && (
+      {/* Import Options */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* CSV Import */}
         <Card>
           <CardHeader>
-            <CardTitle>Add Individual Employee</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              CSV Import
+            </CardTitle>
             <CardDescription>
-              Enter employee details manually
+              Upload a CSV file with employee information to bulk import team members
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-center py-12">
-              <div className="text-muted-foreground mb-4">
-                Individual employee entry form coming soon...
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                For now, please use the bulk import option with CSV files.
-                You can create a CSV with just one employee if needed.
-              </p>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">Required columns:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>employee_email (required)</li>
+                <li>employee_name (required)</li>
+                <li>current_position (optional)</li>
+                <li>target_position (optional)</li>
+                <li>department (optional)</li>
+              </ul>
+            </div>
+            
+            <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => setSelectedMethod('bulk')}
-                className="mt-4"
+                size="sm"
+                onClick={downloadTemplate}
+                className="flex items-center gap-2"
               >
-                Switch to Bulk Import
+                <Download className="h-4 w-4" />
+                Download Template
+              </Button>
+              <Button
+                onClick={() => setShowImportWizard(true)}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Import CSV
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Manual Entry */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Individual Entry
+            </CardTitle>
+            <CardDescription>
+              Add team members one by one with detailed information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-6">
+              <p className="text-muted-foreground mb-4">
+                Manual employee entry form coming soon...
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Use CSV import for now to add multiple employees quickly
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Import Sessions */}
+      {importSessions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Import Sessions</CardTitle>
+            <CardDescription>
+              Track the status of your recent employee imports
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {importSessions.map((session) => (
+                <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {session.import_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                        <Badge className={getStatusColor(session.status)}>
+                          {getStatusIcon(session.status)}
+                          <span className="ml-1 capitalize">{session.status}</span>
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {session.total_employees} employees • {session.successful} successful • {session.failed} failed
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(session.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {session.status === 'processing' && (
+                    <div className="w-32">
+                      <Progress 
+                        value={(session.processed / session.total_employees) * 100} 
+                        className="h-2" 
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {session.processed} / {session.total_employees}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Next Step CTA */}
+      {importSessions.some(s => s.successful > 0) && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Great! You've successfully imported team members. 
+              Ready to move to the next step and upload their CVs?
+            </span>
+            {onNextStep && (
+              <Button size="sm" onClick={onNextStep}>
+                Next: Upload CVs
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* CSV Import Wizard Dialog */}
+      <CSVImportWizard
+        open={showImportWizard}
+        onOpenChange={setShowImportWizard}
+        onImportComplete={handleImportComplete}
+      />
     </div>
   );
 }

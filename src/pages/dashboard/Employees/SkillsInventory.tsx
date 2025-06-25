@@ -1,58 +1,57 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Database, 
-  Search,
-  Download,
-  RefreshCw,
-  ChevronDown,
-  ChevronRight,
-  Users,
-  TrendingUp,
-  Award,
-  Settings
-} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Users, Building, BarChart3, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { DepartmentView } from './SkillsInventory/DepartmentView';
 import { SkillsView } from './SkillsInventory/SkillsView';
 import { PeopleView } from './SkillsInventory/PeopleView';
+import { DepartmentView } from './SkillsInventory/DepartmentView';
 import { MatrixView } from './SkillsInventory/MatrixView';
 
-interface DepartmentSkills {
-  department: string;
-  employeeCount: number;
-  skillsCount: number;
-  coverage: number;
-  topSkills: Array<{
-    skill_name: string;
-    count: number;
-    avgProficiency: number;
-  }>;
+interface SkillData {
+  skill_id: string;
+  skill_name: string;
+  employee_count: number;
+  avg_proficiency: number;
+  departments: string[];
+  skill_type: string;
 }
 
-export function SkillsInventory() {
+interface EmployeeWithSkills {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  position: string;
+  skills: Array<{
+    skill_id: string;
+    skill_name: string;
+    proficiency_level: number;
+    skill_type: string;
+  }>;
+  total_skills: number;
+  avg_proficiency: number;
+}
+
+export default function SkillsInventory() {
   const { userProfile } = useAuth();
-  const [activeView, setActiveView] = useState('departments');
+  const [activeTab, setActiveTab] = useState('skills');
+  const [skillsData, setSkillsData] = useState<SkillData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [departmentData, setDepartmentData] = useState<DepartmentSkills[]>([]);
-  const [totalStats, setTotalStats] = useState({
-    totalEmployees: 0,
-    totalSkills: 0,
-    avgCoverage: 0
-  });
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedSkillType, setSelectedSkillType] = useState<string>('all');
 
+  // Fetch skills data first
   useEffect(() => {
-    if (userProfile?.company_id) {
-      fetchSkillsData();
-    }
-  }, [userProfile]);
+    fetchSkillsData();
+  }, [userProfile?.company_id]);
 
   const fetchSkillsData = async () => {
     if (!userProfile?.company_id) return;
@@ -60,103 +59,106 @@ export function SkillsInventory() {
     try {
       setLoading(true);
 
-      // Fetch all employees with their skills
-      const { data: employeesWithSkills } = await supabase
+      // Get all employees with their skills
+      const { data: employeesData, error: employeesError } = await supabase
         .from('employees')
         .select(`
-          *,
+          id,
+          department,
+          position,
           users!inner(full_name, email),
-          st_employee_skills_profile!left(
-            extracted_skills,
-            skills_match_score
-          )
+          st_employee_skills_profile!inner(extracted_skills)
         `)
         .eq('company_id', userProfile.company_id)
         .eq('is_active', true);
 
-      if (!employeesWithSkills) return;
+      if (employeesError) throw employeesError;
 
-      // Process data by department
-      const deptMap = new Map<string, DepartmentSkills>();
-      const allSkills = new Set<string>();
-      let totalEmployees = 0;
+      // Process the data to create skills inventory
+      const skillsMap = new Map<string, {
+        skill_name: string;
+        skill_type: string;
+        employees: Set<string>;
+        departments: Set<string>;
+        proficiency_sum: number;
+        proficiency_count: number;
+      }>();
 
-      employeesWithSkills.forEach(emp => {
-        const dept = emp.department || 'Unassigned';
-        totalEmployees++;
+      // Declare employeesWithSkills here
+      const employeesWithSkills: EmployeeWithSkills[] = [];
 
-        if (!deptMap.has(dept)) {
-          deptMap.set(dept, {
-            department: dept,
-            employeeCount: 0,
-            skillsCount: 0,
-            coverage: 0,
-            topSkills: []
-          });
-        }
+      (employeesData || []).forEach(employee => {
+        const skillsProfile = employee.st_employee_skills_profile?.[0];
+        const extractedSkills = skillsProfile?.extracted_skills || [];
 
-        const deptData = deptMap.get(dept)!;
-        deptData.employeeCount++;
+        const employeeSkills: Array<{
+          skill_id: string;
+          skill_name: string;
+          proficiency_level: number;
+          skill_type: string;
+        }> = [];
 
-        // Process skills if available
-        if (emp.st_employee_skills_profile?.[0]?.extracted_skills) {
-          const skills = emp.st_employee_skills_profile[0].extracted_skills;
-          const skillMap = new Map();
+        extractedSkills.forEach((skill: any) => {
+          if (typeof skill === 'object' && skill !== null && skill.skill_name) {
+            const skillKey = skill.skill_id || skill.skill_name;
+            const proficiency = skill.proficiency_level || 0;
+            const skillType = skill.skill_type || 'technical';
 
-          skills.forEach((skill: any) => {
-            if (skill.skill_name) {
-              allSkills.add(skill.skill_name);
-              
-              if (!skillMap.has(skill.skill_name)) {
-                skillMap.set(skill.skill_name, {
-                  skill_name: skill.skill_name,
-                  count: 0,
-                  totalProficiency: 0
-                });
-              }
-              
-              const s = skillMap.get(skill.skill_name);
-              s.count++;
-              s.totalProficiency += skill.proficiency_level || 3;
+            // Add to skills map
+            if (!skillsMap.has(skillKey)) {
+              skillsMap.set(skillKey, {
+                skill_name: skill.skill_name,
+                skill_type: skillType,
+                employees: new Set(),
+                departments: new Set(),
+                proficiency_sum: 0,
+                proficiency_count: 0
+              });
             }
-          });
 
-          // Update department skills
-          deptData.skillsCount = skillMap.size;
-          deptData.topSkills = Array.from(skillMap.values())
-            .map(s => ({
-              skill_name: s.skill_name,
-              count: s.count,
-              avgProficiency: s.totalProficiency / s.count
-            }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5);
-        }
+            const skillData = skillsMap.get(skillKey)!;
+            skillData.employees.add(employee.id);
+            skillData.departments.add(employee.department || 'Unknown');
+            skillData.proficiency_sum += proficiency;
+            skillData.proficiency_count += 1;
+
+            // Add to employee skills
+            employeeSkills.push({
+              skill_id: skillKey,
+              skill_name: skill.skill_name,
+              proficiency_level: proficiency,
+              skill_type: skillType
+            });
+          }
+        });
+
+        // Add employee to the array
+        employeesWithSkills.push({
+          id: employee.id,
+          name: employee.users.full_name,
+          email: employee.users.email,
+          department: employee.department || 'Unknown',
+          position: employee.position || 'Not assigned',
+          skills: employeeSkills,
+          total_skills: employeeSkills.length,
+          avg_proficiency: employeeSkills.length > 0 
+            ? employeeSkills.reduce((sum, s) => sum + s.proficiency_level, 0) / employeeSkills.length
+            : 0
+        });
       });
 
-      // Calculate coverage for each department
-      deptMap.forEach((dept, key) => {
-        const employeesWithSkills = employeesWithSkills.filter(
-          e => (e.department || 'Unassigned') === key && 
-               e.st_employee_skills_profile?.length > 0
-        ).length;
-        dept.coverage = dept.employeeCount > 0 
-          ? Math.round((employeesWithSkills / dept.employeeCount) * 100)
-          : 0;
-      });
+      // Convert skills map to array
+      const skillsArray: SkillData[] = Array.from(skillsMap.entries()).map(([skillId, data]) => ({
+        skill_id: skillId,
+        skill_name: data.skill_name,
+        employee_count: data.employees.size,
+        avg_proficiency: data.proficiency_count > 0 ? data.proficiency_sum / data.proficiency_count : 0,
+        departments: Array.from(data.departments),
+        skill_type: data.skill_type
+      }));
 
-      const deptArray = Array.from(deptMap.values());
-      const avgCoverage = deptArray.length > 0
-        ? Math.round(deptArray.reduce((sum, d) => sum + d.coverage, 0) / deptArray.length)
-        : 0;
-
-      setDepartmentData(deptArray);
-      setTotalStats({
-        totalEmployees,
-        totalSkills: allSkills.size,
-        avgCoverage
-      });
-
+      setSkillsData(skillsArray);
+      
     } catch (error) {
       console.error('Error fetching skills data:', error);
     } finally {
@@ -164,154 +166,172 @@ export function SkillsInventory() {
     }
   };
 
-  const exportData = () => {
-    // Convert data to CSV format
-    const headers = ['Department', 'Employees', 'Skills Count', 'Coverage %'];
-    const rows = departmentData.map(dept => [
-      dept.department,
-      dept.employeeCount,
-      dept.skillsCount,
-      dept.coverage
-    ]);
+  const departments = [...new Set(skillsData.flatMap(skill => skill.departments))];
+  const skillTypes = [...new Set(skillsData.map(skill => skill.skill_type))];
+
+  const filteredSkills = skillsData.filter(skill => {
+    const matchesSearch = skill.skill_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = selectedDepartment === 'all' || skill.departments.includes(selectedDepartment);
+    const matchesType = selectedSkillType === 'all' || skill.skill_type === selectedSkillType;
     
-    const csv = [headers, ...rows]
-      .map(row => row.join(','))
-      .join('\n');
-    
-    // Download CSV
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `skills-inventory-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+    return matchesSearch && matchesDepartment && matchesType;
+  });
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header with Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Skills Inventory</h1>
+        <p className="text-muted-foreground">
+          Comprehensive view of all skills across your organization
+        </p>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{totalStats.totalEmployees}</p>
-                <p className="text-sm text-muted-foreground">Total Employees</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Skills</p>
+                <p className="text-2xl font-bold">{skillsData.length}</p>
               </div>
+              <BarChart3 className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Database className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{totalStats.totalSkills}</p>
-                <p className="text-sm text-muted-foreground">Unique Skills</p>
+                <p className="text-sm font-medium text-muted-foreground">Departments</p>
+                <p className="text-2xl font-bold">{departments.length}</p>
               </div>
+              <Building className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{totalStats.avgCoverage}%</p>
-                <p className="text-sm text-muted-foreground">Avg Coverage</p>
+                <p className="text-sm font-medium text-muted-foreground">Skill Types</p>
+                <p className="text-2xl font-bold">{skillTypes.length}</p>
               </div>
+              <Badge className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Avg Proficiency</p>
+                <p className="text-2xl font-bold">
+                  {skillsData.length > 0 
+                    ? (skillsData.reduce((sum, s) => sum + s.avg_proficiency, 0) / skillsData.length).toFixed(1)
+                    : '0.0'
+                  }
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Card */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Skills Inventory
-              </CardTitle>
-              <CardDescription>
-                Comprehensive view of skills across your organization
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={fetchSkillsData}>
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Refresh
-              </Button>
-              <Button size="sm" variant="outline" onClick={exportData}>
-                <Download className="h-4 w-4 mr-1" />
-                Export
-              </Button>
-              <Button size="sm" variant="outline">
-                <Settings className="h-4 w-4 mr-1" />
-                Manage Skills
-              </Button>
-            </div>
-          </div>
+          <CardTitle>Filters</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search Bar */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search skills, departments, or people..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search skills..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedSkillType} onValueChange={setSelectedSkillType}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Skill Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {skillTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
-
-          {/* View Tabs */}
-          <Tabs value={activeView} onValueChange={setActiveView}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="departments">Departments</TabsTrigger>
-              <TabsTrigger value="skills">Skills</TabsTrigger>
-              <TabsTrigger value="people">People</TabsTrigger>
-              <TabsTrigger value="matrix">Matrix</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="departments" className="mt-4">
-              <DepartmentView 
-                data={departmentData} 
-                loading={loading}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-
-            <TabsContent value="skills" className="mt-4">
-              <SkillsView 
-                companyId={userProfile?.company_id || ''}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-
-            <TabsContent value="people" className="mt-4">
-              <PeopleView 
-                companyId={userProfile?.company_id || ''}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-
-            <TabsContent value="matrix" className="mt-4">
-              <MatrixView 
-                companyId={userProfile?.company_id || ''}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-          </Tabs>
         </CardContent>
       </Card>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="skills">Skills View</TabsTrigger>
+          <TabsTrigger value="people">People View</TabsTrigger>
+          <TabsTrigger value="departments">Department View</TabsTrigger>
+          <TabsTrigger value="matrix">Matrix View</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="skills">
+          <SkillsView skills={filteredSkills} />
+        </TabsContent>
+
+        <TabsContent value="people">
+          <PeopleView />
+        </TabsContent>
+
+        <TabsContent value="departments">
+          <DepartmentView />
+        </TabsContent>
+
+        <TabsContent value="matrix">
+          <MatrixView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
