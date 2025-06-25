@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,7 +52,7 @@ interface Assignment {
   cm_module_content?: {
     module_name: string;
     status: string;
-  };
+  } | null;
 }
 
 interface FilterOptions {

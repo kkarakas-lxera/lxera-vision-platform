@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCallback, useMemo } from 'react';
@@ -10,6 +11,7 @@ export interface ModuleSpec {
   key_tools: string[];
   personalization_level: 'basic' | 'standard' | 'advanced';
   priority_level: 'low' | 'medium' | 'high';
+  [key: string]: any; // Add index signature for Json compatibility
 }
 
 export interface ModuleContent {
@@ -23,7 +25,7 @@ export interface ModuleContent {
   practical_applications?: string;
   case_studies?: string;
   assessments?: string;
-  status: 'draft' | 'in_review' | 'approved' | 'published';
+  status: string; // Change to string to match database
   priority_level: string;
   created_at: string;
   created_by?: string;
@@ -128,7 +130,7 @@ export class ContentManager {
         .select(`
           *,
           employees!inner(id, user_id, department, position),
-          cm_module_content!inner(module_name, status)
+          cm_module_content(module_name, status)
         `);
       
       if (!this.isSuperAdmin && this.companyId) {
@@ -226,7 +228,7 @@ export class ContentManager {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as ModuleContent[];
     } catch (error) {
       console.error('Error listing modules:', error);
       throw error;
@@ -247,7 +249,7 @@ export class ContentManager {
         status: 'draft' as const,
         priority_level: moduleSpec.priority_level,
         created_by: this.userId,
-        module_spec: moduleSpec,
+        module_spec: moduleSpec as any, // Cast to any for Json compatibility
         introduction: `Introduction for ${moduleSpec.module_name}`,
         core_content: `Core content for ${moduleSpec.module_name}`,
         practical_applications: `Practical applications for ${moduleSpec.module_name}`,
@@ -261,7 +263,7 @@ export class ContentManager {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as ModuleContent;
     } catch (error) {
       console.error('Error creating module:', error);
       throw error;
@@ -278,7 +280,7 @@ export class ContentManager {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as ModuleContent;
     } catch (error) {
       console.error('Error fetching module:', error);
       throw error;

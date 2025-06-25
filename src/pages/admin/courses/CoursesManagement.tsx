@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,13 +53,7 @@ interface CourseModule {
   priority_level: string;
   total_word_count: number;
   created_at: string;
-  section_word_counts?: {
-    introduction: number;
-    core_content: number;
-    practical_applications: number;
-    case_studies: number;
-    assessments: number;
-  };
+  section_word_counts?: any; // Change to any for Json compatibility
 }
 
 interface QualityAssessment {
@@ -115,7 +110,7 @@ const CoursesManagement = () => {
         .order('created_at', { ascending: false });
 
       if (modulesError) throw modulesError;
-      setModules(modulesData || []);
+      setModules((modulesData || []) as CourseModule[]);
 
       // Fetch quality assessments
       const { data: qualityData, error: qualityError } = await supabase
