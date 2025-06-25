@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { supabaseStorageService } from '@/lib/supabase-service';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -101,15 +100,32 @@ export function CVUploadDialog({
 
       setProgress(20);
 
-      // Step 1: Upload file to Supabase Storage using service role
+      // Step 1: Upload file to Supabase Storage
       const fileName = `cv-${employee.id}-${Date.now()}-${file.name}`;
+      // Try simplified path first to debug RLS policy
       const filePath = `${userProfile.company_id}/cvs/${employee.id}/${fileName}`;
+      // Alternative: const filePath = `cvs/${fileName}`; // Uncomment to test simple path
       
-      const { error: uploadError } = await supabaseStorageService
+      // Debug authentication context
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Auth Debug:', { 
+        filePath, 
+        fileName, 
+        userRole: userProfile.role, 
+        companyId: userProfile.company_id,
+        hasSession: !!session,
+        userId: session?.user?.id,
+        sessionExpiry: session?.expires_at
+      });
+      
+      const { error: uploadError } = await supabase.storage
         .from('employee-cvs')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
       
       setProgress(40);
 

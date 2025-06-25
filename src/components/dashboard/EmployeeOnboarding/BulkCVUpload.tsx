@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { supabaseStorageService } from '@/lib/supabase-service';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -135,11 +134,16 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
         const fileName = `cv-${employeeId}-${Date.now()}.${fileInfo.file.name.split('.').pop()}`;
         const filePath = `${userProfile.company_id}/cvs/${employeeId}/${fileName}`;
         
-        const { error: uploadError } = await supabaseStorageService
+        console.log('Bulk uploading CV:', { filePath, employeeName: fileInfo.employeeName, userRole: userProfile.role });
+        
+        const { error: uploadError } = await supabase.storage
           .from('employee-cvs')
           .upload(filePath, fileInfo.file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Bulk storage upload error:', uploadError);
+          throw new Error(`Storage upload failed: ${uploadError.message}`);
+        }
 
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, progress: 50 } : f
