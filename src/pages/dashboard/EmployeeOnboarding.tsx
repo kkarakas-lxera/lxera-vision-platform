@@ -52,7 +52,7 @@ export default function EmployeeOnboarding() {
         .limit(10);
 
       if (error) throw error;
-      setImportSessions(data || []);
+      setImportSessions((data || []) as ImportSession[]);
     } catch (error) {
       console.error('Error fetching import sessions:', error);
     }
