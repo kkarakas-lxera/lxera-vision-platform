@@ -52,7 +52,22 @@ export function CVUpload({ onUploadComplete, maxFiles = 10 }: CVUploadProps) {
         const fileName = `cv-${Date.now()}-${uploadedFile.file.name}`;
         const filePath = `cvs/${fileName}`;
         
-        await uploadFile(uploadedFile.file, 'documents', filePath);
+        // Get company ID from user profile
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('company_id')
+          .eq('id', user?.id)
+          .single();
+
+        if (!userProfile?.company_id) throw new Error('Company ID not found');
+
+        // Use simplified upload for now
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, uploadedFile.file);
+
+        if (uploadError) throw uploadError;
 
         // Update progress
         setUploadedFiles(prev => 

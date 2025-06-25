@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { CSVImportWizard } from '@/components/dashboard/EmployeeOnboarding/CSVImportWizard';
 import { OnboardingProgress } from '@/components/dashboard/EmployeeOnboarding/OnboardingProgress';
 import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
+import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
 
 interface ImportSession {
   id: string;
@@ -17,7 +18,7 @@ interface ImportSession {
   processed: number;
   successful: number;
   failed: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: string; // Allow any string for now
   created_at: string;
 }
 
@@ -227,6 +228,9 @@ export default function EmployeeOnboarding() {
           <CSVImportWizard
             onImportComplete={fetchImportSessions}
             importSessions={importSessions}
+          />
+          <BulkCVUpload
+            onUploadComplete={fetchEmployeeStatuses}
           />
         </TabsContent>
 

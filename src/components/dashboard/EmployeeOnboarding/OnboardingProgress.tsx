@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CVUpload } from '@/components/admin/FileUpload/CVUpload';
+import { CVUploadDialog } from './CVUploadDialog';
 
 interface EmployeeStatus {
   id: string;
@@ -273,33 +273,27 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
         </Card>
       </div>
 
-      {/* CV Upload Modal */}
-      {selectedEmployee && showCVUpload && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              Upload CV for {selectedEmployee.name}
-            </h3>
-            <CVUpload
-              employeeId={selectedEmployee.id}
-              onUploadComplete={() => {
-                setShowCVUpload(false);
-                setSelectedEmployee(null);
-                onRefresh();
-              }}
-            />
-            <Button
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={() => {
-                setShowCVUpload(false);
-                setSelectedEmployee(null);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
+      {/* CV Upload Dialog */}
+      {selectedEmployee && (
+        <CVUploadDialog
+          employee={{
+            id: selectedEmployee.id,
+            name: selectedEmployee.name,
+            email: selectedEmployee.email
+          }}
+          open={showCVUpload}
+          onOpenChange={(open) => {
+            setShowCVUpload(open);
+            if (!open) {
+              setSelectedEmployee(null);
+            }
+          }}
+          onUploadComplete={() => {
+            setShowCVUpload(false);
+            setSelectedEmployee(null);
+            onRefresh();
+          }}
+        />
       )}
     </div>
   );

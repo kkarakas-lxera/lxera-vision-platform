@@ -112,8 +112,8 @@ export function PositionCreateSheet({ open, onOpenChange, onSuccess }: PositionC
         position_title: positionTitle.trim(),
         position_level: positionLevel || null,
         department: department || null,
-        required_skills: requiredSkills,
-        nice_to_have_skills: niceToHaveSkills,
+        required_skills: requiredSkills as any[],
+        nice_to_have_skills: niceToHaveSkills as any[],
         is_template: true,
         created_by: userProfile.id
       };
