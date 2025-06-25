@@ -137,7 +137,12 @@ export default function CompanyDashboard() {
         .from('st_employee_skills_profile')
         .select(`
           *,
-          employees!inner(full_name, company_id)
+          employees!inner(
+            id,
+            user_id,
+            company_id,
+            users!inner(full_name)
+          )
         `)
         .eq('employees.company_id', userProfile.company_id)
         .order('analyzed_at', { ascending: false })
@@ -160,7 +165,7 @@ export default function CompanyDashboard() {
         activities.push({
           id: analysis.id,
           type: 'analysis',
-          message: `Analyzed CV for ${analysis.employees.full_name}`,
+          message: `Analyzed CV for ${analysis.employees.users.full_name}`,
           timestamp: analysis.analyzed_at,
           icon: <CheckCircle2 className="h-4 w-4" />
         });

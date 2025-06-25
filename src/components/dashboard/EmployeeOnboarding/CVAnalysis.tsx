@@ -40,21 +40,21 @@ interface AnalysisResult {
   current_position_id?: string;
   target_position_id?: string;
   analyzed_at: string;
-}
-
-interface Employee {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  position?: string;
-  department?: string;
+  employee: {
+    id: string;
+    user_id: string;
+    position?: string;
+    department?: string;
+    users: {
+      full_name: string;
+      email: string;
+    };
+  };
 }
 
 export function CVAnalysis() {
   const { userProfile } = useAuth();
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
 
@@ -75,7 +75,14 @@ export function CVAnalysis() {
         .from('st_employee_skills_profile')
         .select(`
           *,
-          employees!inner(id, first_name, last_name, email, position, department, company_id)
+          employees!inner(
+            id, 
+            user_id, 
+            position, 
+            department, 
+            company_id,
+            users!inner(full_name, email)
+          )
         `)
         .eq('employees.company_id', userProfile.company_id)
         .order('analyzed_at', { ascending: false });
@@ -104,14 +111,11 @@ export function CVAnalysis() {
         career_readiness_score: item.career_readiness_score || 0,
         current_position_id: item.current_position_id,
         target_position_id: item.target_position_id,
-        analyzed_at: item.analyzed_at
+        analyzed_at: item.analyzed_at,
+        employee: item.employees
       }));
 
       setAnalyses(transformedAnalyses);
-
-      // Extract unique employees
-      const uniqueEmployees = analysesData?.map(item => item.employees).filter(Boolean) || [];
-      setEmployees(uniqueEmployees);
 
     } catch (error) {
       console.error('Error fetching analyses:', error);
@@ -123,10 +127,6 @@ export function CVAnalysis() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getEmployeeById = (employeeId: string) => {
-    return employees.find(emp => emp.id === employeeId);
   };
 
   const getScoreColor = (score: number) => {
@@ -189,8 +189,6 @@ export function CVAnalysis() {
 
       <div className="grid gap-6">
         {analyses.map((analysis) => {
-          const employee = getEmployeeById(analysis.employee_id);
-          
           return (
             <Card key={analysis.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
@@ -201,10 +199,10 @@ export function CVAnalysis() {
                     </div>
                     <div>
                       <CardTitle className="text-lg">
-                        {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
+                        {analysis.employee.users.full_name}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {employee?.position || 'No position specified'} • {employee?.department || 'No department'}
+                        {analysis.employee.position || 'No position specified'} • {analysis.employee.department || 'No department'}
                       </p>
                     </div>
                   </div>
