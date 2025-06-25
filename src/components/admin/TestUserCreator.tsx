@@ -57,7 +57,8 @@ const TestUserCreator = () => {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: 'John Test Learner',
-            role: 'learner'
+            role: 'learner',
+            email_confirmed: true
           }
         }
       });
@@ -159,7 +160,8 @@ const TestUserCreator = () => {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: 'Jane Test Admin',
-            role: 'company_admin'
+            role: 'company_admin',
+            email_confirmed: true
           }
         }
       });
