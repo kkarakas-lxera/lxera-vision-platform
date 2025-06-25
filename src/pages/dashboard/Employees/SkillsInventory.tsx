@@ -317,19 +317,19 @@ export default function SkillsInventory() {
         </TabsList>
 
         <TabsContent value="skills">
-          <SkillsView skills={filteredSkills} />
+          <SkillsView companyId={userProfile?.company_id || ''} searchTerm={searchTerm} />
         </TabsContent>
 
         <TabsContent value="people">
-          <PeopleView />
+          <PeopleView companyId={userProfile?.company_id || ''} searchTerm={searchTerm} />
         </TabsContent>
 
         <TabsContent value="departments">
-          <DepartmentView />
+          <DepartmentView data={[]} loading={loading} searchTerm={searchTerm} />
         </TabsContent>
 
         <TabsContent value="matrix">
-          <MatrixView />
+          <MatrixView companyId={userProfile?.company_id || ''} searchTerm={searchTerm} />
         </TabsContent>
       </Tabs>
     </div>

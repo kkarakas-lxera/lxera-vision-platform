@@ -105,7 +105,7 @@ export function TeamsView() {
           ),
           current_position_id,
           target_position_id,
-          st_company_positions!left(
+          st_company_positions!current_position_id(
             position_title,
             required_skills
           )

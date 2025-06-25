@@ -286,15 +286,16 @@ export default function PositionManagement() {
         )}
       </div>
 
-      {/* Create Position Sheet */}
-      <PositionCreateWizard
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onSuccess={() => {
-          setCreateOpen(false);
-          fetchPositions();
-        }}
-      />
+      {/* Create Position Wizard */}
+      {createOpen && (
+        <PositionCreateWizard
+          onComplete={() => {
+            setCreateOpen(false);
+            fetchPositions();
+          }}
+          onCancel={() => setCreateOpen(false)}
+        />
+      )}
 
       {/* Edit Position Sheet */}
       <PositionEditSheet

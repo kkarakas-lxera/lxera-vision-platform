@@ -3,9 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Database, Building2, UserCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { EmployeeOverview } from './EmployeeOverview';
-import { SkillsInventory } from './SkillsInventory';
+import SkillsInventory from './SkillsInventory';
 import { TeamsView } from './TeamsView';
-import { IndividualProfiles } from './IndividualProfiles';
+import IndividualProfiles from './IndividualProfiles';
 
 export default function Employees() {
   const [searchParams, setSearchParams] = useSearchParams();

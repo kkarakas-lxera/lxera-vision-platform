@@ -284,7 +284,7 @@ export function MatrixView({ companyId, searchTerm }: MatrixViewProps) {
         </table>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .writing-mode-vertical {
           writing-mode: vertical-rl;
           text-orientation: mixed;

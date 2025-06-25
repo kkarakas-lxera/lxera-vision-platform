@@ -74,7 +74,11 @@ export function PeopleView({ companyId, searchTerm }: PeopleViewProps) {
         const topSkills = skills
           .filter((skill: any) => skill.skill_name)
           .sort((a: any, b: any) => (b.proficiency_level || 0) - (a.proficiency_level || 0))
-          .slice(0, 3);
+          .slice(0, 3)
+          .map((skill: any) => ({
+            skill_name: skill.skill_name,
+            proficiency_level: skill.proficiency_level || 0
+          }));
 
         return {
           id: emp.id,

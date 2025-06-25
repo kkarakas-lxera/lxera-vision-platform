@@ -215,12 +215,13 @@ bob.johnson@company.com,Bob Johnson,Sales Representative,Account Manager,Sales`;
         </Alert>
       )}
 
-      {/* CSV Import Wizard Dialog */}
-      <CSVImportWizard
-        open={showImportWizard}
-        onOpenChange={setShowImportWizard}
-        onImportComplete={handleImportComplete}
-      />
+      {/* CSV Import Wizard */}
+      {showImportWizard && (
+        <CSVImportWizard
+          onImportComplete={handleImportComplete}
+          importSessions={importSessions}
+        />
+      )}
     </div>
   );
 }
