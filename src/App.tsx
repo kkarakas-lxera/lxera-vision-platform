@@ -35,6 +35,8 @@ import CoursesManagement from "./pages/admin/courses/CoursesManagement";
 
 // Import company dashboard pages
 import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
+import PositionManagement from "./pages/dashboard/PositionManagement";
+import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -90,8 +92,8 @@ const App = () => (
                   <DashboardLayout>
                     <Routes>
                       <Route path="/" element={<CompanyDashboard />} />
-                      <Route path="/onboarding" element={<div>Employee Onboarding Wizard</div>} />
-                      <Route path="/positions" element={<div>Position Management</div>} />
+                      <Route path="/onboarding" element={<EmployeeOnboarding />} />
+                      <Route path="/positions" element={<PositionManagement />} />
                       <Route path="/employees" element={<div>Employee Skills Dashboard</div>} />
                       <Route path="/courses" element={<div>Course Management</div>} />
                       <Route path="/analytics" element={<div>Skills Analytics</div>} />
