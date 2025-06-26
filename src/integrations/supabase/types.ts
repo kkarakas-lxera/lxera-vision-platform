@@ -1150,6 +1150,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           department: string | null
+          description: string | null
           id: string
           is_template: boolean | null
           nice_to_have_skills: Json[] | null
@@ -1164,6 +1165,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           department?: string | null
+          description?: string | null
           id?: string
           is_template?: boolean | null
           nice_to_have_skills?: Json[] | null
@@ -1178,6 +1180,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           department?: string | null
+          description?: string | null
           id?: string
           is_template?: boolean | null
           nice_to_have_skills?: Json[] | null

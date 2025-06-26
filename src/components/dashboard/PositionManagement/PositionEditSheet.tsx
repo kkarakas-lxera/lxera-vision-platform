@@ -19,6 +19,7 @@ interface CompanyPosition {
   position_title: string;
   position_level?: string;
   department?: string;
+  description?: string;
   required_skills: any[];
   nice_to_have_skills: any[];
   is_template: boolean;

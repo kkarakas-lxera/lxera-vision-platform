@@ -151,6 +151,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
           position_code: positionData.position_code,
           position_level: positionData.position_level,
           department: positionData.department,
+          description: positionData.description,
           required_skills: positionData.required_skills.map(skill => ({
             skill_id: skill.skill_id,
             skill_name: skill.skill_name,
