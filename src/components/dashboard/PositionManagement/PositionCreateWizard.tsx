@@ -13,7 +13,6 @@ import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb } from '
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { SkillSearch } from '@/components/admin/SkillsManagement/SkillSearch';
 import { AISkillSuggestions } from './AISkillSuggestions';
 
 // Define the interface to match what's used in the parent component
@@ -31,7 +30,6 @@ interface ImportSession {
 interface SkillSelection {
   skill_id: string;
   skill_name: string;
-  category: 'required' | 'nice-to-have';
   proficiency_level: number;
   description?: string;
 }
@@ -43,7 +41,6 @@ interface PositionData {
   department: string;
   description: string;
   required_skills: SkillSelection[];
-  nice_to_have_skills: SkillSelection[];
 }
 
 interface PositionCreateWizardProps {
@@ -62,11 +59,9 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     position_level: '',
     department: '',
     description: '',
-    required_skills: [],
-    nice_to_have_skills: []
+    required_skills: []
   });
 
-  const [skillCategory, setSkillCategory] = useState<'required' | 'nice-to-have'>('required');
 
   const generatePositionCode = (title: string) => {
     return title
@@ -76,41 +71,25 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
       .substring(0, 20);
   };
 
-  const addSkill = (skill: any, category?: 'required' | 'nice-to-have') => {
-    const targetCategory = category || skillCategory;
+  const addSkill = (skill: any) => {
     const skillSelection: SkillSelection = {
       skill_id: skill.skill_id,
       skill_name: skill.skill_name,
-      category: targetCategory,
       proficiency_level: skill.proficiency_level || 3,
       description: skill.description
     };
 
-    if (targetCategory === 'required') {
-      setPositionData(prev => ({
-        ...prev,
-        required_skills: [...prev.required_skills, skillSelection]
-      }));
-    } else {
-      setPositionData(prev => ({
-        ...prev,
-        nice_to_have_skills: [...prev.nice_to_have_skills, skillSelection]
-      }));
-    }
+    setPositionData(prev => ({
+      ...prev,
+      required_skills: [...prev.required_skills, skillSelection]
+    }));
   };
 
-  const removeSkill = (skillId: string, category: 'required' | 'nice-to-have') => {
-    if (category === 'required') {
-      setPositionData(prev => ({
-        ...prev,
-        required_skills: prev.required_skills.filter(s => s.skill_id !== skillId)
-      }));
-    } else {
-      setPositionData(prev => ({
-        ...prev,
-        nice_to_have_skills: prev.nice_to_have_skills.filter(s => s.skill_id !== skillId)
-      }));
-    }
+  const removeSkill = (skillId: string) => {
+    setPositionData(prev => ({
+      ...prev,
+      required_skills: prev.required_skills.filter(s => s.skill_id !== skillId)
+    }));
   };
 
   const createPosition = async () => {
@@ -140,12 +119,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
             proficiency_level: skill.proficiency_level,
             description: skill.description
           })),
-          nice_to_have_skills: positionData.nice_to_have_skills.map(skill => ({
-            skill_id: skill.skill_id,
-            skill_name: skill.skill_name,
-            proficiency_level: skill.proficiency_level,
-            description: skill.description
-          })),
+          nice_to_have_skills: [],
           created_by: userProfile.id
         })
         .select()
@@ -174,8 +148,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const steps = [
     { number: 1, title: 'Basic Information', description: 'Position details and overview' },
     { number: 2, title: 'Required Skills', description: 'Essential skills for this role' },
-    { number: 3, title: 'Nice-to-Have Skills', description: 'Preferred additional skills' },
-    { number: 4, title: 'Review & Create', description: 'Final review and creation' }
+    { number: 3, title: 'Review & Create', description: 'Final review and creation' }
   ];
 
   const canProceedToStep = (step: number) => {
@@ -184,8 +157,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
         return positionData.position_title && positionData.position_code;
       case 3:
         return positionData.required_skills.length > 0;
-      case 4:
-        return true;
       default:
         return true;
     }
@@ -309,121 +280,64 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
           )}
 
           {currentStep === 2 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left side - Manual search and skills list */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">Required Skills</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Essential skills that candidates must have
-                  </p>
-                </div>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-medium">Required Skills</h3>
+                <p className="text-sm text-muted-foreground">
+                  AI will suggest essential skills based on your position details
+                </p>
+              </div>
 
-                <SkillSearch 
-                  onSkillSelect={(skill) => addSkill(skill, 'required')} 
-                  placeholder="Search skills in database..."
-                />
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Selected Required Skills ({positionData.required_skills.length})</h4>
-                  {positionData.required_skills.map((skill) => (
-                    <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg bg-red-50 border-red-200">
-                      <div>
-                        <span className="font-medium">{skill.skill_name}</span>
-                        <Badge variant="secondary" className="ml-2 bg-red-100 text-red-800">Required</Badge>
+              {/* Selected Skills Display */}
+              {positionData.required_skills.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Selected Required Skills ({positionData.required_skills.length})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {positionData.required_skills.map((skill) => (
+                      <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg bg-red-50 border-red-200">
+                        <div className="flex-1">
+                          <span className="font-medium text-sm">{skill.skill_name}</span>
+                          <Badge variant="secondary" className="ml-2 text-xs bg-red-100 text-red-800">Required</Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSkill(skill.skill_id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSkill(skill.skill_id, 'required')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                {positionData.required_skills.length === 0 && (
-                  <Alert>
-                    <Lightbulb className="h-4 w-4" />
-                    <AlertDescription>
-                      Add at least one required skill. Use manual search or AI suggestions.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
+              {/* AI Suggestions Panel */}
+              <AISkillSuggestions
+                positionTitle={positionData.position_title}
+                positionDescription={positionData.description}
+                positionLevel={positionData.position_level}
+                department={positionData.department}
+                onAddSkill={addSkill}
+                existingSkills={positionData.required_skills}
+                currentStep="required"
+                onUpdateDescription={(desc) => setPositionData(prev => ({ ...prev, description: desc }))}
+              />
 
-              {/* Right side - AI suggestions */}
-              <div className="lg:border-l lg:pl-6">
-                <AISkillSuggestions
-                  positionTitle={positionData.position_title}
-                  positionDescription={positionData.description}
-                  positionLevel={positionData.position_level}
-                  department={positionData.department}
-                  onAddSkill={addSkill}
-                  existingSkills={[...positionData.required_skills, ...positionData.nice_to_have_skills]}
-                />
-              </div>
+              {positionData.required_skills.length === 0 && (
+                <Alert>
+                  <Lightbulb className="h-4 w-4" />
+                  <AlertDescription>
+                    Add at least one required skill from the AI suggestions above.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
 
           {currentStep === 3 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left side - Manual search and skills list */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">Nice-to-Have Skills</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Additional skills that would be beneficial
-                  </p>
-                </div>
-
-                <SkillSearch 
-                  onSkillSelect={(skill) => addSkill(skill, 'nice-to-have')} 
-                  placeholder="Search skills in database..."
-                />
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Selected Nice-to-Have Skills ({positionData.nice_to_have_skills.length})</h4>
-                  {positionData.nice_to_have_skills.map((skill) => (
-                    <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 border-blue-200">
-                      <div>
-                        <span className="font-medium">{skill.skill_name}</span>
-                        <Badge variant="outline" className="ml-2 bg-blue-100 text-blue-800">Nice-to-Have</Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSkill(skill.skill_id, 'nice-to-have')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  
-                  {positionData.nice_to_have_skills.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No nice-to-have skills added yet. This is optional.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side - AI suggestions */}
-              <div className="lg:border-l lg:pl-6">
-                <AISkillSuggestions
-                  positionTitle={positionData.position_title}
-                  positionDescription={positionData.description}
-                  positionLevel={positionData.position_level}
-                  department={positionData.department}
-                  onAddSkill={addSkill}
-                  existingSkills={[...positionData.required_skills, ...positionData.nice_to_have_skills]}
-                />
-              </div>
-            </div>
-          )}
-
-          {currentStep === 4 && (
             <div className="space-y-4">
               <h3 className="font-medium">Review & Confirm</h3>
               <p className="text-sm text-muted-foreground">
@@ -456,20 +370,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                 )}
               </div>
 
-              <Separator />
-
-              <div className="space-y-2">
-                <h4 className="font-semibold">Nice-to-Have Skills</h4>
-                {positionData.nice_to_have_skills.length > 0 ? (
-                  positionData.nice_to_have_skills.map((skill) => (
-                    <Badge key={skill.skill_id} variant="outline" className="mr-2">
-                      {skill.skill_name}
-                    </Badge>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No nice-to-have skills added</p>
-                )}
-              </div>
             </div>
           )}
 
@@ -488,11 +388,11 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
         </Button>
 
         <Button
-          onClick={currentStep === 4 ? createPosition : () => setCurrentStep(currentStep + 1)}
+          onClick={currentStep === 3 ? createPosition : () => setCurrentStep(currentStep + 1)}
           disabled={!canProceedToStep(currentStep + 1) || isLoading}
           className="flex items-center gap-2"
         >
-          {currentStep === 4 ? (
+          {currentStep === 3 ? (
             isLoading ? 'Creating...' : 'Create Position'
           ) : (
             <>

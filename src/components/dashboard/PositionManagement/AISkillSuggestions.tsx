@@ -5,7 +5,22 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Database, Plus, CheckCircle, Info, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  Sparkles, 
+  Database, 
+  Plus, 
+  CheckCircle, 
+  Info, 
+  RefreshCw, 
+  FileText,
+  Lightbulb,
+  Target,
+  ChevronDown,
+  ChevronUp,
+  Wand2
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -25,8 +40,9 @@ interface AISkillSuggestionsProps {
   positionDescription: string;
   positionLevel?: string;
   department?: string;
-  onAddSkill: (skill: any, category: 'required' | 'nice-to-have') => void;
+  onAddSkill: (skill: any) => void;
   existingSkills: Array<{ skill_id: string; skill_name: string }>;
+  onUpdateDescription?: (description: string) => void;
 }
 
 export function AISkillSuggestions({
@@ -35,13 +51,17 @@ export function AISkillSuggestions({
   positionLevel,
   department,
   onAddSkill,
-  existingSkills
+  existingSkills,
+  onUpdateDescription
 }: AISkillSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
+  const [responsibilities, setResponsibilities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addedSkills, setAddedSkills] = useState<Set<string>>(new Set());
   const [summary, setSummary] = useState<any>(null);
+  const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState('skills');
 
   const fetchSuggestions = async () => {
     if (!positionTitle) {
@@ -69,8 +89,15 @@ export function AISkillSuggestions({
       }
 
       setSuggestions(data.skills || []);
+      setResponsibilities(data.responsibilities || []);
       setSummary(data.summary);
-      toast.success(`Found ${data.skills?.length || 0} skill suggestions`);
+      
+      // Auto-switch to responsibilities tab if description is empty
+      if (!positionDescription && data.responsibilities?.length > 0) {
+        setActiveTab('responsibilities');
+      }
+      
+      toast.success(`Found ${data.skills?.length || 0} skills and ${data.responsibilities?.length || 0} responsibilities`);
     } catch (err) {
       console.error('Error fetching AI suggestions:', err);
       setError(err.message || 'Failed to get AI suggestions');
@@ -91,13 +118,30 @@ export function AISkillSuggestions({
       source: skill.source
     };
 
-    const category = skill.category === 'essential' || skill.category === 'important' 
-      ? 'required' 
-      : 'nice-to-have';
-
-    onAddSkill(skillData, category);
+    onAddSkill(skillData);
     setAddedSkills(prev => new Set(prev).add(skill.skill_name));
-    toast.success(`Added ${skill.skill_name} to ${category} skills`);
+    toast.success(`Added ${skill.skill_name} to required skills`);
+  };
+
+  const handleUseResponsibilities = () => {
+    if (responsibilities.length > 0 && onUpdateDescription) {
+      const formattedResponsibilities = responsibilities.map(r => `• ${r}`).join('\n');
+      onUpdateDescription(formattedResponsibilities);
+      toast.success('Responsibilities added to description');
+      setActiveTab('skills');
+    }
+  };
+
+  const toggleSkillExpand = (skillName: string) => {
+    setExpandedSkills(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(skillName)) {
+        newSet.delete(skillName);
+      } else {
+        newSet.add(skillName);
+      }
+      return newSet;
+    });
   };
 
   const isSkillAdded = (skillName: string) => {
@@ -108,53 +152,56 @@ export function AISkillSuggestions({
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'essential':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-500 text-white';
       case 'important':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-500 text-white';
       case 'nice-to-have':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-500 text-white';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-500 text-white';
     }
   };
 
-  const getProficiencyColor = (level: string) => {
+  const getProficiencyIcon = (level: string) => {
     switch (level) {
       case 'basic':
-        return 'bg-green-100 text-green-800';
+        return '●○○○';
       case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
+        return '●●○○';
       case 'advanced':
-        return 'bg-purple-100 text-purple-800';
+        return '●●●○';
       case 'expert':
-        return 'bg-red-100 text-red-800';
+        return '●●●●';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return '●○○○';
     }
   };
 
-  // Auto-fetch when description changes (with debounce)
+  // Auto-fetch when position details change (with debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (positionTitle && positionDescription && positionDescription.length > 50) {
+      if (positionTitle && (positionLevel || department || positionDescription?.length > 20)) {
         fetchSuggestions();
       }
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [positionDescription]);
+  }, [positionTitle, positionLevel, department]);
+
+  // Show all suggestions
+  const filteredSuggestions = suggestions;
 
   return (
     <Card className="h-full">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
-              AI Skill Suggestions
+              AI Position Assistant
             </CardTitle>
             <CardDescription>
-              Powered by OpenAI and your skills database
+              Intelligent suggestions powered by OpenAI & your database
             </CardDescription>
           </div>
           <Button
@@ -171,125 +218,199 @@ export function AISkillSuggestions({
       </CardHeader>
       <CardContent>
         {!positionTitle && (
-          <Alert>
+          <Alert className="mb-4">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Enter a position title to get AI-powered skill suggestions
+              Enter a position title to get AI-powered suggestions
             </AlertDescription>
           </Alert>
         )}
 
         {loading && (
           <div className="space-y-3">
-            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-12 w-full" />
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </div>
         )}
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        {summary && !loading && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <span className="text-muted-foreground">Total suggestions:</span>
-                <span className="font-medium ml-1">{summary.total_suggestions}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">From database:</span>
-                <span className="font-medium ml-1">{summary.from_database}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Essential:</span>
-                <span className="font-medium ml-1">{summary.essential_count}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">AI generated:</span>
-                <span className="font-medium ml-1">{summary.from_ai}</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {!loading && (suggestions.length > 0 || responsibilities.length > 0) && (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="skills" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Skills ({filteredSuggestions.length})
+              </TabsTrigger>
+              <TabsTrigger value="responsibilities" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Responsibilities ({responsibilities.length})
+              </TabsTrigger>
+            </TabsList>
 
-        {suggestions.length > 0 && !loading && (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-3">
-              {suggestions.map((skill, index) => {
-                const isAdded = isSkillAdded(skill.skill_name);
-                
-                return (
-                  <div
-                    key={`${skill.skill_id || index}`}
-                    className={`p-3 border rounded-lg transition-all ${
-                      isAdded ? 'opacity-60 bg-gray-50' : 'hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{skill.skill_name}</h4>
-                          {skill.source === 'database' ? (
-                            <Database className="h-4 w-4 text-blue-600" title="From your database" />
-                          ) : (
-                            <Sparkles className="h-4 w-4 text-purple-600" title="AI suggested" />
-                          )}
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground">{skill.description}</p>
-                        
-                        {skill.reason && (
-                          <p className="text-xs text-muted-foreground italic">
-                            <span className="font-medium">Why: </span>{skill.reason}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className={getCategoryColor(skill.category)}>
-                            {skill.category}
-                          </Badge>
-                          <Badge variant="secondary" className={getProficiencyColor(skill.proficiency_level)}>
-                            {skill.proficiency_level}
-                          </Badge>
+            <TabsContent value="skills" className="space-y-4">
+              {summary && (
+                <div className="p-3 bg-purple-50 rounded-lg text-sm border border-purple-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium text-purple-900">AI Analysis Summary</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-purple-800">
+                    <div>Database matches: <span className="font-medium">{summary.from_database}</span></div>
+                    <div>AI suggestions: <span className="font-medium">{summary.from_ai}</span></div>
+                    <div>Essential skills: <span className="font-medium">{summary.essential_count}</span></div>
+                    <div>Important skills: <span className="font-medium">{summary.important_count}</span></div>
+                  </div>
+                </div>
+              )}
+
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-2">
+                  {filteredSuggestions.map((skill, index) => {
+                    const isAdded = isSkillAdded(skill.skill_name);
+                    const isExpanded = expandedSkills.has(skill.skill_name);
+                    
+                    return (
+                      <div
+                        key={`${skill.skill_id || index}`}
+                        className={`border rounded-lg transition-all ${
+                          isAdded ? 'opacity-60 bg-gray-50' : 'hover:shadow-md bg-white'
+                        }`}
+                      >
+                        <div className="p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-medium text-sm">{skill.skill_name}</h4>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      {skill.source === 'database' ? (
+                                        <Database className="h-4 w-4 text-blue-600" />
+                                      ) : (
+                                        <Sparkles className="h-4 w-4 text-purple-600" />
+                                      )}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      {skill.source === 'database' ? 'From your skills database' : 'AI generated'}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge className={`text-xs ${getCategoryColor(skill.category)}`}>
+                                  {skill.category}
+                                </Badge>
+                                <span className="text-xs text-gray-600">
+                                  {getProficiencyIcon(skill.proficiency_level)} {skill.proficiency_level}
+                                </span>
+                              </div>
+                              
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {skill.description}
+                              </p>
+                              
+                              {skill.reason && (
+                                <button
+                                  onClick={() => toggleSkillExpand(skill.skill_name)}
+                                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+                                >
+                                  {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                  Why this skill?
+                                </button>
+                              )}
+                              
+                              {isExpanded && skill.reason && (
+                                <p className="text-xs text-muted-foreground italic mt-2 p-2 bg-blue-50 rounded">
+                                  {skill.reason}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <Button
+                              size="sm"
+                              variant={isAdded ? "secondary" : "default"}
+                              disabled={isAdded}
+                              onClick={() => handleAddSkill(skill)}
+                              className="flex items-center gap-1 shrink-0"
+                            >
+                              {isAdded ? (
+                                <>
+                                  <CheckCircle className="h-3 w-3" />
+                                  Added
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="h-3 w-3" />
+                                  Add
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      
-                      <Button
-                        size="sm"
-                        variant={isAdded ? "secondary" : "default"}
-                        disabled={isAdded}
-                        onClick={() => handleAddSkill(skill)}
-                        className="flex items-center gap-1"
-                      >
-                        {isAdded ? (
-                          <>
-                            <CheckCircle className="h-4 w-4" />
-                            Added
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-4 w-4" />
-                            Add
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="responsibilities" className="space-y-4">
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-900 text-sm">
+                      AI-Generated Responsibilities
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
+                  <Button
+                    size="sm"
+                    onClick={handleUseResponsibilities}
+                    disabled={!onUpdateDescription}
+                    className="flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Use These
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-800">
+                  Click "Use These" to add to position description
+                </p>
+              </div>
+
+              <ScrollArea className="h-[350px] pr-4">
+                <div className="space-y-2">
+                  {responsibilities.map((responsibility, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <span className="font-medium text-gray-500 text-sm">{index + 1}.</span>
+                      <p className="text-sm text-gray-800 flex-1">{responsibility}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
         )}
 
-        {suggestions.length === 0 && !loading && positionTitle && (
+        {!loading && suggestions.length === 0 && positionTitle && (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              Click "Refresh" to get AI-powered skill suggestions
+            <p className="text-muted-foreground mb-4">
+              Click "Refresh" to get AI-powered suggestions
             </p>
+            <Button onClick={fetchSuggestions} className="flex items-center gap-2 mx-auto">
+              <Sparkles className="h-4 w-4" />
+              Get AI Suggestions
+            </Button>
           </div>
         )}
       </CardContent>

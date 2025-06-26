@@ -296,15 +296,9 @@ export default function PositionManagement() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Skills Summary */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-red-50 rounded-lg p-3 border border-red-100">
-                    <p className="text-xs font-medium text-red-700 mb-1">Required Skills</p>
-                    <p className="text-2xl font-bold text-red-600">{position.required_skills.length}</p>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                    <p className="text-xs font-medium text-blue-700 mb-1">Nice to Have</p>
-                    <p className="text-2xl font-bold text-blue-600">{position.nice_to_have_skills.length}</p>
-                  </div>
+                <div className="bg-red-50 rounded-lg p-3 border border-red-100">
+                  <p className="text-xs font-medium text-red-700 mb-1">Required Skills</p>
+                  <p className="text-2xl font-bold text-red-600">{position.required_skills.length}</p>
                 </div>
 
                 {/* Top Skills Preview */}

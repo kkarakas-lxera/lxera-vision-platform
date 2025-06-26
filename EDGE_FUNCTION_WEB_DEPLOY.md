@@ -1,4 +1,19 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+# Deploy Edge Function via Supabase Web Editor
+
+## Steps:
+
+1. Go to your Supabase Dashboard: https://supabase.com/dashboard/project/xwfweumeryrgbguwrocr
+2. Navigate to **Edge Functions** in the sidebar
+3. Click **Create a new function**
+4. Name it: `suggest-position-skills-enhanced`
+5. Replace the default code with the code below
+6. Click **Deploy**
+
+## Complete Function Code:
+
+```typescript
+// Setup type definitions for built-in Supabase Runtime APIs
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -17,7 +32,9 @@ interface SkillSuggestion {
   reason?: string;
 }
 
-serve(async (req) => {
+console.info('suggest-position-skills-enhanced function started');
+
+Deno.serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -321,3 +338,17 @@ Return as JSON object with "categorizations" array containing objects with: skil
 
   return skills
 }
+```
+
+## After Deployment:
+
+1. The function will be available immediately
+2. Test it by creating a new position in your app
+3. Type a description to trigger AI suggestions
+4. Monitor the function logs in Supabase dashboard
+
+The function combines:
+- Real-time search of your skills taxonomy database
+- AI-powered suggestions from OpenAI
+- Smart categorization and ranking
+- No mock data - 100% production ready!

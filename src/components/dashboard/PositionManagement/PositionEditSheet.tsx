@@ -47,7 +47,6 @@ export function PositionEditSheet({ position, open, onOpenChange, onSuccess }: P
   const [positionLevel, setPositionLevel] = useState('');
   const [department, setDepartment] = useState('');
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
-  const [niceToHaveSkills, setNiceToHaveSkills] = useState<SkillRequirement[]>([]);
 
   // Load position data when position changes
   useEffect(() => {
@@ -57,7 +56,6 @@ export function PositionEditSheet({ position, open, onOpenChange, onSuccess }: P
       setPositionLevel(position.position_level || '');
       setDepartment(position.department || '');
       setRequiredSkills(position.required_skills || []);
-      setNiceToHaveSkills(position.nice_to_have_skills || []);
     }
   }, [position]);
 
@@ -75,29 +73,16 @@ export function PositionEditSheet({ position, open, onOpenChange, onSuccess }: P
       if (!requiredSkills.find(s => s.skill_id === skill.skill_id)) {
         setRequiredSkills([...requiredSkills, skillRequirement]);
       }
-    } else {
-      // Check if skill already exists in nice-to-have skills
-      if (!niceToHaveSkills.find(s => s.skill_id === skill.skill_id)) {
-        setNiceToHaveSkills([...niceToHaveSkills, skillRequirement]);
-      }
     }
   };
 
-  const removeSkill = (skillId: string, isRequired: boolean) => {
-    if (isRequired) {
-      setRequiredSkills(requiredSkills.filter(s => s.skill_id !== skillId));
-    } else {
-      setNiceToHaveSkills(niceToHaveSkills.filter(s => s.skill_id !== skillId));
-    }
+  const removeSkill = (skillId: string) => {
+    setRequiredSkills(requiredSkills.filter(s => s.skill_id !== skillId));
   };
 
   const updateSkillProficiency = (skillId: string, isRequired: boolean, proficiencyLevel: string) => {
     if (isRequired) {
       setRequiredSkills(requiredSkills.map(s => 
-        s.skill_id === skillId ? { ...s, proficiency_level: proficiencyLevel as any } : s
-      ));
-    } else {
-      setNiceToHaveSkills(niceToHaveSkills.map(s => 
         s.skill_id === skillId ? { ...s, proficiency_level: proficiencyLevel as any } : s
       ));
     }
@@ -122,7 +107,7 @@ export function PositionEditSheet({ position, open, onOpenChange, onSuccess }: P
         position_level: positionLevel || null,
         department: department || null,
         required_skills: requiredSkills as any[],
-        nice_to_have_skills: niceToHaveSkills as any[]
+        nice_to_have_skills: []
       };
 
       const { error } = await supabase
@@ -262,64 +247,7 @@ export function PositionEditSheet({ position, open, onOpenChange, onSuccess }: P
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => removeSkill(skill.skill_id, true)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Nice to Have Skills */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                Nice to Have Skills
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <SkillSearch
-                onSkillSelect={(skill) => handleSkillSelect(skill, false)}
-                placeholder="Search and add nice-to-have skills..."
-              />
-              
-              {niceToHaveSkills.length > 0 && (
-                <div className="space-y-2">
-                  {niceToHaveSkills.map((skill) => (
-                    <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
-                          {skill.skill_name}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {skill.skill_type}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={skill.proficiency_level}
-                          onValueChange={(value) => updateSkillProficiency(skill.skill_id, false, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="basic">Basic</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                            <SelectItem value="expert">Expert</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeSkill(skill.skill_id, false)}
+                          onClick={() => removeSkill(skill.skill_id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
