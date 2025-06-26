@@ -87,9 +87,24 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         skillProfiles?.map(p => [p.employee_id, p]) || []
       );
 
+      // Get actual employee data with position mapping
+      const { data: allEmployees } = await supabase
+        .from('employees')
+        .select('id, current_position_id, position')
+        .eq('company_id', userProfile.company_id);
+
+      // Create employee position map
+      const employeePositionMap = new Map();
+      allEmployees?.forEach(emp => {
+        employeePositionMap.set(emp.id, emp.current_position_id);
+      });
+
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
-        const positionEmployees = employees.filter(emp => emp.position === position.position_code);
+        // Find employees for this position using current_position_id
+        const positionEmployees = employees.filter(emp => {
+          return employeePositionMap.get(emp.id) === position.id;
+        });
         
         // Calculate skill gaps based on required skills and employee profiles
         const skillGapMap = new Map<string, SkillGap>();
@@ -99,30 +114,59 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         requiredSkills.forEach((reqSkill: any) => {
           let employeesWithSkill = 0;
           let employeesMissingSkill = 0;
+          let totalEmployeesWithProfiles = 0;
           
           positionEmployees.forEach(emp => {
             const profile = profileMap.get(emp.id);
-            if (profile && profile.extracted_skills) {
-              const hasSkill = profile.extracted_skills.some((skill: any) => 
-                skill.skill_name?.toLowerCase().includes(reqSkill.skill_name?.toLowerCase()) ||
-                reqSkill.skill_name?.toLowerCase().includes(skill.skill_name?.toLowerCase())
-              );
+            if (profile && profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
+              totalEmployeesWithProfiles++;
+              
+              const hasSkill = profile.extracted_skills.some((skill: any) => {
+                const skillName = skill.skill_name?.toLowerCase() || '';
+                const reqSkillName = reqSkill.skill_name?.toLowerCase() || '';
+                
+                // More precise matching
+                return skillName === reqSkillName || 
+                       skillName.includes(reqSkillName) ||
+                       reqSkillName.includes(skillName) ||
+                       // Handle variations like "React" vs "React.js"
+                       (skillName.includes('react') && reqSkillName.includes('react')) ||
+                       (skillName.includes('javascript') && reqSkillName.includes('javascript')) ||
+                       (skillName.includes('python') && reqSkillName.includes('python')) ||
+                       (skillName.includes('node') && reqSkillName.includes('node'));
+              });
               
               if (hasSkill) {
-                employeesWithSkill++;
+                const matchingSkill = profile.extracted_skills.find((skill: any) => {
+                  const skillName = skill.skill_name?.toLowerCase() || '';
+                  const reqSkillName = reqSkill.skill_name?.toLowerCase() || '';
+                  return skillName === reqSkillName || 
+                         skillName.includes(reqSkillName) ||
+                         reqSkillName.includes(skillName);
+                });
+                
+                // Check if skill level meets requirement
+                const skillLevel = matchingSkill?.proficiency_level || 0;
+                const requiredLevel = reqSkill.proficiency_level || 3;
+                
+                if (skillLevel >= requiredLevel) {
+                  employeesWithSkill++;
+                } else {
+                  employeesMissingSkill++;
+                }
               } else {
                 employeesMissingSkill++;
               }
             }
           });
           
-          if (employeesMissingSkill > 0) {
-            const severity = employeesMissingSkill > positionEmployees.length / 2 ? 'critical' : 
-                           employeesMissingSkill > positionEmployees.length / 3 ? 'important' : 'minor';
+          if (employeesMissingSkill > 0 && totalEmployeesWithProfiles > 0) {
+            const severity = employeesMissingSkill > totalEmployeesWithProfiles / 2 ? 'critical' : 
+                           employeesMissingSkill > totalEmployeesWithProfiles / 3 ? 'important' : 'minor';
             
             skillGapMap.set(reqSkill.skill_name, {
               skill_name: reqSkill.skill_name,
-              skill_type: 'technical_skill',
+              skill_type: reqSkill.skill_type || 'technical',
               required_level: `Level ${reqSkill.proficiency_level || 3}`,
               current_level: null,
               gap_severity: severity,
@@ -496,14 +540,6 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
             )}
           </div>
           
-          {topSkillGaps.length > 0 && (
-            <div className="mt-6 text-center">
-              <Button className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Generate Training Plan for Top Gaps
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

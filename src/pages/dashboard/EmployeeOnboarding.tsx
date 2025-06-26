@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer, ChevronRight, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ export default function EmployeeOnboarding() {
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [onboardingMethod, setOnboardingMethod] = useState<'none' | 'api' | 'manual'>('none');
+  const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({});
 
   const fetchImportSessions = async () => {
     if (!userProfile?.company_id) return;
@@ -266,6 +267,13 @@ export default function EmployeeOnboarding() {
     }
   };
 
+  const toggleStepExpansion = (stepNumber: number) => {
+    setExpandedSteps(prev => ({
+      ...prev,
+      [stepNumber]: !prev[stepNumber]
+    }));
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -452,17 +460,23 @@ export default function EmployeeOnboarding() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-6">
+          <div className="space-y-4">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
               const isCompleted = step.completed;
               const isClickable = canProceedToStep(step.number);
+              const isExpanded = expandedSteps[step.number];
 
               return (
-                <div key={step.number} className="flex items-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                <div key={step.number} className="border rounded-lg">
+                  <div 
+                    className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
+                      isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => toggleStepExpansion(step.number)}
+                  >
+                    <div className="flex items-center gap-3">
                       <div
                         className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
                           isCompleted
@@ -470,10 +484,13 @@ export default function EmployeeOnboarding() {
                             : isActive
                             ? 'bg-blue-600 border-blue-600'
                             : isClickable
-                            ? 'border-gray-300 hover:border-blue-400 cursor-pointer'
+                            ? 'border-gray-300'
                             : 'border-gray-200'
                         }`}
-                        onClick={() => isClickable && setCurrentStep(step.number)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isClickable) setCurrentStep(step.number);
+                        }}
                       >
                         {isCompleted ? (
                           <CheckCircle className="h-5 w-5 text-white" />
@@ -481,23 +498,57 @@ export default function EmployeeOnboarding() {
                           <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                         )}
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">{step.title}</p>
-                      <p className="text-xs">{step.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <div className="ml-3 flex-1">
-                    <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {step.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {step.description}
-                    </p>
+                      <div>
+                        <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {step.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isCompleted && <Badge variant="secondary" className="bg-green-100 text-green-800">Completed</Badge>}
+                      {isActive && <Badge className="bg-blue-100 text-blue-800">Active</Badge>}
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className="flex-1 mx-4">
-                      <div className={`h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`} />
+                  
+                  {/* Expandable content */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t">
+                      <div className="mt-4">
+                        {step.number === 1 && (
+                          <AddEmployees
+                            onImportComplete={() => {
+                              fetchImportSessions();
+                              fetchEmployeeStatuses();
+                            }}
+                            importSessions={importSessions}
+                            onNextStep={nextStep}
+                          />
+                        )}
+                        {step.number === 2 && (
+                          <div className="space-y-4">
+                            <BulkCVUpload
+                              onUploadComplete={fetchEmployeeStatuses}
+                            />
+                            <OnboardingProgress
+                              employees={employeeStatuses}
+                              onRefresh={fetchEmployeeStatuses}
+                            />
+                          </div>
+                        )}
+                        {step.number === 3 && (
+                          <SkillsGapAnalysis
+                            employees={employeeStatuses}
+                          />
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -527,102 +578,7 @@ export default function EmployeeOnboarding() {
         </CardContent>
       </Card>
 
-      {/* Step Content */}
-      <div className="space-y-4">
-        {currentStep === 1 && (
-          <div className="space-y-4">
-            <AddEmployees
-              onImportComplete={() => {
-                fetchImportSessions();
-                fetchEmployeeStatuses();
-              }}
-              importSessions={importSessions}
-              onNextStep={nextStep}
-            />
-          </div>
-        )}
 
-        {currentStep === 2 && (
-          <div className="space-y-4">
-            <BulkCVUpload
-              onUploadComplete={fetchEmployeeStatuses}
-            />
-            <OnboardingProgress
-              employees={employeeStatuses}
-              onRefresh={fetchEmployeeStatuses}
-            />
-          </div>
-        )}
-
-        {currentStep === 3 && (
-          <div className="space-y-4">
-            <SkillsGapAnalysis
-              employees={employeeStatuses}
-            />
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-foreground">Learning Path Generation</CardTitle>
-                <CardDescription>
-                  Generate personalized courses based on identified skill gaps
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <div className="text-muted-foreground mb-4">
-                    Course generation integration coming soon...
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    This will integrate with the existing ContentManager to generate 4-6 week courses
-                    targeting specific skills gaps identified during the analysis phase.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-6">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Previous Step
-          </Button>
-
-          <div className="text-sm text-muted-foreground">
-            Step {currentStep} of {steps.length}
-          </div>
-
-          <Button
-            onClick={nextStep}
-            disabled={!canProceedToStep(currentStep + 1) || currentStep === 3}
-            className="flex items-center gap-2"
-          >
-            Next Step
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Recent Sessions - Show at the bottom */}
-      {importSessions.length > 0 && currentStep === 1 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {importSessions.slice(0, 3).map(session => (
-              <SessionStatusCard
-                key={session.id}
-                session={session}
-                positionTitle={session.active_position_id ? 'Position assigned' : undefined}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
     </TooltipProvider>
   );
