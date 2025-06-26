@@ -51,20 +51,29 @@ export default function EmployeeSkills() {
         .from('employees')
         .select(`
           id,
+          user_id,
           position,
           cv_file_path,
           skills_last_analyzed,
-          users!inner(full_name, email),
-          st_company_positions!employees_position_fkey(
-            position_code,
-            position_title,
-            required_skills
-          )
+          users!employees_user_id_fkey(full_name, email)
         `)
         .eq('company_id', userProfile.company_id)
         .eq('is_active', true);
 
-      if (employeesError) throw employeesError;
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        throw employeesError;
+      }
+
+      console.log('Fetched employees:', employeesData?.length || 0, employeesData);
+
+      // Fetch company positions
+      const { data: positions, error: positionsError } = await supabase
+        .from('st_company_positions')
+        .select('*')
+        .eq('company_id', userProfile.company_id);
+
+      if (positionsError) throw positionsError;
 
       // Fetch skills profiles
       const { data: skillsProfiles, error: profilesError } = await supabase
@@ -77,7 +86,7 @@ export default function EmployeeSkills() {
       // Map data to our interface
       const mappedEmployees: EmployeeSkillData[] = (employeesData || []).map(emp => {
         const profile = skillsProfiles?.find(p => p.employee_id === emp.id);
-        const position = emp.st_company_positions;
+        const position = positions?.find(p => p.position_code === emp.position);
         
         // Calculate skill gaps if we have both position requirements and employee skills
         let skillGaps: EmployeeSkill[] = [];
