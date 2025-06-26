@@ -16,7 +16,6 @@ interface EmployeeStatus {
   position: string;
   cv_status: 'missing' | 'uploaded' | 'analyzed' | 'failed';
   skills_analysis: 'pending' | 'completed' | 'failed';
-  course_generation: 'pending' | 'in_progress' | 'completed' | 'failed';
   gap_score?: number;
 }
 
@@ -99,11 +98,25 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         employeePositionMap.set(emp.id, emp.current_position_id);
       });
 
+      // Debug logging
+      console.log('Skills Gap Analysis Debug:', {
+        totalPositions: positions?.length || 0,
+        totalEmployees: employees.length,
+        profileMap: Array.from(profileMap.entries()),
+        employeePositionMap: Array.from(employeePositionMap.entries())
+      });
+
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
         // Find employees for this position using current_position_id
         const positionEmployees = employees.filter(emp => {
           return employeePositionMap.get(emp.id) === position.id;
+        });
+        
+        console.log(`Position ${position.position_title} (${position.id}):`, {
+          positionEmployees: positionEmployees.length,
+          requiredSkills: position.required_skills?.length || 0,
+          employeeIds: positionEmployees.map(e => e.id)
         });
         
         // Calculate skill gaps based on required skills and employee profiles
@@ -115,6 +128,8 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
           let employeesWithSkill = 0;
           let employeesMissingSkill = 0;
           let totalEmployeesWithProfiles = 0;
+          
+          console.log(`Checking skill: ${reqSkill.skill_name} for position ${position.position_title}`);
           
           positionEmployees.forEach(emp => {
             const profile = profileMap.get(emp.id);
@@ -265,6 +280,14 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
   const filteredAnalyses = selectedPosition === 'all' 
     ? positionAnalyses 
     : positionAnalyses.filter(a => a.position_code === selectedPosition);
+    
+  console.log('SkillsGapAnalysis render:', {
+    selectedPosition,
+    positionAnalyses: positionAnalyses.length,
+    filteredAnalyses: filteredAnalyses.length,
+    topSkillGaps: topSkillGaps.length,
+    loading
+  });
 
   const exportToCSV = () => {
     try {
@@ -424,9 +447,11 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Ready for Courses</p>
+                <p className="text-sm font-medium text-muted-foreground">Skills Match Score</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {employees.filter(e => e.skills_analysis === 'completed' && e.course_generation === 'pending').length}
+                  {positionAnalyses.length > 0 
+                    ? Math.round(positionAnalyses.reduce((sum, a) => sum + a.avg_gap_score, 0) / positionAnalyses.length)
+                    : 0}%
                 </p>
               </div>
             </div>

@@ -15,7 +15,10 @@ import {
   TrendingDown,
   Minus,
   Check,
-  X
+  X,
+  Sparkles,
+  Shield,
+  Clock
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -227,87 +230,141 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Skills Gap Analysis
+    <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50/50 to-white">
+      <CardHeader className="pb-6">
+        <CardTitle className="flex items-center gap-3 text-xl font-semibold tracking-tight">
+          <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-sm">
+            <Target className="h-5 w-5 text-white" />
+          </div>
+          Skills Analysis
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {/* Position Summary */}
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">
-                {hasTargetPosition ? 'Target Position' : 'Current Position Requirements'}
-              </p>
-              <p className="font-semibold text-lg">
-                {hasTargetPosition ? employee.target_position_title : employee.current_position_title}
-              </p>
+        <div className="relative bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-2xl border border-blue-100/50 shadow-sm">
+          <div className="absolute inset-0 bg-white/40 rounded-2xl"></div>
+          <div className="relative">
+            <div className="flex items-start justify-between mb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                    <Shield className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <p className="text-sm font-medium text-blue-700/80">
+                    {hasTargetPosition ? 'Target Position' : 'Current Position'}
+                  </p>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800">
+                  {hasTargetPosition ? employee.target_position_title : employee.current_position_title}
+                </h3>
+              </div>
+              <div className="text-right">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-sm">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {totalRequired - gapCount}/{totalRequired}
+                  </p>
+                  <p className="text-xs font-medium text-slate-600">Skills Met</p>
+                </div>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-blue-600">{totalRequired - gapCount}/{totalRequired}</p>
-              <p className="text-xs text-muted-foreground">Skills Met</p>
-            </div>
+            {positionDetails && (
+              <div className="flex items-center gap-6 text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span className="font-medium">{requiredSkills.length}</span>
+                  <span>total skills</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
+                  <span className="font-medium">{requiredSkills.filter(s => s.is_mandatory).length}</span>
+                  <span>mandatory</span>
+                </div>
+                {gapCount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                    <span className="font-medium text-red-600">{gapCount}</span>
+                    <span className="text-red-600">gaps identified</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          {positionDetails && (
-            <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
-              <span>{requiredSkills.length} total skills</span>
-              <span>•</span>
-              <span>{requiredSkills.filter(s => s.is_mandatory).length} mandatory</span>
-              {gapCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span className="text-orange-600 font-medium">{gapCount} gaps identified</span>
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Skills Analysis by Status */}
         {requiredSkills.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Skills Needing Attention */}
             {(skillsByStatus.missing.length > 0 || skillsByStatus.below_required.length > 0) && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-red-600 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Skills Needing Attention ({gapCount})
-                </h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl shadow-sm">
+                    <AlertTriangle className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-800">Skills Needing Attention</h4>
+                    <p className="text-sm text-slate-600">{gapCount} skill{gapCount !== 1 ? 's' : ''} require development</p>
+                  </div>
+                </div>
                 
                 {/* Missing Skills */}
                 {skillsByStatus.missing.length > 0 && (
                   <Collapsible 
                     open={expandedSections.missing} 
                     onOpenChange={() => toggleSection('missing')}
+                    className="group"
                   >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <X className="h-4 w-4 text-red-500" />
-                        <span className="font-medium text-red-700">Missing Skills ({skillsByStatus.missing.length})</span>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-red-50/80 to-orange-50/80 border border-red-100/50 rounded-2xl hover:shadow-md transition-all duration-200 group-data-[state=open]:shadow-md">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-500/10 rounded-xl">
+                          <X className="h-4 w-4 text-red-600" />
+                        </div>
+                        <div className="text-left">
+                          <span className="font-semibold text-red-700">Missing Skills</span>
+                          <p className="text-sm text-red-600/80">{skillsByStatus.missing.length} skill{skillsByStatus.missing.length !== 1 ? 's' : ''} not found</p>
+                        </div>
                       </div>
-                      {expandedSections.missing ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                          {skillsByStatus.missing.length}
+                        </Badge>
+                        {expandedSections.missing ? 
+                          <ChevronDown className="h-4 w-4 text-red-600" /> : 
+                          <ChevronRight className="h-4 w-4 text-red-600" />
+                        }
+                      </div>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2 mt-2">
+                    <CollapsibleContent className="space-y-3 mt-4 ml-4">
                       {skillsByStatus.missing.map((analysis, idx) => (
-                        <div key={idx} className="p-3 bg-white border border-red-200 rounded-lg ml-4">
+                        <div key={idx} className="group/item p-4 bg-white/80 backdrop-blur-sm border border-red-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium">{analysis.required.skill_name}</span>
-                                <Badge variant={analysis.required.is_mandatory ? 'destructive' : 'secondary'} className="text-xs">
-                                  {analysis.required.is_mandatory ? 'Mandatory' : 'Optional'}
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="p-1.5 bg-red-50 rounded-lg">
+                                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                </div>
+                                <span className="font-medium text-slate-800">{analysis.required.skill_name}</span>
+                                <Badge 
+                                  variant={analysis.required.is_mandatory ? 'destructive' : 'outline'} 
+                                  className="text-xs font-medium"
+                                >
+                                  {analysis.required.is_mandatory ? 'Critical' : 'Optional'}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                Required: Level {analysis.required.proficiency_level}/5 • {analysis.required.skill_type}
-                              </p>
+                              <div className="flex items-center gap-4 text-sm text-slate-600">
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="h-3 w-3" />
+                                  <span>Level {analysis.required.proficiency_level}/5 required</span>
+                                </div>
+                                <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                                <span className="capitalize">{analysis.required.skill_type}</span>
+                              </div>
                             </div>
-                            <Badge variant="destructive" className="ml-2">
-                              Not Found
-                            </Badge>
+                            <div className="ml-4">
+                              <Badge variant="destructive" className="bg-red-500/10 text-red-700 border-red-200">
+                                Not Found
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -320,37 +377,74 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
                   <Collapsible 
                     open={expandedSections.below_required} 
                     onOpenChange={() => toggleSection('below_required')}
+                    className="group"
                   >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-orange-500" />
-                        <span className="font-medium text-orange-700">Below Required Level ({skillsByStatus.below_required.length})</span>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-orange-50/80 to-amber-50/80 border border-orange-100/50 rounded-2xl hover:shadow-md transition-all duration-200 group-data-[state=open]:shadow-md">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-orange-500/10 rounded-xl">
+                          <TrendingDown className="h-4 w-4 text-orange-600" />
+                        </div>
+                        <div className="text-left">
+                          <span className="font-semibold text-orange-700">Below Required Level</span>
+                          <p className="text-sm text-orange-600/80">{skillsByStatus.below_required.length} skill{skillsByStatus.below_required.length !== 1 ? 's' : ''} need improvement</p>
+                        </div>
                       </div>
-                      {expandedSections.below_required ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                          {skillsByStatus.below_required.length}
+                        </Badge>
+                        {expandedSections.below_required ? 
+                          <ChevronDown className="h-4 w-4 text-orange-600" /> : 
+                          <ChevronRight className="h-4 w-4 text-orange-600" />
+                        }
+                      </div>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2 mt-2">
+                    <CollapsibleContent className="space-y-3 mt-4 ml-4">
                       {skillsByStatus.below_required.map((analysis, idx) => (
-                        <div key={idx} className="p-3 bg-white border border-orange-200 rounded-lg ml-4">
+                        <div key={idx} className="group/item p-4 bg-white/80 backdrop-blur-sm border border-orange-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium">{analysis.required.skill_name}</span>
-                                <Badge variant={analysis.required.is_mandatory ? 'destructive' : 'secondary'} className="text-xs">
-                                  {analysis.required.is_mandatory ? 'Mandatory' : 'Optional'}
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="p-1.5 bg-orange-50 rounded-lg">
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                </div>
+                                <span className="font-medium text-slate-800">{analysis.required.skill_name}</span>
+                                <Badge 
+                                  variant={analysis.required.is_mandatory ? 'destructive' : 'outline'} 
+                                  className="text-xs font-medium"
+                                >
+                                  {analysis.required.is_mandatory ? 'Critical' : 'Optional'}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                Current: Level {analysis.current?.proficiency_level || 0}/5 → Required: Level {analysis.required.proficiency_level}/5
-                              </p>
-                              {analysis.current?.years_experience && (
-                                <p className="text-xs text-muted-foreground">
-                                  {analysis.current.years_experience} years experience
-                                </p>
-                              )}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-4 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-blue-200 rounded-full flex items-center justify-center">
+                                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                    </div>
+                                    <span className="text-slate-600">Current: Level {analysis.current?.proficiency_level || 0}/5</span>
+                                  </div>
+                                  <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-green-200 rounded-full flex items-center justify-center">
+                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                    </div>
+                                    <span className="text-slate-600">Required: Level {analysis.required.proficiency_level}/5</span>
+                                  </div>
+                                </div>
+                                {analysis.current?.years_experience && (
+                                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{analysis.current.years_experience} years experience</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-700">
-                              Gap: {analysis.gap} levels
-                            </Badge>
+                            <div className="ml-4">
+                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                                Gap: {analysis.gap} level{analysis.gap !== 1 ? 's' : ''}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       ))}

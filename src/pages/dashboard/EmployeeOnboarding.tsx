@@ -33,7 +33,6 @@ interface EmployeeStatus {
   position: string;
   cv_status: 'missing' | 'uploaded' | 'analyzed' | 'failed';
   skills_analysis: 'pending' | 'completed' | 'failed';
-  course_generation: 'pending' | 'in_progress' | 'completed' | 'failed';
   gap_score?: number;
 }
 
@@ -142,7 +141,6 @@ export default function EmployeeOnboarding() {
             (hasExtractedSkills ? 'analyzed' : 'uploaded') 
             : 'missing',
           skills_analysis: hasExtractedSkills ? 'completed' : 'pending',
-          course_generation: 'pending',
           gap_score: profile?.skills_match_score || 0
         };
       });
@@ -216,9 +214,8 @@ export default function EmployeeOnboarding() {
     const total = employeeStatuses.length;
     const withCV = employeeStatuses.filter(e => e.cv_status !== 'missing').length;
     const analyzed = employeeStatuses.filter(e => e.skills_analysis === 'completed').length;
-    const coursesGenerated = employeeStatuses.filter(e => e.course_generation === 'completed').length;
 
-    return { total, withCV, analyzed, coursesGenerated };
+    return { total, withCV, analyzed };
   };
 
   const stats = getOverallStats();
@@ -557,7 +554,7 @@ export default function EmployeeOnboarding() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-4 gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="text-center">
               <div className="text-2xl font-bold text-foreground">{stats.total}</div>
               <div className="text-xs text-muted-foreground">Team Members</div>
@@ -569,10 +566,6 @@ export default function EmployeeOnboarding() {
             <div className="text-center">
               <div className="text-2xl font-bold text-foreground">{stats.analyzed}</div>
               <div className="text-xs text-muted-foreground">Skills Analyzed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{stats.coursesGenerated}</div>
-              <div className="text-xs text-muted-foreground">Learning Paths</div>
             </div>
           </div>
         </CardContent>

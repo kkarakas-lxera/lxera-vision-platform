@@ -360,20 +360,26 @@ Return the response in the following JSON format:
         
         const analysisTime = Date.now() - startTime
         console.log(`[${requestId}] CV analysis completed in ${analysisTime}ms. Match: ${matchPercentage}%, Gaps: ${skillGaps.length}`)
+        
         // Log analysis metrics for monitoring
-        await supabase
-          .from('cv_analysis_metrics')
-          .insert({
-            request_id: requestId,
-            employee_id: employee_id,
-            analysis_time_ms: analysisTime,
-            cv_length: cvText.length,
-            skills_extracted: analysisResult.skills.length,
-            match_percentage: matchPercentage,
-            gaps_found: skillGaps.length,
-            status: 'success',
-            created_at: new Date().toISOString()
-          })
+        try {
+          await supabase
+            .from('cv_analysis_metrics')
+            .insert({
+              request_id: requestId,
+              employee_id: employee_id,
+              analysis_time_ms: analysisTime,
+              cv_length: cvText.length,
+              skills_extracted: analysisResult.skills.length,
+              match_percentage: matchPercentage,
+              gaps_found: skillGaps.length,
+              status: 'success',
+              created_at: new Date().toISOString()
+            })
+        } catch (metricsError) {
+          console.error('Failed to log metrics:', metricsError)
+          // Don't throw here - metrics logging is optional
+        }
         
       } catch (openaiError) {
         console.error('OpenAI API error:', openaiError)
