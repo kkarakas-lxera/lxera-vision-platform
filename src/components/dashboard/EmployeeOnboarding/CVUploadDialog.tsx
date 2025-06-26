@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { verifyAuthSession, debugAuthState, ensureAuthenticatedClient } from '@/lib/auth-helpers';
+import { uploadCVViaEdgeFunction } from '@/lib/cv-upload-service';
 
 interface CVUploadDialogProps {
   employee: {
@@ -84,6 +86,26 @@ export function CVUploadDialog({
     setProgress(10);
 
     try {
+      // Debug current auth state
+      console.log('🔐 Starting CV upload, checking auth state...');
+      await debugAuthState();
+      
+      // Verify we have a valid session before proceeding
+      const session = await verifyAuthSession();
+      if (!session) {
+        throw new Error('No active authentication session. Please sign in again.');
+      }
+      
+      console.log('✅ Auth session verified:', {
+        userId: session.user.id,
+        email: session.user.email,
+        expiresAt: new Date(session.expires_at! * 1000).toISOString()
+      });
+      
+      // Ensure the client is properly authenticated
+      await ensureAuthenticatedClient();
+      setProgress(15);
+
       // Verify employee belongs to user's company
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
@@ -108,15 +130,22 @@ export function CVUploadDialog({
       // Format 1: company_id/filename (most permissive)
       const filePath = `${userProfile.company_id}/cv-${employee.id}-${timestamp}.${fileExtension}`;
       
+      // Final auth check before upload
+      const { data: authCheck } = await supabase.rpc('check_auth_uid');
+      console.log('📊 Database auth check:', authCheck);
+      
       console.log('CV Upload attempt:', { 
         filePath, 
         employeeName: employee.name, 
         userRole: userProfile.role,
         companyId: userProfile.company_id,
-        bucketId: 'employee-cvs'
+        bucketId: 'employee-cvs',
+        hasAuthSession: !!session,
+        authUid: authCheck?.auth_uid
       });
       
-      // Try uploading with upsert: true to overwrite if exists
+      // Try uploading with proper auth headers
+      console.log('🚀 Attempting storage upload...');
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-cvs')
         .upload(filePath, file, {
@@ -125,7 +154,19 @@ export function CVUploadDialog({
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        console.error('❌ Storage upload error:', uploadError);
+        
+        // Check if it's an auth issue
+        if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
+          // Try refreshing session and retrying once
+          console.log('🔄 Auth error detected, refreshing session...');
+          const { data: { session: newSession } } = await supabase.auth.refreshSession();
+          
+          if (newSession) {
+            console.log('✅ Session refreshed, retrying upload...');
+            await debugAuthState();
+          }
+        }
         
         // Try alternative path format if first one fails
         const altFilePath = `${userProfile.company_id}/${employee.id}/${timestamp}.${fileExtension}`;
@@ -140,7 +181,41 @@ export function CVUploadDialog({
 
         if (altUploadError) {
           console.error('Alternative upload also failed:', altUploadError);
-          throw new Error(`Upload failed: ${uploadError.message}`);
+          
+          // Try edge function as last resort
+          console.log('🔄 Trying edge function upload...');
+          const edgeResult = await uploadCVViaEdgeFunction(
+            file, 
+            employee.id,
+            (progress) => setProgress(30 + (progress * 0.3))
+          );
+          
+          if (!edgeResult.success) {
+            throw new Error(edgeResult.error || 'All upload methods failed');
+          }
+          
+          console.log('✅ Edge function upload successful');
+          setProgress(60);
+          
+          // Skip the employee update since edge function handles it
+          setProgress(80);
+          setUploading(false);
+          setAnalyzing(true);
+          
+          // Edge function already triggers analysis, so just complete
+          setProgress(100);
+          
+          toast({
+            title: 'Success',
+            description: 'CV uploaded successfully',
+          });
+
+          setTimeout(() => {
+            onOpenChange(false);
+            if (onUploadComplete) onUploadComplete();
+          }, 1000);
+          
+          return; // Exit early since edge function handled everything
         }
         
         console.log('Alternative upload successful');

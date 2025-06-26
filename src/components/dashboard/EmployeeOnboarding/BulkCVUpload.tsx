@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { verifyAuthSession, debugAuthState, ensureAuthenticatedClient } from '@/lib/auth-helpers';
 
 interface UploadedFile {
   file: File;
@@ -83,6 +84,22 @@ export function BulkCVUpload({ onUploadComplete }: BulkCVUploadProps) {
       });
       return;
     }
+    
+    // Verify auth session before processing
+    console.log('🔐 Starting bulk CV upload, checking auth state...');
+    await debugAuthState();
+    
+    const session = await verifyAuthSession();
+    if (!session) {
+      toast({
+        title: 'Authentication Error',
+        description: 'No active session. Please sign in again.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    await ensureAuthenticatedClient();
     
     if (files.length === 0) {
       toast({

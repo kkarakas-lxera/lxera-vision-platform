@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { verifyAuthSession, debugAuthState } from '@/lib/auth-helpers';
 
 interface CVUploadProps {
   onUploadComplete?: (results: any[]) => void;
@@ -38,6 +39,21 @@ export function CVUpload({ onUploadComplete, maxFiles = 10 }: CVUploadProps) {
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
     setIsProcessing(true);
+    
+    // Verify auth before processing
+    console.log('🔐 Verifying auth for CV upload...');
+    await debugAuthState();
+    
+    const session = await verifyAuthSession();
+    if (!session) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to upload files.',
+        variant: 'destructive'
+      });
+      setIsProcessing(false);
+      return;
+    }
 
     // Process each file
     for (const uploadedFile of newFiles) {

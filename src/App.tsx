@@ -8,6 +8,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
+// Import test utilities (available in development)
+import '@/lib/test-auth-upload';
+
 // Import existing pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
