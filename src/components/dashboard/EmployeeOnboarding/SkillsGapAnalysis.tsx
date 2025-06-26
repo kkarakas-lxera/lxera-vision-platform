@@ -74,8 +74,7 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
           employee_id,
           skills_match_score,
           extracted_skills,
-          current_position_id,
-          skills_gap_analysis
+          current_position_id
         `)
         .in('employee_id', employees.map(e => e.id));
 
