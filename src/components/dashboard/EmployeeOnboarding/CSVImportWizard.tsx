@@ -187,6 +187,17 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
       let successful = 0;
       let failed = 0;
 
+      // Get position details once, outside the loop
+      let position = null;
+      if (defaultPositionId) {
+        const { data: positionData } = await supabase
+          .from('st_company_positions')
+          .select('id, position_code')
+          .eq('id', defaultPositionId)
+          .single();
+        position = positionData;
+      }
+
       for (const row of csvData) {
         try {
           // Check if user already exists
@@ -217,13 +228,6 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
             if (userError) throw userError;
             userId = newUser.id;
           }
-
-          // Get position details from defaultPositionId
-          const { data: position } = await supabase
-            .from('st_company_positions')
-            .select('id, position_code')
-            .eq('id', defaultPositionId)
-            .single();
 
           // Create or update employee record
           const { error: employeeError } = await supabase
