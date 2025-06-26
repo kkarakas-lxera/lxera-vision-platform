@@ -108,8 +108,12 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
       console.log('Skills Gap Analysis Debug:', {
         totalPositions: positions?.length || 0,
         totalEmployees: employees.length,
-        profileMap: Array.from(profileMap.entries()),
-        employeePositionMap: Array.from(employeePositionMap.entries())
+        companyId: userProfile.company_id,
+        employeesArray: employees.map(e => ({ id: e.id, name: e.name, position: e.position })),
+        profileMapSize: profileMap.size,
+        employeePositionMapSize: employeePositionMap.size,
+        allEmployeesCount: allEmployees?.length || 0,
+        positionsWithRequiredSkills: positions?.filter(p => p.required_skills && p.required_skills.length > 0).length || 0
       });
 
       // Process data into position analyses
@@ -126,9 +130,17 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         });
         
         console.log(`Position ${position.position_title} (${position.id}):`, {
+          positionCode: position.position_code,
           positionEmployees: positionEmployees.length,
           requiredSkills: position.required_skills?.length || 0,
-          employeeIds: positionEmployees.map(e => e.id)
+          employeeIds: positionEmployees.map(e => e.id),
+          employeeDetails: positionEmployees.map(e => ({
+            id: e.id,
+            name: e.name,
+            position: e.position,
+            dbPositionId: employeePositionMap.get(e.id)
+          })),
+          hasRequiredSkills: !!(position.required_skills && position.required_skills.length > 0)
         });
         
         // Calculate skill gaps based on required skills and employee profiles

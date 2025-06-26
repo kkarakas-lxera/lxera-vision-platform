@@ -543,37 +543,74 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
                   <Collapsible 
                     open={expandedSections.exceeds_required} 
                     onOpenChange={() => toggleSection('exceeds_required')}
+                    className="group"
                   >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium text-blue-700">Exceeds Required Level ({skillsByStatus.exceeds_required.length})</span>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-blue-50/80 to-purple-50/80 border border-blue-100/50 rounded-2xl hover:shadow-md transition-all duration-200 group-data-[state=open]:shadow-md">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-xl">
+                          <Sparkles className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="text-left">
+                          <span className="font-semibold text-blue-700">Exceeds Requirements</span>
+                          <p className="text-sm text-blue-600/80">{skillsByStatus.exceeds_required.length} skill{skillsByStatus.exceeds_required.length !== 1 ? 's' : ''} above target level</p>
+                        </div>
                       </div>
-                      {expandedSections.exceeds_required ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {skillsByStatus.exceeds_required.length}
+                        </Badge>
+                        {expandedSections.exceeds_required ? 
+                          <ChevronDown className="h-4 w-4 text-blue-600" /> : 
+                          <ChevronRight className="h-4 w-4 text-blue-600" />
+                        }
+                      </div>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2 mt-2">
+                    <CollapsibleContent className="space-y-3 mt-4 ml-4">
                       {skillsByStatus.exceeds_required.map((analysis, idx) => (
-                        <div key={idx} className="p-3 bg-white border border-blue-200 rounded-lg ml-4">
+                        <div key={idx} className="group/item p-4 bg-white/80 backdrop-blur-sm border border-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium">{analysis.required.skill_name}</span>
-                                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                  {analysis.required.is_mandatory ? 'Mandatory' : 'Optional'}
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="p-1.5 bg-blue-50 rounded-lg">
+                                  <Sparkles className="w-3 h-3 text-blue-600" />
+                                </div>
+                                <span className="font-medium text-slate-800">{analysis.required.skill_name}</span>
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs font-medium bg-blue-50 text-blue-700 border-blue-200"
+                                >
+                                  {analysis.required.is_mandatory ? 'Required' : 'Optional'}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                Level {analysis.current?.proficiency_level}/5 (required: {analysis.required.proficiency_level}/5)
-                              </p>
-                              {analysis.current?.years_experience && (
-                                <p className="text-xs text-muted-foreground">
-                                  {analysis.current.years_experience} years experience
-                                </p>
-                              )}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-4 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-purple-200 rounded-full flex items-center justify-center">
+                                      <TrendingUp className="h-2 w-2 text-purple-600" />
+                                    </div>
+                                    <span className="text-slate-600">Current: Level {analysis.current?.proficiency_level}/5</span>
+                                  </div>
+                                  <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-blue-200 rounded-full flex items-center justify-center">
+                                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                    </div>
+                                    <span className="text-slate-600">Required: Level {analysis.required.proficiency_level}/5</span>
+                                  </div>
+                                </div>
+                                {analysis.current?.years_experience && (
+                                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{analysis.current.years_experience} years experience</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <Badge className="ml-2 bg-blue-500">
-                              ★ Exceeds
-                            </Badge>
+                            <div className="ml-4">
+                              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
+                                ★ Exceeds
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       ))}
