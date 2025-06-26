@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb } from 'lucide-react';
+import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +53,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const { userProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [positionData, setPositionData] = useState<PositionData>({
     position_title: '',
     position_code: '',
@@ -69,6 +70,43 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
       .replace(/[^A-Z0-9\s]/g, '')
       .replace(/\s+/g, '_')
       .substring(0, 20);
+  };
+
+  const generateDescription = async () => {
+    if (!positionData.position_title || isGeneratingDescription) return;
+
+    setIsGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-position-description', {
+        body: {
+          position_title: positionData.position_title,
+          position_level: positionData.position_level,
+          department: positionData.department
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.description) {
+        setPositionData(prev => ({
+          ...prev,
+          description: data.description
+        }));
+        toast({
+          title: 'Description Generated',
+          description: 'AI has generated a position description. You can edit it as needed.',
+        });
+      }
+    } catch (error) {
+      console.error('Error generating description:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate description. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingDescription(false);
+    }
   };
 
   const addSkill = (skill: any) => {
@@ -161,6 +199,20 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
         return true;
     }
   };
+
+  // Auto-generate description when title, level, and department are filled
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (positionData.position_title && 
+          (positionData.position_level || positionData.department) && 
+          !positionData.description && 
+          !isGeneratingDescription) {
+        generateDescription();
+      }
+    }, 2000); // 2 second delay
+
+    return () => clearTimeout(timer);
+  }, [positionData.position_title, positionData.position_level, positionData.department]);
 
   return (
     <div className="space-y-6">
@@ -267,14 +319,34 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
               </div>
 
               <div>
-                <Label htmlFor="description">Position Description</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="description">Position Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateDescription}
+                    disabled={!positionData.position_title || isGeneratingDescription}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles className={`h-4 w-4 ${isGeneratingDescription ? 'animate-spin' : ''}`} />
+                    {isGeneratingDescription ? 'Generating...' : 'Generate with AI'}
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   value={positionData.description}
                   onChange={(e) => setPositionData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the role, responsibilities, and key objectives..."
+                  placeholder={isGeneratingDescription ? "AI is generating description..." : "Describe the role, responsibilities, and key objectives..."}
                   rows={4}
+                  disabled={isGeneratingDescription}
                 />
+                {isGeneratingDescription && (
+                  <p className="text-sm text-blue-600 mt-1 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 animate-pulse" />
+                    AI is analyzing your position details...
+                  </p>
+                )}
               </div>
             </div>
           )}

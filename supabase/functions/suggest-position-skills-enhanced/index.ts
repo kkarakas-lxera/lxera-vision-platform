@@ -87,13 +87,20 @@ ${uniqueDbSkills.map(s => `- ${s.skill_name}`).join('\n')}
 
 Please provide:
 
-1. RESPONSIBILITIES (7-10 key responsibilities for this role):
+1. POSITION DESCRIPTION (if not already provided):
+   - A comprehensive 3-4 paragraph description of this role
+   - Include the role's purpose, key objectives, and impact
+   - Mention team dynamics and reporting structure
+   - Highlight growth opportunities and career progression
+   - Only generate if the current description is missing or very brief
+
+2. RESPONSIBILITIES (7-10 key responsibilities for this role):
    - Each should be a clear, action-oriented statement
    - Start with strong action verbs
    - Be specific to the position level and department
    - Include both technical and leadership aspects as appropriate
 
-2. SKILLS (15-20 additional skills):
+3. SKILLS (15-20 additional skills):
    - Relevant to this specific position
    - NOT already in the database list above
    - Current and industry-standard

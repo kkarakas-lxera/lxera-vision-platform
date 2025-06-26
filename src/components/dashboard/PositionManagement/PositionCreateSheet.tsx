@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkillSearch } from '@/components/admin/SkillsManagement/SkillSearch';
@@ -30,12 +31,14 @@ interface SkillRequirement {
 export function PositionCreateSheet({ open, onOpenChange, onSuccess }: PositionCreateSheetProps) {
   const { userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   
   // Form state
   const [positionCode, setPositionCode] = useState('');
   const [positionTitle, setPositionTitle] = useState('');
   const [positionLevel, setPositionLevel] = useState('');
   const [department, setDepartment] = useState('');
+  const [description, setDescription] = useState('');
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
 
   const resetForm = () => {
@@ -43,8 +46,50 @@ export function PositionCreateSheet({ open, onOpenChange, onSuccess }: PositionC
     setPositionTitle('');
     setPositionLevel('');
     setDepartment('');
+    setDescription('');
     setRequiredSkills([]);
   };
+
+  const generateDescription = async () => {
+    if (!positionTitle || isGeneratingDescription) return;
+
+    setIsGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-position-description', {
+        body: {
+          position_title: positionTitle,
+          position_level: positionLevel,
+          department: department
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.description) {
+        setDescription(data.description);
+        toast.success('Description generated successfully! You can edit it as needed.');
+      }
+    } catch (error) {
+      console.error('Error generating description:', error);
+      toast.error('Failed to generate description. Please try again.');
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
+  // Auto-generate description when title, level, and department are filled
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (positionTitle && 
+          (positionLevel || department) && 
+          !description && 
+          !isGeneratingDescription) {
+        generateDescription();
+      }
+    }, 2000); // 2 second delay
+
+    return () => clearTimeout(timer);
+  }, [positionTitle, positionLevel, department]);
 
   const handleSkillSelect = (skill: SkillSearchResult, isRequired: boolean, proficiencyLevel: string = 'intermediate') => {
     const skillRequirement: SkillRequirement = {
@@ -97,6 +142,7 @@ export function PositionCreateSheet({ open, onOpenChange, onSuccess }: PositionC
         position_title: positionTitle.trim(),
         position_level: positionLevel || null,
         department: department || null,
+        description: description || null,
         required_skills: requiredSkills as any[],
         nice_to_have_skills: [],
         is_template: true,
@@ -190,6 +236,38 @@ export function PositionCreateSheet({ open, onOpenChange, onSuccess }: PositionC
                 placeholder="e.g., Engineering, Marketing"
                 className="text-foreground"
               />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description" className="text-foreground">Position Description</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateDescription}
+                  disabled={!positionTitle || isGeneratingDescription}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className={`h-4 w-4 ${isGeneratingDescription ? 'animate-spin' : ''}`} />
+                  {isGeneratingDescription ? 'Generating...' : 'Generate with AI'}
+                </Button>
+              </div>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={isGeneratingDescription ? "AI is generating description..." : "Describe the role, responsibilities, and key objectives..."}
+                rows={4}
+                disabled={isGeneratingDescription}
+                className="text-foreground"
+              />
+              {isGeneratingDescription && (
+                <p className="text-sm text-blue-600 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 animate-pulse" />
+                  AI is analyzing your position details...
+                </p>
+              )}
             </div>
           </div>
 
