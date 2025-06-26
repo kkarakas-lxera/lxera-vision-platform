@@ -37,19 +37,20 @@ export function AnalyzeSkillsButton({
       await initializeLLM();
 
       // Get employees to analyze
-      let employeesToAnalyze: Array<{ id: string; cv_file_path: string }> = [];
+      let employeesToAnalyze: Array<{ id: string; employee_id?: string; cv_file_path: string }> = [];
       
       if (sessionId) {
         // Get employees from session
         const { data, error } = await supabase
           .from('st_import_session_items')
-          .select('employee_id, cv_file_path')
+          .select('id, employee_id, cv_file_path')
           .eq('import_session_id', sessionId)
           .not('cv_file_path', 'is', null);
         
         if (error) throw error;
         employeesToAnalyze = data.map(item => ({ 
-          id: item.employee_id, 
+          id: item.id, // Use session item ID for existing sessions
+          employee_id: item.employee_id,
           cv_file_path: item.cv_file_path 
         }));
       } else if (employeeIds) {
@@ -62,7 +63,8 @@ export function AnalyzeSkillsButton({
         
         if (error) throw error;
         employeesToAnalyze = data.map(emp => ({ 
-          id: emp.id, 
+          id: emp.id, // For direct analysis, this is employee ID initially
+          employee_id: emp.id,
           cv_file_path: emp.cv_file_path 
         }));
       }
@@ -85,7 +87,7 @@ export function AnalyzeSkillsButton({
         analysisSessionId = newSession.id;
 
         // Create session items for direct analysis
-        const employeeIds = employeesToAnalyze.map(emp => emp.id);
+        const employeeIds = employeesToAnalyze.map(emp => emp.employee_id || emp.id);
         const { error: sessionItemsError } = await supabase
           .rpc('create_session_items_for_employees', {
             p_session_id: analysisSessionId,
@@ -94,8 +96,25 @@ export function AnalyzeSkillsButton({
 
         if (sessionItemsError) {
           console.warn('Failed to create session items:', sessionItemsError);
-          // Continue anyway - this is not critical for the main flow
+          throw new Error('Failed to create session items for analysis');
         }
+
+        // Now fetch the created session items to get their IDs
+        const { data: sessionItems, error: fetchError } = await supabase
+          .from('st_import_session_items')
+          .select('id, employee_id, cv_file_path')
+          .eq('import_session_id', analysisSessionId);
+
+        if (fetchError || !sessionItems) {
+          throw new Error('Failed to fetch session items');
+        }
+
+        // Update employeesToAnalyze with proper session item IDs
+        employeesToAnalyze = sessionItems.map(item => ({
+          id: item.id, // Now we have the session item ID
+          employee_id: item.employee_id,
+          cv_file_path: item.cv_file_path
+        }));
       }
 
       // Queue CVs for processing
