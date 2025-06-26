@@ -73,27 +73,50 @@ export default function EmployeeOnboarding() {
     if (!userProfile?.company_id) return;
 
     try {
-      // Get employees with their onboarding status and skills profiles
-      // Using the view to avoid RLS issues with joins
+      // Get employees directly from employees table with their skills profiles
       const { data: employees, error } = await supabase
-        .from('v_company_employees')
-        .select('*');
+        .from('employees')
+        .select(`
+          id,
+          position,
+          cv_file_path,
+          skills_last_analyzed,
+          user_id,
+          users!employees_user_id_fkey (
+            full_name,
+            email
+          ),
+          st_employee_skills_profile (
+            skills_match_score,
+            analyzed_at,
+            extracted_skills
+          )
+        `)
+        .eq('company_id', userProfile.company_id);
 
       if (error) throw error;
 
       // Transform data to include status information
       const statuses: EmployeeStatus[] = (employees || []).map(emp => {
+        const hasProfile = emp.st_employee_skills_profile && emp.st_employee_skills_profile.length > 0;
+        const profile = hasProfile ? emp.st_employee_skills_profile[0] : null;
+        const hasExtractedSkills = profile?.extracted_skills && profile.extracted_skills.length > 0;
+        
+        // Use a fallback name if user doesn't exist
+        const name = emp.users?.full_name || `Employee ${emp.id.slice(0, 8)}`;
+        const email = emp.users?.email || `employee.${emp.id.slice(0, 8)}@company.com`;
+        
         return {
           id: emp.id,
-          name: emp.full_name,
-          email: emp.email,
+          name: name,
+          email: email,
           position: emp.position || 'Not assigned',
           cv_status: emp.cv_file_path ? 
-            (emp.gap_analysis_completed_at ? 'analyzed' : 'uploaded') 
+            (hasExtractedSkills ? 'analyzed' : 'uploaded') 
             : 'missing',
-          skills_analysis: emp.gap_analysis_completed_at ? 'completed' : 'pending',
+          skills_analysis: hasExtractedSkills ? 'completed' : 'pending',
           course_generation: 'pending',
-          gap_score: emp.skills_match_score || 0
+          gap_score: profile?.skills_match_score || 0
         };
       });
 
@@ -111,7 +134,44 @@ export default function EmployeeOnboarding() {
     };
 
     loadData();
-  }, [userProfile?.company_id]);
+
+    // Set up real-time subscription for skills profile changes
+    const subscription = supabase
+      .channel('skills-profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'st_employee_skills_profile',
+          filter: `employee_id=in.(${employeeStatuses.map(e => e.id).join(',')})`
+        },
+        () => {
+          // Refresh employee statuses when skills profile changes
+          fetchEmployeeStatuses();
+        }
+      )
+      .subscribe();
+
+    // Also set up a periodic refresh every 5 seconds when analysis is in progress
+    const hasAnalysisInProgress = employeeStatuses.some(
+      e => e.cv_status === 'uploaded' && e.skills_analysis === 'pending'
+    );
+    
+    let intervalId: NodeJS.Timeout | null = null;
+    if (hasAnalysisInProgress) {
+      intervalId = setInterval(() => {
+        fetchEmployeeStatuses();
+      }, 5000);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [userProfile?.company_id, employeeStatuses.length]);
 
   const getOverallStats = () => {
     const total = employeeStatuses.length;

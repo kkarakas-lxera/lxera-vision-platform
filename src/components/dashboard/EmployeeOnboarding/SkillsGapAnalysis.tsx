@@ -63,107 +63,87 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
       // Get company positions with requirements
       const { data: positions, error: positionsError } = await supabase
         .from('st_company_positions')
-        .select(`
-          *,
-          st_skills_taxonomy!inner(
-            skill_id,
-            skill_name,
-            skill_type
-          )
-        `)
+        .select('*')
         .eq('company_id', userProfile.company_id);
 
       if (positionsError) throw positionsError;
 
-      // Get employee skills profiles
-      const { data: employeeSkills, error: skillsError } = await supabase
+      // Get employee skills profiles with extracted skills
+      const { data: skillProfiles, error: profilesError } = await supabase
         .from('st_employee_skills_profile')
         .select(`
           employee_id,
-          skill_id,
-          proficiency_level,
-          st_skills_taxonomy!inner(
-            skill_id,
-            skill_name,
-            skill_type
-          )
+          skills_match_score,
+          extracted_skills,
+          current_position_id,
+          skills_gap_analysis
         `)
         .in('employee_id', employees.map(e => e.id));
 
-      if (skillsError) throw skillsError;
+      if (profilesError) throw profilesError;
 
-      // Get gap calculations for each employee
-      const allGapData = [];
-      for (const emp of employees) {
-        if (emp.skills_analysis === 'completed') {
-          const { data: empGaps, error: gapError } = await supabase
-            .rpc('calculate_employee_skills_gap', {
-              p_employee_id: emp.id
-            });
-          
-          if (!gapError && empGaps) {
-            allGapData.push(...empGaps.map((gap: any) => ({
-              ...gap,
-              employee_id: emp.id,
-              employee_name: emp.name,
-              position_code: emp.position
-            })));
-          }
-        }
-      }
+      // Create a map of employee profiles for quick lookup
+      const profileMap = new Map(
+        skillProfiles?.map(p => [p.employee_id, p]) || []
+      );
 
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
         const positionEmployees = employees.filter(emp => emp.position === position.position_code);
         
-        // Get real skill gaps for this position
-        const positionGaps = allGapData.filter((gap: any) => 
-          gap.position_code === position.position_code
-        ) || [];
-
-        // Aggregate skill gaps from individual employee gaps
+        // Calculate skill gaps based on required skills and employee profiles
         const skillGapMap = new Map<string, SkillGap>();
+        const requiredSkills = position.required_skills || [];
         
-        positionGaps.forEach((gap: any) => {
-          const key = gap.skill_id || gap.skill_name;
+        // For each required skill, check how many employees have it
+        requiredSkills.forEach((reqSkill: any) => {
+          let employeesWithSkill = 0;
+          let employeesMissingSkill = 0;
           
-          if (!skillGapMap.has(key)) {
-            skillGapMap.set(key, {
-              skill_name: gap.skill_name,
-              skill_type: gap.skill_type || 'technical_skill',
-              required_level: gap.required_level,
-              current_level: gap.current_level,
-              gap_severity: gap.gap_severity,
-              employees_affected: 0
-            });
-          }
-          
-          const skillGap = skillGapMap.get(key)!;
-          if (gap.gap_severity !== 'none') {
-            skillGap.employees_affected++;
-            // Update severity to the worst case
-            if (gap.gap_severity === 'critical' || skillGap.gap_severity !== 'critical') {
-              skillGap.gap_severity = gap.gap_severity;
+          positionEmployees.forEach(emp => {
+            const profile = profileMap.get(emp.id);
+            if (profile && profile.extracted_skills) {
+              const hasSkill = profile.extracted_skills.some((skill: any) => 
+                skill.skill_name?.toLowerCase().includes(reqSkill.skill_name?.toLowerCase()) ||
+                reqSkill.skill_name?.toLowerCase().includes(skill.skill_name?.toLowerCase())
+              );
+              
+              if (hasSkill) {
+                employeesWithSkill++;
+              } else {
+                employeesMissingSkill++;
+              }
             }
+          });
+          
+          if (employeesMissingSkill > 0) {
+            const severity = employeesMissingSkill > positionEmployees.length / 2 ? 'critical' : 
+                           employeesMissingSkill > positionEmployees.length / 3 ? 'important' : 'minor';
+            
+            skillGapMap.set(reqSkill.skill_name, {
+              skill_name: reqSkill.skill_name,
+              skill_type: 'technical_skill',
+              required_level: `Level ${reqSkill.proficiency_level || 3}`,
+              current_level: null,
+              gap_severity: severity,
+              employees_affected: employeesMissingSkill
+            });
           }
         });
         
         const skillGaps = Array.from(skillGapMap.values())
-          .filter(gap => gap.employees_affected > 0);
+          .sort((a, b) => b.employees_affected - a.employees_affected);
 
         // Calculate average match score from actual employee data
         const employeeScores = positionEmployees
           .filter(emp => emp.skills_analysis === 'completed')
           .map(emp => {
-            const empGaps = allGapData.filter((g: any) => g.employee_id === emp.id);
-            const avgMatch = empGaps.length > 0
-              ? empGaps.reduce((sum: number, gap: any) => sum + (gap.match_percentage || 0), 0) / empGaps.length
-              : 0;
-            return avgMatch;
+            const profile = profileMap.get(emp.id);
+            return profile?.skills_match_score || 0;
           });
         
         const avgMatchScore = employeeScores.length > 0
-          ? Math.round(employeeScores.reduce((sum, score) => sum + score, 0) / employeeScores.length)
+          ? Math.round(employeeScores.reduce((sum, score) => sum + Number(score), 0) / employeeScores.length)
           : 0;
 
         return {
