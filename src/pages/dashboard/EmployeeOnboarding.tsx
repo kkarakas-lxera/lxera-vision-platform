@@ -96,6 +96,11 @@ export default function EmployeeOnboarding() {
 
       if (error) throw error;
 
+      // Debug: Log the first employee to see the data structure
+      if (employees && employees.length > 0) {
+        console.log('Sample employee data structure:', JSON.stringify(employees[0], null, 2));
+      }
+
       // Transform data to include status information
       const statuses: EmployeeStatus[] = (employees || []).map(emp => {
         const hasProfile = emp.st_employee_skills_profile && emp.st_employee_skills_profile.length > 0;
