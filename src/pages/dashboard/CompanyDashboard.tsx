@@ -72,6 +72,63 @@ export default function CompanyDashboard() {
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchDashboardData();
+
+      // Set up real-time subscriptions
+      const employeesSubscription = supabase
+        .channel('dashboard-employees')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'employees',
+            filter: `company_id=eq.${userProfile.company_id}`
+          },
+          () => {
+            console.log('Employee data changed, refreshing dashboard...');
+            fetchDashboardData();
+          }
+        )
+        .subscribe();
+
+      const profilesSubscription = supabase
+        .channel('dashboard-profiles')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'st_employee_skills_profile'
+          },
+          () => {
+            console.log('Skills profile changed, refreshing dashboard...');
+            fetchDashboardData();
+          }
+        )
+        .subscribe();
+
+      const assignmentsSubscription = supabase
+        .channel('dashboard-assignments')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'course_assignments'
+          },
+          () => {
+            console.log('Course assignments changed, refreshing dashboard...');
+            fetchDashboardData();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        supabase.removeChannel(employeesSubscription);
+        supabase.removeChannel(profilesSubscription);
+        supabase.removeChannel(assignmentsSubscription);
+      };
     }
   }, [userProfile]);
 
@@ -81,49 +138,83 @@ export default function CompanyDashboard() {
     try {
       setLoading(true);
 
-      // Fetch employees with CV status
+      // Fetch employees first
       const { data: employees, count: employeeCount } = await supabase
         .from('employees')
         .select(`
           id,
           cv_file_path,
           skills_last_analyzed,
-          st_employee_skills_profile (
-            skills_match_score,
-            career_readiness_score
-          )
+          current_position_id
         `, { count: 'exact' })
         .eq('company_id', userProfile.company_id);
 
-      // Count employees with CVs and analyzed CVs
+      // Count employees with CVs
       const employeesWithCVs = employees?.filter(e => e.cv_file_path)?.length || 0;
-      const analyzedCVs = employees?.filter(e => e.skills_last_analyzed)?.length || 0;
+      
+      // Get employee IDs for skills profile query
+      const employeeIds = employees?.map(e => e.id) || [];
+      
+      // Fetch skills profiles separately to bypass RLS
+      const { data: skillsProfiles } = await supabase
+        .from('st_employee_skills_profile')
+        .select('employee_id, skills_match_score, career_readiness_score, analyzed_at')
+        .in('employee_id', employeeIds);
 
-      // Fetch active learning paths (course assignments)
-      const { count: activePaths } = await supabase
+      // Count analyzed CVs (employees with skills profiles)
+      const analyzedCVs = skillsProfiles?.length || 0;
+
+      // Calculate averages from skills profiles
+      const avgMatchScore = skillsProfiles?.length 
+        ? skillsProfiles.reduce((acc, profile) => acc + (parseFloat(profile.skills_match_score) || 0), 0) / skillsProfiles.length
+        : 0;
+
+      const avgReadiness = skillsProfiles?.length
+        ? skillsProfiles.reduce((acc, profile) => acc + (parseFloat(profile.career_readiness_score) || 0), 0) / skillsProfiles.length
+        : 0;
+
+      // Fetch active learning paths through employees join
+      const { data: activeAssignments } = await supabase
         .from('course_assignments')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', userProfile.company_id)
+        .select('id, employee_id')
+        .in('employee_id', employeeIds)
         .in('status', ['assigned', 'in_progress']);
 
-      // Calculate average scores from actual data
-      const avgMatchScore = employees?.length 
-        ? employees.reduce((acc, e) => acc + (e.st_employee_skills_profile?.[0]?.skills_match_score || 0), 0) / employees.length
-        : 0;
+      const activePaths = activeAssignments?.length || 0;
 
-      const avgReadiness = employees?.length
-        ? employees.reduce((acc, e) => acc + (e.st_employee_skills_profile?.[0]?.career_readiness_score || 0), 0) / employees.length
-        : 0;
+      // Calculate positions with gaps manually
+      const { data: positions } = await supabase
+        .from('st_company_positions')
+        .select('id, position_title')
+        .eq('company_id', userProfile.company_id);
 
-      // Fetch gap analysis data using the RPC function
-      const { data: gapAnalysis } = await supabase
-        .rpc('calculate_skills_gap', {
-          p_company_id: userProfile.company_id
-        });
+      let positionsWithGaps = 0;
+      let criticalGaps = 0;
 
-      // Count positions with gaps and critical gaps
-      const positionsWithGaps = new Set(gapAnalysis?.filter((gap: any) => gap.match_percentage < 80).map((gap: any) => gap.position_code)).size;
-      const criticalGaps = gapAnalysis?.filter((gap: any) => gap.match_percentage < 50).length || 0;
+      if (positions && skillsProfiles) {
+        // Create a map of employee positions to match scores
+        const positionScores = new Map();
+        
+        for (const employee of employees || []) {
+          if (employee.current_position_id) {
+            const profile = skillsProfiles.find(p => p.employee_id === employee.id);
+            if (profile) {
+              const score = parseFloat(profile.skills_match_score) || 0;
+              if (!positionScores.has(employee.current_position_id)) {
+                positionScores.set(employee.current_position_id, []);
+              }
+              positionScores.get(employee.current_position_id).push(score);
+            }
+          }
+        }
+
+        // Calculate average scores per position
+        for (const [positionId, scores] of positionScores) {
+          const avgScore = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+          if (avgScore < 80) positionsWithGaps++;
+          if (avgScore < 50) criticalGaps += scores.filter((s: number) => s < 50).length;
+        }
+      }
 
       setMetrics({
         totalEmployees: employeeCount || 0,
@@ -166,37 +257,38 @@ export default function CompanyDashboard() {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      // Fetch recent CV analyses
-      const { data: analyses } = await supabase
-        .from('cv_analysis_metrics')
-        .select(`
-          *,
-          employees!inner(
-            id,
-            user_id,
-            company_id,
-            users!inner(full_name)
-          )
-        `)
-        .eq('employees.company_id', userProfile.company_id)
-        .eq('status', 'success')
-        .order('created_at', { ascending: false })
-        .limit(3);
+      // Get employee IDs for the company
+      const { data: companyEmployees } = await supabase
+        .from('employees')
+        .select('id, user_id')
+        .eq('company_id', userProfile.company_id);
 
-      // Fetch recent gap discoveries
-      const { data: recentGaps } = await supabase
+      const employeeIds = companyEmployees?.map(e => e.id) || [];
+      const userIds = companyEmployees?.map(e => e.user_id).filter(Boolean) || [];
+
+      // Fetch user names separately
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      const userMap = new Map();
+      users?.forEach(user => userMap.set(user.id, user.full_name));
+
+      // Fetch recent skills profiles for gap discoveries
+      const { data: recentProfiles } = await supabase
         .from('st_employee_skills_profile')
-        .select(`
-          *,
-          employees!inner(
-            position,
-            users!inner(full_name)
-          )
-        `)
-        .eq('employees.company_id', userProfile.company_id)
-        .lt('skills_match_score', 70)
+        .select('employee_id, skills_match_score, analyzed_at, extracted_skills')
+        .in('employee_id', employeeIds)
         .order('analyzed_at', { ascending: false })
-        .limit(2);
+        .limit(5);
+
+      // Map employee IDs to names
+      const employeeNameMap = new Map();
+      companyEmployees?.forEach(emp => {
+        const userName = userMap.get(emp.user_id) || 'Unknown Employee';
+        employeeNameMap.set(emp.id, userName);
+      });
 
       // Combine and format activities
       const activities: RecentActivity[] = [];
@@ -211,24 +303,30 @@ export default function CompanyDashboard() {
         });
       });
 
-      analyses?.forEach(analysis => {
+      // Add analysis activities from recent profiles
+      recentProfiles?.forEach(profile => {
+        const employeeName = employeeNameMap.get(profile.employee_id) || 'Unknown Employee';
+        const skillsCount = Array.isArray(profile.extracted_skills) ? profile.extracted_skills.length : 0;
+        const matchScore = parseFloat(profile.skills_match_score) || 0;
+        
         activities.push({
-          id: analysis.id,
+          id: `analysis-${profile.employee_id}`,
           type: 'analysis',
-          message: `Analyzed CV for ${analysis.employees.users.full_name} (${analysis.skills_extracted} skills found)`,
-          timestamp: analysis.created_at,
+          message: `Analyzed CV for ${employeeName} (${skillsCount} skills found)`,
+          timestamp: profile.analyzed_at,
           icon: <CheckCircle2 className="h-4 w-4" />
         });
-      });
 
-      recentGaps?.forEach(gap => {
-        activities.push({
-          id: gap.id,
-          type: 'gap_found',
-          message: `Skills gap identified for ${gap.employees.users.full_name} (${Math.round(gap.skills_match_score)}% match)`,
-          timestamp: gap.analyzed_at,
-          icon: <AlertTriangle className="h-4 w-4 text-orange-500" />
-        });
+        // Add gap activity if score is low
+        if (matchScore < 70) {
+          activities.push({
+            id: `gap-${profile.employee_id}`,
+            type: 'gap_found',
+            message: `Skills gap identified for ${employeeName} (${Math.round(matchScore)}% match)`,
+            timestamp: profile.analyzed_at,
+            icon: <AlertTriangle className="h-4 w-4 text-orange-500" />
+          });
+        }
       });
 
       // Sort by timestamp
@@ -246,43 +344,64 @@ export default function CompanyDashboard() {
     if (!userProfile?.company_id) return;
 
     try {
-      // Fetch positions with employee counts and gap analysis
+      // Fetch positions first
       const { data: positions } = await supabase
         .from('st_company_positions')
-        .select(`
-          *,
-          employees!inner(
-            id,
-            st_employee_skills_profile (
-              skills_match_score
-            )
-          )
-        `)
+        .select('id, position_title, position_code, required_skills')
         .eq('company_id', userProfile.company_id);
 
-      if (positions) {
-        // Calculate real coverage for each position
-        const gapData: SkillGapOverview[] = positions.map(pos => {
-          const employeesInPosition = pos.employees?.length || 0;
-          const avgMatch = employeesInPosition > 0
-            ? pos.employees.reduce((acc: number, emp: any) => 
-                acc + (emp.st_employee_skills_profile?.[0]?.skills_match_score || 0), 0
-              ) / employeesInPosition
-            : 0;
+      // Fetch employees with their positions
+      const { data: employees } = await supabase
+        .from('employees')
+        .select('id, current_position_id')
+        .eq('company_id', userProfile.company_id)
+        .not('current_position_id', 'is', null);
 
-          return {
-            position: pos.position_title,
-            position_code: pos.position_code,
-            requiredSkills: pos.required_skills?.length || 0,
-            coverage: Math.round(avgMatch),
-            employeesInPosition,
-            avgMatchScore: Math.round(avgMatch)
-          };
-        }).filter(pos => pos.employeesInPosition > 0) // Only show positions with employees
-          .sort((a, b) => a.coverage - b.coverage) // Show worst coverage first
-          .slice(0, 5); // Top 5
+      // Get employee IDs
+      const employeeIds = employees?.map(e => e.id) || [];
 
-        setSkillsGapData(gapData);
+      // Fetch skills profiles
+      const { data: skillsProfiles } = await supabase
+        .from('st_employee_skills_profile')
+        .select('employee_id, skills_match_score')
+        .in('employee_id', employeeIds);
+
+      if (positions && employees) {
+        // Create a map of skills profiles
+        const profileMap = new Map();
+        skillsProfiles?.forEach(profile => {
+          profileMap.set(profile.employee_id, parseFloat(profile.skills_match_score) || 0);
+        });
+
+        // Calculate coverage for each position
+        const gapData: SkillGapOverview[] = [];
+        
+        for (const position of positions) {
+          const employeesInPosition = employees.filter(e => e.current_position_id === position.id);
+          
+          if (employeesInPosition.length > 0) {
+            const scores = employeesInPosition
+              .map(e => profileMap.get(e.id) || 0)
+              .filter(score => score > 0);
+            
+            const avgMatch = scores.length > 0
+              ? scores.reduce((acc, score) => acc + score, 0) / scores.length
+              : 0;
+
+            gapData.push({
+              position: position.position_title,
+              position_code: position.position_code || position.position_title,
+              requiredSkills: position.required_skills?.length || 0,
+              coverage: Math.round(avgMatch),
+              employeesInPosition: employeesInPosition.length,
+              avgMatchScore: Math.round(avgMatch)
+            });
+          }
+        }
+
+        // Sort by coverage (lowest first) and take top 5
+        gapData.sort((a, b) => a.coverage - b.coverage);
+        setSkillsGapData(gapData.slice(0, 5));
       }
     } catch (error) {
       console.error('Error fetching skills gap data:', error);
