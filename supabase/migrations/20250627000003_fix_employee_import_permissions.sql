@@ -1,6 +1,10 @@
 -- Fix RLS policies for employee import functionality
 -- This migration addresses permission errors during CSV import
 
+-- 0. Add missing column that was referenced but not created in previous migrations
+ALTER TABLE st_employee_skills_profile
+ADD COLUMN IF NOT EXISTS gap_analysis_completed_at timestamptz;
+
 -- 1. Fix users table policies to allow employee creation
 -- Drop existing restrictive policies that might be blocking
 DROP POLICY IF EXISTS "Users can see their own data" ON users;
