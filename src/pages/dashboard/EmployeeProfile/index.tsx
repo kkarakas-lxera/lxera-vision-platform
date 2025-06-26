@@ -262,7 +262,11 @@ export default function EmployeeProfile() {
       <LearningSection employee={employee} />
 
       {/* Skills Gap Analysis Section */}
-      <SkillsGapSection employee={employee} />
+      <SkillsGapSection employee={{
+        ...employee,
+        current_position_id: employee.current_position_id,
+        target_position_id: employee.target_position_id
+      }} />
 
       {/* Actions Bar */}
       <ActionsBar employee={employee} />
