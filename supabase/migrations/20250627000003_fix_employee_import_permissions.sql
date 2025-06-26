@@ -136,8 +136,8 @@ CREATE POLICY "Users can update their company import sessions" ON st_import_sess
         company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
--- 7. Add helper function to safely check user permissions
-CREATE OR REPLACE FUNCTION auth.has_company_access(check_company_id uuid)
+-- 7. Add helper function to safely check user permissions (in public schema)
+CREATE OR REPLACE FUNCTION public.has_company_access(check_company_id uuid)
 RETURNS boolean AS $$
 BEGIN
     RETURN EXISTS (
