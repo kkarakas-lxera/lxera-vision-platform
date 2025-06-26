@@ -19,14 +19,14 @@ export function AnalyzeSkillsButton({
   onAnalysisComplete,
   className 
 }: AnalyzeSkillsButtonProps) {
-  const { userProfile } = useAuth();
-  const { queueCVsForProcessing, startProcessing, initializeLLM } = useEnhancedOnboarding();
+  const { userProfile, loading: authLoading } = useAuth();
+  const { queueCVsForProcessing, startProcessing, initializeLLM, createImportSession } = useEnhancedOnboarding();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState({ processed: 0, total: 0 });
 
   const handleAnalyze = async () => {
     if (!userProfile?.company_id) {
-      toast.error('Company information not found');
+      toast.error('Company information not found. Please refresh and try again.');
       return;
     }
 
@@ -44,7 +44,7 @@ export function AnalyzeSkillsButton({
         const { data, error } = await supabase
           .from('st_import_session_items')
           .select('employee_id, cv_file_path')
-          .eq('session_id', sessionId)
+          .eq('import_session_id', sessionId)
           .not('cv_file_path', 'is', null);
         
         if (error) throw error;
@@ -75,6 +75,29 @@ export function AnalyzeSkillsButton({
 
       setProgress({ processed: 0, total: employeesToAnalyze.length });
 
+      // Create a session if none exists (for direct analysis)
+      let analysisSessionId = sessionId;
+      if (!analysisSessionId) {
+        const newSession = await createImportSession('direct_cv_analysis');
+        if (!newSession) {
+          throw new Error('Failed to create analysis session');
+        }
+        analysisSessionId = newSession.id;
+
+        // Create session items for direct analysis
+        const employeeIds = employeesToAnalyze.map(emp => emp.id);
+        const { error: sessionItemsError } = await supabase
+          .rpc('create_session_items_for_employees', {
+            p_session_id: analysisSessionId,
+            p_employee_ids: employeeIds
+          });
+
+        if (sessionItemsError) {
+          console.warn('Failed to create session items:', sessionItemsError);
+          // Continue anyway - this is not critical for the main flow
+        }
+      }
+
       // Queue CVs for processing
       const itemsToQueue = employeesToAnalyze.map(emp => ({
         itemId: emp.id,
@@ -82,7 +105,7 @@ export function AnalyzeSkillsButton({
       }));
 
       const queued = await queueCVsForProcessing(
-        sessionId || 'direct-analysis',
+        analysisSessionId,
         itemsToQueue,
         { priority: 1 }
       );
@@ -115,13 +138,19 @@ export function AnalyzeSkillsButton({
   return (
     <Button
       onClick={handleAnalyze}
-      disabled={isAnalyzing}
+      disabled={isAnalyzing || authLoading || !userProfile}
       className={className}
+      title={authLoading ? 'Loading user information...' : !userProfile ? 'User profile not loaded' : undefined}
     >
       {isAnalyzing ? (
         <>
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           Analyzing... {progress.processed}/{progress.total}
+        </>
+      ) : authLoading ? (
+        <>
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          Loading...
         </>
       ) : (
         <>

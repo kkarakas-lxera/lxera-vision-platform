@@ -359,7 +359,7 @@ Return the response in the following JSON format:
         }
         
         const analysisTime = Date.now() - startTime
-        console.log(`[${requestId}] CV analysis completed in ${analysisTime}ms. Match: ${matchPercentage}%, Gaps: ${skillGaps.length}`)\n        
+        console.log(`[${requestId}] CV analysis completed in ${analysisTime}ms. Match: ${matchPercentage}%, Gaps: ${skillGaps.length}`)
         // Log analysis metrics for monitoring
         await supabase
           .from('cv_analysis_metrics')

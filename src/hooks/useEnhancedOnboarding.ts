@@ -259,7 +259,7 @@ export function useEnhancedOnboarding() {
       const { data, error } = await supabase
         .from('v_import_session_analytics')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('import_session_id', sessionId)
         .single();
 
       if (error) throw error;

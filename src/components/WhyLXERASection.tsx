@@ -46,7 +46,7 @@ const WhyLXERASection = () => {
                   <div className="mb-3 sm:mb-4 flex justify-center">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                       {capability.icon && (
-                        // @ts-ignore
+                        // @ts-expect-error
                         <capability.icon className="w-6 h-6 sm:w-8 sm:h-8 text-business-black group-hover:animate-bounce transition-all duration-300" />
                       )}
                     </div>
