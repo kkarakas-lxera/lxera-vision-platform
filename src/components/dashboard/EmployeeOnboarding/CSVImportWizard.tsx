@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle, Users, FileText } from 'lucide-react';
+import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -31,9 +32,8 @@ interface CSVImportWizardProps {
 interface CSVRow {
   name: string;
   email: string;
-  position_code: string;
   department?: string;
-  target_position_code?: string;
+  current_position?: string;
 }
 
 export function CSVImportWizard({ onImportComplete, importSessions, defaultPositionId }: CSVImportWizardProps) {
@@ -46,10 +46,10 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
 
   const downloadSampleCSV = () => {
     const sampleData = [
-      ['name', 'email', 'position_code', 'department', 'target_position_code'],
-      ['John Smith', 'john.smith@company.com', 'DEV-001', 'Engineering', 'DEV-002'],
-      ['Jane Doe', 'jane.doe@company.com', 'PM-001', 'Operations', ''],
-      ['Mike Johnson', 'mike.johnson@company.com', 'DEV-001', 'Engineering', 'DEV-003']
+      ['name', 'email', 'department', 'current_position'],
+      ['John Smith', 'john.smith@company.com', 'Engineering', 'Senior Developer'],
+      ['Jane Doe', 'jane.doe@company.com', 'Operations', 'Project Manager'],
+      ['Mike Johnson', 'mike.johnson@company.com', 'Engineering', 'Junior Developer']
     ];
 
     const csvContent = sampleData.map(row => row.join(',')).join('\n');
@@ -71,7 +71,7 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
           const lines = text.trim().split('\n');
           const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
           
-          const requiredHeaders = ['name', 'email', 'position_code'];
+          const requiredHeaders = ['name', 'email'];
           const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
           
           if (missingHeaders.length > 0) {
@@ -82,13 +82,12 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
           const data: CSVRow[] = [];
           for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
-            if (values.length >= 3 && values[0] && values[1] && values[2]) {
+            if (values.length >= 2 && values[0] && values[1]) {
               data.push({
                 name: values[headers.indexOf('name')],
                 email: values[headers.indexOf('email')],
-                position_code: values[headers.indexOf('position_code')],
                 department: values[headers.indexOf('department')] || undefined,
-                target_position_code: values[headers.indexOf('target_position_code')] || undefined
+                current_position: values[headers.indexOf('current_position')] || undefined
               });
             }
           }
@@ -119,27 +118,9 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
       errors.push(`Invalid email formats: ${invalidEmails.map(r => r.email).join(', ')}`);
     }
 
-    // Check if position codes exist
-    if (userProfile?.company_id) {
-      try {
-        const positionCodes = [...new Set(data.map(row => row.position_code))];
-        const { data: existingPositions, error } = await supabase
-          .from('st_company_positions')
-          .select('position_code')
-          .eq('company_id', userProfile.company_id)
-          .in('position_code', positionCodes);
-
-        if (error) throw error;
-
-        const existingCodes = existingPositions?.map(p => p.position_code) || [];
-        const missingCodes = positionCodes.filter(code => !existingCodes.includes(code));
-        
-        if (missingCodes.length > 0) {
-          errors.push(`Position codes not found: ${missingCodes.join(', ')}. Create these positions first.`);
-        }
-      } catch (error) {
-        errors.push('Failed to validate position codes');
-      }
+    // Check if default position is provided
+    if (!defaultPositionId) {
+      errors.push('No position selected. Please select a position before importing.');
     }
 
     return errors;
@@ -237,24 +218,12 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
             userId = newUser.id;
           }
 
-          // Get position information
+          // Get position details from defaultPositionId
           const { data: position } = await supabase
             .from('st_company_positions')
-            .select('id')
-            .eq('company_id', userProfile.company_id)
-            .eq('position_code', row.position_code)
+            .select('id, position_code')
+            .eq('id', defaultPositionId)
             .single();
-
-          let targetPositionId = null;
-          if (row.target_position_code) {
-            const { data: targetPosition } = await supabase
-              .from('st_company_positions')
-              .select('id')
-              .eq('company_id', userProfile.company_id)
-              .eq('position_code', row.target_position_code)
-              .single();
-            targetPositionId = targetPosition?.id;
-          }
 
           // Create or update employee record
           const { error: employeeError } = await supabase
@@ -263,9 +232,9 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
               user_id: userId,
               company_id: userProfile.company_id,
               department: row.department,
-              position: row.position_code,
-              current_position_id: position?.id,
-              target_position_id: targetPositionId,
+              position: position?.position_code || row.current_position || 'Unassigned',
+              current_position_id: defaultPositionId,
+              target_position_id: defaultPositionId, // Same as current for skills analysis
               is_active: true
             });
 
@@ -278,8 +247,8 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
               import_session_id: importSession.id,
               employee_email: row.email,
               employee_name: row.name,
-              current_position_code: row.position_code,
-              target_position_code: row.target_position_code,
+              current_position_code: position?.position_code,
+              target_position_code: position?.position_code,
               status: 'completed',
               employee_id: userId
             });
@@ -295,8 +264,8 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
               import_session_id: importSession.id,
               employee_email: row.email,
               employee_name: row.name,
-              current_position_code: row.position_code,
-              target_position_code: row.target_position_code,
+              current_position_code: position?.position_code || 'Unknown',
+              target_position_code: position?.position_code || 'Unknown',
               status: 'failed',
               error_message: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -346,31 +315,40 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
     }
   };
 
+  // State for dialog visibility
+  const [isOpen, setIsOpen] = useState(true);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    onImportComplete();
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Import Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Bulk Employee Import
-          </CardTitle>
-          <CardDescription>
-            Upload a CSV file with employee information to bulk import your team
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+            Import Employees via CSV
+          </DialogTitle>
+          <DialogDescription>
+            Upload a CSV file with employee information to bulk import your team members
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 mt-4">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
+              size="sm"
               onClick={downloadSampleCSV}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
-              Download Sample CSV
+              Download Template
             </Button>
             <div className="text-sm text-muted-foreground">
-              Required columns: name, email, position_code | Optional: department, target_position_code
+              Required: name, email | Optional: department, current_position
             </div>
           </div>
 
@@ -419,8 +397,8 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
                     <div key={index} className="flex items-center gap-4 text-sm border-b pb-2">
                       <span className="font-medium">{row.name}</span>
                       <span className="text-muted-foreground">{row.email}</span>
-                      <Badge variant="outline">{row.position_code}</Badge>
-                      {row.department && <span className="text-muted-foreground">{row.department}</span>}
+                      {row.department && <Badge variant="outline">{row.department}</Badge>}
+                      {row.current_position && <span className="text-muted-foreground text-xs">{row.current_position}</span>}
                     </div>
                   ))}
                   {csvData.length > 5 && (
@@ -453,46 +431,8 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
               <Progress value={45} className="w-full" />
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Recent Import Sessions */}
-      {importSessions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-foreground">Recent Import Sessions</CardTitle>
-            <CardDescription>
-              Track the progress of your employee imports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {importSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">
-                        {session.total_employees} employees
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(session.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-right">
-                      <div>Success: {session.successful}</div>
-                      <div>Failed: {session.failed}</div>
-                    </div>
-                    {getStatusBadge(session.status)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
