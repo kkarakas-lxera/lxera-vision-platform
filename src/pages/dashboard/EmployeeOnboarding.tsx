@@ -200,12 +200,16 @@ export default function EmployeeOnboarding() {
   }, [userProfile?.company_id, employeeStatuses.length]);
 
   // Check if there's existing data to determine if we should skip method selection
+  // Only auto-skip to manual mode on initial load, not when user explicitly goes back
+  const [hasAutoSkipped, setHasAutoSkipped] = useState(false);
+  
   useEffect(() => {
-    if (!loading && employeeStatuses.length > 0 && onboardingMethod === 'none') {
+    if (!loading && employeeStatuses.length > 0 && onboardingMethod === 'none' && !hasAutoSkipped) {
       // If there's already employee data, go straight to manual mode
       setOnboardingMethod('manual');
+      setHasAutoSkipped(true);
     }
-  }, [loading, employeeStatuses.length, onboardingMethod]);
+  }, [loading, employeeStatuses.length, onboardingMethod, hasAutoSkipped]);
 
   const getOverallStats = () => {
     const total = employeeStatuses.length;
@@ -391,7 +395,10 @@ export default function EmployeeOnboarding() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setOnboardingMethod('none')}
+              onClick={() => {
+                setOnboardingMethod('none');
+                setHasAutoSkipped(false);
+              }}
               className="mt-1"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />

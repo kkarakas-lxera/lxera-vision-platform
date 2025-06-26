@@ -244,7 +244,12 @@ export default function EmployeeProfile() {
       <EmployeeProfileHeader employee={employee} />
 
       {/* Career Path Section */}
-      <CareerPathSection employee={employee} />
+      <CareerPathSection employee={{
+        ...employee,
+        id: employee.id,
+        full_name: employee.full_name,
+        courses: employee.courses
+      }} />
 
       {/* Skills Profile Section */}
       <SkillsProfileSection 
