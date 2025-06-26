@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { verifyAuthSession, debugAuthState, ensureAuthenticatedClient } from '@/lib/auth-helpers';
 import { uploadCVViaEdgeFunction } from '@/lib/cv-upload-service';
+import { uploadCVToDatabase } from '@/lib/storage-workaround';
 
 interface CVUploadDialogProps {
   employee: {
@@ -191,7 +192,32 @@ export function CVUploadDialog({
           );
           
           if (!edgeResult.success) {
-            throw new Error(edgeResult.error || 'All upload methods failed');
+            // Final fallback: Use database storage
+            console.log('🔄 Edge function failed, trying database storage...');
+            const dbResult = await uploadCVToDatabase(
+              file,
+              employee.id,
+              (progress) => setProgress(30 + (progress * 0.3))
+            );
+            
+            if (!dbResult.success) {
+              throw new Error(dbResult.error || 'All upload methods failed');
+            }
+            
+            console.log('✅ Database storage successful');
+            setProgress(100);
+            
+            toast({
+              title: 'Success',
+              description: 'CV uploaded successfully (using alternative storage)',
+            });
+
+            setTimeout(() => {
+              onOpenChange(false);
+              if (onUploadComplete) onUploadComplete();
+            }, 1000);
+            
+            return;
           }
           
           console.log('✅ Edge function upload successful');

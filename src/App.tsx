@@ -10,6 +10,9 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 
 // Import test utilities (available in development)
 import '@/lib/test-auth-upload';
+import '@/lib/storage-debug';
+import '@/lib/storage-workaround';
+import '@/lib/test-storage-fix';
 
 // Import existing pages
 import Index from "./pages/Index";
