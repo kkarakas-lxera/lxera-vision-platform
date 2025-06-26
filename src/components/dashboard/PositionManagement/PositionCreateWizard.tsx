@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { SkillSearch } from '@/components/admin/SkillsManagement/SkillSearch';
+import { AISkillSuggestions } from './AISkillSuggestions';
 
 // Define the interface to match what's used in the parent component
 interface ImportSession {
@@ -75,16 +76,17 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
       .substring(0, 20);
   };
 
-  const addSkill = (skill: any) => {
+  const addSkill = (skill: any, category?: 'required' | 'nice-to-have') => {
+    const targetCategory = category || skillCategory;
     const skillSelection: SkillSelection = {
       skill_id: skill.skill_id,
       skill_name: skill.skill_name,
-      category: skillCategory,
-      proficiency_level: 3,
+      category: targetCategory,
+      proficiency_level: skill.proficiency_level || 3,
       description: skill.description
     };
 
-    if (skillCategory === 'required') {
+    if (targetCategory === 'required') {
       setPositionData(prev => ({
         ...prev,
         required_skills: [...prev.required_skills, skillSelection]
@@ -193,13 +195,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     <div className="space-y-6">
       {/* Progress Indicator */}
       <Card>
-        <CardHeader>
-          <CardTitle>Create New Position</CardTitle>
-          <CardDescription>
-            Follow these steps to create a comprehensive position template
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-6">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
@@ -313,100 +309,116 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left side - Manual search and skills list */}
+              <div className="space-y-4">
                 <div>
                   <h3 className="font-medium">Required Skills</h3>
                   <p className="text-sm text-muted-foreground">
-                    Essential skills that candidates must have for this position
+                    Essential skills that candidates must have
                   </p>
                 </div>
-                <Select 
-                  value="required" 
-                  onValueChange={(value: "required" | "nice-to-have") => setSkillCategory(value)}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="required">Required Skills</SelectItem>
-                    <SelectItem value="nice-to-have">Nice-to-Have Skills</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <SkillSearch onSkillSelect={addSkill} />
+                <SkillSearch 
+                  onSkillSelect={(skill) => addSkill(skill, 'required')} 
+                  placeholder="Search skills in database..."
+                />
 
-              <div className="space-y-2">
-                {positionData.required_skills.map((skill) => (
-                  <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <span className="font-medium">{skill.skill_name}</span>
-                      <Badge variant="secondary" className="ml-2">Required</Badge>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">Selected Required Skills ({positionData.required_skills.length})</h4>
+                  {positionData.required_skills.map((skill) => (
+                    <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg bg-red-50 border-red-200">
+                      <div>
+                        <span className="font-medium">{skill.skill_name}</span>
+                        <Badge variant="secondary" className="ml-2 bg-red-100 text-red-800">Required</Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSkill(skill.skill_id, 'required')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSkill(skill.skill_id, 'required')}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {positionData.required_skills.length === 0 && (
+                  <Alert>
+                    <Lightbulb className="h-4 w-4" />
+                    <AlertDescription>
+                      Add at least one required skill. Use manual search or AI suggestions.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
-              {positionData.required_skills.length === 0 && (
-                <Alert>
-                  <Lightbulb className="h-4 w-4" />
-                  <AlertDescription>
-                    Add at least one required skill to proceed to the next step.
-                  </AlertDescription>
-                </Alert>
-              )}
+              {/* Right side - AI suggestions */}
+              <div className="lg:border-l lg:pl-6">
+                <AISkillSuggestions
+                  positionTitle={positionData.position_title}
+                  positionDescription={positionData.description}
+                  positionLevel={positionData.position_level}
+                  department={positionData.department}
+                  onAddSkill={addSkill}
+                  existingSkills={[...positionData.required_skills, ...positionData.nice_to_have_skills]}
+                />
+              </div>
             </div>
           )}
 
           {currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left side - Manual search and skills list */}
+              <div className="space-y-4">
                 <div>
                   <h3 className="font-medium">Nice-to-Have Skills</h3>
                   <p className="text-sm text-muted-foreground">
-                    Additional skills that would be beneficial for candidates to possess
+                    Additional skills that would be beneficial
                   </p>
                 </div>
-                <Select
-                  value="nice-to-have"
-                  onValueChange={(value: "required" | "nice-to-have") => setSkillCategory(value)}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="required">Required Skills</SelectItem>
-                    <SelectItem value="nice-to-have">Nice-to-Have Skills</SelectItem>
-                  </SelectContent>
-                </Select>
+
+                <SkillSearch 
+                  onSkillSelect={(skill) => addSkill(skill, 'nice-to-have')} 
+                  placeholder="Search skills in database..."
+                />
+
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">Selected Nice-to-Have Skills ({positionData.nice_to_have_skills.length})</h4>
+                  {positionData.nice_to_have_skills.map((skill) => (
+                    <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 border-blue-200">
+                      <div>
+                        <span className="font-medium">{skill.skill_name}</span>
+                        <Badge variant="outline" className="ml-2 bg-blue-100 text-blue-800">Nice-to-Have</Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSkill(skill.skill_id, 'nice-to-have')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {positionData.nice_to_have_skills.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No nice-to-have skills added yet. This is optional.
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <SkillSearch onSkillSelect={addSkill} />
-
-              <div className="space-y-2">
-                {positionData.nice_to_have_skills.map((skill) => (
-                  <div key={skill.skill_id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <span className="font-medium">{skill.skill_name}</span>
-                      <Badge variant="outline" className="ml-2">Nice-to-Have</Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSkill(skill.skill_id, 'nice-to-have')}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+              {/* Right side - AI suggestions */}
+              <div className="lg:border-l lg:pl-6">
+                <AISkillSuggestions
+                  positionTitle={positionData.position_title}
+                  positionDescription={positionData.description}
+                  positionLevel={positionData.position_level}
+                  department={positionData.department}
+                  onAddSkill={addSkill}
+                  existingSkills={[...positionData.required_skills, ...positionData.nice_to_have_skills]}
+                />
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
@@ -334,16 +335,21 @@ export default function PositionManagement() {
         )}
       </div>
 
-      {/* Create Position Wizard */}
-      {createOpen && (
-        <PositionCreateWizard
-          onComplete={() => {
-            setCreateOpen(false);
-            fetchPositions();
-          }}
-          onCancel={() => setCreateOpen(false)}
-        />
-      )}
+      {/* Create Position Modal */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Position</DialogTitle>
+          </DialogHeader>
+          <PositionCreateWizard
+            onComplete={() => {
+              setCreateOpen(false);
+              fetchPositions();
+            }}
+            onCancel={() => setCreateOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Position Sheet */}
       <PositionEditSheet
