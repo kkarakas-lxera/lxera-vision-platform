@@ -76,6 +76,13 @@ interface SummaryStats {
 export default function Employees() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('Employees component - userProfile:', userProfile);
+    console.log('User role:', userProfile?.role);
+    console.log('User company_id:', userProfile?.company_id);
+  }, [userProfile]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
@@ -97,8 +104,13 @@ export default function Employees() {
   });
 
   useEffect(() => {
+    console.log('useEffect triggered, userProfile:', userProfile);
     if (userProfile?.company_id) {
+      console.log('Calling fetchEmployees...');
       fetchEmployees();
+    } else {
+      console.log('No company_id yet, userProfile:', userProfile);
+      setLoading(false); // Stop loading if no company_id
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
@@ -109,10 +121,23 @@ export default function Employees() {
   }, [employees, searchTerm, departmentFilter, positionFilter, skillsStatusFilter, statusFilter]);
 
   const fetchEmployees = async () => {
-    if (!userProfile?.company_id) return;
+    if (!userProfile?.company_id) {
+      console.log('No company_id found in userProfile:', userProfile);
+      return;
+    }
+
+    console.log('Fetching employees for company_id:', userProfile.company_id);
 
     try {
       setLoading(true);
+      
+      // First, let's test a simple query
+      const { data: testData, error: testError } = await supabase
+        .from('employees')
+        .select('id, department, position')
+        .eq('company_id', userProfile.company_id);
+        
+      console.log('Test query result:', testData, 'Test error:', testError);
 
       const { data, error } = await supabase
         .from('employees')
@@ -123,17 +148,21 @@ export default function Employees() {
           position,
           is_active,
           cv_file_path,
-          users!inner(full_name, email),
+          users!left(full_name, email),
           st_employee_skills_profile(
             skills_match_score,
             analyzed_at,
             extracted_skills
           )
         `)
-        .eq('company_id', userProfile.company_id)
-        .order('users.full_name');
+        .eq('company_id', userProfile.company_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching employees:', error);
+        throw error;
+      }
+
+      console.log('Fetched employees data:', data);
 
       // Transform the data
       const transformedEmployees: Employee[] = (data || []).map(emp => {
@@ -143,8 +172,8 @@ export default function Employees() {
         return {
           id: emp.id,
           user_id: emp.user_id,
-          full_name: emp.users.full_name,
-          email: emp.users.email,
+          full_name: emp.users?.full_name || 'Unknown',
+          email: emp.users?.email || 'No email',
           department: emp.department || 'Not assigned',
           position: emp.position || 'Not assigned',
           is_active: emp.is_active,
@@ -157,6 +186,8 @@ export default function Employees() {
       });
 
       setEmployees(transformedEmployees);
+      console.log('Transformed employees:', transformedEmployees);
+      console.log('Number of employees:', transformedEmployees.length);
 
       // Extract unique departments and positions
       const uniqueDepartments = [...new Set(transformedEmployees.map(emp => emp.department))].filter(d => d !== 'Not assigned');

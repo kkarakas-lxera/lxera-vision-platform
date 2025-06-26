@@ -73,7 +73,7 @@ export default function EmployeeOnboarding() {
     if (!userProfile?.company_id) return;
 
     try {
-      // Get employees directly from employees table with their skills profiles
+      // Get employees first
       const { data: employees, error } = await supabase
         .from('employees')
         .select(`
@@ -85,27 +85,47 @@ export default function EmployeeOnboarding() {
           users!employees_user_id_fkey (
             full_name,
             email
-          ),
-          st_employee_skills_profile (
-            skills_match_score,
-            analyzed_at,
-            extracted_skills
           )
         `)
         .eq('company_id', userProfile.company_id);
 
       if (error) throw error;
 
-      // Debug: Log the first employee to see the data structure
-      if (employees && employees.length > 0) {
-        console.log('Sample employee data structure:', JSON.stringify(employees[0], null, 2));
+      // Get skills profiles separately to bypass RLS join issues
+      const employeeIds = employees?.map(e => e.id) || [];
+      const { data: skillsProfiles, error: profilesError } = await supabase
+        .from('st_employee_skills_profile')
+        .select('employee_id, skills_match_score, analyzed_at, extracted_skills')
+        .in('employee_id', employeeIds);
+
+      if (profilesError) {
+        console.error('Error fetching skills profiles:', profilesError);
       }
 
+      // Create a map for easy lookup
+      const profileMap = new Map();
+      skillsProfiles?.forEach(profile => {
+        if (!profileMap.has(profile.employee_id)) {
+          profileMap.set(profile.employee_id, []);
+        }
+        profileMap.get(profile.employee_id).push(profile);
+      });
+
+      // Merge the data
+      const employeesWithProfiles = employees?.map(emp => ({
+        ...emp,
+        st_employee_skills_profile: profileMap.get(emp.id) || []
+      })) || [];
+
       // Transform data to include status information
-      const statuses: EmployeeStatus[] = (employees || []).map(emp => {
-        const hasProfile = emp.st_employee_skills_profile && emp.st_employee_skills_profile.length > 0;
+      const statuses: EmployeeStatus[] = employeesWithProfiles.map(emp => {
+        const hasProfile = emp.st_employee_skills_profile && 
+                          Array.isArray(emp.st_employee_skills_profile) && 
+                          emp.st_employee_skills_profile.length > 0;
         const profile = hasProfile ? emp.st_employee_skills_profile[0] : null;
-        const hasExtractedSkills = profile?.extracted_skills && profile.extracted_skills.length > 0;
+        const hasExtractedSkills = profile?.extracted_skills && 
+                                  Array.isArray(profile.extracted_skills) && 
+                                  profile.extracted_skills.length > 0;
         
         // Use a fallback name if user doesn't exist
         const name = emp.users?.full_name || `Employee ${emp.id.slice(0, 8)}`;
