@@ -42,6 +42,7 @@ import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
 import PositionManagement from "./pages/dashboard/PositionManagement";
 import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
 import Employees from "./pages/dashboard/Employees";
+import EmployeeProfile from "./pages/dashboard/EmployeeProfile";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => (
                       <Route path="/onboarding" element={<EmployeeOnboarding />} />
                       <Route path="/positions" element={<PositionManagement />} />
                       <Route path="/employees" element={<Employees />} />
+                      <Route path="/employees/:employeeId" element={<EmployeeProfile />} />
                       <Route path="/courses" element={<div>Course Management</div>} />
                       <Route path="/analytics" element={<div>Skills Analytics</div>} />
                       <Route path="/settings" element={<div>Company Settings</div>} />

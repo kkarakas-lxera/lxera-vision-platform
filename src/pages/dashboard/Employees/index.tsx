@@ -578,7 +578,6 @@ export default function Employees() {
                   <th className="p-4 text-left text-sm font-medium text-muted-foreground">Match Score</th>
                   <th className="p-4 text-left text-sm font-medium text-muted-foreground">Status</th>
                   <th className="p-4 text-left text-sm font-medium text-muted-foreground">Last Updated</th>
-                  <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody>
@@ -592,7 +591,17 @@ export default function Employees() {
                     </td>
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{employee.full_name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{employee.full_name}</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
+                            className="h-7 text-xs"
+                          >
+                            View Profile
+                          </Button>
+                        </div>
                         <p className="text-sm text-muted-foreground">{employee.email}</p>
                       </div>
                     </td>
@@ -625,15 +634,6 @@ export default function Employees() {
                     </td>
                     <td className="p-4 text-sm text-muted-foreground">
                       {employee.last_analyzed ? new Date(employee.last_analyzed).toLocaleDateString() : '-'}
-                    </td>
-                    <td className="p-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedEmployee(employee)}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -750,7 +750,14 @@ export default function Employees() {
                 <div className="space-y-3 pt-4 border-t">
                   <h3 className="font-medium">Actions</h3>
                   <div className="space-y-2">
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button 
+                      className="w-full justify-start" 
+                      variant="outline"
+                      onClick={() => {
+                        navigate(`/dashboard/employees/${selectedEmployee.id}`);
+                        setSelectedEmployee(null);
+                      }}
+                    >
                       View Full Profile
                     </Button>
                     <Button className="w-full justify-start" variant="outline">
