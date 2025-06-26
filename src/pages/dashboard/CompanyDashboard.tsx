@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +16,9 @@ import {
   BarChart3,
   ArrowRight,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle,
+  Brain
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,14 +29,27 @@ interface DashboardMetrics {
   activeLearningPaths: number;
   skillsCoverage: number;
   avgReadinessScore: number;
+  employeesWithCVs: number;
+  analyzedCVs: number;
+  positionsWithGaps: number;
+  criticalGaps: number;
 }
 
 interface RecentActivity {
   id: string;
-  type: 'onboarding' | 'completion' | 'analysis';
+  type: 'onboarding' | 'completion' | 'analysis' | 'gap_found';
   message: string;
   timestamp: string;
   icon: React.ReactNode;
+}
+
+interface SkillGapOverview {
+  position: string;
+  position_code: string;
+  requiredSkills: number;
+  coverage: number;
+  employeesInPosition: number;
+  avgMatchScore: number;
 }
 
 export default function CompanyDashboard() {
@@ -46,10 +60,14 @@ export default function CompanyDashboard() {
     totalEmployees: 0,
     activeLearningPaths: 0,
     skillsCoverage: 0,
-    avgReadinessScore: 0
+    avgReadinessScore: 0,
+    employeesWithCVs: 0,
+    analyzedCVs: 0,
+    positionsWithGaps: 0,
+    criticalGaps: 0
   });
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [skillsGapData, setSkillsGapData] = useState<any[]>([]);
+  const [skillsGapData, setSkillsGapData] = useState<SkillGapOverview[]>([]);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -63,11 +81,23 @@ export default function CompanyDashboard() {
     try {
       setLoading(true);
 
-      // Fetch employee count
-      const { count: employeeCount } = await supabase
+      // Fetch employees with CV status
+      const { data: employees, count: employeeCount } = await supabase
         .from('employees')
-        .select('*', { count: 'exact', head: true })
+        .select(`
+          id,
+          cv_file_path,
+          skills_last_analyzed,
+          st_employee_skills_profile (
+            skills_match_score,
+            career_readiness_score
+          )
+        `, { count: 'exact' })
         .eq('company_id', userProfile.company_id);
+
+      // Count employees with CVs and analyzed CVs
+      const employeesWithCVs = employees?.filter(e => e.cv_file_path)?.length || 0;
+      const analyzedCVs = employees?.filter(e => e.skills_last_analyzed)?.length || 0;
 
       // Fetch active learning paths (course assignments)
       const { count: activePaths } = await supabase
@@ -76,36 +106,40 @@ export default function CompanyDashboard() {
         .eq('company_id', userProfile.company_id)
         .in('status', ['assigned', 'in_progress']);
 
-      // Fetch skills profiles for coverage calculation
-      const { data: skillsProfiles } = await supabase
-        .from('st_employee_skills_profile')
-        .select(`
-          skills_match_score,
-          career_readiness_score,
-          employees!inner(company_id)
-        `)
-        .eq('employees.company_id', userProfile.company_id);
-
-      // Calculate metrics
-      const avgMatchScore = skillsProfiles?.length 
-        ? skillsProfiles.reduce((acc, p) => acc + (p.skills_match_score || 0), 0) / skillsProfiles.length
+      // Calculate average scores from actual data
+      const avgMatchScore = employees?.length 
+        ? employees.reduce((acc, e) => acc + (e.st_employee_skills_profile?.[0]?.skills_match_score || 0), 0) / employees.length
         : 0;
 
-      const avgReadiness = skillsProfiles?.length
-        ? skillsProfiles.reduce((acc, p) => acc + (p.career_readiness_score || 0), 0) / skillsProfiles.length
+      const avgReadiness = employees?.length
+        ? employees.reduce((acc, e) => acc + (e.st_employee_skills_profile?.[0]?.career_readiness_score || 0), 0) / employees.length
         : 0;
+
+      // Fetch gap analysis data using the RPC function
+      const { data: gapAnalysis } = await supabase
+        .rpc('calculate_skills_gap', {
+          p_company_id: userProfile.company_id
+        });
+
+      // Count positions with gaps and critical gaps
+      const positionsWithGaps = new Set(gapAnalysis?.filter((gap: any) => gap.match_percentage < 80).map((gap: any) => gap.position_code)).size;
+      const criticalGaps = gapAnalysis?.filter((gap: any) => gap.match_percentage < 50).length || 0;
 
       setMetrics({
         totalEmployees: employeeCount || 0,
         activeLearningPaths: activePaths || 0,
         skillsCoverage: Math.round(avgMatchScore),
-        avgReadinessScore: Math.round(avgReadiness)
+        avgReadinessScore: Math.round(avgReadiness),
+        employeesWithCVs,
+        analyzedCVs,
+        positionsWithGaps,
+        criticalGaps
       });
 
       // Fetch recent activities
       await fetchRecentActivities();
       
-      // Fetch skills gap overview
+      // Fetch skills gap overview with real data
       await fetchSkillsGapOverview();
 
     } catch (error) {
@@ -132,9 +166,9 @@ export default function CompanyDashboard() {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      // Fetch recent CV analyses with proper employee fields
+      // Fetch recent CV analyses
       const { data: analyses } = await supabase
-        .from('st_employee_skills_profile')
+        .from('cv_analysis_metrics')
         .select(`
           *,
           employees!inner(
@@ -145,8 +179,24 @@ export default function CompanyDashboard() {
           )
         `)
         .eq('employees.company_id', userProfile.company_id)
-        .order('analyzed_at', { ascending: false })
+        .eq('status', 'success')
+        .order('created_at', { ascending: false })
         .limit(3);
+
+      // Fetch recent gap discoveries
+      const { data: recentGaps } = await supabase
+        .from('st_employee_skills_profile')
+        .select(`
+          *,
+          employees!inner(
+            position,
+            users!inner(full_name)
+          )
+        `)
+        .eq('employees.company_id', userProfile.company_id)
+        .lt('skills_match_score', 70)
+        .order('analyzed_at', { ascending: false })
+        .limit(2);
 
       // Combine and format activities
       const activities: RecentActivity[] = [];
@@ -165,9 +215,19 @@ export default function CompanyDashboard() {
         activities.push({
           id: analysis.id,
           type: 'analysis',
-          message: `Analyzed CV for ${analysis.employees.users.full_name}`,
-          timestamp: analysis.analyzed_at,
+          message: `Analyzed CV for ${analysis.employees.users.full_name} (${analysis.skills_extracted} skills found)`,
+          timestamp: analysis.created_at,
           icon: <CheckCircle2 className="h-4 w-4" />
+        });
+      });
+
+      recentGaps?.forEach(gap => {
+        activities.push({
+          id: gap.id,
+          type: 'gap_found',
+          message: `Skills gap identified for ${gap.employees.users.full_name} (${Math.round(gap.skills_match_score)}% match)`,
+          timestamp: gap.analyzed_at,
+          icon: <AlertTriangle className="h-4 w-4 text-orange-500" />
         });
       });
 
@@ -186,20 +246,42 @@ export default function CompanyDashboard() {
     if (!userProfile?.company_id) return;
 
     try {
-      // This would typically aggregate skills gaps across all employees
-      // For now, we'll fetch position requirements as a proxy
+      // Fetch positions with employee counts and gap analysis
       const { data: positions } = await supabase
         .from('st_company_positions')
-        .select('*')
-        .eq('company_id', userProfile.company_id)
-        .limit(5);
+        .select(`
+          *,
+          employees!inner(
+            id,
+            st_employee_skills_profile (
+              skills_match_score
+            )
+          )
+        `)
+        .eq('company_id', userProfile.company_id);
 
       if (positions) {
-        const gapData = positions.map(pos => ({
-          position: pos.position_title,
-          requiredSkills: pos.required_skills?.length || 0,
-          coverage: Math.floor(Math.random() * 100) // In production, calculate actual coverage
-        }));
+        // Calculate real coverage for each position
+        const gapData: SkillGapOverview[] = positions.map(pos => {
+          const employeesInPosition = pos.employees?.length || 0;
+          const avgMatch = employeesInPosition > 0
+            ? pos.employees.reduce((acc: number, emp: any) => 
+                acc + (emp.st_employee_skills_profile?.[0]?.skills_match_score || 0), 0
+              ) / employeesInPosition
+            : 0;
+
+          return {
+            position: pos.position_title,
+            position_code: pos.position_code,
+            requiredSkills: pos.required_skills?.length || 0,
+            coverage: Math.round(avgMatch),
+            employeesInPosition,
+            avgMatchScore: Math.round(avgMatch)
+          };
+        }).filter(pos => pos.employeesInPosition > 0) // Only show positions with employees
+          .sort((a, b) => a.coverage - b.coverage) // Show worst coverage first
+          .slice(0, 5); // Top 5
+
         setSkillsGapData(gapData);
       }
     } catch (error) {
@@ -224,10 +306,14 @@ export default function CompanyDashboard() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-48" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-32" />
           ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
         </div>
       </div>
     );
@@ -267,7 +353,7 @@ export default function CompanyDashboard() {
                 <Upload className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">Add New Team Members</div>
+                <div className="font-semibold">Add Team Members</div>
                 <div className="text-xs opacity-70">Import & assess skills</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
@@ -283,7 +369,7 @@ export default function CompanyDashboard() {
                 <Target className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">Define Roles</div>
+                <div className="font-semibold">Define Positions</div>
                 <div className="text-xs text-muted-foreground">Set skill requirements</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
@@ -293,14 +379,14 @@ export default function CompanyDashboard() {
               size="lg"
               variant="outline" 
               className="justify-start gap-3 h-auto py-4"
-              onClick={() => navigate('/dashboard/analytics')}
+              onClick={() => navigate('/dashboard/employees')}
             >
               <div className="bg-muted p-2 rounded-lg">
-                <BarChart3 className="h-5 w-5" />
+                <Brain className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <div className="font-semibold">Skills Insights</div>
-                <div className="text-xs text-muted-foreground">Team readiness & gaps</div>
+                <div className="font-semibold">View Team Skills</div>
+                <div className="text-xs text-muted-foreground">Analyze gaps & progress</div>
               </div>
               <ArrowRight className="h-4 w-4 ml-auto" />
             </Button>
@@ -308,71 +394,129 @@ export default function CompanyDashboard() {
         </CardContent>
       </Card>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Employees
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Active team members
-            </p>
-          </CardContent>
-        </Card>
+      {/* Key Metrics - Two Rows */}
+      <div className="space-y-4">
+        {/* First Row - Main Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Employees
+                </CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {metrics.employeesWithCVs} with CVs uploaded
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Learning
-              </CardTitle>
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeLearningPaths}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Courses in progress
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  CV Analysis
+                </CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.analyzedCVs}</div>
+              <Progress 
+                value={metrics.totalEmployees > 0 ? (metrics.analyzedCVs / metrics.totalEmployees) * 100 : 0} 
+                className="mt-2" 
+              />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Skills Coverage
-              </CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.skillsCoverage}%</div>
-            <Progress value={metrics.skillsCoverage} className="mt-2" />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Skills Match
+                </CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.skillsCoverage}%</div>
+              <Progress value={metrics.skillsCoverage} className="mt-2" />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Readiness Score
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.avgReadinessScore}%</div>
-            <Progress value={metrics.avgReadinessScore} className="mt-2" />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Career Readiness
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.avgReadinessScore}%</div>
+              <Progress value={metrics.avgReadinessScore} className="mt-2" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Second Row - Gap Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className={metrics.positionsWithGaps > 0 ? "border-orange-200" : ""}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Positions with Gaps
+                </CardTitle>
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{metrics.positionsWithGaps}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Need skill development
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className={metrics.criticalGaps > 0 ? "border-red-200" : ""}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Critical Gaps
+                </CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{metrics.criticalGaps}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Below 50% match
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active Learning
+                </CardTitle>
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.activeLearningPaths}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Courses in progress
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -403,7 +547,7 @@ export default function CompanyDashboard() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">
-                No recent activity
+                No recent activity. Start by adding team members!
               </p>
             )}
           </CardContent>
@@ -413,13 +557,13 @@ export default function CompanyDashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Skills Gap Overview</CardTitle>
+              <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
               <Button 
                 size="sm" 
                 variant="ghost"
-                onClick={() => navigate('/dashboard/analytics')}
+                onClick={() => navigate('/dashboard/employees')}
               >
-                View All
+                View Details
               </Button>
             </div>
           </CardHeader>
@@ -429,17 +573,34 @@ export default function CompanyDashboard() {
                 {skillsGapData.map((item, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{item.position}</span>
-                      <span className="text-muted-foreground">{item.coverage}%</span>
+                      <div>
+                        <span className="font-medium">{item.position}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({item.employeesInPosition} employees)
+                        </span>
+                      </div>
+                      <span className={`font-medium ${
+                        item.coverage >= 80 ? 'text-green-600' : 
+                        item.coverage >= 60 ? 'text-orange-600' : 
+                        'text-red-600'
+                      }`}>
+                        {item.coverage}%
+                      </span>
                     </div>
-                    <Progress value={item.coverage} className="h-2" />
+                    <Progress 
+                      value={item.coverage} 
+                      className={`h-2 ${
+                        item.coverage < 60 ? '[&>div]:bg-red-500' : 
+                        item.coverage < 80 ? '[&>div]:bg-orange-500' : ''
+                      }`}
+                    />
                   </div>
                 ))}
               </div>
             ) : (
               <Alert>
                 <AlertDescription>
-                  Define positions to see skills gap analysis
+                  No skills data available yet. Upload CVs and analyze skills to see coverage.
                 </AlertDescription>
               </Alert>
             )}

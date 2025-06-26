@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Users, Target } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Target, Briefcase, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
@@ -21,25 +22,74 @@ interface CompanyPosition {
   created_at: string;
 }
 
+interface PositionStats {
+  total_positions: number;
+  total_employees: number;
+  positions_with_gaps: number;
+  avg_skill_match: number;
+}
+
 export default function PositionManagement() {
   const { userProfile } = useAuth();
   const [positions, setPositions] = useState<CompanyPosition[]>([]);
+  const [stats, setStats] = useState<PositionStats>({
+    total_positions: 0,
+    total_employees: 0,
+    positions_with_gaps: 0,
+    avg_skill_match: 0
+  });
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editPosition, setEditPosition] = useState<CompanyPosition | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
   const fetchPositions = async () => {
     if (!userProfile?.company_id) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch positions
+      const { data: positionsData, error: positionsError } = await supabase
         .from('st_company_positions')
         .select('*')
         .eq('company_id', userProfile.company_id)
-        .order('created_at', { ascending: false });
+        .order('position_title');
 
-      if (error) throw error;
-      setPositions(data || []);
+      if (positionsError) throw positionsError;
+
+      // Fetch employee count per position
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .select('position, id')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeeError) throw employeeError;
+
+      // Calculate stats
+      const positionEmployeeCount = employeeData?.reduce((acc, emp) => {
+        acc[emp.position] = (acc[emp.position] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      // Fetch gap analysis data
+      const { data: gapData, error: gapError } = await supabase
+        .rpc('calculate_match_score', {
+          p_company_id: userProfile.company_id
+        });
+
+      const avgMatch = gapData?.length > 0 
+        ? gapData.reduce((sum: number, gap: any) => sum + (gap.match_percentage || 0), 0) / gapData.length
+        : 0;
+
+      const positionsWithGaps = new Set(gapData?.filter((gap: any) => gap.match_percentage < 80).map((gap: any) => gap.position_code)).size;
+
+      setStats({
+        total_positions: positionsData?.length || 0,
+        total_employees: employeeData?.length || 0,
+        positions_with_gaps: positionsWithGaps,
+        avg_skill_match: Math.round(avgMatch)
+      });
+
+      setPositions(positionsData || []);
     } catch (error) {
       console.error('Error fetching positions:', error);
       toast.error('Failed to load positions');
@@ -73,22 +123,10 @@ export default function PositionManagement() {
     }
   };
 
-  const getPositionLevelColor = (level?: string) => {
-    switch (level?.toLowerCase()) {
-      case 'junior':
-        return 'bg-green-100 text-green-800';
-      case 'mid':
-      case 'middle':
-        return 'bg-blue-100 text-blue-800';
-      case 'senior':
-        return 'bg-purple-100 text-purple-800';
-      case 'lead':
-      case 'principal':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const departments = Array.from(new Set(positions.map(p => p.department).filter(Boolean)));
+  const filteredPositions = selectedDepartment === 'all' 
+    ? positions 
+    : positions.filter(p => p.department === selectedDepartment);
 
   if (loading) {
     return (
@@ -112,7 +150,7 @@ export default function PositionManagement() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Position Management</h1>
           <p className="text-muted-foreground mt-1">
-            Define job positions and their skill requirements for skills gap analysis
+            Define positions and skill requirements for your organization
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
@@ -121,60 +159,82 @@ export default function PositionManagement() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <Target className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Positions</p>
-                <p className="text-2xl font-bold text-foreground">{positions.length}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total_positions}</p>
               </div>
+              <Briefcase className="h-8 w-8 text-blue-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Active Templates</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {positions.filter(p => p.is_template).length}
-                </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total_employees}</p>
               </div>
+              <Users className="h-8 w-8 text-green-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-orange-500">
           <CardContent className="p-6">
-            <div className="flex items-center">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Positions with Gaps</p>
+                <p className="text-2xl font-bold text-foreground">{stats.positions_with_gaps}</p>
+              </div>
+              <Target className="h-8 w-8 text-orange-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Avg Skill Match</p>
+                <p className="text-2xl font-bold text-foreground">{stats.avg_skill_match}%</p>
+              </div>
               <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 font-semibold">Σ</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Skills</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {positions.reduce((sum, p) => sum + p.required_skills.length + p.nice_to_have_skills.length, 0)}
-                </p>
+                <span className="text-purple-600 font-semibold text-sm">%</span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Positions List */}
-      <div className="space-y-4">
-        {positions.length === 0 ? (
-          <Card>
+      {/* Department Tabs */}
+      {departments.length > 0 && (
+        <Tabs value={selectedDepartment} onValueChange={setSelectedDepartment}>
+          <TabsList>
+            <TabsTrigger value="all">All Departments</TabsTrigger>
+            {departments.map(dept => (
+              <TabsTrigger key={dept} value={dept || 'unknown'}>
+                {dept || 'No Department'}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
+
+      {/* Positions Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {filteredPositions.length === 0 ? (
+          <Card className="col-span-full">
             <CardContent className="p-12 text-center">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No positions defined yet</h3>
               <p className="text-muted-foreground mb-4">
-                Create your first position template to start defining skill requirements for your team.
+                Create your first position to start defining skill requirements.
               </p>
               <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
@@ -183,103 +243,91 @@ export default function PositionManagement() {
             </CardContent>
           </Card>
         ) : (
-          positions.map((position) => (
-            <Card key={position.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
+          filteredPositions.map((position) => (
+            <Card key={position.id} className="hover:shadow-lg transition-all cursor-pointer group">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <CardTitle className="text-foreground">{position.position_title}</CardTitle>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {position.position_title}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {position.position_code}
+                      </Badge>
+                      {position.department && (
+                        <Badge variant="secondary" className="text-xs">
+                          {position.department}
+                        </Badge>
+                      )}
                       {position.position_level && (
-                        <Badge variant="secondary" className={getPositionLevelColor(position.position_level)}>
+                        <Badge className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                           {position.position_level}
                         </Badge>
                       )}
-                      {position.is_template && (
-                        <Badge variant="outline" className="text-blue-600 border-blue-600">
-                          Template
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Code: {position.position_code}</span>
-                      {position.department && <span>Department: {position.department}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditPosition(position)}
-                      className="flex items-center gap-1"
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditPosition(position);
+                      }}
                     >
-                      <Edit className="h-4 w-4" />
-                      Edit
+                      <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(position)}
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(position);
+                      }}
+                      className="hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
-                      Delete
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Required Skills */}
-                  {position.required_skills.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        Required Skills ({position.required_skills.length})
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {position.required_skills.slice(0, 5).map((skill: any, index: number) => (
-                          <Badge key={index} variant="secondary" className="bg-red-50 text-red-700 border-red-200">
-                            {skill.skill_name}
-                            {skill.proficiency_level && ` (${skill.proficiency_level})`}
-                          </Badge>
-                        ))}
-                        {position.required_skills.length > 5 && (
-                          <Badge variant="outline">
-                            +{position.required_skills.length - 5} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Nice to Have Skills */}
-                  {position.nice_to_have_skills.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        Nice to Have Skills ({position.nice_to_have_skills.length})
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {position.nice_to_have_skills.slice(0, 5).map((skill: any, index: number) => (
-                          <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                            {skill.skill_name}
-                            {skill.proficiency_level && ` (${skill.proficiency_level})`}
-                          </Badge>
-                        ))}
-                        {position.nice_to_have_skills.length > 5 && (
-                          <Badge variant="outline">
-                            +{position.nice_to_have_skills.length - 5} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {position.required_skills.length === 0 && position.nice_to_have_skills.length === 0 && (
-                    <p className="text-muted-foreground text-sm">No skills defined yet. Click Edit to add skill requirements.</p>
-                  )}
+              <CardContent className="space-y-3">
+                {/* Skills Summary */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-red-50 rounded-lg p-3 border border-red-100">
+                    <p className="text-xs font-medium text-red-700 mb-1">Required Skills</p>
+                    <p className="text-2xl font-bold text-red-600">{position.required_skills.length}</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <p className="text-xs font-medium text-blue-700 mb-1">Nice to Have</p>
+                    <p className="text-2xl font-bold text-blue-600">{position.nice_to_have_skills.length}</p>
+                  </div>
                 </div>
+
+                {/* Top Skills Preview */}
+                {position.required_skills.length > 0 && (
+                  <div className="pt-2">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Top Required Skills:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {position.required_skills.slice(0, 3).map((skill: any, index: number) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="text-xs bg-gray-100"
+                        >
+                          {skill.skill_name}
+                        </Badge>
+                      ))}
+                      {position.required_skills.length > 3 && (
+                        <Badge variant="ghost" className="text-xs">
+                          +{position.required_skills.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
