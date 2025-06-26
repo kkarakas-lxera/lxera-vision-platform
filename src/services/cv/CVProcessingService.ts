@@ -206,9 +206,9 @@ class CVProcessingService {
       // Determine the source and prepare the file path
       const { source, filePath } = this.parseFilePath(queueItem.cv_file_path);
       
-      // Call the existing CV analysis edge function
+      // Call the CV analysis edge function
       const { data: analysisResult, error: analysisError } = await supabase.functions
-        .invoke('analyze-cv', {
+        .invoke('analyze-cv-simple', {
           body: {
             employee_id: sessionItem.employee_id,
             file_path: filePath,
