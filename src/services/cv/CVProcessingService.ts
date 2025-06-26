@@ -208,11 +208,13 @@ class CVProcessingService {
       
       // Call the CV analysis edge function
       const { data: analysisResult, error: analysisError } = await supabase.functions
-        .invoke('analyze-cv-simple', {
+        .invoke('analyze-cv-enhanced', {
           body: {
             employee_id: sessionItem.employee_id,
             file_path: filePath,
-            source: source
+            source: source,
+            session_item_id: queueItem.session_item_id,
+            use_template: true
           }
         });
 
