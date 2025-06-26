@@ -27,7 +27,10 @@ import CookiePolicy from "./pages/legal/CookiePolicy";
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import LearnDashboard from "./pages/learn/LearnDashboard";
+
+// Import learner pages
+import LearnerDashboard from "./pages/learner/LearnerDashboard";
+import CourseViewer from "./pages/learner/CourseViewer";
 
 // Import admin pages
 import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
@@ -108,17 +111,21 @@ const App = () => (
 
             {/* Protected learner routes */}
             <Route
-              path="/learn/*"
+              path="/learner/*"
               element={
                 <ProtectedRoute allowedRoles={['learner']}>
-                  <DashboardLayout>
-                    <Routes>
-                      <Route path="/" element={<LearnDashboard />} />
-                      <Route path="/courses" element={<div>My Courses</div>} />
-                      <Route path="/progress" element={<div>Learning Progress</div>} />
-                      <Route path="/certificates" element={<div>My Certificates</div>} />
-                    </Routes>
-                  </DashboardLayout>
+                  <Routes>
+                    <Route path="/course/:courseId" element={<CourseViewer />} />
+                    <Route path="/*" element={
+                      <DashboardLayout>
+                        <Routes>
+                          <Route path="/" element={<LearnerDashboard />} />
+                          <Route path="/courses" element={<div>My Courses - Coming Soon</div>} />
+                          <Route path="/certificates" element={<div>My Certificates - Coming Soon</div>} />
+                        </Routes>
+                      </DashboardLayout>
+                    } />
+                  </Routes>
                 </ProtectedRoute>
               }
             />

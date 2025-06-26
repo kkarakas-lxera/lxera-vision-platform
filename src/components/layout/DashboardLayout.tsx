@@ -63,10 +63,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         ];
       case 'learner':
         return [
-          { href: '/learn', icon: Home, label: 'Dashboard' },
-          { href: '/learn/courses', icon: BookOpen, label: 'My Courses' },
-          { href: '/learn/progress', icon: BarChart3, label: 'Progress' },
-          { href: '/learn/certificates', icon: GraduationCap, label: 'Certificates' },
+          { href: '/learner', icon: Home, label: 'Dashboard' },
+          { href: '/learner/courses', icon: BookOpen, label: 'My Courses' },
+          { href: '/learner/certificates', icon: GraduationCap, label: 'Certificates' },
         ];
       default:
         return [];
@@ -115,7 +114,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href || 
-                (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/learn' && 
+                (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/learner' && 
                  location.pathname.startsWith(item.href));
               
               return (
