@@ -77,7 +77,11 @@ CREATE POLICY "Users can manage skills profiles for their company employees" ON 
     );
 
 -- 5. Create the missing calculate_match_score RPC function for company-wide analysis
-CREATE OR REPLACE FUNCTION calculate_match_score(
+-- First drop any existing overloaded versions to avoid conflicts
+DROP FUNCTION IF EXISTS calculate_match_score(uuid);
+DROP FUNCTION IF EXISTS calculate_match_score(jsonb, jsonb);
+
+CREATE FUNCTION calculate_match_score(
     p_company_id uuid
 ) RETURNS TABLE (
     position_code text,
@@ -102,20 +106,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Also create the position match score function alias
-CREATE OR REPLACE FUNCTION calculate_match_score(
-    p_position_skills jsonb,
-    p_employee_skills jsonb
-) RETURNS decimal AS $$
-BEGIN
-    -- Call the existing function with parameters in correct order
-    RETURN calculate_position_match_score(p_employee_skills, p_position_skills);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION calculate_match_score(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION calculate_match_score(jsonb, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION calculate_position_match_score TO authenticated;
 
 -- 6. Ensure proper permissions on st_import_sessions
