@@ -200,33 +200,24 @@ export function CSVImportWizard({ onImportComplete, importSessions, defaultPosit
 
       for (const row of csvData) {
         try {
-          // Check if user already exists
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', row.email)
-            .single();
+          // Check if user already exists using the SECURITY DEFINER function
+          const { data: checkResult, error: checkError } = await supabase
+            .rpc('check_user_exists_by_email', { p_email: row.email });
 
-          let userId = existingUser?.id;
+          let userId = checkResult?.[0]?.user_exists ? checkResult[0].user_id : null;
 
           if (!userId) {
-            // Create new user
-            const { data: newUser, error: userError } = await supabase
-              .from('users')
-              .insert({
-                email: row.email,
-                password_hash: '$2b$12$LQv3c1yqBwWFcZPMtS.4K.6P8vU6OxZdHJ5QKG8vY.7JZu9Z1QY6m', // Default password
-                full_name: row.name,
-                role: 'learner',
-                company_id: userProfile.company_id,
-                is_active: true,
-                email_verified: false
-              })
-              .select()
-              .single();
+            // Create new user using the SECURITY DEFINER function
+            const { data: newUserId, error: userError } = await supabase
+              .rpc('create_company_user', {
+                p_email: row.email,
+                p_password_hash: '$2b$12$LQv3c1yqBwWFcZPMtS.4K.6P8vU6OxZdHJ5QKG8vY.7JZu9Z1QY6m', // Default password
+                p_full_name: row.name,
+                p_role: 'learner'
+              });
 
             if (userError) throw userError;
-            userId = newUser.id;
+            userId = newUserId;
           }
 
           // Create or update employee record
