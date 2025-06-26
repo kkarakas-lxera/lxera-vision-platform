@@ -75,14 +75,41 @@ export async function uploadCVToDatabase(
 
     if (onProgress) onProgress(80);
 
-    // Update employee record with a flag
-    await supabase
+    // Update employee record with database storage marker
+    const { error: updateError } = await supabase
       .from('employees')
       .update({ 
-        cv_uploaded: true,
-        cv_uploaded_at: new Date().toISOString()
+        cv_file_path: `db:${employeeId}` // Special marker indicating CV is in database
       })
       .eq('id', employeeId);
+
+    if (updateError) {
+      console.error('Failed to update employee cv_file_path:', updateError);
+      // Don't fail the upload, just log the error
+    }
+
+    if (onProgress) onProgress(90);
+
+    // Trigger CV analysis for database-stored CV
+    try {
+      console.log('Triggering CV analysis for database-stored CV...');
+      const { error: analysisError } = await supabase.functions.invoke('analyze-cv', {
+        body: { 
+          employee_id: employeeId,
+          file_path: `db:${employeeId}`,
+          source: 'database' // Flag to indicate CV is in database
+        }
+      });
+
+      if (analysisError) {
+        console.warn('CV analysis failed:', analysisError);
+        // Don't fail the upload, analysis can be retried
+      } else {
+        console.log('CV analysis triggered successfully');
+      }
+    } catch (error) {
+      console.warn('Failed to trigger CV analysis:', error);
+    }
 
     if (onProgress) onProgress(100);
 
