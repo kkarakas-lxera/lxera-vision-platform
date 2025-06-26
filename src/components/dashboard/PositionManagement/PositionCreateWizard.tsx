@@ -394,8 +394,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                 department={positionData.department}
                 onAddSkill={addSkill}
                 existingSkills={positionData.required_skills}
-                currentStep="required"
-                onUpdateDescription={(desc) => setPositionData(prev => ({ ...prev, description: desc }))}
               />
 
               {positionData.required_skills.length === 0 && (

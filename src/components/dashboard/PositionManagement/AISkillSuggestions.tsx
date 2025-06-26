@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Sparkles, 
@@ -14,12 +13,9 @@ import {
   CheckCircle, 
   Info, 
   RefreshCw, 
-  FileText,
   Lightbulb,
-  Target,
   ChevronDown,
-  ChevronUp,
-  Wand2
+  ChevronUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -42,7 +38,6 @@ interface AISkillSuggestionsProps {
   department?: string;
   onAddSkill: (skill: any) => void;
   existingSkills: Array<{ skill_id: string; skill_name: string }>;
-  onUpdateDescription?: (description: string) => void;
 }
 
 export function AISkillSuggestions({
@@ -51,17 +46,14 @@ export function AISkillSuggestions({
   positionLevel,
   department,
   onAddSkill,
-  existingSkills,
-  onUpdateDescription
+  existingSkills
 }: AISkillSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
-  const [responsibilities, setResponsibilities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addedSkills, setAddedSkills] = useState<Set<string>>(new Set());
   const [summary, setSummary] = useState<any>(null);
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState('skills');
 
   const fetchSuggestions = async () => {
     if (!positionTitle) {
@@ -89,15 +81,9 @@ export function AISkillSuggestions({
       }
 
       setSuggestions(data.skills || []);
-      setResponsibilities(data.responsibilities || []);
       setSummary(data.summary);
       
-      // Auto-switch to responsibilities tab if description is empty
-      if (!positionDescription && data.responsibilities?.length > 0) {
-        setActiveTab('responsibilities');
-      }
-      
-      toast.success(`Found ${data.skills?.length || 0} skills and ${data.responsibilities?.length || 0} responsibilities`);
+      toast.success(`Found ${data.skills?.length || 0} skills`);
     } catch (err) {
       console.error('Error fetching AI suggestions:', err);
       setError(err.message || 'Failed to get AI suggestions');
@@ -123,14 +109,6 @@ export function AISkillSuggestions({
     toast.success(`Added ${skill.skill_name} to required skills`);
   };
 
-  const handleUseResponsibilities = () => {
-    if (responsibilities.length > 0 && onUpdateDescription) {
-      const formattedResponsibilities = responsibilities.map(r => `• ${r}`).join('\n');
-      onUpdateDescription(formattedResponsibilities);
-      toast.success('Responsibilities added to description');
-      setActiveTab('skills');
-    }
-  };
 
   const toggleSkillExpand = (skillName: string) => {
     setExpandedSkills(prev => {
@@ -198,10 +176,10 @@ export function AISkillSuggestions({
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
-              AI Position Assistant
+              AI Skills Suggestions
             </CardTitle>
             <CardDescription>
-              Intelligent suggestions powered by OpenAI & your database
+              Smart skill recommendations powered by OpenAI & your database
             </CardDescription>
           </div>
           <Button
@@ -240,20 +218,8 @@ export function AISkillSuggestions({
           </Alert>
         )}
 
-        {!loading && (suggestions.length > 0 || responsibilities.length > 0) && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="skills" className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Skills ({filteredSuggestions.length})
-              </TabsTrigger>
-              <TabsTrigger value="responsibilities" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Responsibilities ({responsibilities.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="skills" className="space-y-4">
+        {!loading && suggestions.length > 0 && (
+          <div className="space-y-4">
               {summary && (
                 <div className="p-3 bg-purple-50 rounded-lg text-sm border border-purple-200">
                   <div className="flex items-center gap-2 mb-2">
@@ -359,47 +325,7 @@ export function AISkillSuggestions({
                   })}
                 </div>
               </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="responsibilities" className="space-y-4">
-              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Wand2 className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-900 text-sm">
-                      AI-Generated Responsibilities
-                    </span>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleUseResponsibilities}
-                    disabled={!onUpdateDescription}
-                    className="flex items-center gap-1"
-                  >
-                    <Plus className="h-3 w-3" />
-                    Use These
-                  </Button>
-                </div>
-                <p className="text-xs text-blue-800">
-                  Click "Use These" to add to position description
-                </p>
-              </div>
-
-              <ScrollArea className="h-[350px] pr-4">
-                <div className="space-y-2">
-                  {responsibilities.map((responsibility, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      <span className="font-medium text-gray-500 text-sm">{index + 1}.</span>
-                      <p className="text-sm text-gray-800 flex-1">{responsibility}</p>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
+          </div>
         )}
 
         {!loading && suggestions.length === 0 && positionTitle && (
