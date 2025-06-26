@@ -115,9 +115,13 @@ class CVProcessingService {
         const results = await Promise.allSettled(processingPromises);
         
         // Update statistics
-        results.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            result.value.success ? result.successful++ : result.failed++;
+        results.forEach(promiseResult => {
+          if (promiseResult.status === 'fulfilled' && promiseResult.value) {
+            if (promiseResult.value.success) {
+              result.successful++;
+            } else {
+              result.failed++;
+            }
           } else {
             result.failed++;
           }
@@ -199,13 +203,16 @@ class CVProcessingService {
         progress: 20
       });
 
+      // Determine the source and prepare the file path
+      const { source, filePath } = this.parseFilePath(queueItem.cv_file_path);
+      
       // Call the existing CV analysis edge function
       const { data: analysisResult, error: analysisError } = await supabase.functions
         .invoke('analyze-cv', {
           body: {
             employee_id: sessionItem.employee_id,
-            file_path: queueItem.cv_file_path,
-            source: 'storage'
+            file_path: filePath,
+            source: source
           }
         });
 
@@ -398,6 +405,34 @@ class CVProcessingService {
     }
 
     return suggestions;
+  }
+
+  /**
+   * Parse file path to determine source and correct path format
+   */
+  private parseFilePath(filePath: string): { source: string; filePath: string } {
+    // Handle database storage format (db:uuid)
+    if (filePath.startsWith('db:')) {
+      return {
+        source: 'database',
+        filePath: filePath.substring(3) // Remove 'db:' prefix
+      };
+    }
+    
+    // Handle temporary file format (./temp-cv-*.txt)
+    if (filePath.startsWith('./temp-cv-')) {
+      return {
+        source: 'storage',
+        filePath: filePath.substring(2) // Remove './' prefix
+      };
+    }
+    
+    // Handle standard storage format (cvs/company_id/employee_id/filename)
+    // or any other storage path
+    return {
+      source: 'storage',
+      filePath: filePath
+    };
   }
 
   /**

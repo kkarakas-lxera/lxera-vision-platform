@@ -93,14 +93,12 @@ class LLMService {
    */
   async initialize(): Promise<void> {
     if (!this.apiKey) {
-      // Fetch API key from secure storage or configuration
-      const { data, error } = await supabase
-        .from('company_settings')
-        .select('api_keys')
-        .single();
-      
-      if (data?.api_keys?.openai) {
-        this.apiKey = data.api_keys.openai;
+      // Use environment variable for API key
+      const apiKey = process.env.OPENAI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY;
+      if (apiKey) {
+        this.apiKey = apiKey;
+      } else {
+        console.warn('OpenAI API key not found in environment variables');
       }
     }
   }
