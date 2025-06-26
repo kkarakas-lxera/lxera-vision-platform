@@ -56,10 +56,10 @@ export function AddEmployees({
   };
 
   const downloadTemplate = () => {
-    const csvContent = `employee_email,employee_name,current_position,target_position,department
-john.doe@company.com,John Doe,Software Developer,Senior Software Developer,Engineering
-jane.smith@company.com,Jane Smith,Marketing Specialist,Marketing Manager,Marketing
-bob.johnson@company.com,Bob Johnson,Sales Representative,Account Manager,Sales`;
+    const csvContent = `name,email,position_code,department,target_position_code
+John Doe,john.doe@company.com,DEV-SR,Engineering,DEV-LEAD
+Jane Smith,jane.smith@company.com,DESIGN-JR,Design,DESIGN-SR
+Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -92,11 +92,11 @@ bob.johnson@company.com,Bob Johnson,Sales Representative,Account Manager,Sales`;
             <div className="text-sm text-muted-foreground">
               <p className="mb-2">Required columns:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>employee_email (required)</li>
-                <li>employee_name (required)</li>
-                <li>current_position (optional)</li>
-                <li>target_position (optional)</li>
+                <li>name (required)</li>
+                <li>email (required)</li>
+                <li>position_code (required) - e.g., DEV-SR, DESIGN-JR</li>
                 <li>department (optional)</li>
+                <li>target_position_code (optional) - for career planning</li>
               </ul>
             </div>
             

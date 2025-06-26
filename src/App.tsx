@@ -8,11 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
-// Import test utilities (available in development)
-import '@/lib/test-auth-upload';
-import '@/lib/storage-debug';
-import '@/lib/storage-workaround';
-import '@/lib/test-storage-fix';
 
 // Import existing pages
 import Index from "./pages/Index";
@@ -43,6 +38,7 @@ import CoursesManagement from "./pages/admin/courses/CoursesManagement";
 import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
 import PositionManagement from "./pages/dashboard/PositionManagement";
 import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
+import EmployeeSkills from "./pages/dashboard/EmployeeSkills";
 import Employees from "./pages/dashboard/Employees";
 
 const queryClient = new QueryClient();
@@ -100,6 +96,7 @@ const App = () => (
                     <Routes>
                       <Route path="/" element={<CompanyDashboard />} />
                       <Route path="/onboarding" element={<EmployeeOnboarding />} />
+                      <Route path="/skills" element={<EmployeeSkills />} />
                       <Route path="/positions" element={<PositionManagement />} />
                       <Route path="/employees" element={<Employees />} />
                       <Route path="/courses" element={<div>Course Management</div>} />
