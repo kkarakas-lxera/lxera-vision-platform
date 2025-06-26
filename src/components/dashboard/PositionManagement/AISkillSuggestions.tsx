@@ -38,6 +38,7 @@ interface AISkillSuggestionsProps {
   department?: string;
   onAddSkill: (skill: any) => void;
   existingSkills: Array<{ skill_id: string; skill_name: string }>;
+  onSuggestionsLoaded?: (suggestions: SkillSuggestion[]) => void;
 }
 
 export function AISkillSuggestions({
@@ -46,7 +47,8 @@ export function AISkillSuggestions({
   positionLevel,
   department,
   onAddSkill,
-  existingSkills
+  existingSkills,
+  onSuggestionsLoaded
 }: AISkillSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,6 +84,11 @@ export function AISkillSuggestions({
 
       setSuggestions(data.skills || []);
       setSummary(data.summary);
+      
+      // Pass suggestions back to parent component
+      if (onSuggestionsLoaded && data.skills) {
+        onSuggestionsLoaded(data.skills);
+      }
       
       toast.success(`Found ${data.skills?.length || 0} skills`);
     } catch (err) {

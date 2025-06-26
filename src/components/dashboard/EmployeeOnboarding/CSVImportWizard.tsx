@@ -25,6 +25,7 @@ interface ImportSession {
 interface CSVImportWizardProps {
   onImportComplete: () => void;
   importSessions: ImportSession[];
+  defaultPositionId?: string;
 }
 
 interface CSVRow {
@@ -35,7 +36,7 @@ interface CSVRow {
   target_position_code?: string;
 }
 
-export function CSVImportWizard({ onImportComplete, importSessions }: CSVImportWizardProps) {
+export function CSVImportWizard({ onImportComplete, importSessions, defaultPositionId }: CSVImportWizardProps) {
   const { userProfile } = useAuth();
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
@@ -189,7 +190,12 @@ export function CSVImportWizard({ onImportComplete, importSessions }: CSVImportW
           successful: 0,
           failed: 0,
           status: 'processing',
-          created_by: userProfile.id
+          created_by: userProfile.id,
+          active_position_id: defaultPositionId || null,
+          session_metadata: {
+            has_default_position: !!defaultPositionId,
+            import_method: 'csv_upload'
+          }
         })
         .select()
         .single();

@@ -41,6 +41,7 @@ interface PositionData {
   department: string;
   description: string;
   required_skills: SkillSelection[];
+  ai_suggestions?: any[];
 }
 
 interface PositionCreateWizardProps {
@@ -60,7 +61,8 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     position_level: '',
     department: '',
     description: '',
-    required_skills: []
+    required_skills: [],
+    ai_suggestions: []
   });
 
 
@@ -159,6 +161,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
             description: skill.description
           })),
           nice_to_have_skills: [],
+          ai_suggestions: positionData.ai_suggestions || [],
           created_by: userProfile.id
         })
         .select()
@@ -395,6 +398,9 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                 department={positionData.department}
                 onAddSkill={addSkill}
                 existingSkills={positionData.required_skills}
+                onSuggestionsLoaded={(suggestions) => 
+                  setPositionData(prev => ({ ...prev, ai_suggestions: suggestions }))
+                }
               />
 
               {positionData.required_skills.length === 0 && (

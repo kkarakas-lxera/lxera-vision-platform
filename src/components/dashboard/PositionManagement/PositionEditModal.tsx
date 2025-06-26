@@ -25,6 +25,7 @@ interface CompanyPosition {
   description?: string;
   required_skills: any[];
   nice_to_have_skills: any[];
+  ai_suggestions?: any[];
   is_template: boolean;
 }
 
@@ -83,12 +84,23 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
     }
   }, [position]);
 
-  // Fetch AI suggestions when modal opens
+  // Load stored AI suggestions when modal opens
   useEffect(() => {
-    if (position && open && !suggestionsLoaded && positionTitle) {
-      fetchAiSuggestions();
+    if (position && open && !suggestionsLoaded) {
+      loadStoredSuggestions();
     }
-  }, [position, open, suggestionsLoaded, positionTitle]);
+  }, [position, open, suggestionsLoaded]);
+
+  const loadStoredSuggestions = () => {
+    if (position?.ai_suggestions && Array.isArray(position.ai_suggestions)) {
+      setAiSuggestions(position.ai_suggestions);
+      setSuggestionsLoaded(true);
+    } else {
+      // Fallback: if no stored suggestions, can optionally call API
+      setAiSuggestions([]);
+      setSuggestionsLoaded(true);
+    }
+  };
 
   const fetchAiSuggestions = async () => {
     if (!positionTitle || isLoadingSuggestions) return;
@@ -268,8 +280,8 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[85vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+      <DialogContent className="max-w-6xl h-[85vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="flex-shrink-0 px-6 py-4 border-b">
           <DialogTitle className="text-xl font-semibold">
             Edit Position: {position.position_title}
           </DialogTitle>
@@ -278,17 +290,19 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <div className="flex-1 grid grid-cols-2 gap-6 p-6 overflow-hidden">
-            {/* Left Column - Basic Information & Description */}
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Position Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-hidden px-6 py-4">
+            <div className="grid grid-cols-2 gap-6 h-full">
+              {/* Left Column - Basic Information & Description */}
+              <div className="flex flex-col h-full overflow-hidden">
+                <Card className="flex-1 min-h-0 flex flex-col">
+                  <CardHeader className="flex-shrink-0">
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Position Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="positionCode">Position Code *</Label>
@@ -372,20 +386,21 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
                       {description.length} characters
                     </p>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Right Column - Skills Management */}
-            <div className="overflow-y-auto">
-              <Card className="h-fit">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Required Skills ({requiredSkills.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              {/* Right Column - Skills Management */}
+              <div className="flex flex-col h-full overflow-hidden">
+                <Card className="flex-1 min-h-0 flex flex-col">
+                  <CardHeader className="flex-shrink-0">
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Required Skills ({requiredSkills.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto space-y-4">
                 {/* Current Skills */}
                 <ScrollArea className="h-48 border rounded-lg p-2">
                   <div className="space-y-2">
@@ -538,14 +553,15 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
                     placeholder="Search skills database..."
                     excludeIds={requiredSkills.map(s => s.skill_id)}
                   />
-                </div>
-                </CardContent>
-              </Card>
+                  </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50 flex-shrink-0">
+          <div className="flex-shrink-0 px-6 py-4 border-t bg-gray-50 flex justify-between items-center">
             <Button
               type="button"
               variant="outline"

@@ -20,6 +20,7 @@ interface CompanyPosition {
   description?: string;
   required_skills: any[];
   nice_to_have_skills: any[];
+  ai_suggestions?: any[];
   is_template: boolean;
   created_at: string;
 }

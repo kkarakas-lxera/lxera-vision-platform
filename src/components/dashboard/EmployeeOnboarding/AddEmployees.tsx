@@ -1,12 +1,15 @@
 
-import React, { useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle, Users, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileText, AlertCircle, CheckCircle, Users, Download, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CSVImportWizard } from './CSVImportWizard';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Define the interface to match what's used in the parent component
 interface ImportSession {
@@ -31,7 +34,36 @@ export function AddEmployees({
   importSessions, 
   onNextStep 
 }: AddEmployeesProps) {
+  const { userProfile } = useAuth();
   const [showImportWizard, setShowImportWizard] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<string>('');
+  const [positions, setPositions] = useState<Array<{ id: string; position_title: string; position_code: string }>>([]);
+  const [loadingPositions, setLoadingPositions] = useState(false);
+
+  // Fetch available positions
+  useEffect(() => {
+    const fetchPositions = async () => {
+      if (!userProfile?.company_id) return;
+      
+      setLoadingPositions(true);
+      try {
+        const { data, error } = await supabase
+          .from('st_company_positions')
+          .select('id, position_title, position_code')
+          .eq('company_id', userProfile.company_id)
+          .order('position_title');
+        
+        if (error) throw error;
+        setPositions(data || []);
+      } catch (error) {
+        console.error('Error fetching positions:', error);
+      } finally {
+        setLoadingPositions(false);
+      }
+    };
+
+    fetchPositions();
+  }, [userProfile?.company_id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -75,6 +107,47 @@ Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
 
   return (
     <div className="space-y-6">
+      {/* Position Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5" />
+            Select Default Position
+          </CardTitle>
+          <CardDescription>
+            Choose a position to assign to all imported employees. You can update individual positions later.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select 
+            value={selectedPosition} 
+            onValueChange={setSelectedPosition}
+            disabled={loadingPositions}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={loadingPositions ? "Loading positions..." : "Select a position"} />
+            </SelectTrigger>
+            <SelectContent>
+              {positions.map((position) => (
+                <SelectItem key={position.id} value={position.id}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{position.position_title}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {position.position_code}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedPosition && (
+            <p className="text-sm text-muted-foreground mt-2">
+              All imported employees will be assigned to this position for skills analysis.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Import Options */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* CSV Import */}
@@ -220,6 +293,7 @@ Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
         <CSVImportWizard
           onImportComplete={handleImportComplete}
           importSessions={importSessions}
+          defaultPositionId={selectedPosition}
         />
       )}
     </div>

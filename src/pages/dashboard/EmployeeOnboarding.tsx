@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddEmployees } from '@/components/dashboard/EmployeeOnboarding/AddEmployees';
 import { OnboardingProgress } from '@/components/dashboard/EmployeeOnboarding/OnboardingProgress';
 import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
 import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
+import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
+import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
 
 interface ImportSession {
   id: string;
@@ -70,7 +73,7 @@ export default function EmployeeOnboarding() {
     if (!userProfile?.company_id) return;
 
     try {
-      // Get employees with their onboarding status
+      // Get employees with their onboarding status and skills profiles
       const { data: employees, error } = await supabase
         .from('employees')
         .select(`
@@ -79,7 +82,12 @@ export default function EmployeeOnboarding() {
           position,
           cv_file_path,
           skills_last_analyzed,
-          users!inner(full_name, email)
+          users!inner(full_name, email),
+          st_employee_skills_profile(
+            skills_match_score,
+            career_readiness_score,
+            gap_analysis_completed_at
+          )
         `)
         .eq('company_id', userProfile.company_id)
         .eq('is_active', true);
@@ -87,16 +95,21 @@ export default function EmployeeOnboarding() {
       if (error) throw error;
 
       // Transform data to include status information
-      const statuses: EmployeeStatus[] = (employees || []).map(emp => ({
-        id: emp.id,
-        name: emp.users.full_name,
-        email: emp.users.email,
-        position: emp.position || 'Not assigned',
-        cv_status: emp.cv_file_path ? 'uploaded' : 'missing',
-        skills_analysis: emp.skills_last_analyzed ? 'completed' : 'pending',
-        course_generation: 'pending', // TODO: Check course assignment status
-        gap_score: Math.floor(Math.random() * 40) + 60 // TODO: Calculate actual gap score
-      }));
+      const statuses: EmployeeStatus[] = (employees || []).map(emp => {
+        const skillsProfile = emp.st_employee_skills_profile?.[0];
+        return {
+          id: emp.id,
+          name: emp.users.full_name,
+          email: emp.users.email,
+          position: emp.position || 'Not assigned',
+          cv_status: emp.cv_file_path ? 
+            (skillsProfile?.gap_analysis_completed_at ? 'analyzed' : 'uploaded') 
+            : 'missing',
+          skills_analysis: skillsProfile?.gap_analysis_completed_at ? 'completed' : 'pending',
+          course_generation: 'pending',
+          gap_score: skillsProfile?.skills_match_score || 0
+        };
+      });
 
       setEmployeeStatuses(statuses);
     } catch (error) {
@@ -186,14 +199,61 @@ export default function EmployeeOnboarding() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
-        <p className="text-muted-foreground mt-1">
-          Add employees, analyze their skills, and create personalized learning paths
-        </p>
-      </div>
+    <TooltipProvider>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
+            <p className="text-muted-foreground mt-1">
+              Add employees, analyze their skills, and create personalized learning paths
+            </p>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <HelpCircle className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm">
+              <p className="text-sm">
+                <strong>Getting Started:</strong><br />
+                1. Select a default position for your employees<br />
+                2. Import employee data via CSV<br />
+                3. Upload CVs for each employee<br />
+                4. Run skills analysis to identify gaps<br />
+                5. View and export the skills gap report
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Quick Actions */}
+        <QuickActions
+          onAddEmployees={() => setCurrentStep(1)}
+          onUploadCVs={() => setCurrentStep(2)}
+          onAnalyzeSkills={() => setCurrentStep(2)}
+          onExportReport={() => setCurrentStep(3)}
+          hasEmployees={stats.total > 0}
+          hasEmployeesWithCVs={stats.withCV > 0}
+          hasEmployeesWithAnalysis={stats.analyzed > 0}
+        />
+
+        {/* Recent Sessions */}
+        {importSessions.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Recent Import Sessions</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {importSessions.slice(0, 3).map(session => (
+                <SessionStatusCard
+                  key={session.id}
+                  session={session}
+                  positionTitle={session.active_position_id ? 'Position assigned' : undefined}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Step Progress */}
       <Card>
@@ -213,24 +273,32 @@ export default function EmployeeOnboarding() {
 
               return (
                 <div key={step.number} className="flex items-center">
-                  <div
-                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                      isCompleted
-                        ? 'bg-green-600 border-green-600'
-                        : isActive
-                        ? 'bg-blue-600 border-blue-600'
-                        : isClickable
-                        ? 'border-gray-300 hover:border-blue-400 cursor-pointer'
-                        : 'border-gray-200'
-                    }`}
-                    onClick={() => isClickable && setCurrentStep(step.number)}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle className="h-5 w-5 text-white" />
-                    ) : (
-                      <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                    )}
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                          isCompleted
+                            ? 'bg-green-600 border-green-600'
+                            : isActive
+                            ? 'bg-blue-600 border-blue-600'
+                            : isClickable
+                            ? 'border-gray-300 hover:border-blue-400 cursor-pointer'
+                            : 'border-gray-200'
+                        }`}
+                        onClick={() => isClickable && setCurrentStep(step.number)}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="h-5 w-5 text-white" />
+                        ) : (
+                          <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-medium">{step.title}</p>
+                      <p className="text-xs">{step.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                   <div className="ml-3 flex-1">
                     <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {step.title}
@@ -352,5 +420,6 @@ export default function EmployeeOnboarding() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

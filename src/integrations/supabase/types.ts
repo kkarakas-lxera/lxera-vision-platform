@@ -1146,6 +1146,7 @@ export type Database = {
       }
       st_company_positions: {
         Row: {
+          ai_suggestions: Json | null
           company_id: string
           created_at: string | null
           created_by: string | null
@@ -1161,6 +1162,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          ai_suggestions?: Json | null
           company_id: string
           created_at?: string | null
           created_by?: string | null
@@ -1176,6 +1178,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          ai_suggestions?: Json | null
           company_id?: string
           created_at?: string | null
           created_by?: string | null

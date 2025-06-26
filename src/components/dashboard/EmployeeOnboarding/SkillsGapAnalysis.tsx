@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Target, TrendingUp, AlertTriangle, CheckCircle, User } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, AlertTriangle, CheckCircle, User, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface EmployeeStatus {
   id: string;
@@ -91,49 +92,79 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
 
       if (skillsError) throw skillsError;
 
-      // Get gap calculations from database
-      const { data: gapData, error: gapError } = await supabase
-        .rpc('calculate_skills_gap', {
-          p_company_id: userProfile.company_id
-        });
-
-      if (gapError) throw gapError;
+      // Get gap calculations for each employee
+      const allGapData = [];
+      for (const emp of employees) {
+        if (emp.skills_analysis === 'completed') {
+          const { data: empGaps, error: gapError } = await supabase
+            .rpc('calculate_employee_skills_gap', {
+              p_employee_id: emp.id
+            });
+          
+          if (!gapError && empGaps) {
+            allGapData.push(...empGaps.map((gap: any) => ({
+              ...gap,
+              employee_id: emp.id,
+              employee_name: emp.name,
+              position_code: emp.position
+            })));
+          }
+        }
+      }
 
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
         const positionEmployees = employees.filter(emp => emp.position === position.position_code);
         
         // Get real skill gaps for this position
-        const positionGaps = gapData?.filter((gap: any) => 
+        const positionGaps = allGapData.filter((gap: any) => 
           gap.position_code === position.position_code
         ) || [];
 
-        // Calculate real gap severity based on proficiency differences
-        const skillGaps: SkillGap[] = position.required_skills.map((reqSkill: any) => {
-          const affectedEmployees = positionEmployees.filter(emp => {
-            const empSkill = employeeSkills?.find(es => 
-              es.employee_id === emp.id && 
-              es.skill_id === reqSkill.skill_id
-            );
-            return !empSkill || getProficiencyLevel(empSkill.proficiency_level) < getProficiencyLevel(reqSkill.proficiency_level);
+        // Aggregate skill gaps from individual employee gaps
+        const skillGapMap = new Map<string, SkillGap>();
+        
+        positionGaps.forEach((gap: any) => {
+          const key = gap.skill_id || gap.skill_name;
+          
+          if (!skillGapMap.has(key)) {
+            skillGapMap.set(key, {
+              skill_name: gap.skill_name,
+              skill_type: gap.skill_type || 'technical_skill',
+              required_level: gap.required_level,
+              current_level: gap.current_level,
+              gap_severity: gap.gap_severity,
+              employees_affected: 0
+            });
+          }
+          
+          const skillGap = skillGapMap.get(key)!;
+          if (gap.gap_severity !== 'none') {
+            skillGap.employees_affected++;
+            // Update severity to the worst case
+            if (gap.gap_severity === 'critical' || skillGap.gap_severity !== 'critical') {
+              skillGap.gap_severity = gap.gap_severity;
+            }
+          }
+        });
+        
+        const skillGaps = Array.from(skillGapMap.values())
+          .filter(gap => gap.employees_affected > 0);
+
+        // Calculate average match score from actual employee data
+        const employeeScores = positionEmployees
+          .filter(emp => emp.skills_analysis === 'completed')
+          .map(emp => {
+            const empGaps = allGapData.filter((g: any) => g.employee_id === emp.id);
+            const avgMatch = empGaps.length > 0
+              ? empGaps.reduce((sum: number, gap: any) => sum + (gap.match_percentage || 0), 0) / empGaps.length
+              : 0;
+            return avgMatch;
           });
-
-          const gap_severity = determineGapSeverity(reqSkill.proficiency_level, affectedEmployees.length, positionEmployees.length);
-
-          return {
-            skill_name: reqSkill.skill_name,
-            skill_type: reqSkill.skill_type || 'technical_skill',
-            required_level: reqSkill.proficiency_level,
-            current_level: null, // Will be aggregated
-            gap_severity,
-            employees_affected: affectedEmployees.length
-          };
-        }).filter(gap => gap.employees_affected > 0);
-
-        // Calculate average match score from actual data
-        const avgMatchScore = positionGaps.length > 0
-          ? positionGaps.reduce((sum: number, gap: any) => sum + (gap.match_percentage || 0), 0) / positionGaps.length
-          : 100;
+        
+        const avgMatchScore = employeeScores.length > 0
+          ? Math.round(employeeScores.reduce((sum, score) => sum + score, 0) / employeeScores.length)
+          : 0;
 
         return {
           position_title: position.position_title,
@@ -211,6 +242,55 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
     ? positionAnalyses 
     : positionAnalyses.filter(a => a.position_code === selectedPosition);
 
+  const exportToCSV = () => {
+    try {
+      // Prepare CSV data
+      const headers = ['Position', 'Employee Count', 'Avg Match %', 'Critical Gaps', 'Top Skills Gaps'];
+      const rows = filteredAnalyses.map(analysis => [
+        analysis.position_title,
+        analysis.total_employees,
+        analysis.avg_gap_score,
+        analysis.critical_gaps,
+        analysis.top_gaps.slice(0, 3).map(g => `${g.skill_name} (${g.employees_affected} affected)`).join('; ')
+      ]);
+
+      // Add overall skills gaps
+      rows.push(['']);
+      rows.push(['Organization-Wide Top Skill Gaps']);
+      rows.push(['Skill Name', 'Type', 'Employees Affected', 'Severity']);
+      topSkillGaps.forEach(gap => {
+        rows.push([
+          gap.skill_name,
+          gap.skill_type.replace('_', ' '),
+          gap.employees_affected,
+          gap.gap_severity
+        ]);
+      });
+
+      // Convert to CSV string
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `skills-gap-analysis-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Skills gap report exported successfully');
+    } catch (error) {
+      toast.error('Failed to export report');
+      console.error('Export error:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -241,19 +321,30 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                 Real-time analysis of skill gaps between employee capabilities and position requirements
               </CardDescription>
             </div>
-            <Select value={selectedPosition} onValueChange={setSelectedPosition}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by position" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Positions</SelectItem>
-                {positionAnalyses.map(analysis => (
-                  <SelectItem key={analysis.position_code} value={analysis.position_code}>
-                    {analysis.position_title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToCSV}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Report
+              </Button>
+              <Select value={selectedPosition} onValueChange={setSelectedPosition}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Positions</SelectItem>
+                  {positionAnalyses.map(analysis => (
+                    <SelectItem key={analysis.position_code} value={analysis.position_code}>
+                      {analysis.position_title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
       </Card>

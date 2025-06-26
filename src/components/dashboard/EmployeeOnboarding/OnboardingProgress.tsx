@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CVUploadDialog } from './CVUploadDialog';
+import { AnalyzeSkillsButton } from './AnalyzeSkillsButton';
 
 interface EmployeeStatus {
   id: string;
@@ -103,14 +104,23 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                 Track CV uploads and review skill assessments for your team
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              onClick={onRefresh}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <AnalyzeSkillsButton
+                employeeIds={filteredEmployees
+                  .filter(emp => emp.cv_status === 'uploaded' && emp.skills_analysis === 'pending')
+                  .map(emp => emp.id)}
+                onAnalysisComplete={onRefresh}
+                className="flex items-center gap-2"
+              />
+              <Button
+                variant="outline"
+                onClick={onRefresh}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
