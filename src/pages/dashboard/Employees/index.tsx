@@ -77,12 +77,6 @@ export default function Employees() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   
-  // Debug logging
-  useEffect(() => {
-    console.log('Employees component - userProfile:', userProfile);
-    console.log('User role:', userProfile?.role);
-    console.log('User company_id:', userProfile?.company_id);
-  }, [userProfile]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
@@ -104,12 +98,9 @@ export default function Employees() {
   });
 
   useEffect(() => {
-    console.log('useEffect triggered, userProfile:', userProfile);
     if (userProfile?.company_id) {
-      console.log('Calling fetchEmployees...');
       fetchEmployees();
     } else {
-      console.log('No company_id yet, userProfile:', userProfile);
       setLoading(false); // Stop loading if no company_id
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,23 +112,10 @@ export default function Employees() {
   }, [employees, searchTerm, departmentFilter, positionFilter, skillsStatusFilter, statusFilter]);
 
   const fetchEmployees = async () => {
-    if (!userProfile?.company_id) {
-      console.log('No company_id found in userProfile:', userProfile);
-      return;
-    }
-
-    console.log('Fetching employees for company_id:', userProfile.company_id);
+    if (!userProfile?.company_id) return;
 
     try {
       setLoading(true);
-      
-      // First, let's test a simple query
-      const { data: testData, error: testError } = await supabase
-        .from('employees')
-        .select('id, department, position')
-        .eq('company_id', userProfile.company_id);
-        
-      console.log('Test query result:', testData, 'Test error:', testError);
 
       const { data, error } = await supabase
         .from('employees')
@@ -157,17 +135,34 @@ export default function Employees() {
         `)
         .eq('company_id', userProfile.company_id);
 
-      if (error) {
-        console.error('Error fetching employees:', error);
-        throw error;
-      }
-
-      console.log('Fetched employees data:', data);
+      if (error) throw error;
 
       // Transform the data
       const transformedEmployees: Employee[] = (data || []).map(emp => {
         const skillsProfile = emp.st_employee_skills_profile?.[0];
-        const extractedSkills = skillsProfile?.extracted_skills || [];
+        // Handle both array and non-array cases for extracted_skills
+        let extractedSkills = [];
+        if (skillsProfile?.extracted_skills) {
+          if (Array.isArray(skillsProfile.extracted_skills)) {
+            extractedSkills = skillsProfile.extracted_skills;
+          } else if (typeof skillsProfile.extracted_skills === 'object') {
+            // Sometimes Supabase returns JSONB arrays as objects
+            extractedSkills = Object.values(skillsProfile.extracted_skills);
+          }
+        }
+        
+        // Debug specific employee
+        if (emp.users?.full_name === 'Kubilay Cenk Karakas') {
+          console.log('Kubilay data:', {
+            fullName: emp.users?.full_name,
+            skillsProfile,
+            extractedSkillsRaw: skillsProfile?.extracted_skills,
+            extractedSkillsProcessed: extractedSkills,
+            extractedSkillsLength: extractedSkills.length,
+            isArray: Array.isArray(extractedSkills),
+            typeOf: typeof skillsProfile?.extracted_skills
+          });
+        }
         
         return {
           id: emp.id,
@@ -186,8 +181,6 @@ export default function Employees() {
       });
 
       setEmployees(transformedEmployees);
-      console.log('Transformed employees:', transformedEmployees);
-      console.log('Number of employees:', transformedEmployees.length);
 
       // Extract unique departments and positions
       const uniqueDepartments = [...new Set(transformedEmployees.map(emp => emp.department))].filter(d => d !== 'Not assigned');
