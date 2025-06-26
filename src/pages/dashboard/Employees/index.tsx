@@ -117,7 +117,8 @@ export default function Employees() {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      // First get employees
+      const { data: employeesData, error: employeesError } = await supabase
         .from('employees')
         .select(`
           id,
@@ -126,16 +127,34 @@ export default function Employees() {
           position,
           is_active,
           cv_file_path,
-          users!left(full_name, email),
-          st_employee_skills_profile(
-            skills_match_score,
-            analyzed_at,
-            extracted_skills
-          )
+          users!left(full_name, email)
         `)
         .eq('company_id', userProfile.company_id);
 
-      if (error) throw error;
+      if (employeesError) throw employeesError;
+
+      // Then get skills profiles separately to bypass RLS join issues
+      const employeeIds = employeesData?.map(e => e.id) || [];
+      const { data: skillsProfiles, error: profilesError } = await supabase
+        .from('st_employee_skills_profile')
+        .select('employee_id, skills_match_score, analyzed_at, extracted_skills')
+        .in('employee_id', employeeIds);
+
+      if (profilesError) {
+        console.error('Error fetching skills profiles:', profilesError);
+      }
+
+      // Create a map for easy lookup
+      const profileMap = new Map();
+      skillsProfiles?.forEach(profile => {
+        profileMap.set(profile.employee_id, profile);
+      });
+
+      // Merge the data
+      const data = employeesData?.map(emp => ({
+        ...emp,
+        st_employee_skills_profile: profileMap.get(emp.id) ? [profileMap.get(emp.id)] : []
+      })) || [];
 
       // Transform the data
       const transformedEmployees: Employee[] = (data || []).map(emp => {
@@ -151,18 +170,6 @@ export default function Employees() {
           }
         }
         
-        // Debug specific employee
-        if (emp.users?.full_name === 'Kubilay Cenk Karakas') {
-          console.log('Kubilay data:', {
-            fullName: emp.users?.full_name,
-            skillsProfile,
-            extractedSkillsRaw: skillsProfile?.extracted_skills,
-            extractedSkillsProcessed: extractedSkills,
-            extractedSkillsLength: extractedSkills.length,
-            isArray: Array.isArray(extractedSkills),
-            typeOf: typeof skillsProfile?.extracted_skills
-          });
-        }
         
         return {
           id: emp.id,
