@@ -243,6 +243,9 @@ export default function EmployeeProfile() {
       {/* Employee Header */}
       <EmployeeProfileHeader employee={employee} />
 
+      {/* Sticky Actions Bar */}
+      <ActionsBar employee={employee} />
+
       {/* Career Path Section */}
       <CareerPathSection employee={{
         ...employee,
@@ -267,9 +270,6 @@ export default function EmployeeProfile() {
         current_position_id: employee.current_position_id,
         target_position_id: employee.target_position_id
       }} />
-
-      {/* Actions Bar */}
-      <ActionsBar employee={employee} />
     </div>
   );
 }
