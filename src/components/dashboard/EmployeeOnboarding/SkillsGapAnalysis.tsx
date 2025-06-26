@@ -49,10 +49,10 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userProfile?.company_id) {
+    if (userProfile?.company_id && employees.length > 0) {
       fetchRealAnalysis();
     }
-  }, [employees, userProfile?.company_id]);
+  }, [employees.length, userProfile?.company_id]);
 
   const fetchRealAnalysis = async () => {
     if (!userProfile?.company_id) return;
@@ -103,17 +103,6 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         positionCodeToIdMap.set(pos.position_code, pos.id);
       });
 
-      // Debug logging
-      console.log('Skills Gap Analysis Debug:', {
-        totalPositions: positions?.length || 0,
-        totalEmployees: employees.length,
-        companyId: userProfile.company_id,
-        employeesArray: employees.map(e => ({ id: e.id, name: e.name, position: e.position })),
-        profileMapSize: profileMap.size,
-        employeePositionMapSize: employeePositionMap.size,
-        allEmployeesCount: allEmployees?.length || 0,
-        positionsWithRequiredSkills: positions?.filter(p => p.required_skills && p.required_skills.length > 0).length || 0
-      });
 
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
@@ -128,19 +117,6 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                  positionCodeToIdMap.get(empPositionCode) === position.id;
         });
         
-        console.log(`Position ${position.position_title} (${position.id}):`, {
-          positionCode: position.position_code,
-          positionEmployees: positionEmployees.length,
-          requiredSkills: position.required_skills?.length || 0,
-          employeeIds: positionEmployees.map(e => e.id),
-          employeeDetails: positionEmployees.map(e => ({
-            id: e.id,
-            name: e.name,
-            position: e.position,
-            dbPositionId: employeePositionMap.get(e.id)
-          })),
-          hasRequiredSkills: !!(position.required_skills && position.required_skills.length > 0)
-        });
         
         // Calculate skill gaps based on required skills and employee profiles
         const skillGapMap = new Map<string, SkillGap>();
@@ -152,7 +128,6 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
           let employeesMissingSkill = 0;
           let totalEmployeesWithProfiles = 0;
           
-          console.log(`Checking skill: ${reqSkill.skill_name} for position ${position.position_title}`);
           
           positionEmployees.forEach(emp => {
             const profile = profileMap.get(emp.id);
@@ -304,13 +279,6 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
     ? positionAnalyses 
     : positionAnalyses.filter(a => a.position_code === selectedPosition);
     
-  console.log('SkillsGapAnalysis render:', {
-    selectedPosition,
-    positionAnalyses: positionAnalyses.length,
-    filteredAnalyses: filteredAnalyses.length,
-    topSkillGaps: topSkillGaps.length,
-    loading
-  });
 
   const exportToCSV = () => {
     try {
