@@ -98,6 +98,12 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         employeePositionMap.set(emp.id, emp.current_position_id);
       });
 
+      // Also create a position code to ID mapping for fallback
+      const positionCodeToIdMap = new Map();
+      positions?.forEach(pos => {
+        positionCodeToIdMap.set(pos.position_code, pos.id);
+      });
+
       // Debug logging
       console.log('Skills Gap Analysis Debug:', {
         totalPositions: positions?.length || 0,
@@ -108,9 +114,15 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
 
       // Process data into position analyses
       const analyses: PositionAnalysis[] = (positions || []).map(position => {
-        // Find employees for this position using current_position_id
+        // Find employees for this position using current_position_id OR position code
         const positionEmployees = employees.filter(emp => {
-          return employeePositionMap.get(emp.id) === position.id;
+          const empPositionId = employeePositionMap.get(emp.id);
+          const empPositionCode = emp.position;
+          
+          // Match by position ID first, then fallback to position code
+          return empPositionId === position.id || 
+                 empPositionCode === position.position_code ||
+                 positionCodeToIdMap.get(empPositionCode) === position.id;
         });
         
         console.log(`Position ${position.position_title} (${position.id}):`, {
