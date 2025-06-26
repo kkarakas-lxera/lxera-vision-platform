@@ -115,17 +115,23 @@ GRANT EXECUTE ON FUNCTION calculate_match_score(jsonb, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION calculate_position_match_score TO authenticated;
 
 -- 6. Ensure proper permissions on st_import_sessions
-CREATE POLICY IF NOT EXISTS "Users can read their company import sessions" ON st_import_sessions
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can read their company import sessions" ON st_import_sessions;
+DROP POLICY IF EXISTS "Users can create import sessions for their company" ON st_import_sessions;
+DROP POLICY IF EXISTS "Users can update their company import sessions" ON st_import_sessions;
+
+-- Create the policies
+CREATE POLICY "Users can read their company import sessions" ON st_import_sessions
     FOR SELECT USING (
         company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
-CREATE POLICY IF NOT EXISTS "Users can create import sessions for their company" ON st_import_sessions
+CREATE POLICY "Users can create import sessions for their company" ON st_import_sessions
     FOR INSERT WITH CHECK (
         company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
-CREATE POLICY IF NOT EXISTS "Users can update their company import sessions" ON st_import_sessions
+CREATE POLICY "Users can update their company import sessions" ON st_import_sessions
     FOR UPDATE USING (
         company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
