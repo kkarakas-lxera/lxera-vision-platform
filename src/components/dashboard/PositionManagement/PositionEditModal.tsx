@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Plus, Search, Target, CheckCircle } from 'lucide-react';
+import { X, Sparkles, Plus, Search, Target, CheckCircle, Database, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { SkillSearch } from '@/components/admin/SkillsManagement/SkillSearch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SkillSearchResult } from '@/types/skills';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CompanyPosition {
   id: string;
@@ -42,9 +43,23 @@ interface SkillRequirement {
   is_mandatory: boolean;
 }
 
+interface SkillSuggestion {
+  skill_id?: string;
+  skill_name: string;
+  category: 'essential' | 'important';
+  proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
+  description: string;
+  source: 'database' | 'ai';
+  relevance_score?: number;
+  reason?: string;
+}
+
 export function PositionEditModal({ position, open, onOpenChange, onSuccess }: PositionEditModalProps) {
   const [loading, setLoading] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<SkillSuggestion[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
   
   // Form state
   const [positionCode, setPositionCode] = useState('');
@@ -63,8 +78,45 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
       setDepartment(position.department || '');
       setDescription(position.description || '');
       setRequiredSkills(position.required_skills || []);
+      setSuggestionsLoaded(false);
+      setAiSuggestions([]);
     }
   }, [position]);
+
+  // Fetch AI suggestions when modal opens
+  useEffect(() => {
+    if (position && open && !suggestionsLoaded && positionTitle) {
+      fetchAiSuggestions();
+    }
+  }, [position, open, suggestionsLoaded, positionTitle]);
+
+  const fetchAiSuggestions = async () => {
+    if (!positionTitle || isLoadingSuggestions) return;
+
+    setIsLoadingSuggestions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('suggest-position-skills-enhanced', {
+        body: {
+          position_title: positionTitle,
+          position_description: description,
+          position_level: positionLevel,
+          department: department
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.skills) {
+        setAiSuggestions(data.skills);
+        setSuggestionsLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error fetching AI suggestions:', error);
+      toast.error('Failed to load AI skill suggestions');
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
 
   const handleSkillSelect = (skill: SkillSearchResult, isRequired: boolean, proficiencyLevel: string = 'intermediate') => {
     const skillRequirement: SkillRequirement = {
@@ -91,6 +143,38 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
     setRequiredSkills(requiredSkills.map(s => 
       s.skill_id === skillId ? { ...s, proficiency_level: proficiencyLevel as any } : s
     ));
+  };
+
+  const handleAddAiSuggestion = (suggestion: SkillSuggestion) => {
+    const skillRequirement: SkillRequirement = {
+      skill_id: suggestion.skill_id || `ai_${Date.now()}_${Math.random()}`,
+      skill_name: suggestion.skill_name,
+      skill_type: 'AI Suggested',
+      proficiency_level: suggestion.proficiency_level,
+      is_mandatory: suggestion.category === 'essential'
+    };
+
+    if (!requiredSkills.find(s => s.skill_name === suggestion.skill_name)) {
+      setRequiredSkills([...requiredSkills, skillRequirement]);
+      toast.success(`Added ${suggestion.skill_name} to required skills`);
+    }
+  };
+
+  const getAvailableSuggestions = () => {
+    return aiSuggestions.filter(suggestion => 
+      !requiredSkills.some(skill => skill.skill_name === suggestion.skill_name)
+    );
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'essential':
+        return 'bg-red-500 text-white';
+      case 'important':
+        return 'bg-orange-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
   };
 
   const generateDescription = async () => {
@@ -184,8 +268,8 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 gap-0">
-        <DialogHeader className="px-6 py-4 border-b">
+      <DialogContent className="max-w-6xl max-h-[85vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
           <DialogTitle className="text-xl font-semibold">
             Edit Position: {position.position_title}
           </DialogTitle>
@@ -293,14 +377,15 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
             </Card>
 
             {/* Right Column - Skills Management */}
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Required Skills ({requiredSkills.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="overflow-y-auto">
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Required Skills ({requiredSkills.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                 {/* Current Skills */}
                 <ScrollArea className="h-48 border rounded-lg p-2">
                   <div className="space-y-2">
@@ -354,24 +439,113 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
 
                 <Separator />
 
-                {/* Add Skills */}
+                <Separator />
+
+                {/* AI Skill Suggestions */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <Label className="text-sm font-medium">AI Skill Suggestions</Label>
+                    </div>
+                    {!suggestionsLoaded && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchAiSuggestions}
+                        disabled={isLoadingSuggestions || !positionTitle}
+                        className="flex items-center gap-2"
+                      >
+                        <Sparkles className={`h-3 w-3 ${isLoadingSuggestions ? 'animate-spin' : ''}`} />
+                        {isLoadingSuggestions ? 'Loading...' : 'Get Suggestions'}
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {isLoadingSuggestions && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <div className="animate-spin h-6 w-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2" />
+                      <p className="text-sm">AI is analyzing position requirements...</p>
+                    </div>
+                  )}
+                  
+                  {suggestionsLoaded && (
+                    <ScrollArea className="h-64 border rounded-lg p-2">
+                      <div className="space-y-2">
+                        {getAvailableSuggestions().length > 0 ? (
+                          getAvailableSuggestions().map((suggestion, index) => (
+                            <div key={`${suggestion.skill_id || index}`} className="flex items-start justify-between p-2 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm">{suggestion.skill_name}</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        {suggestion.source === 'database' ? (
+                                          <Database className="h-3 w-3 text-blue-600" />
+                                        ) : (
+                                          <Sparkles className="h-3 w-3 text-purple-600" />
+                                        )}
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        {suggestion.source === 'database' ? 'From your skills database' : 'AI generated'}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <Badge className={`text-xs ${getCategoryColor(suggestion.category)}`}>
+                                    {suggestion.category}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.description}</p>
+                                {suggestion.reason && (
+                                  <p className="text-xs text-blue-600 italic mt-1">{suggestion.reason}</p>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => handleAddAiSuggestion(suggestion)}
+                                className="ml-2 flex items-center gap-1"
+                              >
+                                <Plus className="h-3 w-3" />
+                                Add
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">All AI suggestions have been added!</p>
+                            <p className="text-xs">Use manual search below for additional skills</p>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Manual Skill Search */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Search className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Add Skills</Label>
+                    <Label className="text-sm font-medium">Manual Search</Label>
                   </div>
                   <SkillSearch
                     onSkillSelect={(skill) => handleSkillSelect(skill, true)}
-                    placeholder="Search skills to add..."
+                    placeholder="Search skills database..."
                     excludeIds={requiredSkills.map(s => s.skill_id)}
                   />
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50">
+          <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50 flex-shrink-0">
             <Button
               type="button"
               variant="outline"
