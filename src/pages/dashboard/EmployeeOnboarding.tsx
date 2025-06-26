@@ -74,40 +74,26 @@ export default function EmployeeOnboarding() {
 
     try {
       // Get employees with their onboarding status and skills profiles
+      // Using the view to avoid RLS issues with joins
       const { data: employees, error } = await supabase
-        .from('employees')
-        .select(`
-          id,
-          user_id,
-          position,
-          cv_file_path,
-          skills_last_analyzed,
-          users!inner(full_name, email),
-          st_employee_skills_profile(
-            skills_match_score,
-            career_readiness_score,
-            gap_analysis_completed_at
-          )
-        `)
-        .eq('company_id', userProfile.company_id)
-        .eq('is_active', true);
+        .from('v_company_employees')
+        .select('*');
 
       if (error) throw error;
 
       // Transform data to include status information
       const statuses: EmployeeStatus[] = (employees || []).map(emp => {
-        const skillsProfile = emp.st_employee_skills_profile?.[0];
         return {
           id: emp.id,
-          name: emp.users.full_name,
-          email: emp.users.email,
+          name: emp.full_name,
+          email: emp.email,
           position: emp.position || 'Not assigned',
           cv_status: emp.cv_file_path ? 
-            (skillsProfile?.gap_analysis_completed_at ? 'analyzed' : 'uploaded') 
+            (emp.gap_analysis_completed_at ? 'analyzed' : 'uploaded') 
             : 'missing',
-          skills_analysis: skillsProfile?.gap_analysis_completed_at ? 'completed' : 'pending',
+          skills_analysis: emp.gap_analysis_completed_at ? 'completed' : 'pending',
           course_generation: 'pending',
-          gap_score: skillsProfile?.skills_match_score || 0
+          gap_score: emp.skills_match_score || 0
         };
       });
 
