@@ -88,10 +88,10 @@ export function AddEmployees({
   };
 
   const downloadTemplate = () => {
-    const csvContent = `name,email,position_code,department,target_position_code
-John Doe,john.doe@company.com,DEV-SR,Engineering,DEV-LEAD
-Jane Smith,jane.smith@company.com,DESIGN-JR,Design,DESIGN-SR
-Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
+    const csvContent = `name,email,department,current_position
+John Doe,john.doe@company.com,Engineering,Senior Developer
+Jane Smith,jane.smith@company.com,Design,UX Designer
+Bob Johnson,bob.johnson@company.com,Sales,Sales Representative`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -112,13 +112,13 @@ Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5" />
-            Select Default Position
+            Step 1: Select Target Position
           </CardTitle>
           <CardDescription>
-            Choose a position to assign to all imported employees. You can update individual positions later.
+            Choose the position you're hiring for. This will be used to analyze skill gaps for all imported employees.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Select 
             value={selectedPosition} 
             onValueChange={setSelectedPosition}
@@ -140,43 +140,44 @@ Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
               ))}
             </SelectContent>
           </Select>
-          {selectedPosition && (
-            <p className="text-sm text-muted-foreground mt-2">
-              All imported employees will be assigned to this position for skills analysis.
-            </p>
+          
+          {!selectedPosition && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please select a position first. This ensures accurate skills gap analysis for your team.
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
 
-      {/* Import Options */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* CSV Import */}
+      {/* CSV Import - Only show after position is selected */}
+      {selectedPosition && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              CSV Import
+              Step 2: Import Employee Data
             </CardTitle>
             <CardDescription>
               Upload a CSV file with employee information to bulk import team members
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">Required columns:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>name (required)</li>
-                <li>email (required)</li>
-                <li>position_code (required) - e.g., DEV-SR, DESIGN-JR</li>
-                <li>department (optional)</li>
-                <li>target_position_code (optional) - for career planning</li>
-              </ul>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm font-medium mb-2">CSV Format Requirements:</p>
+              <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                <div>• name (required)</div>
+                <div>• email (required)</div>
+                <div>• department (optional)</div>
+                <div>• current_position (optional)</div>
+              </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={downloadTemplate}
                 className="flex items-center gap-2"
               >
@@ -188,107 +189,30 @@ Bob Johnson,bob.johnson@company.com,SALES-REP,Sales,SALES-MGR`;
                 className="flex items-center gap-2"
               >
                 <Upload className="h-4 w-4" />
-                Import CSV
+                Import CSV File
               </Button>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Manual Entry */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Individual Entry
-            </CardTitle>
-            <CardDescription>
-              Add team members one by one with detailed information
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6">
-              <p className="text-muted-foreground mb-4">
-                Manual employee entry form coming soon...
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Use CSV import for now to add multiple employees quickly
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Import Sessions */}
-      {importSessions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Import Sessions</CardTitle>
-            <CardDescription>
-              Track the status of your recent employee imports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {importSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {session.import_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </span>
-                        <Badge className={getStatusColor(session.status)}>
-                          {getStatusIcon(session.status)}
-                          <span className="ml-1 capitalize">{session.status}</span>
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {session.total_employees} employees • {session.successful} successful • {session.failed} failed
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(session.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {session.status === 'processing' && (
-                    <div className="w-32">
-                      <Progress 
-                        value={(session.processed / session.total_employees) * 100} 
-                        className="h-2" 
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {session.processed} / {session.total_employees}
-                      </p>
-                    </div>
+            {importSessions.some(s => s.successful > 0) && (
+              <Alert className="mt-4">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>
+                    Successfully imported {importSessions[0].successful} employees!
+                  </span>
+                  {onNextStep && (
+                    <Button size="sm" onClick={onNextStep} variant="default">
+                      Next: Upload CVs
+                    </Button>
                   )}
-                </div>
-              ))}
-            </div>
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Next Step CTA */}
-      {importSessions.some(s => s.successful > 0) && (
-        <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>
-              Great! You've successfully imported team members. 
-              Ready to move to the next step and upload their CVs?
-            </span>
-            {onNextStep && (
-              <Button size="sm" onClick={onNextStep}>
-                Next: Upload CVs
-              </Button>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* CSV Import Wizard */}
+      {/* CSV Import Wizard Modal */}
       {showImportWizard && (
         <CSVImportWizard
           onImportComplete={handleImportComplete}

@@ -141,24 +141,24 @@ export default function EmployeeOnboarding() {
   const steps = [
     {
       number: 1,
-      title: "Add New Team Members",
-      description: "Import employee information and basic details",
+      title: "Import Employees",
+      description: "Select position and import team members",
       icon: Users,
       completed: stats.total > 0
     },
     {
       number: 2,
-      title: "Analyze Skills",
-      description: "Upload CVs and identify skill gaps",
+      title: "Upload & Analyze CVs",
+      description: "Upload resumes and run skills analysis",
       icon: BarChart3,
       completed: stats.analyzed > 0
     },
     {
       number: 3,
-      title: "Assign Learning Paths",
-      description: "Generate personalized courses based on skill gaps",
+      title: "View Skills Gap Report",
+      description: "Review analysis and export results",
       icon: CheckCircle,
-      completed: stats.coursesGenerated > 0
+      completed: stats.analyzed > 0
     }
   ];
 
@@ -228,31 +228,17 @@ export default function EmployeeOnboarding() {
           </Tooltip>
         </div>
 
-        {/* Quick Actions */}
-        <QuickActions
-          onAddEmployees={() => setCurrentStep(1)}
-          onUploadCVs={() => setCurrentStep(2)}
-          onAnalyzeSkills={() => setCurrentStep(2)}
-          onExportReport={() => setCurrentStep(3)}
-          hasEmployees={stats.total > 0}
-          hasEmployeesWithCVs={stats.withCV > 0}
-          hasEmployeesWithAnalysis={stats.analyzed > 0}
-        />
-
-        {/* Recent Sessions */}
-        {importSessions.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold mb-3">Recent Import Sessions</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {importSessions.slice(0, 3).map(session => (
-                <SessionStatusCard
-                  key={session.id}
-                  session={session}
-                  positionTitle={session.active_position_id ? 'Position assigned' : undefined}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Quick Actions - Only show if we have data */}
+        {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
+          <QuickActions
+            onAddEmployees={() => setCurrentStep(1)}
+            onUploadCVs={() => setCurrentStep(2)}
+            onAnalyzeSkills={() => setCurrentStep(2)}
+            onExportReport={() => setCurrentStep(3)}
+            hasEmployees={stats.total > 0}
+            hasEmployeesWithCVs={stats.withCV > 0}
+            hasEmployeesWithAnalysis={stats.analyzed > 0}
+          />
         )}
 
       {/* Step Progress */}
@@ -419,6 +405,22 @@ export default function EmployeeOnboarding() {
           </Button>
         </div>
       </div>
+
+      {/* Recent Sessions - Show at the bottom */}
+      {importSessions.length > 0 && currentStep === 1 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {importSessions.slice(0, 3).map(session => (
+              <SessionStatusCard
+                key={session.id}
+                session={session}
+                positionTitle={session.active_position_id ? 'Position assigned' : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
     </TooltipProvider>
   );
