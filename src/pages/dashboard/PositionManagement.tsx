@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
-import { PositionEditSheet } from '@/components/dashboard/PositionManagement/PositionEditSheet';
+import { PositionEditModal } from '@/components/dashboard/PositionManagement/PositionEditModal';
 import { toast } from 'sonner';
 
 interface CompanyPosition {
@@ -17,6 +17,7 @@ interface CompanyPosition {
   position_title: string;
   position_level?: string;
   department?: string;
+  description?: string;
   required_skills: any[];
   nice_to_have_skills: any[];
   is_template: boolean;
@@ -345,8 +346,8 @@ export default function PositionManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Position Sheet */}
-      <PositionEditSheet
+      {/* Edit Position Modal */}
+      <PositionEditModal
         position={editPosition}
         open={!!editPosition}
         onOpenChange={(open) => !open && setEditPosition(null)}
