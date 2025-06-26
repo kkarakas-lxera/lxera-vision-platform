@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ export default function EmployeeOnboarding() {
   const [importSessions, setImportSessions] = useState<ImportSession[]>([]);
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onboardingMethod, setOnboardingMethod] = useState<'none' | 'api' | 'manual'>('none');
 
   const fetchImportSessions = async () => {
     if (!userProfile?.company_id) return;
@@ -198,6 +199,14 @@ export default function EmployeeOnboarding() {
     };
   }, [userProfile?.company_id, employeeStatuses.length]);
 
+  // Check if there's existing data to determine if we should skip method selection
+  useEffect(() => {
+    if (!loading && employeeStatuses.length > 0 && onboardingMethod === 'none') {
+      // If there's already employee data, go straight to manual mode
+      setOnboardingMethod('manual');
+    }
+  }, [loading, employeeStatuses.length, onboardingMethod]);
+
   const getOverallStats = () => {
     const total = employeeStatuses.length;
     const withCV = employeeStatuses.filter(e => e.cv_status !== 'missing').length;
@@ -269,16 +278,131 @@ export default function EmployeeOnboarding() {
     );
   }
 
+  // Show onboarding method selection if none selected
+  if (onboardingMethod === 'none') {
+    return (
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Employee Onboarding</h1>
+            <p className="text-lg text-muted-foreground">
+              Choose how you'd like to import your team members
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* API Integration Option */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Zap className="h-8 w-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl">HR System Integration</CardTitle>
+                <CardDescription className="mt-2">
+                  Connect your existing HR system for automatic employee data sync
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>One-click sync from 50+ HR systems</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Real-time updates when employees change</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Automatic data mapping</span>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => {
+                    toast.info('HR System Integration coming soon! For now, please use manual import.');
+                    // In the future: setOnboardingMethod('api')
+                  }}
+                >
+                  Connect HR System
+                </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Coming soon
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Manual Import Option */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <MousePointer className="h-8 w-8 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">Manual Import</CardTitle>
+                <CardDescription className="mt-2">
+                  Upload a CSV file or add employees one by one
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Import via CSV or add individually</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Bulk CV upload and analysis</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Immediate skills gap analysis</span>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full"
+                  variant="default"
+                  onClick={() => setOnboardingMethod('manual')}
+                >
+                  Start Manual Import
+                </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Available now
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Not sure which to choose? <a href="#" className="text-blue-600 hover:underline">Learn more</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
-            <p className="text-muted-foreground mt-1">
-              Add employees, analyze their skills, and create personalized learning paths
-            </p>
+          <div className="flex items-start gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOnboardingMethod('none')}
+              className="mt-1"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
+              <p className="text-muted-foreground mt-1">
+                Add employees, analyze their skills, and create personalized learning paths
+              </p>
+            </div>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
