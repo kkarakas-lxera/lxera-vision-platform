@@ -236,3 +236,144 @@ def create_agent(name: str,
         handoffs=handoffs,
         **kwargs
     )
+
+
+class Runner:
+    """
+    Runner class for executing agent conversations with OpenAI SDK
+    """
+    
+    @staticmethod
+    async def run(agent: Agent, input: str, max_turns: int = 10, progress_callback: Optional[Callable] = None) -> Dict[str, Any]:
+        """
+        Run an agent conversation with tool calling support
+        
+        Args:
+            agent: Agent instance to run
+            input: Initial user message
+            max_turns: Maximum conversation turns
+            progress_callback: Optional callback for progress updates
+            
+        Returns:
+            Dict with conversation results including content_id if applicable
+        """
+        global client
+        if not client:
+            client = get_openai_client()
+            
+        if not client:
+            logger.error("OpenAI client not available")
+            return {"error": "OpenAI client not initialized", "success": False}
+            
+        try:
+            logger.info(f"🤖 Starting agent: {agent.name}")
+            messages = [
+                {"role": "system", "content": agent.instructions},
+                {"role": "user", "content": input}
+            ]
+            
+            result_data = {}
+            
+            for turn in range(max_turns):
+                logger.info(f"🔄 Agent {agent.name} - Turn {turn + 1}/{max_turns}")
+                
+                # Call OpenAI API with tools
+                response = client.chat.completions.create(
+                    model=agent.model,
+                    messages=messages,
+                    tools=agent.openai_tools if agent.openai_tools else None,
+                    tool_choice="auto" if agent.openai_tools else None,
+                    temperature=agent.temperature,
+                    max_tokens=agent.max_tokens
+                )
+                
+                message = response.choices[0].message
+                messages.append(message.model_dump())
+                
+                # Handle tool calls if present
+                if message.tool_calls:
+                    for tool_call in message.tool_calls:
+                        tool_name = tool_call.function.name
+                        tool_args = json.loads(tool_call.function.arguments)
+                        
+                        logger.info(f"🔧 Calling tool: {tool_name}")
+                        
+                        # Find and execute the tool
+                        tool_func = None
+                        for tool in agent.tools:
+                            if tool.__name__ == tool_name:
+                                tool_func = tool
+                                break
+                                
+                        if tool_func:
+                            try:
+                                # Execute the tool
+                                if asyncio.iscoroutinefunction(tool_func):
+                                    result = await tool_func(**tool_args)
+                                else:
+                                    result = tool_func(**tool_args)
+                                
+                                logger.info(f"✅ Tool {tool_name} completed")
+                                
+                                # Extract content_id if present in tool result
+                                if isinstance(result, str) and 'content_id:' in result:
+                                    content_id = result.split('content_id:')[1].strip().split()[0]
+                                    result_data['content_id'] = content_id
+                                    logger.info(f"📝 Captured content_id: {content_id}")
+                                
+                                # Add tool result to messages
+                                messages.append({
+                                    "role": "tool",
+                                    "tool_call_id": tool_call.id,
+                                    "content": str(result)
+                                })
+                                
+                                # Progress callback if provided
+                                if progress_callback:
+                                    await progress_callback(agent.name, tool_name, turn + 1)
+                                    
+                            except Exception as e:
+                                logger.error(f"Tool {tool_name} failed: {e}")
+                                messages.append({
+                                    "role": "tool",
+                                    "tool_call_id": tool_call.id,
+                                    "content": f"Error: {str(e)}"
+                                })
+                        else:
+                            logger.warning(f"Tool {tool_name} not found")
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "content": f"Tool {tool_name} not found"
+                            })
+                else:
+                    # No tool calls, check if agent wants to finish
+                    if message.content and any(phrase in message.content.lower() for phrase in ['completed', 'finished', 'done']):
+                        logger.info(f"✅ Agent {agent.name} completed")
+                        break
+                    
+            # Extract final content and any content_id
+            final_content = messages[-1].get("content", "")
+            
+            # Check for content_id in final message
+            if 'content_id:' in final_content and 'content_id' not in result_data:
+                content_id = final_content.split('content_id:')[1].strip().split()[0]
+                result_data['content_id'] = content_id
+                
+            # Return comprehensive results
+            return {
+                "content": final_content,
+                "messages": messages,
+                "turns": turn + 1,
+                "success": True,
+                "agent_name": agent.name,
+                **result_data  # Include any extracted data like content_id
+            }
+            
+        except Exception as e:
+            logger.error(f"Agent {agent.name} run failed: {e}")
+            return {
+                "error": str(e),
+                "success": False,
+                "agent_name": agent.name
+            }

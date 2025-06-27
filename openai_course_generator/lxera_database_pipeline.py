@@ -16,10 +16,10 @@ from supabase import create_client, Client
 # Configure logger first before any usage
 logger = logging.getLogger(__name__)
 
-# Import the existing pipeline orchestrator - no fallback, fix if it fails
-from database_pipeline_orchestrator import DatabasePipelineOrchestrator
+# Import the agentic pipeline orchestrator for comprehensive agent-based generation
+from agentic_pipeline_orchestrator import AgenticPipelineOrchestrator
 
-class LXERADatabasePipeline(DatabasePipelineOrchestrator):
+class LXERADatabasePipeline(AgenticPipelineOrchestrator):
     """
     Extended pipeline orchestrator that integrates with LXERA's Supabase database
     to retrieve employee data and skills gap analysis.
@@ -78,17 +78,18 @@ class LXERADatabasePipeline(DatabasePipelineOrchestrator):
             # Phase 2: Retrieve skills gap analysis
             skills_gaps = await self._retrieve_skills_gaps(employee_id, employee_data['position'])
             
-            # Phase 3: Prepare module specifications
-            module_spec = self._prepare_module_spec(employee_data, skills_gaps)
+            # Update job progress
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Initializing AI agents',
+                    'progress_percentage': 30
+                })
             
-            # Phase 4: Prepare research context from skills gaps
-            research_context = self._prepare_research_context(skills_gaps, employee_data)
-            
-            # Run the complete pipeline with prepared data
+            # Run the complete agentic pipeline with skills gaps
             pipeline_result = await self.run_complete_pipeline(
                 employee_data,
-                module_spec,
-                research_context
+                skills_gaps,
+                job_id
             )
             
             # If successful, create course assignment
@@ -224,56 +225,6 @@ class LXERADatabasePipeline(DatabasePipelineOrchestrator):
             logger.error(f"Failed to retrieve skills gaps: {e}")
             raise
     
-    def _prepare_module_spec(self, employee_data: Dict[str, Any], skills_gaps: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Prepare module specifications based on employee data and skills gaps."""
-        
-        # Prioritize critical and major gaps
-        priority_gaps = [g for g in skills_gaps if g['gap_severity'] in ['critical', 'major']][:7]
-        
-        # Determine priority level
-        has_critical = any(g['gap_severity'] == 'critical' for g in skills_gaps)
-        priority_level = 'high' if has_critical else 'medium'
-        
-        return {
-            'module_name': f"{employee_data['job_title_current']} Skills Development Program",
-            'employee_name': employee_data['full_name'],
-            'target_word_count': 7500,
-            'priority_level': priority_level,
-            'difficulty_level': 'intermediate',
-            'personalization_level': 'advanced',
-            'learning_objectives': [
-                {
-                    'skill': gap['skill_name'],
-                    'from_level': gap['current_level'],
-                    'to_level': gap['required_level'],
-                    'skill_type': gap['skill_type']
-                }
-                for gap in priority_gaps
-            ],
-            'key_tools': list(set([g['skill_name'] for g in priority_gaps[:5]])),
-            'career_context': {
-                'current_role': employee_data['job_title_current'],
-                'target_role': employee_data['career_aspirations_next_role'],
-                'department': employee_data.get('department', 'General')
-            }
-        }
-    
-    def _prepare_research_context(self, skills_gaps: List[Dict[str, Any]], employee_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Prepare research context from skills gaps for the research agent."""
-        return {
-            'skills_to_research': [
-                {
-                    'skill_name': gap['skill_name'],
-                    'skill_type': gap['skill_type'],
-                    'gap_severity': gap['gap_severity'],
-                    'context': f"For {employee_data['job_title_current']} in {employee_data.get('department', 'the organization')}"
-                }
-                for gap in skills_gaps[:5]  # Top 5 gaps for research
-            ],
-            'industry_context': employee_data.get('department', 'General Business'),
-            'role_context': employee_data['job_title_current'],
-            'existing_tools': employee_data.get('tools_software_used_regularly', [])
-        }
     
     async def _create_course_assignment(
         self,
