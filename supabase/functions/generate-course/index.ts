@@ -27,8 +27,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Agent Pipeline API endpoint (you'll need to deploy the Python API server)
-    const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'http://localhost:8080/generate-course'
+    // Agent Pipeline API endpoint (Render deployment)
+    const agentPipelineUrl = Deno.env.get('AGENT_PIPELINE_URL') || 'https://lxera-agent-pipeline.onrender.com/api/generate-course'
 
     // Update job progress helper
     const updateJobProgress = async (updates: any) => {

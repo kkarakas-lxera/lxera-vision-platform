@@ -38,10 +38,10 @@ class LXERADatabasePipeline(DatabasePipelineOrchestrator):
         
         # Initialize Supabase client with LXERA credentials
         self.supabase_url = os.getenv('SUPABASE_URL')
-        self.supabase_key = os.getenv('SUPABASE_ANON_KEY')
+        self.supabase_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_ANON_KEY')
         
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set")
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) must be set")
             
         self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
         logger.info("🔌 Connected to LXERA Supabase database")
