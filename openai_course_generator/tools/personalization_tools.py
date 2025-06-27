@@ -24,15 +24,21 @@ def employee_analyzer(employee_data: str) -> str:
         settings = get_settings()
         openai_client = OpenAI(api_key=settings.openai_api_key)
         
+        # Parse JSON string to dictionary
+        if isinstance(employee_data, str):
+            employee_dict = json.loads(employee_data)
+        else:
+            employee_dict = employee_data
+        
         # Extract key employee information
-        employee_name = employee_data.get("full_name", "Employee")
-        current_role = employee_data.get("job_title_specific", employee_data.get("job_title_current", "Professional"))
-        career_goal = employee_data.get("career_aspirations_next_role", "")
-        skills = employee_data.get("skills", [])
-        skill_gaps = employee_data.get("skill_gaps", [])
-        tools_used = employee_data.get("tools_software_used_regularly", [])
-        responsibilities = employee_data.get("key_responsibilities_tasks", [])
-        company_priorities = employee_data.get("company_strategic_priorities", [])
+        employee_name = employee_dict.get("full_name", "Employee")
+        current_role = employee_dict.get("job_title_specific", employee_dict.get("job_title_current", "Professional"))
+        career_goal = employee_dict.get("career_aspirations_next_role", "")
+        skills = employee_dict.get("skills", [])
+        skill_gaps = employee_dict.get("skill_gaps", [])
+        tools_used = employee_dict.get("tools_software_used_regularly", [])
+        responsibilities = employee_dict.get("key_responsibilities_tasks", [])
+        company_priorities = employee_dict.get("company_strategic_priorities", [])
         
         analysis_prompt = f"""
         Analyze this employee profile to create personalization insights for course generation:
