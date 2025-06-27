@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CourseGenerationProvider } from "@/contexts/CourseGenerationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
@@ -43,6 +44,7 @@ import PositionManagement from "./pages/dashboard/PositionManagement";
 import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
 import Employees from "./pages/dashboard/Employees";
 import EmployeeProfile from "./pages/dashboard/EmployeeProfile";
+import Courses from "./pages/dashboard/Courses";
 
 const queryClient = new QueryClient();
 
@@ -53,7 +55,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <CourseGenerationProvider>
+            <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -102,7 +105,7 @@ const App = () => (
                       <Route path="/positions" element={<PositionManagement />} />
                       <Route path="/employees" element={<Employees />} />
                       <Route path="/employees/:employeeId" element={<EmployeeProfile />} />
-                      <Route path="/courses" element={<div>Course Management</div>} />
+                      <Route path="/courses" element={<Courses />} />
                       <Route path="/analytics" element={<div>Skills Analytics</div>} />
                       <Route path="/settings" element={<div>Company Settings</div>} />
                     </Routes>
@@ -135,6 +138,7 @@ const App = () => (
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </CourseGenerationProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

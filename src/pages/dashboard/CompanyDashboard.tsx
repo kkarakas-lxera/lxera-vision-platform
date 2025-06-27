@@ -14,11 +14,9 @@ import {
   Upload,
   Building2,
   BarChart3,
-  ArrowRight,
   Activity,
   CheckCircle2,
-  AlertTriangle,
-  Brain
+  AlertTriangle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -457,61 +455,50 @@ export default function CompanyDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              size="lg" 
-              className="justify-start gap-3 h-auto py-4"
-              onClick={() => navigate('/dashboard/onboarding')}
-            >
-              <div className="bg-primary-foreground/10 p-2 rounded-lg">
-                <Upload className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold">Add Team Members</div>
-                <div className="text-xs opacity-70">Import & assess skills</div>
-              </div>
-              <ArrowRight className="h-4 w-4 ml-auto" />
-            </Button>
+      <div className="space-y-3">
+        <h2 className="text-base font-medium text-foreground">Quick Actions</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <Button 
+            variant="outline"
+            size="sm"
+            className="h-9 justify-start font-normal"
+            onClick={() => navigate('/dashboard/positions')}
+          >
+            <Target className="h-4 w-4 mr-2 text-muted-foreground" />
+            Define Position Requirements
+          </Button>
 
-            <Button 
-              size="lg"
-              variant="outline" 
-              className="justify-start gap-3 h-auto py-4"
-              onClick={() => navigate('/dashboard/positions')}
-            >
-              <div className="bg-muted p-2 rounded-lg">
-                <Target className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold">Define Positions</div>
-                <div className="text-xs text-muted-foreground">Set skill requirements</div>
-              </div>
-              <ArrowRight className="h-4 w-4 ml-auto" />
-            </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            className="h-9 justify-start font-normal"
+            onClick={() => navigate('/dashboard/onboarding')}
+          >
+            <Upload className="h-4 w-4 mr-2 text-muted-foreground" />
+            Onboard Employees
+          </Button>
 
-            <Button 
-              size="lg"
-              variant="outline" 
-              className="justify-start gap-3 h-auto py-4"
-              onClick={() => navigate('/dashboard/employees')}
-            >
-              <div className="bg-muted p-2 rounded-lg">
-                <Brain className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold">View Team Skills</div>
-                <div className="text-xs text-muted-foreground">Analyze gaps & progress</div>
-              </div>
-              <ArrowRight className="h-4 w-4 ml-auto" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <Button 
+            variant="outline"
+            size="sm"
+            className="h-9 justify-start font-normal"
+            onClick={() => navigate('/dashboard/employees')}
+          >
+            <BarChart3 className="h-4 w-4 mr-2 text-muted-foreground" />
+            View Skills Gap Analysis
+          </Button>
+
+          <Button 
+            variant="outline"
+            size="sm"
+            className="h-9 justify-start font-normal"
+            onClick={() => navigate('/dashboard/courses')}
+          >
+            <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
+            Assign Courses
+          </Button>
+        </div>
+      </div>
 
       {/* Key Metrics - Two Rows */}
       <div className="space-y-4">

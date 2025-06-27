@@ -34,12 +34,18 @@ import {
   ChevronRight,
   BarChart3,
   TrendingUp,
-  Clock
+  Clock,
+  GraduationCap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import CourseGenerationModal from '../Courses/CourseGenerationModal';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useCustomOrder } from '@/hooks/useCustomOrder';
+import { SortableTableRow } from '@/components/ui/sortable-table-row';
 
 interface Employee {
   id: string;
@@ -81,6 +87,13 @@ export default function Employees() {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  
+  // Use custom order hook for drag and drop
+  const { orderedItems: orderedEmployees, handleDragEnd } = useCustomOrder({
+    items: filteredEmployees,
+    storageKey: `employees-order-${userProfile?.company_id}`,
+    getItemId: (employee) => employee.id
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [positionFilter, setPositionFilter] = useState('all');
@@ -89,6 +102,7 @@ export default function Employees() {
   const [departments, setDepartments] = useState<string[]>([]);
   const [positions, setPositions] = useState<string[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [showCourseGenerationModal, setShowCourseGenerationModal] = useState(false);
   const [summaryStats, setSummaryStats] = useState<SummaryStats>({
     totalEmployees: 0,
     analyzedCount: 0,
@@ -96,6 +110,14 @@ export default function Employees() {
     avgMatchScore: 0,
     activeCoursesCount: 0
   });
+  
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -264,7 +286,7 @@ export default function Employees() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedEmployees(new Set(filteredEmployees.map(emp => emp.id)));
+      setSelectedEmployees(new Set(orderedEmployees.map(emp => emp.id)));
     } else {
       setSelectedEmployees(new Set());
     }
@@ -292,6 +314,9 @@ export default function Employees() {
         break;
       case 'deactivate':
         await deactivateEmployees();
+        break;
+      case 'generate_courses':
+        setShowCourseGenerationModal(true);
         break;
       // Add more bulk actions as needed
       default:
@@ -533,9 +558,10 @@ export default function Employees() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleBulkAction('assign_course')}
+                  onClick={() => handleBulkAction('generate_courses')}
                 >
-                  Assign to Course
+                  <GraduationCap className="h-4 w-4 mr-1" />
+                  Generate Courses
                 </Button>
                 <Button
                   variant="outline"
@@ -562,27 +588,37 @@ export default function Employees() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="p-4 text-left">
-                    <Checkbox
-                      checked={filteredEmployees.length > 0 && selectedEmployees.size === filteredEmployees.length}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Employee</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Position</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Department</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Skills</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Match Score</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">Last Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEmployees.map((employee) => (
-                  <tr key={employee.id} className="border-b hover:bg-gray-50">
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <table className="w-full">
+                <thead className="border-b bg-gray-50">
+                  <tr>
+                    <th className="p-4 text-left w-12"></th>
+                    <th className="p-4 text-left">
+                      <Checkbox
+                        checked={orderedEmployees.length > 0 && selectedEmployees.size === orderedEmployees.length}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Employee</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Position</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Department</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Skills</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Match Score</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Status</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Last Updated</th>
+                  </tr>
+                </thead>
+                <SortableContext 
+                  items={orderedEmployees.map(e => e.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <tbody>
+                    {orderedEmployees.map((employee) => (
+                      <SortableTableRow key={employee.id} id={employee.id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <Checkbox
                         checked={selectedEmployees.has(employee.id)}
@@ -635,10 +671,12 @@ export default function Employees() {
                     <td className="p-4 text-sm text-muted-foreground">
                       {employee.last_analyzed ? new Date(employee.last_analyzed).toLocaleDateString() : '-'}
                     </td>
-                  </tr>
+                  </SortableTableRow>
                 ))}
               </tbody>
+              </SortableContext>
             </table>
+            </DndContext>
           </div>
 
           {filteredEmployees.length === 0 && (
@@ -773,6 +811,19 @@ export default function Employees() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Course Generation Modal */}
+      <CourseGenerationModal
+        open={showCourseGenerationModal}
+        onClose={() => setShowCourseGenerationModal(false)}
+        onComplete={() => {
+          setShowCourseGenerationModal(false);
+          fetchEmployees(); // Refresh data
+          toast.success('Courses generated successfully!');
+          navigate('/dashboard/courses'); // Navigate to courses page
+        }}
+        preSelectedEmployees={Array.from(selectedEmployees)}
+      />
     </div>
   );
 }

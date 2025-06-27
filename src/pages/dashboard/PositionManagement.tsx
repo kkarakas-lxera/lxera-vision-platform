@@ -10,6 +10,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
 import { PositionEditModal } from '@/components/dashboard/PositionManagement/PositionEditModal';
 import { toast } from 'sonner';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
+import { useCustomOrder } from '@/hooks/useCustomOrder';
+import { SortableItem } from '@/components/ui/sortable-item';
 
 interface CompanyPosition {
   id: string;
@@ -45,6 +49,14 @@ export default function PositionManagement() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editPosition, setEditPosition] = useState<CompanyPosition | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchPositions = async () => {
     if (!userProfile?.company_id) return;
@@ -79,11 +91,15 @@ export default function PositionManagement() {
           p_company_id: userProfile.company_id
         });
 
+      if (gapError) {
+        console.error('Error fetching gap analysis data:', gapError);
+      }
+
       const avgMatch = gapData?.length > 0 
-        ? gapData.reduce((sum: number, gap: any) => sum + (gap.match_percentage || 0), 0) / gapData.length
+        ? gapData.reduce((sum: number, gap: any) => sum + (gap.avg_match_percentage || 0), 0) / gapData.length
         : 0;
 
-      const positionsWithGaps = new Set(gapData?.filter((gap: any) => gap.match_percentage < 80).map((gap: any) => gap.position_code)).size;
+      const positionsWithGaps = gapData?.filter((gap: any) => gap.avg_match_percentage < 80).length || 0;
 
       setStats({
         total_positions: positionsData?.length || 0,
@@ -127,9 +143,16 @@ export default function PositionManagement() {
   };
 
   const departments = Array.from(new Set(positions.map(p => p.department).filter(Boolean)));
-  const filteredPositions = selectedDepartment === 'all' 
+  const baseFilteredPositions = selectedDepartment === 'all' 
     ? positions 
     : positions.filter(p => p.department === selectedDepartment);
+  
+  // Use custom order hook for drag and drop
+  const { orderedItems: filteredPositions, handleDragEnd } = useCustomOrder({
+    items: baseFilteredPositions,
+    storageKey: `positions-order-${userProfile?.company_id}-${selectedDepartment}`,
+    getItemId: (position) => position.id
+  });
 
   if (loading) {
     return (
@@ -230,24 +253,34 @@ export default function PositionManagement() {
       )}
 
       {/* Positions Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredPositions.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="p-12 text-center">
-              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No positions defined yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create your first position to start defining skill requirements.
-              </p>
-              <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create First Position
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredPositions.map((position) => (
-            <Card key={position.id} className="hover:shadow-lg transition-all cursor-pointer group">
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext 
+          items={filteredPositions.map(p => p.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredPositions.length === 0 ? (
+              <Card className="col-span-full">
+                <CardContent className="p-12 text-center">
+                  <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No positions defined yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first position to start defining skill requirements.
+                  </p>
+                  <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create First Position
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredPositions.map((position) => (
+                <SortableItem key={position.id} id={position.id}>
+                  <Card className="hover:shadow-lg transition-all cursor-pointer group pl-10">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -327,9 +360,12 @@ export default function PositionManagement() {
                 )}
               </CardContent>
             </Card>
+          </SortableItem>
           ))
         )}
       </div>
+      </SortableContext>
+    </DndContext>
 
       {/* Create Position Modal */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

@@ -70,7 +70,7 @@ export function ActionsBar({ employee }: ActionsBarProps) {
 
   return (
     <div className="sticky top-4 z-50 mb-6">
-      <Card className="border-0 shadow-lg bg-white/95 backdrop-blur-md">
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50/95 to-purple-50/95 backdrop-blur-md">
         <CardContent className="p-4">
           {/* Collapsed View */}
           {!isExpanded && (
