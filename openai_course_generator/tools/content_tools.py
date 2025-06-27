@@ -13,7 +13,7 @@ from ..models.course_models import LearningActivity, Assessment, ActivityType, A
 
 # Import path for existing refactored_nodes functions
 import sys
-sys.path.append('/Users/kubilaycenk/LF-Stable-v1/learnfinity-spark')
+# Remove hardcoded path - use relative imports instead
 
 logger = logging.getLogger(__name__)
 

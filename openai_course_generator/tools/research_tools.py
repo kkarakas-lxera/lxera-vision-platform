@@ -12,9 +12,7 @@ from openai import OpenAI
 # from ..config.settings import get_settings
 # from ..models.workflow_models import ResearchResult
 
-# Import existing research functions from refactored_nodes
-import sys
-sys.path.append('/Users/kubilaycenk/LF-Stable-v1/learnfinity-spark')
+# Remove hardcoded paths - use environment-based configuration instead
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +25,15 @@ def tavily_search(query: str, context: str = "general") -> str:
     Wraps existing Tavily integration from refactored_nodes system.
     """
     try:
-        # Import settings for API key
-        from config.settings import get_settings
-        settings = get_settings()
-        tavily_api_key = settings.tavily_api_key
+        # Get API key from environment or config
+        tavily_api_key = os.getenv('TAVILY_API_KEY')
+        if not tavily_api_key:
+            try:
+                from config.settings import get_settings
+                settings = get_settings()
+                tavily_api_key = settings.tavily_api_key
+            except ImportError:
+                logger.warning("Could not import settings, using environment variables only")
         
         # Import and use existing Tavily client setup
         from tavily import TavilyClient
