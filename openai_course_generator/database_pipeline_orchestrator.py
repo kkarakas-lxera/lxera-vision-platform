@@ -21,6 +21,9 @@ from typing import Dict, Any, List, Optional
 import uuid
 from pathlib import Path
 
+# Configure logger first before any usage
+logger = logging.getLogger(__name__)
+
 # Database-integrated agents with error handling
 try:
     from course_agents.database_agents import (
@@ -71,8 +74,6 @@ except ImportError as e:
         return {"analysis": "mock"}
     def tavily_search(*args, **kwargs):
         return {"results": "mock research"}
-
-logger = logging.getLogger(__name__)
 
 class DatabasePipelineOrchestrator:
     """
