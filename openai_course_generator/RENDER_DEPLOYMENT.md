@@ -25,7 +25,7 @@ This guide walks you through deploying the LXERA agent pipeline to Render, repla
    - **Branch**: `main`
    - **Root Directory**: `openai_course_generator`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python app.py`
+   - **Start Command**: `gunicorn --workers 2 --bind 0.0.0.0:$PORT --timeout 600 --worker-class gevent app:app`
 
 ### 3. Set Environment Variables
 In the Render dashboard, add these environment variables:
@@ -87,10 +87,11 @@ curl -X POST "https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/generate-cou
 ## Benefits of Render over Vercel
 
 1. **No Authentication Barriers**: Public API endpoints by default
-2. **Better Python Support**: Native Python runtime environment
-3. **Long-Running Processes**: No 10-second timeout limits
+2. **Better Python Support**: Native Python runtime environment with Gunicorn WSGI server
+3. **Long-Running Processes**: 600-second timeout for AI agent processing
 4. **Free Tier**: Apps sleep when idle but don't shut down completely
-5. **Easier Debugging**: Better logging and monitoring tools
+5. **Production Ready**: Gunicorn with gevent workers for concurrent request handling
+6. **Easier Debugging**: Better logging and monitoring tools
 
 ## Troubleshooting
 
@@ -109,11 +110,23 @@ curl -X POST "https://xwfweumeryrgbguwrocr.supabase.co/functions/v1/generate-cou
 - Check Supabase connection
 - Test with minimal employee data first
 
+## Production Configuration Details
+
+### Gunicorn Settings Explained:
+- **`--workers 2`**: Optimal for free tier memory limits while handling concurrent requests
+- **`--timeout 600`**: 10-minute timeout for AI agent processing (research, content generation)
+- **`--worker-class gevent`**: Async-friendly workers for better handling of I/O operations
+- **`--bind 0.0.0.0:$PORT`**: Binds to all interfaces on Render's assigned port
+
+### Production vs Development:
+- **Production**: Uses Gunicorn WSGI server for stability and performance
+- **Development**: Falls back to Flask dev server when running locally with `python app.py`
+
 ## Files Created for Render Deployment
 
-- `render.yaml`: Service configuration
-- `app.py`: Flask web service entry point  
-- `requirements.txt`: Updated with Flask dependencies
+- `render.yaml`: Service configuration with Gunicorn start command
+- `app.py`: Production-ready Flask web service entry point  
+- `requirements.txt`: Updated with Flask, Gunicorn, and gevent dependencies
 - `.gitignore`: Updated to remove Vercel references
 
 ## Next Steps After Deployment
