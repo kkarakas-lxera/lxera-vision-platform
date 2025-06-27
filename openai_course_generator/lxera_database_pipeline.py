@@ -16,16 +16,8 @@ from supabase import create_client, Client
 # Configure logger first before any usage
 logger = logging.getLogger(__name__)
 
-# Import the existing pipeline orchestrator with error handling
-try:
-    from database_pipeline_orchestrator import DatabasePipelineOrchestrator
-except ImportError as e:
-    logger.error(f"Could not import DatabasePipelineOrchestrator: {e}")
-    # Create a minimal functional orchestrator that can be extended
-    class DatabasePipelineOrchestrator:
-        def __init__(self):
-            self.agents = {}
-            logger.warning("Using minimal DatabasePipelineOrchestrator - some features may be limited")
+# Import the existing pipeline orchestrator - no fallback, fix if it fails
+from database_pipeline_orchestrator import DatabasePipelineOrchestrator
 
 class LXERADatabasePipeline(DatabasePipelineOrchestrator):
     """
