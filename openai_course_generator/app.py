@@ -8,6 +8,10 @@ import logging
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.openai import OpenAIIntegration
+try:
+    from sentry_sdk.integrations.openai_agents import OpenAIAgentsIntegration
+except ImportError:
+    OpenAIAgentsIntegration = None
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import time
@@ -24,12 +28,15 @@ sentry_sdk.init(
     # Enable profiling - profiles 100% of sampled transactions
     profiles_sample_rate=1.0,
     integrations=[
-        FlaskIntegration(
-            transaction_style='endpoint',
-        ),
-        OpenAIIntegration(
-            include_prompts=True,
-        ),
+        integration for integration in [
+            FlaskIntegration(
+                transaction_style='endpoint',
+            ),
+            OpenAIIntegration(
+                include_prompts=True,
+            ),
+            OpenAIAgentsIntegration() if OpenAIAgentsIntegration else None,
+        ] if integration is not None
     ],
     environment=os.getenv('RENDER_ENV', 'production'),
     send_default_pii=True,

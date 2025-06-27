@@ -12,6 +12,11 @@ except ImportError:
     # Provide dummy integrations if imports fail
     FlaskIntegration = None
     OpenAIIntegration = None
+
+try:
+    from sentry_sdk.integrations.openai_agents import OpenAIAgentsIntegration
+except ImportError:
+    OpenAIAgentsIntegration = None
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,6 +45,7 @@ def initialize_sentry():
                     OpenAIIntegration(
                         include_prompts=True,  # Capture prompts and responses
                     ) if OpenAIIntegration else None,
+                    OpenAIAgentsIntegration() if OpenAIAgentsIntegration else None,
                 ] if integration is not None
             ],
             
