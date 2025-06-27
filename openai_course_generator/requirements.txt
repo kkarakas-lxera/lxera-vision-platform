@@ -33,3 +33,6 @@ python-dateutil>=2.8.0
 
 # For async operations
 asyncio-throttle>=0.1.1
+
+# Monitoring and observability
+sentry-sdk[flask,openai]>=2.0.0

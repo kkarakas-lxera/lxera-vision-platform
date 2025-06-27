@@ -13,6 +13,13 @@ from typing import Dict, Any, List, Optional
 import uuid
 import os
 
+# Import Sentry for LLM monitoring
+import sentry_sdk
+from config.sentry_config import initialize_sentry, capture_agent_performance
+
+# Initialize Sentry
+initialize_sentry()
+
 # Import the Runner for agent execution
 from agents import Runner
 
@@ -148,44 +155,55 @@ class AgenticPipelineOrchestrator:
     
     async def _run_planning_agent(self, employee_data: Dict[str, Any], skills_gaps: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Run the planning agent to create course structure."""
-        try:
-            logger.info("📋 Starting Planning Agent")
+        with sentry_sdk.start_transaction(op="agent.planning", name="Planning Agent Execution") as transaction:
+            try:
+                logger.info("📋 Starting Planning Agent")
+                
+                # Capture agent metadata
+                transaction.set_tag("agent_type", "planning")
+                transaction.set_tag("employee_id", employee_data.get("id", "unknown"))
+                transaction.set_data("skills_gap_count", len(skills_gaps))
+                
+                planning_input = f"""
+                Create a comprehensive course plan for the following employee:
+                
+                EMPLOYEE PROFILE:
+                {json.dumps(employee_data, indent=2)}
+                
+                SKILLS GAPS TO ADDRESS:
+                {json.dumps(skills_gaps, indent=2)}
+                
+                Use the available planning tools to:
+                1. Analyze the employee profile
+                2. Prioritize skill gaps
+                3. Generate course structure
+                4. Create personalized learning path
+                5. Generate research queries for content development
+                """
+                
+                # Track agent execution
+                with capture_agent_performance("planning", "execution"):
+                    result = await Runner.run(
+                        self.planning_agent,
+                        planning_input,
+                        max_turns=15,
+                        progress_callback=self._agent_progress_callback
+                    )
+                
+                self.pipeline_state["agents_progress"]["planning"] = {
+                    "status": "completed" if result.get("success") else "failed",
+                    "turns": result.get("turns", 0),
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+                transaction.set_status("ok" if result.get("success") else "internal_error")
+                return result
             
-            planning_input = f"""
-            Create a comprehensive course plan for the following employee:
-            
-            EMPLOYEE PROFILE:
-            {json.dumps(employee_data, indent=2)}
-            
-            SKILLS GAPS TO ADDRESS:
-            {json.dumps(skills_gaps, indent=2)}
-            
-            Use the available planning tools to:
-            1. Analyze the employee profile
-            2. Prioritize skill gaps
-            3. Generate course structure
-            4. Create personalized learning path
-            5. Generate research queries for content development
-            """
-            
-            result = await Runner.run(
-                self.planning_agent,
-                planning_input,
-                max_turns=15,
-                progress_callback=self._agent_progress_callback
-            )
-            
-            self.pipeline_state["agents_progress"]["planning"] = {
-                "status": "completed" if result.get("success") else "failed",
-                "turns": result.get("turns", 0),
-                "timestamp": datetime.now().isoformat()
-            }
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Planning agent failed: {e}")
-            return {"success": False, "error": str(e)}
+            except Exception as e:
+                logger.error(f"Planning agent failed: {e}")
+                sentry_sdk.capture_exception(e)
+                transaction.set_status("internal_error")
+                return {"success": False, "error": str(e)}
     
     async def _run_research_agent(self, course_structure: Dict[str, Any], skills_gaps: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Run the research agent to gather knowledge."""

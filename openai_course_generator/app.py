@@ -5,12 +5,32 @@ This is the main application that Render will run to host our agent pipeline.
 import os
 import asyncio
 import logging
+import sentry_sdk
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Configure logging
+# Configure logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry directly for Render testing
+sentry_sdk.init(
+    dsn="https://72603497d4cd6aa808c39674bfd414cf@o4509570042822656.ingest.de.sentry.io/4509570148991056",
+    integrations=[
+        sentry_sdk.integrations.flask.FlaskIntegration(
+            transaction_style='endpoint',
+        ),
+        sentry_sdk.integrations.openai.OpenAIIntegration(
+            include_prompts=True,
+            include_token_usage=True,
+        ),
+    ],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    environment="production",
+    attach_stacktrace=True,
+)
+logger.info("✅ Sentry initialized with hardcoded DSN for testing")
 
 # Import our pipeline with detailed error reporting
 generate_course_with_agents = None
@@ -114,9 +134,17 @@ def root():
         'status': 'running',
         'endpoints': {
             'health': '/health',
-            'generate_course': '/api/generate-course'
+            'generate_course': '/api/generate-course',
+            'sentry_test': '/sentry-test'
         }
     })
+
+@app.route('/sentry-test', methods=['GET'])
+def trigger_error():
+    """Test endpoint to verify Sentry integration"""
+    # This will be captured by Sentry
+    division_by_zero = 1 / 0
+    return jsonify({'message': 'This should not be reached'})
 
 # Production WSGI setup - Gunicorn will import this app object
 if __name__ == '__main__':
