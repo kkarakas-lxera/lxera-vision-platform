@@ -102,16 +102,12 @@ def root():
         }
     })
 
+# Production WSGI setup - Gunicorn will import this app object
 if __name__ == '__main__':
-    # Get port from environment variable or default to 10000
+    # This is only for local development - Gunicorn will handle production
     port = int(os.environ.get('PORT', 10000))
-    
-    logger.info(f"Starting LXERA Agent Pipeline on port {port}")
-    
-    # Run the Flask app
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        debug=False,  # Disable debug in production
-        threaded=True
-    )
+    logger.info(f"Starting LXERA Agent Pipeline in development mode on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=True)
+else:
+    # Production logging setup
+    logger.info("LXERA Agent Pipeline starting in production mode with Gunicorn")

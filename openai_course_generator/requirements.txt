@@ -6,6 +6,8 @@ python-dotenv>=1.0.0
 # Web framework for Render deployment
 flask>=2.3.0
 flask-cors>=4.0.0
+gunicorn>=21.0.0
+gevent>=23.0.0
 
 # Agent framework dependencies (required by existing agents)
 pydantic>=2.0.0
