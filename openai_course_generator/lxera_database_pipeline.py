@@ -183,27 +183,41 @@ class LXERADatabasePipeline(DatabasePipelineOrchestrator):
             profile = response.data
             skills_gaps = []
             
-            # Extract technical skills gaps
-            if profile.get('technical_skills'):
-                for skill_name, skill_data in profile['technical_skills'].items():
-                    if skill_data.get('gap_severity') and skill_data['gap_severity'] != 'none':
+            # Extract technical skills gaps - handle array format from database
+            if profile.get('technical_skills') and isinstance(profile['technical_skills'], list):
+                for skill_data in profile['technical_skills']:
+                    # For skills analysis, assume all skills have some improvement potential
+                    skill_name = skill_data.get('skill_name', 'Unknown Skill')
+                    current_level = skill_data.get('proficiency_level', 3)
+                    required_level = 5  # Assume target level is expert
+                    
+                    # Calculate gap severity based on proficiency difference
+                    if current_level < required_level:
+                        gap_severity = 'critical' if current_level < 2 else 'moderate' if current_level < 4 else 'minor'
                         skills_gaps.append({
                             'skill_name': skill_name,
-                            'gap_severity': skill_data['gap_severity'],
-                            'current_level': skill_data.get('current_level', 0),
-                            'required_level': skill_data.get('required_level', 3),
+                            'gap_severity': gap_severity,
+                            'current_level': current_level,
+                            'required_level': required_level,
                             'skill_type': 'technical'
                         })
             
-            # Extract soft skills gaps
-            if profile.get('soft_skills'):
-                for skill_name, skill_data in profile['soft_skills'].items():
-                    if skill_data.get('gap_severity') and skill_data['gap_severity'] != 'none':
+            # Extract soft skills gaps - handle array format from database
+            if profile.get('soft_skills') and isinstance(profile['soft_skills'], list):
+                for skill_data in profile['soft_skills']:
+                    # For skills analysis, assume all skills have some improvement potential
+                    skill_name = skill_data.get('skill_name', 'Unknown Skill')
+                    current_level = skill_data.get('proficiency_level', 3)
+                    required_level = 5  # Assume target level is expert
+                    
+                    # Calculate gap severity based on proficiency difference
+                    if current_level < required_level:
+                        gap_severity = 'critical' if current_level < 2 else 'moderate' if current_level < 4 else 'minor'
                         skills_gaps.append({
                             'skill_name': skill_name,
-                            'gap_severity': skill_data['gap_severity'],
-                            'current_level': skill_data.get('current_level', 0),
-                            'required_level': skill_data.get('required_level', 3),
+                            'gap_severity': gap_severity,
+                            'current_level': current_level,
+                            'required_level': required_level,
                             'skill_type': 'soft'
                         })
             
