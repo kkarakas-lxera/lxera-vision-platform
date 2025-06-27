@@ -270,7 +270,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {step === 'selection' && 'Generate Personalized Courses'}
@@ -286,7 +286,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
 
         {step === 'selection' && (
           <>
-            <div className="space-y-4">
+            <div className="flex-1 overflow-hidden flex flex-col space-y-4">
               {/* Summary */}
               <Card>
                 <CardContent className="pt-6">
@@ -332,7 +332,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
               </Card>
 
               {/* Employee List */}
-              <ScrollArea className="h-[400px] pr-4">
+              <ScrollArea className="flex-1 pr-4">
                 <div className="space-y-2">
                   {loading ? (
                     <div className="flex items-center justify-center py-8">
@@ -412,7 +412,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
               </ScrollArea>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="pt-4">
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
