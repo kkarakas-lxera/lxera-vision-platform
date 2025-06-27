@@ -6,6 +6,8 @@ import os
 import asyncio
 import logging
 import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.openai import OpenAIIntegration
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import time
@@ -20,10 +22,10 @@ sentry_sdk.init(
     dsn="https://72603497d4cd6aa808c39674bfd414cf@o4509570042822656.ingest.de.sentry.io/4509570148991056",
     traces_sample_rate=1.0,
     integrations=[
-        sentry_sdk.integrations.flask.FlaskIntegration(
+        FlaskIntegration(
             transaction_style='endpoint',
         ),
-        sentry_sdk.integrations.openai.OpenAIIntegration(
+        OpenAIIntegration(
             include_prompts=True,
         ),
     ],

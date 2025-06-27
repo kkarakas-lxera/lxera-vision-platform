@@ -15,7 +15,18 @@ import os
 
 # Import Sentry for LLM monitoring
 import sentry_sdk
-from config.sentry_config import capture_agent_performance
+try:
+    from config.sentry_config import capture_agent_performance
+except ImportError:
+    # Fallback if sentry_config is not available
+    def capture_agent_performance(agent_name: str, phase: str, metadata: dict = None):
+        # Simple context manager that does nothing
+        class NoOpContext:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+        return NoOpContext()
 
 # Sentry is already initialized in settings.py
 

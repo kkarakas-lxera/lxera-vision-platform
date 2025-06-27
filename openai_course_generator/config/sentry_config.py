@@ -5,8 +5,13 @@ Provides LLM monitoring for OpenAI agents with Flask integration
 
 import os
 import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-from sentry_sdk.integrations.openai import OpenAIIntegration
+try:
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    from sentry_sdk.integrations.openai import OpenAIIntegration
+except ImportError:
+    # Provide dummy integrations if imports fail
+    FlaskIntegration = None
+    OpenAIIntegration = None
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,12 +33,14 @@ def initialize_sentry():
             
             # Integrations for Flask and OpenAI
             integrations=[
-                FlaskIntegration(
-                    transaction_style='endpoint',  # Use endpoint names for transactions
-                ),
-                OpenAIIntegration(
-                    include_prompts=True,  # Capture prompts and responses
-                ),
+                integration for integration in [
+                    FlaskIntegration(
+                        transaction_style='endpoint',  # Use endpoint names for transactions
+                    ) if FlaskIntegration else None,
+                    OpenAIIntegration(
+                        include_prompts=True,  # Capture prompts and responses
+                    ) if OpenAIIntegration else None,
+                ] if integration is not None
             ],
             
             # Performance monitoring
