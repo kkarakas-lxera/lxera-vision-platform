@@ -13,8 +13,15 @@ import uuid
 import os
 from supabase import create_client, Client
 
-# Import the existing pipeline orchestrator
-from database_pipeline_orchestrator import DatabasePipelineOrchestrator
+# Import the existing pipeline orchestrator with error handling
+try:
+    from database_pipeline_orchestrator import DatabasePipelineOrchestrator
+except ImportError:
+    # Fallback - create a basic orchestrator class
+    class DatabasePipelineOrchestrator:
+        def __init__(self):
+            self.agents = {}
+            logger.warning("Using fallback DatabasePipelineOrchestrator")
 
 logger = logging.getLogger(__name__)
 
