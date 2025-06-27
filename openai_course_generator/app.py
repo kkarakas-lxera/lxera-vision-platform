@@ -8,15 +8,30 @@ import logging
 import sentry_sdk
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import time
+import openai
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import settings which initializes Sentry
-from config.settings import get_settings
-settings = get_settings()
-logger.info("✅ Settings loaded with Sentry initialization")
+# Initialize Sentry directly to avoid circular imports
+sentry_sdk.init(
+    dsn="https://72603497d4cd6aa808c39674bfd414cf@o4509570042822656.ingest.de.sentry.io/4509570148991056",
+    traces_sample_rate=1.0,
+    integrations=[
+        sentry_sdk.integrations.flask.FlaskIntegration(
+            transaction_style='endpoint',
+        ),
+        sentry_sdk.integrations.openai.OpenAIIntegration(
+            include_prompts=True,
+        ),
+    ],
+    environment=os.getenv('RENDER_ENV', 'production'),
+    send_default_pii=True,
+    attach_stacktrace=True,
+)
+logger.info("✅ Sentry initialized")
 
 # Import our pipeline with detailed error reporting
 generate_course_with_agents = None
@@ -136,9 +151,6 @@ def trigger_error():
 @app.route('/sentry-performance-test', methods=['GET'])
 def test_performance():
     """Test endpoint to verify Sentry performance monitoring"""
-    import time
-    import openai
-    
     with sentry_sdk.start_transaction(op="test", name="Performance Test"):
         # Simulate some work
         with sentry_sdk.start_span(op="process", description="Processing data"):

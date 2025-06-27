@@ -5,34 +5,9 @@ from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-from sentry_sdk.integrations.openai import OpenAIIntegration
 
 # Load environment variables
 load_dotenv()
-
-# Configure Sentry
-sentry_sdk.init(
-    dsn="https://72603497d4cd6aa808c39674bfd414cf@o4509570042822656.ingest.de.sentry.io/4509570148991056",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Integrations
-    integrations=[
-        FlaskIntegration(
-            transaction_style='endpoint',
-        ),
-        OpenAIIntegration(
-            include_prompts=True,
-            include_token_usage=True,
-        ),
-    ],
-    # Additional settings
-    environment=os.getenv('RENDER_ENV', 'production'),
-    send_default_pii=True,  # Include prompts and responses
-    attach_stacktrace=True,
-)
 
 
 class Settings(BaseSettings):

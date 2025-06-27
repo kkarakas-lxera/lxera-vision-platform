@@ -33,7 +33,6 @@ def initialize_sentry():
                 ),
                 OpenAIIntegration(
                     include_prompts=True,  # Capture prompts and responses
-                    include_token_usage=True,  # Track token usage
                 ),
             ],
             
