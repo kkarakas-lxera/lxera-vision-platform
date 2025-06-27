@@ -15,10 +15,9 @@ import os
 
 # Import Sentry for LLM monitoring
 import sentry_sdk
-from config.sentry_config import initialize_sentry, capture_agent_performance
+from config.sentry_config import capture_agent_performance
 
-# Initialize Sentry
-initialize_sentry()
+# Sentry is already initialized in settings.py
 
 # Import the Runner for agent execution
 from agents import Runner
