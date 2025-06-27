@@ -121,7 +121,8 @@ def root():
         'endpoints': {
             'health': '/health',
             'generate_course': '/api/generate-course',
-            'sentry_test': '/sentry-test'
+            'sentry_test': '/sentry-test',
+            'sentry_performance_test': '/sentry-performance-test'
         }
     })
 
@@ -131,6 +132,39 @@ def trigger_error():
     # This will be captured by Sentry
     division_by_zero = 1 / 0
     return jsonify({'message': 'This should not be reached'})
+
+@app.route('/sentry-performance-test', methods=['GET'])
+def test_performance():
+    """Test endpoint to verify Sentry performance monitoring"""
+    import time
+    import openai
+    
+    with sentry_sdk.start_transaction(op="test", name="Performance Test"):
+        # Simulate some work
+        with sentry_sdk.start_span(op="process", description="Processing data"):
+            time.sleep(0.1)  # Simulate processing
+        
+        # Make a simple OpenAI call to test LLM monitoring
+        with sentry_sdk.start_span(op="openai", description="Test OpenAI call"):
+            try:
+                client = openai.OpenAI()
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Say 'Sentry monitoring is working!' in 5 words or less."}
+                    ],
+                    max_tokens=20
+                )
+                ai_response = response.choices[0].message.content
+            except Exception as e:
+                ai_response = f"OpenAI error: {str(e)}"
+        
+        return jsonify({
+            'message': 'Performance test completed',
+            'ai_response': ai_response,
+            'traces': 'Check Sentry Performance tab'
+        })
 
 # Production WSGI setup - Gunicorn will import this app object
 if __name__ == '__main__':
