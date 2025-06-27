@@ -112,23 +112,39 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
       const { data, error } = await query;
 
       if (error) throw error;
+      
+      console.log('Fetched employees data:', data);
+      console.log('Pre-selected employee IDs:', preSelectedEmployees);
 
       // Transform and calculate estimates
       const transformedEmployees = data?.map(emp => {
-        const skillsProfile = emp.st_employee_skills_profile?.[0];
+        // Handle both array and object responses from Supabase
+        const skillsProfile = Array.isArray(emp.st_employee_skills_profile) 
+          ? emp.st_employee_skills_profile?.[0]
+          : emp.st_employee_skills_profile;
         const hasGapAnalysis = skillsProfile?.gap_analysis_completed_at !== null;
         
         // Calculate estimated modules and hours based on skills gaps
         let criticalGaps = 0;
         let moderateGaps = 0;
         
-        if (skillsProfile?.technical_skills) {
-          const skills = skillsProfile.technical_skills;
-          // Count gaps based on proficiency levels
-          Object.values(skills).forEach((skill: any) => {
-            if (skill.gap_severity === 'critical') criticalGaps++;
-            else if (skill.gap_severity === 'moderate') moderateGaps++;
-          });
+        // For now, estimate gaps based on skills match score
+        // Lower score = more gaps
+        if (skillsProfile?.skills_match_score) {
+          const score = parseFloat(skillsProfile.skills_match_score);
+          if (score < 50) {
+            criticalGaps = 5;
+            moderateGaps = 3;
+          } else if (score < 70) {
+            criticalGaps = 3;
+            moderateGaps = 4;
+          } else if (score < 85) {
+            criticalGaps = 1;
+            moderateGaps = 3;
+          } else {
+            criticalGaps = 0;
+            moderateGaps = 2;
+          }
         }
 
         const estimatedModules = Math.max(3, Math.min(12, criticalGaps * 2 + moderateGaps));
@@ -150,10 +166,15 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
 
       setEmployees(transformedEmployees);
       
+      console.log('Transformed employees:', transformedEmployees);
+      console.log('Employees with gap analysis:', transformedEmployees.filter(emp => emp.skills_profile?.gap_analysis_completed_at));
+      
       // Auto-select employees with gap analysis completed
       const eligibleEmployees = transformedEmployees
         .filter(emp => emp.skills_profile?.gap_analysis_completed_at)
         .map(emp => emp.id);
+      
+      console.log('Eligible employee IDs:', eligibleEmployees);
       
       setSelectedEmployees(new Set([...preSelectedEmployees, ...eligibleEmployees]));
     } catch (error) {
