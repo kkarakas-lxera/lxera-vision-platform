@@ -71,7 +71,7 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import research tools: {e}")
     def employee_analyzer(*args, **kwargs):
-        return {"analysis": "mock"}
+        return json.dumps({"analysis": "mock", "success": True, "personalization_ready": True})
     def tavily_search(*args, **kwargs):
         return {"results": "mock research"}
 
