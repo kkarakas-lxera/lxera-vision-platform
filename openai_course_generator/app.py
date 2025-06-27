@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 sentry_sdk.init(
     dsn="https://72603497d4cd6aa808c39674bfd414cf@o4509570042822656.ingest.de.sentry.io/4509570148991056",
     traces_sample_rate=1.0,
+    # Enable profiling - profiles 100% of sampled transactions
+    profiles_sample_rate=1.0,
     integrations=[
         FlaskIntegration(
             transaction_style='endpoint',
@@ -33,7 +35,7 @@ sentry_sdk.init(
     send_default_pii=True,
     attach_stacktrace=True,
 )
-logger.info("✅ Sentry initialized")
+logger.info("✅ Sentry initialized with profiling enabled")
 
 # Import our pipeline with detailed error reporting
 generate_course_with_agents = None

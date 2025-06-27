@@ -46,6 +46,9 @@ def initialize_sentry():
             # Performance monitoring
             traces_sample_rate=1.0,  # Capture 100% of transactions for performance
             
+            # Enable profiling
+            profiles_sample_rate=1.0,  # Profile 100% of sampled transactions
+            
             # Session tracking
             release=os.getenv('RENDER_GIT_COMMIT', 'development'),
             environment=os.getenv('RENDER_ENV', 'production'),
