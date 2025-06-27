@@ -55,6 +55,11 @@ except Exception as e:
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    """Lightweight ping endpoint for quick health checks"""
+    return jsonify({'status': 'ok'}), 200
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint for Render"""
@@ -104,12 +109,9 @@ def generate_course():
         
         logger.info(f"Starting course generation for employee: {data['employee_id']}")
         
-        # Run the async pipeline in a new event loop
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
+        # Run the async pipeline using asyncio.run() - safer for threaded environments
         try:
-            result = loop.run_until_complete(
+            result = asyncio.run(
                 generate_course_with_agents(
                     employee_id=data['employee_id'],
                     company_id=data['company_id'],
@@ -120,9 +122,6 @@ def generate_course():
             
             logger.info(f"Pipeline completed successfully for employee: {data['employee_id']}")
             return jsonify(result)
-            
-        finally:
-            loop.close()
         
     except Exception as e:
         logger.error(f"Error in course generation: {e}")
@@ -138,6 +137,7 @@ def root():
         'service': 'LXERA Agent Pipeline',
         'status': 'running',
         'endpoints': {
+            'ping': '/ping',
             'health': '/health',
             'generate_course': '/api/generate-course',
             'sentry_test': '/sentry-test',
