@@ -6,9 +6,26 @@ from typing import Dict, Any, List
 from datetime import datetime
 from agents import function_tool
 from openai import OpenAI
+import os
 
-from ..config.settings import get_settings
-from ..models.employee_models import EmployeeProfile, PersonalizationContext
+# Use try/except for imports that might fail in production
+try:
+    from ..config.settings import get_settings
+except ImportError:
+    def get_settings():
+        class Settings:
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            default_model = 'gpt-4o-mini'
+        return Settings()
+
+try:
+    from ..models.employee_models import EmployeeProfile, PersonalizationContext
+except ImportError:
+    # Mock models if import fails
+    class EmployeeProfile:
+        pass
+    class PersonalizationContext:
+        pass
 
 logger = logging.getLogger(__name__)
 
