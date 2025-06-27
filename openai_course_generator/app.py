@@ -110,18 +110,17 @@ def generate_course():
         logger.info(f"Starting course generation for employee: {data['employee_id']}")
         
         # Run the async pipeline using asyncio.run() - safer for threaded environments
-        try:
-            result = asyncio.run(
-                generate_course_with_agents(
-                    employee_id=data['employee_id'],
-                    company_id=data['company_id'],
-                    assigned_by_id=data['assigned_by_id'],
-                    job_id=data.get('job_id')
-                )
+        result = asyncio.run(
+            generate_course_with_agents(
+                employee_id=data['employee_id'],
+                company_id=data['company_id'],
+                assigned_by_id=data['assigned_by_id'],
+                job_id=data.get('job_id')
             )
-            
-            logger.info(f"Pipeline completed successfully for employee: {data['employee_id']}")
-            return jsonify(result)
+        )
+        
+        logger.info(f"Pipeline completed successfully for employee: {data['employee_id']}")
+        return jsonify(result)
         
     except Exception as e:
         logger.error(f"Error in course generation: {e}")

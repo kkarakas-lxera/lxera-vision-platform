@@ -1,3 +1,5 @@
+# Render configuration for LXERA Agent Pipeline
+# Updated to use gthread workers for better async compatibility
 services:
   - type: web
     name: lxera-agent-pipeline
