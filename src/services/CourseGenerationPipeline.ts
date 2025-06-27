@@ -788,11 +788,13 @@ export class CourseGenerationPipeline {
         });
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-course', {
+      // Use the agents-based edge function
+      const { data, error } = await supabase.functions.invoke('generate-course-agents', {
         body: {
           employee_id,
           company_id: this.company_id,
-          assigned_by_id
+          assigned_by_id,
+          job_id: jobId
         }
       });
 

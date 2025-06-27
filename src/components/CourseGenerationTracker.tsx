@@ -72,11 +72,13 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
   };
 
   const checkForActiveJobs = async () => {
-    // Check for any active jobs for this company
+    if (!user?.id) return;
+    
+    // Check for any active jobs created by this user
     const { data, error } = await supabase
       .from('course_generation_jobs')
       .select('*')
-      .eq('company_id', user?.company_id)
+      .eq('created_by', user.id)
       .in('status', ['pending', 'processing'])
       .order('created_at', { ascending: false })
       .limit(1);
@@ -87,20 +89,22 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
 
     setJob(data[0]);
     setIsVisible(true);
+    subscribeToUpdates(data[0].id);
   };
 
-  const subscribeToUpdates = () => {
-    if (!jobId) return;
+  const subscribeToUpdates = (jobIdToSubscribe?: string) => {
+    const idToUse = jobIdToSubscribe || jobId;
+    if (!idToUse) return;
 
     const channel = supabase
-      .channel(`generation-job-${jobId}`)
+      .channel(`generation-job-${idToUse}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'course_generation_jobs',
-          filter: `id=eq.${jobId}`
+          filter: `id=eq.${idToUse}`
         },
         (payload) => {
           setJob(payload.new as GenerationJob);
@@ -211,15 +215,41 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
             </div>
 
             {/* Current Status */}
-            {job.status === 'processing' && job.current_employee_name && (
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Currently processing:</p>
-                <p className="text-sm text-muted-foreground">{job.current_employee_name}</p>
-                {job.current_phase && (
-                  <Badge variant="secondary" className="text-xs">
-                    {job.current_phase}
-                  </Badge>
+            {job.status === 'processing' && (
+              <div className="space-y-2">
+                {job.current_employee_name && (
+                  <>
+                    <p className="text-sm font-medium">Currently processing:</p>
+                    <p className="text-sm text-muted-foreground">{job.current_employee_name}</p>
+                  </>
                 )}
+                {job.current_phase && (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span className="text-sm">{job.current_phase}</span>
+                  </div>
+                )}
+                {/* Phase indicators */}
+                <div className="space-y-1 mt-3">
+                  {getPhaseStatus(job.current_phase).map((phase, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      {phase.completed ? (
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      ) : phase.active ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                      ) : (
+                        <div className="h-3 w-3 rounded-full border border-muted" />
+                      )}
+                      <span className={cn(
+                        phase.completed && "text-green-600",
+                        phase.active && "text-primary font-medium",
+                        !phase.completed && !phase.active && "text-muted-foreground"
+                      )}>
+                        {phase.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -271,6 +301,29 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
     </div>
   );
 };
+
+// Helper function to get phase status
+function getPhaseStatus(currentPhase?: string): Array<{name: string, completed: boolean, active: boolean}> {
+  const phases = [
+    'Retrieving employee data',
+    'Retrieving skills gap analysis',
+    'Creating personalized course plan',
+    'Researching relevant content',
+    'Generating course content with AI',
+    'Enhancing content quality',
+    'Storing course content',
+    'Creating course assignment',
+    'Course generation complete'
+  ];
+
+  const currentIndex = currentPhase ? phases.findIndex(p => p === currentPhase) : -1;
+  
+  return phases.map((phase, index) => ({
+    name: phase,
+    completed: currentIndex > index,
+    active: currentIndex === index
+  }));
+}
 
 // Helper function to calculate duration
 function calculateDuration(start: string, end: string): string {
