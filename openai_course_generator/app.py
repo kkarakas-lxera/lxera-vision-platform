@@ -12,13 +12,19 @@ from flask_cors import CORS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import our pipeline
+# Import our pipeline with detailed error reporting
+generate_course_with_agents = None
+pipeline_import_error = None
+
 try:
     from lxera_database_pipeline import generate_course_with_agents
     logger.info("Successfully imported LXERA agent pipeline")
 except ImportError as e:
+    pipeline_import_error = f"Import error: {str(e)}"
     logger.error(f"Failed to import pipeline: {e}")
-    generate_course_with_agents = None
+except Exception as e:
+    pipeline_import_error = f"Pipeline initialization error: {str(e)}"
+    logger.error(f"Pipeline initialization failed: {e}")
 
 # Create Flask app
 app = Flask(__name__)
@@ -27,11 +33,21 @@ CORS(app)  # Enable CORS for all routes
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint for Render"""
-    return jsonify({
+    health_data = {
         'status': 'healthy',
         'service': 'lxera-agent-pipeline',
-        'pipeline_available': generate_course_with_agents is not None
-    })
+        'pipeline_available': generate_course_with_agents is not None,
+        'environment_check': {
+            'openai_key_set': bool(os.environ.get('OPENAI_API_KEY')),
+            'supabase_url_set': bool(os.environ.get('SUPABASE_URL')),
+            'supabase_key_set': bool(os.environ.get('SUPABASE_SERVICE_ROLE_KEY'))
+        }
+    }
+    
+    if pipeline_import_error:
+        health_data['pipeline_error'] = pipeline_import_error
+    
+    return jsonify(health_data)
 
 @app.route('/api/generate-course', methods=['POST', 'OPTIONS'])
 def generate_course():

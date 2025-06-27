@@ -14,8 +14,15 @@ from functools import wraps
 
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialize OpenAI client with fallback handling
+def get_openai_client():
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        logger.warning("OPENAI_API_KEY not found - some functionality will be limited")
+        return None
+    return OpenAI(api_key=api_key)
+
+client = None  # Will be initialized when needed
 
 class Agent:
     """
@@ -133,6 +140,13 @@ class Agent:
             if self.openai_tools:
                 request_params["tools"] = self.openai_tools
                 request_params["tool_choice"] = "auto"
+            
+            # Get OpenAI client (lazy initialization)
+            global client
+            if client is None:
+                client = get_openai_client()
+                if client is None:
+                    raise Exception("OpenAI API key not configured")
             
             # Call OpenAI
             response = client.chat.completions.create(**request_params)
