@@ -30,11 +30,22 @@ from openai import OpenAI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import settings and OpenAI client for content generation
-from config.settings import get_settings
-settings = get_settings()
-OPENAI_API_KEY = settings.openai_api_key
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+# Import settings and OpenAI client for content generation with fallback
+try:
+    from config.settings import get_settings
+    settings = get_settings()
+    OPENAI_API_KEY = settings.openai_api_key
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+except Exception as e:
+    logger.warning(f"Failed to initialize settings: {e}")
+    # Fallback to environment variable
+    import os
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    if OPENAI_API_KEY:
+        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        openai_client = None
+        logger.error("No OpenAI API key available")
 
 @function_tool
 def generate_module_introduction(module_spec: str, module_outline: str = None, research_context: str = None) -> str:

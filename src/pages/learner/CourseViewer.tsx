@@ -48,6 +48,7 @@ export default function CourseViewer() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [courseContent, setCourseContent] = useState<CourseContent | null>(null);
+  const [availableSections, setAvailableSections] = useState<typeof COURSE_SECTIONS>([]);
   const [assignment, setAssignment] = useState<CourseAssignment | null>(null);
   const [currentSection, setCurrentSection] = useState('introduction');
   const [sectionProgress, setSectionProgress] = useState<Record<string, boolean>>({});
@@ -87,6 +88,13 @@ export default function CourseViewer() {
       if (contentError) throw contentError;
       setCourseContent(content);
 
+      // Filter available sections based on content
+      const sectionsWithContent = COURSE_SECTIONS.filter(section => {
+        const hasContent = content[section.id as keyof CourseContent];
+        return hasContent && hasContent.trim().length > 0;
+      });
+      setAvailableSections(sectionsWithContent);
+
       // Fetch assignment details
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('course_assignments')
@@ -111,13 +119,16 @@ export default function CourseViewer() {
       setSectionProgress(progress);
 
       // Set current section
-      if (assignmentData.current_section) {
+      if (assignmentData.current_section && sectionsWithContent.some(s => s.id === assignmentData.current_section)) {
         setCurrentSection(assignmentData.current_section);
       } else {
-        // Find first incomplete section
-        const firstIncomplete = COURSE_SECTIONS.find(s => !progress[s.id]);
+        // Find first incomplete section from available sections
+        const firstIncomplete = sectionsWithContent.find(s => !progress[s.id]);
         if (firstIncomplete) {
           setCurrentSection(firstIncomplete.id);
+        } else if (sectionsWithContent.length > 0) {
+          // Default to first available section
+          setCurrentSection(sectionsWithContent[0].id);
         }
       }
 
@@ -164,9 +175,9 @@ export default function CourseViewer() {
       // Update section progress state
       setSectionProgress(prev => ({ ...prev, [currentSection]: true }));
 
-      // Calculate new progress percentage
+      // Calculate new progress percentage based on available sections
       const completedCount = Object.values({ ...sectionProgress, [currentSection]: true }).filter(Boolean).length;
-      const progressPercentage = Math.round((completedCount / COURSE_SECTIONS.length) * 100);
+      const progressPercentage = Math.round((completedCount / availableSections.length) * 100);
 
       // Update assignment progress
       const updates: any = {
@@ -205,17 +216,17 @@ export default function CourseViewer() {
   };
 
   const navigateToNextSection = () => {
-    const currentIndex = COURSE_SECTIONS.findIndex(s => s.id === currentSection);
-    if (currentIndex < COURSE_SECTIONS.length - 1) {
-      setCurrentSection(COURSE_SECTIONS[currentIndex + 1].id);
+    const currentIndex = availableSections.findIndex(s => s.id === currentSection);
+    if (currentIndex < availableSections.length - 1) {
+      setCurrentSection(availableSections[currentIndex + 1].id);
       setMobileMenuOpen(false);
     }
   };
 
   const navigateToPreviousSection = () => {
-    const currentIndex = COURSE_SECTIONS.findIndex(s => s.id === currentSection);
+    const currentIndex = availableSections.findIndex(s => s.id === currentSection);
     if (currentIndex > 0) {
-      setCurrentSection(COURSE_SECTIONS[currentIndex - 1].id);
+      setCurrentSection(availableSections[currentIndex - 1].id);
       setMobileMenuOpen(false);
     }
   };
@@ -279,8 +290,8 @@ export default function CourseViewer() {
     );
   }
 
-  const currentSectionData = COURSE_SECTIONS.find(s => s.id === currentSection);
-  const currentIndex = COURSE_SECTIONS.findIndex(s => s.id === currentSection);
+  const currentSectionData = availableSections.find(s => s.id === currentSection);
+  const currentIndex = availableSections.findIndex(s => s.id === currentSection);
 
   return (
     <div className="h-screen flex flex-col">
@@ -314,7 +325,7 @@ export default function CourseViewer() {
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0">
               <CourseOutline
-                sections={COURSE_SECTIONS}
+                sections={availableSections}
                 currentSection={currentSection}
                 sectionProgress={sectionProgress}
                 onSectionClick={(sectionId) => {
@@ -333,7 +344,7 @@ export default function CourseViewer() {
         {/* Desktop Sidebar */}
         <div className="hidden md:block w-80 border-r">
           <CourseOutline
-            sections={COURSE_SECTIONS}
+            sections={availableSections}
             currentSection={currentSection}
             sectionProgress={sectionProgress}
             onSectionClick={setCurrentSection}
@@ -351,7 +362,7 @@ export default function CourseViewer() {
               </h1>
               <h2 className="text-lg text-muted-foreground flex items-center gap-2">
                 {currentSectionData?.icon && <currentSectionData.icon className="h-5 w-5" />}
-                Module {currentIndex + 1} of {COURSE_SECTIONS.length}: {currentSectionData?.name}
+                Module {currentIndex + 1} of {availableSections.length}: {currentSectionData?.name}
               </h2>
             </div>
 
@@ -363,9 +374,10 @@ export default function CourseViewer() {
               <ReactMarkdown>{getSectionContent()}</ReactMarkdown>
             </div>
 
-            {/* Example content blocks */}
-            {currentSection === 'core_content' && (
-              <div className="mt-8 space-y-6">
+            {/* Interactive Content Elements */}
+            <div className="mt-8 space-y-6">
+              {/* Video Content */}
+              {currentSection === 'core_content' && (
                 <Card className="p-6 bg-blue-50 border-blue-200">
                   <div className="flex items-start gap-3">
                     <PlayCircle className="h-6 w-6 text-blue-600 mt-1" />
@@ -374,23 +386,147 @@ export default function CourseViewer() {
                       <div className="bg-white rounded-lg p-8 text-center">
                         <PlayCircle className="h-12 w-12 text-blue-600 mx-auto mb-2" />
                         <p className="text-sm text-muted-foreground">Video player would go here (8:42)</p>
+                        <Button className="mt-3" size="sm">
+                          <PlayCircle className="h-4 w-4 mr-2" />
+                          Play Video
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </Card>
+              )}
 
+              {/* Interactive Exercise */}
+              {currentSection === 'core_content' && (
+                <Card className="p-6 bg-green-50 border-green-200">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Target className="h-5 w-5 text-green-600" />
+                    Interactive Exercise
+                  </h3>
+                  <div className="space-y-4">
+                    <p className="text-sm">Calculate the current ratio for Company X:</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>Current Assets: $500,000</div>
+                      <div>Current Liabilities: $250,000</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Enter your answer..." 
+                        className="px-3 py-2 border rounded-md flex-1"
+                      />
+                      <Button size="sm">Check Answer</Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* Practice Files */}
+              {(currentSection === 'core_content' || currentSection === 'practical_applications') && (
                 <Card className="p-6">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <FileDown className="h-5 w-5" />
-                    Practice Files
+                    Practice Files & Resources
                   </h3>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <FileDown className="h-4 w-4" />
-                    Download practice_data.xlsx
+                  <div className="space-y-2">
+                    <Button variant="outline" className="w-full justify-start gap-2">
+                      <FileDown className="h-4 w-4" />
+                      Download practice_data.xlsx
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start gap-2">
+                      <FileDown className="h-4 w-4" />
+                      Financial Analysis Template.xlsx
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Additional Reading: Industry Standards
+                    </Button>
+                  </div>
+                </Card>
+              )}
+
+              {/* Case Study Interactive Elements */}
+              {currentSection === 'case_studies' && (
+                <div className="space-y-6">
+                  <Card className="p-6 bg-purple-50 border-purple-200">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      <Target className="h-5 w-5 text-purple-600" />
+                      Case Study: TechCorp Analysis
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                      <div className="space-y-1">
+                        <div className="font-medium">Revenue:</div>
+                        <div>$10,000,000</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="font-medium">Expenses:</div>
+                        <div>$8,000,000</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="font-medium">Assets:</div>
+                        <div>$15,000,000</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="font-medium">Liabilities:</div>
+                        <div>$5,000,000</div>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full">
+                      <FileDown className="h-4 w-4 mr-2" />
+                      Download Full Financial Statements
+                    </Button>
+                  </Card>
+
+                  <Card className="p-6">
+                    <h3 className="font-semibold mb-3">Your Analysis Notes</h3>
+                    <textarea 
+                      className="w-full h-32 p-3 border rounded-md resize-none" 
+                      placeholder="Write your analysis of TechCorp's financial position..."
+                    />
+                    <div className="mt-3 space-y-2">
+                      <h4 className="font-medium text-sm">Task Checklist:</h4>
+                      <div className="space-y-1">
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" />
+                          Download financial data
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" />
+                          Calculate 5 key ratios
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" />
+                          Write analysis summary
+                        </label>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Assessment Preview */}
+              {currentSection === 'assessments' && (
+                <Card className="p-6 bg-yellow-50 border-yellow-200">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-yellow-600" />
+                    Final Assessment Preview
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Test your understanding with 10 multiple-choice questions covering all course topics.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                    <div>• Financial statement analysis</div>
+                    <div>• Ratio calculations</div>
+                    <div>• Industry comparisons</div>
+                    <div>• Case study applications</div>
+                  </div>
+                  <Button className="w-full">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Start Assessment
                   </Button>
                 </Card>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -413,7 +549,7 @@ export default function CourseViewer() {
             className="gap-2"
           >
             {sectionProgress[currentSection] ? (
-              currentIndex === COURSE_SECTIONS.length - 1 ? (
+              currentIndex === availableSections.length - 1 ? (
                 <>
                   Back to Dashboard
                   <ArrowRight className="h-4 w-4" />

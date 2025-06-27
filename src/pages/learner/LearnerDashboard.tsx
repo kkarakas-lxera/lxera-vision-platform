@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Flame, BookOpen, Clock, Award } from 'lucide-react';
+import { ArrowRight, Flame, BookOpen, Clock, Award, TrendingUp, Target, PlayCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import WelcomeOnboarding from '@/components/learner/WelcomeOnboarding';
 
 interface CourseAssignment {
   id: string;
@@ -33,6 +35,8 @@ export default function LearnerDashboard() {
   const [assignments, setAssignments] = useState<CourseAssignment[]>([]);
   const [streak, setStreak] = useState<LearningStreak>({ current_streak: 0, last_learning_date: null });
   const [currentCourse, setCurrentCourse] = useState<CourseAssignment | null>(null);
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     if (userProfile) {
@@ -94,6 +98,11 @@ export default function LearnerDashboard() {
 
       setAssignments(courseAssignments || []);
 
+      // Detect first-time user (no courses started yet)
+      const hasStartedAnyCourse = (courseAssignments || []).some(a => a.started_at !== null);
+      setIsFirstTime(!hasStartedAnyCourse);
+      setShowWelcome(!hasStartedAnyCourse);
+
       // Set current course (most recently accessed in-progress course)
       const inProgressCourses = (courseAssignments || []).filter(a => a.status === 'in_progress');
       if (inProgressCourses.length > 0) {
@@ -124,6 +133,15 @@ export default function LearnerDashboard() {
     return { completed, total };
   };
 
+  const getTotalEstimatedHours = () => {
+    // Estimate 8 hours per course as default
+    return assignments.length * 8;
+  };
+
+  const handleStartLearning = () => {
+    setShowWelcome(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -132,15 +150,31 @@ export default function LearnerDashboard() {
     );
   }
 
+  // Show welcome screen for first-time users
+  if (showWelcome) {
+    return (
+      <WelcomeOnboarding
+        coursesCount={assignments.length}
+        estimatedHours={getTotalEstimatedHours()}
+        onStartLearning={handleStartLearning}
+      />
+    );
+  }
+
   const { completed, total } = getProgressPath();
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-foreground">
-          {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}! Ready to continue learning?
-        </h1>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-foreground">
+            {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}! Ready to continue learning?
+          </h1>
+          <Button variant="ghost" size="icon">
+            <Settings className="h-5 w-5" />
+          </Button>
+        </div>
         
         {/* Streak Banner */}
         {streak.current_streak > 0 && (
@@ -153,6 +187,61 @@ export default function LearnerDashboard() {
             </div>
           </Card>
         )}
+
+        {/* Learning Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Assigned Courses</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{total}</div>
+              <p className="text-xs text-muted-foreground">
+                {total === completed ? 'All completed' : 'Ready to learn'}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Progress</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {total > 0 ? Math.round((completed / total) * 100) : 0}%
+              </div>
+              <p className="text-xs text-muted-foreground">Overall completion</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Study Hours</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{getTotalEstimatedHours()}h</div>
+              <p className="text-xs text-muted-foreground">Estimated total</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Next Goal</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {completed === total ? '🎉' : `${completed + 1}${completed === 0 ? 'st' : completed === 1 ? 'nd' : completed === 2 ? 'rd' : 'th'}`}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {completed === total ? 'All done!' : 'Course completion'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Continue Where You Left Off */}
@@ -257,12 +346,32 @@ export default function LearnerDashboard() {
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                  <h3 className="font-medium line-clamp-1">
-                    {assignment.status === 'completed' ? '📚' : '🐍'} {assignment.cm_module_content.module_name}
-                  </h3>
-                  {assignment.status === 'completed' && (
-                    <span className="text-green-600 text-sm font-medium">✓</span>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    <div className="text-lg">
+                      {assignment.status === 'completed' ? '📚' : 
+                       assignment.status === 'in_progress' ? '📖' : '📋'}
+                    </div>
+                    <h3 className="font-medium line-clamp-1">
+                      {assignment.cm_module_content.module_name}
+                    </h3>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    {assignment.status === 'completed' && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        ✓ Completed
+                      </Badge>
+                    )}
+                    {assignment.status === 'in_progress' && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                        In Progress
+                      </Badge>
+                    )}
+                    {assignment.status === 'assigned' && (
+                      <Badge variant="outline">
+                        Ready to Start
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -270,11 +379,22 @@ export default function LearnerDashboard() {
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>{assignment.progress_percentage || 0}% complete</span>
                     {assignment.status === 'completed' ? (
-                      <span>Completed</span>
+                      <span className="text-green-600 font-medium">Completed</span>
+                    ) : assignment.status === 'in_progress' ? (
+                      <span className="text-blue-600 font-medium">
+                        {Math.round((100 - (assignment.progress_percentage || 0)) / 10)} modules left
+                      </span>
                     ) : (
-                      <span>{Math.round((100 - (assignment.progress_percentage || 0)) / 10)} lessons left</span>
+                      <span className="text-gray-600">
+                        {Math.round(getTotalEstimatedHours() / assignments.length)} hours estimated
+                      </span>
                     )}
                   </div>
+                  
+                  {/* Course description preview */}
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {assignment.cm_module_content.introduction || 'No description available'}
+                  </p>
                 </div>
               </div>
             </Card>

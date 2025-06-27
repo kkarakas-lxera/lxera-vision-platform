@@ -36,7 +36,7 @@ const AuthCallback = () => {
                 navigate('/dashboard');
                 break;
               case 'learner':
-                navigate('/learn');
+                navigate('/learner');
                 break;
               default:
                 navigate('/');

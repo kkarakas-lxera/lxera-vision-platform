@@ -8,12 +8,28 @@ from datetime import datetime
 from agents import function_tool
 from openai import OpenAI
 
-from ..config.settings import get_settings
-from ..models.course_models import LearningActivity, Assessment, ActivityType, AssessmentType
+try:
+    from config.settings import get_settings
+except ImportError:
+    # Fallback for different import paths
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    from config.settings import get_settings
 
-# Import path for existing refactored_nodes functions
-import sys
-# Remove hardcoded path - use relative imports instead
+# Optional imports - handle gracefully if not available
+try:
+    from models.course_models import LearningActivity, Assessment, ActivityType, AssessmentType
+except ImportError:
+    # Define basic fallback classes if models not available
+    class LearningActivity:
+        pass
+    class Assessment:
+        pass
+    class ActivityType:
+        pass
+    class AssessmentType:
+        pass
 
 logger = logging.getLogger(__name__)
 

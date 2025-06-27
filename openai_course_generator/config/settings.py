@@ -26,10 +26,10 @@ class Settings(BaseSettings):
     content_generation_timeout_minutes: int = Field(12, env="CONTENT_GENERATION_TIMEOUT_MINUTES")
     total_pipeline_timeout_minutes: int = Field(30, env="TOTAL_PIPELINE_TIMEOUT_MINUTES")
     
-    # Research API Configuration
-    tavily_api_key: str = Field(..., env="TAVILY_API_KEY")
-    firecrawl_api_key: str = Field(..., env="FIRECRAWL_API_KEY")
-    jina_api_key: str = Field(..., env="JINA_API_KEY")
+    # Research API Configuration (Optional for basic functionality)
+    tavily_api_key: Optional[str] = Field(None, env="TAVILY_API_KEY")
+    firecrawl_api_key: Optional[str] = Field(None, env="FIRECRAWL_API_KEY")
+    jina_api_key: Optional[str] = Field(None, env="JINA_API_KEY")
     exa_api_key: Optional[str] = Field(None, env="EXA_API_KEY")  # Legacy support, not actively used
     
     # Optional LLM Providers
@@ -80,12 +80,15 @@ class Settings(BaseSettings):
         }
     
     def get_research_apis_config(self) -> dict:
-        """Get research APIs configuration (EXA removed)."""
-        return {
-            "tavily": {"api_key": self.tavily_api_key},
-            "firecrawl": {"api_key": self.firecrawl_api_key},
-            "jina": {"api_key": self.jina_api_key}
-        }
+        """Get research APIs configuration (only if keys are available)."""
+        config = {}
+        if self.tavily_api_key:
+            config["tavily"] = {"api_key": self.tavily_api_key}
+        if self.firecrawl_api_key:
+            config["firecrawl"] = {"api_key": self.firecrawl_api_key}
+        if self.jina_api_key:
+            config["jina"] = {"api_key": self.jina_api_key}
+        return config
     
     def get_video_config(self) -> dict:
         """Get video generation configuration."""
