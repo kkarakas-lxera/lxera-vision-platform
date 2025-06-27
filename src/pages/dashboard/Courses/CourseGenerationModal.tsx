@@ -61,7 +61,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
   onComplete,
   preSelectedEmployees = []
 }) => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { startGeneration } = useCourseGeneration();
   const [step, setStep] = useState<'selection' | 'generating' | 'complete'>('selection');
   const [employees, setEmployees] = useState<EmployeeWithGaps[]>([]);
@@ -73,14 +73,24 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
   const [generatedCourses, setGeneratedCourses] = useState<any[]>([]);
 
   useEffect(() => {
-    if (open) {
+    if (open && userProfile) {
       fetchEmployeesWithGaps();
     }
-  }, [open]);
+  }, [open, userProfile]);
 
   const fetchEmployeesWithGaps = async () => {
     try {
       setLoading(true);
+      
+      // Ensure we have userProfile and company_id
+      if (!userProfile?.company_id) {
+        console.error('No company_id found in userProfile:', userProfile);
+        toast.error('Unable to load employees. Please refresh the page.');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching employees for company_id:', userProfile.company_id);
       
       // Fetch employees with their skills profiles
       const query = supabase
@@ -101,7 +111,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
             extracted_skills
           )
         `)
-        .eq('company_id', user?.company_id)
+        .eq('company_id', userProfile.company_id)
         .eq('is_active', true);
 
       // If pre-selected employees, filter by them
@@ -201,7 +211,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
       let jobId: string | null = null;
       
       const pipeline = new CourseGenerationPipeline(
-        user?.company_id || '',
+        userProfile?.company_id || '',
         (progress) => {
           // Capture the job ID when it's created
           if (progress.phase === 'job_created' && progress.message) {
@@ -219,7 +229,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
       // Start the generation process (it will run in the background)
       pipeline.generateCoursesForEmployees(
         employeeIds,
-        user?.id || '' // assigned_by_id
+        userProfile?.id || '' // assigned_by_id
       ).then((results) => {
         // This will complete in the background
         console.log('Course generation completed:', results);
