@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CourseContentSection } from '@/components/CourseContentSection';
 
 interface CourseAssignment {
   id: string;
@@ -361,7 +362,7 @@ export default function CourseDetails() {
                       {coursePlan.course_structure?.learning_objectives?.join(', ') || 'No description available'}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Modules</p>
                       <p className="font-medium">{coursePlan.total_modules}</p>
@@ -373,6 +374,10 @@ export default function CourseDetails() {
                     <div>
                       <p className="text-sm text-muted-foreground">Word Count</p>
                       <p className="font-medium">{content?.total_word_count?.toLocaleString() || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Reading Time</p>
+                      <p className="font-medium">{Math.ceil((content?.total_word_count || 0) / 150)} min</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
@@ -441,7 +446,7 @@ export default function CourseDetails() {
                   <CardTitle>Content Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
                       <p className="font-medium">{content.status}</p>
@@ -455,6 +460,10 @@ export default function CourseDetails() {
                       <p className="font-medium">{content.total_word_count?.toLocaleString() || 0}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-muted-foreground">Est. Reading Time</p>
+                      <p className="font-medium">{Math.ceil((content.total_word_count || 0) / 150)} minutes</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-muted-foreground">Module</p>
                       <p className="font-medium">{content.module_name}</p>
                     </div>
@@ -464,97 +473,48 @@ export default function CourseDetails() {
 
               {/* Introduction Section */}
               {content.introduction && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
-                      Introduction
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {content.introduction}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CourseContentSection
+                  title="Introduction"
+                  content={content.introduction}
+                  icon={<BookOpen className="h-5 w-5" />}
+                  defaultExpanded={true}
+                />
               )}
 
               {/* Core Content Section */}
               {content.core_content && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Core Content
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {content.core_content}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CourseContentSection
+                  title="Core Content"
+                  content={content.core_content}
+                  icon={<FileText className="h-5 w-5" />}
+                />
               )}
 
               {/* Practical Applications Section */}
               {content.practical_applications && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5" />
-                      Practical Applications
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {content.practical_applications}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CourseContentSection
+                  title="Practical Applications"
+                  content={content.practical_applications}
+                  icon={<Target className="h-5 w-5" />}
+                />
               )}
 
               {/* Case Studies Section */}
               {content.case_studies && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
-                      Case Studies
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {content.case_studies}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CourseContentSection
+                  title="Case Studies"
+                  content={content.case_studies}
+                  icon={<BarChart3 className="h-5 w-5" />}
+                />
               )}
 
               {/* Assessments Section */}
               {content.assessments && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5" />
-                      Assessments
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {content.assessments}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CourseContentSection
+                  title="Assessments"
+                  content={content.assessments}
+                  icon={<CheckCircle className="h-5 w-5" />}
+                />
               )}
             </div>
           ) : (
