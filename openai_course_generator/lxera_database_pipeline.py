@@ -126,7 +126,7 @@ class LXERADatabasePipeline:
         job_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Run the course generation pipeline using OpenAI SDK with proper agent handoffs.
+        Run the course generation pipeline using OpenAI SDK with automated agent handoffs.
         """
         try:
             logger.info("🚀 Starting SDK-based course generation pipeline")
@@ -134,16 +134,16 @@ class LXERADatabasePipeline:
             # Update job progress
             if job_id:
                 await self._update_job_progress(job_id, {
-                    'current_phase': 'Running AI agent pipeline',
+                    'current_phase': 'Running Planning Agent',
                     'progress_percentage': 40
                 })
             
-            # Create the coordinator
-            coordinator = create_course_generation_coordinator()
+            # Phase 1: Planning Agent
+            from course_agents.planning_agent import create_planning_agent
+            planning_agent = create_planning_agent()
             
-            # Prepare comprehensive message for the coordinator
-            pipeline_message = f"""
-            Generate a comprehensive personalized course for {employee_data['full_name']}.
+            planning_message = f"""
+            Create a comprehensive personalized course plan for {employee_data['full_name']}.
             
             EMPLOYEE PROFILE:
             {json.dumps(employee_data, indent=2)}
@@ -151,60 +151,156 @@ class LXERADatabasePipeline:
             SKILLS GAP ANALYSIS:
             {json.dumps(skills_gaps, indent=2)}
             
-            SESSION ID: lxera-{uuid.uuid4()}
+            Execute the 6-step planning workflow:
+            1. analyze_employee_profile
+            2. prioritize_skill_gaps  
+            3. generate_course_structure_plan
+            4. generate_research_queries
+            5. create_personalized_learning_path
+            6. store_course_plan
             
-            REQUIREMENTS:
-            1. Analyze the employee profile and skills gaps
-            2. Create a comprehensive course plan
-            3. Conduct research for content creation
-            4. Generate high-quality course content
-            5. Store all results in the database
-            6. Return the final content_id for course assignment
-            
-            Execute this workflow with proper agent handoffs and database storage.
+            Complete these steps and store the final course plan.
             """
             
-            # Run with OpenAI SDK tracing
-            with trace("lxera_course_generation"):
-                result = await Runner.run(
-                    coordinator,
-                    pipeline_message,
-                    max_turns=50  # Allow for full pipeline execution
-                )
-            
-            # Update job progress
+            # Update job progress for planning phase
             if job_id:
                 await self._update_job_progress(job_id, {
-                    'current_phase': 'Processing pipeline results',
+                    'current_phase': 'Planning Phase: Creating personalized course structure',
+                    'progress_percentage': 30
+                })
+            
+            plan_id = None
+            with trace("planning_phase"):
+                planning_result = await Runner.run(
+                    planning_agent,
+                    planning_message,
+                    max_turns=8  # Reduced limit - 6 steps + 2 for final response
+                )
+            
+            # Extract plan_id from planning result
+            plan_id = self._extract_plan_id(planning_result)
+            
+            if not plan_id:
+                logger.error("❌ Planning phase failed - no plan_id found")
+                return {
+                    'pipeline_success': False,
+                    'error': 'Planning phase failed to produce a course plan',
+                    'content_id': None
+                }
+            
+            logger.info(f"✅ Planning phase completed with plan_id: {plan_id}")
+            
+            # Phase 2: Research Agent
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Research Phase: Gathering course content',
+                    'progress_percentage': 60
+                })
+            
+            from course_agents.research_agent import create_research_agent
+            research_agent = create_research_agent()
+            
+            research_message = f"""
+            Execute comprehensive research for course plan_id: {plan_id}
+            
+            Follow this exact workflow:
+            1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
+            2. tavily_search - Search for relevant content for each module topic
+            3. firecrawl_extract - Extract detailed content from authoritative sources
+            4. research_synthesizer - Synthesize findings into structured insights
+            5. store_research_results - Save your research findings
+            
+            Focus on finding practical, industry-relevant content for the learner.
+            """
+            
+            with trace("research_phase"):
+                research_result = await Runner.run(
+                    research_agent,
+                    research_message,
+                    max_turns=15  # Research doesn't need as many turns
+                )
+            
+            # Extract research_id from research result
+            research_id = self._extract_research_id(research_result)
+            
+            if not research_id:
+                logger.warning("⚠️ Research phase completed but no research_id found")
+                # Continue anyway as research might have been stored
+            else:
+                logger.info(f"✅ Research phase completed with research_id: {research_id}")
+            
+            # Phase 3: Content Generation Agent
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Content Generation Phase: Creating course materials',
+                    'progress_percentage': 70
+                })
+            
+            from course_agents.content_agent import create_content_agent
+            content_agent = create_content_agent()
+            
+            content_message = f"""
+            Generate comprehensive course content for plan_id: {plan_id}
+            
+            DATABASE CONTEXT:
+            - plan_id: {plan_id}
+            {'- research_id: ' + research_id if research_id else ''}
+            
+            Follow the content generation workflow:
+            1. create_new_module_content - Create a new module and get content_id
+            2. generate_module_introduction - Create personalized introduction
+            3. store_content_section - Save introduction
+            4. generate_core_content - Develop comprehensive content
+            5. store_content_section - Save core content
+            6. generate_practical_applications - Create hands-on examples
+            7. store_content_section - Save practical applications
+            8. generate_case_studies - Create relevant scenarios
+            9. store_content_section - Save case studies
+            10. generate_assessment_materials - Create quizzes/exercises
+            11. store_content_section - Save assessments
+            12. compile_complete_module - Compile all sections
+            13. update_module_status - Set status to "quality_check"
+            
+            Focus on creating high-quality, personalized content.
+            """
+            
+            with trace("content_generation_phase"):
+                content_result = await Runner.run(
+                    content_agent,
+                    content_message,
+                    max_turns=20
+                )
+            
+            # Extract content_id from content result
+            content_id = self._extract_content_id(content_result)
+            
+            if not content_id:
+                logger.error("❌ Content generation failed - no content_id found")
+                return {
+                    'pipeline_success': False,
+                    'error': 'Content generation failed to produce content',
+                    'content_id': None
+                }
+            
+            logger.info(f"✅ Content generation completed with content_id: {content_id}")
+            
+            # Phase 4: Quality Assessment (simplified for now)
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Finalizing course content',
                     'progress_percentage': 90
                 })
             
-            # Extract results
-            pipeline_success = True
-            content_id = None
-            
-            # Try to extract content_id from result
-            if hasattr(result, 'final_output') and result.final_output:
-                output_text = str(result.final_output)
-                # Look for content_id in the output
-                import re
-                content_id_match = re.search(r'content[_-]id[:\s]*([a-f0-9\-]{36})', output_text, re.IGNORECASE)
-                if content_id_match:
-                    content_id = content_id_match.group(1)
-            
-            # If no content_id found, generate a placeholder
-            if not content_id:
-                content_id = str(uuid.uuid4())
-                logger.warning(f"⚠️ No content_id found in result, using placeholder: {content_id}")
-            
-            logger.info(f"✅ Pipeline completed successfully with content_id: {content_id}")
+            logger.info(f"✅ SDK Pipeline completed with content_id: {content_id}")
             
             return {
-                'pipeline_success': pipeline_success,
+                'pipeline_success': True,
                 'content_id': content_id,
-                'agent_result': result.final_output if hasattr(result, 'final_output') else str(result),
-                'agent_name': result.last_agent if hasattr(result, 'last_agent') else 'coordinator',
-                'turns': len(result.raw_responses) if hasattr(result, 'raw_responses') else 1
+                'plan_id': plan_id,
+                'research_id': research_id,
+                'agent_result': f"Course generated successfully with content_id: {content_id}",
+                'agent_name': 'full_pipeline',
+                'sdk_handoffs': True
             }
             
         except Exception as e:
@@ -214,6 +310,226 @@ class LXERADatabasePipeline:
                 'error': str(e),
                 'content_id': None
             }
+    
+    def _extract_content_id(self, result) -> str:
+        """Extract content_id from agent result."""
+        try:
+            output_text = ""
+            
+            if hasattr(result, 'final_output') and result.final_output:
+                output_text = str(result.final_output)
+            
+            if hasattr(result, 'raw_responses'):
+                for response in result.raw_responses:
+                    if hasattr(response, 'content'):
+                        for content_block in response.content:
+                            if hasattr(content_block, 'type') and content_block.type == 'tool_result':
+                                tool_result = str(content_block.content)
+                                output_text += tool_result + " "
+            
+            if not output_text and isinstance(result, dict):
+                output_text = str(result.get('content', ''))
+            
+            # Look for content_id pattern
+            import re
+            patterns = [
+                r'Module content created successfully with content_id:\s*([a-f0-9\-]{36})',
+                r'content[_-]id[:\s]*([a-f0-9\-]{36})',
+                r'created.*content.*id[:\s]*([a-f0-9\-]{36})'
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, output_text, re.IGNORECASE)
+                if match:
+                    content_id = match.group(1)
+                    logger.info(f"✅ Found content_id: {content_id}")
+                    return content_id
+            
+            logger.warning(f"❌ No content_id found in output")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error extracting content_id: {e}")
+            return None
+    
+    def _extract_research_id(self, result) -> str:
+        """Extract research_id from agent result."""
+        try:
+            # Similar to plan_id extraction
+            output_text = ""
+            
+            if hasattr(result, 'final_output') and result.final_output:
+                output_text = str(result.final_output)
+            
+            if hasattr(result, 'raw_responses'):
+                for response in result.raw_responses:
+                    if hasattr(response, 'content'):
+                        for content_block in response.content:
+                            if hasattr(content_block, 'type') and content_block.type == 'tool_result':
+                                tool_result = str(content_block.content)
+                                output_text += tool_result + " "
+            
+            if not output_text and isinstance(result, dict):
+                output_text = str(result.get('content', ''))
+            
+            # Look for research_id pattern
+            import re
+            patterns = [
+                r'Research results stored successfully with ID:\s*([a-f0-9\-]{36})',
+                r'research[_-]id[:\s]*([a-f0-9\-]{36})',
+                r'stored.*research.*id[:\s]*([a-f0-9\-]{36})'
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, output_text, re.IGNORECASE)
+                if match:
+                    research_id = match.group(1)
+                    logger.info(f"✅ Found research_id: {research_id}")
+                    return research_id
+            
+            logger.warning(f"❌ No research_id found in output")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error extracting research_id: {e}")
+            return None
+    
+    def _extract_plan_id(self, result) -> str:
+        """Extract plan_id from agent result."""
+        try:
+            # Log the result type for debugging
+            logger.info(f"Extracting plan_id from result type: {type(result)}")
+            
+            # Get the output text
+            output_text = ""
+            
+            # First check final_output
+            if hasattr(result, 'final_output') and result.final_output:
+                output_text = str(result.final_output)
+                logger.info(f"Using final_output: {output_text[:200]}...")
+            
+            # Also check raw_responses for tool results
+            if hasattr(result, 'raw_responses'):
+                logger.info(f"Checking {len(result.raw_responses)} raw responses")
+                for response in result.raw_responses:
+                    if hasattr(response, 'content'):
+                        for content_block in response.content:
+                            if hasattr(content_block, 'type') and content_block.type == 'tool_result':
+                                tool_result = str(content_block.content)
+                                output_text += tool_result + " "
+                                # Log if we find a plan_id in tool results
+                                if "Course plan stored successfully with ID:" in tool_result:
+                                    logger.info(f"Found plan_id in tool result: {tool_result[:100]}...")
+            
+            # If still no output_text, try dict format
+            if not output_text and isinstance(result, dict):
+                output_text = str(result.get('content', ''))
+            
+            # Look for plan_id pattern
+            import re
+            # More comprehensive pattern that matches the tool output format
+            patterns = [
+                r'Course plan stored successfully with ID:\s*([a-f0-9\-]{36})',
+                r'(?:plan[_-]id|ID)[:\s]*([a-f0-9\-]{36})',
+                r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})'  # Match any UUID
+            ]
+            
+            for pattern in patterns:
+                plan_id_match = re.search(pattern, output_text, re.IGNORECASE)
+                if plan_id_match:
+                    plan_id = plan_id_match.group(1)
+                    logger.info(f"✅ Found plan_id using pattern '{pattern}': {plan_id}")
+                    return plan_id
+            
+            # Log the full output for debugging if no plan_id found
+            logger.warning(f"❌ No plan_id found in output. Full text: {output_text[:500]}...")
+                
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error extracting plan_id: {e}")
+            return None
+    
+    def _check_planning_completion(self, planning_result) -> bool:
+        """Check if Planning Agent completed successfully by looking for completion indicators."""
+        try:
+            # Handle dict format from lxera_agents.Runner.run()
+            if isinstance(planning_result, dict):
+                # Check success flag
+                if planning_result.get('success'):
+                    logger.info("✅ Planning completion detected: success flag is True")
+                    
+                    # Check content for completion indicators
+                    content = planning_result.get('content', '')
+                    completion_indicators = [
+                        'planning is complete',
+                        'course plan has been successfully',
+                        'planning complete',
+                        'stored with the identifier',
+                        'you can proceed with the next phase'
+                    ]
+                    
+                    for indicator in completion_indicators:
+                        if indicator in content.lower():
+                            logger.info(f"✅ Planning completion confirmed: '{indicator}' found in content")
+                            return True
+                    
+                    # Even if no specific indicators, success=True is a good sign
+                    return True
+                else:
+                    logger.warning("⚠️ Planning result indicates failure")
+                    return False
+            
+            # Handle RunResult object format (fallback)
+            if hasattr(planning_result, 'raw_responses'):
+                store_course_plan_called = False
+                completion_message_found = False
+                
+                for response in planning_result.raw_responses:
+                    # Check for store_course_plan tool call
+                    if hasattr(response, 'content') and response.content:
+                        for content_block in response.content:
+                            if hasattr(content_block, 'type') and content_block.type == 'tool_use':
+                                if hasattr(content_block, 'name') and content_block.name == 'store_course_plan':
+                                    store_course_plan_called = True
+                                    logger.info("✅ Planning completion detected: store_course_plan tool called")
+                    
+                    # Check for completion message in tool results
+                    if hasattr(response, 'content') and response.content:
+                        for content_block in response.content:
+                            if hasattr(content_block, 'type') and content_block.type == 'tool_result':
+                                if hasattr(content_block, 'content'):
+                                    result_text = str(content_block.content).lower()
+                                    if 'planning_complete_trigger_handoff' in result_text or 'course plan stored successfully' in result_text:
+                                        completion_message_found = True
+                                        logger.info("✅ Planning completion detected: completion message found in tool results")
+                
+                if store_course_plan_called:
+                    logger.info("✅ Planning completion detected: store_course_plan tool called")
+                    return True
+            
+            # Fallback: Check final output for completion indicators
+            if hasattr(planning_result, 'final_output') and planning_result.final_output:
+                output_text = str(planning_result.final_output).lower()
+                
+                completion_indicators = [
+                    'planning_complete_trigger_handoff',
+                    'course plan stored successfully',
+                    'planning workflow completed',
+                    'all 6 steps completed'
+                ]
+                
+                for indicator in completion_indicators:
+                    if indicator in output_text:
+                        logger.info(f"✅ Planning completion detected: '{indicator}' found in final output")
+                        return True
+            
+            logger.warning("⚠️ No clear planning completion indicators found")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error checking planning completion: {e}")
+            return False
     
     async def _retrieve_employee_data(self, employee_id: str) -> Dict[str, Any]:
         """Retrieve employee data from Supabase database."""
