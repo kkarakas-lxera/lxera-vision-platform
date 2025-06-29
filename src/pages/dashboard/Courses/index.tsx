@@ -51,6 +51,9 @@ interface CourseData {
   total_word_count: number;
   created_at: string;
   updated_at: string;
+  total_modules?: number;
+  modules_completed?: number;
+  course_description?: string;
   assignments?: CourseAssignment[];
 }
 
@@ -96,49 +99,97 @@ const Courses: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch courses with assignments
-      const { data: coursesData, error: coursesError } = await supabase
-        .from('cm_module_content')
+      // Fetch course assignments with their associated plans and modules
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('course_assignments')
         .select(`
           *,
-          course_assignments (
+          employees!inner (
+            user_id,
+            position,
+            department,
+            users!inner (
+              full_name,
+              email
+            )
+          ),
+          cm_course_plans!plan_id (
+            plan_id,
+            course_title,
+            course_description,
+            total_modules,
+            course_duration_weeks
+          ),
+          course_modules (
             id,
-            employee_id,
-            status,
+            content_id,
+            module_number,
+            module_title,
+            is_completed,
             progress_percentage,
-            due_date,
-            started_at,
-            employees!inner (
-              user_id,
-              position,
-              department,
-              users!inner (
-                full_name,
-                email
-              )
+            cm_module_content (
+              content_id,
+              module_name,
+              total_word_count,
+              status
             )
           )
         `)
         .eq('company_id', user?.company_id)
         .order('created_at', { ascending: false });
 
-      if (coursesError) throw coursesError;
+      if (assignmentsError) throw assignmentsError;
 
-      // Transform the data
-      const transformedCourses = coursesData?.map(course => ({
-        ...course,
-        assignments: course.course_assignments?.map((assignment: any) => ({
-          ...assignment,
+      // Transform to course-centric view
+      const coursesMap = new Map();
+      
+      assignmentsData?.forEach(assignment => {
+        const courseKey = assignment.plan_id || assignment.course_id;
+        
+        if (!coursesMap.has(courseKey)) {
+          coursesMap.set(courseKey, {
+            content_id: courseKey,
+            module_name: assignment.cm_course_plans?.course_title || 'Course',
+            employee_name: 'Multiple Employees',
+            status: 'published',
+            priority_level: assignment.priority || 'medium',
+            total_word_count: 0,
+            created_at: assignment.created_at,
+            updated_at: assignment.updated_at,
+            total_modules: assignment.total_modules || 1,
+            modules_completed: assignment.modules_completed || 0,
+            course_description: assignment.cm_course_plans?.course_description,
+            assignments: []
+          });
+        }
+        
+        const course = coursesMap.get(courseKey);
+        
+        // Add assignment with employee info
+        course.assignments.push({
+          id: assignment.id,
+          employee_id: assignment.employee_id,
+          status: assignment.status,
+          progress_percentage: assignment.progress_percentage || 0,
+          due_date: assignment.due_date,
+          started_at: assignment.started_at,
           employee: {
             full_name: assignment.employees?.users?.full_name || 'Unknown',
             email: assignment.employees?.users?.email || '',
             position: assignment.employees?.position || '',
             department: assignment.employees?.department || ''
           }
-        })) || []
-      })) || [];
+        });
+        
+        // Calculate total word count from modules
+        assignment.course_modules?.forEach((module: any) => {
+          if (module.cm_module_content?.total_word_count) {
+            course.total_word_count += module.cm_module_content.total_word_count;
+          }
+        });
+      });
 
-      setCourses(transformedCourses);
+      setCourses(Array.from(coursesMap.values()));
     } catch (error) {
       console.error('Error fetching courses:', error);
       toast.error('Failed to load courses');
@@ -162,7 +213,7 @@ const Courses: React.FC = () => {
       const avgProgress = assignments?.reduce((sum, a) => sum + (a.progress_percentage || 0), 0) / (totalAssignments || 1);
 
       setMetrics({
-        totalCourses: courses.length,
+        totalCourses: new Set(assignments?.map(a => a.plan_id || a.course_id)).size, // Unique courses
         activeAssignments,
         completionRate: totalAssignments > 0 ? (completedAssignments / totalAssignments) * 100 : 0,
         avgProgress: avgProgress || 0
@@ -354,7 +405,12 @@ const Courses: React.FC = () => {
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <h3 className="text-lg font-semibold mb-1">{course.module_name}</h3>
-                            <p className="text-sm text-muted-foreground">Created for: {course.employee_name}</p>
+                            {course.course_description && (
+                              <p className="text-sm text-muted-foreground mb-1">{course.course_description}</p>
+                            )}
+                            <p className="text-sm text-muted-foreground">
+                              {course.modules_completed}/{course.total_modules} modules completed
+                            </p>
                           </div>
                           <div className="flex gap-2">
                             {getStatusBadge(course.status)}
@@ -363,9 +419,13 @@ const Courses: React.FC = () => {
                         </div>
 
                         {/* Course Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                           <div className="flex items-center gap-2 text-sm">
                             <BookOpen className="h-4 w-4 text-muted-foreground" />
+                            <span>{course.total_modules || 1} modules</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
                             <span>{course.total_word_count?.toLocaleString() || 0} words</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
@@ -374,7 +434,7 @@ const Courses: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <Users className="h-4 w-4 text-muted-foreground" />
-                            <span>{course.assignments?.length || 0} assignments</span>
+                            <span>{course.assignments?.length || 0} learners</span>
                           </div>
                         </div>
 

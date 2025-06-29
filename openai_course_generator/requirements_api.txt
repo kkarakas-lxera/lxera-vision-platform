@@ -1,0 +1,51 @@
+# Lxera Agent Pipeline API Requirements
+# Core API dependencies
+
+# FastAPI and web server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Database and storage
+supabase==2.0.2
+postgrest==0.11.0
+
+# OpenAI Agents SDK and AI tools
+lxera-agents>=1.0.0
+openai>=1.6.0
+
+# Research and content tools
+tavily-python>=0.3.0
+firecrawl-py>=0.0.8
+
+# Data validation and serialization
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP client
+httpx==0.25.2
+requests==2.31.0
+
+# Utilities
+python-dotenv==1.0.0
+PyJWT==2.8.0
+python-dateutil==2.8.2
+uuid==1.30
+
+# Logging and monitoring
+structlog==23.2.0
+prometheus-client==0.19.0
+
+# Development and testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+httpx==0.25.2  # For testing API endpoints
+
+# Production WSGI server
+gunicorn==21.2.0
+
+# Environment and deployment
+python-decouple==3.8

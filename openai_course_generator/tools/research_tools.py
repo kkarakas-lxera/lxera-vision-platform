@@ -143,26 +143,20 @@ def firecrawl_extract(url: str, extraction_type: str = "full") -> str:
         # Import and use existing Firecrawl setup
         from firecrawl import FirecrawlApp
         
-        # Get API key from environment or use hardcoded for testing
+        # Get API key from environment or use the provided key
         firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY', 'fc-7262516226444c878aa16b03d570f3c7')
-        if not firecrawl_api_key:
-            try:
-                from config.settings import get_settings
-                settings = get_settings()
-                firecrawl_api_key = settings.firecrawl_api_key
-            except ImportError:
-                logger.warning("Could not import settings, using hardcoded API key for testing")
+        logger.info(f"Using Firecrawl API key: {firecrawl_api_key[:10]}...")
         
         firecrawl_client = FirecrawlApp(api_key=firecrawl_api_key)
         
-        # Configure extraction parameters
+        # Configure extraction parameters with content limit
         if extraction_type == "full":
             result = firecrawl_client.scrape_url(
                 url,
-                formats=["markdown", "html"],
+                formats=["markdown"],
                 only_main_content=True,
-                include_tags=["h1", "h2", "h3", "p", "li", "table", "blockquote"],
-                exclude_tags=["nav", "footer", "aside", "advertisement"],
+                include_tags=["h1", "h2", "h3", "p", "li"],
+                exclude_tags=["nav", "footer", "aside", "advertisement", "script", "style"],
                 wait_for=2000
             )
         else:
@@ -178,10 +172,15 @@ def firecrawl_extract(url: str, extraction_type: str = "full") -> str:
                 }
             )
         
-        # Extract content from response
+        # Extract content from response with content limit
         if hasattr(result, 'success') and result.success:
             content = result.markdown or getattr(result, 'content', '') or ''
             title = result.title or (result.metadata.get('title') if result.metadata else '') or ''
+            
+            # Limit content to prevent context overflow (max 5000 words)
+            words = content.split()
+            if len(words) > 5000:
+                content = ' '.join(words[:5000]) + "\n\n[Content truncated at 5000 words for context management]"
         else:
             content = ""
             title = ""

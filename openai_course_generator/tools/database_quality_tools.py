@@ -185,6 +185,18 @@ Priority Level: {priority_level.upper()}
         
         # Store assessment in database
         try:
+            # Get company_id from content data
+            company_id = content_data.get('company_id')
+            if not company_id:
+                logger.warning(f"No company_id found for content {content_id}, assessment will not be stored")
+                return json.dumps({
+                    "success": False,
+                    "error": "Missing company_id - cannot store assessment",
+                    "content_id": content_id,
+                    "overall_score": overall_score,
+                    "passed": passed
+                })
+            
             assessment_id = cm.store_quality_assessment(
                 content_id=content_id,
                 overall_score=overall_score,
@@ -642,6 +654,155 @@ def _generate_enhancement_strategy(section_analysis: Dict, assessment: Dict, con
         strategy["recommended_actions"].append("Find recent statistics and case studies")
     
     return strategy
+
+@function_tool
+def quality_assessor_with_storage(
+    section_content: str,
+    content_id: str = "",
+    section_name: str = "unknown",
+    module_context: str = "{}"
+) -> str:
+    """
+    Section-specific quality assessment with database storage.
+    
+    Args:
+        section_content: Content of the specific section to assess
+        content_id: Module content identifier for database storage
+        section_name: Name of the section being assessed
+        module_context: JSON string with section-specific context
+        
+    Returns:
+        JSON string with assessment results and database storage confirmation
+    """
+    try:
+        logger.info(f"📊 Assessing section '{section_name}' quality (content_id: {content_id[:8] if content_id else 'N/A'})")
+        
+        # Parse module context for section-specific scoring
+        try:
+            context = json.loads(module_context) if isinstance(module_context, str) else module_context
+            priority_level = context.get("priority_level", "high")
+            word_count_target = context.get("word_count_target", "800-1000")
+            section_name = context.get("section_name", section_name)
+        except:
+            priority_level = "high"
+            word_count_target = "800-1000"
+        
+        # Import quality assessment logic from existing quality_tools
+        from tools.quality_tools import parse_word_count_target
+        target_words = parse_word_count_target(word_count_target)
+        
+        # Basic quality assessment logic (simplified for section-specific use)
+        word_count = len(section_content.split())
+        sentence_count = len([s for s in section_content.split('.') if s.strip()])
+        paragraph_count = len([p for p in section_content.split('\n\n') if p.strip()])
+        
+        # Calculate section-specific quality scores
+        quality_scores = {}
+        
+        # Word count score (section-specific)
+        tolerance = 0.15 if priority_level == "high" else 0.20
+        min_words = int(target_words * (1 - tolerance))
+        max_words = int(target_words * (1 + tolerance))
+        
+        if min_words <= word_count <= max_words:
+            word_count_score = 10.0
+        elif word_count < min_words:
+            word_count_score = max(3.0, 10 * (word_count / min_words))
+        else:
+            word_count_score = max(3.0, 10 * (max_words / word_count))
+        
+        # Simplified quality dimensions for section assessment
+        accuracy_score = min(10.0, 6.0 + (paragraph_count * 0.5))  # Structure quality
+        clarity_score = min(10.0, 5.0 + (sentence_count / word_count * 100))  # Readability
+        engagement_score = 7.0 + (len([w for w in section_content.lower().split() if w in ['example', 'case', 'practice', 'real']]) * 0.3)
+        engagement_score = min(10.0, engagement_score)
+        
+        quality_scores = {
+            "word_count": word_count_score,
+            "accuracy": accuracy_score,
+            "clarity": clarity_score,
+            "engagement": engagement_score
+        }
+        
+        # Calculate overall score
+        overall_score = sum(quality_scores.values()) / len(quality_scores)
+        passed = overall_score >= 7.5
+        
+        # Generate assessment feedback
+        quality_feedback = f"""
+Section Quality Assessment - {section_name.title()}:
+Overall Score: {overall_score:.1f}/10.0
+Word Count: {word_count}/{target_words} words (Target: {word_count_target})
+
+Quality Breakdown:
+- Word Count: {word_count_score:.1f}/10.0
+- Accuracy: {accuracy_score:.1f}/10.0
+- Clarity: {clarity_score:.1f}/10.0
+- Engagement: {engagement_score:.1f}/10.0
+
+Status: {"APPROVED" if passed else "NEEDS ENHANCEMENT"}
+"""
+        
+        # Store in database if content_id provided
+        assessment_stored = False
+        if content_id:
+            try:
+                cm = get_content_manager()
+                
+                # Get company_id from module content
+                content_data = cm.get_module_content(content_id)
+                company_id = content_data.get('company_id') if content_data else None
+                
+                if not company_id:
+                    logger.warning(f"No company_id found for content {content_id}, assessment will not be stored")
+                    assessment_stored = False
+                else:
+                    assessment_id = cm.store_quality_assessment(
+                        content_id=content_id,
+                        overall_score=overall_score,
+                        section_scores={section_name: overall_score},
+                        quality_feedback=quality_feedback,
+                        assessment_criteria="word_count,accuracy,clarity,engagement",
+                        module_context={"section_name": section_name, "word_count_target": word_count_target},
+                        passed=passed,
+                        requires_revision=not passed,
+                        sections_needing_work=[section_name] if not passed else [],
+                        critical_issues=[] if passed else [f"Section '{section_name}' score below threshold"],
+                        improvement_suggestions=[] if passed else [f"Enhance {section_name} section for better quality"],
+                        company_id=company_id
+                    )
+                assessment_stored = True
+                logger.info(f"✅ Quality assessment stored in database: {assessment_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to store assessment in database: {e}")
+        
+        result = {
+            "success": True,
+            "section_name": section_name,
+            "content_id": content_id,
+            "overall_score": overall_score,
+            "individual_scores": quality_scores,
+            "word_count": word_count,
+            "target_words": target_words,
+            "passed": passed,
+            "requires_enhancement": not passed,
+            "quality_feedback": quality_feedback,
+            "assessment_stored": assessment_stored
+        }
+        
+        logger.info(f"✅ Section '{section_name}' assessment: {overall_score:.1f}/10.0 ({'APPROVED' if passed else 'NEEDS ENHANCEMENT'})")
+        return json.dumps(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Section quality assessment failed: {e}")
+        return json.dumps({
+            "success": False,
+            "error": str(e),
+            "section_name": section_name,
+            "overall_score": 0.0,
+            "passed": False,
+            "requires_enhancement": True
+        })
 
 if __name__ == "__main__":
     """Test database quality tools."""

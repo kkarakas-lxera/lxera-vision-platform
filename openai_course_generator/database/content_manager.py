@@ -41,11 +41,11 @@ class ContentManager:
         """Initialize ContentManager with Supabase connection."""
         
         # Get Supabase credentials
-        self.supabase_url = supabase_url or os.getenv('SUPABASE_URL')
-        self.supabase_key = supabase_key or os.getenv('SUPABASE_ANON_KEY')
+        self.supabase_url = supabase_url or os.getenv('SUPABASE_URL', 'https://xwfweumeryrgbguwrocr.supabase.co')
+        self.supabase_key = supabase_key or os.getenv('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc2MzQ0MCwiZXhwIjoyMDY2MzM5NDQwfQ.qxXpBxUKhKA4AQT4UQnIEJGbGNrRDMbBroZU8YaypSY')
         
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY environment variables must be set")
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables must be set")
         
         # Initialize Supabase client
         self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
@@ -60,6 +60,45 @@ class ContentManager:
         """Get table name with prefix for public schema."""
         return f"{self.table_prefix}{table_name}"
     
+    def _normalize_priority(self, priority: str) -> str:
+        """Normalize priority level to match database constraint.
+        
+        Database constraint: ('critical', 'high', 'medium', 'low')
+        
+        Args:
+            priority: Raw priority value from agent or spec
+            
+        Returns:
+            Normalized priority level that matches constraint
+        """
+        if not priority:
+            return 'medium'
+        
+        # Convert to lowercase and handle common variations
+        priority_lower = str(priority).lower().strip()
+        
+        # Map variations to valid values
+        priority_map = {
+            'critical': 'critical',
+            'high': 'high', 
+            'medium': 'medium',
+            'low': 'low',
+            # Common variations
+            'urgent': 'critical',
+            'important': 'high',
+            'normal': 'medium',
+            'standard': 'medium',
+            'basic': 'low',
+            'minimal': 'low'
+        }
+        
+        normalized = priority_map.get(priority_lower, 'medium')
+        
+        if priority_lower not in priority_map:
+            logger.warning(f"Unknown priority '{priority}', defaulting to 'medium'")
+        
+        return normalized
+    
     # =====================================================
     # CONTENT STORAGE OPERATIONS
     # =====================================================
@@ -70,7 +109,8 @@ class ContentManager:
         employee_name: str,
         session_id: str,
         module_spec: Dict[str, Any],
-        research_context: Dict[str, Any] = None
+        research_context: Dict[str, Any] = None,
+        company_id: str = None
     ) -> str:
         """
         Create new module content entry and return content_id.
@@ -96,15 +136,20 @@ class ContentManager:
                 import uuid
                 content_id = str(uuid.uuid4())
                 
+                # Normalize priority level to match database constraint
+                raw_priority = module_spec.get('priority_level', 'medium')
+                normalized_priority = self._normalize_priority(raw_priority)
+                
                 content_data = {
                     'content_id': content_id,  # Explicitly set to prevent conflicts
+                    'company_id': company_id or '67d7bff4-1149-4f37-952e-af1841fb67fa',  # Default company_id
                     'module_name': module_name,
                     'employee_name': employee_name,
                     'session_id': session_id,
                     'module_spec': module_spec,
                     'research_context': research_context or {},
                     'status': 'draft',
-                    'priority_level': module_spec.get('priority_level', 'medium'),
+                    'priority_level': normalized_priority,
                     'revision_count': 0,
                     'created_at': datetime.now(timezone.utc).isoformat()
                 }
@@ -772,6 +817,7 @@ class ContentManager:
                 logger.debug(f"🆕 Creating new content section: {section_name}")
                 section_data = {
                     'content_id': content_id,
+                    'company_id': '67d7bff4-1149-4f37-952e-af1841fb67fa',  # Default company_id
                     'section_name': section_name,
                     'section_content': section_content,
                     'section_metadata': metadata or {},

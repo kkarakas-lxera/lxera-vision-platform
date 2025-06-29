@@ -229,60 +229,112 @@ class LXERADatabasePipeline:
             else:
                 logger.info(f"✅ Research phase completed with research_id: {research_id}")
             
-            # Phase 3: Content Generation Agent
+            # Phase 3: Content Generation Agent - Generate ALL modules
             if job_id:
                 await self._update_job_progress(job_id, {
                     'current_phase': 'Content Generation Phase: Creating course materials',
                     'progress_percentage': 70
                 })
             
-            from course_agents.content_agent import create_content_agent
-            content_agent = create_content_agent()
-            
-            content_message = f"""
-            Generate comprehensive course content for plan_id: {plan_id}
-            
-            DATABASE CONTEXT:
-            - plan_id: {plan_id}
-            {'- research_id: ' + research_id if research_id else ''}
-            
-            Follow the content generation workflow:
-            1. create_new_module_content - Create a new module and get content_id
-            2. generate_module_introduction - Create personalized introduction
-            3. store_content_section - Save introduction
-            4. generate_core_content - Develop comprehensive content
-            5. store_content_section - Save core content
-            6. generate_practical_applications - Create hands-on examples
-            7. store_content_section - Save practical applications
-            8. generate_case_studies - Create relevant scenarios
-            9. store_content_section - Save case studies
-            10. generate_assessment_materials - Create quizzes/exercises
-            11. store_content_section - Save assessments
-            12. compile_complete_module - Compile all sections
-            13. update_module_status - Set status to "quality_check"
-            
-            Focus on creating high-quality, personalized content.
-            """
-            
-            with trace("content_generation_phase"):
-                content_result = await Runner.run(
-                    content_agent,
-                    content_message,
-                    max_turns=20
-                )
-            
-            # Extract content_id from content result
-            content_id = self._extract_content_id(content_result)
-            
-            if not content_id:
-                logger.error("❌ Content generation failed - no content_id found")
+            # Fetch course plan to get all modules
+            course_plan = await self._fetch_course_plan(plan_id)
+            if not course_plan:
+                logger.error(f"❌ Failed to fetch course plan {plan_id}")
                 return {
                     'pipeline_success': False,
-                    'error': 'Content generation failed to produce content',
+                    'error': 'Course plan not found',
                     'content_id': None
                 }
             
-            logger.info(f"✅ Content generation completed with content_id: {content_id}")
+            modules = course_plan.get('course_structure', {}).get('modules', [])
+            logger.info(f"📚 Found {len(modules)} modules to generate")
+            
+            from course_agents.content_agent import create_content_agent
+            content_agent = create_content_agent()
+            
+            # Generate content for each module
+            content_ids = []
+            for idx, module in enumerate(modules):
+                module_number = idx + 1
+                module_title = module.get('title', f'Module {module_number}')
+                logger.info(f"📖 Generating content for Module {module_number}/{len(modules)}: {module_title}")
+                
+                if job_id:
+                    # Update progress for each module
+                    module_progress = 70 + (20 * (idx / len(modules)))
+                    await self._update_job_progress(job_id, {
+                        'current_phase': f'Generating Module {module_number}/{len(modules)}: {module_title}',
+                        'progress_percentage': int(module_progress)
+                    })
+                
+                content_message = f"""
+                Generate comprehensive course content for Module {module_number}: {module_title}
+                
+                DATABASE CONTEXT:
+                - plan_id: {plan_id}
+                {'- research_id: ' + research_id if research_id else ''}
+                
+                MODULE DETAILS:
+                - Module Number: {module_number}
+                - Module Title: {module_title}
+                - Topics: {', '.join(module.get('topics', []))}
+                - Duration: {module.get('duration', '1 week')}
+                - Priority: {module.get('priority', 'high')}
+                
+                Follow the content generation workflow:
+                1. fetch_course_plan - Get complete course structure using plan_id: {plan_id}
+                2. create_new_module_content - Create a new module and get content_id
+                3. generate_module_introduction - Create personalized introduction
+                4. quality_assessor_with_storage - Assess introduction quality
+                5. store_content_section - Save introduction if approved
+                6. generate_core_content - Develop comprehensive content
+                7. quality_assessor_with_storage - Assess core content quality
+                8. store_content_section - Save core content if approved
+                9. generate_practical_applications - Create hands-on examples
+                10. quality_assessor_with_storage - Assess practical applications quality
+                11. store_content_section - Save practical applications if approved
+                12. generate_case_studies - Create relevant scenarios
+                13. quality_assessor_with_storage - Assess case studies quality
+                14. store_content_section - Save case studies if approved
+                15. generate_assessment_materials - Create quizzes/exercises
+                16. quality_assessor_with_storage - Assess assessment materials quality
+                17. store_content_section - Save assessments if approved
+                18. compile_complete_module - Compile all sections
+                19. update_module_status - Set status to "approved"
+                
+                IMPORTANT: Store each section IMMEDIATELY after quality approval (score ≥ 7.5).
+                """
+                
+                with trace(f"content_generation_module_{module_number}"):
+                    content_result = await Runner.run(
+                        content_agent,
+                        content_message,
+                        max_turns=25  # Increased for quality checks
+                    )
+                
+                # Extract content_id from content result
+                content_id = self._extract_content_id(content_result)
+                
+                if not content_id:
+                    logger.error(f"❌ Module {module_number} generation failed - no content_id found")
+                    # Continue with other modules even if one fails
+                else:
+                    logger.info(f"✅ Module {module_number} completed with content_id: {content_id}")
+                    content_ids.append({
+                        'module_number': module_number,
+                        'module_title': module_title,
+                        'content_id': content_id
+                    })
+            
+            if not content_ids:
+                logger.error("❌ No modules were successfully generated")
+                return {
+                    'pipeline_success': False,
+                    'error': 'Failed to generate any module content',
+                    'content_id': None
+                }
+            
+            logger.info(f"✅ Content generation completed: {len(content_ids)}/{len(modules)} modules")
             
             # Phase 4: Quality Assessment (simplified for now)
             if job_id:
@@ -291,16 +343,19 @@ class LXERADatabasePipeline:
                     'progress_percentage': 90
                 })
             
-            logger.info(f"✅ SDK Pipeline completed with content_id: {content_id}")
+            logger.info(f"✅ SDK Pipeline completed with {len(content_ids)} modules")
             
             return {
                 'pipeline_success': True,
-                'content_id': content_id,
+                'content_ids': content_ids,  # List of all module content IDs
+                'content_id': content_ids[0]['content_id'] if content_ids else None,  # First module for compatibility
                 'plan_id': plan_id,
                 'research_id': research_id,
-                'agent_result': f"Course generated successfully with content_id: {content_id}",
+                'agent_result': f"Course generated successfully: {len(content_ids)} modules created",
                 'agent_name': 'full_pipeline',
-                'sdk_handoffs': True
+                'sdk_handoffs': True,
+                'modules_generated': len(content_ids),
+                'total_modules': len(modules)
             }
             
         except Exception as e:
@@ -335,7 +390,10 @@ class LXERADatabasePipeline:
             patterns = [
                 r'Module content created successfully with content_id:\s*([a-f0-9\-]{36})',
                 r'content[_-]id[:\s]*([a-f0-9\-]{36})',
-                r'created.*content.*id[:\s]*([a-f0-9\-]{36})'
+                r'created.*content.*id[:\s]*([a-f0-9\-]{36})',
+                r'Module content created:\s*([a-f0-9\-]{36})',
+                r'content_id":\s*"([a-f0-9\-]{36})"',
+                r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})'  # Generic UUID pattern
             ]
             
             for pattern in patterns:
@@ -571,6 +629,17 @@ class LXERADatabasePipeline:
         except Exception as e:
             logger.error(f"Failed to retrieve employee data: {e}")
             raise
+    
+    async def _fetch_course_plan(self, plan_id: str) -> Dict[str, Any]:
+        """Fetch course plan details from database."""
+        try:
+            response = self.supabase.table('cm_course_plans').select('*').eq('plan_id', plan_id).single().execute()
+            if response.data:
+                return response.data
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching course plan: {e}")
+            return None
     
     async def _retrieve_skills_gaps(self, employee_id: str, position: str) -> List[Dict[str, Any]]:
         """Retrieve skills gap analysis from database."""

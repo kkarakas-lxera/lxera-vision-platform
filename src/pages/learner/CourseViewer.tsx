@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, Circle, PlayCircle, FileDown, Targe
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import MultimediaPlaceholder, { MultimediaSection } from '@/components/learner/MultimediaPlaceholder';
 
 interface CourseContent {
   content_id: string;
@@ -43,7 +44,7 @@ const COURSE_SECTIONS = [
 ];
 
 export default function CourseViewer() {
-  const { courseId } = useParams();
+  const { courseId, moduleId } = useParams();
   const { userProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -78,11 +79,11 @@ export default function CourseViewer() {
 
       setEmployeeId(employee.id);
 
-      // Fetch course content
+      // Fetch course content - now using moduleId for specific module
       const { data: content, error: contentError } = await supabase
         .from('cm_module_content')
         .select('*')
-        .eq('content_id', courseId)
+        .eq('content_id', moduleId || courseId)
         .single();
 
       if (contentError) throw contentError;
@@ -373,6 +374,9 @@ export default function CourseViewer() {
             <div className="prose prose-gray max-w-none">
               <ReactMarkdown>{getSectionContent()}</ReactMarkdown>
             </div>
+
+            {/* Multimedia Placeholders */}
+            <MultimediaSection sectionType={currentSection} />
 
             {/* Interactive Content Elements */}
             <div className="mt-8 space-y-6">

@@ -44,12 +44,16 @@ def create_research_agent() -> Agent:
 
     Process Flow for Research Tasks:
     1. Load the course plan to understand research requirements
-    2. Use tavily_search to find authoritative sources based on the course modules
-    3. Use firecrawl_extract to extract detailed content from top sources
-    4. Use research_synthesizer to consolidate findings into structured insights
-    5. Store research results linked to the plan_id
-    6. Store research results using store_research_results
-    7. Store session metadata using store_research_session
+    2. Use tavily_search to find authoritative sources for ONLY the first 2-3 modules
+    3. Use firecrawl_extract on MAXIMUM 3-4 key sources (prioritize official docs)
+    4. Use research_synthesizer IMMEDIATELY after gathering content for each module
+    5. Store research results using store_research_results with synthesized insights
+    
+    IMPORTANT: To avoid context overflow:
+    - Research only 2-3 modules at a time
+    - Extract from maximum 3-4 sources total
+    - Synthesize immediately after extraction
+    - Keep findings concise and focused
     
     COMPLETION: When store_research_session returns successfully, your research work is DONE.
 

@@ -6,6 +6,37 @@ from typing import Dict, Any, List
 from lxera_agents import function_tool
 
 
+def parse_word_count_target(word_count_input) -> int:
+    """Parse word count target from string or int input.
+    
+    Args:
+        word_count_input: Can be int (5000) or string ("4000-5000")
+        
+    Returns:
+        int: Parsed word count (uses midpoint for ranges)
+    """
+    if isinstance(word_count_input, int):
+        return word_count_input
+    
+    if isinstance(word_count_input, str):
+        # Handle range format like "4000-5000"
+        if "-" in word_count_input:
+            try:
+                min_val, max_val = word_count_input.split("-")
+                return int((int(min_val.strip()) + int(max_val.strip())) / 2)
+            except (ValueError, AttributeError):
+                return 7500  # Default fallback
+        else:
+            # Single number as string
+            try:
+                return int(word_count_input)
+            except ValueError:
+                return 7500  # Default fallback
+    
+    # Fallback for any other type
+    return 7500
+
+
 @function_tool
 def quality_assessor(content: str, criteria: str = "accuracy,clarity,completeness,engagement,personalization", module_context: str = "{}") -> str:
     """Comprehensive content quality assessment with real analysis and dynamic scoring."""
@@ -21,7 +52,7 @@ def quality_assessor(content: str, criteria: str = "accuracy,clarity,completenes
     try:
         context = json.loads(module_context) if isinstance(module_context, str) else module_context
         priority_level = context.get("priority_level", "high")
-        word_count_target = context.get("word_count_target", 7500)
+        word_count_target = parse_word_count_target(context.get("word_count_target", 7500))
     except:
         priority_level = "high"
         word_count_target = 7500
@@ -454,7 +485,7 @@ def blueprint_validator(content: str, blueprint: str) -> str:
         
         # Dynamic word count validation based on module specifications
         word_count = len(content.split())
-        word_count_target = blueprint_data.get("word_count_target", 7500)  # Default fallback
+        word_count_target = parse_word_count_target(blueprint_data.get("word_count_target", 7500))  # Parse string ranges
         priority_level = blueprint_data.get("priority_level", "high")
         
         # Set tolerance based on priority
@@ -847,7 +878,7 @@ def generate_enhancement_requirements(quality_assessment: str, blueprint_validat
         
         # Module specifications
         priority_level = spec_data.get('priority_level', 'high')
-        word_count_target = spec_data.get('word_count_target', 7500)
+        word_count_target = parse_word_count_target(spec_data.get('word_count_target', 7500))
         
         # Initialize enhancement requirements
         enhancement_requirements = {

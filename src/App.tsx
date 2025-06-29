@@ -32,6 +32,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 // Import learner pages
 import LearnerDashboard from "./pages/learner/LearnerDashboard";
 import CourseViewer from "./pages/learner/CourseViewer";
+import CourseOverview from "./pages/learner/CourseOverview";
 
 // Import admin pages
 import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
@@ -128,7 +129,8 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['learner']}>
                   <Routes>
-                    <Route path="/course/:courseId" element={<CourseViewer />} />
+                    <Route path="/course/:courseId" element={<CourseOverview />} />
+                    <Route path="/course/:courseId/module/:moduleId" element={<CourseViewer />} />
                     <Route path="/*" element={
                       <DashboardLayout>
                         <Routes>

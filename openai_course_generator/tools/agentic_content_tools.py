@@ -47,6 +47,39 @@ except Exception as e:
         openai_client = None
         logger.error("No OpenAI API key available")
 
+def parse_word_count_target(word_count_input) -> int:
+    """Parse word count target from string or int input.
+    
+    Args:
+        word_count_input: Can be int (5000) or string ("4000-5000")
+        
+    Returns:
+        int: Parsed word count (uses midpoint for ranges)
+    """
+    if isinstance(word_count_input, int):
+        return word_count_input
+    
+    if isinstance(word_count_input, str):
+        # Handle range format like "4000-5000"
+        if "-" in word_count_input:
+            try:
+                min_val, max_val = word_count_input.split("-")
+                return int((int(min_val.strip()) + int(max_val.strip())) / 2)
+            except (ValueError, AttributeError):
+                logger.warning(f"Could not parse range '{word_count_input}', using default 5000")
+                return 5000
+        else:
+            # Single number as string
+            try:
+                return int(word_count_input)
+            except ValueError:
+                logger.warning(f"Could not parse '{word_count_input}', using default 5000")
+                return 5000
+    
+    # Fallback
+    logger.warning(f"Unexpected word_count_target type: {type(word_count_input)}, using default 5000")
+    return 5000
+
 @function_tool
 def generate_module_introduction(module_spec: str, module_outline: str = None, research_context: str = None) -> str:
     """
@@ -253,7 +286,7 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
         
         # Get dynamic word count target from module spec
         # Core content should be roughly 40% of total module content
-        module_word_target = spec.get("word_count_target", 5000)
+        module_word_target = parse_word_count_target(spec.get("word_count_target", 5000))
         word_count_target = int(module_word_target * 0.4)  # 40% for core content
         min_words = int(word_count_target * 0.8)
         max_words = int(word_count_target * 1.2)
@@ -401,7 +434,7 @@ def generate_practical_applications(module_spec: str, research_context: str = No
         
         # Get dynamic word count target from module spec
         # Practical applications should be roughly 20% of total module content
-        module_word_target = spec.get("word_count_target", 5000)
+        module_word_target = parse_word_count_target(spec.get("word_count_target", 5000))
         word_count_target = int(module_word_target * 0.2)  # 20% for practical applications
         min_words = int(word_count_target * 0.8)
         max_words = int(word_count_target * 1.2)
@@ -525,7 +558,7 @@ def generate_case_studies(module_spec: str, research_context: str = None) -> str
         
         # Get dynamic word count target from module spec
         # Case studies should be roughly 15% of total module content
-        module_word_target = spec.get("word_count_target", 5000)
+        module_word_target = parse_word_count_target(spec.get("word_count_target", 5000))
         word_count_target = int(module_word_target * 0.15)  # 15% for case studies
         min_words = int(word_count_target * 0.8)
         max_words = int(word_count_target * 1.2)
@@ -646,7 +679,7 @@ def generate_assessment_materials(module_spec: str) -> str:
         
         # Get dynamic word count target from module spec
         # Assessments should be roughly 10% of total module content
-        module_word_target = spec.get("word_count_target", 5000)
+        module_word_target = parse_word_count_target(spec.get("word_count_target", 5000))
         word_count_target = int(module_word_target * 0.1)  # 10% for assessments
         min_words = int(word_count_target * 0.8)
         max_words = int(word_count_target * 1.2)

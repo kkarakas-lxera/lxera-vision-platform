@@ -373,31 +373,9 @@ class Runner:
                 result_attrs = dir(result)
                 logger.info(f"RunResult attributes: {[attr for attr in result_attrs if not attr.startswith('_')]}")
                 
-                # Build result data based on available attributes
-                result_data = {
-                    "content": getattr(result, 'final_output', getattr(result, 'output', str(result))),
-                    "success": True,
-                    "agent_name": agent.name
-                }
-                
-                # Try to get messages if available
-                if hasattr(result, 'messages'):
-                    result_data["messages"] = result.messages
-                    result_data["turns"] = len(result.messages) // 2
-                elif hasattr(result, 'history'):
-                    result_data["messages"] = result.history
-                    result_data["turns"] = len(result.history) // 2
-                else:
-                    result_data["messages"] = []
-                    result_data["turns"] = 1
-                
-                # Check for content_id in final output
-                final_output = result_data.get('content', '')
-                if final_output and 'content_id:' in str(final_output):
-                    content_id = str(final_output).split('content_id:')[1].strip().split()[0]
-                    result_data['content_id'] = content_id
-                
-                return result_data
+                # Return the raw RunResult object for test scripts
+                # The test scripts need access to raw_responses to extract IDs
+                return result
                 
             except Exception as e:
                 logger.error(f"SDK Runner failed for agent {agent.name}: {e}")

@@ -1,0 +1,299 @@
+INFO:lxera_agents:✅ Using official OpenAI Agents SDK with tracing support
+INFO:__main__:🧪 Testing NEW orchestrator handoff logic...
+INFO:lxera_database_pipeline:🔌 Connected to LXERA Supabase database
+INFO:__main__:🚀 Testing orchestrator's _run_sdk_pipeline method...
+INFO:lxera_database_pipeline:🚀 Starting SDK-based course generation pipeline
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:🔍 Analyzing employee profile with agent tool...
+INFO:tools.planning_tools:✅ Employee profile analyzed: mid level, 0 technical skills
+INFO:tools.planning_tools:📊 Prioritizing skill gaps for course planning...
+INFO:tools.planning_tools:✅ Skill gaps prioritized: 1 critical, 1 high priority, 0 medium
+INFO:tools.planning_tools:🎯 Generating course structure plan with OpenAI agent...
+ERROR:tools.planning_tools:❌ Course structure generation failed: Expecting value: line 1 column 1 (char 0)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:🎯 Generating course structure plan with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:✅ Course structure generated: 6 modules across 4 weeks
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:🔍 Generating research queries with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:✅ Research queries generated: 5 queries for 0 modules
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.planning_tools:🎯 Creating personalized learning path...
+INFO:tools.planning_tools:✅ Personalized learning path created for junior level learner
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.planning_storage_tools_v2:📝 Storing course plan for Kubilay Cenk Karakas
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_course_plans "HTTP/2 201 Created"
+INFO:tools.planning_storage_tools_v2:✅ Course plan stored successfully with ID: e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:tools.planning_storage_tools_v2:🔄 Planning complete - ready for handoff to Research Agent
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:lxera_agents:RunResult attributes: ['context_wrapper', 'final_output', 'final_output_as', 'input', 'input_guardrail_results', 'last_agent', 'last_response_id', 'new_items', 'output_guardrail_results', 'raw_responses', 'to_input_list']
+INFO:lxera_database_pipeline:Extracting plan_id from result type: <class 'agents.result.RunResult'>
+INFO:lxera_database_pipeline:Using final_output: Planning phase complete. Course plan stored with ID: e8b76c11-6fa9-4180-892d-6d23e4b8a168. Ready for research phase....
+INFO:lxera_database_pipeline:Checking 6 raw responses
+INFO:lxera_database_pipeline:✅ Found plan_id using pattern '(?:plan[_-]id|ID)[:\s]*([a-f0-9\-]{36})': e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:lxera_database_pipeline:✅ Planning phase completed with plan_id: e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:📋 Fetching course plan: e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_course_plans?select=%2A&plan_id=eq.e8b76c11-6fa9-4180-892d-6d23e4b8a168 "HTTP/2 200 OK"
+INFO:tools.research_tools:✅ Course plan loaded: Advanced Software Engineering for Business Performance Reporting
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://www.clearpointstrategy.com/blog/business-performance-reporting-guide: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://www.freshbooks.com/hub/reports/business-performance-report?srsltid=AfmBOoor8RToMpmvFUkaWKIj3o9daCPJiZlzQ3TnxP5YVmGUfzuvmWrw: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://userpilot.com/blog/performance-reporting/: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://www.allstemconnections.com/Employers/SCALE/JobDescription/Index/393?category=Technical: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://www.linkedin.com/advice/1/what-does-intermediate-software-engineer-do-syz1f: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:Using Firecrawl API key: fc-9ce3cda...
+ERROR:tools.research_tools:Firecrawl extraction failed for https://www.reddit.com/r/learnprogramming/comments/cdpm8f/what_is_the_most_useful_intermediate_software/: Payment Required: Failed to scrape URL. Insufficient credits to perform this request. For more credits, you can upgrade your plan at https://firecrawl.dev/pricing or try changing the request limit to a lower value. - No additional error details provided.
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_storage_tools_v2:📚 Storing research results for plan e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_research_results "HTTP/2 201 Created"
+INFO:tools.research_storage_tools_v2:✅ Research results stored successfully with ID: 2d065124-79bd-464a-8e55-ae91243d3f75
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:lxera_agents:RunResult attributes: ['context_wrapper', 'final_output', 'final_output_as', 'input', 'input_guardrail_results', 'last_agent', 'last_response_id', 'new_items', 'output_guardrail_results', 'raw_responses', 'to_input_list']
+WARNING:lxera_database_pipeline:❌ No research_id found in output
+WARNING:lxera_database_pipeline:⚠️ Research phase completed but no research_id found
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_course_plans?select=%2A&plan_id=eq.e8b76c11-6fa9-4180-892d-6d23e4b8a168 "HTTP/2 200 OK"
+INFO:lxera_database_pipeline:📚 Found 6 modules to generate
+INFO:lxera_database_pipeline:📖 Generating content for Module 1/6: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:📋 Fetching course plan: e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_course_plans?select=%2A&plan_id=eq.e8b76c11-6fa9-4180-892d-6d23e4b8a168 "HTTP/2 200 OK"
+INFO:tools.research_tools:✅ Course plan loaded: Advanced Software Engineering for Business Performance Reporting
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:🆕 Creating new module content: Introduction to Business Performance Reporting
+INFO:database.content_manager:🗄️ ContentManager initialized with Supabase connection
+INFO:database.content_manager:📋 Using table prefix: cm_
+INFO:database.content_manager:📝 Creating module content: Introduction to Business Performance Reporting (attempt 1)
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content "HTTP/2 201 Created"
+INFO:database.content_manager:✅ Module content created: f7839b56-0239-4b3c-8b5f-798a4030dc4a
+INFO:tools.database_content_tools:✅ Module content created: f7839b56-0239-4b3c-8b5f-798a4030dc4a
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:📝 Generating module introduction with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+WARNING:tools.agentic_content_tools:⚠️ Generated content below minimum: 635 words (target: 800)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:🔄 Retry generation completed: 568 words
+INFO:tools.agentic_content_tools:✅ Module introduction generated: 568 words in 16.9s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_quality_tools:📊 Assessing section 'introduction' quality (content_id: f7839b56)
+INFO:database.content_manager:📖 Retrieving module content: f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=%2A&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Module content retrieved: Introduction to Business Performance Reporting
+WARNING:tools.database_quality_tools:⚠️ Failed to store assessment in database: ContentManager.store_quality_assessment() got an unexpected keyword argument 'company_id'
+INFO:tools.database_quality_tools:✅ Section 'introduction' assessment: 8.7/10.0 (APPROVED)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'introduction' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'introduction' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'introduction' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Main table section 'introduction' updated successfully
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections?select=section_id%2Cenhancement_count&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a&section_name=eq.introduction&status=eq.current "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections "HTTP/2 201 Created"
+INFO:database.content_manager:📝 Created content section: introduction
+INFO:database.content_manager:✅ Content sections table updated for 'introduction'
+INFO:database.content_manager:✅ Section 'introduction' updated successfully for content f7839b56
+INFO:tools.database_content_tools:✅ Section 'introduction' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:📚 Generating core content with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+WARNING:tools.agentic_content_tools:⚠️ Core content below minimum: 692 words (target: 2000)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:🔄 Retry generation completed: 837 words
+INFO:tools.agentic_content_tools:✅ Core content generated: 837 words in 21.1s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_quality_tools:📊 Assessing section 'core_content' quality (content_id: f7839b56)
+INFO:database.content_manager:📖 Retrieving module content: f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=%2A&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Module content retrieved: Introduction to Business Performance Reporting
+WARNING:tools.database_quality_tools:⚠️ Failed to store assessment in database: ContentManager.store_quality_assessment() got an unexpected keyword argument 'company_id'
+INFO:tools.database_quality_tools:✅ Section 'core_content' assessment: 8.0/10.0 (APPROVED)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'core_content' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'core_content' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'core_content' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 400 Bad Request"
+ERROR:database.content_manager:❌ Unexpected error updating section 'core_content': APIError: {'message': 'unsupported Unicode escape sequence', 'code': '22P05', 'hint': None, 'details': '\\u0000 cannot be converted to text.'}
+INFO:tools.database_content_tools:✅ Section 'core_content' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'core_content' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'core_content' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'core_content' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 400 Bad Request"
+ERROR:database.content_manager:❌ Unexpected error updating section 'core_content': APIError: {'message': 'unsupported Unicode escape sequence', 'code': '22P05', 'hint': None, 'details': '\\u0000 cannot be converted to text.'}
+INFO:tools.database_content_tools:✅ Section 'core_content' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:🔧 Generating practical applications with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:✅ Practical applications generated: 831 words in 34.4s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_quality_tools:📊 Assessing section 'practical_applications' quality (content_id: f7839b56)
+INFO:database.content_manager:📖 Retrieving module content: f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=%2A&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Module content retrieved: Introduction to Business Performance Reporting
+WARNING:tools.database_quality_tools:⚠️ Failed to store assessment in database: ContentManager.store_quality_assessment() got an unexpected keyword argument 'company_id'
+INFO:tools.database_quality_tools:✅ Section 'practical_applications' assessment: 8.6/10.0 (APPROVED)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'practical_applications' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'practical_applications' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'practical_applications' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Main table section 'practical_applications' updated successfully
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections?select=section_id%2Cenhancement_count&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a&section_name=eq.practical_applications&status=eq.current "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections "HTTP/2 201 Created"
+INFO:database.content_manager:📝 Created content section: practical_applications
+INFO:database.content_manager:✅ Content sections table updated for 'practical_applications'
+INFO:database.content_manager:✅ Section 'practical_applications' updated successfully for content f7839b56
+INFO:tools.database_content_tools:✅ Section 'practical_applications' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:📊 Generating case studies with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:✅ Case studies generated: 670 words in 26.6s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_quality_tools:📊 Assessing section 'case_studies' quality (content_id: f7839b56)
+INFO:database.content_manager:📖 Retrieving module content: f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=%2A&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Module content retrieved: Introduction to Business Performance Reporting
+WARNING:tools.database_quality_tools:⚠️ Failed to store assessment in database: ContentManager.store_quality_assessment() got an unexpected keyword argument 'company_id'
+INFO:tools.database_quality_tools:✅ Section 'case_studies' assessment: 9.2/10.0 (APPROVED)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'case_studies' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'case_studies' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'case_studies' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Main table section 'case_studies' updated successfully
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections?select=section_id%2Cenhancement_count&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a&section_name=eq.case_studies&status=eq.current "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections "HTTP/2 201 Created"
+INFO:database.content_manager:📝 Created content section: case_studies
+INFO:database.content_manager:✅ Content sections table updated for 'case_studies'
+INFO:database.content_manager:✅ Section 'case_studies' updated successfully for content f7839b56
+INFO:tools.database_content_tools:✅ Section 'case_studies' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:tools.agentic_content_tools:📝 Generating assessment materials with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:✅ Assessment materials generated: 737 words in 28.4s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_quality_tools:📊 Assessing section 'assessments' quality (content_id: f7839b56)
+INFO:database.content_manager:📖 Retrieving module content: f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=%2A&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Module content retrieved: Introduction to Business Performance Reporting
+WARNING:tools.database_quality_tools:⚠️ Failed to store assessment in database: ContentManager.store_quality_assessment() got an unexpected keyword argument 'company_id'
+INFO:tools.database_quality_tools:✅ Section 'assessments' assessment: 9.2/10.0 (APPROVED)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:💾 Storing section 'assessments' for content f7839b56
+INFO:database.content_manager:📝 Updating section 'assessments' for content f7839b56...
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?select=content_id%2Cmodule_name&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:📋 Updating section 'assessments' for module: Introduction to Business Performance Reporting
+INFO:httpx:HTTP Request: PATCH https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content?content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a "HTTP/2 200 OK"
+INFO:database.content_manager:✅ Main table section 'assessments' updated successfully
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections?select=section_id%2Cenhancement_count&content_id=eq.f7839b56-0239-4b3c-8b5f-798a4030dc4a&section_name=eq.assessments&status=eq.current "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_content_sections "HTTP/2 201 Created"
+INFO:database.content_manager:📝 Created content section: assessments
+INFO:database.content_manager:✅ Content sections table updated for 'assessments'
+INFO:database.content_manager:✅ Section 'assessments' updated successfully for content f7839b56
+INFO:tools.database_content_tools:✅ Section 'assessments' stored successfully
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:📦 Compiling complete module with all sections...
+INFO:tools.agentic_content_tools:🔍 DEBUG - Parameter types:
+INFO:tools.agentic_content_tools:   introduction: <class 'str'> - length: 3833
+INFO:tools.agentic_content_tools:   core_content: <class 'str'> - length: 6328
+INFO:tools.agentic_content_tools:   practical_apps: <class 'str'> - length: 6107
+INFO:tools.agentic_content_tools:   case_studies: <class 'str'> - length: 4880
+INFO:tools.agentic_content_tools:   assessments: <class 'str'> - length: 5119
+INFO:tools.agentic_content_tools:✅ Parsed 'introduction' as plain text: 568 words
+INFO:tools.agentic_content_tools:✅ Parsed 'core_content' as plain text: 837 words
+INFO:tools.agentic_content_tools:✅ Parsed 'practical_apps' as plain text: 831 words
+INFO:tools.agentic_content_tools:✅ Parsed 'case_studies' as plain text: 670 words
+INFO:tools.agentic_content_tools:✅ Parsed 'assessments' as plain text: 737 words
+INFO:tools.agentic_content_tools:🔍 Successfully parsed 5 sections
+INFO:tools.agentic_content_tools:✅ Complete module compiled: 3643 total words across 5 sections
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:📊 Updating module status to 'ready_for_multimedia' for f7839b56
+ERROR:database.content_manager:❌ Failed to update module status: Invalid status. Must be one of: ['draft', 'quality_check', 'revision', 'approved', 'failed']
+INFO:tools.database_content_tools:✅ Module status updated to 'ready_for_multimedia'
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:lxera_agents:RunResult attributes: ['context_wrapper', 'final_output', 'final_output_as', 'input', 'input_guardrail_results', 'last_agent', 'last_response_id', 'new_items', 'output_guardrail_results', 'raw_responses', 'to_input_list']
+WARNING:lxera_database_pipeline:❌ No content_id found in output
+ERROR:lxera_database_pipeline:❌ Module 1 generation failed - no content_id found
+INFO:lxera_database_pipeline:📖 Generating content for Module 2/6: Software Engineering Basics for Reporting
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.research_tools:📋 Fetching course plan: e8b76c11-6fa9-4180-892d-6d23e4b8a168
+INFO:httpx:HTTP Request: GET https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_course_plans?select=%2A&plan_id=eq.e8b76c11-6fa9-4180-892d-6d23e4b8a168 "HTTP/2 200 OK"
+INFO:tools.research_tools:✅ Course plan loaded: Advanced Software Engineering for Business Performance Reporting
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.database_content_tools:🆕 Creating new module content: Software Engineering Basics for Reporting
+INFO:database.content_manager:📝 Creating module content: Software Engineering Basics for Reporting (attempt 1)
+INFO:httpx:HTTP Request: POST https://xwfweumeryrgbguwrocr.supabase.co/rest/v1/cm_module_content "HTTP/2 201 Created"
+INFO:database.content_manager:✅ Module content created: 8fce69c0-d8a7-4909-8fa0-0e9bdb79e079
+INFO:tools.database_content_tools:✅ Module content created: 8fce69c0-d8a7-4909-8fa0-0e9bdb79e079
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:📝 Generating module introduction with OpenAI agent...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+WARNING:tools.agentic_content_tools:⚠️ Generated content below minimum: 572 words (target: 800)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:tools.agentic_content_tools:🔄 Retry generation completed: 526 words
+INFO:tools.agentic_content_tools:✅ Module introduction generated: 526 words in 22.0s
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/traces/ingest "HTTP/1.1 204 No Content"
