@@ -36,7 +36,7 @@ export function LearningSection({ employee }: LearningSectionProps) {
   const [activeTab, setActiveTab] = useState('active');
 
   const courses = employee.courses || [];
-  const activeCourses = courses.filter(c => c.status === 'in_progress' || c.status === 'not_started');
+  const activeCourses = courses.filter(c => c.status === 'in_progress' || c.status === 'not_started' || c.status === 'assigned');
   const completedCourses = courses.filter(c => c.status === 'completed');
 
   const getStatusIcon = (status: string) => {
@@ -64,6 +64,8 @@ export function LearningSection({ employee }: LearningSectionProps) {
         return <Badge variant="default">Completed</Badge>;
       case 'in_progress':
         return <Badge variant="secondary">In Progress</Badge>;
+      case 'assigned':
+        return <Badge variant="outline">Assigned</Badge>;
       default:
         return <Badge variant="outline">Not Started</Badge>;
     }

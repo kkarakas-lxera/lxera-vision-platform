@@ -135,15 +135,45 @@ export default function EmployeeProfile() {
       // Fetch course assignments
       const { data: courseAssignments } = await supabase
         .from('course_assignments')
-        .select(`
-          *,
-          courses!inner(
-            title,
-            description
-          )
-        `)
+        .select('*')
         .eq('employee_id', employeeId)
-        .order('assigned_at', { ascending: false });
+        .order('created_at', { ascending: false });
+      
+      // Fetch course plans for the assignments
+      let coursePlansMap = new Map();
+      if (courseAssignments && courseAssignments.length > 0) {
+        const planIds = [...new Set(courseAssignments.map(a => a.plan_id).filter(Boolean))];
+        if (planIds.length > 0) {
+          const { data: plansData } = await supabase
+            .from('cm_course_plans')
+            .select('*')
+            .in('plan_id', planIds);
+            
+          if (plansData) {
+            plansData.forEach(plan => {
+              coursePlansMap.set(plan.plan_id, plan);
+            });
+          }
+        }
+      }
+      
+      // Fetch module content for the assignments
+      let moduleContentMap = new Map();
+      if (courseAssignments && courseAssignments.length > 0) {
+        const courseIds = [...new Set(courseAssignments.map(a => a.course_id).filter(Boolean))];
+        if (courseIds.length > 0) {
+          const { data: contentData } = await supabase
+            .from('cm_module_content')
+            .select('content_id, module_name')
+            .in('content_id', courseIds);
+            
+          if (contentData) {
+            contentData.forEach(content => {
+              moduleContentMap.set(content.content_id, content);
+            });
+          }
+        }
+      }
 
       // Transform the data
       const transformedEmployee: EmployeeProfile = {
@@ -167,17 +197,23 @@ export default function EmployeeProfile() {
             ? skillsProfile.extracted_skills 
             : []
         } : undefined,
-        courses: courseAssignments?.map(ca => ({
-          id: ca.id,
-          course_id: ca.course_id,
-          course_title: ca.courses.title,
-          status: ca.status,
-          progress_percentage: ca.progress_percentage || 0,
-          assigned_at: ca.assigned_at,
-          due_date: ca.due_date,
-          completed_at: ca.completed_at,
-          quiz_score: ca.quiz_score
-        }))
+        courses: courseAssignments?.map(ca => {
+          const coursePlan = ca.plan_id ? coursePlansMap.get(ca.plan_id) : null;
+          const moduleContent = ca.course_id ? moduleContentMap.get(ca.course_id) : null;
+          const courseTitle = coursePlan?.course_title || moduleContent?.module_name || 'Course';
+          
+          return {
+            id: ca.id,
+            course_id: ca.course_id,
+            course_title: courseTitle,
+            status: ca.status,
+            progress_percentage: ca.progress_percentage || 0,
+            assigned_at: ca.created_at,
+            due_date: ca.due_date,
+            completed_at: ca.completed_at,
+            quiz_score: ca.quiz_score
+          };
+        })
       };
 
       setEmployee(transformedEmployee);
