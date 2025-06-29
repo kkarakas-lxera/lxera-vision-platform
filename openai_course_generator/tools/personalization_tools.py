@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Dict, Any, List
 from datetime import datetime
-from agents import function_tool
+from lxera_agents import function_tool
 from openai import OpenAI
 import os
 

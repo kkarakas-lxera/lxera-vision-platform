@@ -9,7 +9,7 @@ that will be visible in OpenAI Traces tab.
 import json
 import logging
 from typing import Dict, Any, List
-from agents import Agent
+from lxera_agents import Agent
 
 # Import planning tools
 from tools.planning_tools import (
@@ -19,6 +19,15 @@ from tools.planning_tools import (
     prioritize_skill_gaps,
     create_personalized_learning_path
 )
+
+# Import storage tools v2 with manual FunctionTool creation
+from tools.planning_storage_tools_v2 import (
+    store_course_plan,
+    store_planning_metadata
+)
+
+# Import handoff context tools
+from tools.handoff_context_tools import log_agent_handoff
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +50,10 @@ def create_planning_agent() -> Agent:
     2. Then, use prioritize_skill_gaps to identify critical learning needs
     3. Next, use generate_course_structure_plan to create the course framework
     4. Use generate_research_queries to plan content research strategy
-    5. Finally, use create_personalized_learning_path to optimize the learning experience
+    5. Use create_personalized_learning_path to optimize the learning experience
+    6. Store the plan using store_course_plan with full structure and gaps
+    7. Store metadata using store_planning_metadata with execution details
+    8. Hand off to Research Agent for content gathering
 
     Key Principles:
     - Always prioritize critical skill gaps first
@@ -54,6 +66,25 @@ def create_planning_agent() -> Agent:
     Always return structured JSON responses that can be easily processed by downstream systems.
     """
     
+    # Import research agent and handoff function
+    from .research_agent import create_research_agent
+    from lxera_agents import handoff
+    
+    # Add handoff instructions to the prompt
+    planning_instructions += """
+    
+    When you have completed all planning tasks and stored the course plan:
+    1. Use the store_course_plan tool to save the complete plan with course structure and prioritized gaps
+    2. Use the store_planning_metadata tool to record execution details and tool calls
+    3. Use the log_agent_handoff tool to log the handoff with key context:
+       - Summary of what was planned
+       - Key research queries generated
+       - Critical skills to focus on
+    4. Transfer to the Research Agent using the transfer_to_research_agent tool
+    
+    The Research Agent will use your course structure and research queries to gather learning materials.
+    """
+    
     return Agent(
         name="Intelligent Course Planning Specialist",
         instructions=planning_instructions,
@@ -62,9 +93,18 @@ def create_planning_agent() -> Agent:
             prioritize_skill_gaps,
             generate_course_structure_plan,
             generate_research_queries,
-            create_personalized_learning_path
+            create_personalized_learning_path,
+            store_course_plan,
+            store_planning_metadata,
+            log_agent_handoff
         ],
-        handoffs=[]  # Planning agent works independently, then hands off to research/content agents
+        handoffs=[
+            handoff(
+                create_research_agent(),
+                tool_name_override="transfer_to_research_agent",
+                tool_description_override="Transfer to Research Agent to gather learning materials based on the course plan"
+            )
+        ]
     )
 
 class PlanningAgentOrchestrator:
@@ -88,7 +128,7 @@ class PlanningAgentOrchestrator:
         try:
             logger.info("🚀 Starting agent-based course planning workflow...")
             
-            from agents import Runner
+            from lxera_agents import Runner
             
             # Prepare planning request as a message string
             employee_name = employee_data.get("full_name", "Learner")

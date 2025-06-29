@@ -23,7 +23,7 @@ import time
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
-from agents import function_tool
+from lxera_agents import function_tool
 from openai import OpenAI
 
 # Setup logging

@@ -16,17 +16,17 @@ from supabase import create_client, Client
 # Configure logger first before any usage
 logger = logging.getLogger(__name__)
 
-# Import the agentic pipeline orchestrator for comprehensive agent-based generation
-from agentic_pipeline_orchestrator import AgenticPipelineOrchestrator
+# Import the new SDK-based coordinator for comprehensive agent-based generation
+from lxera_agents import Runner, trace
+from course_agents.coordinator import create_course_generation_coordinator
 
-class LXERADatabasePipeline(AgenticPipelineOrchestrator):
+class LXERADatabasePipeline:
     """
-    Extended pipeline orchestrator that integrates with LXERA's Supabase database
-    to retrieve employee data and skills gap analysis.
+    SDK-based pipeline orchestrator that integrates with LXERA's Supabase database
+    to retrieve employee data and skills gap analysis using OpenAI Agents SDK.
     """
     
     def __init__(self):
-        super().__init__()
         
         # Initialize Supabase client with LXERA credentials
         # Use environment variables with hardcoded fallbacks for Render deployment
@@ -83,8 +83,8 @@ class LXERADatabasePipeline(AgenticPipelineOrchestrator):
                     'progress_percentage': 30
                 })
             
-            # Run the complete agentic pipeline with skills gaps
-            pipeline_result = await self.run_complete_pipeline(
+            # Run the complete agentic pipeline with skills gaps using new SDK
+            pipeline_result = await self._run_sdk_pipeline(
                 employee_data,
                 skills_gaps,
                 job_id
@@ -118,6 +118,102 @@ class LXERADatabasePipeline(AgenticPipelineOrchestrator):
                     'error_message': str(e)
                 })
             raise
+    
+    async def _run_sdk_pipeline(
+        self,
+        employee_data: Dict[str, Any],
+        skills_gaps: List[Dict[str, Any]],
+        job_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Run the course generation pipeline using OpenAI SDK with proper agent handoffs.
+        """
+        try:
+            logger.info("🚀 Starting SDK-based course generation pipeline")
+            
+            # Update job progress
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Running AI agent pipeline',
+                    'progress_percentage': 40
+                })
+            
+            # Create the coordinator
+            coordinator = create_course_generation_coordinator()
+            
+            # Prepare comprehensive message for the coordinator
+            pipeline_message = f"""
+            Generate a comprehensive personalized course for {employee_data['full_name']}.
+            
+            EMPLOYEE PROFILE:
+            {json.dumps(employee_data, indent=2)}
+            
+            SKILLS GAP ANALYSIS:
+            {json.dumps(skills_gaps, indent=2)}
+            
+            SESSION ID: lxera-{uuid.uuid4()}
+            
+            REQUIREMENTS:
+            1. Analyze the employee profile and skills gaps
+            2. Create a comprehensive course plan
+            3. Conduct research for content creation
+            4. Generate high-quality course content
+            5. Store all results in the database
+            6. Return the final content_id for course assignment
+            
+            Execute this workflow with proper agent handoffs and database storage.
+            """
+            
+            # Run with OpenAI SDK tracing
+            with trace("lxera_course_generation"):
+                result = await Runner.run(
+                    coordinator,
+                    pipeline_message,
+                    max_turns=50  # Allow for full pipeline execution
+                )
+            
+            # Update job progress
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Processing pipeline results',
+                    'progress_percentage': 90
+                })
+            
+            # Extract results
+            pipeline_success = True
+            content_id = None
+            
+            # Try to extract content_id from result
+            if hasattr(result, 'final_output') and result.final_output:
+                output_text = str(result.final_output)
+                # Look for content_id in the output
+                import re
+                content_id_match = re.search(r'content[_-]id[:\s]*([a-f0-9\-]{36})', output_text, re.IGNORECASE)
+                if content_id_match:
+                    content_id = content_id_match.group(1)
+            
+            # If no content_id found, generate a placeholder
+            if not content_id:
+                content_id = str(uuid.uuid4())
+                logger.warning(f"⚠️ No content_id found in result, using placeholder: {content_id}")
+            
+            logger.info(f"✅ Pipeline completed successfully with content_id: {content_id}")
+            
+            return {
+                'pipeline_success': pipeline_success,
+                'content_id': content_id,
+                'agent_result': result.final_output if hasattr(result, 'final_output') else str(result),
+                'agent_name': result.last_agent if hasattr(result, 'last_agent') else 'coordinator',
+                'turns': len(result.raw_responses) if hasattr(result, 'raw_responses') else 1
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ SDK Pipeline failed: {e}")
+            return {
+                'pipeline_success': False,
+                'error': str(e),
+                'content_id': None
+            }
     
     async def _retrieve_employee_data(self, employee_id: str) -> Dict[str, Any]:
         """Retrieve employee data from Supabase database."""
@@ -233,8 +329,8 @@ class LXERADatabasePipeline(AgenticPipelineOrchestrator):
     ) -> str:
         """Create course assignment in database."""
         try:
-            due_date = datetime.now()
-            due_date = due_date.replace(day=due_date.day + 30)
+            from datetime import timedelta
+            due_date = datetime.now() + timedelta(days=30)
             
             response = self.supabase.table('course_assignments').insert({
                 'employee_id': employee_id,
@@ -246,10 +342,11 @@ class LXERADatabasePipeline(AgenticPipelineOrchestrator):
                 'priority': 'high',
                 'status': 'assigned',
                 'progress_percentage': 0
-            }).select('id').single().execute()
+            }).execute()
             
-            logger.info(f"✅ Created course assignment: {response.data['id']}")
-            return response.data['id']
+            assignment_id = response.data[0]['id'] if response.data else str(uuid.uuid4())
+            logger.info(f"✅ Created course assignment: {assignment_id}")
+            return assignment_id
             
         except Exception as e:
             logger.error(f"Failed to create course assignment: {e}")

@@ -3,7 +3,7 @@
 import re
 import json
 from typing import Dict, Any, List
-from agents import function_tool
+from lxera_agents import function_tool
 
 
 @function_tool

@@ -3,7 +3,7 @@
 import json
 import logging
 from typing import Dict, Any, List, Optional
-from agents import Agent
+from lxera_agents import Agent
 
 # Import agentic content generation tools
 from tools.agentic_content_tools import (
@@ -176,7 +176,7 @@ class ContentAgentOrchestrator:
             if content_id:
                 logger.info(f"📌 Using provided content_id: {content_id}")
             
-            from agents import Runner
+            from lxera_agents import Runner
             
             # Prepare content generation request as a message string
             module_name = module_spec.get('module_name', 'Module')

@@ -6,7 +6,7 @@ try:
     from .research_agent import create_research_agent, ResearchAgentOrchestrator
     from .content_agent import create_content_agent, ContentAgentOrchestrator
 except ImportError as e:
-    print(f"Warning: Could not import agents: {e}")
+    print(f"Warning: Could not import lxera_agents: {e}")
     create_planning_agent = None
     PlanningAgentOrchestrator = None
     create_research_agent = None

@@ -1,0 +1,54 @@
+{
+  "test_metadata": {
+    "test_date": "2025-06-27T18:23:45.281751",
+    "employee_id": "635676b4-97af-4e66-9c1d-4fedc714ca52",
+    "employee_name": "Bob Smith",
+    "test_status": "SUCCESS"
+  },
+  "course_overview": {
+    "title": "Personalized Financial Analysis Training for Bob Smith",
+    "duration": "4 weeks",
+    "total_modules": 1,
+    "total_research_queries": 4
+  },
+  "skills_addressed": {
+    "critical": [
+      "Advanced Python Programming",
+      "System Architecture Design"
+    ],
+    "development": [
+      "Cloud Technologies (AWS/Azure)",
+      "DevOps Practices"
+    ]
+  },
+  "first_module": {
+    "module_id": "M01",
+    "module_name": "Introduction to Financial Analysis for Business Performance",
+    "week_number": 1,
+    "word_count_target": 1000,
+    "priority_level": "critical",
+    "skill_gap_addressed": "Financial Analysis Fundamentals",
+    "tool_integration": [],
+    "learning_outcome": "",
+    "personalization_context": {
+      "employee_name": "Bob Smith",
+      "current_role": "DEV-001",
+      "career_goal": "Senior Developer within 2-3 years",
+      "experience_level": "mid",
+      "preferred_tools": []
+    },
+    "content_specifications": {
+      "introduction_focus": "Real-world application in business performance reporting",
+      "examples_type": "Specific to financial analysis and business reporting",
+      "difficulty_level": "intermediate",
+      "practical_emphasis": 0.7,
+      "case_study_integration": true
+    }
+  },
+  "research_queries_sample": [
+    "Introduction to Financial Analysis for Business Performance fundamentals for financial analysts",
+    "introduction to financial analysis for business performance for business performance reporting analysts",
+    "financial analysis financial analysis fundamentals case studies examples",
+    "advanced introduction to financial analysis for business performance techniques senior analysts"
+  ]
+}

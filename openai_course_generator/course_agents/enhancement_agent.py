@@ -1,6 +1,6 @@
 """Content Enhancement Agent for targeted content improvement based on quality feedback."""
 
-from agents import Agent
+from lxera_agents import Agent
 from tools.enhancement_tools import (
     targeted_content_expansion,
     web_research_enhancement,

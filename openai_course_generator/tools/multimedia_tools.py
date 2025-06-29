@@ -13,7 +13,7 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 from datetime import datetime
 
-from agents import function_tool
+from lxera_agents import function_tool
 
 # Import database manager
 try:

@@ -1,0 +1,790 @@
+{
+  "course_metadata": {
+    "generated_for": "Bob Smith",
+    "employee_id": "635676b4-97af-4e66-9c1d-4fedc714ca52",
+    "generation_timestamp": "2025-06-27T18:28:46.458614",
+    "personalization_level": "comprehensive",
+    "planning_system": "intelligent_course_planner_v1"
+  },
+  "employee_profile_summary": {
+    "employee_id": "635676b4-97af-4e66-9c1d-4fedc714ca52",
+    "full_name": "Bob Smith",
+    "current_role": "DEV-001",
+    "experience_level": "mid",
+    "learning_style": "Prefers hands-on learning with real-world projects",
+    "career_path": {
+      "current_position": "DEV-001",
+      "target_position": "Technical Lead within 2-3 years",
+      "timeline": "2-3 years",
+      "progression_type": "skill_enhancement"
+    },
+    "skill_inventory": {
+      "technical_skills": {
+        "data_analysis": [
+          "Database Design (Intermediate)"
+        ],
+        "financial_tools": [],
+        "project_management": [],
+        "technology": [],
+        "domain_specific": [
+          "Python Programming (Advanced)",
+          "JavaScript/TypeScript (Intermediate)",
+          "API Development (Advanced)",
+          "Problem Solving (Expert)",
+          "System Design (Beginner)"
+        ]
+      },
+      "transferable_skills": [],
+      "tool_proficiency": {}
+    },
+    "contextual_factors": {
+      "department_goals": [
+        "Improve system reliability to 99.9% uptime",
+        "Reduce deployment time by 50%",
+        "Implement microservices architecture"
+      ],
+      "company_priorities": [
+        "Digital transformation",
+        "Cloud migration",
+        "AI/ML integration"
+      ],
+      "upcoming_projects": [
+        "Migration to cloud-native architecture",
+        "Implementation of real-time data processing pipeline",
+        "Building AI-powered customer analytics"
+      ],
+      "performance_highlights": [
+        "Excellent problem-solving skills",
+        "Strong team collaboration",
+        "Needs improvement in system architecture design"
+      ]
+    }
+  },
+  "skills_gap_prioritization": {
+    "critical_priority": [
+      {
+        "skill": "System Architecture Design",
+        "importance": "Critical",
+        "description": "Design scalable, distributed systems and microservices architectures",
+        "current_level": "Beginner",
+        "target_level": "Advanced",
+        "priority_score": 10,
+        "learning_urgency": "immediate",
+        "course_focus_percentage": 40
+      },
+      {
+        "skill": "Technical Leadership",
+        "importance": "Critical",
+        "description": "Lead technical teams, mentor developers, and drive technical decisions",
+        "current_level": "None",
+        "target_level": "Advanced",
+        "priority_score": 10,
+        "learning_urgency": "immediate",
+        "course_focus_percentage": 40
+      },
+      {
+        "skill": "Cloud Architecture (AWS/Azure)",
+        "importance": "Critical",
+        "description": "Design and implement cloud-native solutions",
+        "current_level": "Basic",
+        "target_level": "Expert",
+        "priority_score": 10,
+        "learning_urgency": "immediate",
+        "course_focus_percentage": 40
+      }
+    ],
+    "high_priority": [],
+    "medium_priority": [
+      {
+        "skill": "DevOps & CI/CD",
+        "importance": "High",
+        "description": "Implement automated deployment pipelines and infrastructure as code",
+        "current_level": "Intermediate",
+        "target_level": "Advanced",
+        "priority_score": 5,
+        "learning_urgency": "medium",
+        "course_focus_percentage": 15
+      },
+      {
+        "skill": "Performance Optimization",
+        "importance": "High",
+        "description": "Optimize application and database performance at scale",
+        "current_level": "Intermediate",
+        "target_level": "Expert",
+        "priority_score": 5,
+        "learning_urgency": "medium",
+        "course_focus_percentage": 15
+      },
+      {
+        "skill": "Security Best Practices",
+        "importance": "High",
+        "description": "Implement security-first design and development practices",
+        "current_level": "Basic",
+        "target_level": "Advanced",
+        "priority_score": 5,
+        "learning_urgency": "medium",
+        "course_focus_percentage": 15
+      }
+    ],
+    "development_opportunities": [
+      {
+        "skill": "API Development",
+        "priority_score": 3,
+        "learning_urgency": "low",
+        "course_focus_percentage": 10,
+        "enhancement_type": "leverage_existing"
+      },
+      {
+        "skill": "Problem Solving",
+        "priority_score": 3,
+        "learning_urgency": "low",
+        "course_focus_percentage": 10,
+        "enhancement_type": "leverage_existing"
+      },
+      {
+        "skill": "Python Programming",
+        "priority_score": 3,
+        "learning_urgency": "low",
+        "course_focus_percentage": 10,
+        "enhancement_type": "leverage_existing"
+      }
+    ]
+  },
+  "course_structure": {
+    "course_title": "Advanced Financial Analysis and Technical Leadership for Mid-Level Developers",
+    "total_duration": "4 weeks",
+    "learning_objectives": [
+      "Master system architecture design for financial systems",
+      "Develop technical leadership skills within financial analysis projects",
+      "Understand and apply cloud architecture principles using AWS/Azure for financial data",
+      "Integrate advanced financial analysis tools (Excel, SAP BPC, PowerBI) into daily workflows",
+      "Apply real-world financial scenarios to improve business performance reporting"
+    ],
+    "weeks": [
+      {
+        "week_number": 1,
+        "theme": "Foundation of System Architecture in Finance",
+        "focus_areas": [
+          "System Architecture Basics",
+          "Financial System Design Principles"
+        ],
+        "modules": [
+          {
+            "module_name": "Introduction to System Architecture",
+            "word_count": 1000,
+            "priority_level": "critical",
+            "skill_gap_addressed": "System Architecture Design",
+            "tool_integration": [
+              "Excel"
+            ],
+            "learning_outcome": "Understand the basics of system architecture and its importance in financial systems."
+          },
+          {
+            "module_name": "Designing Financial Systems with Excel",
+            "word_count": 1000,
+            "priority_level": "high",
+            "skill_gap_addressed": "System Architecture Design",
+            "tool_integration": [
+              "Excel"
+            ],
+            "learning_outcome": "Apply system design principles to create robust financial models in Excel."
+          },
+          {
+            "module_name": "Principles of Cloud Computing in Finance",
+            "word_count": 800,
+            "priority_level": "medium",
+            "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+            "tool_integration": [],
+            "learning_outcome": "Gain an introductory understanding of cloud computing principles relevant to financial data."
+          }
+        ]
+      },
+      {
+        "week_number": 2,
+        "theme": "Technical Leadership & Cloud Architecture",
+        "focus_areas": [
+          "Technical Leadership Fundamentals",
+          "Cloud Solutions for Finance"
+        ],
+        "modules": [
+          {
+            "module_name": "Becoming a Technical Leader",
+            "word_count": 1200,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Technical Leadership",
+            "tool_integration": [],
+            "learning_outcome": "Learn the qualities of technical leadership and how to apply them in financial projects."
+          },
+          {
+            "module_name": "AWS for Financial Analysts",
+            "word_count": 1000,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+            "tool_integration": [
+              "PowerBI"
+            ],
+            "learning_outcome": "Implement AWS solutions for enhanced financial data analysis and reporting."
+          },
+          {
+            "module_name": "Azure Fundamentals for Finance",
+            "word_count": 1000,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+            "tool_integration": [
+              "PowerBI"
+            ],
+            "learning_outcome": "Understand how to leverage Azure for financial data storage, analysis, and reporting."
+          }
+        ]
+      },
+      {
+        "week_number": 3,
+        "theme": "Advanced Financial Analysis Tools Integration",
+        "focus_areas": [
+          "Advanced Excel for Financial Analysis",
+          "Integrating SAP BPC for Reporting"
+        ],
+        "modules": [
+          {
+            "module_name": "Advanced Excel Techniques for Financial Analysis",
+            "word_count": 1200,
+            "priority_level": "high",
+            "skill_gap_addressed": "System Architecture Design",
+            "tool_integration": [
+              "Excel"
+            ],
+            "learning_outcome": "Master advanced Excel functions and techniques for complex financial analysis."
+          },
+          {
+            "module_name": "Leveraging SAP BPC for Financial Planning",
+            "word_count": 1200,
+            "priority_level": "high",
+            "skill_gap_addressed": "System Architecture Design",
+            "tool_integration": [
+              "SAP BPC"
+            ],
+            "learning_outcome": "Implement SAP BPC for effective financial planning and performance management."
+          },
+          {
+            "module_name": "Data Visualization with PowerBI",
+            "word_count": 1000,
+            "priority_level": "medium",
+            "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+            "tool_integration": [
+              "PowerBI"
+            ],
+            "learning_outcome": "Create impactful financial reports and dashboards using PowerBI."
+          }
+        ]
+      },
+      {
+        "week_number": 4,
+        "theme": "Real-World Financial Scenario Analysis",
+        "focus_areas": [
+          "Scenario Analysis",
+          "Strategic Decision-Making"
+        ],
+        "modules": [
+          {
+            "module_name": "Applying Technical Leadership in Financial Projects",
+            "word_count": 1200,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Technical Leadership",
+            "tool_integration": [],
+            "learning_outcome": "Apply technical leadership skills in managing and executing financial analysis projects."
+          },
+          {
+            "module_name": "Cloud Architecture Solutions for Real-World Finance Problems",
+            "word_count": 1200,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+            "tool_integration": [
+              "PowerBI"
+            ],
+            "learning_outcome": "Design and implement cloud architecture solutions for complex financial scenarios."
+          },
+          {
+            "module_name": "Advanced Scenario Analysis with Integrated Tools",
+            "word_count": 1000,
+            "priority_level": "high",
+            "skill_gap_addressed": "System Architecture Design",
+            "tool_integration": [
+              "Excel",
+              "SAP BPC",
+              "PowerBI"
+            ],
+            "learning_outcome": "Conduct advanced scenario analysis using a combination of financial tools for strategic decision-making."
+          }
+        ]
+      }
+    ]
+  },
+  "detailed_modules": [
+    {
+      "module_id": "M01",
+      "module_name": "Introduction to System Architecture",
+      "week_number": 1,
+      "word_count_target": 1000,
+      "priority_level": "critical",
+      "skill_gap_addressed": "System Architecture Design",
+      "tool_integration": [
+        "Excel"
+      ],
+      "learning_outcome": "Understand the basics of system architecture and its importance in financial systems.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M02",
+      "module_name": "Designing Financial Systems with Excel",
+      "week_number": 1,
+      "word_count_target": 1000,
+      "priority_level": "high",
+      "skill_gap_addressed": "System Architecture Design",
+      "tool_integration": [
+        "Excel"
+      ],
+      "learning_outcome": "Apply system design principles to create robust financial models in Excel.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M03",
+      "module_name": "Principles of Cloud Computing in Finance",
+      "week_number": 1,
+      "word_count_target": 800,
+      "priority_level": "medium",
+      "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+      "tool_integration": [],
+      "learning_outcome": "Gain an introductory understanding of cloud computing principles relevant to financial data.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M04",
+      "module_name": "Becoming a Technical Leader",
+      "week_number": 2,
+      "word_count_target": 1200,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Technical Leadership",
+      "tool_integration": [],
+      "learning_outcome": "Learn the qualities of technical leadership and how to apply them in financial projects.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M05",
+      "module_name": "AWS for Financial Analysts",
+      "week_number": 2,
+      "word_count_target": 1000,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+      "tool_integration": [
+        "PowerBI"
+      ],
+      "learning_outcome": "Implement AWS solutions for enhanced financial data analysis and reporting.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M06",
+      "module_name": "Azure Fundamentals for Finance",
+      "week_number": 2,
+      "word_count_target": 1000,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+      "tool_integration": [
+        "PowerBI"
+      ],
+      "learning_outcome": "Understand how to leverage Azure for financial data storage, analysis, and reporting.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M07",
+      "module_name": "Advanced Excel Techniques for Financial Analysis",
+      "week_number": 3,
+      "word_count_target": 1200,
+      "priority_level": "high",
+      "skill_gap_addressed": "System Architecture Design",
+      "tool_integration": [
+        "Excel"
+      ],
+      "learning_outcome": "Master advanced Excel functions and techniques for complex financial analysis.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M08",
+      "module_name": "Leveraging SAP BPC for Financial Planning",
+      "week_number": 3,
+      "word_count_target": 1200,
+      "priority_level": "high",
+      "skill_gap_addressed": "System Architecture Design",
+      "tool_integration": [
+        "SAP BPC"
+      ],
+      "learning_outcome": "Implement SAP BPC for effective financial planning and performance management.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M09",
+      "module_name": "Data Visualization with PowerBI",
+      "week_number": 3,
+      "word_count_target": 1000,
+      "priority_level": "medium",
+      "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+      "tool_integration": [
+        "PowerBI"
+      ],
+      "learning_outcome": "Create impactful financial reports and dashboards using PowerBI.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M10",
+      "module_name": "Applying Technical Leadership in Financial Projects",
+      "week_number": 4,
+      "word_count_target": 1200,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Technical Leadership",
+      "tool_integration": [],
+      "learning_outcome": "Apply technical leadership skills in managing and executing financial analysis projects.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M11",
+      "module_name": "Cloud Architecture Solutions for Real-World Finance Problems",
+      "week_number": 4,
+      "word_count_target": 1200,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Cloud Architecture (AWS/Azure)",
+      "tool_integration": [
+        "PowerBI"
+      ],
+      "learning_outcome": "Design and implement cloud architecture solutions for complex financial scenarios.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    },
+    {
+      "module_id": "M12",
+      "module_name": "Advanced Scenario Analysis with Integrated Tools",
+      "week_number": 4,
+      "word_count_target": 1000,
+      "priority_level": "high",
+      "skill_gap_addressed": "System Architecture Design",
+      "tool_integration": [
+        "Excel",
+        "SAP BPC",
+        "PowerBI"
+      ],
+      "learning_outcome": "Conduct advanced scenario analysis using a combination of financial tools for strategic decision-making.",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Technical Lead within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "beginner",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    }
+  ],
+  "research_strategy": {
+    "M01": [
+      "Introduction to System Architecture fundamentals for financial analysts",
+      "Excel introduction to system architecture best practices 2024",
+      "introduction to system architecture for business performance reporting analysts",
+      "financial analysis system architecture design case studies examples",
+      "advanced introduction to system architecture techniques senior analysts"
+    ],
+    "M02": [
+      "Designing Financial Systems with Excel fundamentals for financial analysts",
+      "Excel designing financial systems with excel best practices 2024",
+      "designing financial systems with excel for business performance reporting analysts",
+      "financial analysis system architecture design case studies examples",
+      "advanced designing financial systems with excel techniques senior analysts"
+    ],
+    "M03": [
+      "Principles of Cloud Computing in Finance fundamentals for financial analysts",
+      "principles of cloud computing in finance for business performance reporting analysts",
+      "financial analysis cloud architecture (aws/azure) case studies examples",
+      "advanced principles of cloud computing in finance techniques senior analysts"
+    ],
+    "M04": [
+      "Becoming a Technical Leader fundamentals for financial analysts",
+      "becoming a technical leader for business performance reporting analysts",
+      "financial analysis technical leadership case studies examples",
+      "advanced becoming a technical leader techniques senior analysts"
+    ],
+    "M05": [
+      "AWS for Financial Analysts fundamentals for financial analysts",
+      "PowerBI aws for financial analysts best practices 2024",
+      "aws for financial analysts for business performance reporting analysts",
+      "financial analysis cloud architecture (aws/azure) case studies examples",
+      "advanced aws for financial analysts techniques senior analysts"
+    ],
+    "M06": [
+      "Azure Fundamentals for Finance fundamentals for financial analysts",
+      "PowerBI azure fundamentals for finance best practices 2024",
+      "azure fundamentals for finance for business performance reporting analysts",
+      "financial analysis cloud architecture (aws/azure) case studies examples",
+      "advanced azure fundamentals for finance techniques senior analysts"
+    ],
+    "M07": [
+      "Advanced Excel Techniques for Financial Analysis fundamentals for financial analysts",
+      "Excel advanced excel techniques for financial analysis best practices 2024",
+      "advanced excel techniques for financial analysis for business performance reporting analysts",
+      "financial analysis system architecture design case studies examples",
+      "advanced advanced excel techniques for financial analysis techniques senior analysts"
+    ],
+    "M08": [
+      "Leveraging SAP BPC for Financial Planning fundamentals for financial analysts",
+      "SAP BPC leveraging sap bpc for financial planning best practices 2024",
+      "leveraging sap bpc for financial planning for business performance reporting analysts",
+      "financial analysis system architecture design case studies examples",
+      "advanced leveraging sap bpc for financial planning techniques senior analysts"
+    ],
+    "M09": [
+      "Data Visualization with PowerBI fundamentals for financial analysts",
+      "PowerBI data visualization with powerbi best practices 2024",
+      "data visualization with powerbi for business performance reporting analysts",
+      "financial analysis cloud architecture (aws/azure) case studies examples",
+      "advanced data visualization with powerbi techniques senior analysts"
+    ],
+    "M10": [
+      "Applying Technical Leadership in Financial Projects fundamentals for financial analysts",
+      "applying technical leadership in financial projects for business performance reporting analysts",
+      "financial analysis technical leadership case studies examples",
+      "advanced applying technical leadership in financial projects techniques senior analysts"
+    ],
+    "M11": [
+      "Cloud Architecture Solutions for Real-World Finance Problems fundamentals for financial analysts",
+      "PowerBI cloud architecture solutions for real-world finance problems best practices 2024",
+      "cloud architecture solutions for real-world finance problems for business performance reporting analysts",
+      "financial analysis cloud architecture (aws/azure) case studies examples",
+      "advanced cloud architecture solutions for real-world finance problems techniques senior analysts"
+    ],
+    "M12": [
+      "Advanced Scenario Analysis with Integrated Tools fundamentals for financial analysts",
+      "Excel advanced scenario analysis with integrated tools best practices 2024",
+      "SAP BPC advanced scenario analysis with integrated tools best practices 2024",
+      "PowerBI advanced scenario analysis with integrated tools best practices 2024",
+      "advanced scenario analysis with integrated tools for business performance reporting analysts",
+      "financial analysis system architecture design case studies examples",
+      "advanced advanced scenario analysis with integrated tools techniques senior analysts"
+    ]
+  },
+  "learning_path_optimization": {
+    "sequencing_strategy": "progressive_skill_building",
+    "difficulty_progression": [
+      "foundation",
+      "foundation",
+      "foundation",
+      "intermediate",
+      "intermediate",
+      "intermediate",
+      "advanced",
+      "advanced",
+      "advanced",
+      "expert_application",
+      "expert_application",
+      "expert_application"
+    ],
+    "skill_dependency_map": {
+      "M01": [],
+      "M02": [],
+      "M03": [],
+      "M04": [],
+      "M05": [],
+      "M06": [],
+      "M07": [
+        "M06"
+      ],
+      "M08": [],
+      "M09": [],
+      "M10": [],
+      "M11": [],
+      "M12": [
+        "M11"
+      ]
+    },
+    "personalization_adjustments": {
+      "accelerated_modules": [],
+      "emphasis_modules": [],
+      "practical_focus": []
+    },
+    "success_checkpoints": [
+      {
+        "checkpoint_id": "CP1",
+        "after_module": "M05",
+        "checkpoint_type": "skill_assessment",
+        "validation_method": "practical_exercise",
+        "success_criteria": "80% competency demonstration"
+      },
+      {
+        "checkpoint_id": "CP2",
+        "after_module": "M10",
+        "checkpoint_type": "skill_assessment",
+        "validation_method": "practical_exercise",
+        "success_criteria": "80% competency demonstration"
+      }
+    ]
+  },
+  "success_metrics": {
+    "skill_acquisition_targets": {
+      "critical_skills": 3,
+      "target_proficiency": "intermediate_to_advanced",
+      "completion_timeline": "2-3 years"
+    },
+    "practical_application_metrics": {
+      "tool_proficiency_improvement": "25% increase in advanced tool usage",
+      "real_world_application": "Successfully complete 3 business reporting scenarios",
+      "knowledge_retention": "80% retention rate after 30 days"
+    },
+    "career_progression_indicators": {
+      "readiness_for_target_role": "75% skill gap closure",
+      "performance_improvement": "Demonstrate advanced analytical capabilities",
+      "confidence_building": "Self-assessed competency improvement"
+    }
+  }
+}

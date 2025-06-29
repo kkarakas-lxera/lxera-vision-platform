@@ -13,6 +13,7 @@ This module creates detailed, research-driven course plans based on:
 import json
 import time
 import logging
+import os
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
 from pathlib import Path
@@ -389,9 +390,9 @@ class IntelligentCoursePlanner:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4-turbo-preview",
                 messages=[
-                    {"role": "system", "content": "You are an expert learning and development specialist who creates highly personalized training programs. Create comprehensive, practical course structures that directly address individual needs."},
+                    {"role": "system", "content": "You are an expert learning and development specialist who creates highly personalized training programs. Create comprehensive, practical course structures that directly address individual needs. Always respond with valid JSON."},
                     {"role": "user", "content": planning_prompt}
                 ],
                 temperature=0.3,
@@ -678,7 +679,8 @@ class IntelligentCoursePlanner:
                 "tool_specific": 0,
                 "role_specific": 0,
                 "industry_specific": 0,
-                "advanced_techniques": 0
+                "advanced_techniques": 0,
+                "skill_development": 0
             },
             "search_optimization": {
                 "domain_focus": ["finance", "education", "professional_development"],
@@ -699,6 +701,8 @@ class IntelligentCoursePlanner:
                     strategy_summary["query_categories"]["industry_specific"] += 1
                 elif "advanced" in query_lower or "senior" in query_lower:
                     strategy_summary["query_categories"]["advanced_techniques"] += 1
+                elif any(skill in query_lower for skill in ["skill", "development", "learning", "training"]):
+                    strategy_summary["query_categories"]["skill_development"] += 1
         
         return strategy_summary
 

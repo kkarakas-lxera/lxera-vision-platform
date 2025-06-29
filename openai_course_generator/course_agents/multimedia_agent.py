@@ -1,6 +1,6 @@
 """Multimedia Agent for audio/video generation with database integration."""
 
-from agents import Agent
+from lxera_agents import Agent
 
 # Use absolute imports to avoid relative import issues in production
 try:

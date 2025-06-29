@@ -1,0 +1,188 @@
+{
+  "course_metadata": {
+    "generated_for": "Bob Smith",
+    "employee_id": "635676b4-97af-4e66-9c1d-4fedc714ca52",
+    "generation_timestamp": "2025-06-27T18:23:45.279517",
+    "personalization_level": "comprehensive",
+    "planning_system": "intelligent_course_planner_v1"
+  },
+  "employee_profile_summary": {
+    "employee_id": "635676b4-97af-4e66-9c1d-4fedc714ca52",
+    "full_name": "Bob Smith",
+    "current_role": "DEV-001",
+    "experience_level": "mid",
+    "learning_style": "Prefers practical application and real-world examples",
+    "career_path": {
+      "current_position": "DEV-001",
+      "target_position": "Senior Developer within 2-3 years",
+      "timeline": "2-3 years",
+      "progression_type": "skill_enhancement"
+    },
+    "skill_inventory": {
+      "technical_skills": {
+        "data_analysis": [],
+        "financial_tools": [],
+        "project_management": [],
+        "technology": [],
+        "domain_specific": [
+          "Programming (Intermediate)",
+          "Problem Solving (Advanced)",
+          "Team Collaboration (Intermediate)"
+        ]
+      },
+      "transferable_skills": [],
+      "tool_proficiency": {}
+    },
+    "contextual_factors": {
+      "department_goals": [],
+      "company_priorities": [],
+      "upcoming_projects": [],
+      "performance_highlights": []
+    }
+  },
+  "skills_gap_prioritization": {
+    "critical_priority": [
+      {
+        "skill": "Advanced Python Programming",
+        "importance": "Critical",
+        "description": "Deep understanding of Python internals and advanced patterns",
+        "priority_score": 10,
+        "learning_urgency": "immediate",
+        "course_focus_percentage": 40
+      },
+      {
+        "skill": "System Architecture Design",
+        "importance": "Critical",
+        "description": "Ability to design scalable distributed systems",
+        "priority_score": 10,
+        "learning_urgency": "immediate",
+        "course_focus_percentage": 40
+      }
+    ],
+    "high_priority": [
+      {
+        "skill": "Cloud Technologies (AWS/Azure)",
+        "importance": "Important",
+        "description": "Hands-on experience with cloud services",
+        "priority_score": 7,
+        "learning_urgency": "high",
+        "course_focus_percentage": 25
+      },
+      {
+        "skill": "DevOps Practices",
+        "importance": "Important",
+        "description": "CI/CD pipelines and infrastructure as code",
+        "priority_score": 7,
+        "learning_urgency": "high",
+        "course_focus_percentage": 25
+      }
+    ],
+    "medium_priority": [],
+    "development_opportunities": [
+      {
+        "skill": "Problem Solving",
+        "priority_score": 3,
+        "learning_urgency": "low",
+        "course_focus_percentage": 10,
+        "enhancement_type": "leverage_existing"
+      },
+      {
+        "skill": "Team Collaboration",
+        "priority_score": 3,
+        "learning_urgency": "low",
+        "course_focus_percentage": 10,
+        "enhancement_type": "leverage_existing"
+      }
+    ]
+  },
+  "course_structure": {
+    "course_title": "Personalized Financial Analysis Training for Bob Smith",
+    "total_duration": "4 weeks",
+    "learning_objectives": [
+      "Master fundamental financial analysis concepts",
+      "Develop advanced forecasting and budgeting skills",
+      "Enhance data analysis capabilities for business reporting",
+      "Apply tools effectively in professional context"
+    ],
+    "weeks": [
+      {
+        "week_number": 1,
+        "theme": "Financial Analysis Fundamentals",
+        "modules": [
+          {
+            "module_name": "Introduction to Financial Analysis for Business Performance",
+            "word_count": 1000,
+            "priority_level": "critical",
+            "skill_gap_addressed": "Financial Analysis Fundamentals"
+          }
+        ]
+      }
+    ]
+  },
+  "detailed_modules": [
+    {
+      "module_id": "M01",
+      "module_name": "Introduction to Financial Analysis for Business Performance",
+      "week_number": 1,
+      "word_count_target": 1000,
+      "priority_level": "critical",
+      "skill_gap_addressed": "Financial Analysis Fundamentals",
+      "tool_integration": [],
+      "learning_outcome": "",
+      "personalization_context": {
+        "employee_name": "Bob Smith",
+        "current_role": "DEV-001",
+        "career_goal": "Senior Developer within 2-3 years",
+        "experience_level": "mid",
+        "preferred_tools": []
+      },
+      "content_specifications": {
+        "introduction_focus": "Real-world application in business performance reporting",
+        "examples_type": "Specific to financial analysis and business reporting",
+        "difficulty_level": "intermediate",
+        "practical_emphasis": 0.7,
+        "case_study_integration": true
+      }
+    }
+  ],
+  "research_strategy": {
+    "M01": [
+      "Introduction to Financial Analysis for Business Performance fundamentals for financial analysts",
+      "introduction to financial analysis for business performance for business performance reporting analysts",
+      "financial analysis financial analysis fundamentals case studies examples",
+      "advanced introduction to financial analysis for business performance techniques senior analysts"
+    ]
+  },
+  "learning_path_optimization": {
+    "sequencing_strategy": "progressive_skill_building",
+    "difficulty_progression": [
+      "foundation"
+    ],
+    "skill_dependency_map": {
+      "M01": []
+    },
+    "personalization_adjustments": {
+      "accelerated_modules": [],
+      "emphasis_modules": [],
+      "practical_focus": []
+    },
+    "success_checkpoints": []
+  },
+  "success_metrics": {
+    "skill_acquisition_targets": {
+      "critical_skills": 2,
+      "target_proficiency": "intermediate_to_advanced",
+      "completion_timeline": "2-3 years"
+    },
+    "practical_application_metrics": {
+      "tool_proficiency_improvement": "25% increase in advanced tool usage",
+      "real_world_application": "Successfully complete 3 business reporting scenarios",
+      "knowledge_retention": "80% retention rate after 30 days"
+    },
+    "career_progression_indicators": {
+      "readiness_for_target_role": "75% skill gap closure",
+      "performance_improvement": "Demonstrate advanced analytical capabilities",
+      "confidence_building": "Self-assessed competency improvement"
+    }
+  }
+}

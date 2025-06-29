@@ -3,7 +3,7 @@
 import json
 import logging
 from typing import Dict, Any, List
-from agents import Agent
+from lxera_agents import Agent
 
 # Import research tools
 from tools.research_tools import (
@@ -11,6 +11,15 @@ from tools.research_tools import (
     firecrawl_extract,
     research_synthesizer
 )
+
+# Import storage tools v2 with manual FunctionTool creation
+from tools.research_storage_tools_v2 import (
+    store_research_results,
+    store_research_session
+)
+
+# Import handoff context tools
+from tools.handoff_context_tools import log_agent_handoff
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +42,7 @@ def create_research_agent() -> Agent:
     2. Use firecrawl_extract to extract detailed content from top sources
     3. Use research_synthesizer to consolidate findings into structured insights
     4. Ensure comprehensive coverage with minimum 5 high-quality sources per topic
+    5. Hand off to Content Agent for module creation
 
     Research Quality Standards:
     - Prefer authoritative domains (.edu, .gov, .org, established industry sites)
@@ -45,15 +55,45 @@ def create_research_agent() -> Agent:
     visibility in OpenAI Traces and proper monitoring of the research process.
     """
     
+    # Import content agent and handoff function
+    from .database_agents import create_database_content_agent
+    from lxera_agents import handoff
+    
+    # Add handoff instructions to the prompt
+    research_instructions += """
+    
+    When you have completed all research tasks:
+    1. Ensure you have gathered comprehensive materials for each topic
+    2. Synthesize the findings using research_synthesizer
+    3. Store the complete research results using store_research_results with findings and content library
+    4. Store the session metadata using store_research_session with execution details
+    5. Use the log_agent_handoff tool to log the handoff with key context:
+       - Summary of research findings
+       - Key resources identified
+       - Module content mappings
+    6. Transfer to the Content Agent using the transfer_to_content_agent tool
+    
+    The Content Agent will use your research findings to create the actual course content.
+    """
+    
     return Agent(
         name="Research Specialist Agent",
         instructions=research_instructions,
         tools=[
             tavily_search,
             firecrawl_extract,
-            research_synthesizer
+            research_synthesizer,
+            store_research_results,
+            store_research_session,
+            log_agent_handoff
         ],
-        handoffs=[]  # Research agent provides comprehensive findings to content agents
+        handoffs=[
+            handoff(
+                create_database_content_agent(),
+                tool_name_override="transfer_to_content_agent",
+                tool_description_override="Transfer to Content Agent to create course modules based on research findings"
+            )
+        ]
     )
 
 class ResearchAgentOrchestrator:
@@ -74,7 +114,7 @@ class ResearchAgentOrchestrator:
         try:
             logger.info(f"🚀 Starting agentic research workflow for {len(research_queries)} queries...")
             
-            from agents import Runner
+            from lxera_agents import Runner
             
             # Limit research queries to prevent context overflow
             limited_queries = research_queries[:5]  # Limit to first 5 queries

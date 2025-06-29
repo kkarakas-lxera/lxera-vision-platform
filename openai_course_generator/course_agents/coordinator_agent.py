@@ -1,7 +1,7 @@
 """Coordinator Agent - Main orchestration agent for course generation."""
 
 from typing import Dict, Any, List
-from agents import Agent
+from lxera_agents import Agent
 from config.agent_configs import get_agent_configs
 # from tools.personalization_tools import employee_analyzer, requirement_validator
 # from tools.database_tools import progress_tracker

@@ -16,7 +16,7 @@ import re
 import json
 import logging
 from typing import Dict, Any, List
-from agents import function_tool
+from lxera_agents import function_tool
 
 # Database integration
 from database.content_manager import ContentManager

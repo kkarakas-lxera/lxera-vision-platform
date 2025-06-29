@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from agents import function_tool
+from lxera_agents import function_tool
 
 from ..config.settings import get_settings
 from ..models.workflow_models import CourseGenerationStatus, WorkflowStatus

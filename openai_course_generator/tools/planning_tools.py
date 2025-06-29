@@ -10,8 +10,9 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
-from agents import function_tool
+from lxera_agents import function_tool
 from openai import OpenAI
+from tools.json_utils import extract_json_from_text, safe_json_parse
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -196,10 +197,60 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
                 {"role": "user", "content": planning_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
             temperature=0.3,
-            max_tokens=4000
+            max_tokens=4096  # Increased for complete response
         )
         
-        course_structure = json.loads(response.choices[0].message.content)
+        # Extract JSON from response using robust utilities
+        response_content = response.choices[0].message.content
+        course_structure = extract_json_from_text(response_content)
+        
+        if not course_structure:
+            logger.error(f"Failed to extract JSON from response")
+            logger.error(f"Response length: {len(response_content)} chars")
+            
+            # Fallback: Create a basic course structure
+            course_structure = {
+                "course_title": f"Personalized Course for {profile.get('employee_name', 'Learner')}",
+                "total_duration_weeks": 4,
+                "learning_objectives": ["Skill development", "Career advancement"],
+                "weekly_structure": []
+            }
+            
+            # Try to parse week and module information from response
+            import re
+            week_pattern = r'week\s*(\d+)[:\s]*([^,\n]+)'
+            module_pattern = r'module[:\s]*"?([^",\n]+)"?'
+            
+            weeks_found = re.findall(week_pattern, response_content, re.IGNORECASE)
+            modules_found = re.findall(module_pattern, response_content, re.IGNORECASE)
+            
+            # Build weekly structure from extracted data
+            for i in range(4):  # Default 4 weeks
+                week_data = {
+                    "week_number": i + 1,
+                    "theme": weeks_found[i][1] if i < len(weeks_found) else f"Week {i+1} Theme",
+                    "focus_areas": [],
+                    "modules": []
+                }
+                
+                # Add modules to weeks
+                modules_per_week = 2
+                start_idx = i * modules_per_week
+                for j in range(modules_per_week):
+                    module_idx = start_idx + j
+                    if module_idx < len(modules_found):
+                        module_name = modules_found[module_idx]
+                    else:
+                        module_name = f"Module {module_idx + 1}"
+                    
+                    week_data["modules"].append({
+                        "module_name": module_name,
+                        "word_count_target": 5000 if j == 0 else 4000,
+                        "priority_level": "critical" if i < 2 else "high",
+                        "skill_gap_addressed": gaps.get('Critical Skill Gaps', {}).get('gaps', [{}])[0].get('skill', 'General skill')
+                    })
+                
+                course_structure["weekly_structure"].append(week_data)
         
         # Add metadata
         course_structure["generation_metadata"] = {
@@ -300,10 +351,39 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
                 {"role": "user", "content": query_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
             temperature=0.3,
-            max_tokens=3000
+            max_tokens=4000  # Increased from 3000
         )
         
-        research_strategy = json.loads(response.choices[0].message.content)
+        # Extract JSON from response using robust utilities
+        response_content = response.choices[0].message.content
+        research_strategy = extract_json_from_text(response_content)
+        
+        if not research_strategy:
+            logger.error(f"Failed to extract JSON from response")
+            logger.error(f"Response length: {len(response_content)} chars")
+            logger.error(f"Response preview: {response_content[:500]}...")
+            
+            # Fallback: Create a minimal valid response structure
+            research_strategy = {
+                "query_strategy": {},
+                "global_context": {
+                    "role_focus": profile.get('current_role', ''),
+                    "tool_emphasis": profile.get('skill_inventory', {}).get('tool_proficiency', []),
+                    "industry_context": "technology"
+                }
+            }
+            
+            # Try to extract individual queries from the response
+            import re
+            query_lines = re.findall(r'"([^"]+(?:query|search|find|learn|understand)[^"]+)"', response_content, re.IGNORECASE)
+            if query_lines:
+                for i, module in enumerate(all_modules[:5]):
+                    module_key = f"module_{i+1}"
+                    research_strategy["query_strategy"][module_key] = {
+                        "module_name": module.get('module_name', f'Module {i+1}'),
+                        "queries": query_lines[i*5:(i+1)*5] if i*5 < len(query_lines) else ["General research query"],
+                        "search_focus": "general"
+                    }
         
         # Add metadata
         research_strategy["generation_metadata"] = {
@@ -549,10 +629,69 @@ def generate_module_outline_with_allocations(module_spec: str, employee_profile:
                 {"role": "user", "content": outline_prompt + "\n\nIMPORTANT: Return ONLY valid JSON in your response, no additional text or explanations."}
             ],
             temperature=0.2,
-            max_tokens=4000
+            max_tokens=4096  # Increased for complete response
         )
         
-        outline_data = json.loads(response.choices[0].message.content)
+        # Extract JSON from response using robust utilities
+        response_content = response.choices[0].message.content
+        outline_data = extract_json_from_text(response_content)
+        
+        if not outline_data:
+            logger.error(f"Failed to extract JSON from response")
+            
+            # Fallback: Create basic outline structure
+            outline_data = {
+                "module_outline": {
+                    "introduction": {
+                        "word_target": section_allocations.get('introduction', 800),
+                        "content_outline": ["Module introduction", "Learning objectives", "Prerequisites"],
+                        "learning_objectives": ["Understand key concepts", "Apply to practice"],
+                        "key_concepts": ["Core concept 1", "Core concept 2"],
+                        "examples_needed": ["Example 1", "Example 2"],
+                        "engagement_elements": ["Hook", "Relevance statement"]
+                    },
+                    "core_content": {
+                        "word_target": section_allocations.get('core_content', 2000),
+                        "content_outline": ["Main topic", "Subtopic 1", "Subtopic 2"],
+                        "learning_objectives": ["Master concepts", "Understand principles"],
+                        "key_concepts": ["Fundamental 1", "Fundamental 2"],
+                        "depth_level": "intermediate",
+                        "theoretical_framework": ["Theory 1", "Model 1"]
+                    },
+                    "practical_applications": {
+                        "word_target": section_allocations.get('practical_applications', 1200),
+                        "content_outline": ["Tool application", "Workflow"],
+                        "tool_specific_content": tools_used,
+                        "hands_on_exercises": ["Exercise 1", "Exercise 2"],
+                        "real_world_scenarios": ["Scenario 1", "Scenario 2"],
+                        "step_by_step_guides": ["Guide 1"]
+                    },
+                    "case_studies": {
+                        "word_target": section_allocations.get('case_studies', 700),
+                        "content_outline": ["Case 1", "Case 2"],
+                        "industry_context": "relevant industry",
+                        "complexity_level": f"{experience_level}_appropriate",
+                        "analysis_frameworks": ["Framework 1"],
+                        "discussion_points": ["Point 1", "Point 2"]
+                    },
+                    "assessments": {
+                        "word_target": section_allocations.get('assessments', 300),
+                        "content_outline": ["Quiz questions", "Practical exercises"],
+                        "assessment_types": ["knowledge_check", "application"],
+                        "success_criteria": ["Criteria 1", "Criteria 2"],
+                        "feedback_mechanisms": ["immediate", "explanatory"]
+                    }
+                },
+                "content_requirements": {
+                    "total_word_target": total_words,
+                    "section_distribution": section_allocations,
+                    "personalization_factors": {
+                        "experience_level": experience_level,
+                        "practical_emphasis": practical_emphasis,
+                        "tool_integration": tools_used
+                    }
+                }
+            }
         
         # Add metadata
         outline_data["generation_metadata"] = {

@@ -1,6 +1,6 @@
 """Finalizer Agent for course assembly and completion."""
 
-from agents import Agent
+from lxera_agents import Agent
 
 
 def create_finalizer_agent() -> Agent:

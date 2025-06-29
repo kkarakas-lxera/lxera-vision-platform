@@ -1,6 +1,7 @@
 """
 Comprehensive Agents Module for LXERA Pipeline
 Provides full OpenAI-based agent functionality with tool calling and async support
+Now using official OpenAI Agents SDK with tracing support
 """
 
 import os
@@ -9,24 +10,63 @@ import logging
 import asyncio
 import inspect
 from typing import Dict, Any, List, Optional, Callable, Union
-from openai import OpenAI
 from functools import wraps
 
-logger = logging.getLogger(__name__)
-
-# Initialize OpenAI client with fallback handling
-def get_openai_client():
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        logger.warning("OPENAI_API_KEY not found - some functionality will be limited")
-        return None
-    return OpenAI(api_key=api_key)
-
-client = None  # Will be initialized when needed
+# Try to import official SDK first, fallback to custom implementation
+try:
+    # Import from the official agents SDK
+    from agents import (
+        Agent as OpenAIAgent, 
+        Runner as SDKRunner, 
+        function_tool as sdk_function_tool,
+        handoff,
+        trace,
+        Trace,
+        Span
+    )
+    
+    OFFICIAL_SDK = True
+    logger = logging.getLogger(__name__)
+    logger.info("✅ Using official OpenAI Agents SDK with tracing support")
+    
+    # Export trace and related functionality for use in other modules
+    __all__ = ['Agent', 'Runner', 'function_tool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
+    
+except ImportError as e:
+    logger = logging.getLogger(__name__)
+    logger.warning(f"⚠️ Official OpenAI Agents SDK not found: {e}")
+    logger.warning("Falling back to custom implementation without tracing")
+    OFFICIAL_SDK = False
+    from openai import OpenAI
+    
+    # Create dummy trace context manager for compatibility
+    from contextlib import contextmanager
+    @contextmanager
+    def trace(name: str):
+        """Dummy trace for compatibility when SDK not available"""
+        yield
+    
+    # Create dummy handoff function for compatibility
+    def handoff(agent, **kwargs):
+        """Dummy handoff for compatibility when SDK not available"""
+        return agent
+    
+    __all__ = ['Agent', 'Runner', 'function_tool', 'handoff', 'create_agent', 'trace', 'OFFICIAL_SDK']
+    
+    # Initialize OpenAI client with fallback handling
+    def get_openai_client():
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            logger.warning("OPENAI_API_KEY not found - some functionality will be limited")
+            return None
+        return OpenAI(api_key=api_key)
+    
+    client = None  # Will be initialized when needed
 
 class Agent:
     """
     Comprehensive Agent class that supports OpenAI function calling and tool integration
+    Now with official SDK support for proper tracing
     """
     
     def __init__(self, 
@@ -44,8 +84,26 @@ class Agent:
         self.temperature = kwargs.get('temperature', 0.1)
         self.max_tokens = kwargs.get('max_tokens', 4096)
         
-        # Convert tools to OpenAI function format
-        self.openai_tools = self._prepare_tools()
+        if OFFICIAL_SDK:
+            # Create official SDK agent with tools
+            sdk_tools = []
+            for tool in self.tools:
+                if hasattr(tool, '_is_tool'):
+                    func = tool._original_function if hasattr(tool, '_original_function') else tool
+                    # Wrap function with sdk_function_tool decorator
+                    sdk_tools.append(sdk_function_tool(func))
+                else:
+                    sdk_tools.append(tool)
+            
+            self._sdk_agent = OpenAIAgent(
+                name=name,
+                instructions=instructions,
+                model=model,
+                tools=sdk_tools
+            )
+        else:
+            # Convert tools to OpenAI function format for fallback
+            self.openai_tools = self._prepare_tools()
         
     def _prepare_tools(self) -> List[Dict[str, Any]]:
         """Convert tool functions to OpenAI function calling format"""
@@ -113,80 +171,113 @@ class Agent:
                   **kwargs) -> Dict[str, Any]:
         """
         Run the agent with given messages, supporting tool calling
+        Uses official SDK with tracing when available
         """
-        try:
-            # Handle string input
-            if isinstance(messages, str):
-                messages = [{"role": "user", "content": messages}]
-            
-            # Prepare system message
-            system_message = {
-                "role": "system", 
-                "content": self.instructions
-            }
-            
-            # Combine system message with user messages
-            all_messages = [system_message] + messages
-            
-            # Prepare OpenAI request
-            request_params = {
-                "model": self.model,
-                "messages": all_messages,
-                "temperature": self.temperature,
-                "max_tokens": self.max_tokens
-            }
-            
-            # Add tools if available
-            if self.openai_tools:
-                request_params["tools"] = self.openai_tools
-                request_params["tool_choice"] = "auto"
-            
-            # Get OpenAI client (lazy initialization)
-            global client
-            if client is None:
-                client = get_openai_client()
+        if OFFICIAL_SDK:
+            # Use official SDK with automatic tracing
+            try:
+                # Convert messages to string if needed
+                if isinstance(messages, str):
+                    user_message = messages
+                else:
+                    # Extract user content from messages
+                    user_message = " ".join([m["content"] for m in messages if m["role"] == "user"])
+                
+                # Run with tracing enabled
+                result = await SDKRunner.run(self._sdk_agent, user_message)
+                
+                # Convert SDK result to our format
+                return {
+                    "success": True,
+                    "content": result.final_output,
+                    "tool_calls": [{"tool": t.name, "result": t.result} for t in result.tool_calls] if hasattr(result, 'tool_calls') else [],
+                    "usage": result.usage if hasattr(result, 'usage') else {},
+                    "model": self.model,
+                    "messages": result.messages if hasattr(result, 'messages') else []
+                }
+            except Exception as e:
+                logger.error(f"Agent {self.name} failed with SDK: {e}")
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "content": None,
+                    "tool_calls": []
+                }
+        else:
+            # Fallback to original implementation
+            try:
+                # Handle string input
+                if isinstance(messages, str):
+                    messages = [{"role": "user", "content": messages}]
+                
+                # Prepare system message
+                system_message = {
+                    "role": "system", 
+                    "content": self.instructions
+                }
+                
+                # Combine system message with user messages
+                all_messages = [system_message] + messages
+                
+                # Prepare OpenAI request
+                request_params = {
+                    "model": self.model,
+                    "messages": all_messages,
+                    "temperature": self.temperature,
+                    "max_tokens": self.max_tokens
+                }
+                
+                # Add tools if available
+                if self.openai_tools:
+                    request_params["tools"] = self.openai_tools
+                    request_params["tool_choice"] = "auto"
+                
+                # Get OpenAI client (lazy initialization)
+                global client
                 if client is None:
-                    raise Exception("OpenAI API key not configured")
-            
-            # Call OpenAI
-            response = client.chat.completions.create(**request_params)
-            
-            message = response.choices[0].message
-            content = message.content
-            tool_calls = message.tool_calls
-            
-            # Handle tool calls
-            tool_results = []
-            if tool_calls:
-                for tool_call in tool_calls:
-                    function_name = tool_call.function.name
-                    arguments = json.loads(tool_call.function.arguments)
-                    
-                    logger.info(f"Executing tool: {function_name} with args: {arguments}")
-                    result = self._execute_tool(function_name, arguments)
-                    tool_results.append({
-                        "tool": function_name,
-                        "arguments": arguments,
-                        "result": result
-                    })
-            
-            return {
-                "success": True,
-                "content": content,
-                "tool_calls": tool_results,
-                "usage": response.usage.model_dump() if response.usage else {},
-                "model": self.model,
-                "raw_response": message
-            }
-            
-        except Exception as e:
-            logger.error(f"Agent {self.name} failed: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "content": None,
-                "tool_calls": []
-            }
+                    client = get_openai_client()
+                    if client is None:
+                        raise Exception("OpenAI API key not configured")
+                
+                # Call OpenAI
+                response = client.chat.completions.create(**request_params)
+                
+                message = response.choices[0].message
+                content = message.content
+                tool_calls = message.tool_calls
+                
+                # Handle tool calls
+                tool_results = []
+                if tool_calls:
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        arguments = json.loads(tool_call.function.arguments)
+                        
+                        logger.info(f"Executing tool: {function_name} with args: {arguments}")
+                        result = self._execute_tool(function_name, arguments)
+                        tool_results.append({
+                            "tool": function_name,
+                            "arguments": arguments,
+                            "result": result
+                        })
+                
+                return {
+                    "success": True,
+                    "content": content,
+                    "tool_calls": tool_results,
+                    "usage": response.usage.model_dump() if response.usage else {},
+                    "model": self.model,
+                    "raw_response": message
+                }
+                
+            except Exception as e:
+                logger.error(f"Agent {self.name} failed: {e}")
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "content": None,
+                    "tool_calls": []
+                }
     
     def run_sync(self, messages: Union[str, List[Dict[str, str]]], **kwargs) -> Dict[str, Any]:
         """Synchronous version of run"""
@@ -241,10 +332,11 @@ def create_agent(name: str,
 class Runner:
     """
     Runner class for executing agent conversations with OpenAI SDK
+    Now with official SDK tracing support
     """
     
     @staticmethod
-    async def run(agent: Agent, input: str, max_turns: int = 10, progress_callback: Optional[Callable] = None) -> Dict[str, Any]:
+    async def run(agent: Agent, input: str, max_turns: int = 10, progress_callback: Optional[Callable] = None, trace_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Run an agent conversation with tool calling support
         
@@ -253,17 +345,79 @@ class Runner:
             input: Initial user message
             max_turns: Maximum conversation turns
             progress_callback: Optional callback for progress updates
+            trace_name: Optional name for the trace (SDK only)
             
         Returns:
             Dict with conversation results including content_id if applicable
         """
-        global client
-        if not client:
-            client = get_openai_client()
-            
-        if not client:
-            logger.error("OpenAI client not available")
-            return {"error": "OpenAI client not initialized", "success": False}
+        if OFFICIAL_SDK:
+            # Use official SDK Runner with tracing
+            try:
+                # Create trace context if name provided
+                if trace_name:
+                    with trace(trace_name):
+                        result = await SDKRunner.run(
+                            agent._sdk_agent,
+                            input,
+                            max_turns=max_turns
+                        )
+                else:
+                    result = await SDKRunner.run(
+                        agent._sdk_agent,
+                        input,
+                        max_turns=max_turns
+                    )
+                
+                # Extract content_id if present
+                # Check what attributes the result has
+                result_attrs = dir(result)
+                logger.info(f"RunResult attributes: {[attr for attr in result_attrs if not attr.startswith('_')]}")
+                
+                # Build result data based on available attributes
+                result_data = {
+                    "content": getattr(result, 'final_output', getattr(result, 'output', str(result))),
+                    "success": True,
+                    "agent_name": agent.name
+                }
+                
+                # Try to get messages if available
+                if hasattr(result, 'messages'):
+                    result_data["messages"] = result.messages
+                    result_data["turns"] = len(result.messages) // 2
+                elif hasattr(result, 'history'):
+                    result_data["messages"] = result.history
+                    result_data["turns"] = len(result.history) // 2
+                else:
+                    result_data["messages"] = []
+                    result_data["turns"] = 1
+                
+                # Check for content_id in final output
+                final_output = result_data.get('content', '')
+                if final_output and 'content_id:' in str(final_output):
+                    content_id = str(final_output).split('content_id:')[1].strip().split()[0]
+                    result_data['content_id'] = content_id
+                
+                return result_data
+                
+            except Exception as e:
+                logger.error(f"SDK Runner failed for agent {agent.name}: {e}")
+                logger.error(f"Error type: {type(e).__name__}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                return {
+                    "error": str(e),
+                    "success": False,
+                    "agent_name": agent.name
+                }
+        else:
+            # Fallback to original implementation
+            global client
+            if not client:
+                client = get_openai_client()
+                
+            if not client:
+                logger.error("OpenAI client not available")
+                return {"error": "OpenAI client not initialized", "success": False}
             
         try:
             logger.info(f"🤖 Starting agent: {agent.name}")

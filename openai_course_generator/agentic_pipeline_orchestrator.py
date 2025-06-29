@@ -31,7 +31,7 @@ except ImportError:
 # Sentry is already initialized in settings.py
 
 # Import the Runner for agent execution
-from agents import Runner
+from lxera_agents import Runner
 
 # Import all agents
 from course_agents.planning_agent import create_planning_agent

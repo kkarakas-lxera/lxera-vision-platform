@@ -15,7 +15,7 @@ Key Features:
 import json
 import logging
 from typing import Dict, Any, List
-from agents import Agent
+from lxera_agents import Agent
 
 # Database-integrated tools
 from tools.database_content_tools import (
@@ -349,7 +349,7 @@ class DatabaseContentOrchestrator:
         try:
             logger.info(f"🚀 Starting database content generation for {module_spec.get('module_name', 'Module')}")
             
-            from agents import Runner
+            from lxera_agents import Runner
             
             # Prepare content generation message
             module_name = module_spec.get('module_name', 'Module')
@@ -406,7 +406,7 @@ class DatabaseContentOrchestrator:
         try:
             logger.info(f"📊 Starting quality check for content {content_id[:8]}")
             
-            from agents import Runner
+            from lxera_agents import Runner
             
             quality_message = f"""
             Perform comprehensive quality assessment for content_id: {content_id}

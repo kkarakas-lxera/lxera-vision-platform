@@ -18,7 +18,7 @@ import logging
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-from agents import function_tool
+from lxera_agents import function_tool
 
 # Database integration with fallback handling
 try:

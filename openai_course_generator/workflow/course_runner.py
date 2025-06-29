@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
 
-from agents import Runner
+from lxera_agents import Runner
 
 from ..config.settings import get_settings
 from ..course_agents.coordinator_agent import create_coordinator_agent

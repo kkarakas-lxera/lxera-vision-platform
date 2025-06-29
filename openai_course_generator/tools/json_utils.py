@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+"""
+JSON Utilities for robust JSON extraction and parsing.
+
+This module provides utilities to extract and parse JSON from various response formats,
+handling edge cases like truncated JSON, embedded JSON in text, and malformed structures.
+"""
+
+import json
+import re
+import logging
+from typing import Dict, Any, Optional, Union
+
+logger = logging.getLogger(__name__)
+
+
+def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
+    """
+    Extract JSON from text that may contain additional content.
+    
+    Tries multiple strategies:
+    1. Direct JSON parsing
+    2. Extract JSON from markdown code blocks
+    3. Find JSON boundaries using regex
+    4. Repair truncated JSON
+    
+    Args:
+        text: Text potentially containing JSON
+        
+    Returns:
+        Parsed JSON dict or None if extraction fails
+    """
+    if not text:
+        return None
+    
+    # Strategy 1: Try direct parsing
+    try:
+        return json.loads(text.strip())
+    except json.JSONDecodeError:
+        pass
+    
+    # Strategy 2: Extract from markdown code blocks
+    code_block_patterns = [
+        r'```json\s*\n(.*?)\n```',
+        r'```\s*\n(.*?)\n```',
+        r'`(.*?)`'
+    ]
+    
+    for pattern in code_block_patterns:
+        matches = re.findall(pattern, text, re.DOTALL)
+        for match in matches:
+            try:
+                return json.loads(match.strip())
+            except json.JSONDecodeError:
+                continue
+    
+    # Strategy 3: Find JSON boundaries
+    json_patterns = [
+        # Match complete JSON object
+        r'(\{[^{}]*\{[^{}]*\}[^{}]*\})',  # Nested objects
+        r'(\{[^{}]+\})',  # Simple objects
+        r'(\{.*\})',  # Greedy match (last resort)
+    ]
+    
+    for pattern in json_patterns:
+        matches = re.findall(pattern, text, re.DOTALL)
+        for match in matches:
+            try:
+                # Clean up common issues
+                cleaned = match.strip()
+                # Remove trailing commas
+                cleaned = re.sub(r',\s*}', '}', cleaned)
+                cleaned = re.sub(r',\s*]', ']', cleaned)
+                return json.loads(cleaned)
+            except json.JSONDecodeError:
+                continue
+    
+    # Strategy 4: Try to repair truncated JSON
+    truncated_json = try_repair_truncated_json(text)
+    if truncated_json:
+        try:
+            return json.loads(truncated_json)
+        except json.JSONDecodeError:
+            pass
+    
+    return None
+
+
+def try_repair_truncated_json(text: str) -> Optional[str]:
+    """
+    Attempt to repair truncated JSON by closing open structures.
+    
+    Args:
+        text: Potentially truncated JSON text
+        
+    Returns:
+        Repaired JSON string or None
+    """
+    # Find the start of JSON
+    json_start = -1
+    for i, char in enumerate(text):
+        if char == '{':
+            json_start = i
+            break
+    
+    if json_start == -1:
+        return None
+    
+    json_text = text[json_start:]
+    
+    # Count open/close braces and brackets
+    brace_count = 0
+    bracket_count = 0
+    in_string = False
+    escape_next = False
+    
+    for i, char in enumerate(json_text):
+        if escape_next:
+            escape_next = False
+            continue
+            
+        if char == '\\':
+            escape_next = True
+            continue
+            
+        if char == '"' and not escape_next:
+            in_string = not in_string
+            continue
+            
+        if not in_string:
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+            elif char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+    
+    # Add missing closing characters
+    repaired = json_text
+    
+    # Close any open strings
+    if in_string:
+        repaired += '"'
+    
+    # Close any open arrays
+    while bracket_count > 0:
+        repaired += ']'
+        bracket_count -= 1
+    
+    # Close any open objects
+    while brace_count > 0:
+        repaired += '}'
+        brace_count -= 1
+    
+    return repaired
+
+
+def safe_json_parse(text: str, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Safely parse JSON with fallback to default value.
+    
+    Args:
+        text: JSON text to parse
+        default: Default value if parsing fails
+        
+    Returns:
+        Parsed JSON or default value
+    """
+    if default is None:
+        default = {}
+    
+    try:
+        result = extract_json_from_text(text)
+        return result if result is not None else default
+    except Exception as e:
+        logger.error(f"Failed to parse JSON: {e}")
+        return default
+
+
+def validate_json_structure(data: Dict[str, Any], required_keys: list) -> bool:
+    """
+    Validate that JSON contains required keys.
+    
+    Args:
+        data: JSON data to validate
+        required_keys: List of required top-level keys
+        
+    Returns:
+        True if all required keys present
+    """
+    if not isinstance(data, dict):
+        return False
+    
+    return all(key in data for key in required_keys)
+
+
+def merge_json_safely(base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Safely merge two JSON objects, preserving base structure.
+    
+    Args:
+        base: Base JSON object
+        update: JSON object with updates
+        
+    Returns:
+        Merged JSON object
+    """
+    result = base.copy()
+    
+    for key, value in update.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = merge_json_safely(result[key], value)
+        else:
+            result[key] = value
+    
+    return result
+
+
+if __name__ == "__main__":
+    # Test cases
+    test_cases = [
+        '{"key": "value"}',
+        '```json\n{"key": "value"}\n```',
+        'Some text before {"key": "value"} and after',
+        '{"incomplete": "json", "missing": "closing',
+        '{"nested": {"inner": "value"}}',
+    ]
+    
+    for test in test_cases:
+        result = extract_json_from_text(test)
+        print(f"Input: {test[:50]}...")
+        print(f"Result: {result}")
+        print()

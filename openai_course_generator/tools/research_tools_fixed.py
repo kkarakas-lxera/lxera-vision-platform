@@ -4,7 +4,7 @@ import json
 import logging
 from typing import List, Optional
 from datetime import datetime
-from agents import function_tool
+from lxera_agents import function_tool
 from openai import OpenAI
 from pydantic import BaseModel, Field
 

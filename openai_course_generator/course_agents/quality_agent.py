@@ -1,6 +1,6 @@
 """Enhanced Quality Agent for comprehensive content validation and improvement."""
 
-from agents import Agent
+from lxera_agents import Agent
 from tools.quality_tools import (
     quality_assessor, blueprint_validator, word_counter, 
     personalization_checker, enhancement_suggester,

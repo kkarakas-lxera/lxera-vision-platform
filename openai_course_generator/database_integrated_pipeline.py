@@ -124,7 +124,7 @@ class DatabaseIntegratedPipeline:
         logger.info("🎨 Phase 1: Initial Content Generation (Database Workflow)")
         phase_start = time.time()
         
-        from agents import Runner
+        from lxera_agents import Runner
         
         # Create content generation message for database workflow
         content_message = f"""
@@ -168,7 +168,7 @@ class DatabaseIntegratedPipeline:
         logger.info(f"✅ Quality Assessment (Database Workflow) - Content ID: {content_id[:8]}...")
         phase_start = time.time()
         
-        from agents import Runner
+        from lxera_agents import Runner
         
         # Create quality assessment message for database workflow
         quality_message = f"""
@@ -213,7 +213,7 @@ class DatabaseIntegratedPipeline:
         logger.info(f"🔧 Enhancement Workflow (Database) - Content ID: {content_id[:8]}...")
         phase_start = time.time()
         
-        from agents import Runner
+        from lxera_agents import Runner
         
         # Step 1: Enhancement Agent Research
         enhancement_message = f"""
