@@ -21,7 +21,9 @@ import {
   AlertCircle,
   Send,
   Download,
-  BarChart3
+  BarChart3,
+  Printer,
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -375,32 +377,141 @@ export default function CourseDetails() {
         {/* Content Tab */}
         <TabsContent value="content" className="space-y-4">
           {content ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Module Content</CardTitle>
-                <CardDescription>AI-generated course content</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {content.introduction && (
-                  <div>
-                    <h4 className="font-medium mb-2">Introduction</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {content.introduction}
-                    </p>
+            <div className="space-y-4">
+              {/* Content Actions */}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.print()}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+              </div>
+
+              {/* Content Status Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Content Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <p className="font-medium">{content.status}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Priority</p>
+                      <p className="font-medium">{content.priority_level}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Words</p>
+                      <p className="font-medium">{content.total_word_count?.toLocaleString() || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Module</p>
+                      <p className="font-medium">{content.module_name}</p>
+                    </div>
                   </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Content Status</p>
-                    <p className="font-medium">{content.status}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Priority Level</p>
-                    <p className="font-medium">{content.priority_level}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Introduction Section */}
+              {content.introduction && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      Introduction
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        {content.introduction}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Core Content Section */}
+              {content.core_content && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Core Content
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        {content.core_content}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Practical Applications Section */}
+              {content.practical_applications && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Practical Applications
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        {content.practical_applications}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Case Studies Section */}
+              {content.case_studies && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Case Studies
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        {content.case_studies}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Assessments Section */}
+              {content.assessments && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Assessments
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        {content.assessments}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           ) : (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
