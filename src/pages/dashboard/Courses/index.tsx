@@ -168,11 +168,16 @@ const Courses: React.FC = () => {
       const courseIds = [...new Set(assignmentsData?.map(a => a.course_id).filter(Boolean))];
       let moduleContentMap = new Map();
       
+      console.log('Course IDs to fetch content for:', courseIds);
+      
       if (courseIds.length > 0) {
         const { data: contentData, error: contentError } = await supabase
           .from('cm_module_content')
           .select('*')
-          .in('content_id', courseIds);
+          .in('content_id', courseIds)
+          .eq('company_id', userProfile?.company_id);
+          
+        console.log('Module content fetch result:', { contentData, contentError, count: contentData?.length });
           
         if (!contentError && contentData) {
           contentData.forEach(content => {

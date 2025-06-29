@@ -123,42 +123,41 @@ export default function CourseDetails() {
 
       setAssignments(transformedAssignments);
 
-      // Fetch module content - simplified query
+      // Fetch module content
       console.log('Fetching content for courseId:', courseId);
+      console.log('UserProfile:', userProfile);
       
-      // Simple query first
-      const { data: contentTest, error: testError } = await supabase
-        .from('cm_module_content')
-        .select('content_id, module_name, status')
-        .eq('content_id', courseId);
-        
-      console.log('Test query result:', { contentTest, testError, count: contentTest?.length });
+      // The RLS policy requires company_id in JWT, but we can work around this
+      // by using a service role key or by ensuring the query matches the RLS policy
       
-      // Now try the full query
-      const { data: contentData, error: contentError } = await supabase
-        .from('cm_module_content')
-        .select('*')
-        .eq('content_id', courseId)
-        .eq('company_id', userProfile?.company_id)
-        .maybeSingle();
-
-      console.log('Full content fetch result:', { contentData, contentError });
-
-      if (!contentError && contentData) {
-        setContent(contentData);
-      } else {
-        // Try without company_id
-        const { data: contentDataNoCompany, error: errorNoCompany } = await supabase
+      try {
+        // Try fetching with explicit company_id match
+        const { data: contentData, error: contentError } = await supabase
           .from('cm_module_content')
           .select('*')
           .eq('content_id', courseId)
-          .maybeSingle();
+          .eq('company_id', userProfile?.company_id);
+
+        console.log('Content query result:', { 
+          contentData, 
+          contentError,
+          courseId,
+          company_id: userProfile?.company_id,
+          dataLength: contentData?.length
+        });
+
+        if (!contentError && contentData && contentData.length > 0) {
+          setContent(contentData[0]);
+          console.log('Content set successfully:', contentData[0].module_name);
+        } else {
+          console.log('No content found or error:', contentError);
           
-        console.log('Content fetch without company_id:', { contentDataNoCompany, errorNoCompany });
-        
-        if (!errorNoCompany && contentDataNoCompany) {
-          setContent(contentDataNoCompany);
+          // If no content found, it might be an RLS issue
+          // For now, we know the content exists, so let's set a message
+          console.warn('Content exists in database but RLS policy may be blocking access');
         }
+      } catch (error) {
+        console.error('Error in content fetch:', error);
       }
 
       // Fetch course plan if available
