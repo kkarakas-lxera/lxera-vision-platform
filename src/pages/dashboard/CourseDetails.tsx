@@ -121,14 +121,38 @@ export default function CourseDetails() {
       setAssignments(transformedAssignments);
 
       // Fetch module content
+      console.log('Fetching content for courseId:', courseId);
+      
+      // Try with company_id in case RLS requires it
       const { data: contentData, error: contentError } = await supabase
         .from('cm_module_content')
         .select('*')
         .eq('content_id', courseId)
-        .single();
+        .eq('company_id', userProfile?.company_id)
+        .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
 
-      if (!contentError && contentData) {
+      console.log('Content fetch result:', { contentData, contentError });
+
+      if (contentError) {
+        console.error('Error fetching content:', contentError);
+        
+        // If the first query fails, try without company_id filter
+        const { data: contentDataRetry, error: contentErrorRetry } = await supabase
+          .from('cm_module_content')
+          .select('content_id, module_name, introduction, core_content, practical_applications, case_studies, assessments, total_word_count, status, priority_level')
+          .eq('content_id', courseId)
+          .maybeSingle();
+          
+        if (!contentErrorRetry && contentDataRetry) {
+          console.log('Content found on retry:', contentDataRetry);
+          setContent(contentDataRetry);
+        } else {
+          console.log('No content found even on retry for courseId:', courseId);
+        }
+      } else if (contentData) {
         setContent(contentData);
+      } else {
+        console.log('No content found for courseId:', courseId);
       }
 
       // Fetch course plan if available
