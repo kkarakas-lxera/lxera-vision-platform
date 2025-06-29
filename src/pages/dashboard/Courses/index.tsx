@@ -99,7 +99,7 @@ const Courses: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch course assignments with their associated content
+      // Fetch course assignments with their associated employees
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('course_assignments')
         .select(`
@@ -112,15 +112,6 @@ const Courses: React.FC = () => {
               full_name,
               email
             )
-          ),
-          cm_module_content!course_id (
-            content_id,
-            module_name,
-            total_word_count,
-            status,
-            priority_level,
-            created_at,
-            updated_at
           )
         `)
         .eq('company_id', user?.company_id)
@@ -150,12 +141,29 @@ const Courses: React.FC = () => {
         }
       }
 
+      // Fetch module content for assignments that have course_id
+      const courseIds = [...new Set(assignmentsData?.map(a => a.course_id).filter(Boolean))];
+      let moduleContentMap = new Map();
+      
+      if (courseIds.length > 0) {
+        const { data: contentData, error: contentError } = await supabase
+          .from('cm_module_content')
+          .select('*')
+          .in('content_id', courseIds);
+          
+        if (!contentError && contentData) {
+          contentData.forEach(content => {
+            moduleContentMap.set(content.content_id, content);
+          });
+        }
+      }
+
       // Transform to course-centric view - group by course_id
       const coursesMap = new Map();
       
       assignmentsData?.forEach(assignment => {
         const courseKey = assignment.course_id;
-        const moduleContent = assignment.cm_module_content;
+        const moduleContent = moduleContentMap.get(courseKey);
         const coursePlan = assignment.plan_id ? coursePlansMap.get(assignment.plan_id) : null;
         
         if (!courseKey) return; // Skip if no course_id
