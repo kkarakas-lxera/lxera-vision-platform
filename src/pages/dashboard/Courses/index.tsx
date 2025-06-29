@@ -99,13 +99,13 @@ const Courses: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch course assignments with their associated plans and modules
+      // Fetch course assignments with their associated content
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('course_assignments')
         .select(`
           *,
           employees!inner (
-            user_id,
+            id,
             position,
             department,
             users!inner (
@@ -113,52 +113,69 @@ const Courses: React.FC = () => {
               email
             )
           ),
-          cm_course_plans!plan_id (
-            plan_id,
-            course_title,
-            course_description,
-            total_modules,
-            course_duration_weeks
-          ),
-          course_modules (
-            id,
+          cm_module_content!course_id (
             content_id,
-            module_number,
-            module_title,
-            is_completed,
-            progress_percentage,
-            cm_module_content (
-              content_id,
-              module_name,
-              total_word_count,
-              status
-            )
+            module_name,
+            total_word_count,
+            status,
+            priority_level,
+            created_at,
+            updated_at
           )
         `)
         .eq('company_id', user?.company_id)
         .order('created_at', { ascending: false });
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('Error fetching assignments:', assignmentsError);
+        throw assignmentsError;
+      }
 
-      // Transform to course-centric view
+      console.log('Fetched assignments:', assignmentsData);
+
+      // Fetch course plans for assignments that have plan_id
+      const planIds = [...new Set(assignmentsData?.map(a => a.plan_id).filter(Boolean))];
+      let coursePlansMap = new Map();
+      
+      if (planIds.length > 0) {
+        const { data: plansData, error: plansError } = await supabase
+          .from('cm_course_plans')
+          .select('*')
+          .in('plan_id', planIds);
+          
+        if (!plansError && plansData) {
+          plansData.forEach(plan => {
+            coursePlansMap.set(plan.plan_id, plan);
+          });
+        }
+      }
+
+      // Transform to course-centric view - group by course_id
       const coursesMap = new Map();
       
       assignmentsData?.forEach(assignment => {
-        const courseKey = assignment.plan_id || assignment.course_id;
+        const courseKey = assignment.course_id;
+        const moduleContent = assignment.cm_module_content;
+        const coursePlan = assignment.plan_id ? coursePlansMap.get(assignment.plan_id) : null;
+        
+        if (!courseKey) return; // Skip if no course_id
         
         if (!coursesMap.has(courseKey)) {
+          // Use course plan title if available, otherwise module name
+          const courseName = coursePlan?.course_title || moduleContent?.module_name || 'Course';
+          
           coursesMap.set(courseKey, {
             content_id: courseKey,
-            module_name: assignment.cm_course_plans?.course_title || 'Course',
+            module_name: courseName,
             employee_name: 'Multiple Employees',
-            status: 'published',
-            priority_level: assignment.priority || 'medium',
-            total_word_count: 0,
+            status: moduleContent?.status || 'assigned',
+            priority_level: moduleContent?.priority_level || assignment.priority || 'medium',
+            total_word_count: moduleContent?.total_word_count || 0,
             created_at: assignment.created_at,
             updated_at: assignment.updated_at,
-            total_modules: assignment.total_modules || 1,
+            total_modules: coursePlan?.total_modules || assignment.total_modules || 1,
             modules_completed: assignment.modules_completed || 0,
-            course_description: assignment.cm_course_plans?.course_description,
+            course_description: coursePlan?.course_structure?.title || '',
             assignments: []
           });
         }
@@ -178,13 +195,6 @@ const Courses: React.FC = () => {
             email: assignment.employees?.users?.email || '',
             position: assignment.employees?.position || '',
             department: assignment.employees?.department || ''
-          }
-        });
-        
-        // Calculate total word count from modules
-        assignment.course_modules?.forEach((module: any) => {
-          if (module.cm_module_content?.total_word_count) {
-            course.total_word_count += module.cm_module_content.total_word_count;
           }
         });
       });
@@ -213,7 +223,7 @@ const Courses: React.FC = () => {
       const avgProgress = assignments?.reduce((sum, a) => sum + (a.progress_percentage || 0), 0) / (totalAssignments || 1);
 
       setMetrics({
-        totalCourses: new Set(assignments?.map(a => a.plan_id || a.course_id)).size, // Unique courses
+        totalCourses: new Set(assignments?.map(a => a.course_id).filter(Boolean)).size, // Unique courses by course_id
         activeAssignments,
         completionRate: totalAssignments > 0 ? (completedAssignments / totalAssignments) * 100 : 0,
         avgProgress: avgProgress || 0
