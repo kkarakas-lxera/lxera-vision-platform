@@ -181,6 +181,9 @@ const Courses: React.FC = () => {
         }
       }
 
+      console.log('Course plans map:', coursePlansMap);
+      console.log('Module content map:', moduleContentMap);
+
       // Transform to course-centric view - group by course_id
       const coursesMap = new Map();
       
@@ -206,7 +209,7 @@ const Courses: React.FC = () => {
             updated_at: assignment.updated_at,
             total_modules: coursePlan?.total_modules || assignment.total_modules || 1,
             modules_completed: assignment.modules_completed || 0,
-            course_description: coursePlan?.course_structure?.title || '',
+            course_description: coursePlan?.course_structure?.learning_objectives?.[0] || moduleContent?.module_spec?.learning_outcomes?.[0] || '',
             assignments: []
           });
         }
@@ -246,10 +249,26 @@ const Courses: React.FC = () => {
         return;
       }
       
-      const { data: assignments, error } = await supabase
+      let metricsQuery = supabase
         .from('course_assignments')
-        .select('status, progress_percentage')
-        .eq('company_id', userProfile?.company_id);
+        .select('status, progress_percentage, course_id');
+        
+      // Apply same filtering as fetchCourses
+      metricsQuery = metricsQuery.eq('company_id', userProfile.company_id);
+      
+      if (userProfile.role === 'learner') {
+        const { data: employeeData } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', user?.id)
+          .single();
+          
+        if (employeeData) {
+          metricsQuery = metricsQuery.eq('employee_id', employeeData.id);
+        }
+      }
+      
+      const { data: assignments, error } = await metricsQuery;
 
       if (error) throw error;
 
