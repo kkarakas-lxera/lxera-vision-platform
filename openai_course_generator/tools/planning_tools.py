@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 from lxera_agents import function_tool
 from openai import OpenAI
-from tools.json_utils import extract_json_from_text, safe_json_parse
+from tools.json_utils import extract_json_from_text, safe_json_parse, fix_common_json_issues, fix_nested_json_issues
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -155,33 +155,26 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
             "course_title": "Personalized course title",
             "total_duration_weeks": 4,
             "learning_objectives": ["objective1", "objective2", ...],
-            "weekly_structure": [
+            "modules": [
                 {{
-                    "week_number": 1,
-                    "theme": "Week theme",
-                    "focus_areas": ["area1", "area2"],
-                    "modules": [
-                        {{
-                            "module_name": "Specific module title",
-                            "word_count_target": 5000,
-                            "section_word_allocation": {{
-                                "introduction": 800,
-                                "core_content": 2000,
-                                "practical_applications": 1200,
-                                "case_studies": 700,
-                                "assessments": 300
-                            }},
-                            "priority_level": "critical|high|medium",
-                            "skill_gap_addressed": "specific gap",
-                            "tool_integration": ["tool1", "tool2"],
-                            "difficulty_level": "foundational|intermediate|advanced",
-                            "complexity_factors": {{
-                                "conceptual_depth": "high|medium|low",
-                                "practical_emphasis": 0.8,
-                                "tool_specific_content": 0.6
-                            }}
-                        }}
-                    ]
+                    "module_id": 1,
+                    "module_name": "Specific module title",
+                    "week": 1,
+                    "priority": "critical",
+                    "skill_gap_addressed": "specific gap",
+                    "word_count": 5000,
+                    "difficulty": "foundational",
+                    "tools": ["tool1", "tool2"]
+                }},
+                {{
+                    "module_id": 2,
+                    "module_name": "Another module title",
+                    "week": 1,
+                    "priority": "high",
+                    "skill_gap_addressed": "another gap",
+                    "word_count": 4000,
+                    "difficulty": "intermediate",
+                    "tools": ["tool3"]
                 }}
             ]
         }}
@@ -205,52 +198,10 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         course_structure = extract_json_from_text(response_content)
         
         if not course_structure:
-            logger.error(f"Failed to extract JSON from response")
+            logger.error(f"Failed to extract JSON from course structure response")
             logger.error(f"Response length: {len(response_content)} chars")
-            
-            # Fallback: Create a basic course structure
-            course_structure = {
-                "course_title": f"Personalized Course for {profile.get('employee_name', 'Learner')}",
-                "total_duration_weeks": 4,
-                "learning_objectives": ["Skill development", "Career advancement"],
-                "weekly_structure": []
-            }
-            
-            # Try to parse week and module information from response
-            import re
-            week_pattern = r'week\s*(\d+)[:\s]*([^,\n]+)'
-            module_pattern = r'module[:\s]*"?([^",\n]+)"?'
-            
-            weeks_found = re.findall(week_pattern, response_content, re.IGNORECASE)
-            modules_found = re.findall(module_pattern, response_content, re.IGNORECASE)
-            
-            # Build weekly structure from extracted data
-            for i in range(4):  # Default 4 weeks
-                week_data = {
-                    "week_number": i + 1,
-                    "theme": weeks_found[i][1] if i < len(weeks_found) else f"Week {i+1} Theme",
-                    "focus_areas": [],
-                    "modules": []
-                }
-                
-                # Add modules to weeks
-                modules_per_week = 2
-                start_idx = i * modules_per_week
-                for j in range(modules_per_week):
-                    module_idx = start_idx + j
-                    if module_idx < len(modules_found):
-                        module_name = modules_found[module_idx]
-                    else:
-                        module_name = f"Module {module_idx + 1}"
-                    
-                    week_data["modules"].append({
-                        "module_name": module_name,
-                        "word_count_target": 5000 if j == 0 else 4000,
-                        "priority_level": "critical" if i < 2 else "high",
-                        "skill_gap_addressed": gaps.get('Critical Skill Gaps', {}).get('gaps', [{}])[0].get('skill', 'General skill')
-                    })
-                
-                course_structure["weekly_structure"].append(week_data)
+            logger.error(f"Response preview: {response_content[:500]}...")
+            raise Exception("Failed to parse course structure JSON")
         
         # Add metadata
         course_structure["generation_metadata"] = {
@@ -264,7 +215,7 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
             }
         }
         
-        total_modules = sum(len(week["modules"]) for week in course_structure.get("weekly_structure", []))
+        total_modules = len(course_structure.get("modules", []))
         logger.info(f"✅ Course structure generated: {total_modules} modules across {course_structure.get('total_duration_weeks', 0)} weeks")
         
         return json.dumps(course_structure)
@@ -288,16 +239,65 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
     try:
         logger.info("🔍 Generating research queries with OpenAI agent...")
         
-        # Parse input data
-        structure = json.loads(course_structure) if isinstance(course_structure, str) else course_structure
-        profile = json.loads(employee_profile) if isinstance(employee_profile, str) else employee_profile
+        # Parse input data with enhanced error handling
+        structure = None
+        if isinstance(course_structure, str):
+            # First attempt: direct parsing
+            try:
+                structure = json.loads(course_structure)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse course_structure (attempt 1): {e}")
+                logger.error(f"JSON length: {len(course_structure)}, preview: {course_structure[:200]}...")
+                
+                # Second attempt: fix common issues
+                try:
+                    fixed_structure = fix_common_json_issues(course_structure)
+                    structure = json.loads(fixed_structure)
+                    logger.info("Successfully parsed after fixing common issues")
+                except json.JSONDecodeError as e2:
+                    logger.error(f"Failed to parse after fixes (attempt 2): {e2}")
+                    
+                    # Third attempt: extract JSON from text
+                    try:
+                        structure = extract_json_from_text(course_structure)
+                        if structure:
+                            logger.info("Successfully extracted JSON from text")
+                    except Exception as e3:
+                        logger.error(f"Failed to extract JSON (attempt 3): {e3}")
+        else:
+            structure = course_structure
         
-        # Extract modules from structure
+        # If all parsing attempts failed, use minimal structure
+        if not structure:
+            logger.warning("All parsing attempts failed, using minimal course structure")
+            structure = {
+                "weekly_structure": [
+                    {"week_number": 1, "modules": [{"title": "Foundation Module"}]},
+                    {"week_number": 2, "modules": [{"title": "Advanced Module"}]}
+                ]
+            }
+            
+        try:
+            profile = json.loads(employee_profile) if isinstance(employee_profile, str) else employee_profile
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse employee_profile: {e}")
+            # Use minimal profile
+            profile = {"employee_name": "Learner", "current_role": "Analyst"}
+        
+        # Extract modules from structure with error handling
         all_modules = []
-        for week in structure.get("weekly_structure", []):
-            for module in week.get("modules", []):
-                module["week_number"] = week["week_number"]
-                all_modules.append(module)
+        try:
+            for week in structure.get("weekly_structure", []):
+                for module in week.get("modules", []):
+                    module["week_number"] = week.get("week_number", 1)
+                    all_modules.append(module)
+        except Exception as e:
+            logger.warning(f"Error extracting modules: {e}")
+            # Create fallback modules if extraction fails
+            all_modules = [
+                {"title": "Module 1", "week_number": 1, "duration": "1 week"},
+                {"title": "Module 2", "week_number": 2, "duration": "1 week"}
+            ]
         
         # Prepare query generation prompt
         query_prompt = f"""
@@ -318,27 +318,19 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
         4. Advanced/best practices query
         5. Industry-specific query (financial analysis context)
         
-        OUTPUT FORMAT (JSON):
+        OUTPUT FORMAT (JSON ONLY - NO EXTRA TEXT):
         {{
-            "query_strategy": {{
-                "module_1": {{
-                    "module_name": "Module name",
-                    "queries": [
-                        "foundational query",
-                        "tool-specific query", 
-                        "application query",
-                        "advanced query",
-                        "industry query"
-                    ],
-                    "search_focus": "domain focus for this module"
-                }}
-            }},
-            "global_context": {{
-                "role_focus": "business performance reporting",
-                "tool_emphasis": ["Excel", "SAP BPC", "PowerBI"],
-                "industry_context": "finance"
-            }}
+            "queries": [
+                "specific search query 1",
+                "specific search query 2",
+                "specific search query 3",
+                "specific search query 4",
+                "specific search query 5"
+            ]
         }}
+        
+        Generate 15-20 specific, targeted research queries that cover all modules.
+        Include foundational concepts, tool-specific applications, and real-world examples.
         
         Make queries specific to their role as Junior Financial Analyst in Business Performance Reporting.
         """
@@ -354,51 +346,50 @@ def generate_research_queries(course_structure: str, employee_profile: str) -> s
             max_tokens=4000  # Increased from 3000
         )
         
-        # Extract JSON from response using robust utilities
+        # Extract JSON from response using robust utilities with enhanced repair
         response_content = response.choices[0].message.content
+        
+        # First try standard extraction
         research_strategy = extract_json_from_text(response_content)
         
+        # If that fails, try enhanced JSON repair for research queries
         if not research_strategy:
-            logger.error(f"Failed to extract JSON from response")
+            logger.warning(f"Standard JSON extraction failed, trying enhanced repair...")
+            try:
+                # Apply enhanced JSON fixes specifically for research query patterns
+                fixed_content = fix_common_json_issues(response_content)
+                nested_fixed = fix_nested_json_issues(fixed_content)
+                research_strategy = extract_json_from_text(nested_fixed)
+                if research_strategy:
+                    logger.info(f"✅ JSON repaired successfully using enhanced functions")
+            except Exception as repair_error:
+                logger.error(f"Enhanced JSON repair failed: {repair_error}")
+        
+        if not research_strategy:
+            logger.error(f"Failed to extract JSON from research query response")
             logger.error(f"Response length: {len(response_content)} chars")
             logger.error(f"Response preview: {response_content[:500]}...")
+            raise Exception("Failed to parse research queries JSON")
+        
+        # Add metadata - ensure research_strategy exists and is a dict
+        if isinstance(research_strategy, dict):
+            research_strategy["generation_metadata"] = {
+                "tool_name": "generate_research_queries",
+                "openai_model": "gpt-4",
+                "generation_timestamp": datetime.now().isoformat(),
+                "modules_processed": len(all_modules[:5])
+            }
             
-            # Fallback: Create a minimal valid response structure
-            research_strategy = {
-                "query_strategy": {},
-                "global_context": {
-                    "role_focus": profile.get('current_role', ''),
-                    "tool_emphasis": profile.get('skill_inventory', {}).get('tool_proficiency', []),
-                    "industry_context": "technology"
+            # Only add token usage if response exists
+            if 'response' in locals() and hasattr(response, 'usage'):
+                research_strategy["generation_metadata"]["token_usage"] = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens
                 }
-            }
-            
-            # Try to extract individual queries from the response
-            import re
-            query_lines = re.findall(r'"([^"]+(?:query|search|find|learn|understand)[^"]+)"', response_content, re.IGNORECASE)
-            if query_lines:
-                for i, module in enumerate(all_modules[:5]):
-                    module_key = f"module_{i+1}"
-                    research_strategy["query_strategy"][module_key] = {
-                        "module_name": module.get('module_name', f'Module {i+1}'),
-                        "queries": query_lines[i*5:(i+1)*5] if i*5 < len(query_lines) else ["General research query"],
-                        "search_focus": "general"
-                    }
         
-        # Add metadata
-        research_strategy["generation_metadata"] = {
-            "tool_name": "generate_research_queries",
-            "openai_model": "gpt-4",
-            "generation_timestamp": datetime.now().isoformat(),
-            "modules_processed": len(all_modules[:5]),
-            "token_usage": {
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
-            }
-        }
-        
-        total_queries = sum(len(module["queries"]) for module in research_strategy.get("query_strategy", {}).values())
+        # Count queries correctly - should be in "queries" array
+        total_queries = len(research_strategy.get("queries", []))
         logger.info(f"✅ Research queries generated: {total_queries} queries for {len(all_modules[:5])} modules")
         
         return json.dumps(research_strategy)
@@ -431,54 +422,88 @@ def prioritize_skill_gaps(skills_gap_data: str) -> str:
             "development_opportunities": []
         }
         
-        # Process critical gaps
-        critical_gaps = gaps_data.get("Critical Skill Gaps", {}).get("gaps", [])
-        for gap in critical_gaps:
-            gap_priority = {
-                **gap,
-                "priority_score": 10,
-                "learning_urgency": "immediate",
-                "course_focus_percentage": 40,  # 40% of course content
-                "recommended_modules": 8-10
-            }
-            prioritized_gaps["critical_priority"].append(gap_priority)
-        
-        # Process development gaps
-        development_gaps = gaps_data.get("Development Gaps", {}).get("gaps", [])
-        for gap in development_gaps:
-            importance = gap.get("importance", "").lower()
+        # Handle both formats: list of gaps or structured dictionary
+        if isinstance(gaps_data, list):
+            # Direct list format - categorize by gap_severity
+            for gap in gaps_data:
+                severity = gap.get("gap_severity", "").lower()
+                if severity == "critical":
+                    gap_priority = {
+                        **gap,
+                        "priority_score": 10,
+                        "learning_urgency": "immediate",
+                        "course_focus_percentage": 40,
+                        "recommended_modules": "8-10"
+                    }
+                    prioritized_gaps["critical_priority"].append(gap_priority)
+                elif severity == "moderate":
+                    gap_priority = {
+                        **gap,
+                        "priority_score": 7,
+                        "learning_urgency": "high", 
+                        "course_focus_percentage": 25,
+                        "recommended_modules": "4-6"
+                    }
+                    prioritized_gaps["high_priority"].append(gap_priority)
+                else:
+                    gap_priority = {
+                        **gap,
+                        "priority_score": 5,
+                        "learning_urgency": "medium",
+                        "course_focus_percentage": 15,
+                        "recommended_modules": "2-3"
+                    }
+                    prioritized_gaps["medium_priority"].append(gap_priority)
+        else:
+            # Structured dictionary format
+            # Process critical gaps
+            critical_gaps = gaps_data.get("Critical Skill Gaps", {}).get("gaps", [])
+            for gap in critical_gaps:
+                gap_priority = {
+                    **gap,
+                    "priority_score": 10,
+                    "learning_urgency": "immediate",
+                    "course_focus_percentage": 40,
+                    "recommended_modules": "8-10"
+                }
+                prioritized_gaps["critical_priority"].append(gap_priority)
             
-            if importance == "important":
-                gap_priority = {
-                    **gap,
-                    "priority_score": 7,
-                    "learning_urgency": "high",
-                    "course_focus_percentage": 25,
-                    "recommended_modules": 4-6
+            # Process development gaps
+            development_gaps = gaps_data.get("Development Gaps", {}).get("gaps", [])
+            for gap in development_gaps:
+                importance = gap.get("importance", "").lower()
+                
+                if importance == "important":
+                    gap_priority = {
+                        **gap,
+                        "priority_score": 7,
+                        "learning_urgency": "high",
+                        "course_focus_percentage": 25,
+                        "recommended_modules": "4-6"
+                    }
+                    prioritized_gaps["high_priority"].append(gap_priority)
+                else:
+                    gap_priority = {
+                        **gap,
+                        "priority_score": 5,
+                        "learning_urgency": "medium",
+                        "course_focus_percentage": 15,
+                        "recommended_modules": "2-3"
+                    }
+                    prioritized_gaps["medium_priority"].append(gap_priority)
+            
+            # Process transferable skills (only for dictionary format)
+            transferable_skills = gaps_data.get("Transferable Skills", {}).get("skills", [])
+            for skill in transferable_skills:
+                opportunity = {
+                    "skill": skill.get("skill", ""),
+                    "description": skill.get("description", ""),
+                    "priority_score": 3,
+                    "learning_urgency": "low",
+                    "course_focus_percentage": 10,
+                    "enhancement_type": "leverage_existing"
                 }
-                prioritized_gaps["high_priority"].append(gap_priority)
-            else:
-                gap_priority = {
-                    **gap,
-                    "priority_score": 5,
-                    "learning_urgency": "medium",
-                    "course_focus_percentage": 15,
-                    "recommended_modules": 2-3
-                }
-                prioritized_gaps["medium_priority"].append(gap_priority)
-        
-        # Process transferable skills
-        transferable_skills = gaps_data.get("Transferable Skills", {}).get("skills", [])
-        for skill in transferable_skills:
-            opportunity = {
-                "skill": skill.get("skill", ""),
-                "description": skill.get("description", ""),
-                "priority_score": 3,
-                "learning_urgency": "low",
-                "course_focus_percentage": 10,
-                "enhancement_type": "leverage_existing"
-            }
-            prioritized_gaps["development_opportunities"].append(opportunity)
+                prioritized_gaps["development_opportunities"].append(opportunity)
         
         # Add prioritization summary
         prioritization_summary = {
@@ -489,7 +514,7 @@ def prioritize_skill_gaps(skills_gap_data: str) -> str:
                 "high_priority_skills": 25,  # 25% of course
                 "skill_reinforcement": 15   # 15% of course
             },
-            "learning_timeline": "4 weeks intensive" if len(critical_gaps) > 2 else "3-4 weeks standard",
+            "learning_timeline": "4 weeks intensive" if len(prioritized_gaps["critical_priority"]) > 2 else "3-4 weeks standard",
             "prioritization_timestamp": datetime.now().isoformat()
         }
         
@@ -499,7 +524,12 @@ def prioritize_skill_gaps(skills_gap_data: str) -> str:
             "success": True
         }
         
-        logger.info(f"✅ Skill gaps prioritized: {len(critical_gaps)} critical, {len(development_gaps)} development")
+        # Count gaps by priority
+        critical_count = len(prioritized_gaps["critical_priority"])
+        high_count = len(prioritized_gaps["high_priority"]) 
+        medium_count = len(prioritized_gaps["medium_priority"])
+        
+        logger.info(f"✅ Skill gaps prioritized: {critical_count} critical, {high_count} high priority, {medium_count} medium")
         return json.dumps(result)
         
     except Exception as e:
@@ -729,67 +759,92 @@ def create_personalized_learning_path(course_structure: str, profile_data: str) 
     try:
         logger.info("🎯 Creating personalized learning path...")
         
-        # Parse input data
-        structure = json.loads(course_structure) if isinstance(course_structure, str) else course_structure
-        profile = json.loads(profile_data) if isinstance(profile_data, str) else profile_data
+        # Parse input data safely with multiple fallbacks
+        structure = None
+        if isinstance(course_structure, str):
+            # First attempt: direct parsing
+            try:
+                structure = json.loads(course_structure)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse course_structure JSON: {e}")
+                logger.error(f"JSON length: {len(course_structure)}, appears truncated")
+                
+                # Second attempt: fix common issues
+                try:
+                    repaired_structure = fix_common_json_issues(course_structure)
+                    structure = json.loads(repaired_structure)
+                    logger.info("Successfully parsed after fixing common issues")
+                except json.JSONDecodeError as e2:
+                    logger.error(f"Failed to parse after fixes: {e2}")
+                    
+                    # Third attempt: extract JSON from text
+                    try:
+                        structure = extract_json_from_text(course_structure)
+                        if structure:
+                            logger.info("Successfully extracted JSON from text")
+                    except Exception as e3:
+                        logger.error(f"Failed to extract JSON: {e3}")
+        else:
+            structure = course_structure
+            
+        # If all parsing attempts failed, use minimal structure
+        if not structure:
+            logger.warning("All parsing attempts failed, using minimal course structure")
+            structure = {
+                "course_title": "Personalized Development Course",
+                "weekly_structure": [],
+                "learning_objectives": []
+            }
+        
+        try:
+            profile = json.loads(profile_data) if isinstance(profile_data, str) else profile_data
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse profile_data JSON: {e}")
+            # Try enhanced repair on profile data
+            if isinstance(profile_data, str):
+                repaired_profile = fix_common_json_issues(profile_data)
+                profile = json.loads(repaired_profile)
+            else:
+                raise
         
         # Extract experience level and preferences
         experience_level = profile.get("experience_level", "junior")
         practical_emphasis = profile.get("learning_preferences", {}).get("practical_emphasis", 0.7)
         technical_readiness = profile.get("skill_inventory", {}).get("technical_readiness", "basic")
         
-        # Create learning path
+        # Create simplified learning path structure to avoid JSON parsing issues
         learning_path = {
-            "path_metadata": {
-                "learner_name": profile.get("employee_name", "Learner"),
-                "experience_level": experience_level,
-                "customization_level": "comprehensive"
-            },
-            "sequencing_strategy": {
-                "approach": "skill_dependency_based",
-                "progression_rate": "gradual" if experience_level == "junior" else "moderate",
-                "difficulty_curve": "progressive_with_reinforcement"
-            },
-            "personalization_features": {
-                "practical_emphasis_percentage": int(practical_emphasis * 100),
-                "real_world_examples": profile.get("learning_preferences", {}).get("real_world_examples", True),
-                "tool_integration_level": "high" if technical_readiness == "advanced" else "medium",
-                "career_alignment_factor": 0.9  # High alignment with career goals
-            },
-            "adaptive_elements": {
-                "accelerated_modules": [],  # Modules to fast-track
-                "reinforcement_modules": [],  # Modules needing extra focus
-                "extension_opportunities": []  # Advanced learning options
-            },
-            "success_metrics": {
-                "completion_criteria": "80% competency on all modules",
-                "practical_application": "3 real-world scenarios successfully completed",
-                "tool_proficiency": "Demonstrated improvement in workplace tools",
-                "career_readiness": "75% preparation for target role"
-            },
-            "support_mechanisms": {
-                "prerequisite_review": "automatic_when_needed",
-                "additional_resources": "context_sensitive",
-                "progress_tracking": "weekly_checkpoints",
-                "feedback_loops": "continuous_improvement"
-            }
+            "learner_name": profile.get("employee_name", "Learner"),
+            "experience_level": experience_level,
+            "practical_emphasis_percentage": int(practical_emphasis * 100),
+            "technical_readiness": technical_readiness,
+            "progression_approach": "skill_dependency_based",
+            "progression_rate": "gradual" if experience_level == "junior" else "moderate",
+            "tool_integration_level": "high" if technical_readiness == "advanced" else "medium",
+            "career_alignment_factor": 0.9,
+            "accelerated_modules": [],
+            "reinforcement_modules": [],
+            "extension_opportunities": [],
+            "completion_criteria": "80% competency on all modules",
+            "practical_application_target": "3 real-world scenarios",
+            "career_readiness_target": "75% preparation for target role"
         }
         
         # Identify specific modules for adaptation based on profile
         if technical_readiness == "advanced":
-            learning_path["adaptive_elements"]["accelerated_modules"] = [
+            learning_path["accelerated_modules"] = [
                 "tool_introduction_modules",
                 "basic_concept_modules"
             ]
         
         if experience_level == "junior":
-            learning_path["adaptive_elements"]["reinforcement_modules"] = [
+            learning_path["reinforcement_modules"] = [
                 "foundational_concepts",
                 "terminology_modules"
             ]
         
         if practical_emphasis > 0.8:
-            learning_path["adaptive_elements"]["extension_opportunities"] = [
+            learning_path["extension_opportunities"] = [
                 "additional_case_studies",
                 "hands_on_projects",
                 "real_world_applications"

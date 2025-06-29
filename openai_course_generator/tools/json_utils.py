@@ -14,15 +14,95 @@ from typing import Dict, Any, Optional, Union
 logger = logging.getLogger(__name__)
 
 
+def fix_common_json_issues(text: str) -> str:
+    """
+    Fix common JSON formatting issues that cause parsing failures.
+    
+    Specifically addresses:
+    1. Unquoted property names
+    2. Missing commas between properties
+    3. Single quotes instead of double quotes
+    4. Trailing commas
+    
+    Args:
+        text: Raw JSON text with potential issues
+        
+    Returns:
+        Fixed JSON text
+    """
+    # Fix unquoted property names - most common issue
+    # Matches: word: "value" -> "word": "value"
+    text = re.sub(r'(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', text)
+    
+    # Fix single quotes to double quotes
+    # But be careful not to break strings that contain single quotes
+    text = re.sub(r"'([^']*)'", r'"\1"', text)
+    
+    # Fix missing commas between properties
+    # Look for patterns like: "value" "nextProperty" or "value" }
+    text = re.sub(r'"\s*\n\s*"', '",\n"', text)  # Missing comma between lines
+    text = re.sub(r'"\s*([}\]])', r'"\1', text)  # Remove spaces before closing
+    text = re.sub(r'([}\]])\s*"', r'\1,"', text)  # Add comma after closing bracket/brace
+    
+    # Fix missing commas after numbers and booleans
+    text = re.sub(r'(\d+|\btrue\b|\bfalse\b|\bnull\b)\s*\n\s*"', r'\1,\n"', text)
+    
+    # Fix missing commas after nested objects/arrays
+    text = re.sub(r'(\}|\])\s*\n\s*"', r'\1,\n"', text)
+    
+    # Remove trailing commas (which are invalid in strict JSON)
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+    
+    # Fix spacing around colons and commas
+    text = re.sub(r'\s*:\s*', ': ', text)
+    text = re.sub(r'\s*,\s*', ', ', text)
+    
+    return text
+
+
+def fix_nested_json_issues(text: str) -> str:
+    """
+    Fix JSON issues specific to complex nested structures used in planning tools.
+    
+    Handles deep nesting patterns common in course structure and research query JSON.
+    """
+    # Fix missing commas in nested array/object patterns
+    # Pattern: } { -> }, {
+    text = re.sub(r'(\})\s*(\{)', r'\1, \2', text)
+    # Pattern: ] [ -> ], [
+    text = re.sub(r'(\])\s*(\[)', r'\1, \2', text)
+    # Pattern: ] { -> ], {
+    text = re.sub(r'(\])\s*(\{)', r'\1, \2', text)
+    # Pattern: } [ -> }, [
+    text = re.sub(r'(\})\s*(\[)', r'\1, \2', text)
+    
+    # Fix missing commas after nested property values
+    # Pattern: "value" "property" -> "value", "property"
+    text = re.sub(r'(["\d\}\]])\s+("[\w_]+"\s*:)', r'\1, \2', text)
+    
+    # Fix malformed property-value separators
+    # Ensure there's exactly one colon between property and value
+    text = re.sub(r'("[\w_]+")\s*:\s*:', r'\1:', text)  # Remove double colons
+    text = re.sub(r'("[\w_]+")\s+(["\[\{])', r'\1: \2', text)  # Add missing colon
+    
+    # Fix array/object closing issues
+    # Ensure proper closing bracket/brace sequences
+    text = re.sub(r'\]\s*\}\s*\]', ']}]', text)
+    text = re.sub(r'\}\s*\]\s*\}', '}]}', text)
+    
+    return text
+
+
 def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     """
     Extract JSON from text that may contain additional content.
     
     Tries multiple strategies:
     1. Direct JSON parsing
-    2. Extract JSON from markdown code blocks
-    3. Find JSON boundaries using regex
-    4. Repair truncated JSON
+    2. Fix common JSON formatting issues
+    3. Extract JSON from markdown code blocks
+    4. Find JSON boundaries using regex
+    5. Repair truncated JSON
     
     Args:
         text: Text potentially containing JSON
@@ -39,7 +119,22 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     except json.JSONDecodeError:
         pass
     
-    # Strategy 2: Extract from markdown code blocks
+    # Strategy 2: Fix common JSON formatting issues
+    try:
+        fixed_json = fix_common_json_issues(text.strip())
+        return json.loads(fixed_json)
+    except json.JSONDecodeError:
+        pass
+    
+    # Strategy 2b: Fix nested JSON issues specifically
+    try:
+        fixed_json = fix_common_json_issues(text.strip())
+        nested_fixed = fix_nested_json_issues(fixed_json)
+        return json.loads(nested_fixed)
+    except json.JSONDecodeError:
+        pass
+    
+    # Strategy 3: Extract from markdown code blocks
     code_block_patterns = [
         r'```json\s*\n(.*?)\n```',
         r'```\s*\n(.*?)\n```',
@@ -54,7 +149,7 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
             except json.JSONDecodeError:
                 continue
     
-    # Strategy 3: Find JSON boundaries
+    # Strategy 4: Find JSON boundaries
     json_patterns = [
         # Match complete JSON object
         r'(\{[^{}]*\{[^{}]*\}[^{}]*\})',  # Nested objects
@@ -75,7 +170,7 @@ def extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
             except json.JSONDecodeError:
                 continue
     
-    # Strategy 4: Try to repair truncated JSON
+    # Strategy 5: Try to repair truncated JSON
     truncated_json = try_repair_truncated_json(text)
     if truncated_json:
         try:

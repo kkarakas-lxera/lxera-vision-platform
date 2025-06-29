@@ -57,6 +57,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           { href: '/dashboard/positions', icon: Target, label: 'Positions' },
           { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
+          { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },

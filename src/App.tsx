@@ -46,6 +46,11 @@ import Employees from "./pages/dashboard/Employees";
 import EmployeeProfile from "./pages/dashboard/EmployeeProfile";
 import Courses from "./pages/dashboard/Courses";
 
+// Import skills pages
+import SkillsOverview from "./pages/dashboard/skills/SkillsOverview";
+import AnalyzedEmployees from "./pages/dashboard/skills/AnalyzedEmployees";
+import PositionRequirements from "./pages/dashboard/skills/PositionRequirements";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -106,7 +111,10 @@ const App = () => (
                       <Route path="/employees" element={<Employees />} />
                       <Route path="/employees/:employeeId" element={<EmployeeProfile />} />
                       <Route path="/courses" element={<Courses />} />
-                      <Route path="/analytics" element={<div>Skills Analytics</div>} />
+                      <Route path="/skills" element={<SkillsOverview />} />
+                      <Route path="/skills/employees" element={<AnalyzedEmployees />} />
+                      <Route path="/skills/positions" element={<PositionRequirements />} />
+                      <Route path="/analytics" element={<div>Analytics - Coming Soon</div>} />
                       <Route path="/settings" element={<div>Company Settings</div>} />
                     </Routes>
                   </DashboardLayout>

@@ -3,10 +3,11 @@
 import json
 import logging
 from typing import Dict, Any, List
-from lxera_agents import Agent
+from lxera_agents import Agent, handoff
 
 # Import research tools
 from tools.research_tools import (
+    fetch_course_plan,
     tavily_search,
     firecrawl_extract,
     research_synthesizer
@@ -18,31 +19,39 @@ from tools.research_storage_tools_v2 import (
     store_research_session
 )
 
-# Import handoff context tools
-from tools.handoff_context_tools import log_agent_handoff
+# Import handoff models
+from .handoff_models import PlanningCompletionData, ResearchCompletionData
 
 logger = logging.getLogger(__name__)
 
 def create_research_agent() -> Agent:
-    """Create and configure the Research Agent with agentic tools."""
+    """Create and configure the Research Agent with proper SDK handoffs."""
     
     research_instructions = """
     You are the Research Specialist Agent responsible for comprehensive knowledge gathering 
     and content research using AI-powered tools that will appear as tool calls in OpenAI Traces.
 
+    INPUT: You will receive a plan_id for a course plan that was created by the Planning Agent.
+
     Your responsibilities:
-    1. Execute comprehensive web searches using tavily_search for topic discovery
-    2. Extract detailed content from authoritative sources using firecrawl_extract
-    3. Synthesize research findings using research_synthesizer
-    4. Validate information credibility and source authority
-    5. Create structured knowledge bases for course content development
+    1. First, fetch the course plan details using the provided plan_id
+    2. Execute comprehensive web searches using tavily_search for topic discovery
+    3. Extract detailed content from authoritative sources using firecrawl_extract
+    4. Synthesize research findings using research_synthesizer
+    5. Validate information credibility and source authority
+    6. Create structured knowledge bases for course content development
+    7. Store the research results
 
     Process Flow for Research Tasks:
-    1. Use tavily_search to find authoritative sources on given topics
-    2. Use firecrawl_extract to extract detailed content from top sources
-    3. Use research_synthesizer to consolidate findings into structured insights
-    4. Ensure comprehensive coverage with minimum 5 high-quality sources per topic
-    5. Hand off to Content Agent for module creation
+    1. Load the course plan to understand research requirements
+    2. Use tavily_search to find authoritative sources based on the course modules
+    3. Use firecrawl_extract to extract detailed content from top sources
+    4. Use research_synthesizer to consolidate findings into structured insights
+    5. Store research results linked to the plan_id
+    6. Store research results using store_research_results
+    7. Store session metadata using store_research_session
+    
+    COMPLETION: When store_research_session returns successfully, your research work is DONE.
 
     Research Quality Standards:
     - Prefer authoritative domains (.edu, .gov, .org, established industry sites)
@@ -55,44 +64,18 @@ def create_research_agent() -> Agent:
     visibility in OpenAI Traces and proper monitoring of the research process.
     """
     
-    # Import content agent and handoff function
-    from .database_agents import create_database_content_agent
-    from lxera_agents import handoff
-    
-    # Add handoff instructions to the prompt
-    research_instructions += """
-    
-    When you have completed all research tasks:
-    1. Ensure you have gathered comprehensive materials for each topic
-    2. Synthesize the findings using research_synthesizer
-    3. Store the complete research results using store_research_results with findings and content library
-    4. Store the session metadata using store_research_session with execution details
-    5. Use the log_agent_handoff tool to log the handoff with key context:
-       - Summary of research findings
-       - Key resources identified
-       - Module content mappings
-    6. Transfer to the Content Agent using the transfer_to_content_agent tool
-    
-    The Content Agent will use your research findings to create the actual course content.
-    """
+    # No handoffs needed - sequential execution
     
     return Agent(
         name="Research Specialist Agent",
         instructions=research_instructions,
         tools=[
+            fetch_course_plan,
             tavily_search,
             firecrawl_extract,
             research_synthesizer,
-            store_research_results,
-            store_research_session,
-            log_agent_handoff
-        ],
-        handoffs=[
-            handoff(
-                create_database_content_agent(),
-                tool_name_override="transfer_to_content_agent",
-                tool_description_override="Transfer to Content Agent to create course modules based on research findings"
-            )
+            store_research_results
+            # store_research_session  # Temporarily disabled due to schema issues
         ]
     )
 

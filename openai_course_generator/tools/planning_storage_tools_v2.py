@@ -231,7 +231,15 @@ async def store_course_plan_impl(tool_context, args) -> str:
         if result.data and len(result.data) > 0:
             plan_id = result.data[0]['plan_id']
             logger.info(f"✅ Course plan stored successfully with ID: {plan_id}")
-            return plan_id
+            
+            # Signal for automatic handoff (will be handled by agent)
+            logger.info("🔄 Planning complete - ready for handoff to Research Agent")
+            
+            # Return structured completion message that triggers handoff
+            return (f"✅ Course plan stored successfully with ID: {plan_id}. "
+                   f"Planning phase completed. "
+                   f"HANDOFF REQUIRED: You must now call transfer_to_research_agent immediately. "
+                   f"Do not call store_course_plan again. Use plan_id: {plan_id} for handoff data.")
         else:
             raise Exception("No data returned from insert")
             
@@ -331,14 +339,14 @@ async def store_planning_metadata_impl(tool_context, args) -> bool:
         
         if result.data:
             logger.info("✅ Planning metadata stored successfully")
-            return True
+            return "✅ Planning metadata stored successfully"
         else:
             logger.warning("⚠️ No rows updated when storing metadata")
-            return False
+            return "❌ Failed to store planning metadata - no rows updated"
             
     except Exception as e:
         logger.error(f"❌ Failed to store planning metadata: {e}")
-        return False
+        return f"❌ Failed to store planning metadata: {str(e)}"
 
 # Create the FunctionTool manually
 store_planning_metadata = FunctionTool(

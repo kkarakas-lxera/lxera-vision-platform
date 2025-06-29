@@ -168,14 +168,6 @@ LOG_AGENT_HANDOFF_SCHEMA = {
             "type": "string",
             "description": "Name of the agent receiving the handoff"
         },
-        "plan_id": {
-            "type": "string",
-            "description": "Optional plan ID if available"
-        },
-        "research_id": {
-            "type": "string",
-            "description": "Optional research ID if available"
-        },
         "key_context": {
             "type": "object",
             "description": "Key context data being passed",
@@ -204,7 +196,7 @@ LOG_AGENT_HANDOFF_SCHEMA = {
             "additionalProperties": False
         }
     },
-    "required": ["session_id", "from_agent", "to_agent", "key_context", "plan_id", "research_id"],
+    "required": ["session_id", "from_agent", "to_agent", "key_context"],
     "additionalProperties": False
 }
 
@@ -219,8 +211,10 @@ async def log_agent_handoff_impl(tool_context, args) -> bool:
     from_agent = args['from_agent']
     to_agent = args['to_agent']
     key_context = args['key_context']
-    plan_id = args.get('plan_id')
-    research_id = args.get('research_id')
+    
+    # Try to extract plan_id and research_id from key_context
+    plan_id = key_context.get('important_data', {}).get('plan_id')
+    research_id = key_context.get('important_data', {}).get('research_id')
     
     # Prepare full context
     full_context = {
@@ -230,12 +224,25 @@ async def log_agent_handoff_impl(tool_context, args) -> bool:
         "timestamp": datetime.utcnow().isoformat()
     }
     
+    # Ensure plan_id is a valid UUID or None
+    import uuid as uuid_module
+    valid_plan_id = None
+    if plan_id:
+        try:
+            # Try to parse as UUID
+            uuid_module.UUID(plan_id)
+            valid_plan_id = plan_id
+        except ValueError:
+            # If not a valid UUID, set to None and log warning
+            logger.warning(f"⚠️ Invalid UUID for plan_id: {plan_id}, setting to None")
+            valid_plan_id = None
+    
     return handoff_context_manager.log_handoff(
         session_id=session_id,
         from_agent=from_agent,
         to_agent=to_agent,
         context=full_context,
-        plan_id=plan_id
+        plan_id=valid_plan_id
     )
 
 # Create the FunctionTool manually

@@ -16,6 +16,50 @@ from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
+# Initialize Supabase client for fetching course plans
+from supabase import create_client
+SUPABASE_URL = 'https://xwfweumeryrgbguwrocr.supabase.co'
+SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3ZndldW1lcnlyZ2JndXdyb2NyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc2MzQ0MCwiZXhwIjoyMDY2MzM5NDQwfQ.qxXpBxUKhKA4AQT4UQnIEJGbGNrRDMbBroZU8YaypSY')
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+@function_tool
+def fetch_course_plan(plan_id: str) -> str:
+    """
+    Fetch course plan details from database using plan_id.
+    
+    Returns course structure, employee info, and skill gaps to guide research.
+    """
+    try:
+        logger.info(f"📋 Fetching course plan: {plan_id}")
+        
+        result = supabase.table('cm_course_plans').select('*').eq('plan_id', plan_id).single().execute()
+        
+        if result.data:
+            plan = result.data
+            
+            # Extract key information for research
+            course_info = {
+                "plan_id": plan.get('plan_id'),
+                "employee_name": plan.get('employee_name'),
+                "course_title": plan.get('course_title'),
+                "course_structure": plan.get('course_structure'),
+                "prioritized_gaps": plan.get('prioritized_gaps'),
+                "research_strategy": plan.get('research_strategy'),
+                "total_modules": plan.get('total_modules'),
+                "course_duration_weeks": plan.get('course_duration_weeks')
+            }
+            
+            logger.info(f"✅ Course plan loaded: {course_info['course_title']}")
+            return json.dumps(course_info)
+        else:
+            logger.error(f"❌ No course plan found with ID: {plan_id}")
+            return json.dumps({"error": f"Course plan not found: {plan_id}"})
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch course plan: {e}")
+        return json.dumps({"error": str(e)})
+
 
 @function_tool
 def tavily_search(query: str, context: str = "general") -> str:
@@ -25,15 +69,15 @@ def tavily_search(query: str, context: str = "general") -> str:
     Wraps existing Tavily integration from refactored_nodes system.
     """
     try:
-        # Get API key from environment or config
-        tavily_api_key = os.getenv('TAVILY_API_KEY')
+        # Get API key from environment or use hardcoded for testing
+        tavily_api_key = os.getenv('TAVILY_API_KEY', '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')
         if not tavily_api_key:
             try:
                 from config.settings import get_settings
                 settings = get_settings()
                 tavily_api_key = settings.tavily_api_key
             except ImportError:
-                logger.warning("Could not import settings, using environment variables only")
+                logger.warning("Could not import settings, using hardcoded API key for testing")
         
         # Import and use existing Tavily client setup
         from tavily import TavilyClient
@@ -99,10 +143,16 @@ def firecrawl_extract(url: str, extraction_type: str = "full") -> str:
         # Import and use existing Firecrawl setup
         from firecrawl import FirecrawlApp
         
-        # Import settings for API key if not already imported
-        from config.settings import get_settings
-        settings = get_settings()
-        firecrawl_api_key = settings.firecrawl_api_key
+        # Get API key from environment or use hardcoded for testing
+        firecrawl_api_key = os.getenv('FIRECRAWL_API_KEY', 'fc-7262516226444c878aa16b03d570f3c7')
+        if not firecrawl_api_key:
+            try:
+                from config.settings import get_settings
+                settings = get_settings()
+                firecrawl_api_key = settings.firecrawl_api_key
+            except ImportError:
+                logger.warning("Could not import settings, using hardcoded API key for testing")
+        
         firecrawl_client = FirecrawlApp(api_key=firecrawl_api_key)
         
         # Configure extraction parameters

@@ -1,0 +1,1 @@
+export { BulkGenerationView } from './BulkGenerationView';

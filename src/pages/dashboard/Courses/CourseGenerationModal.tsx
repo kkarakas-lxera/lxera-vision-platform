@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCourseGeneration } from '@/contexts/CourseGenerationContext';
 import { toast } from 'sonner';
+import { BulkGenerationView } from '@/components/CourseGeneration/BulkGenerationView';
 
 interface CourseGenerationModalProps {
   open: boolean;
@@ -71,6 +72,8 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [currentEmployee, setCurrentEmployee] = useState<string>('');
   const [generatedCourses, setGeneratedCourses] = useState<any[]>([]);
+  const [showBulkGeneration, setShowBulkGeneration] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && userProfile) {
@@ -205,6 +208,10 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
       const employeesToGenerate = employees.filter(emp => selectedEmployees.has(emp.id));
       const employeeIds = employeesToGenerate.map(emp => emp.id);
 
+      // Close the selection modal and show bulk generation view
+      onClose();
+      setShowBulkGeneration(true);
+
       // Import and use the comprehensive pipeline
       const { CourseGenerationPipeline } = await import('@/services/CourseGenerationPipeline');
       
@@ -216,11 +223,9 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
           // Capture the job ID when it's created
           if (progress.phase === 'job_created' && progress.message) {
             jobId = progress.message;
+            setCurrentJobId(jobId);
             // Start tracking the job
             startGeneration(jobId);
-            // Close the modal - the mini tracker will take over
-            onClose();
-            toast.info('Course generation started. You can continue using the platform while courses are being generated.');
           }
         },
         true // Use edge function by default for real AI generation
@@ -233,9 +238,13 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
       ).then((results) => {
         // This will complete in the background
         console.log('Course generation completed:', results);
+        setShowBulkGeneration(false);
+        toast.success('All courses generated successfully!');
+        onComplete();
       }).catch((error) => {
         console.error('Course generation failed:', error);
         toast.error('Course generation failed: ' + error.message);
+        setShowBulkGeneration(false);
       });
 
     } catch (error) {
@@ -269,6 +278,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
@@ -540,6 +550,22 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Bulk Generation View - Shows after employee selection */}
+    {showBulkGeneration && currentJobId && (
+      <BulkGenerationView
+        jobId={currentJobId}
+        totalEmployees={selectedEmployees.size}
+        onClose={() => {
+          setShowBulkGeneration(false);
+          onComplete();
+        }}
+        onMinimize={() => {
+          // The bulk generation view handles its own minimized state
+        }}
+      />
+    )}
+  </>
   );
 };
 

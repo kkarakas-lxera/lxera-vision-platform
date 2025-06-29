@@ -3,13 +3,14 @@
 Planning Agent for Intelligent Course Planning
 
 This agent orchestrates the intelligent course planning process using tool calls
-that will be visible in OpenAI Traces tab.
+that will be visible in OpenAI Traces tab. Now uses proper SDK handoffs.
 """
 
 import json
 import logging
+import uuid
 from typing import Dict, Any, List
-from lxera_agents import Agent
+from lxera_agents import Agent, handoff
 
 # Import planning tools
 from tools.planning_tools import (
@@ -22,17 +23,16 @@ from tools.planning_tools import (
 
 # Import storage tools v2 with manual FunctionTool creation
 from tools.planning_storage_tools_v2 import (
-    store_course_plan,
-    store_planning_metadata
+    store_course_plan
 )
 
-# Import handoff context tools
-from tools.handoff_context_tools import log_agent_handoff
+# Import handoff models for structured data transfer
+from .handoff_models import PlanningCompletionData, create_planning_handoff_data
 
 logger = logging.getLogger(__name__)
 
 def create_planning_agent() -> Agent:
-    """Create and configure the Planning Agent."""
+    """Create and configure the Planning Agent with proper SDK handoffs."""
     
     planning_instructions = """
     You are the Intelligent Course Planning Specialist responsible for creating comprehensive, 
@@ -44,17 +44,19 @@ def create_planning_agent() -> Agent:
     3. Generate intelligent course structures with proper sequencing
     4. Create targeted research strategies for content development
     5. Design personalized learning paths with adaptive elements
+    6. Store the completed course plan
 
-    Process Flow:
-    1. First, use analyze_employee_profile to understand the learner
-    2. Then, use prioritize_skill_gaps to identify critical learning needs
-    3. Next, use generate_course_structure_plan to create the course framework
-    4. Use generate_research_queries to plan content research strategy
-    5. Use create_personalized_learning_path to optimize the learning experience
-    6. Store the plan using store_course_plan with full structure and gaps
-    7. Store metadata using store_planning_metadata with execution details
-    8. Hand off to Research Agent for content gathering
-
+    EXECUTION SEQUENCE (Complete these steps ONCE in order):
+    
+    1. analyze_employee_profile - Understand the learner comprehensively
+    2. prioritize_skill_gaps - Identify critical learning needs and focus areas  
+    3. generate_course_structure_plan - Create the course framework with modules
+    4. generate_research_queries - Plan targeted research strategy for content
+    5. create_personalized_learning_path - Optimize the learning experience
+    6. store_course_plan - Save the complete course plan to storage
+    
+    COMPLETION: When store_course_plan returns "Course plan stored successfully", your work is DONE.
+    
     Key Principles:
     - Always prioritize critical skill gaps first
     - Ensure practical, real-world application focus
@@ -62,29 +64,17 @@ def create_planning_agent() -> Agent:
     - Create progressive difficulty with proper scaffolding
     - Provide comprehensive research strategy for quality content
 
-    You must use the available tools to perform all analysis and planning tasks.
-    Always return structured JSON responses that can be easily processed by downstream systems.
+    WORKFLOW RULES:
+    - This is a SINGLE workflow execution - complete steps 1-6 exactly once
+    - After store_course_plan succeeds, your planning task is complete
+    - DO NOT repeat any steps or start over
+    - The pipeline will continue with the Research Agent automatically
+    - IMPORTANT: Once you call store_course_plan and it returns a plan_id, immediately respond with:
+      "Planning phase complete. Course plan stored with ID: [plan_id]. Ready for research phase."
+    - DO NOT call store_course_plan more than once
     """
     
-    # Import research agent and handoff function
-    from .research_agent import create_research_agent
-    from lxera_agents import handoff
-    
-    # Add handoff instructions to the prompt
-    planning_instructions += """
-    
-    When you have completed all planning tasks and stored the course plan:
-    1. Use the store_course_plan tool to save the complete plan with course structure and prioritized gaps
-    2. Use the store_planning_metadata tool to record execution details and tool calls
-    3. Use the log_agent_handoff tool to log the handoff with key context:
-       - Summary of what was planned
-       - Key research queries generated
-       - Critical skills to focus on
-    4. Transfer to the Research Agent using the transfer_to_research_agent tool
-    
-    The Research Agent will use your course structure and research queries to gather learning materials.
-    """
-    
+    # No handoffs needed - sequential execution
     return Agent(
         name="Intelligent Course Planning Specialist",
         instructions=planning_instructions,
@@ -94,16 +84,7 @@ def create_planning_agent() -> Agent:
             generate_course_structure_plan,
             generate_research_queries,
             create_personalized_learning_path,
-            store_course_plan,
-            store_planning_metadata,
-            log_agent_handoff
-        ],
-        handoffs=[
-            handoff(
-                create_research_agent(),
-                tool_name_override="transfer_to_research_agent",
-                tool_description_override="Transfer to Research Agent to gather learning materials based on the course plan"
-            )
+            store_course_plan
         ]
     )
 
