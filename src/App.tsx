@@ -46,6 +46,7 @@ import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
 import Employees from "./pages/dashboard/Employees";
 import EmployeeProfile from "./pages/dashboard/EmployeeProfile";
 import Courses from "./pages/dashboard/Courses";
+import CourseDetails from "./pages/dashboard/CourseDetails";
 
 // Import skills pages
 import SkillsOverview from "./pages/dashboard/skills/SkillsOverview";
@@ -112,6 +113,7 @@ const App = () => (
                       <Route path="/employees" element={<Employees />} />
                       <Route path="/employees/:employeeId" element={<EmployeeProfile />} />
                       <Route path="/courses" element={<Courses />} />
+                      <Route path="/courses/:courseId" element={<CourseDetails />} />
                       <Route path="/skills" element={<SkillsOverview />} />
                       <Route path="/skills/employees" element={<AnalyzedEmployees />} />
                       <Route path="/skills/positions" element={<PositionRequirements />} />
