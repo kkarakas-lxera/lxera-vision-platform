@@ -32,6 +32,80 @@ export const CourseContentSection: React.FC<CourseContentSectionProps> = ({
   const readingTimeMinutes = Math.ceil(estimatedWords / 150);
   const readingTimeText = readingTimeMinutes === 1 ? '1 min read' : `${readingTimeMinutes} min read`;
 
+  // Custom components for ReactMarkdown to control sizes precisely
+  const markdownComponents = {
+    h1: ({ children, ...props }: any) => (
+      <h1 className="text-base font-semibold mt-4 mb-2 text-foreground" {...props}>
+        {children}
+      </h1>
+    ),
+    h2: ({ children, ...props }: any) => (
+      <h2 className="text-sm font-semibold mt-3 mb-1.5 text-foreground" {...props}>
+        {children}
+      </h2>
+    ),
+    h3: ({ children, ...props }: any) => (
+      <h3 className="text-sm font-medium mt-2 mb-1 text-foreground" {...props}>
+        {children}
+      </h3>
+    ),
+    h4: ({ children, ...props }: any) => (
+      <h4 className="text-sm font-medium mt-2 mb-1 text-foreground" {...props}>
+        {children}
+      </h4>
+    ),
+    p: ({ children, ...props }: any) => (
+      <p className="text-sm leading-relaxed mb-3 text-muted-foreground" {...props}>
+        {children}
+      </p>
+    ),
+    ul: ({ children, ...props }: any) => (
+      <ul className="list-disc list-inside space-y-1 mb-3 text-sm text-muted-foreground pl-4" {...props}>
+        {children}
+      </ul>
+    ),
+    ol: ({ children, ...props }: any) => (
+      <ol className="list-decimal list-inside space-y-1 mb-3 text-sm text-muted-foreground pl-4" {...props}>
+        {children}
+      </ol>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li className="text-sm leading-relaxed text-muted-foreground" {...props}>
+        {children}
+      </li>
+    ),
+    strong: ({ children, ...props }: any) => (
+      <strong className="font-semibold text-foreground" {...props}>
+        {children}
+      </strong>
+    ),
+    em: ({ children, ...props }: any) => (
+      <em className="italic" {...props}>
+        {children}
+      </em>
+    ),
+    blockquote: ({ children, ...props }: any) => (
+      <blockquote className="border-l-4 border-primary pl-4 italic text-sm text-muted-foreground my-3" {...props}>
+        {children}
+      </blockquote>
+    ),
+    code: ({ children, ...props }: any) => (
+      <code className="bg-muted text-foreground px-1 py-0.5 rounded text-xs font-mono" {...props}>
+        {children}
+      </code>
+    ),
+    pre: ({ children, ...props }: any) => (
+      <pre className="bg-muted text-foreground p-3 rounded-md overflow-x-auto text-xs my-3" {...props}>
+        {children}
+      </pre>
+    ),
+    a: ({ children, href, ...props }: any) => (
+      <a className="text-primary underline hover:no-underline" href={href} {...props}>
+        {children}
+      </a>
+    ),
+  };
+
   return (
     <Card>
       <CardHeader className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
@@ -63,24 +137,25 @@ export const CourseContentSection: React.FC<CourseContentSectionProps> = ({
       </CardHeader>
       <CardContent>
         <div className={cn(
-          "prose prose-sm max-w-none dark:prose-invert",
-          "prose-headings:text-foreground prose-p:text-muted-foreground",
-          "prose-strong:text-foreground prose-ul:text-muted-foreground",
-          "prose-ol:text-muted-foreground prose-li:text-muted-foreground",
-          "prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary",
-          "prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded",
-          "prose-pre:bg-muted prose-pre:text-foreground",
-          "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
-          "prose-p:text-sm prose-li:text-sm prose-td:text-sm",
-          "prose-h1:text-lg prose-h2:text-base prose-h3:text-sm",
-          "prose-h2:font-semibold prose-h2:mt-4 prose-h2:mb-2",
-          "prose-p:leading-relaxed prose-li:leading-relaxed",
+          "max-w-none",
           !isExpanded && "line-clamp-3"
         )}>
           {isExpanded ? (
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>
+              {content}
+            </ReactMarkdown>
           ) : (
-            <ReactMarkdown>{previewContent}</ReactMarkdown>
+            <ReactMarkdown 
+              components={{
+                p: ({ children }) => (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {children}
+                  </p>
+                ),
+              }}
+            >
+              {previewContent}
+            </ReactMarkdown>
           )}
         </div>
         {content.length > 150 && (
