@@ -86,6 +86,9 @@ export default function CourseDetails() {
   const fetchCourseData = async () => {
     try {
       setLoading(true);
+      
+      console.log('UserProfile company_id:', userProfile?.company_id);
+      console.log('CourseId:', courseId);
 
       // Fetch all assignments for this course
       const { data: assignmentsData, error: assignmentsError } = await supabase
@@ -120,39 +123,42 @@ export default function CourseDetails() {
 
       setAssignments(transformedAssignments);
 
-      // Fetch module content
+      // Fetch module content - simplified query
       console.log('Fetching content for courseId:', courseId);
       
-      // Try with company_id in case RLS requires it
+      // Simple query first
+      const { data: contentTest, error: testError } = await supabase
+        .from('cm_module_content')
+        .select('content_id, module_name, status')
+        .eq('content_id', courseId);
+        
+      console.log('Test query result:', { contentTest, testError, count: contentTest?.length });
+      
+      // Now try the full query
       const { data: contentData, error: contentError } = await supabase
         .from('cm_module_content')
         .select('*')
         .eq('content_id', courseId)
         .eq('company_id', userProfile?.company_id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+        .maybeSingle();
 
-      console.log('Content fetch result:', { contentData, contentError });
+      console.log('Full content fetch result:', { contentData, contentError });
 
-      if (contentError) {
-        console.error('Error fetching content:', contentError);
-        
-        // If the first query fails, try without company_id filter
-        const { data: contentDataRetry, error: contentErrorRetry } = await supabase
+      if (!contentError && contentData) {
+        setContent(contentData);
+      } else {
+        // Try without company_id
+        const { data: contentDataNoCompany, error: errorNoCompany } = await supabase
           .from('cm_module_content')
-          .select('content_id, module_name, introduction, core_content, practical_applications, case_studies, assessments, total_word_count, status, priority_level')
+          .select('*')
           .eq('content_id', courseId)
           .maybeSingle();
           
-        if (!contentErrorRetry && contentDataRetry) {
-          console.log('Content found on retry:', contentDataRetry);
-          setContent(contentDataRetry);
-        } else {
-          console.log('No content found even on retry for courseId:', courseId);
+        console.log('Content fetch without company_id:', { contentDataNoCompany, errorNoCompany });
+        
+        if (!errorNoCompany && contentDataNoCompany) {
+          setContent(contentDataNoCompany);
         }
-      } else if (contentData) {
-        setContent(contentData);
-      } else {
-        console.log('No content found for courseId:', courseId);
       }
 
       // Fetch course plan if available
