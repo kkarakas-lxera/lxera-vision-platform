@@ -71,6 +71,9 @@ export const CourseContentSection: React.FC<CourseContentSectionProps> = ({
           "prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded",
           "prose-pre:bg-muted prose-pre:text-foreground",
           "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
+          "prose-p:text-sm prose-li:text-sm prose-td:text-sm",
+          "prose-h1:text-xl prose-h2:text-lg prose-h3:text-base",
+          "prose-p:leading-relaxed prose-li:leading-relaxed",
           !isExpanded && "line-clamp-3"
         )}>
           {isExpanded ? (
