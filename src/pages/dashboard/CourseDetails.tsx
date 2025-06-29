@@ -131,18 +131,34 @@ export default function CourseDetails() {
       // by using a service role key or by ensuring the query matches the RLS policy
       
       try {
-        // Try fetching with explicit company_id match
-        const { data: contentData, error: contentError } = await supabase
-          .from('cm_module_content')
-          .select('*')
-          .eq('content_id', courseId)
-          .eq('company_id', userProfile?.company_id);
+        // Use different functions based on user role
+        let contentData, contentError;
+        
+        if (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') {
+          // Use the admin function
+          const result = await supabase
+            .rpc('get_module_content_for_admin', {
+              p_content_id: courseId,
+              p_company_id: userProfile?.company_id
+            });
+          contentData = result.data;
+          contentError = result.error;
+        } else if (userProfile?.role === 'learner') {
+          // Use the learner function
+          const result = await supabase
+            .rpc('get_module_content_for_learner', {
+              p_content_id: courseId
+            });
+          contentData = result.data;
+          contentError = result.error;
+        }
 
         console.log('Content query result:', { 
           contentData, 
           contentError,
           courseId,
           company_id: userProfile?.company_id,
+          role: userProfile?.role,
           dataLength: contentData?.length
         });
 
