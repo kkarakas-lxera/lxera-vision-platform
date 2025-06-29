@@ -74,7 +74,7 @@ interface CourseAssignment {
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,16 +91,23 @@ const Courses: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchCourses();
-    fetchMetrics();
-  }, []);
+    if (userProfile?.company_id) {
+      fetchCourses();
+      fetchMetrics();
+    }
+  }, [userProfile?.company_id]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       
+      if (!userProfile?.company_id) {
+        console.log('No company_id found in user profile');
+        return;
+      }
+      
       // Fetch course assignments with their associated employees
-      const { data: assignmentsData, error: assignmentsError } = await supabase
+      let query = supabase
         .from('course_assignments')
         .select(`
           *,
@@ -114,7 +121,23 @@ const Courses: React.FC = () => {
             )
           )
         `)
-        .eq('company_id', user?.company_id)
+        .eq('company_id', userProfile?.company_id);
+      
+      // If user is a learner, only show their own assignments
+      if (userProfile.role === 'learner') {
+        // Need to get employee_id for this user
+        const { data: employeeData } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', user?.id)
+          .single();
+          
+        if (employeeData) {
+          query = query.eq('employee_id', employeeData.id);
+        }
+      }
+      
+      const { data: assignmentsData, error: assignmentsError } = await query
         .order('created_at', { ascending: false });
 
       if (assignmentsError) {
@@ -218,10 +241,15 @@ const Courses: React.FC = () => {
 
   const fetchMetrics = async () => {
     try {
+      if (!userProfile?.company_id) {
+        console.log('No company_id found in user profile for metrics');
+        return;
+      }
+      
       const { data: assignments, error } = await supabase
         .from('course_assignments')
         .select('status, progress_percentage')
-        .eq('company_id', user?.company_id);
+        .eq('company_id', userProfile?.company_id);
 
       if (error) throw error;
 
