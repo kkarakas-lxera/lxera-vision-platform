@@ -192,10 +192,14 @@ export default function EmployeeProfile() {
         cv_file_path: employeeData.cv_file_path,
         employee_since: employeeData.created_at,
         skills_profile: skillsProfile ? {
-          ...skillsProfile,
+          id: skillsProfile.id,
+          skills_match_score: skillsProfile.skills_match_score,
+          career_readiness_score: skillsProfile.career_readiness_score,
+          analyzed_at: skillsProfile.analyzed_at,
           extracted_skills: Array.isArray(skillsProfile.extracted_skills) 
-            ? skillsProfile.extracted_skills 
-            : []
+            ? (skillsProfile.extracted_skills as any[])
+            : [],
+          cv_summary: skillsProfile.cv_summary
         } : undefined,
         courses: courseAssignments?.map(ca => {
           const coursePlan = ca.plan_id ? coursePlansMap.get(ca.plan_id) : null;

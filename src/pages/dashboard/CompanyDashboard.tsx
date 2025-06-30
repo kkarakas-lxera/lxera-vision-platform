@@ -176,11 +176,11 @@ export default function CompanyDashboard() {
 
       // Calculate averages from skills profiles
       const avgMatchScore = skillsProfiles?.length 
-        ? skillsProfiles.reduce((acc, profile) => acc + (parseFloat(profile.skills_match_score) || 0), 0) / skillsProfiles.length
+        ? skillsProfiles.reduce((acc, profile) => acc + (profile.skills_match_score || 0), 0) / skillsProfiles.length
         : 0;
 
       const avgReadiness = skillsProfiles?.length
-        ? skillsProfiles.reduce((acc, profile) => acc + (parseFloat(profile.career_readiness_score) || 0), 0) / skillsProfiles.length
+        ? skillsProfiles.reduce((acc, profile) => acc + (profile.career_readiness_score || 0), 0) / skillsProfiles.length
         : 0;
 
       // Fetch active learning paths through employees join
@@ -221,7 +221,7 @@ export default function CompanyDashboard() {
             if (employee.current_position_id) {
               const profile = skillsProfiles.find(p => p.employee_id === employee.id);
               if (profile) {
-                const score = parseFloat(profile.skills_match_score) || 0;
+                const score = profile.skills_match_score || 0;
                 if (!positionScores.has(employee.current_position_id)) {
                   positionScores.set(employee.current_position_id, []);
                 }
@@ -354,7 +354,7 @@ export default function CompanyDashboard() {
       recentProfiles?.forEach(profile => {
         const employeeName = employeeNameMap.get(profile.employee_id) || 'Unknown Employee';
         const skillsCount = Array.isArray(profile.extracted_skills) ? profile.extracted_skills.length : 0;
-        const matchScore = parseFloat(profile.skills_match_score) || 0;
+        const matchScore = profile.skills_match_score || 0;
         
         activities.push({
           id: `analysis-${profile.employee_id}`,
@@ -417,7 +417,7 @@ export default function CompanyDashboard() {
         // Create a map of skills profiles
         const profileMap = new Map();
         skillsProfiles?.forEach(profile => {
-          profileMap.set(profile.employee_id, parseFloat(profile.skills_match_score) || 0);
+          profileMap.set(profile.employee_id, profile.skills_match_score || 0);
         });
 
         // Calculate coverage for each position

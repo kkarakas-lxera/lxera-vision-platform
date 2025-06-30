@@ -66,7 +66,7 @@ export function useEnhancedOnboarding() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as EnhancedImportSession;
     } catch (error) {
       console.error('Failed to create import session:', error);
       toast({

@@ -256,7 +256,7 @@ const Courses: React.FC = () => {
       
       let metricsQuery = supabase
         .from('course_assignments')
-        .select('status, progress_percentage, course_id');
+        .select('status, progress_percentage, course_id, employee_id');
         
       // Apply same filtering as fetchCourses
       metricsQuery = metricsQuery.eq('company_id', userProfile.company_id);

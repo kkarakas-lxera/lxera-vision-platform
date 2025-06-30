@@ -551,7 +551,6 @@ export function PositionEditModal({ position, open, onOpenChange, onSuccess }: P
                   <SkillSearch
                     onSkillSelect={(skill) => handleSkillSelect(skill, true)}
                     placeholder="Search skills database..."
-                    excludeIds={requiredSkills.map(s => s.skill_id)}
                   />
                   </div>
                   </CardContent>

@@ -87,7 +87,7 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
       if (error) throw error;
 
       setPositionDetails(data);
-      setRequiredSkills(data.required_skills || []);
+      setRequiredSkills((data.required_skills as any[]) || []);
     } catch (error) {
       console.error('Error fetching position skills:', error);
       toast.error('Failed to load position requirements');

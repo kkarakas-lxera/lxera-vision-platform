@@ -80,24 +80,24 @@ export default function AnalyzedEmployees() {
 
       if (skillsProfiles) {
         const analyzedEmployees = skillsProfiles.map(profile => {
-          const position = positionsData?.find(p => p.id === profile.employees.current_position_id);
+          const position = positionsData?.find(p => p.id === (profile.employees as any).current_position_id);
           
           // Extract skills array
           let skills: string[] = [];
           if (Array.isArray(profile.extracted_skills)) {
             skills = profile.extracted_skills.map(skill => {
               if (typeof skill === 'string') return skill;
-              if (skill?.skill_name) return skill.skill_name;
+              if ((skill as any)?.skill_name) return (skill as any).skill_name;
               return '';
             }).filter(s => s);
           }
 
           return {
             employee_id: profile.employee_id,
-            employee_name: profile.employees.full_name,
-            position_id: profile.employees.current_position_id || '',
+            employee_name: (profile.employees as any).full_name,
+            position_id: (profile.employees as any).current_position_id || '',
             position_title: position?.position_title || 'Not Assigned',
-            skills_match_score: parseFloat(profile.skills_match_score) || 0,
+            skills_match_score: profile.skills_match_score || 0,
             analyzed_at: profile.analyzed_at,
             skills: skills.slice(0, 5) // Show top 5 skills
           };

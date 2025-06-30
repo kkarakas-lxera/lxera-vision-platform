@@ -138,12 +138,12 @@ export default function DepartmentSkillsDetail() {
 
           // Extract technical and soft skills from extracted_skills array
           const extractedSkills = Array.isArray(skillsProfile.extracted_skills) ? skillsProfile.extracted_skills : [];
-          const technicalSkills = extractedSkills.filter(skill => skill?.category === 'technical');
-          const softSkills = extractedSkills.filter(skill => skill?.category === 'soft');
+          const technicalSkills = extractedSkills.filter(skill => (skill as any)?.category === 'technical');
+          const softSkills = extractedSkills.filter(skill => (skill as any)?.category === 'soft');
 
           return {
             employee_id: emp.id,
-            skills_match_score: parseFloat(skillsProfile.skills_match_score) || 0,
+            skills_match_score: skillsProfile.skills_match_score || 0,
             analyzed_at: skillsProfile.analyzed_at,
             technical_skills: technicalSkills,
             soft_skills: softSkills,

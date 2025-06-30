@@ -25,12 +25,12 @@ export async function uploadCVViaEdgeFunction(
 
     // Call edge function
     const response = await fetch(
-      `${supabase.supabaseUrl}/functions/v1/upload-cv`,
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-cv`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': supabase.supabaseKey
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
         },
         body: formData
       }
@@ -73,12 +73,12 @@ export async function testEdgeFunctionAvailability(): Promise<boolean> {
     if (!session) return false;
 
     const response = await fetch(
-      `${supabase.supabaseUrl}/functions/v1/upload-cv`,
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-cv`,
       {
         method: 'OPTIONS',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': supabase.supabaseKey
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
         }
       }
     );

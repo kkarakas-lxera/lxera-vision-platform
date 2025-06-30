@@ -142,7 +142,7 @@ export function CVUploadDialog({
         companyId: userProfile.company_id,
         bucketId: 'employee-cvs',
         hasAuthSession: !!session,
-        authUid: authCheck?.auth_uid
+        authUid: (authCheck as any)?.auth_uid
       });
       
       // Try uploading with proper auth headers

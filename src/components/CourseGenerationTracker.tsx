@@ -62,7 +62,7 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
       return;
     }
 
-    setJob(data);
+    setJob(data as GenerationJob);
     setIsVisible(true);
 
     // If job is complete, call onComplete after a delay
@@ -87,7 +87,7 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
       return;
     }
 
-    setJob(data[0]);
+    setJob(data[0] as GenerationJob);
     setIsVisible(true);
     subscribeToUpdates(data[0].id);
   };

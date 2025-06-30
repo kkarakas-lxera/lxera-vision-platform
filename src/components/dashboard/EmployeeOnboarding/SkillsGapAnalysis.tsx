@@ -159,7 +159,7 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
                 });
                 
                 // Check if skill level meets requirement
-                const skillLevel = matchingSkill?.proficiency_level || 0;
+                const skillLevel = (matchingSkill as any)?.proficiency_level || 0;
                 const requiredLevel = reqSkill.proficiency_level || 3;
                 
                 if (skillLevel >= requiredLevel) {

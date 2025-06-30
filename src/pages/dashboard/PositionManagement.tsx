@@ -123,7 +123,7 @@ export default function PositionManagement() {
         employee_count: employeeCountByPositionId[pos.id] || 0
       }));
 
-      setPositions(positionsWithCount);
+      setPositions(positionsWithCount as CompanyPosition[]);
     } catch (error) {
       console.error('Error fetching positions:', error);
       toast.error('Failed to load positions');
@@ -397,7 +397,7 @@ export default function PositionManagement() {
                         </Badge>
                       ))}
                       {position.required_skills.length > 3 && (
-                        <Badge variant="ghost" className="text-xs">
+                        <Badge variant="outline" className="text-xs">
                           +{position.required_skills.length - 3}
                         </Badge>
                       )}
