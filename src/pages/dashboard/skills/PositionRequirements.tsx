@@ -12,7 +12,8 @@ import {
   Users,
   Target,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -178,157 +179,216 @@ export default function PositionRequirements() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/dashboard/skills')}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Position Requirements</h1>
-          <p className="text-muted-foreground mt-1">
-            Skills required by each position in your organization
-          </p>
+    <div className="space-y-4">
+      {/* Compact Header with Summary */}
+      <div className="bg-card rounded-lg border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard/skills')}
+              className="h-7 w-7 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Position Requirements</h1>
+              <p className="text-sm text-muted-foreground">Skills coverage by role</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Positions</div>
+              <div className="text-lg font-semibold">{positions.length}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Total People</div>
+              <div className="text-lg font-semibold">{positions.reduce((sum, p) => sum + p.total_employees, 0)}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Analyzed</div>
+              <div className="text-lg font-semibold">{positions.reduce((sum, p) => sum + p.analyzed_employees, 0)}</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Positions List */}
-      <div className="space-y-4">
-        {positions.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                No positions defined yet
-              </p>
-              <Button
-                className="mt-4"
-                onClick={() => navigate('/dashboard/positions')}
-              >
-                Define Positions
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          positions.map((position) => {
+      {/* Compact Positions Grid */}
+      {positions.length === 0 ? (
+        <div className="bg-card rounded-lg border p-8 text-center">
+          <Target className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground mb-3">No positions defined yet</p>
+          <Button
+            size="sm"
+            onClick={() => navigate('/dashboard/positions')}
+          >
+            Define Positions
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {positions.map((position) => {
             const isExpanded = expandedPositions.has(position.position_id);
             const analyzedPercentage = position.total_employees > 0
               ? Math.round((position.analyzed_employees / position.total_employees) * 100)
               : 0;
+            
+            const avgCoverage = position.skill_coverage.length > 0
+              ? Math.round(position.skill_coverage.reduce((sum, skill) => sum + skill.coverage_percentage, 0) / position.skill_coverage.length)
+              : 0;
+            
+            const criticalSkills = position.skill_coverage.filter(skill => skill.coverage_percentage < 50).length;
+            const goodSkills = position.skill_coverage.filter(skill => skill.coverage_percentage >= 80).length;
 
             return (
-              <Card key={position.position_id}>
-                <CardHeader 
+              <div key={position.position_id} className="bg-card rounded-lg border p-4">
+                {/* Position Header */}
+                <div 
                   className="cursor-pointer"
                   onClick={() => togglePosition(position.position_id)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {position.position_title}
-                        <Badge variant="outline" className="ml-2">
-                          {position.total_employees} employees
-                        </Badge>
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {position.analyzed_employees} of {position.total_employees} analyzed
-                        {analyzedPercentage > 0 && ` (${analyzedPercentage}%)`}
-                      </p>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-lg">{position.position_title}</span>
+                      <span className="text-xs px-2 py-1 bg-secondary rounded-full">
+                        {position.total_employees} people
+                      </span>
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
-                </CardHeader>
 
+                  {/* Inline Stats */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-sm font-bold">{analyzedPercentage}%</div>
+                        <div className="text-xs text-muted-foreground">Coverage</div>
+                      </div>
+                      {position.analyzed_employees > 0 && (
+                        <>
+                          <div className="text-center">
+                            <div className="text-sm font-bold">{avgCoverage}%</div>
+                            <div className="text-xs text-muted-foreground">Avg Skills</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-bold text-red-600">{criticalSkills}</div>
+                            <div className="text-xs text-muted-foreground">Critical</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-bold text-green-600">{goodSkills}</div>
+                            <div className="text-xs text-muted-foreground">Strong</div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">{position.analyzed_employees} analyzed</div>
+                      <div className="h-1 w-16 bg-secondary rounded-full overflow-hidden mt-1">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300 rounded-full"
+                          style={{ width: `${analyzedPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Skills Details */}
                 {isExpanded && (
-                  <CardContent className="pt-0">
+                  <div className="mt-4 pt-4 border-t border-border/50">
                     {position.analyzed_employees === 0 ? (
-                      <Alert>
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>
-                          No employees in this position have been analyzed yet. 
-                          Skills coverage data will be available after CV analysis.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="text-center py-4">
+                        <AlertTriangle className="h-6 w-6 mx-auto text-orange-500 mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          No analyzed employees yet
+                        </p>
+                      </div>
                     ) : position.required_skills.length === 0 ? (
-                      <Alert>
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>
-                          No required skills defined for this position.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="text-center py-4">
+                        <AlertTriangle className="h-6 w-6 mx-auto text-orange-500 mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          No required skills defined
+                        </p>
+                      </div>
                     ) : (
-                      <div className="space-y-4">
-                        <div className="text-sm font-medium text-muted-foreground">
-                          Required Skills Coverage ({position.analyzed_employees} employees analyzed):
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-muted-foreground mb-3">
+                          Skills Coverage ({position.analyzed_employees} employees):
                         </div>
-                        <div className="space-y-3">
-                          {position.skill_coverage.map((skill, index) => (
-                            <div key={index} className="space-y-2">
-                              <div className="flex items-center justify-between text-sm">
+                        {position.skill_coverage.map((skill, index) => (
+                          <div key={index} className="flex items-center justify-between border-b border-border/30 pb-2 last:border-b-0">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between text-sm mb-1">
                                 <span className="font-medium">{skill.skill_name}</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">
-                                    {skill.employees_with_skill} of {position.analyzed_employees} have this
+                                  <span className="text-xs text-muted-foreground">
+                                    {skill.employees_with_skill}/{position.analyzed_employees}
                                   </span>
-                                  <Badge variant={getSkillCoverageBadgeVariant(skill.coverage_percentage)}>
+                                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                                    skill.coverage_percentage >= 80 ? 'bg-green-100 text-green-700' :
+                                    skill.coverage_percentage >= 50 ? 'bg-orange-100 text-orange-700' :
+                                    'bg-red-100 text-red-700'
+                                  }`}>
                                     {skill.coverage_percentage}%
-                                  </Badge>
+                                  </span>
                                 </div>
                               </div>
-                              <Progress value={skill.coverage_percentage} className="h-2" />
+                              <div className="h-1 bg-secondary rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full transition-all duration-300 rounded-full ${
+                                    skill.coverage_percentage >= 80 ? 'bg-green-500' :
+                                    skill.coverage_percentage >= 50 ? 'bg-orange-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${skill.coverage_percentage}%` }}
+                                />
+                              </div>
                             </div>
-                          ))}
-                        </div>
-
+                          </div>
+                        ))}
+                        
                         {position.analyzed_employees < position.total_employees && (
-                          <Alert className="mt-4">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>
-                              {position.total_employees - position.analyzed_employees} employees 
-                              not analyzed - data may not be representative
-                            </AlertDescription>
-                          </Alert>
+                          <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                            <AlertTriangle className="h-3 w-3 inline mr-1 text-orange-600" />
+                            <span className="text-orange-700">
+                              {position.total_employees - position.analyzed_employees} employees not analyzed
+                            </span>
+                          </div>
                         )}
                       </div>
                     )}
-                  </CardContent>
+                  </div>
                 )}
-              </Card>
+              </div>
             );
-          })
-        )}
+          })}
+        </div>
+      )}
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+      {/* Compact Actions */}
+      <div className="flex justify-center gap-2 pt-2">
         <Button
           variant="outline"
-          onClick={() => navigate('/dashboard/skills')}
+          size="sm"
+          onClick={() => navigate('/dashboard/positions')}
+          className="h-8 px-3 text-xs"
         >
-          Back to Overview
+          <Target className="h-3 w-3 mr-1" />
+          Edit Requirements
         </Button>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard/positions')}
-          >
-            <Target className="h-4 w-4 mr-2" />
-            Edit Requirements
-          </Button>
-          <Button
-            onClick={() => navigate('/dashboard/skills/report')}
-          >
-            Export Report
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/dashboard/skills/report')}
+          className="h-8 px-3 text-xs"
+        >
+          <FileText className="h-3 w-3 mr-1" />
+          Export Report
+        </Button>
       </div>
     </div>
   );
