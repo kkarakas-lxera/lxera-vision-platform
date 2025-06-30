@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ export const DemoRequestsTable = () => {
     setUpdating(true);
     try {
       const result = await demoRequestService.updateDemoRequest(id, {
-        status: newStatus,
+        status: newStatus as 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected',
         processed_at: new Date().toISOString(),
         processed_by: user?.id,
       });
@@ -66,7 +67,7 @@ export const DemoRequestsTable = () => {
         toast.success('Status updated successfully');
         fetchDemoRequests();
         if (selectedRequest?.id === id) {
-          setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);
+          setSelectedRequest(prev => prev ? { ...prev, status: newStatus as 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected' } : null);
         }
       } else {
         toast.error(result.error || 'Failed to update status');

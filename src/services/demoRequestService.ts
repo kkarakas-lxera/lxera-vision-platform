@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DemoRequest {
@@ -13,10 +14,18 @@ export interface DemoRequest {
   source?: string;
 }
 
-export interface DemoRequestRecord extends DemoRequest {
+export interface DemoRequestRecord {
   id: string;
   first_name: string;
   last_name: string;
+  email: string;
+  company: string;
+  job_title?: string;
+  phone?: string;
+  company_size?: string;
+  country?: string;
+  message?: string;
+  source?: string;
   status: 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected';
   submitted_at: string;
   processed_at?: string;

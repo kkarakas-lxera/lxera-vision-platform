@@ -1,3 +1,4 @@
+
 // Common type definitions to replace 'any' usage
 
 export interface SkillData {
@@ -120,4 +121,33 @@ export interface DemoRequest {
   source?: string;
   status?: string;
   created_at?: string;
+}
+
+// Additional interfaces for skills management
+export interface CriticalSkillsGap {
+  skill_name: string;
+  gap_severity: 'critical' | 'moderate' | 'minor';
+  department: string;
+  company_id: string;
+  employees_with_gap: number;
+  avg_proficiency: number;
+  critical_count: number;
+  moderate_count: number;
+}
+
+export interface PositionRequirement {
+  position_id: string;
+  position_title: string;
+  position_code: string;
+  total_employees: number;
+  analyzed_employees: number;
+  required_skills: Array<{
+    skill_id?: string;
+    skill_name: string;
+  }>;
+  skill_coverage: Array<{
+    skill_name: string;
+    employees_with_skill: number;
+    coverage_percentage: number;
+  }>;
 }

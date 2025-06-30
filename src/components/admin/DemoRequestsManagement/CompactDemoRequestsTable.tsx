@@ -265,7 +265,6 @@ export const CompactDemoRequestsTable = () => {
                               onValueChange={(value) => {
                                 handleStatusUpdate(request.id, value);
                               }}
-                              onClick={(e) => e.stopPropagation()}
                             >
                               <SelectTrigger className="h-8 w-[110px] text-xs">
                                 <SelectValue />
