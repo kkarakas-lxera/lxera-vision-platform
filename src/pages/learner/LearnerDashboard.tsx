@@ -47,11 +47,12 @@ export default function LearnerDashboard() {
   const fetchLearnerData = async () => {
     try {
       // Get employee record linked to this user
-      const { data: employee } = await supabase
+      const { data: employees } = await supabase
         .from('employees')
         .select('id, learning_streak, last_learning_date')
-        .eq('user_id', userProfile?.id)
-        .single();
+        .eq('user_id', userProfile?.id);
+      
+      const employee = employees?.[0];
 
       if (!employee) {
         toast.error('Employee profile not found');
@@ -76,7 +77,7 @@ export default function LearnerDashboard() {
         last_learning_date: employee.last_learning_date
       });
 
-      // Fetch course assignments
+      // Fetch course assignments with course content
       const { data: courseAssignments, error } = await supabase
         .from('course_assignments')
         .select(`
@@ -84,27 +85,44 @@ export default function LearnerDashboard() {
           course_id,
           progress_percentage,
           status,
-          started_at,
-          cm_module_content!inner(
-            module_name,
-            introduction,
-            content_id
-          )
+          started_at
         `)
         .eq('employee_id', employee.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-
-      setAssignments(courseAssignments || []);
-
-      // Detect first-time user (no courses started yet)
-      const hasStartedAnyCourse = (courseAssignments || []).some(a => a.started_at !== null);
+      
+      let finalAssignments: CourseAssignment[] = [];
+      
+      // For each assignment, fetch the course content
+      if (courseAssignments && courseAssignments.length > 0) {
+        const assignmentsWithContent = await Promise.all(
+          courseAssignments.map(async (assignment) => {
+            const { data: content } = await supabase
+              .from('cm_module_content')
+              .select('module_name, introduction, content_id')
+              .eq('content_id', assignment.course_id)
+              .single();
+            
+            return {
+              ...assignment,
+              cm_module_content: content
+            };
+          })
+        );
+        
+        finalAssignments = assignmentsWithContent.filter(a => a.cm_module_content) as CourseAssignment[];
+        setAssignments(finalAssignments);
+      } else {
+        setAssignments([]);
+      }
+      
+      const hasStartedAnyCourse = finalAssignments.some(a => a.started_at !== null);
       setIsFirstTime(!hasStartedAnyCourse);
       setShowWelcome(!hasStartedAnyCourse);
 
       // Set current course (most recently accessed in-progress course)
-      const inProgressCourses = (courseAssignments || []).filter(a => a.status === 'in_progress');
+      const inProgressCourses = finalAssignments.filter(a => a.status === 'in_progress');
       if (inProgressCourses.length > 0) {
         setCurrentCourse(inProgressCourses[0]);
       }
