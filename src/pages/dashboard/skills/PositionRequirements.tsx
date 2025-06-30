@@ -18,6 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { parseRequiredSkills } from '@/utils/typeGuards';
 
 interface PositionRequirement {
   position_id: string;
@@ -93,8 +94,8 @@ export default function PositionRequirements() {
           sp => sp.employees.current_position_id === position.id
         ) || [];
 
-        // Extract required skills
-        const requiredSkills = position.required_skills || [];
+        // Extract required skills using type guard
+        const requiredSkills = parseRequiredSkills(position.required_skills);
         
         // Calculate skill coverage
         const skillCoverage = requiredSkills.map(reqSkill => {
@@ -103,7 +104,7 @@ export default function PositionRequirements() {
           // Count how many analyzed employees have this skill
           const employeesWithSkill = analyzedInPosition.filter(profile => {
             const skills = profile.extracted_skills || [];
-            return skills.some(skill => {
+            return skills.some((skill: any) => {
               if (typeof skill === 'string') {
                 return skill.toLowerCase() === skillName.toLowerCase();
               }

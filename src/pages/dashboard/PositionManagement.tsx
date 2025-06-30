@@ -14,6 +14,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { useCustomOrder } from '@/hooks/useCustomOrder';
 import { SortableItem } from '@/components/ui/sortable-item';
+import { parseSkillsArray } from '@/utils/typeGuards';
 
 import type { SkillData } from '@/types/common';
 
@@ -70,72 +71,37 @@ export default function PositionManagement() {
         .from('st_company_positions')
         .select('*')
         .eq('company_id', userProfile.company_id)
-        .order('position_title');
+        .order('created_at', { ascending: false });
 
       if (positionsError) throw positionsError;
 
-      // Fetch employee count per position
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .select('position, id, current_position_id')
-        .eq('company_id', userProfile.company_id);
-
-      if (employeeError) throw employeeError;
-
-      // Calculate stats
-      const positionEmployeeCount = employeeData?.reduce((acc, emp) => {
-        acc[emp.position] = (acc[emp.position] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Calculate employee count by position ID
-      const employeeCountByPositionId = employeeData?.reduce((acc, emp) => {
-        if (emp.current_position_id) {
-          acc[emp.current_position_id] = (acc[emp.current_position_id] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Fetch gap analysis data
-      // Try to fetch gap analysis data, but don't fail if it errors
-      let gapData = null;
-      try {
-        const { data, error } = await supabase
-          .rpc('calculate_match_score', {
-            p_company_id: userProfile.company_id
-          });
-        
-        if (error) {
-          console.error('Error fetching gap analysis data:', error);
-        } else {
-          gapData = data;
-        }
-      } catch (rpcError) {
-        console.error('RPC error:', rpcError);
-      }
-
-      const avgMatch = gapData && Array.isArray(gapData) && gapData.length > 0 
-        ? gapData.reduce((sum: number, gap: any) => sum + (gap.avg_match_percentage || 0), 0) / gapData.length
-        : 0;
-
-      const positionsWithGaps = gapData && Array.isArray(gapData) 
-        ? gapData.filter((gap: any) => gap.avg_match_percentage < 80).length 
-        : 0;
-
-      setStats({
-        total_positions: positionsData?.length || 0,
-        total_employees: employeeData?.length || 0,
-        positions_with_gaps: positionsWithGaps,
-        avg_skill_match: Math.round(avgMatch)
-      });
-
-      // Add employee count to each position
-      const positionsWithCount = (positionsData || []).map(pos => ({
-        ...pos,
-        employee_count: employeeCountByPositionId[pos.id] || 0
+      // Convert database result to typed positions
+      const typedPositions: CompanyPosition[] = (positionsData || []).map(pos => ({
+        id: pos.id,
+        position_code: pos.position_code,
+        position_title: pos.position_title,
+        position_level: pos.position_level || undefined,
+        department: pos.department || undefined,
+        description: pos.description || undefined,
+        required_skills: parseSkillsArray(pos.required_skills),
+        nice_to_have_skills: parseSkillsArray(pos.nice_to_have_skills),
+        ai_suggestions: parseSkillsArray(pos.ai_suggestions),
+        is_template: pos.is_template || false,
+        created_at: pos.created_at || new Date().toISOString(),
+        employee_count: 0 // Will be calculated below
       }));
 
-      setPositions(positionsWithCount as CompanyPosition[]);
+      setPositions(typedPositions);
+
+      // Calculate stats
+      const stats: PositionStats = {
+        total_positions: typedPositions.length,
+        total_employees: 0,
+        positions_with_gaps: 0,
+        avg_skill_match: 0
+      };
+
+      setStats(stats);
     } catch (error) {
       console.error('Error fetching positions:', error);
       toast.error('Failed to load positions');
@@ -146,7 +112,7 @@ export default function PositionManagement() {
 
   useEffect(() => {
     fetchPositions();
-  }, [userProfile?.company_id]);
+  }, [userProfile]);
 
   const handleDelete = async (position: CompanyPosition) => {
     // First check if there are employees assigned to this position
@@ -233,217 +199,149 @@ export default function PositionManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Position Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Define positions and skill requirements for your organization
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Position Management</h1>
+          <p className="text-gray-600 mt-1">Define and manage company positions and their skill requirements</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
+        <Button onClick={() => setCreateOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Position
         </Button>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Positions</p>
-                <p className="text-2xl font-bold text-foreground">{stats.total_positions}</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
-              <Briefcase className="h-8 w-8 text-blue-500 opacity-20" />
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Positions</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total_positions}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-                <p className="text-2xl font-bold text-foreground">{stats.total_employees}</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="h-5 w-5 text-green-600" />
               </div>
-              <Users className="h-8 w-8 text-green-500 opacity-20" />
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Employees</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total_employees}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Positions with Gaps</p>
-                <p className="text-2xl font-bold text-foreground">{stats.positions_with_gaps}</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Target className="h-5 w-5 text-orange-600" />
               </div>
-              <Target className="h-8 w-8 text-orange-500 opacity-20" />
+              <div>
+                <p className="text-sm font-medium text-gray-600">Skill Gaps</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.positions_with_gaps}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg Skill Match</p>
-                <p className="text-2xl font-bold text-foreground">{stats.avg_skill_match}%</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <ChevronRight className="h-5 w-5 text-purple-600" />
               </div>
-              <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 font-semibold text-sm">%</span>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Avg Match</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.avg_skill_match}%</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Department Tabs */}
-      {departments.length > 0 && (
-        <Tabs value={selectedDepartment} onValueChange={setSelectedDepartment}>
-          <TabsList>
-            <TabsTrigger value="all">All Departments</TabsTrigger>
-            {departments.map(dept => (
-              <TabsTrigger key={dept} value={dept || 'unknown'}>
-                {dept || 'No Department'}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      )}
+      {/* Positions List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Positions</CardTitle>
+          <CardDescription>Manage your company positions and requirements</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground mt-2">Loading positions...</p>
+            </div>
+          ) : positions.length === 0 ? (
+            <div className="text-center py-12">
+              <Briefcase className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No positions defined</h3>
+              <p className="text-gray-500 mb-4">Create your first position to get started</p>
+              <Button onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Position
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {positions.map((position) => (
+                <div key={position.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">{position.position_title}</h3>
+                        <Badge variant="outline">{position.position_code}</Badge>
+                        {position.department && (
+                          <Badge variant="secondary">{position.department}</Badge>
+                        )}
+                      </div>
+                      
+                      {position.description && (
+                        <p className="text-gray-600 text-sm mb-3">{position.description}</p>
+                      )}
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>{position.required_skills.length} required skills</span>
+                        <span>{position.nice_to_have_skills.length} nice-to-have skills</span>
+                        <span>{position.employee_count || 0} employees</span>
+                      </div>
+                    </div>
 
-      {/* Positions Grid */}
-      <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext 
-          items={filteredPositions.map(p => p.id)}
-          strategy={rectSortingStrategy}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredPositions.length === 0 ? (
-              <Card className="col-span-full">
-                <CardContent className="p-12 text-center">
-                  <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No positions defined yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first position to start defining skill requirements.
-                  </p>
-                  <Button onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create First Position
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              filteredPositions.map((position) => (
-                <SortableItem key={position.id} id={position.id}>
-                  <Card className="hover:shadow-lg transition-all cursor-pointer group pl-10">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {position.position_title}
-                      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </CardTitle>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs">
-                        {position.position_code}
-                      </Badge>
-                      {position.department && (
-                        <Badge variant="secondary" className="text-xs">
-                          {position.department}
-                        </Badge>
-                      )}
-                      {position.employee_count && position.employee_count > 0 && (
-                        <Badge variant="default" className="text-xs bg-blue-500">
-                          <Users className="h-3 w-3 mr-1" />
-                          {position.employee_count} {position.employee_count === 1 ? 'employee' : 'employees'}
-                        </Badge>
-                      )}
-                      {position.position_level && (
-                        <Badge className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                          {position.position_level}
-                        </Badge>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditPosition(position)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditPosition(position);
-                      }}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(position);
-                      }}
-                      className="hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Skills Summary */}
-                <div className="bg-red-50 rounded-lg p-3 border border-red-100">
-                  <p className="text-xs font-medium text-red-700 mb-1">Required Skills</p>
-                  <p className="text-2xl font-bold text-red-600">{position.required_skills.length}</p>
-                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-                {/* Top Skills Preview */}
-                {position.required_skills.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Top Required Skills:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {position.required_skills.slice(0, 3).map((skill: any, index: number) => (
-                        <Badge 
-                          key={index} 
-                          variant="secondary" 
-                          className="text-xs bg-gray-100"
-                        >
-                          {skill.skill_name}
-                        </Badge>
-                      ))}
-                      {position.required_skills.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{position.required_skills.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </SortableItem>
-          ))
-        )}
-      </div>
-      </SortableContext>
-    </DndContext>
-
-      {/* Create Position Modal */}
+      {/* Create Position Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Position</DialogTitle>
           </DialogHeader>
           <PositionCreateWizard
-            onComplete={() => {
+            onSuccess={() => {
               setCreateOpen(false);
               fetchPositions();
             }}
@@ -452,16 +350,18 @@ export default function PositionManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Position Modal */}
-      <PositionEditModal
-        position={editPosition}
-        open={!!editPosition}
-        onOpenChange={(open) => !open && setEditPosition(null)}
-        onSuccess={() => {
-          setEditPosition(null);
-          fetchPositions();
-        }}
-      />
+      {/* Edit Position Dialog */}
+      {editPosition && (
+        <PositionEditModal
+          position={editPosition}
+          open={!!editPosition}
+          onOpenChange={(open) => !open && setEditPosition(null)}
+          onSuccess={() => {
+            setEditPosition(null);
+            fetchPositions();
+          }}
+        />
+      )}
     </div>
   );
 }
