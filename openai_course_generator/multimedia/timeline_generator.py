@@ -120,7 +120,7 @@ class TimelineGenerator:
             
             # Create audio segment
             segment = await self._generate_audio_segment(
-                slide_id=slide.slide_id,
+                slide_id=f"slide_{slide.slide_number}",
                 text=slide.speaker_notes,
                 voice=voice,
                 speed=speed,
@@ -360,10 +360,10 @@ class TimelineGenerator:
         for i, (slide, segment) in enumerate(zip(slides, audio_segments)):
             # Create transition at the start of each audio segment
             transition = SlideTransition(
-                slide_id=slide.slide_id,
+                slide_id=f"slide_{slide.slide_number}",
                 slide_number=slide.slide_number,
                 timestamp=segment.start_time,
-                transition_type=slide.transitions.get('entry', 'fade'),
+                transition_type='fade',  # Default fade transition
                 duration=0.5
             )
             transitions.append(transition)
@@ -376,7 +376,7 @@ class TimelineGenerator:
                         emphasis_time = segment.start_time + cue['start']
                         if emphasis_time < segment.end_time:
                             transitions.append(SlideTransition(
-                                slide_id=f"{slide.slide_id}_point",
+                                slide_id=f"slide_{slide.slide_number}_point",
                                 slide_number=slide.slide_number,
                                 timestamp=emphasis_time,
                                 transition_type='highlight',

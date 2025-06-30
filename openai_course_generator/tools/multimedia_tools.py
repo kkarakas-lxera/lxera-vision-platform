@@ -82,18 +82,24 @@ class MultimediaManager:
     ) -> str:
         """Register a multimedia asset in the database."""
         try:
+            # Get company_id from content or use default
+            company_id = metadata.get('company_id', '00000000-0000-0000-0000-000000000000')
+            
             asset_data = {
                 'session_id': session_id,
                 'content_id': content_id,
-                'course_id': course_id,
-                'module_name': module_name,
-                'section_name': section_name,
+                'company_id': company_id,
                 'asset_type': asset_type,
-                'asset_category': asset_category,
+                'asset_name': file_name,  # Use asset_name instead of file_name
                 'file_path': file_path,
-                'file_name': file_name,
+                'section_name': section_name,
                 'status': 'generating',
-                **metadata
+                'duration_seconds': metadata.get('duration_seconds', 0),
+                'file_size_bytes': metadata.get('file_size_bytes'),
+                'mime_type': metadata.get('mime_type'),
+                'generation_config': metadata.get('generation_config', {}),
+                'processing_time_seconds': metadata.get('processing_time_seconds'),
+                'is_active': True
             }
             
             result = self.supabase.table('mm_multimedia_assets').insert(asset_data).execute()
@@ -614,7 +620,104 @@ def slide_generator(content: str, module_title: str) -> str:
         return json.dumps(error_data)
 
 
+# NEW: Section-Based Video Generation Tool
+@function_tool
+def generate_section_videos(
+    content_id: str,
+    session_id: str,
+    employee_name: str,
+    employee_role: str,
+    sections: Optional[List[str]] = None,
+    voice: Optional[str] = None,
+    speed: float = 1.0,
+    design_theme: str = "professional"
+) -> str:
+    """
+    Generate individual educational videos for each content section.
+    
+    Each section gets its own optimized video:
+    - Introduction: 3 minutes max, warm voice
+    - Practical Applications: 5 minutes max, authoritative voice
+    - Case Studies: 4 minutes max, confident voice
+    - Assessments: 2 minutes max, neutral voice
+    
+    Args:
+        content_id: The content ID from cm_module_content table
+        session_id: Multimedia session ID for tracking
+        employee_name: Name of the employee/learner
+        employee_role: Current role of the employee
+        sections: List of sections to generate (default: all available)
+        voice: Voice for narration (default: section-specific)
+        speed: Narration speed (0.25 to 4.0, default 1.0)
+        design_theme: Slide design theme
+        
+    Returns:
+        JSON string with section video details
+    """
+    try:
+        logger.info(f"Generating section videos for content: {content_id}")
+        
+        # Import required modules
+        import asyncio
+        import sys
+        import os
+        
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from multimedia.educational_video_service import EducationalVideoService
+        
+        # Initialize service
+        service = EducationalVideoService()
+        
+        # Employee context
+        employee_context = {
+            'name': employee_name,
+            'role': employee_role,
+            'learning_style': 'visual'
+        }
+        
+        # Options
+        options = {
+            'session_id': session_id,
+            'voice': voice,
+            'speed': speed,
+            'design_theme': design_theme
+        }
+        
+        # Generate section videos
+        result = asyncio.run(
+            service.generate_section_videos(
+                content_id=content_id,
+                employee_context=employee_context,
+                sections=sections,
+                options=options
+            )
+        )
+        
+        if result['success']:
+            logger.info(f"✅ Generated {result['total_sections']} section videos")
+            
+            # Update multimedia session
+            manager = get_multimedia_manager()
+            manager.update_session_status(
+                session_id=session_id,
+                status='section_videos_generated',
+                videos_generated=result['total_sections']
+            )
+            
+        return json.dumps(result)
+        
+    except Exception as e:
+        logger.error(f"Failed to generate section videos: {e}")
+        error_result = {
+            'success': False,
+            'error': str(e),
+            'content_id': content_id
+        }
+        return json.dumps(error_result)
+
+
 # NEW: Educational Video Generation Tool
+@function_tool
 def generate_educational_video(
     content_id: str,
     session_id: str,

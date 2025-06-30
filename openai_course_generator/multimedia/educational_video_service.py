@@ -10,7 +10,7 @@ import json
 import logging
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 import tempfile
 import shutil
@@ -23,6 +23,7 @@ from multimedia.slide_content_extractor import SlideContentExtractor
 from multimedia.educational_slide_generator import EducationalSlideGenerator
 from multimedia.timeline_generator import TimelineGenerator
 from multimedia.video_assembly_service import VideoAssemblyService, VideoSettings
+from multimedia.section_video_generator import SectionVideoGenerator
 from database.content_manager import ContentManager
 from tools.multimedia_tools import MultimediaManager, get_multimedia_manager
 
@@ -47,6 +48,9 @@ class EducationalVideoService:
         # Database components
         self.content_manager = ContentManager()
         self.multimedia_manager = get_multimedia_manager()
+        
+        # Section-based generator
+        self.section_generator = SectionVideoGenerator(self)
         
         logger.info("Educational Video Service initialized")
     
@@ -285,6 +289,96 @@ class EducationalVideoService:
                 logger.info(f"Cleaned up temporary directory: {output_dir}")
         except Exception as e:
             logger.warning(f"Failed to clean up temporary files: {e}")
+    
+    async def generate_section_videos(
+        self,
+        content_id: str,
+        employee_context: Dict[str, Any],
+        sections: Optional[List[str]] = None,
+        options: Optional[Dict[str, Any]] = None,
+        output_dir: Optional[str] = None,
+        progress_callback: Optional[callable] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate individual videos for each content section
+        
+        Args:
+            content_id: ID of the content in cm_module_content
+            employee_context: Employee information for personalization
+            sections: List of sections to generate (default: all)
+            options: Generation options
+            output_dir: Output directory
+            progress_callback: Progress callback
+            
+        Returns:
+            Dictionary with section video results
+        """
+        logger.info(f"Starting section-based video generation for content: {content_id}")
+        
+        try:
+            # Fetch content
+            content = self.content_manager.get_module_content(content_id)
+            if not content:
+                raise ValueError(f"Content not found: {content_id}")
+                
+            # Generate section videos
+            section_videos = await self.section_generator.generate_section_videos(
+                content=content,
+                employee_context=employee_context,
+                sections_to_generate=sections,
+                output_dir=output_dir,
+                progress_callback=progress_callback
+            )
+            
+            # Store results in database
+            for video in section_videos:
+                if hasattr(self, 'multimedia_manager'):
+                    asset_id = self.multimedia_manager.register_multimedia_asset(
+                        session_id=options.get('session_id') if options else None,
+                        content_id=f"{content_id}_{video.section_name}",
+                        course_id=content_id,
+                        module_name=f"{content['module_name']} - {video.section_name}",
+                        asset_type='video',
+                        asset_category=f'educational_{video.section_name}',
+                        file_path=video.video_path,
+                        file_name=Path(video.video_path).name,
+                        duration_seconds=video.duration,
+                        file_format='mp4',
+                        generated_with='section_pipeline'
+                    )
+                    
+                    self.multimedia_manager.update_asset_status(
+                        asset_id=asset_id,
+                        status='completed',
+                        ready_for_delivery=True
+                    )
+            
+            return {
+                'success': True,
+                'content_id': content_id,
+                'module_name': content['module_name'],
+                'section_videos': [
+                    {
+                        'section': video.section_name,
+                        'video_path': video.video_path,
+                        'video_url': video.video_url,
+                        'duration': video.duration,
+                        'slide_count': video.slide_count,
+                        'metadata': video.metadata
+                    }
+                    for video in section_videos
+                ],
+                'total_sections': len(section_videos),
+                'output_dir': str(output_dir) if output_dir else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Section video generation failed: {e}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e),
+                'content_id': content_id
+            }
 
 
 async def test_educational_video_generation():

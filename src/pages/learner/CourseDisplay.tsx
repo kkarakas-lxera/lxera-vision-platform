@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { 
   ArrowLeft, 
   Lock, 
@@ -28,6 +29,7 @@ import { toast } from 'sonner';
 import CourseContentSection from './components/CourseContentSection';
 import ModuleNavigation from './components/ModuleNavigation';
 import VideoPlayer from './components/VideoPlayer';
+import GreetingVideoPlayer from './components/GreetingVideoPlayer';
 
 interface CourseData {
   id: string;
@@ -86,6 +88,8 @@ export default function CourseDisplay() {
   const [sections, setSections] = useState<SectionData[]>([]);
   const [currentSection, setCurrentSection] = useState<SectionData | null>(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [showVideoGreeting, setShowVideoGreeting] = useState(false);
+  const [hasSeenGreeting, setHasSeenGreeting] = useState(false);
 
   useEffect(() => {
     if (userProfile && courseId) {
@@ -93,6 +97,25 @@ export default function CourseDisplay() {
       setupRealtimeSubscription();
     }
   }, [userProfile, courseId]);
+
+  // Check if user has seen greeting for this course
+  useEffect(() => {
+    if (courseId) {
+      const greetingKey = `course_greeting_seen_${courseId}`;
+      const hasSeenPreviously = localStorage.getItem(greetingKey) === 'true';
+      setHasSeenGreeting(hasSeenPreviously);
+    }
+  }, [courseId]);
+
+  // Show greeting video when introduction section is loaded for the first time
+  useEffect(() => {
+    if (!loading && currentSection?.section_name === 'introduction' && !hasSeenGreeting && courseId) {
+      setShowVideoGreeting(true);
+      setHasSeenGreeting(true);
+      // Remember that user has seen the greeting
+      localStorage.setItem(`course_greeting_seen_${courseId}`, 'true');
+    }
+  }, [currentSection, loading, hasSeenGreeting, courseId]);
 
   const setupRealtimeSubscription = () => {
     // Subscribe to real-time updates for course progress
@@ -688,24 +711,36 @@ export default function CourseDisplay() {
                     </Card>
                   ) : (
                     <>
-                      {/* Video Player - Show video for introduction section */}
-                      {currentSection?.section_name === 'introduction' ? (
-                        <VideoPlayer
-                          videoUrl="https://api.heygen.com/v1/video_status.get?video_id=e11be856835644f4802cefbd23136885"
-                          videoId="e11be856835644f4802cefbd23136885"
-                          title="Introduction to Business Performance Reporting"
-                          onFeedback={(isPositive) => {
-                            console.log('Feedback:', isPositive ? 'positive' : 'negative');
-                          }}
-                        />
-                      ) : (
-                        <VideoPlayer
-                          videoUrl=""
-                          title={currentSection?.section_name || ''}
-                          onFeedback={(isPositive) => {
-                            console.log('Feedback:', isPositive ? 'positive' : 'negative');
-                          }}
-                        />
+                      {/* Video Player Placeholder for other sections */}
+                      <VideoPlayer
+                        videoUrl=""
+                        title={currentSection?.section_name || ''}
+                        onFeedback={(isPositive) => {
+                          console.log('Feedback:', isPositive ? 'positive' : 'negative');
+                        }}
+                      />
+
+                      {/* Show welcome video button for introduction section */}
+                      {currentSection?.section_name === 'introduction' && (
+                        <Card className="mb-6">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-lg font-semibold mb-2">Course Welcome Message</h3>
+                                <p className="text-muted-foreground">
+                                  Watch the personal welcome message from your instructor to get started.
+                                </p>
+                              </div>
+                              <Button 
+                                onClick={() => setShowVideoGreeting(true)}
+                                className="flex items-center gap-2"
+                              >
+                                <PlayCircle className="h-4 w-4" />
+                                Watch Welcome Video
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
 
                       {/* Course Content */}
@@ -777,6 +812,44 @@ export default function CourseDisplay() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Course Greeting Video Modal */}
+      <Dialog open={showVideoGreeting} onOpenChange={setShowVideoGreeting}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Welcome to {courseTitle}
+            </DialogTitle>
+            <DialogDescription>
+              Let's start your learning journey with a personal message from your instructor.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            <GreetingVideoPlayer
+              videoId="e11be856835644f4802cefbd23136885"
+              title="Course Welcome Message"
+              onFeedback={(isPositive) => {
+                console.log('Greeting video feedback:', isPositive ? 'positive' : 'negative');
+              }}
+            />
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <p className="text-sm text-muted-foreground">
+              You can always replay this welcome message by clicking on the introduction section.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowVideoGreeting(false)}>
+                Skip for now
+              </Button>
+              <Button onClick={() => setShowVideoGreeting(false)}>
+                Start Learning
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
