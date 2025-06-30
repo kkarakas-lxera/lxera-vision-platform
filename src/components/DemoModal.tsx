@@ -76,10 +76,11 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.company) {
+    // Updated validation to include mandatory fields
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.company || !formData.companySize || !formData.country) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including company size and country.",
         variant: "destructive",
       });
       return;
@@ -273,16 +274,20 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="companySize" className="text-sm font-medium text-business-black">
-                    # of employees
+                    # of employees *
                   </Label>
-                  <Select value={formData.companySize} onValueChange={handleSelectChange("companySize")}>
-                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green">
-                      <SelectValue placeholder="Select size" />
+                  <Select value={formData.companySize} onValueChange={handleSelectChange("companySize")} required>
+                    <SelectTrigger className="w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green bg-white hover:bg-gray-50 transition-colors z-50">
+                      <SelectValue placeholder="Select company size" className="text-gray-700" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg z-[100] max-h-60">
                       {companySizeOptions.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
+                        <SelectItem 
+                          key={size} 
+                          value={size}
+                          className="px-3 py-2 hover:bg-future-green/10 cursor-pointer text-gray-700 focus:bg-future-green/10"
+                        >
+                          {size} employees
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -291,15 +296,19 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="country" className="text-sm font-medium text-business-black">
-                    Country
+                    Country *
                   </Label>
-                  <Select value={formData.country} onValueChange={handleSelectChange("country")}>
-                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green">
-                      <SelectValue placeholder="Select country" />
+                  <Select value={formData.country} onValueChange={handleSelectChange("country")} required>
+                    <SelectTrigger className="w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green bg-white hover:bg-gray-50 transition-colors z-50">
+                      <SelectValue placeholder="Select country" className="text-gray-700" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg z-[100] max-h-60">
                       {countryOptions.map((country) => (
-                        <SelectItem key={country} value={country}>
+                        <SelectItem 
+                          key={country} 
+                          value={country}
+                          className="px-3 py-2 hover:bg-future-green/10 cursor-pointer text-gray-700 focus:bg-future-green/10"
+                        >
                           {country}
                         </SelectItem>
                       ))}
