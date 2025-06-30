@@ -5,7 +5,6 @@ import WhyLXERASection from "@/components/WhyLXERASection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
 import TransformationStartsSection from "@/components/TransformationStartsSection";
-import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
 import BackToTop from "@/components/BackToTop";
@@ -23,7 +22,6 @@ const Index = () => {
         <HowItWorksSection />
         <PlatformHighlightsSection />
         <TransformationStartsSection />
-        <CTASection />
         <Footer />
         <BackToTop />
       </div>
