@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Loader2, CheckCircle, X } from "lucide-react";
 import { demoRequestService, type DemoRequest } from "@/services/demoRequestService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -146,13 +146,13 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
         <DialogHeader className="text-center pb-4">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
-              {isSubmitted ? "Thank You!" : "Get a demo"}
+              {isSubmitted ? "Thank You!" : "Request a Demo"}
             </DialogTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="h-8 w-8 rounded-full hover:bg-gray-100"
+              className="h-8 w-8 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -332,7 +332,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1 border-2 border-gray-300 text-business-black hover:bg-gray-50 font-medium py-2 rounded-xl"
+                className="flex-1 border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:text-business-black font-medium py-2 rounded-xl transition-colors"
               >
                 Cancel
               </Button>
