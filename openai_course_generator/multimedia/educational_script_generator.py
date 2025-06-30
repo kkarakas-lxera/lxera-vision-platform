@@ -12,11 +12,22 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import openai
 
-# Import our new components
-from .content_essence_extractor import ContentEssenceExtractor, SlideEssence
-from .human_narration_generator import HumanNarrationGenerator
-
 logger = logging.getLogger(__name__)
+
+# Import our new components (optional - graceful fallback if dependencies missing)
+try:
+    from .content_essence_extractor import ContentEssenceExtractor, SlideEssence
+    ESSENCE_EXTRACTOR_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"ContentEssenceExtractor not available: {e}")
+    ESSENCE_EXTRACTOR_AVAILABLE = False
+
+try:
+    from .human_narration_generator import HumanNarrationGenerator
+    HUMAN_NARRATION_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"HumanNarrationGenerator not available: {e}")
+    HUMAN_NARRATION_AVAILABLE = False
 
 @dataclass
 class SlideContent:
@@ -41,7 +52,22 @@ class EducationalScript:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class EducationalScriptGenerator:
-    """Generates educational scripts from course content"""
+    """
+    Generates educational scripts from course content with GPT-4 enhancement
+    
+    Key Features:
+    - Triple GPT-4 enhancement: content transformation, bullet point extraction, learning objectives
+    - Batch processing optimization: reduces API calls from 3 to 1 for better performance
+    - Contextual intelligence: analyzes full course context and employee role for personalization
+    - Section-based generation: creates focused 3-5 minute microlearning videos
+    - Graceful fallbacks: works even without optional dependencies (NLTK, etc.)
+    
+    Performance Optimizations:
+    - Batch GPT-4 calls reduce API latency and costs
+    - Intelligent caching and content reuse
+    - Error handling with automatic fallbacks
+    - Timeout settings for reliability
+    """
     
     def __init__(self, openai_api_key: Optional[str] = None):
         """Initialize the script generator"""
@@ -55,9 +81,9 @@ class EducationalScriptGenerator:
         self.max_slide_duration = 45  # seconds
         self.max_bullet_points = 5
         
-        # Initialize enhanced components
-        self.essence_extractor = ContentEssenceExtractor()
-        self.narration_generator = HumanNarrationGenerator()
+        # Initialize enhanced components (if available)
+        self.essence_extractor = ContentEssenceExtractor() if ESSENCE_EXTRACTOR_AVAILABLE else None
+        self.narration_generator = HumanNarrationGenerator() if HUMAN_NARRATION_AVAILABLE else None
         
     def generate_educational_script(
         self,
@@ -108,37 +134,51 @@ class EducationalScriptGenerator:
         section_content: str,
         module_name: str,
         employee_context: Dict[str, Any],
+        all_sections: Dict[str, str] = None,
         target_duration: Optional[int] = None
     ) -> EducationalScript:
         """
-        Generate educational script for a single section (NEW METHOD)
+        Generate contextually intelligent educational script for a single section
         
         Args:
             section_name: Name of the section (e.g., 'introduction', 'core_content')
             section_content: Content of the specific section
             module_name: Name of the parent module
             employee_context: Employee information for personalization
+            all_sections: All course sections for context analysis
             target_duration: Target duration in minutes (default: 3-5 minutes)
             
         Returns:
-            EducationalScript focused on single section
+            EducationalScript with contextual intelligence and real learning value
         """
-        logger.info(f"Generating section-based script for: {section_name} in {module_name}")
+        logger.info(f"Generating contextually intelligent script for: {section_name} in {module_name}")
         
         # Default to 4 minutes for section-based videos (optimal for microlearning)
         target_duration = target_duration or 4
         
-        # STEP 1: Create section-specific educational summary
+        # STEP 1: Analyze course context and section's role in learning journey
+        course_context = self._analyze_full_course_context(all_sections or {}, module_name)
+        section_role = self._determine_section_role_in_journey(section_name, section_content, course_context)
+        
+        # STEP 2: Deep employee analysis for personalized examples
+        employee_insights = self._analyze_employee_for_context(employee_context, section_name, course_context)
+        
+        # STEP 3: Enhanced batch processing with GPT-4 for better performance
+        if self.openai_api_key:
+            enhanced_content, learning_objectives = self._batch_enhance_content_with_gpt4(
+                section_name, section_content, section_role, employee_insights, course_context
+            )
+        else:
+            # Fallback to individual processing without GPT-4
+            enhanced_content = section_content
+            learning_objectives = self._fallback_objectives_generation(section_name, section_role, employee_insights)
+        
+        # STEP 5: Create section-specific educational summary from enhanced content
         section_summary = self._create_section_educational_summary(
-            section_name, section_content, module_name, employee_context
+            section_name, enhanced_content, module_name, employee_context
         )
         
-        # STEP 2: Generate section-specific learning objectives
-        learning_objectives = self._extract_section_learning_objectives(
-            section_name, section_content
-        )
-        
-        # STEP 3: Create focused slide structure (3-4 slides for better focus)
+        # STEP 6: Create focused slide structure (3-4 slides for better focus)
         slides = []
         slide_number = 1
         
@@ -400,88 +440,75 @@ Let's begin by looking at what you'll learn today.
         return chunks
     
     def _extract_key_points(self, content: str) -> List[str]:
-        """Extract key bullet points from content and convert to teaching-friendly language"""
-        key_points = []
+        """Extract meaningful bullet points from GPT-4 enhanced content"""
+        if not self.openai_api_key:
+            return self._fallback_key_points_extraction(content)
         
-        # First try to extract existing bullet points
-        bullet_patterns = [
-            r'[-•*]\s*(.+)',
-            r'\d+\.\s*(.+)',
-            r'^\s*(.+):\s*(.+)$'  # Items with descriptions
-        ]
-        
-        for pattern in bullet_patterns:
-            matches = re.findall(pattern, content, re.MULTILINE)
-            for match in matches:
-                if isinstance(match, tuple):
-                    # For pattern with groups, combine them
-                    point = f"{match[0]}: {match[1]}"
-                else:
-                    point = match
-                
-                # Truncate to first sentence if too long
-                point = point.strip()
-                if '.' in point:
-                    point = point.split('.')[0] + '.'
-                
-                # Convert to teaching-friendly language
-                point = self._convert_to_learning_objective(point)
-                
-                # Ensure concise bullet points (max 12 words for clarity)
-                words = point.split()
-                if len(words) > 12:
-                    point = ' '.join(words[:10]) + '...'
-                
-                if len(point) > 10:
-                    key_points.append(point)
-        
-        # If no bullet points found, create from key sentences
-        if not key_points:
-            # Extract sentences with important keywords
-            sentences = re.split(r'[.!?]+', content)
-            important_sentences = []
+        try:
+            # Use GPT-4 to extract meaningful bullet points from enhanced content
+            extraction_prompt = f"""
+Extract 3-4 clear, actionable bullet points from this educational content. Each bullet point should:
+1. Be concise (8-12 words max)
+2. Focus on what the learner will gain
+3. Use action-oriented language
+4. Be immediately understandable
+
+CONTENT:
+{content[:1500]}
+
+Return only the bullet points, one per line, without bullets or numbers:
+"""
             
-            # Expanded list of educational keywords
-            edu_keywords = [
-                'important', 'key', 'must', 'essential', 'critical', 
-                'learn', 'understand', 'master', 'develop', 'practice',
-                'skill', 'knowledge', 'concept', 'principle', 'technique',
-                'method', 'approach', 'strategy', 'process', 'system'
-            ]
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert at creating clear, educational bullet points."},
+                    {"role": "user", "content": extraction_prompt}
+                ],
+                max_tokens=200,
+                temperature=0.3,
+                timeout=30  # Add timeout for reliability
+            )
             
-            for sentence in sentences:
-                sentence = sentence.strip()
-                if any(keyword in sentence.lower() for keyword in edu_keywords):
-                    important_sentences.append(sentence)
+            bullet_text = response.choices[0].message.content.strip()
+            bullet_points = [line.strip() for line in bullet_text.split('\n') if line.strip()]
             
-            # Convert sentences to teaching-focused bullet points
-            for sentence in important_sentences[:4]:  # Limit to 4 for clarity
-                # Transform to learning objective
-                learning_point = self._transform_to_learning_point(sentence)
-                key_points.append(learning_point)
+            # Clean and validate bullet points
+            clean_points = []
+            for point in bullet_points[:4]:
+                # Remove any bullet markers that might have been added
+                point = re.sub(r'^[-•*]\s*', '', point)
+                point = re.sub(r'^\d+\.\s*', '', point)
+                
+                # Ensure reasonable length
+                if 5 <= len(point) <= 80:
+                    clean_points.append(point)
+            
+            return clean_points[:4] if clean_points else self._fallback_key_points_extraction(content)
+            
+        except Exception as e:
+            logger.error(f"Failed to extract key points with GPT-4: {e}")
+            return self._fallback_key_points_extraction(content)
+    
+    def _fallback_key_points_extraction(self, content: str) -> List[str]:
+        """Fallback method for extracting key points without GPT-4"""
+        # Simple sentence extraction approach
+        sentences = re.split(r'[.!?]+', content)
+        good_sentences = []
         
-        # If still no points, create educational objectives from content
-        if not key_points:
-            # Split content into logical chunks
-            paragraphs = content.split('\n\n')
-            for i, para in enumerate(paragraphs[:3]):
-                if para.strip():
-                    # Create a learning-focused summary
-                    learning_objective = self._create_learning_objective(para, i)
-                    if learning_objective:
-                        key_points.append(learning_objective)
+        for sentence in sentences:
+            sentence = sentence.strip()
+            # Look for sentences with key educational indicators
+            if (len(sentence) > 20 and len(sentence) < 100 and 
+                any(word in sentence.lower() for word in ['will', 'can', 'learn', 'understand', 'help', 'enable'])):
+                good_sentences.append(sentence)
         
-        # Ensure all points are action-oriented and learner-focused
-        final_points = []
-        for point in key_points[:4]:  # Max 4 points for better retention
-            if not any(point.startswith(prefix) for prefix in 
-                      ['Learn', 'Master', 'Understand', 'Discover', 'Practice', 'Apply']):
-                # Add action verb if missing
-                final_points.append(f"Learn {point[0].lower()}{point[1:]}")
-            else:
-                final_points.append(point)
+        # If we found good sentences, return them
+        if good_sentences:
+            return good_sentences[:4]
         
-        return final_points
+        # Last resort: take first few sentences
+        return [s.strip() for s in sentences[:4] if len(s.strip()) > 20]
     
     def _extract_key_phrase(self, sentence: str) -> str:
         """Extract the key phrase from a sentence"""
@@ -1187,7 +1214,7 @@ Let's begin by looking at what you'll learn today.
         employee_name = employee_context.get('name', 'there')
         
         # Use essence extractor for better content understanding
-        if hasattr(self, 'essence_extractor'):
+        if hasattr(self, 'essence_extractor') and self.essence_extractor is not None:
             slide_essence = self.essence_extractor.extract_slide_essence(
                 content, section_name
             )
@@ -1358,7 +1385,7 @@ Thank you for your attention and commitment to professional development!
         """Combine all speaker notes into full narration with human touch"""
         
         # Use human narration generator if available
-        if hasattr(self, 'narration_generator'):
+        if hasattr(self, 'narration_generator') and self.narration_generator is not None:
             # Convert slides to format expected by narration generator
             script_data = {
                 'slides': [
@@ -1465,3 +1492,641 @@ Thank you for your attention and commitment to professional development!
             json.dump(script_data, f, indent=2, ensure_ascii=False)
         
         logger.info(f"Script exported to: {output_path}")
+    
+    # ========== CONTEXTUAL INTELLIGENCE METHODS ==========
+    
+    def _analyze_full_course_context(self, all_sections: Dict[str, str], module_name: str) -> Dict[str, Any]:
+        """Analyze the complete course to understand learning journey and relationships"""
+        context = {
+            'module_name': module_name,
+            'total_sections': len(all_sections),
+            'learning_flow': [],
+            'complexity_progression': 'linear',
+            'key_themes': [],
+            'practical_focus': False
+        }
+        
+        # Analyze learning flow progression
+        section_order = ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments']
+        for section_name in section_order:
+            if section_name in all_sections:
+                context['learning_flow'].append({
+                    'section': section_name,
+                    'word_count': len(all_sections[section_name].split()),
+                    'complexity': self._assess_content_complexity(all_sections[section_name])
+                })
+        
+        # Extract key themes across all sections
+        all_content = ' '.join(all_sections.values())
+        context['key_themes'] = self._extract_course_themes(all_content)
+        
+        # Determine if course has practical focus
+        practical_indicators = ['application', 'practice', 'implement', 'use', 'apply', 'example']
+        practical_count = sum(all_content.lower().count(word) for word in practical_indicators)
+        context['practical_focus'] = practical_count > len(all_content.split()) * 0.02
+        
+        return context
+    
+    def _determine_section_role_in_journey(self, section_name: str, section_content: str, course_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Determine this section's specific role in the learning journey"""
+        role = {
+            'type': self._classify_section_type(section_name),
+            'position': 'middle',
+            'builds_on': [],
+            'prepares_for': [],
+            'unique_value': '',
+            'teaching_approach': 'informational'
+        }
+        
+        # Determine position in learning flow
+        flow_positions = [flow['section'] for flow in course_context['learning_flow']]
+        if section_name in flow_positions:
+            index = flow_positions.index(section_name)
+            if index == 0:
+                role['position'] = 'foundation'
+                role['teaching_approach'] = 'engaging_introduction'
+            elif index == len(flow_positions) - 1:
+                role['position'] = 'culmination'
+                role['teaching_approach'] = 'synthesis_validation'
+            else:
+                role['position'] = 'building'
+                role['teaching_approach'] = 'progressive_development'
+        
+        # Determine what this section builds on and prepares for
+        if role['type'] == 'introduction':
+            role['unique_value'] = 'Sets foundation and motivates learning'
+            role['prepares_for'] = ['understanding core concepts', 'practical application']
+        elif role['type'] == 'core_content':
+            role['unique_value'] = 'Develops essential knowledge and skills'
+            role['builds_on'] = ['basic understanding from introduction']
+            role['prepares_for'] = ['practical application', 'real-world scenarios']
+        elif role['type'] == 'practical':
+            role['unique_value'] = 'Bridges theory to real-world application'
+            role['builds_on'] = ['core concepts and principles']
+            role['prepares_for'] = ['independent implementation', 'problem-solving']
+        
+        return role
+    
+    def _analyze_employee_for_context(self, employee_context: Dict[str, Any], section_name: str, course_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Deep analysis of employee context for personalized content generation"""
+        insights = {
+            'name': employee_context.get('name', 'Learner'),
+            'role': employee_context.get('role', 'Professional'),
+            'experience_level': 'intermediate',
+            'learning_style_preferences': [],
+            'relevant_examples': [],
+            'motivation_factors': [],
+            'challenge_areas': []
+        }
+        
+        # Infer experience level from role
+        role = (insights['role'] or 'Professional').lower()  # Handle None role
+        if any(word in role for word in ['junior', 'associate', 'entry', 'trainee']):
+            insights['experience_level'] = 'beginner'
+        elif any(word in role for word in ['senior', 'lead', 'manager', 'director']):
+            insights['experience_level'] = 'advanced'
+        
+        # Generate role-specific examples based on section and course themes
+        insights['relevant_examples'] = self._generate_role_specific_examples(
+            insights['role'], section_name, course_context['key_themes']
+        )
+        
+        # Determine motivation factors based on section type and role
+        if section_name == 'introduction':
+            insights['motivation_factors'] = [
+                f"How this directly impacts your success as a {insights['role']}",
+                "Real career advancement opportunities",
+                "Immediate practical benefits you'll see"
+            ]
+        elif 'practical' in section_name or 'application' in section_name:
+            insights['motivation_factors'] = [
+                "Tools you can use immediately in your work",
+                "Problems this will help you solve",
+                "Ways to stand out in your role"
+            ]
+        
+        return insights
+    
+    def _generate_contextual_objectives(self, section_name: str, section_content: str, section_role: Dict[str, Any], employee_insights: Dict[str, Any]) -> List[str]:
+        """Generate learning objectives that are contextual, progressive, and personally relevant"""
+        
+        if not self.openai_api_key:
+            return self._fallback_objectives_generation(section_name, section_role, employee_insights)
+        
+        try:
+            objectives_prompt = f"""
+Create 3 specific, actionable learning objectives for this section. Each objective should:
+1. Be specific to what the learner will achieve
+2. Be relevant to a {employee_insights['role']} in their daily work
+3. Use measurable action verbs (understand, apply, analyze, create, etc.)
+4. Be concise (10-15 words max)
+
+CONTEXT:
+- Section: {section_name} ({section_role['teaching_approach']})
+- Employee Role: {employee_insights['role']}
+- Experience Level: {employee_insights['experience_level']}
+
+SECTION CONTENT:
+{section_content[:800]}
+
+Return exactly 3 learning objectives, one per line:
+"""
+            
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert instructional designer who creates precise, actionable learning objectives."},
+                    {"role": "user", "content": objectives_prompt}
+                ],
+                max_tokens=200,
+                temperature=0.2,
+                timeout=30  # Add timeout for reliability
+            )
+            
+            objectives_text = response.choices[0].message.content.strip()
+            objectives = [line.strip() for line in objectives_text.split('\n') if line.strip()]
+            
+            # Clean and validate objectives
+            clean_objectives = []
+            for obj in objectives[:3]:
+                # Remove any numbering or bullet points
+                obj = re.sub(r'^\d+\.\s*', '', obj)
+                obj = re.sub(r'^[-•*]\s*', '', obj)
+                
+                # Ensure it starts with an action verb
+                if len(obj) > 10 and len(obj) <= 120:
+                    clean_objectives.append(obj)
+            
+            return clean_objectives[:3] if clean_objectives else self._fallback_objectives_generation(section_name, section_role, employee_insights)
+            
+        except Exception as e:
+            logger.error(f"Failed to generate contextual objectives with GPT-4: {e}")
+            return self._fallback_objectives_generation(section_name, section_role, employee_insights)
+    
+    def _fallback_objectives_generation(self, section_name: str, section_role: Dict[str, Any], employee_insights: Dict[str, Any]) -> List[str]:
+        """Fallback method for generating objectives without GPT-4"""
+        section_type = section_role.get('type', 'general')
+        role = employee_insights.get('role', 'Professional')
+        
+        if section_type == 'introduction':
+            return [
+                f"Understand the importance of this topic for {role}s",
+                f"Recognize key applications in your daily work",
+                f"Set expectations for practical implementation"
+            ]
+        elif section_type == 'core_content':
+            return [
+                f"Master fundamental concepts and principles",
+                f"Apply core knowledge to {role} scenarios",
+                f"Build foundation for advanced topics"
+            ]
+        elif section_type == 'practical':
+            return [
+                f"Implement strategies in real {role} situations",
+                f"Practice hands-on techniques and methods",
+                f"Develop confidence through application"
+            ]
+        else:
+            return [
+                f"Gain expertise relevant to {role} responsibilities",
+                f"Connect learning to workplace challenges",
+                f"Prepare for immediate practical use"
+            ]
+    
+    def _assess_content_complexity(self, content: str) -> str:
+        """Assess the complexity level of content"""
+        word_count = len(content.split())
+        technical_terms = len(re.findall(r'\b[A-Z][a-z]*[A-Z][a-z]*\b', content))  # CamelCase words
+        
+        complexity_ratio = technical_terms / max(word_count, 1)
+        
+        if complexity_ratio > 0.05:
+            return 'high'
+        elif complexity_ratio > 0.02:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def _extract_course_themes(self, all_content: str) -> List[str]:
+        """Extract major themes across the entire course"""
+        # Find most frequently mentioned important terms
+        words = re.findall(r'\b[a-zA-Z]{4,}\b', all_content.lower())
+        
+        # Filter out common words
+        common_words = {'that', 'this', 'with', 'have', 'will', 'your', 'they', 'from', 'were', 'been', 'their', 'said', 'each', 'which', 'them', 'than', 'many', 'some', 'what', 'would', 'make', 'like', 'into', 'time', 'very', 'when', 'much', 'know', 'take', 'just', 'first', 'come', 'work', 'also', 'after', 'back', 'other', 'good', 'well', 'such', 'through', 'should', 'being', 'most', 'over', 'think', 'where', 'only', 'those', 'people', 'could', 'there', 'more', 'these', 'need', 'want', 'going'}
+        
+        filtered_words = [word for word in words if word not in common_words and len(word) > 4]
+        
+        # Count frequencies and get top themes
+        from collections import Counter
+        word_counts = Counter(filtered_words)
+        themes = [word.title() for word, count in word_counts.most_common(5) if count > 2]
+        
+        return themes
+    
+    def _generate_role_specific_examples(self, role: str, section_name: str, themes: List[str]) -> List[str]:
+        """Generate examples relevant to the employee's specific role"""
+        examples = []
+        role_lower = (role or 'Professional').lower()  # Handle None role
+        
+        # Role-based example templates
+        if 'manager' in role_lower or 'lead' in role_lower:
+            examples = [
+                f"When leading your team through implementation",
+                f"During performance reviews and team development",
+                f"While making strategic decisions for your department"
+            ]
+        elif 'analyst' in role_lower:
+            examples = [
+                f"When analyzing data and creating reports",
+                f"During stakeholder presentations",
+                f"While identifying trends and patterns"
+            ]
+        elif 'sales' in role_lower:
+            examples = [
+                f"During client presentations and proposals",
+                f"When handling customer objections",
+                f"While building long-term client relationships"
+            ]
+        else:
+            # Generic professional examples
+            examples = [
+                f"In your daily {role} responsibilities",
+                f"During team collaborations and meetings",
+                f"When presenting to stakeholders or clients"
+            ]
+        
+        return examples[:2]  # Keep it focused
+    
+    # ========== GPT-4 CONTENT ENHANCEMENT ==========
+    
+    def _enhance_section_content_with_gpt4(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        section_role: Dict[str, Any], 
+        employee_insights: Dict[str, Any], 
+        course_context: Dict[str, Any]
+    ) -> str:
+        """Use GPT-4 to enhance section content for better educational flow and engagement"""
+        
+        if not self.openai_api_key:
+            logger.warning("No OpenAI API key available for content enhancement")
+            return section_content
+        
+        try:
+            logger.info(f"Enhancing content with GPT-4 for section: {section_name}")
+            
+            # Create section-specific enhancement prompt
+            enhancement_prompt = self._create_enhancement_prompt(
+                section_name, section_content, section_role, employee_insights, course_context
+            )
+            
+            # Call GPT-4 for content enhancement
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert educational content designer who creates engaging, effective learning materials for corporate training."
+                    },
+                    {
+                        "role": "user", 
+                        "content": enhancement_prompt
+                    }
+                ],
+                max_tokens=2000,
+                temperature=0.7,  # Some creativity for engaging content
+                timeout=45  # Longer timeout for content enhancement
+            )
+            
+            enhanced_content = response.choices[0].message.content.strip()
+            
+            logger.info(f"Content enhanced - Original: {len(section_content)} chars, Enhanced: {len(enhanced_content)} chars")
+            return enhanced_content
+            
+        except Exception as e:
+            logger.error(f"Failed to enhance content with GPT-4: {e}")
+            # Fallback to original content
+            return section_content
+    
+    def _create_enhancement_prompt(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        section_role: Dict[str, Any], 
+        employee_insights: Dict[str, Any], 
+        course_context: Dict[str, Any]
+    ) -> str:
+        """Create a specific enhancement prompt based on section type and context"""
+        
+        base_context = f"""
+CONTEXT:
+- Employee Role: {employee_insights['role']}
+- Experience Level: {employee_insights['experience_level']}
+- Course: {course_context['module_name']}
+- Section: {section_name} ({section_role['type']})
+- Learning Position: {section_role['position']} in learning journey
+- Teaching Approach: {section_role['teaching_approach']}
+- Course Themes: {', '.join(course_context.get('key_themes', []))}
+
+ORIGINAL CONTENT:
+{section_content}
+"""
+        
+        # Section-type-specific prompts
+        if section_role['teaching_approach'] == 'engaging_introduction':
+            enhancement_prompt = f"""{base_context}
+
+TASK: Transform this introduction content into an engaging, motivational learning experience.
+
+REQUIREMENTS:
+1. Start with a compelling hook that connects to the {employee_insights['role']}'s daily work
+2. Clearly explain WHY this knowledge matters for their career success
+3. Use conversational, encouraging tone that builds excitement for learning
+4. Include 1-2 specific examples relevant to their role
+5. Set clear expectations for what they'll achieve
+6. Create smooth flow that naturally leads to core learning
+7. Keep it concise but impactful (aim for 3-4 minutes of narration)
+
+ENHANCED CONTENT:"""
+
+        elif section_role['teaching_approach'] == 'progressive_development':
+            enhancement_prompt = f"""{base_context}
+
+TASK: Transform this core content into a clear, progressive learning experience.
+
+REQUIREMENTS:
+1. Structure content in logical learning sequence (concept → explanation → example → application)
+2. Use "building block" approach - each concept builds on the previous
+3. Include {employee_insights['role']}-specific examples and scenarios
+4. Add smooth transitions between concepts ("Now that you understand X, let's explore Y")
+5. Use active learning language ("You'll notice", "Try this", "Consider when")
+6. Break complex ideas into digestible chunks
+7. Maintain professional but friendly teaching tone
+
+ENHANCED CONTENT:"""
+
+        elif section_role['teaching_approach'] == 'synthesis_validation':
+            enhancement_prompt = f"""{base_context}
+
+TASK: Transform this content into a powerful synthesis and validation experience.
+
+REQUIREMENTS:
+1. Begin by connecting all previous learning together
+2. Show how concepts work together in real {employee_insights['role']} scenarios
+3. Provide concrete action steps they can take immediately
+4. Include validation of their learning journey progress
+5. End with confidence-building summary of their new capabilities
+6. Create sense of achievement and readiness for implementation
+7. Use empowering, forward-looking language
+
+ENHANCED CONTENT:"""
+
+        else:
+            # Default enhancement for practical/case study sections
+            enhancement_prompt = f"""{base_context}
+
+TASK: Transform this content into engaging, practical learning material.
+
+REQUIREMENTS:
+1. Focus on real-world application for {employee_insights['role']}s
+2. Use story-telling approach with relatable scenarios
+3. Include step-by-step guidance and best practices
+4. Add "what-if" scenarios and problem-solving approaches
+5. Connect to their daily work challenges and opportunities
+6. Use encouraging, supportive tone that builds confidence
+7. End with clear takeaways they can use immediately
+
+ENHANCED CONTENT:"""
+        
+        return enhancement_prompt
+    
+    def _batch_enhance_content_with_gpt4(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        section_role: Dict[str, Any], 
+        employee_insights: Dict[str, Any], 
+        course_context: Dict[str, Any]
+    ) -> Tuple[str, List[str]]:
+        """
+        Batch process content enhancement and learning objectives with single GPT-4 call
+        This reduces API calls from 3 to 1 for better performance and cost efficiency
+        """
+        
+        try:
+            logger.info(f"Batch enhancing content with GPT-4 for section: {section_name}")
+            
+            # Create comprehensive batch prompt
+            batch_prompt = self._create_batch_enhancement_prompt(
+                section_name, section_content, section_role, employee_insights, course_context
+            )
+            
+            # Log GPT-4 call details for monitoring
+            call_start_time = datetime.now()
+            logger.info(f"🤖 GPT-4 Batch Call - Input: {len(batch_prompt)} chars, Employee: {employee_insights['name']}, Section: {section_name}")
+            
+            # Single GPT-4 call for all enhancements
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert educational content designer who creates engaging, effective learning materials for corporate training. You provide structured output in the exact format requested."
+                    },
+                    {
+                        "role": "user", 
+                        "content": batch_prompt
+                    }
+                ],
+                max_tokens=2500,  # Increased for batch processing
+                temperature=0.5,  # Balanced for quality and consistency
+                timeout=60  # Longer timeout for batch processing
+            )
+            
+            # Parse the structured response
+            response_text = response.choices[0].message.content.strip()
+            enhanced_content, learning_objectives = self._parse_batch_response(response_text)
+            
+            call_duration = (datetime.now() - call_start_time).total_seconds()
+            logger.info(f"✅ GPT-4 Batch Call completed in {call_duration:.2f}s")
+            logger.info(f"   - Enhanced content: {len(enhanced_content)} chars")
+            logger.info(f"   - Learning objectives: {len(learning_objectives)}")
+            logger.info(f"   - Token efficiency: {len(enhanced_content) / len(batch_prompt):.2f} output/input ratio")
+            
+            return enhanced_content, learning_objectives
+            
+        except Exception as e:
+            logger.error(f"Batch enhancement failed, falling back to individual processing: {e}")
+            # Fallback to individual processing
+            enhanced_content = self._enhance_section_content_with_gpt4(
+                section_name, section_content, section_role, employee_insights, course_context
+            )
+            learning_objectives = self._generate_contextual_objectives(
+                section_name, enhanced_content, section_role, employee_insights
+            )
+            return enhanced_content, learning_objectives
+    
+    def _create_batch_enhancement_prompt(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        section_role: Dict[str, Any], 
+        employee_insights: Dict[str, Any], 
+        course_context: Dict[str, Any]
+    ) -> str:
+        """Create comprehensive batch prompt for content enhancement and objectives"""
+        
+        base_context = f"""
+CONTEXT:
+- Employee Role: {employee_insights['role']}
+- Experience Level: {employee_insights['experience_level']}
+- Course: {course_context['module_name']}
+- Section: {section_name} ({section_role['type']})
+- Learning Position: {section_role['position']} in learning journey
+- Teaching Approach: {section_role['teaching_approach']}
+- Course Themes: {', '.join(course_context.get('key_themes', []))}
+
+ORIGINAL CONTENT:
+{section_content}
+"""
+        
+        # Section-specific batch prompt
+        if section_role['teaching_approach'] == 'engaging_introduction':
+            batch_prompt = f"""{base_context}
+
+TASK: Transform this introduction content and create learning objectives in a single response.
+
+REQUIREMENTS:
+1. ENHANCED CONTENT: Create engaging, motivational introduction (3-4 minutes of narration)
+   - Start with compelling hook connecting to {employee_insights['role']}'s daily work
+   - Explain WHY this knowledge matters for career success
+   - Use conversational, encouraging tone
+   - Include 1-2 role-specific examples
+   - Set clear expectations for achievements
+
+2. LEARNING OBJECTIVES: Create 3 specific, actionable objectives
+   - Specific to what the learner will achieve
+   - Relevant to {employee_insights['role']} daily work
+   - Use measurable action verbs
+   - 10-15 words max each
+
+OUTPUT FORMAT:
+===ENHANCED_CONTENT===
+[Enhanced content here]
+
+===LEARNING_OBJECTIVES===
+1. [First objective]
+2. [Second objective]
+3. [Third objective]
+"""
+        
+        elif section_role['teaching_approach'] == 'progressive_development':
+            batch_prompt = f"""{base_context}
+
+TASK: Transform core content into progressive learning experience with objectives.
+
+REQUIREMENTS:
+1. ENHANCED CONTENT: Create clear, progressive learning experience
+   - Structure: concept → explanation → example → application
+   - Building block approach - each concept builds on previous
+   - Include {employee_insights['role']}-specific examples
+   - Smooth transitions between concepts
+   - Active learning language
+   - Professional but friendly tone
+
+2. LEARNING OBJECTIVES: Create 3 specific objectives for this core content
+   - Focus on mastering fundamental concepts
+   - Relevant to {employee_insights['role']} scenarios
+   - Progressive skill building
+   - 10-15 words max each
+
+OUTPUT FORMAT:
+===ENHANCED_CONTENT===
+[Enhanced content here]
+
+===LEARNING_OBJECTIVES===
+1. [First objective]
+2. [Second objective]
+3. [Third objective]
+"""
+        
+        else:
+            # Default for practical/case study sections
+            batch_prompt = f"""{base_context}
+
+TASK: Transform content into engaging practical learning with objectives.
+
+REQUIREMENTS:
+1. ENHANCED CONTENT: Create practical, application-focused content
+   - Real-world application for {employee_insights['role']}s
+   - Story-telling with relatable scenarios
+   - Step-by-step guidance and best practices
+   - "What-if" scenarios and problem-solving
+   - Connect to daily work challenges
+   - Encouraging, confidence-building tone
+
+2. LEARNING OBJECTIVES: Create 3 implementation-focused objectives
+   - Emphasize practical application
+   - Relevant to {employee_insights['role']} responsibilities
+   - Action-oriented outcomes
+   - 10-15 words max each
+
+OUTPUT FORMAT:
+===ENHANCED_CONTENT===
+[Enhanced content here]
+
+===LEARNING_OBJECTIVES===
+1. [First objective]
+2. [Second objective]
+3. [Third objective]
+"""
+        
+        return batch_prompt
+    
+    def _parse_batch_response(self, response_text: str) -> Tuple[str, List[str]]:
+        """Parse the structured batch response from GPT-4"""
+        
+        # Split by sections
+        content_marker = "===ENHANCED_CONTENT==="
+        objectives_marker = "===LEARNING_OBJECTIVES==="
+        
+        try:
+            # Extract enhanced content
+            content_start = response_text.find(content_marker)
+            objectives_start = response_text.find(objectives_marker)
+            
+            if content_start == -1 or objectives_start == -1:
+                raise ValueError("Response markers not found")
+            
+            # Get enhanced content
+            enhanced_content = response_text[
+                content_start + len(content_marker):objectives_start
+            ].strip()
+            
+            # Get learning objectives
+            objectives_text = response_text[
+                objectives_start + len(objectives_marker):
+            ].strip()
+            
+            # Parse objectives
+            learning_objectives = []
+            for line in objectives_text.split('\n'):
+                line = line.strip()
+                if line and (line.startswith('1.') or line.startswith('2.') or line.startswith('3.')):
+                    # Remove numbering and clean
+                    objective = re.sub(r'^\d+\.\s*', '', line).strip()
+                    if objective:
+                        learning_objectives.append(objective)
+            
+            # Validate
+            if not enhanced_content or len(learning_objectives) == 0:
+                raise ValueError("Parsed content is empty")
+            
+            return enhanced_content, learning_objectives[:3]  # Ensure max 3 objectives
+            
+        except Exception as e:
+            logger.error(f"Failed to parse batch response: {e}")
+            # Fallback parsing - just return the response as content
+            return response_text, ["Apply key concepts to daily work", "Understand fundamental principles", "Implement best practices"]

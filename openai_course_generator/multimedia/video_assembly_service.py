@@ -27,8 +27,33 @@ class VideoSettings:
     audio_codec: str = "aac"
     video_bitrate: str = "4M"
     audio_bitrate: str = "192k"
-    preset: str = "medium"  # ultrafast, fast, medium, slow, veryslow
+    preset: str = "fast"  # Optimized for faster encoding (was: medium)
     crf: int = 23  # Constant Rate Factor (0-51, lower = better quality)
+    
+    @classmethod
+    def create_optimized(cls, quality_level: str = "balanced") -> 'VideoSettings':
+        """Create optimized settings for different quality/speed trade-offs"""
+        if quality_level == "fast":
+            return cls(
+                resolution=(1280, 720),  # Lower resolution for speed
+                fps=24,                  # Lower fps for speed
+                preset="ultrafast",      # Fastest encoding
+                crf=28,                  # Lower quality but faster
+                video_bitrate="2M"       # Lower bitrate
+            )
+        elif quality_level == "balanced":
+            return cls(
+                preset="fast",           # Good balance
+                crf=25                   # Slightly lower quality for speed
+            )
+        elif quality_level == "quality":
+            return cls(
+                preset="slow",           # Best quality
+                crf=20,                  # Higher quality
+                video_bitrate="6M"       # Higher bitrate
+            )
+        else:
+            return cls()  # Default settings
 
 @dataclass
 class AssembledVideo:
@@ -41,7 +66,22 @@ class AssembledVideo:
     error_message: Optional[str] = None
 
 class VideoAssemblyService:
-    """Assembles educational videos from slides and audio"""
+    """
+    Assembles educational videos from slides and audio with performance optimizations
+    
+    Key Features:
+    - Hardware acceleration detection and usage (VideoToolbox, NVENC, QSV, VAAPI)
+    - Optimized encoding presets for different quality/speed trade-offs
+    - Professional video effects with fade transitions
+    - Comprehensive error handling and validation
+    - Progress tracking for long operations
+    
+    Performance Optimizations:
+    - Hardware-accelerated encoding when available
+    - Optimized ffmpeg settings for faster processing
+    - Quality presets: fast, balanced, quality
+    - Efficient file handling with temporary directories
+    """
     
     def __init__(self, ffmpeg_path: Optional[str] = None):
         """Initialize the video assembly service"""
@@ -50,8 +90,11 @@ class VideoAssemblyService:
         if not self.ffmpeg_path:
             raise RuntimeError("ffmpeg not found. Please install ffmpeg.")
         
-        # Default settings
-        self.default_settings = VideoSettings()
+        # Default settings (optimized for performance)
+        self.default_settings = VideoSettings.create_optimized("balanced")
+        
+        # Check for hardware acceleration support
+        self.hw_accel_available = self._check_hardware_acceleration()
         
         # Verify ffmpeg works
         self._verify_ffmpeg()
@@ -96,6 +139,68 @@ class VideoAssemblyService:
             
         except Exception as e:
             raise RuntimeError(f"Failed to verify ffmpeg: {e}")
+    
+    def _check_hardware_acceleration(self) -> Dict[str, bool]:
+        """Check what hardware acceleration options are available"""
+        hw_accel = {
+            'nvenc': False,      # NVIDIA GPU encoding
+            'videotoolbox': False,  # macOS hardware encoding
+            'vaapi': False,      # Intel/AMD GPU encoding (Linux)
+            'qsv': False         # Intel Quick Sync Video
+        }
+        
+        try:
+            # Check available encoders
+            result = subprocess.run(
+                [self.ffmpeg_path, "-encoders"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                output = result.stdout.lower()
+                hw_accel['nvenc'] = 'h264_nvenc' in output
+                hw_accel['videotoolbox'] = 'h264_videotoolbox' in output
+                hw_accel['vaapi'] = 'h264_vaapi' in output
+                hw_accel['qsv'] = 'h264_qsv' in output
+            
+            available = [k for k, v in hw_accel.items() if v]
+            if available:
+                logger.info(f"Hardware acceleration available: {', '.join(available)}")
+            else:
+                logger.info("No hardware acceleration detected, using software encoding")
+                
+        except Exception as e:
+            logger.warning(f"Could not check hardware acceleration: {e}")
+        
+        return hw_accel
+    
+    def _get_optimized_encoder_settings(self, settings: VideoSettings) -> Dict[str, str]:
+        """Get optimized encoder settings based on available hardware"""
+        encoder_settings = {
+            'video_codec': settings.video_codec,
+            'preset': settings.preset
+        }
+        
+        # Use hardware acceleration if available
+        if self.hw_accel_available.get('videotoolbox', False):
+            # macOS hardware encoding
+            encoder_settings['video_codec'] = 'h264_videotoolbox'
+            encoder_settings['preset'] = 'medium'  # videotoolbox doesn't use standard presets
+            logger.info("Using VideoToolbox hardware acceleration")
+        elif self.hw_accel_available.get('nvenc', False):
+            # NVIDIA GPU encoding
+            encoder_settings['video_codec'] = 'h264_nvenc'
+            encoder_settings['preset'] = 'fast'
+            logger.info("Using NVENC hardware acceleration")
+        elif self.hw_accel_available.get('qsv', False):
+            # Intel Quick Sync
+            encoder_settings['video_codec'] = 'h264_qsv'
+            encoder_settings['preset'] = 'fast'
+            logger.info("Using Intel Quick Sync acceleration")
+        
+        return encoder_settings
     
     async def assemble_educational_video(
         self,

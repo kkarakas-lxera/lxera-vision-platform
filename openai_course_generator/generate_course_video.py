@@ -116,7 +116,10 @@ class CourseVideoGenerator:
             for section in content_sections:
                 logger.info(f"  - {section['name']}: {section['word_count']} words")
             
-            # 4. Generate videos for each section
+            # Store all sections for contextual analysis
+            self._all_sections = {section['name']: section['content'] for section in content_sections}
+            
+            # 4. Generate videos for each section with full course context
             section_results = []
             
             for section in content_sections:
@@ -192,14 +195,41 @@ class CourseVideoGenerator:
         logger.info(f"Generating section video: {section_name} for {employee_name}")
         
         try:
-            # 1. Get employee context (simplified since already passed in)
-            employee_context = {
-                'name': employee_name,
-                'role': 'Professional',
-                'department': '',
-                'position': '',
-                'company_id': company_id
-            }
+            # 1. Fetch employee data to get proper context
+            employee_result = self.supabase.table('employees').select(
+                '*, users!employees_user_id_fkey(id, full_name, email)'
+            ).execute()
+            
+            employee = None
+            for emp in employee_result.data:
+                if emp.get('users') and employee_name.lower() in emp['users']['full_name'].lower():
+                    employee = emp
+                    break
+            
+            if not employee:
+                # Fallback if employee not found - use provided data
+                logger.warning(f"Employee {employee_name} not found in database, using fallback context")
+                employee_context = {
+                    'name': employee_name,
+                    'role': 'Professional',
+                    'department': '',
+                    'position': '',
+                    'company_id': company_id
+                }
+            else:
+                # Get company_id from employee if not provided
+                if not company_id:
+                    company_id = employee.get('company_id')
+                
+                # Create proper employee context
+                employee_context = {
+                    'id': employee['id'],
+                    'name': employee['users']['full_name'],
+                    'role': employee.get('employee_role', 'Professional'),
+                    'department': employee.get('department', ''),
+                    'position': employee.get('position', ''),
+                    'company_id': company_id
+                }
             
             # 2. Create multimedia session for this section
             session_data = {
@@ -229,13 +259,14 @@ class CourseVideoGenerator:
             temp_dir.mkdir(parents=True, exist_ok=True)
             
             try:
-                # 4. Generate section-based educational script (NEW)
-                logger.info(f"Generating section script for: {section_name}")
+                # 4. Generate contextually intelligent section script (ENHANCED)
+                logger.info(f"Generating contextually intelligent script for: {section_name}")
                 script = self.script_generator.generate_section_script(
                     section_name=section_name,
                     section_content=section_content,
                     module_name=module_name,
                     employee_context=employee_context,
+                    all_sections=getattr(self, '_all_sections', {}),  # Pass course context
                     target_duration=4  # 4 minutes for optimal microlearning
                 )
                 
@@ -295,7 +326,7 @@ class CourseVideoGenerator:
                     speed=0.95
                 )
                 
-                # 7. Assemble video
+                # 7. Assemble video with optimized settings
                 video_filename = f"{session_id}_{section_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
                 video_path = temp_dir / video_filename
                 
@@ -311,10 +342,15 @@ class CourseVideoGenerator:
                         'animations': False
                     })
                 
+                # Use optimized video settings for section-based videos (faster encoding)
+                from multimedia.video_assembly_service import VideoSettings
+                optimized_settings = VideoSettings.create_optimized("balanced")
+                
                 result = await self.video_service.assemble_educational_video(
                     timeline,
                     slide_metadata,
-                    str(video_path)
+                    str(video_path),
+                    settings=optimized_settings
                 )
                 
                 if not result.success:
@@ -444,7 +480,7 @@ class CourseVideoGenerator:
                     'status': 'processed'
                 }).eq('asset_id', video_asset_id).execute()
                 
-                # 10. Update session as completed
+                # 10. Update session as completed (removed updated_at field that doesn't exist in schema)
                 self.supabase.table('mm_multimedia_sessions').update({
                     'status': 'completed',
                     'current_stage': 'completed',
@@ -895,54 +931,331 @@ class CourseVideoGenerator:
 
 
 async def main():
-    """Test section-based video generation with real data"""
+    """
+    Enhanced test for section-based video generation with comprehensive monitoring
+    Tests: Database connectivity, script generation, audio narrative, slides, video assembly
+    """
     
-    generator = CourseVideoGenerator()
+    import time
+    import json
+    from pathlib import Path
     
-    # Test with Kubilay Cenk Karakas
-    employee_name = "Kubilay Cenk Karakas"
+    # Performance monitoring
+    test_start_time = time.time()
+    performance_metrics = {
+        'test_start': datetime.now().isoformat(),
+        'database_queries': [],
+        'gpt4_calls': [],
+        'file_operations': [],
+        'video_processing': [],
+        'errors': []
+    }
     
-    # Get the Business Performance Reporting module (has actual content)
-    logger.info("Fetching available modules...")
-    modules = generator.supabase.table('cm_module_content').select(
-        'content_id, module_name'
-    ).limit(5).execute()
+    def log_metric(category: str, operation: str, duration: float, details: Dict = None):
+        """Log performance metrics"""
+        performance_metrics[category].append({
+            'operation': operation,
+            'duration_seconds': duration,
+            'timestamp': datetime.now().isoformat(),
+            'details': details or {}
+        })
+        logger.info(f"📊 {category}: {operation} took {duration:.2f}s")
     
-    if modules.data:
-        logger.info("Available modules:")
+    try:
+        logger.info("🚀 Starting Enhanced Multimedia Pipeline Test")
+        logger.info("=" * 80)
+        
+        # Step 1: Initialize and test database connectivity
+        logger.info("📡 STEP 1: Testing Database Connectivity")
+        db_start = time.time()
+        
+        generator = CourseVideoGenerator()
+        
+        # Test database connection
+        try:
+            test_query = generator.supabase.table('employees').select('count').execute()
+            db_duration = time.time() - db_start
+            log_metric('database_queries', 'connection_test', db_duration, 
+                      {'employee_count': len(test_query.data) if test_query.data else 0})
+        except Exception as e:
+            performance_metrics['errors'].append({
+                'stage': 'database_connection',
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            })
+            logger.error(f"❌ Database connection failed: {e}")
+            return
+        
+        # Step 2: Fetch test employee data
+        logger.info("👤 STEP 2: Fetching Real Employee Data")
+        employee_start = time.time()
+        
+        employee_name = "Kubilay Cenk Karakas"
+        logger.info(f"Testing with employee: {employee_name}")
+        
+        # Get employee details for context
+        employee_query = generator.supabase.table('employees').select(
+            '*, users!employees_user_id_fkey(id, full_name, email)'
+        ).execute()
+        
+        test_employee = None
+        for emp in employee_query.data:
+            if emp.get('users') and employee_name.lower() in emp['users']['full_name'].lower():
+                test_employee = emp
+                break
+        
+        employee_duration = time.time() - employee_start
+        log_metric('database_queries', 'employee_fetch', employee_duration, {
+            'employee_found': test_employee is not None,
+            'employee_role': test_employee.get('employee_role') if test_employee else None,
+            'company_id': test_employee.get('company_id') if test_employee else None
+        })
+        
+        if not test_employee:
+            logger.error(f"❌ Employee '{employee_name}' not found")
+            return
+        
+        # Step 3: Fetch and analyze module content
+        logger.info("📚 STEP 3: Fetching Course Module Content")
+        module_start = time.time()
+        
+        modules = generator.supabase.table('cm_module_content').select(
+            'content_id, module_name, introduction, core_content, practical_applications'
+        ).limit(5).execute()
+        
+        module_duration = time.time() - module_start
+        log_metric('database_queries', 'module_fetch', module_duration, {
+            'modules_found': len(modules.data) if modules.data else 0
+        })
+        
+        if not modules.data:
+            logger.error("❌ No modules found in database")
+            return
+        
+        # Analyze module content
+        logger.info("📝 Available modules:")
+        selected_module = None
         for module in modules.data:
             logger.info(f"  - {module['content_id']}: {module['module_name']}")
-        
-        # Use the Business Performance Reporting module (has rich content)
-        test_module_id = 'f7839b56-0239-4b3c-8b5f-798a4030dc4a'  # Business Performance Reporting
-        
-        # Generate section-based videos (NEW APPROACH)
-        result = await generator.generate_all_section_videos(
-            employee_name=employee_name,
-            module_id=test_module_id
-        )
-        
-        if result['success']:
-            print("\n🎉 Section-Based Video Generation Successful!")
-            print(f"Employee: {result['employee']}")
-            print(f"Module: {result['module']}")
-            print(f"Company ID: {result['company_id']}")
-            print(f"Total Sections Processed: {result['sections_processed']}")
-            print(f"Successful Sections: {result['sections_successful']}")
-            print(f"Failed Sections: {result['sections_failed']}")
-            print("\n📹 Section Results:")
+            # Analyze content richness
+            content_length = sum([
+                len(module.get('introduction', '') or ''),
+                len(module.get('core_content', '') or ''),
+                len(module.get('practical_applications', '') or '')
+            ])
+            logger.info(f"    Content length: {content_length} characters")
             
-            for section_result in result['section_results']:
-                if section_result['success']:
-                    print(f"  ✅ {section_result['section_name']}: {section_result['duration']:.1f}s")
-                    print(f"     URL: {section_result['video_url']}")
-                    print(f"     Assets: {section_result['assets']['slides']} slides, {section_result['assets']['video']} video")
-                else:
-                    print(f"  ❌ {section_result['section_name']}: {section_result.get('error', 'Unknown error')}")
+            # Select first module with substantial content
+            if content_length > 500 and not selected_module:
+                selected_module = module
+        
+        if not selected_module:
+            # Fallback to first module
+            selected_module = modules.data[0]
+            
+        test_module_id = selected_module['content_id']
+        test_module_name = selected_module['module_name']
+        
+        logger.info(f"🎯 Selected module: {test_module_name} ({test_module_id})")
+        
+        # Step 4: Test individual script generation with monitoring
+        logger.info("🎬 STEP 4: Testing Script Generation with Real Data")
+        script_start = time.time()
+        
+        # Test just one section first for detailed monitoring
+        test_section_content = selected_module.get('introduction') or selected_module.get('core_content', '')
+        if test_section_content:
+            logger.info("📝 Testing script generation for introduction section...")
+            
+            # Create employee context for script generator
+            employee_context = {
+                'id': test_employee['id'],
+                'name': test_employee['users']['full_name'],
+                'role': test_employee.get('employee_role', 'Professional'),
+                'department': test_employee.get('department', ''),
+                'position': test_employee.get('position', ''),
+                'company_id': test_employee.get('company_id')
+            }
+            
+            # Test script generation with monitoring
+            try:
+                script_result = generator.script_generator.generate_section_script(
+                    section_name='introduction',
+                    section_content=test_section_content,
+                    module_name=test_module_name,
+                    employee_context=employee_context,
+                    target_duration=3
+                )
+                
+                script_duration = time.time() - script_start
+                log_metric('gpt4_calls', 'script_generation', script_duration, {
+                    'section_name': 'introduction',
+                    'input_length': len(test_section_content),
+                    'output_slides': len(script_result.slides),
+                    'total_duration': script_result.total_duration,
+                    'learning_objectives': len(script_result.learning_objectives)
+                })
+                
+                logger.info(f"✅ Script generated successfully:")
+                logger.info(f"   - Slides: {len(script_result.slides)}")
+                logger.info(f"   - Duration: {script_result.total_duration:.1f}s")
+                logger.info(f"   - Learning objectives: {len(script_result.learning_objectives)}")
+                logger.info(f"   - Key takeaways: {len(script_result.key_takeaways)}")
+                
+                # Display sample content
+                if script_result.slides:
+                    sample_slide = script_result.slides[0]
+                    logger.info(f"   - Sample slide title: '{sample_slide.title}'")
+                    logger.info(f"   - Sample bullet points: {sample_slide.bullet_points[:2]}")
+                
+            except Exception as e:
+                performance_metrics['errors'].append({
+                    'stage': 'script_generation',
+                    'error': str(e),
+                    'timestamp': datetime.now().isoformat()
+                })
+                logger.error(f"❌ Script generation failed: {e}")
+                return
+        
+        # Step 5: Run complete pipeline test for single section
+        logger.info("🎥 STEP 5: Testing Complete Pipeline - Single Section")
+        pipeline_start = time.time()
+        
+        try:
+            # Run single section video generation with comprehensive monitoring
+            single_result = await generator.generate_section_video(
+                employee_name=employee_name,
+                module_id=test_module_id,
+                section_name='introduction',
+                section_content=test_section_content,
+                module_name=test_module_name,
+                company_id=test_employee.get('company_id')
+            )
+            
+            pipeline_duration = time.time() - pipeline_start
+            log_metric('video_processing', 'single_section_pipeline', pipeline_duration, {
+                'success': single_result['success'],
+                'section_name': single_result.get('section_name'),
+                'duration': single_result.get('duration'),
+                'file_size': single_result.get('file_size'),
+                'assets': single_result.get('assets')
+            })
+            
+            if single_result['success']:
+                logger.info("✅ Single section pipeline completed successfully!")
+                logger.info(f"   - Video URL: {single_result['video_url']}")
+                logger.info(f"   - Duration: {single_result['duration']:.1f}s")
+                logger.info(f"   - File size: {single_result['file_size'] / 1024 / 1024:.1f}MB")
+                logger.info(f"   - Assets: {single_result['assets']}")
+            else:
+                logger.error(f"❌ Single section pipeline failed: {single_result['error']}")
+                
+        except Exception as e:
+            performance_metrics['errors'].append({
+                'stage': 'single_section_pipeline',
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            })
+            logger.error(f"❌ Complete pipeline test failed: {e}")
+        
+        # Step 6: Test full module generation (if single section succeeded)
+        if 'single_result' in locals() and single_result.get('success'):
+            logger.info("🚀 STEP 6: Testing Full Module Generation")
+            full_start = time.time()
+            
+            result = await generator.generate_all_section_videos(
+                employee_name=employee_name,
+                module_id=test_module_id
+            )
+            
+            full_duration = time.time() - full_start
+            log_metric('video_processing', 'full_module_pipeline', full_duration, {
+                'success': result['success'],
+                'sections_processed': result.get('sections_processed'),
+                'sections_successful': result.get('sections_successful'),
+                'sections_failed': result.get('sections_failed')
+            })
+            
+            if result['success']:
+                logger.info("🎉 Full Module Video Generation Successful!")
+                logger.info(f"   Employee: {result['employee']}")
+                logger.info(f"   Module: {result['module']}")
+                logger.info(f"   Company ID: {result['company_id']}")
+                logger.info(f"   Total Sections Processed: {result['sections_processed']}")
+                logger.info(f"   Successful Sections: {result['sections_successful']}")
+                logger.info(f"   Failed Sections: {result['sections_failed']}")
+                
+                logger.info("📹 Section Results:")
+                for section_result in result['section_results']:
+                    if section_result['success']:
+                        logger.info(f"  ✅ {section_result['section_name']}: {section_result['duration']:.1f}s")
+                        logger.info(f"     URL: {section_result['video_url']}")
+                        logger.info(f"     Assets: {section_result['assets']['slides']} slides, {section_result['assets']['video']} video")
+                    else:
+                        logger.info(f"  ❌ {section_result['section_name']}: {section_result.get('error', 'Unknown error')}")
+            else:
+                logger.error(f"❌ Full Module Generation Failed: {result['error']}")
+    
+    except Exception as e:
+        performance_metrics['errors'].append({
+            'stage': 'main_test',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        })
+        logger.error(f"❌ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    finally:
+        # Step 7: Generate performance report
+        total_duration = time.time() - test_start_time
+        performance_metrics['test_end'] = datetime.now().isoformat()
+        performance_metrics['total_duration_seconds'] = total_duration
+        
+        logger.info("📊 PERFORMANCE REPORT")
+        logger.info("=" * 80)
+        logger.info(f"🕐 Total test duration: {total_duration:.2f}s")
+        
+        # Database operations summary
+        db_ops = performance_metrics['database_queries']
+        if db_ops:
+            db_total = sum(op['duration_seconds'] for op in db_ops)
+            logger.info(f"🗄️  Database operations: {len(db_ops)} queries, {db_total:.2f}s total")
+            for op in db_ops:
+                logger.info(f"   - {op['operation']}: {op['duration_seconds']:.2f}s")
+        
+        # GPT-4 operations summary
+        gpt4_ops = performance_metrics['gpt4_calls']
+        if gpt4_ops:
+            gpt4_total = sum(op['duration_seconds'] for op in gpt4_ops)
+            logger.info(f"🤖 GPT-4 operations: {len(gpt4_ops)} calls, {gpt4_total:.2f}s total")
+            for op in gpt4_ops:
+                logger.info(f"   - {op['operation']}: {op['duration_seconds']:.2f}s")
+        
+        # Video processing summary
+        video_ops = performance_metrics['video_processing']
+        if video_ops:
+            video_total = sum(op['duration_seconds'] for op in video_ops)
+            logger.info(f"🎥 Video processing: {len(video_ops)} operations, {video_total:.2f}s total")
+            for op in video_ops:
+                logger.info(f"   - {op['operation']}: {op['duration_seconds']:.2f}s")
+        
+        # Error summary
+        errors = performance_metrics['errors']
+        if errors:
+            logger.info(f"❌ Errors encountered: {len(errors)}")
+            for error in errors:
+                logger.info(f"   - {error['stage']}: {error['error']}")
         else:
-            print(f"\n❌ Section Video Generation Failed: {result['error']}")
-    else:
-        print("No modules found in database")
+            logger.info("✅ No errors encountered!")
+        
+        # Save detailed metrics to file
+        metrics_file = Path(f"test_metrics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        with open(metrics_file, 'w') as f:
+            json.dump(performance_metrics, f, indent=2)
+        logger.info(f"📋 Detailed metrics saved to: {metrics_file}")
+        
+        logger.info("🏁 Enhanced Multimedia Pipeline Test Complete")
 
 
 if __name__ == "__main__":

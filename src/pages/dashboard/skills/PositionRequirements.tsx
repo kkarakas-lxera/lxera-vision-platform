@@ -367,7 +367,6 @@ export default function PositionRequirements() {
           })}
         </div>
       )}
-      </div>
 
       {/* Compact Actions */}
       <div className="flex justify-center gap-2 pt-2">
