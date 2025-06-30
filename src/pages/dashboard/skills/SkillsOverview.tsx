@@ -66,7 +66,7 @@ export default function SkillsOverview() {
       setTotalEmployees(totalCount || 0);
 
       // Get analyzed employees and their data
-      const { data: skillsProfiles } = await supabase
+      const { data: skillsProfiles, error: skillsError } = await supabase
         .from('st_employee_skills_profile')
         .select(`
           employee_id,
@@ -75,13 +75,20 @@ export default function SkillsOverview() {
           extracted_skills,
           employees!inner(
             id,
-            full_name,
             current_position_id,
-            company_id
+            company_id,
+            users!inner(
+              full_name,
+              email
+            )
           )
         `)
         .eq('employees.company_id', userProfile.company_id)
         .not('analyzed_at', 'is', null);
+
+      if (skillsError) {
+        console.error('Error fetching skills profiles:', skillsError);
+      }
 
       if (skillsProfiles) {
         setAnalyzedEmployees(skillsProfiles.length);
@@ -115,7 +122,7 @@ export default function SkillsOverview() {
         .eq('company_id', userProfile.company_id);
 
       if (positions && skillsProfiles) {
-        const coverage = positions.map(position => {
+        const coveragePromises = positions.map(async (position) => {
           const positionEmployees = skillsProfiles.filter(
             profile => profile.employees.current_position_id === position.id
           );
@@ -127,7 +134,7 @@ export default function SkillsOverview() {
             : 0;
 
           // Get total employees in this position
-          const { count: positionTotal } = supabase
+          const { count: positionTotal } = await supabase
             .from('employees')
             .select('*', { count: 'exact', head: true })
             .eq('company_id', userProfile.company_id)
@@ -143,6 +150,7 @@ export default function SkillsOverview() {
           };
         });
 
+        const coverage = await Promise.all(coveragePromises);
         setPositionCoverage(coverage);
       }
 
@@ -151,7 +159,7 @@ export default function SkillsOverview() {
         const recent = skillsProfiles
           .map(profile => ({
             employee_id: profile.employee_id,
-            employee_name: profile.employees.full_name,
+            employee_name: profile.employees.users?.full_name || 'Unknown',
             position_title: positions?.find(p => p.id === profile.employees.current_position_id)?.position_title || 'Unknown',
             skills_match_score: parseFloat(profile.skills_match_score) || 0,
             analyzed_at: profile.analyzed_at

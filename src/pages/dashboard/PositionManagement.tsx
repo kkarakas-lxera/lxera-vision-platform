@@ -27,6 +27,7 @@ interface CompanyPosition {
   ai_suggestions?: any[];
   is_template: boolean;
   created_at: string;
+  employee_count?: number;
 }
 
 interface PositionStats {
@@ -74,7 +75,7 @@ export default function PositionManagement() {
       // Fetch employee count per position
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
-        .select('position, id')
+        .select('position, id, current_position_id')
         .eq('company_id', userProfile.company_id);
 
       if (employeeError) throw employeeError;
@@ -82,6 +83,14 @@ export default function PositionManagement() {
       // Calculate stats
       const positionEmployeeCount = employeeData?.reduce((acc, emp) => {
         acc[emp.position] = (acc[emp.position] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      // Calculate employee count by position ID
+      const employeeCountByPositionId = employeeData?.reduce((acc, emp) => {
+        if (emp.current_position_id) {
+          acc[emp.current_position_id] = (acc[emp.current_position_id] || 0) + 1;
+        }
         return acc;
       }, {} as Record<string, number>) || {};
 
@@ -108,7 +117,13 @@ export default function PositionManagement() {
         avg_skill_match: Math.round(avgMatch)
       });
 
-      setPositions(positionsData || []);
+      // Add employee count to each position
+      const positionsWithCount = (positionsData || []).map(pos => ({
+        ...pos,
+        employee_count: employeeCountByPositionId[pos.id] || 0
+      }));
+
+      setPositions(positionsWithCount);
     } catch (error) {
       console.error('Error fetching positions:', error);
       toast.error('Failed to load positions');
@@ -122,6 +137,20 @@ export default function PositionManagement() {
   }, [userProfile?.company_id]);
 
   const handleDelete = async (position: CompanyPosition) => {
+    // First check if there are employees assigned to this position
+    const { count: employeeCount } = await supabase
+      .from('employees')
+      .select('*', { count: 'exact', head: true })
+      .eq('current_position_id', position.id);
+
+    if (employeeCount && employeeCount > 0) {
+      toast.error(
+        `Cannot delete position "${position.position_title}" because ${employeeCount} employee${employeeCount > 1 ? 's are' : ' is'} assigned to it. Please reassign the employee${employeeCount > 1 ? 's' : ''} first.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete the position "${position.position_title}"?`)) {
       return;
     }
@@ -132,13 +161,24 @@ export default function PositionManagement() {
         .delete()
         .eq('id', position.id);
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error cases
+        if (error.code === '23503') {
+          toast.error(
+            'Cannot delete this position because it has related data. Please remove all references to this position first.',
+            { duration: 5000 }
+          );
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast.success('Position deleted successfully');
       fetchPositions();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting position:', error);
-      toast.error('Failed to delete position');
+      toast.error(error.message || 'Failed to delete position');
     }
   };
 
@@ -295,6 +335,12 @@ export default function PositionManagement() {
                       {position.department && (
                         <Badge variant="secondary" className="text-xs">
                           {position.department}
+                        </Badge>
+                      )}
+                      {position.employee_count && position.employee_count > 0 && (
+                        <Badge variant="default" className="text-xs bg-blue-500">
+                          <Users className="h-3 w-3 mr-1" />
+                          {position.employee_count} {position.employee_count === 1 ? 'employee' : 'employees'}
                         </Badge>
                       )}
                       {position.position_level && (
