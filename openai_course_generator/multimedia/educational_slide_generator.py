@@ -48,55 +48,55 @@ class EducationalSlideGenerator:
         self.width = 1920
         self.height = 1080
         
-        # Enhanced design presets with headers, footers, and personalization
+        # Professional slide design presets optimized for 1920x1080 video
         self.designs = {
             'professional': SlideDesign(
-                background_color=(248, 250, 252),
-                accent_color=(59, 130, 246),
-                text_color=(30, 41, 59),
-                secondary_color=(71, 85, 105),
+                background_color=(255, 255, 255),  # Pure white for maximum contrast
+                accent_color=(37, 99, 235),        # Professional blue
+                text_color=(31, 41, 55),           # Dark gray for readability
+                secondary_color=(107, 114, 128),   # Medium gray for supporting text
                 font_family='Arial',
-                title_font_size=72,
-                body_font_size=48,
-                header_font_size=28,
-                footer_font_size=24,
-                padding=80,
-                line_spacing=1.5,
-                header_height=100,
-                footer_height=80,
-                gradient_overlay=True
+                title_font_size=140,  # Dramatically increased for visibility
+                body_font_size=72,    # Large, readable body text
+                header_font_size=48,  # Clear header text
+                footer_font_size=28,  # Readable footer
+                padding=80,           # Proper margins for 1920x1080
+                line_spacing=1.4,     # Optimal line spacing for readability
+                header_height=120,    # Adequate header space
+                footer_height=100,    # Adequate footer space
+                gradient_overlay=False  # No gradients behind text
             ),
             'modern': SlideDesign(
-                background_color=(15, 23, 42),
-                accent_color=(99, 102, 241),
-                text_color=(241, 245, 249),
-                secondary_color=(148, 163, 184),
+                background_color=(248, 250, 252),  # Light gray background
+                accent_color=(79, 70, 229),        # Modern purple
+                text_color=(17, 24, 39),           # Very dark gray
+                secondary_color=(75, 85, 99),      # Medium gray
                 font_family='Helvetica',
-                title_font_size=80,
-                body_font_size=44,
-                header_font_size=32,
-                footer_font_size=26,
-                padding=100,
-                line_spacing=1.6,
-                header_height=120,
-                footer_height=90,
-                gradient_overlay=True
+                title_font_size=135,  # Large titles
+                body_font_size=70,    # Large body text
+                header_font_size=46,  # Clear headers
+                footer_font_size=26,  # Readable footers
+                padding=85,           # Good margins
+                line_spacing=1.4,     # Readable spacing
+                header_height=115,    # Adequate space
+                footer_height=95,     # Adequate space
+                gradient_overlay=False
             ),
             'educational': SlideDesign(
-                background_color=(255, 255, 255),
-                accent_color=(16, 185, 129),
-                text_color=(17, 24, 39),
-                secondary_color=(75, 85, 99),
+                background_color=(255, 255, 255),  # Pure white for clarity
+                accent_color=(16, 185, 129),       # Educational green
+                text_color=(17, 24, 39),           # Very dark for contrast
+                secondary_color=(75, 85, 99),      # Supporting gray
                 font_family='Georgia',
-                title_font_size=68,
-                body_font_size=46,
-                header_font_size=30,
-                footer_font_size=24,
-                padding=90,
-                line_spacing=1.4,
-                header_height=110,
-                footer_height=85,
-                gradient_overlay=False
+                title_font_size=140,  # Maximum readability
+                body_font_size=72,    # Large, clear body text
+                header_font_size=48,  # Professional headers
+                footer_font_size=28,  # Clear footers
+                padding=80,           # Optimal margins
+                line_spacing=1.4,     # Best readability spacing
+                header_height=120,    # Adequate header area
+                footer_height=100,    # Adequate footer area
+                gradient_overlay=False  # Clean, no distractions
             )
         }
         
@@ -287,56 +287,94 @@ class EducationalSlideGenerator:
         return output_path
     
     def _generate_content_slide(self, slide_note: Any, output_path: Path) -> Path:
-        """Generate a content slide with bullet points"""
-        # Create base image
+        """Generate a professional content slide using wireframe layout"""
+        # Create base image with pure background
         img = Image.new('RGB', (self.width, self.height), self.current_design.background_color)
         draw = ImageDraw.Draw(img)
         
-        # Add subtle background pattern
-        self._add_background_pattern(img)
+        # Professional layout grid system (no distracting elements)
+        content_margin = self.current_design.padding
+        content_width = self.width - (2 * content_margin)
         
-        # Add decorative elements
-        self._add_decorative_shapes(draw, 'content')
+        # Calculate layout areas based on wireframe
+        header_area = {
+            'x': 0, 'y': 0,
+            'width': self.width, 'height': self.current_design.header_height
+        }
         
-        # Get fonts
-        title_font = self._get_font(int(self.current_design.title_font_size * 0.8))
+        title_area = {
+            'x': content_margin,
+            'y': self.current_design.header_height + 20,
+            'width': content_width,
+            'height': 200  # Fixed title area height
+        }
+        
+        content_area = {
+            'x': content_margin,
+            'y': title_area['y'] + title_area['height'],
+            'width': content_width,
+            'height': self.height - title_area['y'] - title_area['height'] - self.current_design.footer_height - 40
+        }
+        
+        footer_area = {
+            'x': 0,
+            'y': self.height - self.current_design.footer_height,
+            'width': self.width,
+            'height': self.current_design.footer_height
+        }
+        
+        # Add clean header and footer
+        self._add_professional_header(draw, slide_note, header_area)
+        self._add_professional_footer(draw, slide_note, footer_area)
+        
+        # Draw section title
+        section_title = slide_note.content_section.replace('_', ' ').title()
+        title_font = self._get_font(self.current_design.title_font_size)
+        
+        # Position title in title area
+        title_x = title_area['x']
+        title_y = title_area['y'] + 20
+        draw.text((title_x, title_y), section_title, 
+                 fill=self.current_design.accent_color, font=title_font)
+        
+        # Calculate bullet point layout
+        bullet_start_y = content_area['y'] + 20
+        available_height = content_area['height'] - 40
+        
+        # Use consistent, large font for body text
         body_font = self._get_font(self.current_design.body_font_size)
+        line_height = int(self.current_design.body_font_size * self.current_design.line_spacing)
         
-        # Draw slide title
-        title = slide_note.content_section.replace('_', ' ').title()
-        draw.text((self.current_design.padding, self.current_design.padding), 
-                 title, fill=self.current_design.accent_color, font=title_font)
+        # Calculate spacing for bullet points
+        num_points = min(len(slide_note.main_points), 5)  # Max 5 points
+        bullet_spacing = max(line_height + 30, 100)  # Generous spacing
         
-        # Draw content area
-        content_y = self.current_design.padding + int(self.current_design.title_font_size * 0.8) + 40
-        
-        # Add bullet points
-        for i, point in enumerate(slide_note.main_points):
-            # Bullet symbol
-            bullet_x = self.current_design.padding + 20
-            bullet_y = content_y + i * int(self.current_design.body_font_size * self.current_design.line_spacing * 1.5)
+        # Draw bullet points with professional layout
+        for i, point in enumerate(slide_note.main_points[:5]):  # Limit to 5 points
+            bullet_y = bullet_start_y + i * bullet_spacing
             
-            # Draw custom bullet
-            self._draw_custom_bullet(draw, bullet_x, bullet_y + 10, i)
+            # Check if we have space
+            if bullet_y + line_height > content_area['y'] + available_height:
+                break
             
-            # Draw text
-            text_x = bullet_x + 60
-            wrapped_text = self._wrap_text(point, body_font, self.width - text_x - self.current_design.padding)
+            # Draw professional bullet
+            bullet_x = content_area['x'] + 30
+            self._draw_professional_bullet(draw, bullet_x, bullet_y + (line_height // 4), i)
             
-            # Multi-line support
-            lines = wrapped_text.split('\n')
-            for j, line in enumerate(lines):
-                line_y = bullet_y + j * int(self.current_design.body_font_size * self.current_design.line_spacing)
-                draw.text((text_x, line_y), line, fill=self.current_design.text_color, font=body_font)
+            # Draw text with proper spacing
+            text_x = bullet_x + 60  # Space after bullet
+            max_text_width = content_area['width'] - 90  # Account for bullet and margins
+            
+            # Smart text wrapping for readability
+            wrapped_lines = self._smart_wrap_text(point, body_font, max_text_width)
+            
+            # Draw each line of wrapped text
+            for j, line in enumerate(wrapped_lines[:3]):  # Max 3 lines per point
+                line_y = bullet_y + j * (line_height - 10)  # Tighter line spacing
+                draw.text((text_x, line_y), line, 
+                         fill=self.current_design.text_color, font=body_font)
         
-        # Add visual element placeholder
-        if slide_note.visual_elements:
-            self._add_visual_placeholder(draw, slide_note.visual_elements[0])
-        
-        # Add footer
-        self._add_slide_footer(draw, int(slide_note.slide_id.split('_')[1]), len(slide_note.main_points))
-        
-        # Save image
+        # Save with optimal quality for video
         img.save(output_path, 'PNG', quality=95)
         return output_path
     
@@ -573,20 +611,97 @@ class EducationalSlideGenerator:
             draw.rounded_rectangle([(bar_x, bar_y), (bar_x + progress_width, bar_y + bar_height)],
                                   radius=3, fill=self.current_design.accent_color)
     
-    def _get_font(self, size: int) -> ImageFont.FreeTypeFont:
-        """Get font with fallback"""
-        font_name = self.current_design.font_family
-        font_path = self.font_paths.get(font_name, self.font_paths.get('default'))
+    def _get_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+        """Get font with proper fallback chain and size validation"""
+        # Ensure minimum readable size for 1920x1080
+        final_size = max(size, 24)  # Absolute minimum
         
+        font_name = self.current_design.font_family
+        
+        # System font fallback chain
+        font_candidates = []
+        
+        if font_name == 'Arial':
+            font_candidates = [
+                '/System/Library/Fonts/Arial.ttf',  # macOS
+                '/Windows/Fonts/arial.ttf',         # Windows
+                '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',  # Linux
+                'Arial'
+            ]
+        elif font_name == 'Helvetica':
+            font_candidates = [
+                '/System/Library/Fonts/Helvetica.ttc',  # macOS
+                '/Windows/Fonts/calibri.ttf',           # Windows fallback
+                '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',  # Linux
+                'Helvetica'
+            ]
+        elif font_name == 'Georgia':
+            font_candidates = [
+                '/System/Library/Fonts/Georgia.ttf',    # macOS
+                '/Windows/Fonts/georgia.ttf',           # Windows
+                '/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf',  # Linux
+                'Georgia'
+            ]
+        else:
+            font_candidates = ['Arial', 'Helvetica', 'Georgia']
+        
+        # Try each font candidate
+        for font_candidate in font_candidates:
+            try:
+                if font_candidate.startswith('/'):
+                    # File path
+                    if os.path.exists(font_candidate):
+                        return ImageFont.truetype(font_candidate, final_size)
+                else:
+                    # System font name
+                    return ImageFont.truetype(font_candidate, final_size)
+            except Exception:
+                continue
+        
+        # Final fallback to PIL default
         try:
-            if font_path:
-                return ImageFont.truetype(font_path, size)
-            else:
-                # Use default font
-                return ImageFont.load_default()
-        except:
-            # Fallback to default
+            # Try to get a larger default font
             return ImageFont.load_default()
+        except Exception as e:
+            logger.warning(f"All font loading failed: {e}, using basic default")
+            return ImageFont.load_default()
+    
+    def _calculate_optimal_font_size(self, text: str, max_width: int, max_height: int, base_size: int) -> int:
+        """Calculate optimal font size with proper constraints for 1920x1080"""
+        if not text or max_width <= 0 or max_height <= 0:
+            return base_size
+        
+        # Start with base size and validate
+        test_size = base_size
+        test_font = self._get_font(test_size)
+        
+        # Get text dimensions
+        try:
+            bbox = test_font.getbbox(text)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+        except:
+            # Fallback if getbbox fails
+            text_width = len(text) * (test_size * 0.6)  # Rough estimate
+            text_height = test_size * 1.2
+        
+        # Calculate if text fits
+        if text_width <= max_width and text_height <= max_height:
+            return test_size
+        
+        # Scale down if too large
+        width_scale = max_width / text_width if text_width > 0 else 1
+        height_scale = max_height / text_height if text_height > 0 else 1
+        scale_factor = min(width_scale, height_scale)
+        
+        # Apply scaling with bounds
+        optimal_size = int(base_size * scale_factor)
+        
+        # Ensure reasonable bounds for 1920x1080
+        min_size = 24  # Absolute minimum
+        max_size = 200  # Reasonable maximum
+        
+        return max(min_size, min(optimal_size, max_size))
     
     def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> str:
         """Wrap text to fit within max width"""
@@ -789,5 +904,227 @@ class EducationalSlideGenerator:
     def _lighten_color(self, color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
         """Lighten a color by a given factor"""
         return tuple(min(255, int(c * factor)) for c in color)
-        
-        logger.info(f"Slide manifest exported to: {output_path}")
+    
+    def _add_enhanced_gradient_background(self, img: Image.Image) -> None:
+        """Add enhanced gradient background with better visual appeal"""
+        try:
+            draw = ImageDraw.Draw(img)
+            
+            # Create a subtle diagonal gradient
+            for y in range(self.height):
+                # Calculate gradient position (0-1)
+                gradient_pos = y / self.height
+                
+                # Create smooth color transition
+                base_color = self.current_design.background_color
+                accent_color = self.current_design.accent_color
+                
+                # Blend colors with subtle gradient
+                r = int(base_color[0] + (accent_color[0] - base_color[0]) * gradient_pos * 0.05)
+                g = int(base_color[1] + (accent_color[1] - base_color[1]) * gradient_pos * 0.05)
+                b = int(base_color[2] + (accent_color[2] - base_color[2]) * gradient_pos * 0.05)
+                
+                # Draw thin horizontal line
+                draw.rectangle([(0, y), (self.width, y + 1)], fill=(r, g, b))
+                
+        except Exception as e:
+            logger.warning(f"Failed to add enhanced gradient background: {e}")
+    
+    def _add_subtle_decorative_elements(self, draw: ImageDraw.Draw, slide_type: str) -> None:
+        """Add subtle decorative elements for visual enhancement"""
+        try:
+            if slide_type == 'content':
+                # Add corner accent
+                corner_size = 60
+                accent_color = (*self.current_design.accent_color, 128)  # Semi-transparent
+                
+                # Top-left corner accent
+                points = [(0, 0), (corner_size, 0), (0, corner_size)]
+                if hasattr(draw, 'polygon'):
+                    # Simplified triangle for basic PIL
+                    draw.polygon(points, fill=self.current_design.accent_color)
+                
+                # Add subtle line elements
+                line_color = self._lighten_color(self.current_design.accent_color, 1.3)
+                
+                # Vertical accent line
+                line_x = self.current_design.padding // 2
+                line_start = self.current_design.header_height + 50
+                line_end = self.height - self.current_design.footer_height - 50
+                draw.rectangle([(line_x, line_start), (line_x + 3, line_end)], fill=line_color)
+                
+        except Exception as e:
+            logger.warning(f"Failed to add decorative elements: {e}")
+    
+    def _draw_enhanced_bullet(self, draw: ImageDraw.Draw, x: int, y: int, index: int) -> None:
+        """Draw enhanced bullet points with better visual design"""
+        try:
+            bullet_size = 12
+            
+            if index % 3 == 0:
+                # Circle bullet
+                bbox = [x - bullet_size//2, y - bullet_size//2, 
+                       x + bullet_size//2, y + bullet_size//2]
+                draw.ellipse(bbox, fill=self.current_design.accent_color)
+            elif index % 3 == 1:
+                # Square bullet
+                bbox = [x - bullet_size//2, y - bullet_size//2, 
+                       x + bullet_size//2, y + bullet_size//2]
+                draw.rectangle(bbox, fill=self.current_design.accent_color)
+            else:
+                # Diamond bullet
+                points = [
+                    (x, y - bullet_size//2),  # Top
+                    (x + bullet_size//2, y),  # Right
+                    (x, y + bullet_size//2),  # Bottom
+                    (x - bullet_size//2, y)   # Left
+                ]
+                draw.polygon(points, fill=self.current_design.accent_color)
+                
+        except Exception as e:
+            logger.warning(f"Failed to draw enhanced bullet: {e}")
+            # Fallback to simple bullet
+            draw.ellipse([x-6, y-6, x+6, y+6], fill=self.current_design.accent_color)
+    
+    def _smart_wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> List[str]:
+        """Smart text wrapping with better line breaking"""
+        try:
+            words = text.split()
+            lines = []
+            current_line = []
+            
+            for word in words:
+                # Test if adding this word exceeds max width
+                test_line = ' '.join(current_line + [word])
+                bbox = font.getbbox(test_line)
+                line_width = bbox[2] - bbox[0]
+                
+                if line_width <= max_width:
+                    current_line.append(word)
+                else:
+                    # Current line is full, start new line
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                    else:
+                        # Single word is too long, force break
+                        lines.append(word)
+            
+            # Add remaining words
+            if current_line:
+                lines.append(' '.join(current_line))
+            
+            return lines
+            
+        except Exception as e:
+            logger.warning(f"Failed to smart wrap text: {e}")
+            # Fallback to simple wrap
+            return [text]
+    
+    def _add_professional_header(self, draw: ImageDraw.Draw, slide_note: Any, header_area: Dict) -> None:
+        """Add clean, professional header without distracting elements"""
+        try:
+            # Solid header background with subtle accent
+            header_color = self._lighten_color(self.current_design.background_color, 0.95)
+            draw.rectangle([header_area['x'], header_area['y'], 
+                           header_area['x'] + header_area['width'], 
+                           header_area['y'] + header_area['height']], 
+                          fill=header_color)
+            
+            # Thin accent line at bottom
+            line_y = header_area['y'] + header_area['height'] - 3
+            draw.rectangle([0, line_y, self.width, line_y + 3], 
+                          fill=self.current_design.accent_color)
+            
+            # Header text with proper spacing
+            header_font = self._get_font(self.current_design.header_font_size)
+            
+            # Left: Module name
+            module_name = "Business Performance Reporting"
+            text_y = header_area['y'] + (header_area['height'] - self.current_design.header_font_size) // 2
+            draw.text((40, text_y), module_name, 
+                     fill=self.current_design.text_color, font=header_font)
+            
+            # Right: Employee personalization
+            if hasattr(self, 'employee_context') and self.employee_context:
+                employee_name = self.employee_context.get('name', 'Learner')
+                employee_text = f"Learning path for {employee_name}"
+                
+                # Calculate text width for right alignment
+                try:
+                    bbox = header_font.getbbox(employee_text)
+                    text_width = bbox[2] - bbox[0]
+                except:
+                    text_width = len(employee_text) * (self.current_design.header_font_size * 0.6)
+                
+                text_x = self.width - text_width - 40
+                draw.text((text_x, text_y), employee_text, 
+                         fill=self.current_design.secondary_color, font=header_font)
+                         
+        except Exception as e:
+            logger.warning(f"Failed to add professional header: {e}")
+    
+    def _add_professional_footer(self, draw: ImageDraw.Draw, slide_note: Any, footer_area: Dict) -> None:
+        """Add clean, professional footer"""
+        try:
+            # Subtle footer background
+            footer_color = self._lighten_color(self.current_design.background_color, 0.98)
+            draw.rectangle([footer_area['x'], footer_area['y'], 
+                           footer_area['x'] + footer_area['width'], 
+                           footer_area['y'] + footer_area['height']], 
+                          fill=footer_color)
+            
+            # Thin accent line at top
+            draw.rectangle([0, footer_area['y'], self.width, footer_area['y'] + 2], 
+                          fill=self.current_design.accent_color)
+            
+            # Footer text
+            footer_font = self._get_font(self.current_design.footer_font_size)
+            text_y = footer_area['y'] + (footer_area['height'] - self.current_design.footer_font_size) // 2
+            
+            # Left: Section name
+            section_name = getattr(slide_note, 'content_section', 'Introduction').replace('_', ' ').title()
+            draw.text((40, text_y), f"Section: {section_name}", 
+                     fill=self.current_design.secondary_color, font=footer_font)
+            
+            # Center: Company branding
+            company_text = "Lxera Learning Platform"
+            try:
+                bbox = footer_font.getbbox(company_text)
+                text_width = bbox[2] - bbox[0]
+            except:
+                text_width = len(company_text) * (self.current_design.footer_font_size * 0.6)
+            
+            center_x = (self.width - text_width) // 2
+            draw.text((center_x, text_y), company_text, 
+                     fill=self.current_design.secondary_color, font=footer_font)
+            
+            # Right: Slide number
+            slide_num = getattr(slide_note, 'slide_number', 1)
+            slide_text = f"Slide {slide_num}"
+            try:
+                bbox = footer_font.getbbox(slide_text)
+                text_width = bbox[2] - bbox[0]
+            except:
+                text_width = len(slide_text) * (self.current_design.footer_font_size * 0.6)
+            
+            draw.text((self.width - text_width - 40, text_y), slide_text, 
+                     fill=self.current_design.secondary_color, font=footer_font)
+                     
+        except Exception as e:
+            logger.warning(f"Failed to add professional footer: {e}")
+    
+    def _draw_professional_bullet(self, draw: ImageDraw.Draw, x: int, y: int, index: int) -> None:
+        """Draw clean, professional bullet points"""
+        try:
+            bullet_size = 16  # Larger bullets for visibility
+            
+            # Simple filled circle for all bullets (consistency)
+            bbox = [x - bullet_size//2, y - bullet_size//2, 
+                   x + bullet_size//2, y + bullet_size//2]
+            draw.ellipse(bbox, fill=self.current_design.accent_color)
+            
+        except Exception as e:
+            logger.warning(f"Failed to draw professional bullet: {e}")
+            # Fallback simple bullet
+            draw.ellipse([x-8, y-8, x+8, y+8], fill=self.current_design.accent_color)

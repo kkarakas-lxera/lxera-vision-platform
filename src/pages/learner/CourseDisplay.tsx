@@ -607,15 +607,15 @@ export default function CourseDisplay() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {totalWeeks} weeks
+                  ~{totalWeeks * 2} hours
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-blue-500" />
+                  Advanced Analytics
                 </span>
                 <span className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  125 learners
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  4.8 rating
+                  Business Intelligence
                 </span>
               </div>
             </div>
@@ -711,6 +711,62 @@ export default function CourseDisplay() {
                     </Card>
                   ) : (
                     <>
+                      {/* Show welcome video button for introduction section */}
+                      {currentSection?.section_name === 'introduction' && (
+                        <div className="relative mb-6 overflow-hidden rounded-xl">
+                          {/* Striking gradient background */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700"></div>
+                          <div className="absolute inset-0 bg-black/20"></div>
+                          
+                          {/* Animated background elements */}
+                          <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+                          <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl animate-pulse delay-75"></div>
+                          
+                          <div className="relative p-8 text-white">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                                    <PlayCircle className="h-6 w-6 text-white" />
+                                  </div>
+                                  <div>
+                                    <h3 className="text-xl font-bold">Course Welcome Message</h3>
+                                    <p className="text-white/80 text-sm">
+                                      Personal greeting from your instructor
+                                    </p>
+                                  </div>
+                                </div>
+                                <p className="text-white/90 mb-4 max-w-lg">
+                                  Start your learning journey with a personalized welcome message designed 
+                                  specifically for your role and learning path.
+                                </p>
+                                <div className="flex items-center gap-4 text-sm text-white/70">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    ~2 min
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-4 w-4" />
+                                    AI Generated
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-6">
+                                <Button 
+                                  onClick={() => setShowVideoGreeting(true)}
+                                  size="lg"
+                                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                                  variant="outline"
+                                >
+                                  <PlayCircle className="h-5 w-5 mr-2" />
+                                  Watch Welcome Video
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Video Player Placeholder for other sections */}
                       <VideoPlayer
                         videoUrl=""
@@ -719,29 +775,6 @@ export default function CourseDisplay() {
                           console.log('Feedback:', isPositive ? 'positive' : 'negative');
                         }}
                       />
-
-                      {/* Show welcome video button for introduction section */}
-                      {currentSection?.section_name === 'introduction' && (
-                        <Card className="mb-6">
-                          <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="text-lg font-semibold mb-2">Course Welcome Message</h3>
-                                <p className="text-muted-foreground">
-                                  Watch the personal welcome message from your instructor to get started.
-                                </p>
-                              </div>
-                              <Button 
-                                onClick={() => setShowVideoGreeting(true)}
-                                className="flex items-center gap-2"
-                              >
-                                <PlayCircle className="h-4 w-4" />
-                                Watch Welcome Video
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
 
                       {/* Course Content */}
                       {currentSection ? (

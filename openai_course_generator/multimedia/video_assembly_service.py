@@ -242,32 +242,64 @@ class VideoAssemblyService:
         """Create video segments for each slide"""
         slide_videos = []
         
+        logger.info(f"Creating slide videos for {len(slide_metadata)} slides")
+        logger.info(f"Timeline has {len(timeline.slide_transitions)} transitions")
+        
+        # Debug: Log the structure
+        if slide_metadata:
+            logger.info(f"Sample slide metadata keys: {list(slide_metadata[0].keys())}")
+        if timeline.slide_transitions:
+            logger.info(f"Sample transition: slide_id={getattr(timeline.slide_transitions[0], 'slide_id', 'N/A')}, slide_number={getattr(timeline.slide_transitions[0], 'slide_number', 'N/A')}")
+        
         for i, slide in enumerate(slide_metadata):
             logger.info(f"Processing slide {i+1}/{len(slide_metadata)}")
             
-            # Find corresponding transition in timeline
-            transition = next(
-                (t for t in timeline.slide_transitions if t.slide_number == slide['slide_number']),
-                None
-            )
+            # Multiple strategies to find corresponding transition
+            transition = None
+            
+            # Strategy 1: Match by slide_number
+            if 'slide_number' in slide:
+                transition = next(
+                    (t for t in timeline.slide_transitions if getattr(t, 'slide_number', None) == slide['slide_number']),
+                    None
+                )
+            
+            # Strategy 2: Match by index (i+1 = slide number)
+            if not transition:
+                slide_num = i + 1
+                transition = next(
+                    (t for t in timeline.slide_transitions if getattr(t, 'slide_number', None) == slide_num),
+                    None
+                )
+            
+            # Strategy 3: Match by slide_id pattern
+            if not transition and 'slide_id' in slide:
+                transition = next(
+                    (t for t in timeline.slide_transitions if getattr(t, 'slide_id', None) == slide['slide_id']),
+                    None
+                )
+            
+            # Strategy 4: Use transition by index
+            if not transition and i < len(timeline.slide_transitions):
+                transition = timeline.slide_transitions[i]
+                logger.info(f"Using transition by index {i}")
             
             if not transition:
-                logger.warning(f"No transition found for slide {slide['slide_number']}")
+                logger.error(f"No transition found for slide {i+1}, skipping")
                 continue
             
             # Calculate duration for this slide
-            # Find next transition to determine duration
-            next_transition = None
-            for j, t in enumerate(timeline.slide_transitions):
-                if t.slide_number == slide['slide_number'] and j + 1 < len(timeline.slide_transitions):
-                    next_transition = timeline.slide_transitions[j + 1]
-                    break
-            
-            if next_transition:
-                duration = next_transition.timestamp - transition.timestamp
+            if i + 1 < len(timeline.slide_transitions):
+                next_transition = timeline.slide_transitions[i + 1]
+                duration = getattr(next_transition, 'timestamp', 0) - getattr(transition, 'timestamp', 0)
             else:
                 # Last slide - use remaining time
-                duration = timeline.total_duration - transition.timestamp
+                duration = timeline.total_duration - getattr(transition, 'timestamp', 0)
+            
+            # Ensure minimum duration
+            duration = max(duration, 1.0)
+            
+            logger.info(f"Slide {i+1} duration: {duration:.2f}s")
             
             # Create video from image
             output_video = temp_dir / f"slide_{i+1:03d}.mp4"
@@ -296,10 +328,26 @@ class VideoAssemblyService:
                 cmd[cmd.index('-vf') + 1] = zoom_filter + ',' + cmd[cmd.index('-vf') + 1]
             
             # Run ffmpeg
-            await self._run_ffmpeg_async(cmd)
-            
-            slide_videos.append(output_video)
+            try:
+                await self._run_ffmpeg_async(cmd)
+                slide_videos.append(output_video)
+                logger.info(f"Successfully created video for slide {i+1}")
+            except Exception as e:
+                logger.error(f"Failed to create video for slide {i+1}: {e}")
+                # Create a black slide as fallback
+                fallback_cmd = [
+                    self.ffmpeg_path,
+                    '-y',
+                    '-f', 'lavfi',
+                    '-i', f'color=black:size={settings.resolution[0]}x{settings.resolution[1]}:duration={duration}',
+                    '-c:v', settings.video_codec,
+                    '-pix_fmt', 'yuv420p',
+                    str(output_video)
+                ]
+                await self._run_ffmpeg_async(fallback_cmd)
+                slide_videos.append(output_video)
         
+        logger.info(f"Created {len(slide_videos)} slide videos")
         return slide_videos
     
     def _create_ken_burns_filter(self, duration: float, resolution: Tuple[int, int]) -> str:
