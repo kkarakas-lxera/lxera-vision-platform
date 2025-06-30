@@ -12,15 +12,23 @@ import { toast } from 'sonner';
 interface CourseAssignment {
   id: string;
   course_id: string;
+  plan_id: string;
   progress_percentage: number;
   status: string;
   started_at: string | null;
   completed_at: string | null;
-  cm_module_content: {
-    module_name: string;
-    introduction: string;
-    content_id: string;
-  } | null;
+  course_plan?: {
+    course_structure: {
+      title: string;
+      modules: Array<{
+        week: number;
+        title: string;
+        topics: string[];
+        duration: string;
+        priority: string;
+      }>;
+    };
+  };
 }
 
 export default function MyCourses() {
@@ -50,12 +58,13 @@ export default function MyCourses() {
         return;
       }
 
-      // Fetch course assignments
+      // Fetch course assignments with plan details
       const { data: courseAssignments, error } = await supabase
         .from('course_assignments')
         .select(`
           id,
           course_id,
+          plan_id,
           progress_percentage,
           status,
           started_at,
@@ -66,26 +75,26 @@ export default function MyCourses() {
 
       if (error) throw error;
       
-      // Fetch course content for each assignment
+      // Fetch course plan details for each assignment
       let finalAssignments: CourseAssignment[] = [];
       
       if (courseAssignments && courseAssignments.length > 0) {
-        const assignmentsWithContent = await Promise.all(
+        const assignmentsWithPlans = await Promise.all(
           courseAssignments.map(async (assignment) => {
-            const { data: content } = await supabase
-              .from('cm_module_content')
-              .select('module_name, introduction, content_id')
-              .eq('content_id', assignment.course_id)
+            const { data: plan } = await supabase
+              .from('cm_course_plans')
+              .select('course_structure')
+              .eq('plan_id', assignment.plan_id)
               .single();
             
             return {
               ...assignment,
-              cm_module_content: content
+              course_plan: plan
             };
           })
         );
         
-        finalAssignments = assignmentsWithContent;
+        finalAssignments = assignmentsWithPlans.filter(a => a.course_plan);
       }
       
       setAssignments(finalAssignments);
@@ -167,11 +176,21 @@ export default function MyCourses() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg">
-                      {assignment.cm_module_content?.module_name || 'Course'}
+                      {assignment.course_plan?.course_structure?.title || 'Course'}
                     </CardTitle>
-                    <CardDescription className="mt-2 line-clamp-2">
-                      {assignment.cm_module_content?.introduction?.split('\n')[0] || 
-                       'Begin your learning journey with this comprehensive course.'}
+                    <CardDescription className="mt-2">
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          {assignment.course_plan?.course_structure?.modules?.length || 0} modules
+                        </span>
+                        <span className="text-muted-foreground">•</span>
+                        <span>
+                          {assignment.course_plan?.course_structure?.modules?.reduce(
+                            (acc, mod) => acc + parseInt(mod.duration || '1'), 0
+                          ) || 0} weeks total
+                        </span>
+                      </div>
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusColor(assignment.status)} className="ml-4">
