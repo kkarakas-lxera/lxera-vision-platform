@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle, X } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import { demoRequestService, type DemoRequest } from "@/services/demoRequestService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -52,8 +52,50 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
     "Netherlands",
     "Singapore",
     "Japan",
-    "Brazil",
+    "South Korea",
+    "China",
     "India",
+    "Brazil",
+    "Mexico",
+    "Argentina",
+    "Spain",
+    "Italy",
+    "Sweden",
+    "Norway",
+    "Denmark",
+    "Finland",
+    "Switzerland",
+    "Austria",
+    "Belgium",
+    "Ireland",
+    "New Zealand",
+    "South Africa",
+    "Israel",
+    "United Arab Emirates",
+    "Saudi Arabia",
+    "Turkey",
+    "Poland",
+    "Czech Republic",
+    "Hungary",
+    "Romania",
+    "Portugal",
+    "Greece",
+    "Russia",
+    "Thailand",
+    "Malaysia",
+    "Indonesia",
+    "Philippines",
+    "Vietnam",
+    "Taiwan",
+    "Hong Kong",
+    "Chile",
+    "Colombia",
+    "Peru",
+    "Egypt",
+    "Morocco",
+    "Nigeria",
+    "Kenya",
+    "Ghana",
     "Other"
   ];
 
@@ -145,19 +187,9 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
-          <div className="flex justify-between items-center">
-            <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
-              {isSubmitted ? "Thank You!" : "Request a Demo"}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="h-8 w-8 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
+            {isSubmitted ? "Thank You!" : "Request a Demo"}
+          </DialogTitle>
         </DialogHeader>
 
         {isSubmitted ? (
