@@ -45,7 +45,8 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.company || !formData.email) {
+    // Validate required fields (all except message)
+    if (!formData.name || !formData.company || !formData.email || !formData.teamSize) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -125,7 +126,7 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-business-black">
-                  Name
+                  Name *
                 </Label>
                 <Input
                   id="name"
@@ -140,7 +141,7 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-sm font-medium text-business-black">
-                  Company
+                  Company *
                 </Label>
                 <Input
                   id="company"
@@ -155,7 +156,7 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-business-black">
-                  Business Email
+                  Business Email *
                 </Label>
                 <Input
                   id="email"
@@ -170,9 +171,9 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="teamSize" className="text-sm font-medium text-business-black">
-                  Team Size
+                  Team Size *
                 </Label>
-                <Select value={formData.teamSize} onValueChange={handleTeamSizeChange}>
+                <Select value={formData.teamSize} onValueChange={handleTeamSizeChange} required>
                   <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green">
                     <SelectValue placeholder="Select team size" />
                   </SelectTrigger>

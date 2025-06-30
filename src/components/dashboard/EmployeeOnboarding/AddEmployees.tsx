@@ -5,12 +5,18 @@ interface AddEmployeesProps {
   onImportComplete?: () => void;
   importSessions?: any[];
   onNextStep?: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onComplete?: () => void;
 }
 
 export const AddEmployees: React.FC<AddEmployeesProps> = ({ 
   onImportComplete, 
   importSessions, 
-  onNextStep 
+  onNextStep,
+  isOpen,
+  onClose,
+  onComplete
 }) => {
   return (
     <div className="p-4">
