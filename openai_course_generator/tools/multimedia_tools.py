@@ -612,3 +612,142 @@ def slide_generator(content: str, module_title: str) -> str:
             "slides": []
         }
         return json.dumps(error_data)
+
+
+# NEW: Educational Video Generation Tool
+def generate_educational_video(
+    content_id: str,
+    session_id: str,
+    employee_name: str,
+    employee_role: str,
+    voice: str = "nova",
+    speed: float = 1.0,
+    design_theme: str = "professional",
+    target_duration: Optional[int] = None
+) -> str:
+    """
+    Generate a complete educational video using the enhanced pipeline.
+    
+    This tool creates professional educational videos with:
+    - Automatic script generation with learning objectives
+    - Professional slides with speaker notes
+    - OpenAI TTS narration with perfect timing
+    - Video assembly with transitions
+    
+    Args:
+        content_id: ID of the content in cm_module_content
+        session_id: Multimedia session ID
+        employee_name: Name of the employee for personalization
+        employee_role: Current role of the employee
+        voice: OpenAI TTS voice (alloy, echo, fable, onyx, nova, shimmer)
+        speed: Speech speed (0.25 to 4.0, default 1.0)
+        design_theme: Slide design theme (professional, modern, warm)
+        target_duration: Target video duration in minutes
+    
+    Returns:
+        JSON string with video generation results including URLs
+    """
+    try:
+        # Import the educational video service
+        import asyncio
+        import sys
+        import os
+        
+        # Add parent directory to path
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        from multimedia.educational_video_service import EducationalVideoService
+        
+        # Initialize service
+        service = EducationalVideoService()
+        
+        # Prepare employee context
+        employee_context = {
+            "name": employee_name,
+            "role": employee_role,
+            "id": session_id.split('_')[0] if '_' in session_id else "emp_001"
+        }
+        
+        # Prepare options
+        options = {
+            "voice": voice,
+            "speed": speed,
+            "design_theme": design_theme,
+            "target_duration": target_duration,
+            "session_id": session_id,
+            "include_animations": True
+        }
+        
+        # Run async video generation
+        result = asyncio.run(service.generate_educational_video(
+            content_id=content_id,
+            employee_context=employee_context,
+            options=options
+        ))
+        
+        if result['success']:
+            # Update multimedia session in database
+            multimedia_manager = get_multimedia_manager()
+            
+            # Register the video as the main asset
+            video_asset_id = multimedia_manager.register_multimedia_asset(
+                session_id=session_id,
+                content_id=content_id,
+                course_id=content_id,
+                module_name=result['module_name'],
+                asset_type='video',
+                asset_category='educational_complete',
+                file_path=result['video_path'],
+                file_name=os.path.basename(result['video_path']),
+                duration_seconds=result['total_duration'],
+                file_format='mp4',
+                generated_with='educational_video_pipeline'
+            )
+            
+            # Update asset status
+            multimedia_manager.update_asset_status(
+                asset_id=video_asset_id,
+                status='completed',
+                ready_for_delivery=True,
+                processing_duration_ms=0,
+                file_size_bytes=result.get('video_file_size', 0)
+            )
+            
+            # Prepare success response
+            response_data = {
+                "success": True,
+                "message": "Educational video generated successfully",
+                "content_id": content_id,
+                "module_name": result['module_name'],
+                "video_url": result['video_url'],
+                "video_path": result['video_path'],
+                "duration": result['total_duration'],
+                "duration_formatted": result['duration_formatted'],
+                "slide_count": result['slide_count'],
+                "assets": {
+                    "video": result['video_url'],
+                    "audio": result['audio_url'],
+                    "slides": result['slides_url'],
+                    "thumbnail": result.get('thumbnail_path')
+                },
+                "metadata": result['metadata']
+            }
+            
+            return json.dumps(response_data)
+            
+        else:
+            # Error response
+            error_data = {
+                "success": False,
+                "error": result.get('error', 'Unknown error occurred'),
+                "content_id": content_id
+            }
+            return json.dumps(error_data)
+            
+    except Exception as e:
+        error_data = {
+            "success": False,
+            "error": f"Educational video generation failed: {str(e)}",
+            "content_id": content_id
+        }
+        return json.dumps(error_data)

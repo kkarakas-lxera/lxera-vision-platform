@@ -438,12 +438,54 @@ export default function CourseDisplay() {
 
       console.log('Saving progress with data:', progressData);
 
-      // Use upsert with onConflict to handle unique constraint
-      const { error } = await supabase
+      // First, try to update existing record
+      const { data: existingProgress } = await supabase
         .from('course_section_progress')
-        .upsert(progressData, {
-          onConflict: 'assignment_id,section_name'
-        });
+        .select('id')
+        .eq('assignment_id', assignmentId)
+        .eq('section_name', section.section_name)
+        .single();
+
+      let error;
+      
+      // Try using RPC function first (more reliable)
+      try {
+        const { error: rpcError } = await supabase
+          .rpc('upsert_section_progress', {
+            p_assignment_id: assignmentId,
+            p_section_name: section.section_name,
+            p_module_id: actualModuleId && !actualModuleId.startsWith('module-') ? actualModuleId : null,
+            p_completed: true,
+            p_time_spent_seconds: 0
+          });
+        
+        error = rpcError;
+      } catch (rpcErr) {
+        console.error('RPC function failed, falling back to direct insert/update:', rpcErr);
+        
+        // Fallback to direct insert/update
+        if (existingProgress) {
+          // Update existing record
+          const { error: updateError } = await supabase
+            .from('course_section_progress')
+            .update({
+              completed: true,
+              completed_at: new Date().toISOString(),
+              time_spent_seconds: progressData.time_spent_seconds,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingProgress.id);
+          
+          error = updateError;
+        } else {
+          // Insert new record
+          const { error: insertError } = await supabase
+            .from('course_section_progress')
+            .insert(progressData);
+          
+          error = insertError;
+        }
+      }
 
       if (error) throw error;
 

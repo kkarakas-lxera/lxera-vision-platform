@@ -11,7 +11,8 @@ try:
         finalize_multimedia_package,
         audio_generator,
         video_generator,
-        slide_generator
+        slide_generator,
+        generate_educational_video  # New educational video pipeline
     )
 except ImportError:
     # Fallback - create mock functions to prevent import failures
@@ -29,6 +30,8 @@ except ImportError:
         return {"status": "mock"}
     def slide_generator(*args, **kwargs):
         return {"status": "mock"}
+    def generate_educational_video(*args, **kwargs):
+        return {"status": "mock", "video_url": "mock-video.mp4"}
 
 
 def create_multimedia_agent() -> Agent:
@@ -43,14 +46,19 @@ CORE RESPONSIBILITIES:
 - Generate personalized audio narration with employee names and role context
 - Create professional presentation slides with visual hierarchy
 - Produce educational videos combining slides and audio
-- Integrate with existing SimplifiedPipeline for actual multimedia generation
+- Use NEW generate_educational_video for enhanced educational content
+- Integrate with existing SimplifiedPipeline for backward compatibility
 - Track all multimedia assets in database with mm_ prefixed tables
 - Ensure course-specific multimedia generation and storage
 
 WORKFLOW PROCESS:
 1. Create multimedia session using create_course_multimedia_session
-2. For each module, use generate_module_multimedia to create assets
-3. Use integrate_existing_pipeline to run actual multimedia generation
+2. For educational videos, use generate_educational_video for complete pipeline:
+   - Automatic script generation with learning objectives
+   - Professional slide creation with speaker notes
+   - OpenAI TTS audio generation with perfect timing
+   - Video assembly with transitions and animations
+3. For legacy workflow, use generate_module_multimedia and integrate_existing_pipeline
 4. Finalize package with finalize_multimedia_package
 
 DATABASE INTEGRATION:
@@ -86,6 +94,7 @@ Always use the database-integrated tools for scalable, course-specific multimedi
         instructions=config["instructions"],
         tools=[
             create_course_multimedia_session,
+            generate_educational_video,  # NEW: Enhanced educational video pipeline
             generate_module_multimedia,
             integrate_existing_pipeline,
             finalize_multimedia_package,
