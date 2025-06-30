@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export class CourseGenerationPipeline {
@@ -23,7 +24,7 @@ export class CourseGenerationPipeline {
           session_type: 'full_generation',
           module_name: moduleName,
           employee_name: this.employeeName,
-          content_sections: ['introduction', 'core_content', 'practical_applications'], // Add required field
+          content_sections: ['introduction', 'core_content', 'practical_applications'],
           status: 'started',
           total_assets_generated: 0,
           slides_generated: 0,
@@ -252,6 +253,7 @@ export class CourseGenerationPipeline {
         .insert({
           employee_id: employeeId,
           course_id: this.contentId,
+          company_id: this.companyId,
           assigned_at: new Date().toISOString(),
           status: 'assigned',
           progress_percentage: 0
@@ -269,5 +271,21 @@ export class CourseGenerationPipeline {
       console.error('Error in createCourseAssignment:', error);
       throw new Error(error.message || 'Failed to create course assignment');
     }
+  }
+
+  async generateCoursesForEmployees(employeeIds: string[], assignedById: string) {
+    // Implementation for generating courses for multiple employees
+    const results = [];
+    
+    for (const employeeId of employeeIds) {
+      try {
+        const assignment = await this.createCourseAssignment(employeeId);
+        results.push({ employeeId, success: true, assignmentId: assignment.id });
+      } catch (error) {
+        results.push({ employeeId, success: false, error: error.message });
+      }
+    }
+    
+    return results;
   }
 }

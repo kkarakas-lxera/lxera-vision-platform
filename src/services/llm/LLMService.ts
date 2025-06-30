@@ -82,6 +82,11 @@ class LLMService {
     }
   }
 
+  initialize() {
+    // Initialize the LLM service
+    console.log('LLM Service initialized');
+  }
+
   async analyzeCV(cvText: string, companyId: string, userId?: string): Promise<CVAnalysisResult> {
     // Mock implementation for now
     const mockResult: CVAnalysisResult = {
