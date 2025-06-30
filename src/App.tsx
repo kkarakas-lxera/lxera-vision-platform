@@ -33,6 +33,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import LearnerDashboard from "./pages/learner/LearnerDashboard";
 import CourseViewer from "./pages/learner/CourseViewer";
 import CourseOverview from "./pages/learner/CourseOverview";
+import MyCourses from "./pages/learner/MyCourses";
 
 // Import admin pages
 import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
@@ -137,7 +138,7 @@ const App = () => (
                       <DashboardLayout>
                         <Routes>
                           <Route path="/" element={<LearnerDashboard />} />
-                          <Route path="/courses" element={<div>My Courses - Coming Soon</div>} />
+                          <Route path="/courses" element={<MyCourses />} />
                           <Route path="/certificates" element={<div>My Certificates - Coming Soon</div>} />
                         </Routes>
                       </DashboardLayout>

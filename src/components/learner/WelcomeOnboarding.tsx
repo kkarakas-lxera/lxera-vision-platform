@@ -70,7 +70,7 @@ export default function WelcomeOnboarding({ coursesCount, estimatedHours, onStar
                 <Target className="h-8 w-8 text-purple-600" />
                 <div>
                   <div className="text-2xl font-bold text-purple-900">100%</div>
-                  <div className="text-sm text-purple-700">skills gap analysis</div>
+                  <div className="text-sm text-purple-700">Multimedia supported</div>
                 </div>
               </div>
             </div>
