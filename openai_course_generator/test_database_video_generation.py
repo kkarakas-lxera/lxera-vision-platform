@@ -139,7 +139,7 @@ class DatabaseVideoGenerator:
                     speaker_notes=slide.speaker_notes
                 )
                 
-                metadata['animations'] = True
+                metadata['animations'] = False  # Disable Ken Burns for stability
                 slide_metadata.append(metadata)
             
             # 7. Generate narration timeline
@@ -160,7 +160,10 @@ class DatabaseVideoGenerator:
             
             # 8. Assemble video
             logger.info("Assembling video...")
-            video_filename = f"{employee['id']}_{module_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+            # Add random suffix to avoid caching
+            import random
+            random_suffix = random.randint(1000, 9999)
+            video_filename = f"{employee['id']}_{module_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{random_suffix}.mp4"
             video_path = temp_dir / video_filename
             
             result = await self.video_service.assemble_educational_video(
@@ -174,6 +177,19 @@ class DatabaseVideoGenerator:
             
             logger.info(f"Video created: {result.duration:.1f}s, {result.file_size / 1024 / 1024:.1f}MB")
             
+            # Validate video locally before upload
+            logger.info("Validating video content...")
+            from test_video_validation import VideoValidator
+            validator = VideoValidator()
+            validation = validator.validate_video(str(video_path))
+            
+            if not validation['valid']:
+                logger.error(f"Video validation failed: {validation['errors']}")
+                logger.error(f"Black frames: {validation['black_frames']}/{validation['frames_analyzed']}")
+                # Continue anyway to see what happens
+            else:
+                logger.info(f"Video validation passed! Brightness: {validation['average_brightness']:.1f}")
+            
             # 9. Upload to Supabase storage
             logger.info("Uploading to Supabase storage...")
             
@@ -181,8 +197,16 @@ class DatabaseVideoGenerator:
             with open(video_path, 'rb') as f:
                 video_data = f.read()
             
-            # Upload to storage
-            storage_path = f"{employee['id']}/{video_filename}"
+            # Upload to storage with organized folder structure
+            storage_path = f"{employee['id']}/videos/{video_filename}"
+            
+            # Ensure the upload overwrites if file exists
+            try:
+                # Try to delete existing file first
+                self.supabase.storage.from_(output_bucket).remove([storage_path])
+            except:
+                pass  # File might not exist
+            
             storage_result = self.supabase.storage.from_(output_bucket).upload(
                 storage_path,
                 video_data,
@@ -192,7 +216,29 @@ class DatabaseVideoGenerator:
             # Get public URL
             public_url = self.supabase.storage.from_(output_bucket).get_public_url(storage_path)
             
-            # 10. Save video metadata to database
+            # 10. Optionally upload slides to storage
+            if os.getenv('UPLOAD_SLIDES', 'false').lower() == 'true':
+                logger.info("Uploading slides to storage...")
+                for slide in slide_metadata:
+                    slide_path = slide['file_path']
+                    slide_name = os.path.basename(slide_path)
+                    with open(slide_path, 'rb') as f:
+                        slide_data = f.read()
+                    
+                    slide_storage_path = f"{employee['id']}/slides/{module_id}/{slide_name}"
+                    try:
+                        self.supabase.storage.from_(output_bucket).remove([slide_storage_path])
+                    except:
+                        pass
+                    
+                    self.supabase.storage.from_(output_bucket).upload(
+                        slide_storage_path,
+                        slide_data,
+                        {'content-type': 'image/png'}
+                    )
+                logger.info(f"Uploaded {len(slide_metadata)} slides")
+            
+            # 11. Save video metadata to database
             video_record = {
                 'employee_id': employee['id'],
                 'module_id': module_id,
@@ -213,7 +259,7 @@ class DatabaseVideoGenerator:
             except Exception as e:
                 logger.warning(f"Could not save video metadata: {e}")
             
-            # 11. Clean up temporary files
+            # 12. Clean up temporary files
             import shutil
             shutil.rmtree(temp_dir)
             

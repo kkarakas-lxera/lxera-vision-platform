@@ -68,11 +68,13 @@ class VideoAssemblyService:
             "/usr/local/bin/ffmpeg",
             "/usr/bin/ffmpeg",
             "/opt/homebrew/bin/ffmpeg",  # macOS with Homebrew
+            "/Users/kubilaycenk/homebrew/bin/ffmpeg",  # User's specific homebrew
             "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe",  # Windows
         ]
         
         for path in common_paths:
             if os.path.exists(path):
+                logger.info(f"Found ffmpeg at: {path}")
                 return path
         
         return None
@@ -161,19 +163,43 @@ class VideoAssemblyService:
                     settings
                 )
                 
-                # Step 4: Add transitions and effects
+                # Step 4: Add simple fade in/out at beginning and end only
                 if progress_callback:
-                    progress_callback(85, "Adding transitions")
+                    progress_callback(85, "Adding fade effects")
                 
                 final_video = Path(output_path)
                 final_video.parent.mkdir(parents=True, exist_ok=True)
                 
-                await self._add_transitions(
-                    video_with_audio,
-                    timeline.slide_transitions,
-                    final_video,
-                    settings
-                )
+                # Get video duration for fade out timing
+                duration = self._get_video_duration(video_with_audio)
+                
+                if duration > 2:  # Only add fades if video is long enough
+                    # Simple fade in at start and fade out at end
+                    fade_out_start = duration - 1.0  # Start fade 1 second before end
+                    
+                    logger.info(f"Adding fade in/out effects (duration: {duration:.1f}s)")
+                    fade_cmd = [
+                        self.ffmpeg_path,
+                        '-y',
+                        '-i', str(video_with_audio),
+                        '-vf', f'fade=t=in:st=0:d=0.5,fade=t=out:st={fade_out_start}:d=1.0',
+                        '-c:a', 'copy',
+                        '-preset', settings.preset,
+                        '-crf', str(settings.crf),
+                        str(final_video)
+                    ]
+                    await self._run_ffmpeg_async(fade_cmd)
+                else:
+                    # Video too short for fades - direct copy
+                    logger.info("Video too short for fades - direct copy")
+                    copy_cmd = [
+                        self.ffmpeg_path,
+                        '-y',
+                        '-i', str(video_with_audio),
+                        '-c', 'copy',
+                        str(final_video)
+                    ]
+                    await self._run_ffmpeg_async(copy_cmd)
                 
                 # Step 5: Verify output
                 if progress_callback:
@@ -325,45 +351,102 @@ class VideoAssemblyService:
             if slide.get('animations'):
                 # Add subtle zoom/pan effect
                 zoom_filter = self._create_ken_burns_filter(duration, settings.resolution)
-                cmd[cmd.index('-vf') + 1] = zoom_filter + ',' + cmd[cmd.index('-vf') + 1]
+                # Find the -vf index and update the filter
+                vf_index = cmd.index('-vf')
+                original_filter = cmd[vf_index + 1]
+                # Properly combine filters
+                combined_filter = f"{zoom_filter},{original_filter}"
+                cmd[vf_index + 1] = combined_filter
             
             # Run ffmpeg
             try:
                 await self._run_ffmpeg_async(cmd)
+                
+                # Validate the output video exists and has content
+                if not output_video.exists():
+                    raise RuntimeError(f"Output video was not created: {output_video}")
+                
+                file_size = output_video.stat().st_size
+                if file_size < 1000:  # Less than 1KB is suspiciously small
+                    raise RuntimeError(f"Output video is too small ({file_size} bytes)")
+                
+                # Quick validation of video content
+                validation_cmd = [
+                    self.ffmpeg_path,
+                    '-i', str(output_video),
+                    '-ss', '1',
+                    '-vframes', '1',
+                    '-f', 'image2pipe',
+                    '-pix_fmt', 'rgb24',
+                    '-'
+                ]
+                
+                validation_result = subprocess.run(validation_cmd, capture_output=True)
+                if validation_result.returncode == 0 and validation_result.stdout:
+                    # Check if frame is black
+                    import numpy as np
+                    frame_data = np.frombuffer(validation_result.stdout, dtype=np.uint8)
+                    if len(frame_data) > 0:
+                        mean_brightness = frame_data.mean()
+                        logger.info(f"Slide {i+1} video brightness check: {mean_brightness:.1f}")
+                        if mean_brightness < 5:
+                            logger.warning(f"Slide {i+1} video appears to be BLACK!")
+                
                 slide_videos.append(output_video)
-                logger.info(f"Successfully created video for slide {i+1}")
+                logger.info(f"Successfully created video for slide {i+1} ({file_size / 1024:.1f} KB)")
+                
             except Exception as e:
                 logger.error(f"Failed to create video for slide {i+1}: {e}")
-                # Create a black slide as fallback
-                fallback_cmd = [
+                logger.error(f"Slide path: {slide['file_path']}")
+                logger.error(f"Slide exists: {os.path.exists(slide['file_path'])}")
+                
+                # Instead of creating a black fallback, let's try a simpler command
+                logger.info(f"Attempting simplified video creation for slide {i+1}")
+                
+                # Simplified command without Ken Burns effect
+                simple_cmd = [
                     self.ffmpeg_path,
                     '-y',
-                    '-f', 'lavfi',
-                    '-i', f'color=black:size={settings.resolution[0]}x{settings.resolution[1]}:duration={duration}',
+                    '-loop', '1',
+                    '-i', slide['file_path'],
                     '-c:v', settings.video_codec,
+                    '-t', str(duration),
                     '-pix_fmt', 'yuv420p',
+                    '-vf', f'scale={settings.resolution[0]}:{settings.resolution[1]}:force_original_aspect_ratio=decrease,pad={settings.resolution[0]}:{settings.resolution[1]}:(ow-iw)/2:(oh-ih)/2:color=white',
+                    '-r', str(settings.fps),
+                    '-b:v', settings.video_bitrate,
+                    '-preset', settings.preset,
+                    '-crf', str(settings.crf),
                     str(output_video)
                 ]
-                await self._run_ffmpeg_async(fallback_cmd)
-                slide_videos.append(output_video)
+                
+                try:
+                    await self._run_ffmpeg_async(simple_cmd)
+                    slide_videos.append(output_video)
+                    logger.info(f"Successfully created simplified video for slide {i+1}")
+                except Exception as e2:
+                    logger.error(f"Simplified video creation also failed: {e2}")
+                    # Don't add a black video - better to fail cleanly
+                    raise RuntimeError(f"Cannot create video for slide {i+1}: {e}")
         
         logger.info(f"Created {len(slide_videos)} slide videos")
         return slide_videos
     
     def _create_ken_burns_filter(self, duration: float, resolution: Tuple[int, int]) -> str:
         """Create Ken Burns effect filter"""
-        # Subtle zoom in effect
-        start_zoom = 1.0
-        end_zoom = 1.1
+        # Very subtle zoom in effect
+        total_frames = int(duration * 30)  # 30 fps
         
-        # Calculate zoom expression
-        zoom_expr = f"'min(zoom,pzoom)+{(end_zoom - start_zoom) / duration / 30}'"
+        # Simple linear zoom from 1.0 to 1.05 over the duration
+        # Using simpler expressions that are more compatible
+        zoom_expr = f"'1+0.05*on/{total_frames}'"
         
-        # Center the zoom
-        x_expr = "'iw/2-(iw/zoom/2)'"
-        y_expr = "'ih/2-(ih/zoom/2)'"
+        # Keep image centered during zoom
+        x_expr = "'(iw-iw/zoom)/2'"
+        y_expr = "'(ih-ih/zoom)/2'"
         
-        return f"zoompan=z={zoom_expr}:x={x_expr}:y={y_expr}:d={int(duration * 30)}:s={resolution[0]}x{resolution[1]}"
+        # Ensure we specify frame count
+        return f"zoompan=z={zoom_expr}:x={x_expr}:y={y_expr}:d={total_frames}:s={resolution[0]}x{resolution[1]}:fps=30"
     
     async def _concatenate_videos(
         self,
@@ -426,28 +509,30 @@ class VideoAssemblyService:
         settings: VideoSettings
     ):
         """Add transition effects between slides"""
-        # For now, we'll just copy the video
-        # In a full implementation, you would add fade transitions
-        
         # Build filter for transitions
         filter_complex = []
         
         # Add fade transitions at specified timestamps
         for i, transition in enumerate(transitions):
-            if transition.transition_type == 'fade':
-                # Fade out at end of previous slide
-                if i > 0:
-                    fade_start = transition.timestamp - transition.duration
-                    filter_complex.append(
-                        f"fade=t=out:st={fade_start}:d={transition.duration}"
-                    )
-                
+            if hasattr(transition, 'transition_type') and transition.transition_type == 'fade':
                 # Fade in at start of current slide
-                filter_complex.append(
-                    f"fade=t=in:st={transition.timestamp}:d={transition.duration}"
-                )
+                if hasattr(transition, 'timestamp') and hasattr(transition, 'duration'):
+                    filter_complex.append(
+                        f"fade=t=in:st={transition.timestamp}:d={transition.duration}"
+                    )
+                    
+                    # Fade out before next slide (if not last)
+                    if i < len(transitions) - 1:
+                        next_transition = transitions[i + 1]
+                        if hasattr(next_transition, 'timestamp'):
+                            fade_out_start = next_transition.timestamp - transition.duration
+                            if fade_out_start > transition.timestamp:
+                                filter_complex.append(
+                                    f"fade=t=out:st={fade_out_start}:d={transition.duration}"
+                                )
         
         if filter_complex:
+            logger.info(f"Applying {len(filter_complex)} fade transitions")
             # Apply transitions
             cmd = [
                 self.ffmpeg_path,
@@ -460,6 +545,7 @@ class VideoAssemblyService:
                 str(output_path)
             ]
         else:
+            logger.info("No transitions to apply - direct copy")
             # No transitions, just copy
             cmd = [
                 self.ffmpeg_path,
@@ -472,22 +558,42 @@ class VideoAssemblyService:
         await self._run_ffmpeg_async(cmd)
     
     async def _run_ffmpeg_async(self, cmd: List[str]):
-        """Run ffmpeg command asynchronously"""
-        logger.debug(f"Running ffmpeg: {' '.join(cmd)}")
+        """Run ffmpeg command synchronously (despite the name, for compatibility)"""
+        logger.info(f"Running ffmpeg command: {' '.join(cmd[:10])}...")  # Log first part of command
         
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
+        # Ensure we use absolute path for ffmpeg
+        if not os.path.isabs(cmd[0]):
+            cmd[0] = self.ffmpeg_path
         
-        stdout, stderr = await process.communicate()
-        
-        if process.returncode != 0:
-            error_msg = stderr.decode() if stderr else "Unknown error"
-            raise RuntimeError(f"ffmpeg failed: {error_msg}")
-        
-        return stdout.decode() if stdout else ""
+        try:
+            # Use synchronous subprocess which has proven to work reliably
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                env={
+                    **os.environ,
+                    'PATH': f"/Users/kubilaycenk/homebrew/bin:{os.environ.get('PATH', '')}"
+                }
+            )
+            
+            if result.returncode != 0:
+                logger.error(f"FFmpeg command failed with return code {result.returncode}")
+                logger.error(f"FFmpeg stderr: {result.stderr[:1000]}")  # Log first 1000 chars
+                logger.error(f"Full command: {' '.join(cmd)}")
+                raise RuntimeError(f"ffmpeg failed with code {result.returncode}: {result.stderr[:500]}")
+            
+            # Log success
+            if result.stderr:
+                # FFmpeg often writes info to stderr even on success
+                logger.debug(f"FFmpeg info: {result.stderr[:500]}")
+            
+            return result.stdout
+            
+        except Exception as e:
+            logger.error(f"Failed to execute ffmpeg: {e}")
+            logger.error(f"Command was: {' '.join(cmd)}")
+            raise
     
     def _get_video_duration(self, video_path: Path) -> float:
         """Get duration of video file"""
