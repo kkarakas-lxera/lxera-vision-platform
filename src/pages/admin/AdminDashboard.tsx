@@ -13,13 +13,16 @@ import {
   Plus,
   Eye,
   UserCheck,
-  UserX
+  UserX,
+  MessageSquare
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
 import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
 import { CompanyCreateSheet } from '@/components/admin/CompanyManagement/CompanyCreateSheet';
 import { CourseAssignmentTracker } from '@/components/admin/CourseManagement/CourseAssignmentTracker';
+import { DemoRequestsTable } from '@/components/admin/DemoRequestsManagement/DemoRequestsTable';
+import { demoRequestService } from '@/services/demoRequestService';
 
 interface Company {
   id: string;
@@ -56,7 +59,9 @@ const AdminDashboard = () => {
     totalCompanies: 0,
     totalUsers: 0,
     activeUsers: 0,
-    totalCourses: 0
+    totalCourses: 0,
+    demoRequests: 0,
+    newDemoRequests: 0
   });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userSheetOpen, setUserSheetOpen] = useState(false);
@@ -119,6 +124,9 @@ const AdminDashboard = () => {
         console.error('Error fetching courses:', coursesError);
       }
 
+      // Fetch demo request stats
+      const demoStats = await demoRequestService.getDemoRequestStats();
+
       // Calculate stats
       const totalCompanies = companiesData?.length || 0;
       const totalUsers = usersData?.length || 0;
@@ -129,7 +137,9 @@ const AdminDashboard = () => {
         totalCompanies,
         totalUsers,
         activeUsers,
-        totalCourses
+        totalCourses,
+        demoRequests: demoStats.total,
+        newDemoRequests: demoStats.new
       });
 
     } catch (error) {
@@ -200,21 +210,21 @@ const AdminDashboard = () => {
 
         <Card className="hover:scale-105 transition-transform duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-semibold">Platform Health</CardTitle>
-            <div className="w-12 h-12 bg-emerald/10 rounded-2xl flex items-center justify-center">
-              <Activity className="h-6 w-6 text-emerald" />
+            <CardTitle className="text-lg font-semibold">Demo Requests</CardTitle>
+            <div className="w-12 h-12 bg-future-green/10 rounded-2xl flex items-center justify-center">
+              <MessageSquare className="h-6 w-6 text-future-green" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald mb-2">Healthy</div>
-            <p className="text-sm text-business-black/60">All systems operational</p>
+            <div className="text-3xl font-bold text-business-black mb-2">{stats.demoRequests}</div>
+            <p className="text-sm text-business-black/60">{stats.newDemoRequests} new requests</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tab Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 p-1 rounded-2xl shadow-sm">
+        <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 p-1 rounded-2xl shadow-sm">
           <TabsTrigger 
             value="overview" 
             className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
@@ -244,6 +254,12 @@ const AdminDashboard = () => {
             className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
           >
             Activity
+          </TabsTrigger>
+          <TabsTrigger 
+            value="demo-requests" 
+            className="rounded-xl px-3 py-2 text-sm font-medium text-business-black/70 hover:text-business-black hover:bg-gray-50 data-[state=active]:bg-future-green data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+          >
+            Demo Requests
           </TabsTrigger>
         </TabsList>
 
@@ -489,6 +505,11 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Demo Requests Tab */}
+        <TabsContent value="demo-requests">
+          <DemoRequestsTable />
         </TabsContent>
       </Tabs>
 

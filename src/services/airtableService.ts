@@ -5,6 +5,10 @@ interface DemoRequest {
   email: string;
   company: string;
   message?: string;
+  jobTitle?: string;
+  phone?: string;
+  companySize?: string;
+  country?: string;
   source?: string;
   timestamp?: string;
 }
@@ -40,6 +44,10 @@ class AirtableService {
         Email: request.email,
         Company: request.company,
         Message: request.message || '',
+        'Job Title': request.jobTitle || '',
+        Phone: request.phone || '',
+        'Company Size': request.companySize || '',
+        Country: request.country || '',
         Source: request.source || 'Website',
         'Submitted At': request.timestamp || new Date().toISOString(),
         Status: 'New'

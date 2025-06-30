@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle, AlertCircle, X } from "lucide-react";
-import { airtableService, type DemoRequest } from "@/services/airtableService";
+import { demoRequestService, type DemoRequest } from "@/services/demoRequestService";
 import { useToast } from "@/hooks/use-toast";
 
 interface DemoModalProps {
@@ -17,14 +18,44 @@ interface DemoModalProps {
 
 const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     company: "",
+    jobTitle: "",
+    phone: "",
+    companySize: "",
+    country: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+
+  const companySizeOptions = [
+    "1-10",
+    "11-50",
+    "51-200",
+    "201-500",
+    "501-1000",
+    "1001-5000",
+    "5000+"
+  ];
+
+  const countryOptions = [
+    "United States",
+    "United Kingdom",
+    "Canada",
+    "Australia",
+    "Germany",
+    "France",
+    "Netherlands",
+    "Singapore",
+    "Japan",
+    "Brazil",
+    "India",
+    "Other"
+  ];
 
   const handleInputChange = (field: keyof typeof formData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -35,10 +66,17 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
     }));
   };
 
+  const handleSelectChange = (field: keyof typeof formData) => (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.company) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.company) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -51,12 +89,23 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
     try {
       const demoRequest: DemoRequest = {
-        ...formData,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        company: formData.company,
+        message: formData.message,
+        jobTitle: formData.jobTitle,
+        phone: formData.phone,
+        companySize: formData.companySize,
+        country: formData.country,
         source,
-        timestamp: new Date().toISOString(),
       };
 
-      await airtableService.submitDemoRequest(demoRequest);
+      const result = await demoRequestService.submitDemoRequest(demoRequest);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit demo request');
+      }
       
       setIsSubmitted(true);
       toast({
@@ -76,18 +125,28 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
   };
 
   const handleClose = () => {
-    setFormData({ name: "", email: "", company: "", message: "" });
+    setFormData({ 
+      firstName: "",
+      lastName: "",
+      email: "",
+      company: "",
+      jobTitle: "",
+      phone: "",
+      companySize: "",
+      country: "",
+      message: ""
+    });
     setIsSubmitted(false);
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20">
+      <DialogContent className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
-              {isSubmitted ? "Thank You!" : "Request a Demo"}
+              {isSubmitted ? "Thank You!" : "Get a demo"}
             </DialogTitle>
             <Button
               variant="ghost"
@@ -121,29 +180,46 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-business-black">
-                  Full Name *
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleInputChange("name")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm font-medium text-business-black">
+                    First name *
+                  </Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="First name"
+                    value={formData.firstName}
+                    onChange={handleInputChange("firstName")}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm font-medium text-business-black">
+                    Last name *
+                  </Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Last name"
+                    value={formData.lastName}
+                    onChange={handleInputChange("lastName")}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-business-black">
-                  Work Email *
+                  Work email *
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your work email"
+                  placeholder="your.email@company.com"
                   value={formData.email}
                   onChange={handleInputChange("email")}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
@@ -153,12 +229,12 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-sm font-medium text-business-black">
-                  Company *
+                  Company name *
                 </Label>
                 <Input
                   id="company"
                   type="text"
-                  placeholder="Enter your company name"
+                  placeholder="Company name"
                   value={formData.company}
                   onChange={handleInputChange("company")}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
@@ -167,18 +243,88 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="jobTitle" className="text-sm font-medium text-business-black">
+                  Job title
+                </Label>
+                <Input
+                  id="jobTitle"
+                  type="text"
+                  placeholder="Your role"
+                  value={formData.jobTitle}
+                  onChange={handleInputChange("jobTitle")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium text-business-black">
+                  Phone number
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Phone number"
+                  value={formData.phone}
+                  onChange={handleInputChange("phone")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="companySize" className="text-sm font-medium text-business-black">
+                    # of employees
+                  </Label>
+                  <Select value={formData.companySize} onValueChange={handleSelectChange("companySize")}>
+                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green">
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companySizeOptions.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="text-sm font-medium text-business-black">
+                    Country
+                  </Label>
+                  <Select value={formData.country} onValueChange={handleSelectChange("country")}>
+                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countryOptions.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="message" className="text-sm font-medium text-business-black">
-                  Tell us about your learning & innovation goals (optional)
+                  How can we help you?
                 </Label>
                 <Textarea
                   id="message"
-                  placeholder="What challenges are you looking to solve?"
+                  placeholder="Tell us about your learning and development needs..."
                   value={formData.message}
                   onChange={handleInputChange("message")}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
                   rows={3}
                 />
               </div>
+            </div>
+
+            <div className="text-xs text-business-black/60 px-2">
+              By completing and submitting this form, you agree that LXERA may email or call you with product updates, educational resources, and other promotional information. To learn more about how LXERA uses your information, see our <a href="/privacy" className="text-future-green hover:underline">Privacy Policy</a>.
             </div>
 
             <div className="flex gap-3 pt-4">
