@@ -9,7 +9,6 @@ import { CourseGenerationProvider } from "@/contexts/CourseGenerationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { EnvCheck } from "@/components/EnvCheck";
 
 
 // Import existing pages
@@ -87,11 +86,11 @@ import DepartmentSkillsDetail from "./pages/dashboard/skills/DepartmentSkillsDet
 const queryClient = new QueryClient();
 
 const App = () => {
+  console.log('LXERA: App component rendering...');
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <EnvCheck />
           <Toaster />
           <Sonner />
           <BrowserRouter>
