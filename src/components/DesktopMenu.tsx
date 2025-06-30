@@ -32,7 +32,7 @@ interface DesktopMenuProps {
 
 const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
@@ -365,8 +365,20 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           Request a Demo
         </Button>
 
-        {/* Only show Sign In button when user is not authenticated */}
-        {!user && (
+        {/* Show Go to Dashboard when authenticated, Sign In when not */}
+        {user && userProfile ? (
+          <Link to={
+            userProfile.role === 'super_admin' ? '/admin' : 
+            userProfile.role === 'company_admin' ? '/dashboard' : 
+            '/learner'
+          }>
+            <Button 
+              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
+            >
+              Go to Dashboard
+            </Button>
+          </Link>
+        ) : (
           <Link to="/login">
             <Button 
               variant="outline" 

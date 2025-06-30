@@ -216,6 +216,62 @@ class EducationalSlideGenerator:
         logger.info(f"Slide deck generation complete: {len(slide_metadata)} slides")
         return slide_metadata
     
+    def create_slide_from_script(
+        self,
+        slide_number: int,
+        title: str,
+        bullet_points: List[str],
+        output_path: str,
+        theme: str = 'professional',
+        speaker_notes: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a single slide from script content
+        
+        Args:
+            slide_number: Slide number
+            title: Slide title
+            bullet_points: List of bullet points
+            output_path: Path to save the slide
+            theme: Design theme to use
+            speaker_notes: Optional speaker notes
+            
+        Returns:
+            Slide metadata
+        """
+        # Set design theme
+        if theme in self.designs:
+            self.current_design = self.designs[theme]
+        
+        # Create a mock slide note object for compatibility
+        class MockSlideNote:
+            def __init__(self, slide_num, slide_title, points, notes):
+                self.slide_number = slide_num
+                self.content_section = 'content'
+                self.main_points = points
+                self.speaker_notes = notes or ""
+                self.timing_cues = []
+        
+        slide_note = MockSlideNote(slide_number, title, bullet_points, speaker_notes)
+        
+        # Generate the slide
+        output_file = Path(output_path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        if slide_number == 1 and 'welcome' in title.lower():
+            slide_path = self._generate_title_slide(slide_note, output_file)
+        elif 'takeaway' in title.lower() or 'summary' in title.lower():
+            slide_path = self._generate_summary_slide(slide_note, output_file)
+        else:
+            slide_path = self._generate_content_slide(slide_note, output_file)
+        
+        return {
+            'slide_number': slide_number,
+            'file_path': str(slide_path),
+            'title': title,
+            'theme': theme
+        }
+    
     def _generate_title_slide(self, slide_note: Any, output_path: Path) -> Path:
         """Generate a professional title slide using wireframe layout"""
         # Create base image with clean background

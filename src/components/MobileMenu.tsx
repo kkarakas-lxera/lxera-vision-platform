@@ -34,7 +34,7 @@ const MobileMenu = ({
   scrollToSection 
 }: MobileMenuProps) => {
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   const handleRequestDemo = () => {
     scrollToSection('#contact');
@@ -285,9 +285,21 @@ const MobileMenu = ({
                     )}
                   </div>
                 ))}
-                {/* Only show Sign In button when user is not authenticated */}
-                {!user && (
-                  <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                {/* Show Go to Dashboard when authenticated, Sign In when not */}
+                <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  {user && userProfile ? (
+                    <Link to={
+                      userProfile.role === 'super_admin' ? '/admin' : 
+                      userProfile.role === 'company_admin' ? '/dashboard' : 
+                      '/learner'
+                    }>
+                      <Button 
+                        className="w-full bg-future-green text-business-black hover:bg-future-green/90 transition-all duration-200 rounded-xl font-medium"
+                      >
+                        Go to Dashboard
+                      </Button>
+                    </Link>
+                  ) : (
                     <Link to="/login">
                       <Button 
                         variant="outline" 
@@ -296,8 +308,8 @@ const MobileMenu = ({
                         Sign In
                       </Button>
                     </Link>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </ScrollArea>
           </div>

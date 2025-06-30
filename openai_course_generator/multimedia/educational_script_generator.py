@@ -12,6 +12,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import openai
 
+# Import our new components
+from .content_essence_extractor import ContentEssenceExtractor, SlideEssence
+from .human_narration_generator import HumanNarrationGenerator
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -50,6 +54,10 @@ class EducationalScriptGenerator:
         self.min_slide_duration = 15  # seconds
         self.max_slide_duration = 45  # seconds
         self.max_bullet_points = 5
+        
+        # Initialize enhanced components
+        self.essence_extractor = ContentEssenceExtractor()
+        self.narration_generator = HumanNarrationGenerator()
         
     def generate_educational_script(
         self,
@@ -339,21 +347,41 @@ Let's begin by looking at what you'll learn today.
         is_first_slide: bool,
         section_name: str
     ) -> str:
-        """Generate engaging speaker notes"""
+        """Generate engaging speaker notes with human touch"""
         
         employee_name = employee_context.get('name', 'there')
         
-        # Create conversational narration
-        notes = ""
-        
-        if is_first_slide:
-            notes += f"Now let's explore {section_name.lower()}. "
-        
-        # Add personalized context
-        if 'practical' in section_name.lower():
-            notes += f"These practical applications will be especially relevant to your work. "
-        elif 'case' in section_name.lower():
-            notes += f"Let's look at some real-world examples that demonstrate these concepts. "
+        # Use essence extractor for better content understanding
+        if hasattr(self, 'essence_extractor'):
+            slide_essence = self.essence_extractor.extract_slide_essence(
+                content, section_name
+            )
+            
+            # Build narrative around the essence
+            notes = ""
+            
+            if is_first_slide:
+                notes += f"Now, {employee_name}, let's dive into {section_name.lower()}. "
+                notes += f"{slide_essence.headline}. "
+            
+            # Add the core insight
+            notes += f"{slide_essence.insight} "
+            
+            # Add personal impact
+            notes += f"This will help you {slide_essence.impact.lower()}. "
+            
+        else:
+            # Fallback to original approach
+            notes = ""
+            
+            if is_first_slide:
+                notes += f"Now let's explore {section_name.lower()}. "
+            
+            # Add personalized context
+            if 'practical' in section_name.lower():
+                notes += f"These practical applications will be especially relevant to your work. "
+            elif 'case' in section_name.lower():
+                notes += f"Let's look at some real-world examples that demonstrate these concepts. "
         
         # Incorporate the content naturally
         # Remove duplicate information from key points
@@ -367,13 +395,13 @@ Let's begin by looking at what you'll learn today.
         # Make it conversational
         notes += content_for_notes
         
-        # Add transitions and engagement
+        # Add natural transitions
         if not notes.endswith('.'):
             notes += '.'
         
-        # Add emphasis on key points
+        # Add emphasis on key points with more natural language
         if key_points:
-            notes += f" Pay special attention to these key points we've highlighted."
+            notes += f" Now, {employee_name}, these are the key points I want you to remember."
         
         return notes.strip()
     
@@ -492,17 +520,57 @@ Thank you for your attention and commitment to professional development!
         return takeaways[:5]
     
     def _combine_narration(self, slides: List[SlideContent], employee_context: Dict[str, Any]) -> str:
-        """Combine all speaker notes into full narration"""
-        narration_parts = []
+        """Combine all speaker notes into full narration with human touch"""
         
-        for i, slide in enumerate(slides):
-            # Add slide transition if not first slide
-            if i > 0:
-                narration_parts.append(" ")  # Natural pause
+        # Use human narration generator if available
+        if hasattr(self, 'narration_generator'):
+            # Convert slides to format expected by narration generator
+            script_data = {
+                'slides': [
+                    {
+                        'speaker_notes': slide.speaker_notes,
+                        'bullet_points': slide.bullet_points,
+                        'title': slide.title
+                    }
+                    for slide in slides
+                ]
+            }
             
-            narration_parts.append(slide.speaker_notes)
+            # Generate conversational script
+            conversational_script = self.narration_generator.generate_conversational_script(
+                {'module_name': slides[0].title if slides else 'Training'},
+                employee_context,
+                script_data
+            )
+            
+            # Combine all parts
+            parts = [
+                conversational_script.greeting,
+                conversational_script.introduction
+            ]
+            
+            # Add main content with transitions
+            for i, segment in enumerate(conversational_script.main_content):
+                if i < len(conversational_script.transitions):
+                    parts.append(conversational_script.transitions[i])
+                parts.append(segment.text)
+            
+            parts.append(conversational_script.conclusion)
+            
+            return ' '.join(parts)
         
-        return " ".join(narration_parts)
+        else:
+            # Fallback to original approach
+            narration_parts = []
+            
+            for i, slide in enumerate(slides):
+                # Add slide transition if not first slide
+                if i > 0:
+                    narration_parts.append(" ")  # Natural pause
+                
+                narration_parts.append(slide.speaker_notes)
+            
+            return " ".join(narration_parts)
     
     def _estimate_duration(self, speaker_notes: str) -> float:
         """Estimate speaking duration in seconds"""
