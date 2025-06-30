@@ -91,19 +91,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 bg-white shadow-lg transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out",
         sidebarExpanded ? "w-64" : "w-16"
       )}>
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          {sidebarExpanded && <Logo />}
+        <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
+          {sidebarExpanded && (
+            <div className="flex items-center">
+              <img
+                src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+                alt="LXERA logo"
+                className="h-8 object-contain"
+                draggable={false}
+              />
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8"
+            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
           >
             {sidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
@@ -122,10 +131,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group",
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group",
                     isActive
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white",
                     !sidebarExpanded && "justify-center"
                   )}
                   title={!sidebarExpanded ? item.label : undefined}
