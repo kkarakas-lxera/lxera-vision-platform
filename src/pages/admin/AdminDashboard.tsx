@@ -30,7 +30,7 @@ interface DashboardStats {
   newDemoRequests: number;
 }
 
-interface DemoRequest {
+interface DemoRequestRecord {
   id: string;
   first_name: string;
   last_name: string;
@@ -38,6 +38,17 @@ interface DemoRequest {
   company: string;
   status: string;
   created_at: string;
+  job_title?: string;
+  phone?: string;
+  company_size?: string;
+  country?: string;
+  message?: string;
+  source?: string;
+  notes?: string;
+  processed_by?: string;
+  processed_at?: string;
+  submitted_at?: string;
+  updated_at?: string;
 }
 
 const AdminDashboard: React.FC = () => {
@@ -50,7 +61,7 @@ const AdminDashboard: React.FC = () => {
     totalDemoRequests: 0,
     newDemoRequests: 0
   });
-  const [recentDemoRequests, setRecentDemoRequests] = useState<DemoRequest[]>([]);
+  const [recentDemoRequests, setRecentDemoRequests] = useState<DemoRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -90,7 +101,29 @@ const AdminDashboard: React.FC = () => {
         newDemoRequests
       });
 
-      setRecentDemoRequests(demoRequests.slice(0, 5));
+      // Map demo requests to proper format
+      const mappedRequests: DemoRequestRecord[] = demoRequests.slice(0, 5).map(req => ({
+        id: req.id,
+        first_name: req.first_name,
+        last_name: req.last_name,
+        email: req.email,
+        company: req.company,
+        status: req.status,
+        created_at: req.created_at,
+        job_title: req.job_title,
+        phone: req.phone,
+        company_size: req.company_size,
+        country: req.country,
+        message: req.message,
+        source: req.source,
+        notes: req.notes,
+        processed_by: req.processed_by,
+        processed_at: req.processed_at,
+        submitted_at: req.submitted_at,
+        updated_at: req.updated_at
+      }));
+      
+      setRecentDemoRequests(mappedRequests);
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

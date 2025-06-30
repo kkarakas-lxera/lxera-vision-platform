@@ -1,291 +1,199 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+export interface GenerationProgress {
+  phase: string;
+  employee: string;
+  progress: number;
+  completed: boolean;
+  error?: string;
+}
+
+export interface CourseGenerationResult {
+  success: boolean;
+  courseId?: string;
+  planId?: string;
+  error?: string;
+}
+
 export class CourseGenerationPipeline {
-  private sessionId: string;
+  private jobId: string;
   private companyId: string;
-  private employeeName: string;
-  private contentId: string;
+  private employeeIds: string[];
+  private onProgress?: (progress: GenerationProgress) => void;
 
-  constructor(sessionId: string, companyId: string, employeeName: string, contentId: string) {
-    this.sessionId = sessionId;
-    this.companyId = companyId;
-    this.employeeName = employeeName;
-    this.contentId = contentId;
-  }
-
-  async createMultimediaSession(moduleName: string) {
-    try {
-      const { data, error } = await supabase
-        .from('mm_multimedia_sessions')
-        .insert({
-          content_id: this.contentId,
-          company_id: this.companyId,
-          session_type: 'full_generation',
-          module_name: moduleName,
-          employee_name: this.employeeName,
-          content_sections: ['introduction', 'core_content', 'practical_applications'],
-          status: 'started',
-          total_assets_generated: 0,
-          slides_generated: 0,
-          audio_files_generated: 0,
-          video_files_generated: 0
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error creating multimedia session:', error);
-      throw error;
-    }
-  }
-
-  async createMultimediaAssets(assets: Array<{
-    asset_type: string;
-    file_name: string;
-    file_path: string;
-    file_size: number;
-    duration_seconds: number;
-  }>) {
-    try {
-      const assetsWithRequiredFields = assets.map(asset => ({
-        session_id: this.sessionId,
-        content_id: this.contentId,
-        company_id: this.companyId,
-        asset_name: asset.file_name,
-        asset_type: asset.asset_type,
-        file_path: asset.file_path,
-        file_size_bytes: asset.file_size,
-        duration_seconds: asset.duration_seconds
-      }));
-
-      const { data, error } = await supabase
-        .from('mm_multimedia_assets')
-        .insert(assetsWithRequiredFields);
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error creating multimedia assets:', error);
-      throw error;
-    }
-  }
-
-  async updateCourseGenerationJob(updates: any) {
-    try {
-      const { data, error } = await supabase
-        .from('course_generation_jobs')
-        .update(updates)
-        .eq('content_id', this.contentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error updating course generation job:', error);
-      throw error;
-    }
-  }
-
-  async logLlmStep(
-    serviceType: string,
-    modelUsed: string,
-    inputTokens: any,
-    outputTokens: any,
-    success: boolean = true
+  constructor(
+    jobId: string,
+    companyId: string,
+    employeeIds: string[],
+    onProgress?: (progress: GenerationProgress) => void
   ) {
+    this.jobId = jobId;
+    this.companyId = companyId;
+    this.employeeIds = employeeIds;
+    this.onProgress = onProgress;
+  }
+
+  async execute(): Promise<CourseGenerationResult[]> {
+    const results: CourseGenerationResult[] = [];
+
     try {
-      const costEstimate = (inputTokens * 0.0015 + outputTokens * 0.002) / 1000;
+      // Update job status to processing
+      await this.updateJobStatus('processing', 0);
 
-      const { data, error } = await supabase
-        .from('st_llm_usage_metrics')
-        .insert({
-          company_id: this.companyId,
-          service_type: serviceType,
-          model_used: modelUsed,
-          input_tokens: inputTokens,
-          output_tokens: outputTokens,
-          cost_estimate: costEstimate,
-          success: success
-        })
-        .select()
-        .single();
+      for (let i = 0; i < this.employeeIds.length; i++) {
+        const employeeId = this.employeeIds[i];
+        const progress = Math.round(((i + 1) / this.employeeIds.length) * 100);
 
-      if (error) {
-        console.error('Error logging LLM step:', error);
-        throw error;
+        try {
+          // Get employee details
+          const { data: employee, error: employeeError } = await supabase
+            .from('employees')
+            .select('*, users!inner(full_name)')
+            .eq('id', employeeId)
+            .single();
+
+          if (employeeError) throw employeeError;
+
+          const employeeName = employee.users?.full_name || 'Unknown Employee';
+
+          // Update progress
+          await this.updateJobStatus('processing', progress, employeeName, 'Generating course plan');
+          
+          this.onProgress?.({
+            phase: 'Planning',
+            employee: employeeName,
+            progress,
+            completed: false
+          });
+
+          // Generate course for this employee
+          const result = await this.generateCourseForEmployee(employeeId, employeeName);
+          results.push(result);
+
+          // Update job progress
+          await this.updateJobProgress(i + 1, result.success ? 1 : 0, result.error ? 1 : 0);
+
+        } catch (error: any) {
+          console.error(`Error generating course for employee ${employeeId}:`, error);
+          results.push({
+            success: false,
+            error: error.message
+          });
+
+          await this.updateJobProgress(i + 1, 0, 1);
+        }
       }
 
-      return data;
-    } catch (error) {
-      console.error('Error in logLlmStep:', error);
+      // Mark job as completed
+      await this.updateJobStatus('completed', 100);
+
+      return results;
+
+    } catch (error: any) {
+      console.error('Course generation pipeline error:', error);
+      await this.updateJobStatus('failed', 0, undefined, undefined, error.message);
       throw error;
     }
   }
 
-  async generateCoursePlan(employeeSkills: string): Promise<string> {
+  private async generateCourseForEmployee(employeeId: string, employeeName: string): Promise<CourseGenerationResult> {
     try {
-      const prompt = `Given the following employee skills and experience: ${employeeSkills}, create a personalized course plan with a list of modules and topics tailored to improve their skills.`;
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          prompt: prompt,
-          max_tokens: 2048,
-          model: 'gpt-4'
-        }
-      });
-
-      if (error) {
-        console.error('Error generating course plan:', error);
-        throw new Error(error.message);
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Error in generateCoursePlan:', error);
-      throw new Error(error.message || 'Failed to generate course plan');
-    }
-  }
-
-  async researchRelevantContent(coursePlan: string): Promise<string> {
-    try {
-      const prompt = `Given the following course plan: ${coursePlan}, research and gather relevant content, articles, and resources for each module and topic.`;
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          prompt: prompt,
-          max_tokens: 2048,
-          model: 'gpt-4'
-        }
-      });
-
-      if (error) {
-        console.error('Error researching relevant content:', error);
-        throw new Error(error.message);
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Error in researchRelevantContent:', error);
-      throw new Error(error.message || 'Failed to research relevant content');
-    }
-  }
-
-  async generateCourseContent(coursePlan: string): Promise<string> {
-    try {
-      const prompt = `Given the following course plan: ${coursePlan}, generate detailed course content for each module and topic, including explanations, examples, and exercises.`;
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          prompt: prompt,
-          max_tokens: 4096,
-          model: 'gpt-4'
-        }
-      });
-
-      if (error) {
-        console.error('Error generating course content:', error);
-        throw new Error(error.message);
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Error in generateCourseContent:', error);
-      throw new Error(error.message || 'Failed to generate course content');
-    }
-  }
-
-  async enhanceContentQuality(courseContent: string): Promise<string> {
-    try {
-      const prompt = `Improve the quality, clarity, and engagement of the following course content: ${courseContent}.`;
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          prompt: prompt,
-          max_tokens: 2048,
-          model: 'gpt-4'
-        }
-      });
-
-      if (error) {
-        console.error('Error enhancing content quality:', error);
-        throw new Error(error.message);
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Error in enhanceContentQuality:', error);
-      throw new Error(error.message || 'Failed to enhance content quality');
-    }
-  }
-
-  async storeCourseContent(courseContent: string): Promise<any> {
-    try {
-      const { data, error } = await supabase
-        .from('cm_module_content')
-        .update({
-          introduction: courseContent,
-          core_content: courseContent,
-          practical_applications: courseContent,
-          case_studies: courseContent,
-          assessments: courseContent,
-          status: 'completed'
+      // This would integrate with the actual course generation API
+      // For now, we'll create a placeholder course plan
+      
+      const { data: coursePlan, error } = await supabase
+        .from('cm_course_plans')
+        .insert({
+          employee_id: employeeId,
+          employee_name: employeeName,
+          session_id: `gen-${this.jobId}-${employeeId}`,
+          course_title: `Personalized Course for ${employeeName}`,
+          course_structure: {
+            modules: [
+              {
+                id: 'M01',
+                name: 'Introduction Module',
+                duration: '1 week'
+              }
+            ]
+          },
+          prioritized_gaps: [],
+          research_strategy: { queries: [] },
+          learning_path: { path: [] },
+          employee_profile: {},
+          total_modules: 1,
+          course_duration_weeks: 4
         })
-        .eq('content_id', this.contentId)
         .select()
         .single();
 
-      if (error) {
-        console.error('Error storing course content:', error);
-        throw new Error(error.message);
-      }
+      if (error) throw error;
 
-      return data;
-    } catch (error: any) {
-      console.error('Error in storeCourseContent:', error);
-      throw new Error(error.message || 'Failed to store course content');
-    }
-  }
-
-  async createCourseAssignment(employeeId: string): Promise<any> {
-    try {
-      const { data, error } = await supabase
+      // Create course assignment
+      const { data: assignment, error: assignmentError } = await supabase
         .from('course_assignments')
         .insert({
           employee_id: employeeId,
-          course_id: this.contentId,
+          course_id: coursePlan.plan_id,
+          plan_id: coursePlan.plan_id,
           company_id: this.companyId,
-          assigned_at: new Date().toISOString(),
-          status: 'assigned',
-          progress_percentage: 0
+          total_modules: 1,
+          status: 'assigned'
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating course assignment:', error);
-        throw new Error(error.message);
-      }
+      if (assignmentError) throw assignmentError;
 
-      return data;
+      return {
+        success: true,
+        courseId: assignment.id,
+        planId: coursePlan.plan_id
+      };
+
     } catch (error: any) {
-      console.error('Error in createCourseAssignment:', error);
-      throw new Error(error.message || 'Failed to create course assignment');
+      console.error('Error generating course for employee:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
-  async generateCoursesForEmployees(employeeIds: string[], assignedById: string) {
-    // Implementation for generating courses for multiple employees
-    const results = [];
-    
-    for (const employeeId of employeeIds) {
-      try {
-        const assignment = await this.createCourseAssignment(employeeId);
-        results.push({ employeeId, success: true, assignmentId: assignment.id });
-      } catch (error) {
-        results.push({ employeeId, success: false, error: error.message });
-      }
-    }
-    
-    return results;
+  private async updateJobStatus(
+    status: string,
+    progress: number,
+    currentEmployee?: string,
+    currentPhase?: string,
+    errorMessage?: string
+  ) {
+    const updates: any = {
+      status,
+      progress_percentage: progress,
+      updated_at: new Date().toISOString()
+    };
+
+    if (currentEmployee) updates.current_employee_name = currentEmployee;
+    if (currentPhase) updates.current_phase = currentPhase;
+    if (errorMessage) updates.error_message = errorMessage;
+    if (status === 'completed') updates.completed_at = new Date().toISOString();
+
+    await supabase
+      .from('course_generation_jobs')
+      .update(updates)
+      .eq('id', this.jobId);
+  }
+
+  private async updateJobProgress(processed: number, successful: number, failed: number) {
+    await supabase
+      .from('course_generation_jobs')
+      .update({
+        processed_employees: processed,
+        successful_courses: successful,
+        failed_courses: failed,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', this.jobId);
   }
 }

@@ -1,29 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { 
+  BookOpen, 
+  Clock, 
+  Trophy, 
+  PlayCircle, 
+  CheckCircle, 
+  Calendar,
+  User,
+  Target,
+  TrendingUp
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Lock, CheckCircle, PlayCircle, Clock, BookOpen, Target, Users, Award } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface CourseModule {
-  id: string;
-  module_number: number;
-  module_title: string;
-  content_id: string;
-  is_unlocked: boolean;
-  is_completed: boolean;
-  progress_percentage: number;
-  started_at: string | null;
-  completed_at: string | null;
-  cm_module_content: {
-    total_word_count: number;
-    introduction: string | null;
-  };
-}
 
 interface CourseAssignment {
   id: string;
@@ -37,43 +31,40 @@ interface CourseAssignment {
     course_description: string;
     course_duration_weeks: number;
     total_modules: number;
-  };
+  } | null;
 }
 
-export default function CourseOverview() {
+const CourseOverview = () => {
   const { courseId } = useParams();
-  const { userProfile } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const [assignment, setAssignment] = useState<CourseAssignment | null>(null);
-  const [modules, setModules] = useState<CourseModule[]>([]);
-  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userProfile && courseId) {
-      fetchCourseData();
+    if (user && courseId) {
+      fetchCourseAssignment();
     }
-  }, [userProfile, courseId]);
+  }, [user, courseId]);
 
-  const fetchCourseData = async () => {
+  const fetchCourseAssignment = async () => {
+    if (!user || !courseId) return;
+
     try {
-      // Get employee record
-      const { data: employee } = await supabase
+      setLoading(true);
+
+      // Get employee ID first
+      const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .select('id')
-        .eq('user_id', userProfile?.id)
+        .eq('user_id', user.id)
         .single();
 
-      if (!employee) {
-        toast.error('Employee profile not found');
-        navigate('/learner');
-        return;
-      }
+      if (employeeError) throw employeeError;
 
-      setEmployeeId(employee.id);
-
-      // Fetch course assignment with plan details
-      const { data: assignmentData, error: assignmentError } = await supabase
+      // Get course assignment with plan details
+      const { data, error } = await supabase
         .from('course_assignments')
         .select(`
           id,
@@ -82,273 +73,240 @@ export default function CourseOverview() {
           modules_completed,
           progress_percentage,
           status,
-          course_plans:plan_id (
-            course_title,
-            course_description,
-            course_duration_weeks,
-            total_modules
-          )
+          plan_id
         `)
-        .eq('employee_id', employee.id)
+        .eq('employee_id', employeeData.id)
         .eq('course_id', courseId)
         .single();
 
-      if (assignmentError) throw assignmentError;
-      setAssignment(assignmentData);
+      if (error) throw error;
 
-      // Fetch course modules
-      const { data: modulesData, error: modulesError } = await supabase
-        .from('course_modules')
-        .select(`
-          *,
-          cm_module_content!inner(
-            total_word_count,
-            introduction
-          )
-        `)
-        .eq('assignment_id', assignmentData.id)
-        .order('module_number');
+      // Get course plan details if plan_id exists
+      let coursePlans = null;
+      if (data.plan_id) {
+        const { data: planData, error: planError } = await supabase
+          .from('cm_course_plans')
+          .select('course_title, course_duration_weeks, total_modules')
+          .eq('plan_id', data.plan_id)
+          .single();
 
-      if (modulesError) throw modulesError;
-      
-      // Ensure first module is always unlocked
-      if (modulesData && modulesData.length > 0) {
-        modulesData[0].is_unlocked = true;
-        
-        // Progressive unlocking: unlock next module if previous is completed
-        for (let i = 1; i < modulesData.length; i++) {
-          if (modulesData[i - 1].is_completed) {
-            modulesData[i].is_unlocked = true;
-          }
+        if (!planError && planData) {
+          coursePlans = {
+            course_title: planData.course_title || 'Personalized Learning Course',
+            course_description: 'A personalized course designed for your learning needs',
+            course_duration_weeks: planData.course_duration_weeks || 4,
+            total_modules: planData.total_modules || data.total_modules
+          };
         }
       }
-      
-      setModules(modulesData || []);
-    } catch (error) {
-      console.error('Error fetching course data:', error);
-      toast.error('Failed to load course overview');
-      navigate('/learner');
+
+      // Set assignment with proper course_plans structure
+      const assignmentData: CourseAssignment = {
+        id: data.id,
+        course_id: data.course_id,
+        total_modules: data.total_modules,
+        modules_completed: data.modules_completed,
+        progress_percentage: data.progress_percentage,
+        status: data.status,
+        course_plans: coursePlans
+      };
+
+      setAssignment(assignmentData);
+    } catch (error: any) {
+      console.error('Error fetching course assignment:', error);
+      setError(error.message);
+      toast.error('Failed to load course details');
     } finally {
       setLoading(false);
     }
   };
 
-  const startModule = async (module: CourseModule) => {
-    if (!module.is_unlocked) {
-      toast.error('Complete previous modules to unlock this one');
-      return;
+  const handleStartCourse = () => {
+    if (assignment) {
+      navigate(`/learner/course/${assignment.course_id}`);
     }
-
-    // Mark module as started if not already
-    if (!module.started_at) {
-      await supabase
-        .from('course_modules')
-        .update({ 
-          started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', module.id);
-    }
-
-    // Navigate to module viewer
-    navigate(`/learner/course/${courseId}/module/${module.content_id}`);
-  };
-
-  const getModuleIcon = (moduleNumber: number) => {
-    const icons = [BookOpen, Target, Users, Award];
-    return icons[(moduleNumber - 1) % icons.length];
-  };
-
-  const getEstimatedTime = (wordCount: number) => {
-    // Estimate reading time: 200 words per minute + exercises
-    const readingMinutes = Math.ceil(wordCount / 200);
-    const totalMinutes = readingMinutes + 15; // Add time for exercises
-    return totalMinutes < 60 ? `${totalMinutes} min` : `${Math.ceil(totalMinutes / 60)}h`;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!assignment || !modules.length) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Course not found</h2>
-          <Button onClick={() => navigate('/learner')}>Back to Dashboard</Button>
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-64 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-48 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
+
+  if (error || !assignment) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-red-600 mb-2">
+              <BookOpen className="h-12 w-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Course Not Found</h3>
+            <p className="text-muted-foreground mb-4">
+              {error || "The course you're looking for doesn't exist or you don't have access to it."}
+            </p>
+            <Button onClick={() => navigate('/learner/courses')}>
+              Back to My Courses
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const courseTitle = assignment.course_plans?.course_title || 'Personalized Learning Course';
+  const courseDescription = assignment.course_plans?.course_description || 'A personalized course designed for your learning needs';
+  const duration = assignment.course_plans?.course_duration_weeks || 4;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/learner')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">{courseTitle}</h1>
+          <p className="text-muted-foreground mt-2">{courseDescription}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate('/learner/courses')} variant="outline">
+            Back to Courses
           </Button>
-          
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold">
-              {assignment.course_plans?.course_title || 'Course'}
-            </h1>
-            <p className="text-muted-foreground">
-              {assignment.course_plans?.course_description}
-            </p>
-            
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Badge variant="secondary" className="gap-1">
-                <BookOpen className="h-3 w-3" />
-                {assignment.total_modules} Modules
-              </Badge>
-              <Badge variant="secondary" className="gap-1">
-                <Clock className="h-3 w-3" />
-                {assignment.course_plans?.course_duration_weeks} Weeks
-              </Badge>
-              <Badge variant={assignment.status === 'completed' ? 'default' : 'outline'}>
-                {assignment.status === 'completed' ? 'Completed' : 
-                 assignment.status === 'in_progress' ? 'In Progress' : 'Not Started'}
-              </Badge>
-            </div>
-          </div>
-          
-          {/* Overall Progress */}
-          <div className="mt-6 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span>Overall Progress</span>
-              <span className="font-medium">{assignment.progress_percentage}%</span>
-            </div>
-            <Progress value={assignment.progress_percentage} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              {assignment.modules_completed} of {assignment.total_modules} modules completed
-            </p>
-          </div>
+          <Button onClick={handleStartCourse} className="min-w-[120px]">
+            <PlayCircle className="h-4 w-4 mr-2" />
+            {assignment.progress_percentage > 0 ? 'Continue' : 'Start Course'}
+          </Button>
         </div>
       </div>
 
-      {/* Modules Grid */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => {
-            const Icon = getModuleIcon(module.module_number);
-            const isLocked = !module.is_unlocked;
-            
-            return (
-              <Card 
-                key={module.id} 
-                className={`relative transition-all ${
-                  isLocked ? 'opacity-60' : 'hover:shadow-lg cursor-pointer'
-                }`}
-                onClick={() => !isLocked && startModule(module)}
-              >
-                {isLocked && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-lg z-10">
-                    <Lock className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-                
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        module.is_completed ? 'bg-green-100' : 'bg-primary/10'
-                      }`}>
-                        {module.is_completed ? (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <Icon className="h-5 w-5 text-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          Module {module.module_number}
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          {module.is_completed ? 'Completed' : 
-                           module.started_at ? 'In Progress' : 'Not Started'}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <h3 className="font-semibold line-clamp-2">
-                    {module.module_title}
-                  </h3>
-                  
-                  {module.cm_module_content.introduction && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {module.cm_module_content.introduction.substring(0, 150)}...
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {getEstimatedTime(module.cm_module_content.total_word_count || 3000)}
-                    </span>
-                    
-                    {module.progress_percentage > 0 && (
-                      <span className="font-medium">
-                        {module.progress_percentage}% complete
-                      </span>
-                    )}
-                  </div>
-                  
-                  {module.progress_percentage > 0 && (
-                    <Progress value={module.progress_percentage} className="h-1" />
-                  )}
-                  
-                  <Button 
-                    className="w-full" 
-                    variant={module.is_completed ? "outline" : "default"}
-                    disabled={isLocked}
-                  >
-                    {module.is_completed ? 'Review Module' : 
-                     module.started_at ? 'Continue Learning' : 'Start Module'}
-                    {!module.is_completed && <PlayCircle className="h-4 w-4 ml-2" />}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        
-        {/* Completion Certificate Card */}
-        {assignment.status === 'completed' && (
-          <Card className="mt-8 bg-gradient-to-r from-primary/10 to-primary/5">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Award className="h-8 w-8 text-primary" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Course Progress */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Your Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Overall Progress</span>
+                  <span className="text-sm font-medium">{Math.round(assignment.progress_percentage)}%</span>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Congratulations!</h3>
-                  <p className="text-muted-foreground">
-                    You've completed all modules in this course
-                  </p>
+                <Progress value={assignment.progress_percentage} className="w-full" />
+                
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{assignment.modules_completed}</div>
+                    <div className="text-sm text-blue-600">Completed</div>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-600">{assignment.total_modules - assignment.modules_completed}</div>
+                    <div className="text-sm text-gray-600">Remaining</div>
+                  </div>
                 </div>
               </div>
-              <Button>
-                Download Certificate
-              </Button>
             </CardContent>
           </Card>
-        )}
+
+          {/* Course Description */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                About This Course
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                {courseDescription}
+              </p>
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {duration} weeks
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="h-4 w-4" />
+                    {assignment.total_modules} modules
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Target className="h-4 w-4" />
+                    Personalized Learning
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Course Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Course Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Status</span>
+                <Badge variant={assignment.status === 'completed' ? 'default' : 'secondary'}>
+                  {assignment.status === 'completed' ? 'Completed' : 
+                   assignment.status === 'in_progress' ? 'In Progress' : 'Not Started'}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Progress</span>
+                <span className="text-sm font-medium">{Math.round(assignment.progress_percentage)}%</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Modules</span>
+                <span className="text-sm font-medium">{assignment.modules_completed}/{assignment.total_modules}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button onClick={handleStartCourse} className="w-full">
+                <PlayCircle className="h-4 w-4 mr-2" />
+                {assignment.progress_percentage > 0 ? 'Continue Learning' : 'Start Course'}
+              </Button>
+              
+              {assignment.progress_percentage > 0 && (
+                <Button variant="outline" className="w-full">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  View Achievements
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default CourseOverview;

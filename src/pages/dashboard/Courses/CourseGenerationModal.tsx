@@ -1,351 +1,206 @@
 
-import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Users, FileText, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/hooks/useUser';
 import { useEmployee } from '@/hooks/useEmployee';
-import { CourseGenerationParams, generateCourse } from '@/services/courseGenerationService';
+import { generateCourse, CourseGenerationParams } from '@/services/courseGenerationService';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { createCVProcessingService } from '@/services/cv/CVProcessingService';
+import CourseGenerationTracker from '@/components/CourseGenerationTracker';
 
-interface CourseGenerationModalProps {
+export interface CourseGenerationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCourseGenerated: () => void;
+  onComplete: () => void;
+  preSelectedEmployees?: string[];
 }
 
-const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({ isOpen, onClose, onCourseGenerated }) => {
-  const [courseTitle, setCourseTitle] = useState('');
-  const [courseDescription, setCourseDescription] = useState('');
-  const [targetAudience, setTargetAudience] = useState('');
-  const [learningObjectives, setLearningObjectives] = useState('');
-  const [estimatedDuration, setEstimatedDuration] = useState('');
-  const [additionalNotes, setAdditionalNotes] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationSuccess, setGenerationSuccess] = useState(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const [cvFile, setCvFile] = useState<File | null>(null);
-  const [cvText, setCvText] = useState<string>('');
+const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
+  isOpen,
+  onClose,
+  onComplete,
+  preSelectedEmployees = []
+}) => {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const { user } = useUser();
   const { employee } = useEmployee();
-  const { uploadFile } = useFileUpload();
+  const { uploadFile, uploading } = useFileUpload();
+  
+  const [step, setStep] = useState<'setup' | 'generating' | 'completed'>('setup');
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    if (cvFile) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        setCvText(e.target.result);
-      };
-      reader.readAsText(cvFile);
+  // Get company_id from userProfile, with fallback to user
+  const getCompanyId = () => {
+    if (userProfile && 'company_id' in userProfile) {
+      return userProfile.company_id;
     }
-  }, [cvFile]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files && event.target.files[0];
-    setCvFile(file || null);
+    if (user && 'company_id' in user) {
+      return user.company_id;
+    }
+    return null;
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!user || !employee) {
+  const handleGenerateCourse = async () => {
+    const companyId = getCompanyId();
+    
+    if (!companyId || !employee?.id) {
       toast({
-        title: "Authentication Error",
-        description: "User or employee data not found. Please ensure you are logged in.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!courseTitle || !courseDescription || !targetAudience || !learningObjectives || !estimatedDuration) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
+        title: "Error",
+        description: "Missing required information. Please refresh and try again.",
+        variant: "destructive"
       });
       return;
     }
 
     setIsGenerating(true);
-    setGenerationSuccess(false);
-    setGenerationError(null);
 
     try {
-      if (!cvFile) {
-        toast({
-          title: "CV Required",
-          description: "Please upload a CV to personalize the course generation.",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      if (!user.company_id) {
-        toast({
-          title: "Company ID Missing",
-          description: "Your user profile is missing the company ID. Contact support.",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      // Upload the CV file
-      const filePath = `${user.company_id}/${employee.id}/${cvFile.name}`;
-      const uploadResult = await uploadFile('employee-cvs', cvFile, filePath);
-
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || 'Failed to upload CV');
-      }
-
-      // Call CV processing service
-      try {
-        const cvService = createCVProcessingService(user.company_id);
-        const analysis = await cvService.processCV(
-          cvText,
-          employee.id,
-          user.id,
-        );
-      } catch (cvError: any) {
-        console.error("CV Processing Failed:", cvError);
-        toast({
-          title: "CV Processing Failed",
-          description: "There was an error processing your CV. Please try again or contact support.",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      const courseParams: CourseGenerationParams = {
-        courseTitle,
-        courseDescription,
-        targetAudience,
-        learningObjectives,
-        estimatedDuration,
-        additionalNotes,
+      const params: CourseGenerationParams = {
+        courseTitle: "Personalized Learning Course",
+        courseDescription: "A personalized course based on skills analysis",
+        targetAudience: "Professional Development",
+        learningObjectives: "Improve skills and close gaps",
+        estimatedDuration: "4 weeks",
         employeeId: employee.id,
-        companyId: user.company_id,
+        companyId: companyId
       };
 
-      const result = await generateCourse(courseParams);
+      const result = await generateCourse(params);
 
-      if (result.success) {
-        setGenerationSuccess(true);
+      if (result.success && result.jobId) {
+        setJobId(result.jobId);
+        setStep('generating');
         toast({
-          title: "Course Generation Started!",
-          description: "The course generation process has started. You'll receive a notification when it's complete.",
+          title: "Course Generation Started",
+          description: "Your personalized course is being generated. This may take a few minutes."
         });
-        onCourseGenerated();
       } else {
-        setGenerationError(result.error || 'An unexpected error occurred');
-        toast({
-          title: "Course Generation Failed",
-          description: result.error || "There was an error generating the course. Please try again or contact support.",
-          variant: "destructive",
-        });
+        throw new Error(result.error || 'Failed to start course generation');
       }
     } catch (error: any) {
-      console.error("Course Generation Failed:", error);
-      setGenerationError(error.message || 'An unexpected error occurred');
+      console.error('Course generation error:', error);
       toast({
-        title: "Course Generation Failed",
-        description: error.message || "There was an error generating the course. Please try again or contact support.",
-        variant: "destructive",
+        title: "Generation Failed",
+        description: error.message || "Failed to generate course. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleClose = () => {
-    if (!isGenerating) {
-      onClose();
-    }
+  const handleGenerationComplete = () => {
+    setStep('completed');
+    toast({
+      title: "Course Generated Successfully!",
+      description: "Your personalized course is ready for review."
+    });
   };
 
-  const handleSuccessClose = () => {
-    setGenerationSuccess(false);
+  const handleClose = () => {
+    if (step === 'completed') {
+      onComplete();
+    }
     onClose();
+    // Reset state
+    setStep('setup');
+    setJobId(null);
+    setIsGenerating(false);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-future-green/20">
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
-            {generationSuccess ? "Course Generation Started!" : "Generate New Course"}
-          </DialogTitle>
-          <DialogDescription className="text-business-black/70">
-            {generationSuccess ? "The course generation process has started. You'll receive a notification when it's complete." : "Fill in the details below to start generating a new personalized course."}
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Generate Personalized Course</DialogTitle>
+          <DialogDescription>
+            Create a personalized learning course based on skills analysis
           </DialogDescription>
         </DialogHeader>
 
-        {generationSuccess ? (
-          <div className="text-center py-8 space-y-4">
-            <CheckCircle className="w-16 h-16 text-future-green mx-auto" />
-            <Button
-              onClick={handleSuccessClose}
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-2 rounded-xl"
-            >
-              Close
-            </Button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="courseTitle" className="text-sm font-medium text-business-black">
-                  Course Title
-                </Label>
-                <Input
-                  type="text"
-                  id="courseTitle"
-                  placeholder="e.g., Advanced Python for Data Science"
-                  value={courseTitle}
-                  onChange={(e) => setCourseTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                  required
-                />
-              </div>
+        {step === 'setup' && (
+          <div className="space-y-6">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                This will generate a personalized course based on the employee's CV analysis and skills gaps.
+              </AlertDescription>
+            </Alert>
 
-              <div>
-                <Label htmlFor="estimatedDuration" className="text-sm font-medium text-business-black">
-                  Estimated Duration
-                </Label>
-                <Input
-                  type="text"
-                  id="estimatedDuration"
-                  placeholder="e.g., 4 weeks"
-                  value={estimatedDuration}
-                  onChange={(e) => setEstimatedDuration(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="courseDescription" className="text-sm font-medium text-business-black">
-                Course Description
-              </Label>
-              <Textarea
-                id="courseDescription"
-                placeholder="Describe the course in detail..."
-                value={courseDescription}
-                onChange={(e) => setCourseDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="targetAudience" className="text-sm font-medium text-business-black">
-                Target Audience
-              </Label>
-              <Input
-                type="text"
-                id="targetAudience"
-                placeholder="e.g., Mid-level software engineers"
-                value={targetAudience}
-                onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="learningObjectives" className="text-sm font-medium text-business-black">
-                Learning Objectives
-              </Label>
-              <Textarea
-                id="learningObjectives"
-                placeholder="What should learners achieve?..."
-                value={learningObjectives}
-                onChange={(e) => setLearningObjectives(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="additionalNotes" className="text-sm font-medium text-business-black">
-                Additional Notes
-              </Label>
-              <Textarea
-                id="additionalNotes"
-                placeholder="Any other specifications?..."
-                value={additionalNotes}
-                onChange={(e) => setAdditionalNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="cvFile" className="text-sm font-medium text-business-black">
-                Upload CV
-              </Label>
-              <Input
-                type="file"
-                id="cvFile"
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={handleFileChange}
-                className="w-full"
-              />
-              {cvFile && (
-                <div className="mt-2 text-sm text-business-black/70">
-                  Selected file: {cvFile.name}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Course Generation
+                </CardTitle>
+                <CardDescription>
+                  Generate a course tailored to specific learning needs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Personalized Learning Course</p>
+                      <p className="text-sm text-muted-foreground">
+                        Based on skills analysis and learning objectives
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">4 weeks</Badge>
                 </div>
-              )}
+
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleGenerateCourse}
+                    disabled={isGenerating}
+                    className="min-w-[120px]"
+                  >
+                    {isGenerating ? 'Generating...' : 'Generate Course'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {step === 'generating' && jobId && (
+          <div className="space-y-4">
+            <CourseGenerationTracker 
+              jobId={jobId}
+              onComplete={handleGenerationComplete}
+            />
+          </div>
+        )}
+
+        {step === 'completed' && (
+          <div className="space-y-6">
+            <Alert>
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                Course generation completed successfully! The course is now available for review.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex justify-end gap-3">
+              <Button onClick={handleClose}>
+                Close
+              </Button>
             </div>
-
-            {generationError && (
-              <div className="text-red-500 text-sm flex items-center gap-2">
-                <XCircle className="w-4 h-4" />
-                {generationError}
-              </div>
-            )}
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isGenerating}
-                className="flex-1 border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:text-business-black font-medium py-2 rounded-xl transition-colors"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isGenerating}
-                className="flex-1 bg-future-green text-business-black hover:bg-future-green/90 font-medium py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Course"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
         )}
       </DialogContent>
     </Dialog>

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CompactDemoRequestsTable from "@/components/admin/DemoRequestsManagement/CompactDemoRequestsTable";
 
-interface DemoRequest {
+interface DemoRequestRecord {
   id: string;
   first_name: string;
   last_name: string;
@@ -12,10 +12,21 @@ interface DemoRequest {
   company: string;
   status: string;
   created_at: string;
+  job_title?: string;
+  phone?: string;
+  company_size?: string;
+  country?: string;
+  message?: string;
+  source?: string;
+  notes?: string;
+  processed_by?: string;
+  processed_at?: string;
+  submitted_at?: string;
+  updated_at?: string;
 }
 
 const DemoRequests = () => {
-  const [requests, setRequests] = useState<DemoRequest[]>([]);
+  const [requests, setRequests] = useState<DemoRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +42,30 @@ const DemoRequests = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      
+      // Map to proper format
+      const mappedRequests: DemoRequestRecord[] = (data || []).map(req => ({
+        id: req.id,
+        first_name: req.first_name,
+        last_name: req.last_name,
+        email: req.email,
+        company: req.company,
+        status: req.status,
+        created_at: req.created_at,
+        job_title: req.job_title,
+        phone: req.phone,
+        company_size: req.company_size,
+        country: req.country,
+        message: req.message,
+        source: req.source,
+        notes: req.notes,
+        processed_by: req.processed_by,
+        processed_at: req.processed_at,
+        submitted_at: req.submitted_at,
+        updated_at: req.updated_at
+      }));
+      
+      setRequests(mappedRequests);
     } catch (error) {
       console.error('Error fetching demo requests:', error);
       toast.error('Failed to load demo requests');
