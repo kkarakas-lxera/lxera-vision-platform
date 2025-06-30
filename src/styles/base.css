@@ -30,7 +30,7 @@
     --secondary-foreground: 25 25 25;
 
     --muted: 239 239 227;
-    --muted-foreground: 40 40 40; /* Much darker - close to business black */
+    --muted-foreground: 25 25 25; /* Business Black - updated for consistency */
 
     --accent: 122 229 198; /* Future Green */
     --accent-foreground: 25 25 25;

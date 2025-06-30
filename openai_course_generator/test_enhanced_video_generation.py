@@ -151,13 +151,12 @@ async def test_enhanced_video_generation():
             # Use educational theme with Lxera colors
             slide_path = slides_dir / f"slide_{slide.slide_number:03d}.png"
             
-            slide_generator.create_slide_from_content(
+            slide_generator.create_slide_from_script(
                 slide_number=slide.slide_number,
                 title=slide.title,
                 bullet_points=slide.bullet_points,
                 output_path=str(slide_path),
                 theme='educational',  # Uses Lxera colors
-                animations=True,
                 speaker_notes=slide.speaker_notes
             )
             
