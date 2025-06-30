@@ -170,11 +170,21 @@ export default function CourseDisplay() {
       const planModules = plan?.course_structure?.modules || [];
       
       // Check if we have course content
-      const { data: courseContent } = await supabase
+      const companyId = userProfile?.company_id;
+      console.log('Looking for course content with content_id:', assignment.course_id, 'and company_id:', companyId);
+      
+      const { data: courseContent, error: contentError } = await supabase
         .from('cm_module_content')
         .select('*')
         .eq('content_id', assignment.course_id)
+        .eq('company_id', companyId)
         .single();
+      
+      if (contentError) {
+        console.error('Error fetching course content:', contentError);
+      } else {
+        console.log('Course content found:', courseContent);
+      }
 
       // Create module list from plan, marking which ones have content
       const combinedModules = planModules.map((planModule: {
@@ -211,7 +221,12 @@ export default function CourseDisplay() {
         setCurrentModule(firstModule);
         
         if (firstModule.content_id && courseContent) {
+          console.log('Fetching sections for first module:', firstModule.content_id);
           fetchModuleSections(firstModule.content_id);
+        } else {
+          console.log('No content_id for first module or no course content found');
+          console.log('First module content_id:', firstModule.content_id);
+          console.log('Course content exists:', !!courseContent);
         }
       }
 
@@ -225,13 +240,40 @@ export default function CourseDisplay() {
 
   const fetchModuleSections = async (contentId: string) => {
     try {
+      // First get the company_id from the users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', userProfile?.id)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        toast.error('Unable to load user information');
+        return;
+      }
+
+      const companyId = userData?.company_id;
+      
+      if (!companyId) {
+        console.error('No company_id found for user');
+        toast.error('Unable to load content - company information missing');
+        return;
+      }
+
+      console.log('Fetching sections for contentId:', contentId, 'companyId:', companyId);
+
       const { data: sectionsData, error } = await supabase
         .from('cm_content_sections')
         .select('*')
         .eq('content_id', contentId)
+        .eq('company_id', companyId)
         .order('created_at');
 
       if (error) throw error;
+
+      console.log('Fetched sections data:', sectionsData);
+      console.log('Number of sections found:', sectionsData?.length || 0);
 
       // Fetch completion status for sections
       const sectionsWithStatus = await Promise.all(
@@ -253,6 +295,11 @@ export default function CourseDisplay() {
 
       setSections(sectionsWithStatus);
       setCurrentSection(sectionsWithStatus[0] || null);
+      
+      if (sectionsWithStatus.length === 0) {
+        console.warn('No sections found for content_id:', contentId);
+        toast.info('Content sections are being prepared. Please check back later.');
+      }
     } catch (error) {
       console.error('Error fetching sections:', error);
       toast.error('Failed to load module content');
@@ -501,8 +548,11 @@ export default function CourseDisplay() {
                       ) : sections.length === 0 ? (
                         <Card>
                           <CardContent className="p-8 text-center">
+                            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">Content Not Available</h3>
                             <p className="text-muted-foreground">
-                              Loading module content...
+                              Course content sections are currently being prepared. 
+                              Please check back later or contact your administrator.
                             </p>
                           </CardContent>
                         </Card>
