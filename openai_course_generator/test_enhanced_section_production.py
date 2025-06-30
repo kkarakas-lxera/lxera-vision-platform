@@ -31,7 +31,8 @@ async def test_enhanced_section_production():
     employee_name = 'Kubilay Cenk Karakas'
     employee_role = 'Junior Financial Analyst'
     
-    session_id = f'enhanced_test_{datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    import uuid
+    session_id = str(uuid.uuid4())
     
     logger.info('='*100)
     logger.info('ENHANCED SECTION VIDEO PRODUCTION TEST')
@@ -54,6 +55,12 @@ async def test_enhanced_section_production():
         service = EducationalVideoService()
         logger.info('✓ Service initialized with enhanced slide templates')
         
+        # Initialize Supabase Storage
+        from multimedia.supabase_storage_service import SupabaseStorageService
+        storage_service = SupabaseStorageService(service.multimedia_manager.supabase)
+        storage_service.create_storage_bucket_if_not_exists()
+        logger.info('✓ Supabase Storage initialized')
+        
         # Enhanced employee context with skill gaps and learning preferences
         employee_context = {
             'name': employee_name,
@@ -74,7 +81,8 @@ async def test_enhanced_section_production():
             'speed': 1.0,
             'design_theme': 'educational',  # Use the new educational theme
             'include_personalization': True,
-            'add_skill_indicators': True
+            'add_skill_indicators': True,
+            'company_id': '67d7bff4-1149-4f37-952e-af1841fb67fa'  # Use valid company ID
         }
         
         # Output directory for enhanced results

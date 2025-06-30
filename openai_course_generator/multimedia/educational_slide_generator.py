@@ -683,7 +683,7 @@ class EducationalSlideGenerator:
                     # Simplified for basic PIL
             
             # Module title in header
-            header_font = self._get_font(self.current_design.header_font_size, bold=True)
+            header_font = self._get_font(self.current_design.header_font_size)
             module_name = getattr(slide_note, 'module_name', 'Business Performance Reporting')
             
             # Left side - module name
@@ -779,7 +779,7 @@ class EducationalSlideGenerator:
         draw.ellipse(bbox, fill=(255, 165, 0))  # Orange for priority
         
         # "!" symbol
-        font = self._get_font(14, bold=True)
+        font = self._get_font(14)
         draw.text((x + 7, y + 2), "!", fill=(255, 255, 255), font=font)
     
     def _darken_color(self, color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:

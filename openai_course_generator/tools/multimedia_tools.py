@@ -83,7 +83,7 @@ class MultimediaManager:
         """Register a multimedia asset in the database."""
         try:
             # Get company_id from content or use default
-            company_id = metadata.get('company_id', '00000000-0000-0000-0000-000000000000')
+            company_id = metadata.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
             
             asset_data = {
                 'session_id': session_id,
@@ -93,7 +93,7 @@ class MultimediaManager:
                 'asset_name': file_name,  # Use asset_name instead of file_name
                 'file_path': file_path,
                 'section_name': section_name,
-                'status': 'generating',
+                'status': 'generated',
                 'duration_seconds': metadata.get('duration_seconds', 0),
                 'file_size_bytes': metadata.get('file_size_bytes'),
                 'mime_type': metadata.get('mime_type'),
@@ -115,7 +115,7 @@ class MultimediaManager:
     def update_asset_status(self, asset_id: str, status: str, **updates):
         """Update multimedia asset status and metadata."""
         try:
-            update_data = {'status': status, 'updated_at': datetime.now().isoformat(), **updates}
+            update_data = {'status': status, **updates}
             self.supabase.table('mm_multimedia_assets').update(update_data).eq('asset_id', asset_id).execute()
             logger.info(f"Updated asset {asset_id} status to {status}")
         except Exception as e:
@@ -194,8 +194,8 @@ class MultimediaManager:
         content_id: str = None,
         module_name: str = None,
         employee_name: str = None,
-        company_id: str = "00000000-0000-0000-0000-000000000000",
-        session_type: str = "section_based",
+        company_id: str = "67d7bff4-1149-4f37-952e-af1841fb67fa",
+        session_type: str = "full_generation",
         content_sections: list = None,
         **metadata
     ) -> str:

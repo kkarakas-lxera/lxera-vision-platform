@@ -329,6 +329,7 @@ class EducationalVideoService:
                     content_id=content_id,
                     module_name=content['module_name'],
                     employee_name=employee_context['name'],
+                    company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa'),
                     content_sections=sections or ['introduction', 'practical_applications', 'case_studies', 'assessments']
                 )
                 
@@ -349,27 +350,33 @@ class EducationalVideoService:
                     
                     asset_id = self.multimedia_manager.register_multimedia_asset(
                         session_id=options.get('session_id') if options else None,
-                        content_id=f"{content_id}_{video.section_name}",
+                        content_id=content_id,
                         course_id=content_id,
                         module_name=f"{content['module_name']} - {video.section_name}",
                         asset_type='video',
-                        file_path=video.video_path,
+                        asset_category='section_video',
+                        file_path=video.video_url or video.video_path,  # Use Supabase URL if available
                         file_name=Path(video.video_path).name,
                         section_name=video.section_name,
                         duration_seconds=video.duration,
                         file_size_bytes=file_size_bytes,
                         mime_type='video/mp4',
+                        company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa'),
                         generation_config={
                             'voice': video.metadata.get('voice') if video.metadata else None,
                             'theme': video.metadata.get('theme') if video.metadata else None,
-                            'slide_count': video.slide_count
+                            'slide_count': video.slide_count,
+                            'supabase_urls': {
+                                'video_url': video.video_url,
+                                'audio_url': getattr(video, 'audio_url', None),
+                                'slides_urls': getattr(video, 'slides_urls', [])
+                            }
                         }
                     )
                     
                     self.multimedia_manager.update_asset_status(
                         asset_id=asset_id,
-                        status='completed',
-                        ready_for_delivery=True
+                        status='processed'
                     )
             
             return {
@@ -381,9 +388,12 @@ class EducationalVideoService:
                         'section': video.section_name,
                         'video_path': video.video_path,
                         'video_url': video.video_url,
+                        'audio_url': getattr(video, 'audio_url', None),
+                        'slides_urls': getattr(video, 'slides_urls', []),
                         'duration': video.duration,
                         'slide_count': video.slide_count,
-                        'metadata': video.metadata
+                        'metadata': video.metadata,
+                        'storage_type': 'supabase' if video.video_url else 'local'
                     }
                     for video in section_videos
                 ],

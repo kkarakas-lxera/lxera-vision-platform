@@ -25,6 +25,8 @@ class SectionVideo:
     slide_count: int
     video_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
+    slides_urls: Optional[List[str]] = None
+    audio_url: Optional[str] = None
     metadata: Dict[str, Any] = None
 
 class SectionVideoGenerator:
@@ -131,11 +133,38 @@ class SectionVideoGenerator:
         if progress_callback:
             progress_callback(95, "Uploading videos to storage")
             
-        # Upload all videos to storage
+        # Upload all videos and assets to Supabase Storage
         for video in section_videos:
             if os.path.exists(video.video_path):
-                video_url = await self._upload_video(video.video_path, video.section_name)
-                video.video_url = video_url
+                # Get content_id and employee info from the content
+                content_id = content.get('content_id', 'default')
+                employee_name = employee_context.get('name', 'default')
+                
+                # Upload complete section (video, slides, audio)
+                from multimedia.supabase_storage_service import SupabaseStorageService
+                storage_service = SupabaseStorageService(self.multimedia_manager.supabase)
+                
+                # Upload all section assets
+                upload_result = await storage_service.upload_complete_section(
+                    output_dir=str(output_path),
+                    content_id=content_id,
+                    section_name=video.section_name,
+                    employee_name=employee_name
+                )
+                
+                if upload_result['success']:
+                    # Update video with Supabase Storage URLs
+                    video.video_url = upload_result['uploads'].get('video', {}).get('public_url')
+                    video.slides_urls = [
+                        slide['public_url'] for slide in 
+                        upload_result['uploads'].get('slides', {}).get('slides', [])
+                    ]
+                    video.audio_url = upload_result['uploads'].get('audio', {}).get('public_url')
+                    
+                    logger.info(f"✅ Complete section uploaded to Supabase Storage: {video.section_name}")
+                else:
+                    logger.error(f"Failed to upload section to storage: {upload_result.get('error')}")
+                    video.video_url = None
                 
         if progress_callback:
             progress_callback(100, "Section videos generated successfully")
@@ -270,13 +299,29 @@ class SectionVideoGenerator:
             
         return section_content
     
-    async def _upload_video(self, video_path: str, section_name: str) -> str:
-        """Upload video to storage and return URL"""
+    async def _upload_video(self, video_path: str, section_name: str, content_id: str = None, employee_name: str = "default") -> str:
+        """Upload video to Supabase Storage and return URL"""
         try:
-            # This would use your actual storage service
-            # For now, return a placeholder
-            logger.info(f"Would upload video: {video_path}")
-            return f"https://storage.example.com/videos/{section_name}_video.mp4"
+            # Import storage service
+            from multimedia.supabase_storage_service import SupabaseStorageService
+            
+            storage_service = SupabaseStorageService(self.multimedia_manager.supabase)
+            
+            # Upload video to Supabase Storage
+            result = await storage_service.upload_video(
+                video_path=video_path,
+                content_id=content_id or "default",
+                section_name=section_name,
+                employee_name=employee_name
+            )
+            
+            if result['success']:
+                logger.info(f"✅ Video uploaded to Supabase Storage: {result['public_url']}")
+                return result['public_url']
+            else:
+                logger.error(f"Failed to upload video: {result.get('error')}")
+                return None
+                
         except Exception as e:
             logger.error(f"Failed to upload video: {e}")
             return None

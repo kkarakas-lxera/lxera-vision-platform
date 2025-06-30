@@ -42,14 +42,48 @@ export default function GreetingVideoPlayer({ videoId, title, onFeedback }: Gree
     }
   }, [isPlaying, feedbackGiven]);
 
-  // Set video source
+  // Fetch video source from HeyGen API
   useEffect(() => {
-    if (videoId) {
+    const fetchVideoUrl = async () => {
+      if (!videoId) return;
+      
       setLoading(true);
-      const heygenVideoUrl = `https://resource.heygen.com/video/${videoId}.mp4`;
-      setVideoSrc(heygenVideoUrl);
-      setLoading(false);
-    }
+      try {
+        // Use HeyGen API to get the actual video URL
+        const response = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${videoId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'X-Api-Key': 'Y2YxZDIyZDlhZTYxNDQ5MWIyNTNkM2I2ZjViMmVlMTItMTc1MTAyMzA4Mw=='
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('HeyGen API response:', data);
+          
+          if (data.code === 100 && data.data?.status === 'completed' && data.data?.video_url) {
+            console.log('Found HeyGen video URL:', data.data.video_url);
+            setVideoSrc(data.data.video_url);
+          } else {
+            console.log('Video not ready or not found:', data);
+            setVideoSrc('');
+          }
+        } else {
+          console.error('HeyGen API error:', response.status, response.statusText);
+          setVideoSrc('');
+        }
+        
+        setLoading(false);
+        
+      } catch (error) {
+        console.error('Error fetching HeyGen video:', error);
+        setVideoSrc('');
+        setLoading(false);
+      }
+    };
+    
+    fetchVideoUrl();
   }, [videoId]);
 
   return (
@@ -101,7 +135,7 @@ export default function GreetingVideoPlayer({ videoId, title, onFeedback }: Gree
             </button>
           </div>
         )}
-
+        
         {/* Feedback Buttons Overlay */}
         {isPlaying && (
           <div className="absolute top-4 right-4 flex gap-2">
