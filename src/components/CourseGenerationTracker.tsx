@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -53,10 +52,10 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({
         if (error) throw error;
 
         if (data) {
-          // Type assertion to ensure proper typing
           const typedJob: GenerationJob = {
             ...data,
-            status: data.status as 'pending' | 'processing' | 'completed' | 'failed'
+            status: data.status as 'pending' | 'processing' | 'completed' | 'failed',
+            results: Array.isArray(data.results) ? data.results : []
           };
           setJob(typedJob);
 
@@ -93,7 +92,8 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({
           if (payload.new) {
             const typedJob: GenerationJob = {
               ...payload.new as any,
-              status: (payload.new as any).status as 'pending' | 'processing' | 'completed' | 'failed'
+              status: (payload.new as any).status as 'pending' | 'processing' | 'completed' | 'failed',
+              results: Array.isArray((payload.new as any).results) ? (payload.new as any).results : []
             };
             setJob(typedJob);
 

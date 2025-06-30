@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,7 @@ interface DashboardStats {
   newDemoRequests: number;
 }
 
-interface DemoRequestRecord {
+interface LocalDemoRequestRecord {
   id: string;
   first_name: string;
   last_name: string;
@@ -61,7 +60,7 @@ const AdminDashboard: React.FC = () => {
     totalDemoRequests: 0,
     newDemoRequests: 0
   });
-  const [recentDemoRequests, setRecentDemoRequests] = useState<DemoRequestRecord[]>([]);
+  const [recentDemoRequests, setRecentDemoRequests] = useState<LocalDemoRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -101,8 +100,8 @@ const AdminDashboard: React.FC = () => {
         newDemoRequests
       });
 
-      // Map demo requests to proper format
-      const mappedRequests: DemoRequestRecord[] = demoRequests.slice(0, 5).map(req => ({
+      // Map demo requests with required job_title field
+      const mappedRequests: LocalDemoRequestRecord[] = demoRequests.slice(0, 5).map(req => ({
         id: req.id,
         first_name: req.first_name,
         last_name: req.last_name,
@@ -110,7 +109,7 @@ const AdminDashboard: React.FC = () => {
         company: req.company,
         status: req.status,
         created_at: req.created_at,
-        job_title: req.job_title,
+        job_title: req.job_title || '',
         phone: req.phone,
         company_size: req.company_size,
         country: req.country,
@@ -223,7 +222,7 @@ const AdminDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <CompactDemoRequestsTable 
-              requests={recentDemoRequests}
+              requests={recentDemoRequests as any}
               onViewDetails={handleViewDetails}
             />
           </CardContent>

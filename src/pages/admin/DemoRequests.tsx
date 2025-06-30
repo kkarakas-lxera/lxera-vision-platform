@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CompactDemoRequestsTable from "@/components/admin/DemoRequestsManagement/CompactDemoRequestsTable";
 
-interface DemoRequestRecord {
+interface LocalDemoRequestRecord {
   id: string;
   first_name: string;
   last_name: string;
@@ -26,7 +26,7 @@ interface DemoRequestRecord {
 }
 
 const DemoRequests = () => {
-  const [requests, setRequests] = useState<DemoRequestRecord[]>([]);
+  const [requests, setRequests] = useState<LocalDemoRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,8 +43,8 @@ const DemoRequests = () => {
 
       if (error) throw error;
       
-      // Map to proper format
-      const mappedRequests: DemoRequestRecord[] = (data || []).map(req => ({
+      // Map to proper format with required job_title field
+      const mappedRequests: LocalDemoRequestRecord[] = (data || []).map(req => ({
         id: req.id,
         first_name: req.first_name,
         last_name: req.last_name,
@@ -52,7 +52,7 @@ const DemoRequests = () => {
         company: req.company,
         status: req.status,
         created_at: req.created_at,
-        job_title: req.job_title,
+        job_title: req.job_title || '',
         phone: req.phone,
         company_size: req.company_size,
         country: req.country,
@@ -98,7 +98,7 @@ const DemoRequests = () => {
       </div>
       
       <CompactDemoRequestsTable 
-        requests={requests}
+        requests={requests as any}
         onViewDetails={handleViewDetails}
       />
     </div>

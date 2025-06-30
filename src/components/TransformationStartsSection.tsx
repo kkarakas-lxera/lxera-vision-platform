@@ -1,13 +1,19 @@
 
 import { Button } from "@/components/ui/button";
 import DemoModal from "@/components/DemoModal";
+import WaitlistModal from "@/components/WaitlistModal";
 import { ArrowDown } from "lucide-react";
 import { useState } from "react";
 
 const TransformationStartsSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
   const handleGetEarlyAccess = () => {
+    setIsWaitlistModalOpen(true);
+  };
+
+  const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
   };
 
@@ -35,7 +41,7 @@ const TransformationStartsSection = () => {
             <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
           </div>
 
-          {/* CTA Button - Updated with consistent styling */}
+          {/* CTA Buttons - Updated with consistent styling */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"
@@ -44,6 +50,15 @@ const TransformationStartsSection = () => {
               aria-label="Get Early Access"
             >
               Get Early Access
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleRequestDemo}
+              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 min-h-[48px]"
+              aria-label="Request Demo"
+            >
+              Request Demo
             </Button>
           </div>
 
@@ -59,6 +74,11 @@ const TransformationStartsSection = () => {
             ))}
           </div>
         </div>
+
+        <WaitlistModal 
+          isOpen={isWaitlistModalOpen} 
+          onClose={() => setIsWaitlistModalOpen(false)}
+        />
 
         <DemoModal 
           isOpen={isDemoModalOpen} 
