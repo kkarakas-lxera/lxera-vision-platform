@@ -53,6 +53,7 @@ import Glossary from "./pages/resources/Glossary";
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import DemoRequests from "./pages/admin/DemoRequests";
 
 // Import learner pages
 import LearnerDashboard from "./pages/learner/LearnerDashboard";
@@ -142,6 +143,7 @@ const App = () => (
                   <DashboardLayout>
                     <Routes>
                       <Route path="/" element={<AdminDashboard />} />
+                      <Route path="/demo-requests" element={<DemoRequests />} />
                       <Route path="/companies" element={<CompaniesManagement />} />
                       <Route path="/users" element={<UsersManagement />} />
                       <Route path="/courses" element={<CoursesManagement />} />

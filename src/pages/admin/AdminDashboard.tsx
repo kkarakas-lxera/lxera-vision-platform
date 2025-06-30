@@ -21,7 +21,7 @@ import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
 import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
 import { CompanyCreateSheet } from '@/components/admin/CompanyManagement/CompanyCreateSheet';
 import { CourseAssignmentTracker } from '@/components/admin/CourseManagement/CourseAssignmentTracker';
-import { DemoRequestsTable } from '@/components/admin/DemoRequestsManagement/DemoRequestsTable';
+import { CompactDemoRequestsTable } from '@/components/admin/DemoRequestsManagement/CompactDemoRequestsTable';
 import { demoRequestService } from '@/services/demoRequestService';
 
 interface Company {
@@ -509,7 +509,7 @@ const AdminDashboard = () => {
 
         {/* Demo Requests Tab */}
         <TabsContent value="demo-requests">
-          <DemoRequestsTable />
+          <CompactDemoRequestsTable />
         </TabsContent>
       </Tabs>
 
