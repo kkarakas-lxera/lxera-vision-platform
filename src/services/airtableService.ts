@@ -1,4 +1,5 @@
 
+
 interface DemoRequest {
   name: string;
   email: string;
@@ -22,7 +23,7 @@ class AirtableService {
   constructor() {
     // These should be set as environment variables in production
     this.baseId = import.meta.env.VITE_AIRTABLE_BASE_ID || '';
-    this.tableId = import.meta.env.VITE_AIRTABLE_TABLE_ID || 'Demo Requests';
+    this.tableId = import.meta.env.VITE_AIRTABLE_TABLE_ID || 'tblaNc3Thn4rAxVk2';
     this.apiKey = import.meta.env.VITE_AIRTABLE_API_KEY || '';
   }
 
@@ -65,3 +66,4 @@ class AirtableService {
 
 export const airtableService = new AirtableService();
 export type { DemoRequest, AirtableResponse };
+
