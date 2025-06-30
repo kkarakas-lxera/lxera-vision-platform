@@ -168,11 +168,12 @@ class HumanNarrationGenerator:
         index = hash(name) % len(greetings)
         greeting = greetings[index]
         
-        # Add role-specific touch
-        if 'analyst' in role.lower():
-            greeting += " <break time='500ms'/> As an analyst, you're going to love the insights we'll uncover."
-        elif 'manager' in role.lower():
-            greeting += " <break time='500ms'/> This will give you powerful tools for your leadership toolkit."
+        # Add role-specific touch (handle None or empty role)
+        if role and isinstance(role, str):
+            if 'analyst' in role.lower():
+                greeting += " <break time='500ms'/> As an analyst, you're going to love the insights we'll uncover."
+            elif 'manager' in role.lower():
+                greeting += " <break time='500ms'/> This will give you powerful tools for your leadership toolkit."
         
         return self._add_ssml_markup(greeting, 'encouraging')
     

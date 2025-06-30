@@ -307,37 +307,113 @@ Let's begin by looking at what you'll learn today.
         """Extract key bullet points from content"""
         key_points = []
         
-        # Look for existing bullet points or lists
+        # First try to extract existing bullet points
         bullet_patterns = [
             r'[-•*]\s*(.+)',
             r'\d+\.\s*(.+)',
-            r'^(.+):(?:\s|$)'  # Items followed by colon
+            r'^\s*(.+):\s*(.+)$'  # Items with descriptions
         ]
         
         for pattern in bullet_patterns:
             matches = re.findall(pattern, content, re.MULTILINE)
             for match in matches:
-                point = match.strip()
-                if 10 < len(point) < 100:  # Reasonable length for bullet point
+                if isinstance(match, tuple):
+                    # For pattern with groups, combine them
+                    point = f"{match[0]}: {match[1]}"
+                else:
+                    point = match
+                
+                # Truncate to first sentence if too long
+                point = point.strip()
+                if '.' in point:
+                    point = point.split('.')[0] + '.'
+                
+                # Ensure concise bullet points (max 15 words)
+                words = point.split()
+                if len(words) > 15:
+                    point = ' '.join(words[:12]) + '...'
+                
+                if len(point) > 10:
                     key_points.append(point)
         
-        # If no bullet points found, extract key sentences
+        # If no bullet points found, create from key sentences
         if not key_points:
+            # Extract sentences with important keywords
             sentences = re.split(r'[.!?]+', content)
+            important_sentences = []
+            
             for sentence in sentences:
                 sentence = sentence.strip()
-                if 20 < len(sentence) < 100:
-                    # Look for important indicators
-                    if any(keyword in sentence.lower() for keyword in 
-                          ['important', 'key', 'must', 'should', 'essential', 'critical']):
-                        key_points.append(sentence)
+                if any(keyword in sentence.lower() for keyword in 
+                      ['important', 'key', 'must', 'essential', 'critical', 
+                       'powerful', 'transform', 'enable', 'achieve']):
+                    important_sentences.append(sentence)
+            
+            # Convert sentences to concise bullet points
+            for sentence in important_sentences[:5]:
+                # Extract the core message
+                words = sentence.split()
+                if len(words) > 15:
+                    # Find the key phrase
+                    key_phrase = self._extract_key_phrase(sentence)
+                    key_points.append(key_phrase)
+                else:
+                    key_points.append(sentence)
         
-        # If still no points, create from first sentences
+        # If still no points, create from content summary
         if not key_points:
-            sentences = re.split(r'[.!?]+', content)[:3]
-            key_points = [s.strip() for s in sentences if s.strip()]
+            # Split content into logical chunks
+            paragraphs = content.split('\n\n')
+            for para in paragraphs[:3]:
+                if para.strip():
+                    # Create a concise summary
+                    summary = self._create_concise_summary(para)
+                    if summary:
+                        key_points.append(summary)
         
         return key_points[:self.max_bullet_points]
+    
+    def _extract_key_phrase(self, sentence: str) -> str:
+        """Extract the key phrase from a sentence"""
+        # Remove common starter phrases
+        starters = ['this means', 'this is', 'you can', 'you will', 'it is', 
+                   'there are', 'there is', 'this will', 'these are']
+        
+        lower_sentence = sentence.lower()
+        for starter in starters:
+            if lower_sentence.startswith(starter):
+                sentence = sentence[len(starter):].strip()
+                break
+        
+        # Extract core message (first 12 words)
+        words = sentence.split()[:12]
+        key_phrase = ' '.join(words)
+        
+        # Ensure it ends properly
+        if not key_phrase.endswith(('.', '!', '?')):
+            key_phrase += '...'
+        
+        # Capitalize first letter
+        if key_phrase:
+            key_phrase = key_phrase[0].upper() + key_phrase[1:]
+        
+        return key_phrase
+    
+    def _create_concise_summary(self, paragraph: str) -> str:
+        """Create a concise summary of a paragraph"""
+        # Find the most important sentence
+        sentences = re.split(r'[.!?]+', paragraph)
+        if not sentences:
+            return ""
+        
+        # Look for sentence with action words
+        for sentence in sentences:
+            if any(action in sentence.lower() for action in 
+                  ['learn', 'master', 'understand', 'apply', 'create', 'build', 'develop']):
+                return self._extract_key_phrase(sentence.strip())
+        
+        # Otherwise use first sentence
+        return self._extract_key_phrase(sentences[0].strip())
     
     def _generate_speaker_notes(
         self,

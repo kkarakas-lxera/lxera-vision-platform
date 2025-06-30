@@ -24,6 +24,31 @@ import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import TermsOfService from "./pages/legal/TermsOfService";
 import CookiePolicy from "./pages/legal/CookiePolicy";
 
+// Import solution pages
+import AIPersonalizedLearning from "./pages/solutions/AIPersonalizedLearning";
+import WorkforceReskilling from "./pages/solutions/WorkforceReskilling";
+import AIGamificationMotivation from "./pages/solutions/AIGamificationMotivation";
+import CitizenDeveloperEnablement from "./pages/solutions/CitizenDeveloperEnablement";
+import LearningAnalytics from "./pages/solutions/LearningAnalytics";
+import AILearningSupport from "./pages/solutions/AILearningSupport";
+import EnterpriseInnovation from "./pages/solutions/EnterpriseInnovation";
+import ScalableLearningSupport from "./pages/solutions/ScalableLearningSupport";
+
+// Import platform pages
+import HowItWorks from "./pages/platform/HowItWorks";
+import AIEngine from "./pages/platform/AIEngine";
+import EngagementInsights from "./pages/platform/EngagementInsights";
+import InnovationHub from "./pages/platform/InnovationHub";
+import MentorshipSupport from "./pages/platform/MentorshipSupport";
+import SecurityPrivacy from "./pages/platform/SecurityPrivacy";
+import Integrations from "./pages/platform/Integrations";
+
+// Import resource pages
+import ResourcesBlog from "./pages/resources/Blog";
+import SuccessStories from "./pages/resources/SuccessStories";
+import ProductTour from "./pages/resources/ProductTour";
+import Glossary from "./pages/resources/Glossary";
+
 // Import auth pages
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
@@ -78,6 +103,31 @@ const App = () => (
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
+
+            {/* Solution routes */}
+            <Route path="/solutions/ai-personalized-learning" element={<AIPersonalizedLearning />} />
+            <Route path="/solutions/workforce-reskilling-upskilling" element={<WorkforceReskilling />} />
+            <Route path="/solutions/ai-gamification-motivation" element={<AIGamificationMotivation />} />
+            <Route path="/solutions/citizen-led-innovation" element={<CitizenDeveloperEnablement />} />
+            <Route path="/solutions/learning-analytics-engagement" element={<LearningAnalytics />} />
+            <Route path="/solutions/ai-mentorship-support" element={<AILearningSupport />} />
+            <Route path="/solutions/enterprise-innovation-enablement" element={<EnterpriseInnovation />} />
+            <Route path="/solutions/scalable-learning-support" element={<ScalableLearningSupport />} />
+
+            {/* Platform routes */}
+            <Route path="/platform/how-it-works" element={<HowItWorks />} />
+            <Route path="/platform/ai-engine" element={<AIEngine />} />
+            <Route path="/platform/engagement-insights" element={<EngagementInsights />} />
+            <Route path="/platform/innovation-hub" element={<InnovationHub />} />
+            <Route path="/platform/mentorship-support" element={<MentorshipSupport />} />
+            <Route path="/platform/security-privacy" element={<SecurityPrivacy />} />
+            <Route path="/platform/integrations" element={<Integrations />} />
+
+            {/* Resource routes */}
+            <Route path="/resources/blog" element={<ResourcesBlog />} />
+            <Route path="/resources/success-stories" element={<SuccessStories />} />
+            <Route path="/resources/product-tour" element={<ProductTour />} />
+            <Route path="/resources/glossary" element={<Glossary />} />
 
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
