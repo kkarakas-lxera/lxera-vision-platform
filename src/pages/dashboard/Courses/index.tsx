@@ -364,7 +364,7 @@ const CoursesPage = () => {
               {modules.map((module, index) => (
                 <Card key={index} className="p-4">
                   <h3 className="font-medium text-sm mb-2">
-                    {Array.isArray(module) ? module[0]?.module_name || `Module ${index + 1}` : module.module_name || `Module ${index + 1}`}
+                    {module?.module_name || `Module ${index + 1}`}
                   </h3>
                   <p className="text-xs text-gray-600">
                     Click to view module details
