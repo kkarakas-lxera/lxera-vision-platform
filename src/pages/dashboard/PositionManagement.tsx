@@ -341,11 +341,10 @@ export default function PositionManagement() {
             <DialogTitle>Create New Position</DialogTitle>
           </DialogHeader>
           <PositionCreateWizard
-            onSuccess={() => {
+            onComplete={() => {
               setCreateOpen(false);
               fetchPositions();
             }}
-            onCancel={() => setCreateOpen(false)}
           />
         </DialogContent>
       </Dialog>

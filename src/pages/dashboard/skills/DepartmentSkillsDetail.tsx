@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { parseJsonSkills } from '@/utils/typeGuards';
 
 interface DepartmentEmployee {
   employee_id: string;
@@ -136,10 +137,10 @@ export default function DepartmentSkillsDetail() {
           const skillsProfile = skillsData?.find(sp => sp.employee_id === emp.id);
           if (!skillsProfile) return null;
 
-          // Extract technical and soft skills from extracted_skills array
-          const extractedSkills = Array.isArray(skillsProfile.extracted_skills) ? skillsProfile.extracted_skills : [];
-          const technicalSkills = extractedSkills.filter(skill => (skill as any)?.category === 'technical');
-          const softSkills = extractedSkills.filter(skill => (skill as any)?.category === 'soft');
+          // Extract technical and soft skills using safe parsing
+          const allSkills = parseJsonSkills(skillsProfile.extracted_skills);
+          const technicalSkills = allSkills.filter(skill => skill.category === 'technical');
+          const softSkills = allSkills.filter(skill => skill.category === 'soft');
 
           return {
             employee_id: emp.id,
@@ -194,8 +195,8 @@ export default function DepartmentSkillsDetail() {
         // Process technical skills
         if (Array.isArray(employee.technical_skills)) {
           employee.technical_skills.forEach(skill => {
-            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+            const skillName = skill.skill_name;
+            const proficiency = skill.proficiency_level || 3;
             
             if (skillName) {
               if (!skillMap.has(skillName)) {
@@ -211,8 +212,8 @@ export default function DepartmentSkillsDetail() {
         // Process soft skills
         if (Array.isArray(employee.soft_skills)) {
           employee.soft_skills.forEach(skill => {
-            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+            const skillName = skill.skill_name;
+            const proficiency = skill.proficiency_level || 3;
             
             if (skillName) {
               if (!skillMap.has(skillName)) {

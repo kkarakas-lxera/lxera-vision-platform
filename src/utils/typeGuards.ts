@@ -83,3 +83,31 @@ export function parseCourseStructure(json: any): {
     })) : []
   };
 }
+
+// Safe Json parsing for skills with type checking
+export function parseJsonSkills(jsonData: any): SkillData[] {
+  if (!jsonData) return [];
+  
+  try {
+    const parsed = Array.isArray(jsonData) ? jsonData : [jsonData];
+    return parsed
+      .filter(skill => {
+        if (typeof skill === 'string') return false;
+        if (typeof skill !== 'object') return false;
+        return skill.skill_name && typeof skill.skill_name === 'string';
+      })
+      .map(skill => ({
+        skill_id: skill.skill_id || null,
+        skill_name: skill.skill_name,
+        proficiency_level: typeof skill.proficiency_level === 'number' ? skill.proficiency_level : 1,
+        years_experience: skill.years_experience || null,
+        evidence: skill.evidence,
+        category: skill.category,
+        context: skill.context,
+        confidence: skill.confidence,
+        source: skill.source
+      }));
+  } catch {
+    return [];
+  }
+}
