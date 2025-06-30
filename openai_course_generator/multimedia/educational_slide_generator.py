@@ -217,72 +217,99 @@ class EducationalSlideGenerator:
         return slide_metadata
     
     def _generate_title_slide(self, slide_note: Any, output_path: Path) -> Path:
-        """Generate a title slide"""
-        # Create base image
+        """Generate a professional title slide using wireframe layout"""
+        # Create base image with clean background
         img = Image.new('RGB', (self.width, self.height), self.current_design.background_color)
         draw = ImageDraw.Draw(img)
         
-        # Add gradient background
-        self._add_gradient_background(img, self.current_design.background_color, 
-                                     self._lighten_color(self.current_design.accent_color, 0.9))
+        # Professional layout areas
+        content_margin = self.current_design.padding
         
-        # Add decorative elements
-        self._add_decorative_shapes(draw, 'title')
+        header_area = {
+            'x': 0, 'y': 0,
+            'width': self.width, 'height': self.current_design.header_height
+        }
         
-        # Get fonts
+        footer_area = {
+            'x': 0,
+            'y': self.height - self.current_design.footer_height,
+            'width': self.width,
+            'height': self.current_design.footer_height
+        }
+        
+        # Add professional header and footer
+        self._add_professional_header(draw, slide_note, header_area)
+        self._add_professional_footer(draw, slide_note, footer_area)
+        
+        # Calculate main content area
+        main_content_y_start = header_area['height'] + 60
+        main_content_y_end = footer_area['y'] - 60
+        
+        # Module title (large and prominent)
+        module_title = "Introduction to Business Performance Reporting"
         title_font = self._get_font(self.current_design.title_font_size)
-        body_font = self._get_font(self.current_design.body_font_size)
         
-        # Add header and footer sections
-        self._add_header_section(draw, slide_note, self.employee_context)
-        self._add_footer_section(draw, slide_note, self.employee_context)
+        # Center the title
+        try:
+            title_bbox = title_font.getbbox(module_title)
+            title_width = title_bbox[2] - title_bbox[0]
+        except:
+            title_width = len(module_title) * (self.current_design.title_font_size * 0.7)
         
-        # Content area between header and footer
-        content_start_y = self.current_design.header_height + 50
-        content_end_y = self.height - self.current_design.footer_height - 50
-        content_center_y = content_start_y + (content_end_y - content_start_y) // 2
-        
-        # Draw main title
-        title = slide_note.main_points[0] if slide_note.main_points else "Welcome"
-        title_bbox = draw.textbbox((0, 0), title, font=title_font)
-        title_width = title_bbox[2] - title_bbox[0]
         title_x = (self.width - title_width) // 2
-        title_y = content_center_y - 100
+        title_y = main_content_y_start + 100
         
-        draw.text((title_x, title_y), title, fill=self.current_design.text_color, font=title_font)
+        draw.text((title_x, title_y), module_title, 
+                 fill=self.current_design.accent_color, font=title_font)
         
-        # Add personalized subtitle
-        if self.employee_context and self.employee_context.get('name'):
-            subtitle = f"Personalized for {self.employee_context['name']}"
-            if self.employee_context.get('role'):
-                subtitle += f" - {self.employee_context['role']}"
-            subtitle_font = self._get_font(int(self.current_design.body_font_size * 0.8))
-            subtitle_bbox = draw.textbbox((0, 0), subtitle, font=subtitle_font)
+        # Subtitle
+        subtitle = "Building Analytical Excellence"
+        subtitle_font = self._get_font(64)  # Fixed subtitle size
+        
+        try:
+            subtitle_bbox = subtitle_font.getbbox(subtitle)
             subtitle_width = subtitle_bbox[2] - subtitle_bbox[0]
-            subtitle_x = (self.width - subtitle_width) // 2
-            subtitle_y = title_y + 100
-            draw.text((subtitle_x, subtitle_y), subtitle, 
-                     fill=self.current_design.secondary_color, font=subtitle_font)
+        except:
+            subtitle_width = len(subtitle) * 45
         
-        # Draw subtitle/objectives
-        y_offset = title_y + self.current_design.title_font_size + 50
+        subtitle_x = (self.width - subtitle_width) // 2
+        subtitle_y = title_y + self.current_design.title_font_size + 50
         
-        for i, point in enumerate(slide_note.main_points[1:4]):  # Show up to 3 objectives
-            # Add bullet point
-            bullet_x = self.width // 4
-            draw.text((bullet_x, y_offset), "•", fill=self.current_design.accent_color, font=body_font)
+        draw.text((subtitle_x, subtitle_y), subtitle, 
+                 fill=self.current_design.secondary_color, font=subtitle_font)
+        
+        # Employee info card (centered)
+        if hasattr(self, 'employee_context') and self.employee_context:
+            card_width = 600
+            card_height = 200
+            card_x = (self.width - card_width) // 2
+            card_y = subtitle_y + 120
             
-            # Add text
-            wrapped_text = self._wrap_text(point, body_font, self.width - 2 * bullet_x - 50)
-            draw.text((bullet_x + 50, y_offset), wrapped_text, 
-                     fill=self.current_design.text_color, font=body_font)
+            # Card background
+            card_color = self._lighten_color(self.current_design.background_color, 0.95)
+            draw.rectangle([card_x, card_y, card_x + card_width, card_y + card_height], 
+                          fill=card_color, outline=self.current_design.accent_color, width=2)
             
-            y_offset += int(self.current_design.body_font_size * self.current_design.line_spacing)
+            # Employee details
+            employee_font = self._get_font(48)
+            role_font = self._get_font(36)
+            
+            employee_name = self.employee_context.get('name', 'Learner')
+            employee_role = self.employee_context.get('role', 'Professional')
+            
+            # Center text in card
+            name_y = card_y + 40
+            role_y = name_y + 60
+            date_y = role_y + 50
+            
+            draw.text((card_x + 50, name_y), f"Welcome, {employee_name}", 
+                     fill=self.current_design.text_color, font=employee_font)
+            draw.text((card_x + 50, role_y), f"Role: {employee_role}", 
+                     fill=self.current_design.secondary_color, font=role_font)
+            draw.text((card_x + 50, date_y), f"Date: {datetime.now().strftime('%B %d, %Y')}", 
+                     fill=self.current_design.secondary_color, font=role_font)
         
-        # Add footer
-        self._add_slide_footer(draw, 1, len(slide_note.main_points))
-        
-        # Save image
+        # Save with high quality
         img.save(output_path, 'PNG', quality=95)
         return output_path
     
