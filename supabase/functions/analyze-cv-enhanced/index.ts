@@ -92,7 +92,7 @@ serve(async (req) => {
     }
 
     // Extract CV text
-    let cvContent = null
+    const cvContent = null
     let cvText = ''
     
     // Download CV from storage

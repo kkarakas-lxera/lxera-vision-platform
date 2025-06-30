@@ -149,7 +149,7 @@ const Courses: React.FC = () => {
 
       // Fetch course plans for assignments that have plan_id
       const planIds = [...new Set(assignmentsData?.map(a => a.plan_id).filter(Boolean))];
-      let coursePlansMap = new Map();
+      const coursePlansMap = new Map();
       
       if (planIds.length > 0) {
         const { data: plansData, error: plansError } = await supabase
@@ -166,7 +166,7 @@ const Courses: React.FC = () => {
 
       // Fetch module content for assignments that have course_id
       const courseIds = [...new Set(assignmentsData?.map(a => a.course_id).filter(Boolean))];
-      let moduleContentMap = new Map();
+      const moduleContentMap = new Map();
       
       console.log('Course IDs to fetch content for:', courseIds);
       

@@ -116,7 +116,7 @@ export default function DepartmentSkillsDetail() {
         .map(emp => emp.current_position_id)
         .filter(Boolean);
 
-      let positionsMap = new Map();
+      const positionsMap = new Map();
       if (positionIds.length > 0) {
         const { data: positionsData } = await supabase
           .from('st_company_positions')

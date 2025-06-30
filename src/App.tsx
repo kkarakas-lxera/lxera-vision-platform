@@ -8,6 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CourseGenerationProvider } from "@/contexts/CourseGenerationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { EnvCheck } from "@/components/EnvCheck";
 
 
 // Import existing pages
@@ -84,15 +86,18 @@ import DepartmentSkillsDetail from "./pages/dashboard/skills/DepartmentSkillsDet
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <CourseGenerationProvider>
-            <Routes>
+const App = () => {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <EnvCheck />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <CourseGenerationProvider>
+                <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -206,12 +211,14 @@ const App = () => (
 
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-          </CourseGenerationProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+                </Routes>
+              </CourseGenerationProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;

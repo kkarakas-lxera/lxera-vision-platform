@@ -15,6 +15,8 @@ import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } fro
 import { useCustomOrder } from '@/hooks/useCustomOrder';
 import { SortableItem } from '@/components/ui/sortable-item';
 
+import type { SkillData } from '@/types/common';
+
 interface CompanyPosition {
   id: string;
   position_code: string;
@@ -22,9 +24,9 @@ interface CompanyPosition {
   position_level?: string;
   department?: string;
   description?: string;
-  required_skills: any[];
-  nice_to_have_skills: any[];
-  ai_suggestions?: any[];
+  required_skills: SkillData[];
+  nice_to_have_skills: SkillData[];
+  ai_suggestions?: SkillData[];
   is_template: boolean;
   created_at: string;
   employee_count?: number;
@@ -95,20 +97,30 @@ export default function PositionManagement() {
       }, {} as Record<string, number>) || {};
 
       // Fetch gap analysis data
-      const { data: gapData, error: gapError } = await supabase
-        .rpc('calculate_match_score', {
-          p_company_id: userProfile.company_id
-        });
-
-      if (gapError) {
-        console.error('Error fetching gap analysis data:', gapError);
+      // Try to fetch gap analysis data, but don't fail if it errors
+      let gapData = null;
+      try {
+        const { data, error } = await supabase
+          .rpc('calculate_match_score', {
+            p_company_id: userProfile.company_id
+          });
+        
+        if (error) {
+          console.error('Error fetching gap analysis data:', error);
+        } else {
+          gapData = data;
+        }
+      } catch (rpcError) {
+        console.error('RPC error:', rpcError);
       }
 
-      const avgMatch = gapData?.length > 0 
+      const avgMatch = gapData && Array.isArray(gapData) && gapData.length > 0 
         ? gapData.reduce((sum: number, gap: any) => sum + (gap.avg_match_percentage || 0), 0) / gapData.length
         : 0;
 
-      const positionsWithGaps = gapData?.filter((gap: any) => gap.avg_match_percentage < 80).length || 0;
+      const positionsWithGaps = gapData && Array.isArray(gapData) 
+        ? gapData.filter((gap: any) => gap.avg_match_percentage < 80).length 
+        : 0;
 
       setStats({
         total_positions: positionsData?.length || 0,
@@ -182,7 +194,7 @@ export default function PositionManagement() {
     }
   };
 
-  const departments = Array.from(new Set(positions.map(p => p.department).filter(Boolean)));
+  const departments = Array.from(new Set(positions.map(p => p.department).filter(Boolean))) || [];
   const baseFilteredPositions = selectedDepartment === 'all' 
     ? positions 
     : positions.filter(p => p.department === selectedDepartment);
@@ -193,6 +205,17 @@ export default function PositionManagement() {
     storageKey: `positions-order-${userProfile?.company_id}-${selectedDepartment}`,
     getItemId: (position) => position.id
   });
+
+  if (!userProfile?.company_id) {
+    return (
+      <div className="p-6">
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+          <p className="font-medium">Company information is loading...</p>
+          <p className="text-sm mt-1">Please wait while we load your company data.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

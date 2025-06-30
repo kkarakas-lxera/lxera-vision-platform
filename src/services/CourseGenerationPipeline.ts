@@ -567,7 +567,7 @@ export class CourseGenerationPipeline {
     const maxAttempts = 3;
     let qualityPassed = false;
     let qualityScore = 0;
-    let wordCount = 7500;
+    const wordCount = 7500;
 
     while (attempts < maxAttempts && !qualityPassed) {
       attempts++;

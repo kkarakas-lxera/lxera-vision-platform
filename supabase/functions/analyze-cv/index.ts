@@ -280,6 +280,7 @@ Return the response in the following JSON format:
         }
       }
 
+      try {
         const responseContent = completion.data.choices[0].message?.content || '{}'
         let analysisResult
         
@@ -380,7 +381,6 @@ Return the response in the following JSON format:
           console.error('Failed to log metrics:', metricsError)
           // Don't throw here - metrics logging is optional
         }
-        
       } catch (openaiError) {
         console.error('OpenAI API error:', openaiError)
         

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Components } from 'react-markdown';
 
 interface CourseContentSectionProps {
   title: string;
@@ -33,18 +34,18 @@ export const CourseContentSection: React.FC<CourseContentSectionProps> = ({
   const readingTimeText = readingTimeMinutes === 1 ? '1 min read' : `${readingTimeMinutes} min read`;
 
   // Custom components for ReactMarkdown to control sizes precisely
-  const markdownComponents = {
-    h1: ({ children, ...props }: any) => (
+  const markdownComponents: Components = {
+    h1: ({ children, ...props }) => (
       <h1 className="text-base font-semibold mt-4 mb-2 text-foreground" {...props}>
         {children}
       </h1>
     ),
-    h2: ({ children, ...props }: any) => (
+    h2: ({ children, ...props }) => (
       <h2 className="text-sm font-semibold mt-3 mb-1.5 text-foreground" {...props}>
         {children}
       </h2>
     ),
-    h3: ({ children, ...props }: any) => (
+    h3: ({ children, ...props }) => (
       <h3 className="text-sm font-medium mt-2 mb-1 text-foreground" {...props}>
         {children}
       </h3>

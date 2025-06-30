@@ -140,7 +140,7 @@ export default function EmployeeProfile() {
         .order('created_at', { ascending: false });
       
       // Fetch course plans for the assignments
-      let coursePlansMap = new Map();
+      const coursePlansMap = new Map();
       if (courseAssignments && courseAssignments.length > 0) {
         const planIds = [...new Set(courseAssignments.map(a => a.plan_id).filter(Boolean))];
         if (planIds.length > 0) {
@@ -158,7 +158,7 @@ export default function EmployeeProfile() {
       }
       
       // Fetch module content for the assignments
-      let moduleContentMap = new Map();
+      const moduleContentMap = new Map();
       if (courseAssignments && courseAssignments.length > 0) {
         const courseIds = [...new Set(courseAssignments.map(a => a.course_id).filter(Boolean))];
         if (courseIds.length > 0) {
