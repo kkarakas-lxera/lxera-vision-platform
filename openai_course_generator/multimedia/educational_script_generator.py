@@ -81,10 +81,14 @@ class EducationalScriptGenerator:
         # Extract content sections
         sections = self._extract_content_sections(content)
         
-        # Generate learning objectives
-        learning_objectives = self._generate_learning_objectives(sections)
+        # STEP 1: Summarize content sections into teaching materials
+        logger.info("Summarizing content sections into educational materials...")
+        educational_summaries = self._summarize_content_for_teaching(sections, employee_context)
         
-        # Create slide structure
+        # STEP 2: Generate learning objectives based on summaries
+        learning_objectives = self._generate_learning_objectives_from_summaries(educational_summaries)
+        
+        # STEP 3: Create slide structure from educational summaries
         slides = []
         slide_number = 1
         
@@ -97,18 +101,110 @@ class EducationalScriptGenerator:
         )
         slides.append(title_slide)
         slide_number += 1
+    
+    def generate_section_script(
+        self,
+        section_name: str,
+        section_content: str,
+        module_name: str,
+        employee_context: Dict[str, Any],
+        target_duration: Optional[int] = None
+    ) -> EducationalScript:
+        """
+        Generate educational script for a single section (NEW METHOD)
         
-        # Content slides for each section
-        for section_name, section_content in sections.items():
-            if section_content:
-                section_slides = self._create_section_slides(
-                    section_name,
-                    section_content,
-                    slide_number,
-                    employee_context
-                )
-                slides.extend(section_slides)
-                slide_number += len(section_slides)
+        Args:
+            section_name: Name of the section (e.g., 'introduction', 'core_content')
+            section_content: Content of the specific section
+            module_name: Name of the parent module
+            employee_context: Employee information for personalization
+            target_duration: Target duration in minutes (default: 3-5 minutes)
+            
+        Returns:
+            EducationalScript focused on single section
+        """
+        logger.info(f"Generating section-based script for: {section_name} in {module_name}")
+        
+        # Default to 4 minutes for section-based videos (optimal for microlearning)
+        target_duration = target_duration or 4
+        
+        # STEP 1: Create section-specific educational summary
+        section_summary = self._create_section_educational_summary(
+            section_name, section_content, module_name, employee_context
+        )
+        
+        # STEP 2: Generate section-specific learning objectives
+        learning_objectives = self._extract_section_learning_objectives(
+            section_name, section_content
+        )
+        
+        # STEP 3: Create focused slide structure (3-4 slides for better focus)
+        slides = []
+        slide_number = 1
+        
+        # Section title slide
+        title_slide = self._create_section_title_slide(
+            slide_number,
+            section_name,
+            module_name,
+            employee_context,
+            learning_objectives
+        )
+        slides.append(title_slide)
+        slide_number += 1
+        
+        # Content slides (2-3 slides max for focus)
+        content_slides = self._create_section_content_slides(
+            section_summary,
+            employee_context,
+            slide_number,
+            max_slides=3
+        )
+        slides.extend(content_slides)
+        
+        # Generate section-specific narration
+        full_narration = self._create_section_narration(slides, section_summary, employee_context)
+        
+        # Calculate total duration and adjust if needed
+        total_duration = sum(slide.duration_estimate for slide in slides)
+        
+        # Adjust timing for target duration
+        if target_duration:
+            target_seconds = target_duration * 60
+            if abs(total_duration - target_seconds) > 30:  # If more than 30s off target
+                slides = self._adjust_section_timing(slides, target_seconds)
+                total_duration = sum(slide.duration_estimate for slide in slides)
+        
+        # Extract key takeaways from section
+        key_takeaways = self._extract_section_takeaways(section_content)
+        
+        return EducationalScript(
+            module_name=f"{module_name} - {section_name.replace('_', ' ').title()}",
+            total_duration=total_duration,
+            slides=slides,
+            full_narration=full_narration,
+            learning_objectives=learning_objectives,
+            key_takeaways=key_takeaways,
+            metadata={
+                'section_name': section_name,
+                'parent_module': module_name,
+                'employee_name': employee_context.get('name'),
+                'target_duration_minutes': target_duration,
+                'section_type': self._classify_section_type(section_name),
+                'slide_count': len(slides),
+                'generation_timestamp': datetime.now().isoformat()
+            }
+        )
+        
+        # Content slides for each educational summary (limit to 3-4 videos)
+        for i, summary in enumerate(educational_summaries[:4]):  # Limit to 4 sections max
+            section_slides = self._create_section_slides_from_summary(
+                summary,
+                employee_context,
+                slide_number
+            )
+            slides.extend(section_slides)
+            slide_number += len(section_slides)
         
         # Summary slide
         key_takeaways = self._extract_key_takeaways(sections)
@@ -304,7 +400,7 @@ Let's begin by looking at what you'll learn today.
         return chunks
     
     def _extract_key_points(self, content: str) -> List[str]:
-        """Extract key bullet points from content"""
+        """Extract key bullet points from content and convert to teaching-friendly language"""
         key_points = []
         
         # First try to extract existing bullet points
@@ -328,10 +424,13 @@ Let's begin by looking at what you'll learn today.
                 if '.' in point:
                     point = point.split('.')[0] + '.'
                 
-                # Ensure concise bullet points (max 15 words)
+                # Convert to teaching-friendly language
+                point = self._convert_to_learning_objective(point)
+                
+                # Ensure concise bullet points (max 12 words for clarity)
                 words = point.split()
-                if len(words) > 15:
-                    point = ' '.join(words[:12]) + '...'
+                if len(words) > 12:
+                    point = ' '.join(words[:10]) + '...'
                 
                 if len(point) > 10:
                     key_points.append(point)
@@ -342,36 +441,47 @@ Let's begin by looking at what you'll learn today.
             sentences = re.split(r'[.!?]+', content)
             important_sentences = []
             
+            # Expanded list of educational keywords
+            edu_keywords = [
+                'important', 'key', 'must', 'essential', 'critical', 
+                'learn', 'understand', 'master', 'develop', 'practice',
+                'skill', 'knowledge', 'concept', 'principle', 'technique',
+                'method', 'approach', 'strategy', 'process', 'system'
+            ]
+            
             for sentence in sentences:
                 sentence = sentence.strip()
-                if any(keyword in sentence.lower() for keyword in 
-                      ['important', 'key', 'must', 'essential', 'critical', 
-                       'powerful', 'transform', 'enable', 'achieve']):
+                if any(keyword in sentence.lower() for keyword in edu_keywords):
                     important_sentences.append(sentence)
             
-            # Convert sentences to concise bullet points
-            for sentence in important_sentences[:5]:
-                # Extract the core message
-                words = sentence.split()
-                if len(words) > 15:
-                    # Find the key phrase
-                    key_phrase = self._extract_key_phrase(sentence)
-                    key_points.append(key_phrase)
-                else:
-                    key_points.append(sentence)
+            # Convert sentences to teaching-focused bullet points
+            for sentence in important_sentences[:4]:  # Limit to 4 for clarity
+                # Transform to learning objective
+                learning_point = self._transform_to_learning_point(sentence)
+                key_points.append(learning_point)
         
-        # If still no points, create from content summary
+        # If still no points, create educational objectives from content
         if not key_points:
             # Split content into logical chunks
             paragraphs = content.split('\n\n')
-            for para in paragraphs[:3]:
+            for i, para in enumerate(paragraphs[:3]):
                 if para.strip():
-                    # Create a concise summary
-                    summary = self._create_concise_summary(para)
-                    if summary:
-                        key_points.append(summary)
+                    # Create a learning-focused summary
+                    learning_objective = self._create_learning_objective(para, i)
+                    if learning_objective:
+                        key_points.append(learning_objective)
         
-        return key_points[:self.max_bullet_points]
+        # Ensure all points are action-oriented and learner-focused
+        final_points = []
+        for point in key_points[:4]:  # Max 4 points for better retention
+            if not any(point.startswith(prefix) for prefix in 
+                      ['Learn', 'Master', 'Understand', 'Discover', 'Practice', 'Apply']):
+                # Add action verb if missing
+                final_points.append(f"Learn {point[0].lower()}{point[1:]}")
+            else:
+                final_points.append(point)
+        
+        return final_points
     
     def _extract_key_phrase(self, sentence: str) -> str:
         """Extract the key phrase from a sentence"""
@@ -399,6 +509,284 @@ Let's begin by looking at what you'll learn today.
         
         return key_phrase
     
+    def _convert_to_learning_objective(self, text: str) -> str:
+        """Convert text to a learning objective format"""
+        # Remove technical jargon
+        simplified = text
+        replacements = {
+            "leverage": "use",
+            "utilize": "apply",
+            "implement": "put into practice",
+            "facilitate": "enable",
+            "optimize": "improve"
+        }
+        
+        for old, new in replacements.items():
+            simplified = re.sub(rf'\b{old}\b', new, simplified, flags=re.IGNORECASE)
+        
+        return simplified
+    
+    def _transform_to_learning_point(self, sentence: str) -> str:
+        """Transform a sentence into a learning-focused point"""
+        # Extract core concept
+        core = self._extract_key_phrase(sentence)
+        
+        # Add learning context
+        if 'how' in sentence.lower():
+            return f"Master how to {core[0].lower()}{core[1:]}"
+        elif 'what' in sentence.lower():
+            return f"Understand what {core[0].lower()}{core[1:]}"
+        elif 'why' in sentence.lower():
+            return f"Discover why {core[0].lower()}{core[1:]}"
+        else:
+            return f"Learn to {core[0].lower()}{core[1:]}"
+    
+    def _create_learning_objective(self, paragraph: str, index: int) -> str:
+        """Create a learning objective from a paragraph"""
+        # Get first sentence as basis
+        sentences = re.split(r'[.!?]+', paragraph)
+        if not sentences:
+            return ""
+        
+        first_sentence = sentences[0].strip()
+        
+        # Create objective based on position
+        objectives = [
+            f"Understand the fundamentals of {self._extract_topic(first_sentence)}",
+            f"Apply key principles to {self._extract_action(first_sentence)}",
+            f"Master techniques for {self._extract_outcome(first_sentence)}"
+        ]
+        
+        return objectives[index % len(objectives)]
+    
+    def _extract_topic(self, sentence: str) -> str:
+        """Extract the main topic from a sentence"""
+        # Remove common words and get key nouns
+        words = sentence.split()
+        important_words = [w for w in words if len(w) > 4 and w[0].isupper()]
+        if important_words:
+            return ' '.join(important_words[:2]).lower()
+        return "this concept"
+    
+    def _extract_action(self, sentence: str) -> str:
+        """Extract action words from a sentence"""
+        action_verbs = ['manage', 'create', 'develop', 'build', 'analyze', 'design']
+        for verb in action_verbs:
+            if verb in sentence.lower():
+                # Find context around verb
+                idx = sentence.lower().index(verb)
+                words_after = sentence[idx:].split()[:3]
+                return ' '.join(words_after).lower()
+        return "real-world scenarios"
+    
+    def _extract_outcome(self, sentence: str) -> str:
+        """Extract outcome or result from a sentence"""
+        outcome_words = ['success', 'performance', 'efficiency', 'results', 'growth']
+        for word in outcome_words:
+            if word in sentence.lower():
+                return f"better {word}"
+        return "improved results"
+    
+    def _summarize_content_for_teaching(self, sections: Dict[str, str], employee_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Summarize content sections into educational materials for 3-4 videos"""
+        logger.info("Creating educational summaries from content sections...")
+        
+        educational_summaries = []
+        
+        # Process each section and convert to teaching material
+        for section_name, section_content in sections.items():
+            if not section_content or len(section_content.strip()) < 50:
+                continue
+                
+            # Create educational summary for this section
+            summary = {
+                'section_name': section_name,
+                'display_name': section_name.replace('_', ' ').title(),
+                'teaching_objectives': self._extract_teaching_objectives(section_content),
+                'key_concepts': self._extract_key_concepts(section_content),
+                'practical_applications': self._extract_practical_applications(section_content),
+                'learning_points': self._extract_key_points(section_content),
+                'speaker_notes': self._create_educational_narration(section_content, employee_context),
+                'duration_estimate': self._estimate_section_duration(section_content)
+            }
+            
+            educational_summaries.append(summary)
+            
+            # Limit to 4 sections for optimal video length
+            if len(educational_summaries) >= 4:
+                break
+        
+        logger.info(f"Created {len(educational_summaries)} educational summaries")
+        return educational_summaries
+    
+    def _extract_teaching_objectives(self, content: str) -> List[str]:
+        """Extract teaching objectives from content"""
+        objectives = []
+        
+        # Look for action-oriented content
+        action_patterns = [
+            r'learn\s+(?:how\s+to\s+)?(.+?)(?:\.|,|$)',
+            r'understand\s+(.+?)(?:\.|,|$)',
+            r'master\s+(.+?)(?:\.|,|$)',
+            r'develop\s+(.+?)(?:\.|,|$)',
+            r'improve\s+(.+?)(?:\.|,|$)',
+            r'apply\s+(.+?)(?:\.|,|$)'
+        ]
+        
+        for pattern in action_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for match in matches[:2]:  # Max 2 per pattern
+                if len(match.strip()) > 5:
+                    objectives.append(f"Learn to {match.strip()}")
+        
+        # If no objectives found, create from key topics
+        if not objectives:
+            topics = self._extract_key_topics(content)
+            for topic in topics[:3]:
+                objectives.append(f"Understand {topic}")
+        
+        return objectives[:3]  # Max 3 objectives per section
+    
+    def _extract_key_concepts(self, content: str) -> List[str]:
+        """Extract key concepts for teaching"""
+        concepts = []
+        
+        # Find important nouns and noun phrases
+        sentences = re.split(r'[.!?]+', content)
+        for sentence in sentences:
+            # Look for concepts introduced with "is", "are", "means"
+            concept_patterns = [
+                r'(\w+(?:\s+\w+)?)\s+is\s+(.+?)(?:\.|,|$)',
+                r'(\w+(?:\s+\w+)?)\s+are\s+(.+?)(?:\.|,|$)',
+                r'(\w+(?:\s+\w+)?)\s+means\s+(.+?)(?:\.|,|$)'
+            ]
+            
+            for pattern in concept_patterns:
+                matches = re.findall(pattern, sentence, re.IGNORECASE)
+                for concept, definition in matches:
+                    if len(concept.strip()) > 2 and len(definition.strip()) > 10:
+                        concepts.append(f"{concept.strip()}: {definition.strip()[:60]}...")
+        
+        return concepts[:4]  # Max 4 concepts
+    
+    def _extract_practical_applications(self, content: str) -> List[str]:
+        """Extract practical applications from content"""
+        applications = []
+        
+        # Look for practical application indicators
+        app_patterns = [
+            r'(?:can be used|apply|implement|practice|use)\s+(.+?)(?:\.|,|$)',
+            r'(?:example|for instance|such as)\s+(.+?)(?:\.|,|$)',
+            r'(?:in practice|in real|in your)\s+(.+?)(?:\.|,|$)'
+        ]
+        
+        for pattern in app_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for match in matches[:3]:
+                if len(match.strip()) > 10:
+                    applications.append(f"Apply: {match.strip()}")
+        
+        return applications[:3]  # Max 3 applications
+    
+    def _extract_key_topics(self, content: str) -> List[str]:
+        """Extract key topics from content"""
+        # Find capitalized words and phrases (likely topics)
+        words = content.split()
+        topics = []
+        
+        for i, word in enumerate(words):
+            if word[0].isupper() and len(word) > 3:
+                # Check if it's part of a phrase
+                phrase = word
+                j = i + 1
+                while j < len(words) and j < i + 3:  # Max 3-word phrases
+                    if words[j][0].isupper() or words[j].lower() in ['and', 'of', 'for']:
+                        phrase += f" {words[j]}"
+                        j += 1
+                    else:
+                        break
+                
+                if len(phrase.split()) >= 1:
+                    topics.append(phrase)
+        
+        # Remove duplicates and return top topics
+        unique_topics = list(dict.fromkeys(topics))
+        return unique_topics[:5]
+    
+    def _create_educational_narration(self, content: str, employee_context: Dict[str, Any]) -> str:
+        """Create educational narration from content"""
+        employee_name = employee_context.get('name', 'learner')
+        
+        # Create engaging introduction
+        intro = f"Hello {employee_name}, let's explore this important topic together."
+        
+        # Extract key points for narration
+        key_points = self._extract_key_points(content)
+        
+        # Create educational flow
+        narration_parts = [intro]
+        
+        for i, point in enumerate(key_points[:3]):
+            if i == 0:
+                narration_parts.append(f"First, we'll {point[0].lower()}{point[1:]}")
+            elif i == 1:
+                narration_parts.append(f"Next, we'll focus on {point[0].lower()}{point[1:]}")
+            else:
+                narration_parts.append(f"Finally, we'll {point[0].lower()}{point[1:]}")
+        
+        narration_parts.append("This knowledge will help you excel in your role and contribute to your organization's success.")
+        
+        return " ".join(narration_parts)
+    
+    def _estimate_section_duration(self, content: str) -> float:
+        """Estimate duration for a section in seconds"""
+        word_count = len(content.split())
+        # Assume 150 words per minute for educational content
+        duration = (word_count / 150) * 60
+        # Add time for pauses and emphasis
+        return max(30, min(duration * 1.3, 90))  # Between 30-90 seconds
+    
+    def _generate_learning_objectives_from_summaries(self, summaries: List[Dict[str, Any]]) -> List[str]:
+        """Generate learning objectives from educational summaries"""
+        objectives = []
+        
+        for summary in summaries:
+            teaching_objectives = summary.get('teaching_objectives', [])
+            objectives.extend(teaching_objectives[:2])  # Max 2 per summary
+        
+        # Ensure we have at least 3 objectives
+        if len(objectives) < 3:
+            objectives.extend([
+                "Apply new skills in practical situations",
+                "Understand key concepts and principles",
+                "Master essential techniques and methods"
+            ])
+        
+        return objectives[:6]  # Max 6 total objectives
+    
+    def _create_section_slides_from_summary(
+        self, 
+        summary: Dict[str, Any], 
+        employee_context: Dict[str, Any], 
+        start_slide_number: int
+    ) -> List[SlideContent]:
+        """Create slides from educational summary"""
+        slides = []
+        
+        # Create main content slide for this section
+        slide = SlideContent(
+            slide_number=start_slide_number,
+            title=summary['display_name'],
+            bullet_points=summary['learning_points'],
+            speaker_notes=summary['speaker_notes'],
+            duration_estimate=summary['duration_estimate'],
+            visual_cues=self._suggest_visual_cues(summary['section_name'], summary['speaker_notes']),
+            emphasis_points=summary['key_concepts'][:2]  # Top 2 concepts for emphasis
+        )
+        
+        slides.append(slide)
+        return slides
+    
     def _create_concise_summary(self, paragraph: str) -> str:
         """Create a concise summary of a paragraph"""
         # Find the most important sentence
@@ -414,6 +802,377 @@ Let's begin by looking at what you'll learn today.
         
         # Otherwise use first sentence
         return self._extract_key_phrase(sentences[0].strip())
+    
+    def _create_section_educational_summary(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        module_name: str, 
+        employee_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Create educational summary for a single section"""
+        
+        # Classify section type for targeted processing
+        section_type = self._classify_section_type(section_name)
+        
+        summary = {
+            'section_name': section_name,
+            'section_type': section_type,
+            'display_name': section_name.replace('_', ' ').title(),
+            'module_name': module_name,
+            'content_length': len(section_content.split()),
+            'learning_points': self._extract_key_points(section_content),
+            'key_concepts': self._extract_key_concepts(section_content),
+            'practical_applications': self._extract_practical_applications(section_content),
+            'speaker_notes': self._create_section_specific_narration(
+                section_content, section_type, employee_context
+            ),
+            'duration_estimate': self._estimate_section_duration(section_content)
+        }
+        
+        return summary
+    
+    def _classify_section_type(self, section_name: str) -> str:
+        """Classify section type for targeted educational approach"""
+        section_lower = section_name.lower()
+        
+        if 'introduction' in section_lower or 'intro' in section_lower:
+            return 'introduction'
+        elif 'core' in section_lower or 'content' in section_lower or 'concept' in section_lower:
+            return 'core_content'
+        elif 'practical' in section_lower or 'application' in section_lower:
+            return 'practical'
+        elif 'case' in section_lower or 'study' in section_lower:
+            return 'case_study'
+        elif 'assessment' in section_lower or 'quiz' in section_lower or 'test' in section_lower:
+            return 'assessment'
+        else:
+            return 'general'
+    
+    def _extract_section_learning_objectives(self, section_name: str, section_content: str) -> List[str]:
+        """Extract learning objectives specific to section type"""
+        section_type = self._classify_section_type(section_name)
+        objectives = []
+        
+        # Section-specific objective patterns
+        if section_type == 'introduction':
+            objectives = [
+                f"Understand the importance of {self._extract_main_topic(section_content)}",
+                f"Recognize how this knowledge applies to your role",
+                f"Set expectations for the learning journey ahead"
+            ]
+        elif section_type == 'core_content':
+            key_concepts = self._extract_key_concepts(section_content)
+            for concept in key_concepts[:3]:
+                concept_name = concept.split(':')[0] if ':' in concept else concept
+                objectives.append(f"Master the concept of {concept_name.lower()}")
+        elif section_type == 'practical':
+            objectives = [
+                f"Apply theoretical knowledge to real scenarios",
+                f"Practice implementation strategies",
+                f"Develop practical skills for workplace use"
+            ]
+        elif section_type == 'case_study':
+            objectives = [
+                f"Analyze complex real-world situations",
+                f"Apply problem-solving methodologies",
+                f"Learn from successful implementations"
+            ]
+        elif section_type == 'assessment':
+            objectives = [
+                f"Validate understanding of key concepts",
+                f"Identify areas for further development",
+                f"Demonstrate mastery of learning objectives"
+            ]
+        else:
+            # Fallback to content-based objectives
+            objectives = self._extract_teaching_objectives(section_content)
+        
+        return objectives[:3]  # Max 3 objectives per section
+    
+    def _create_section_title_slide(
+        self,
+        slide_number: int,
+        section_name: str,
+        module_name: str,
+        employee_context: Dict[str, Any],
+        learning_objectives: List[str]
+    ) -> SlideContent:
+        """Create title slide for section"""
+        
+        section_display = section_name.replace('_', ' ').title()
+        section_type = self._classify_section_type(section_name)
+        
+        # Section-specific introductions
+        intro_text = {
+            'introduction': f"Welcome to {module_name}. Let's begin your learning journey.",
+            'core_content': f"Now let's dive into the core concepts and principles.",
+            'practical': f"Time to put your knowledge into practice with real examples.",
+            'case_study': f"Let's analyze real-world scenarios and learn from them.",
+            'assessment': f"Ready to test your understanding? Let's validate your learning."
+        }.get(section_type, f"Let's explore {section_display.lower()}.")
+        
+        return SlideContent(
+            slide_number=slide_number,
+            title=f"{section_display}",
+            bullet_points=learning_objectives,
+            speaker_notes=f"{intro_text} In this section, we'll focus on specific objectives that will help you excel in your role.",
+            duration_estimate=20,  # 20 seconds for title slide
+            visual_cues=[f"{section_type}_intro"],
+            emphasis_points=learning_objectives[:2]
+        )
+    
+    def _create_section_content_slides(
+        self,
+        section_summary: Dict[str, Any],
+        employee_context: Dict[str, Any],
+        start_slide_number: int,
+        max_slides: int = 3
+    ) -> List[SlideContent]:
+        """Create content slides for section"""
+        
+        slides = []
+        learning_points = section_summary['learning_points']
+        key_concepts = section_summary['key_concepts']
+        section_type = section_summary['section_type']
+        
+        # Split content into focused chunks
+        content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
+        
+        for i, chunk in enumerate(content_chunks):
+            slide_number = start_slide_number + i
+            
+            # Create section-specific slide title
+            if section_type == 'practical':
+                slide_title = f"Real-World Application {i + 1}"
+            elif section_type == 'case_study':
+                slide_title = f"Case Analysis {i + 1}"
+            elif section_type == 'assessment':
+                slide_title = f"Knowledge Check {i + 1}"
+            else:
+                slide_title = f"Key Concept {i + 1}"
+            
+            # Estimate duration based on content complexity
+            duration = self._estimate_slide_duration(chunk, section_type)
+            
+            slide = SlideContent(
+                slide_number=slide_number,
+                title=slide_title,
+                bullet_points=chunk,
+                speaker_notes=self._create_slide_specific_narration(
+                    chunk, section_type, employee_context
+                ),
+                duration_estimate=duration,
+                visual_cues=[f"{section_type}_content"],
+                emphasis_points=chunk[:2]  # Emphasize first 2 points
+            )
+            
+            slides.append(slide)
+        
+        return slides
+    
+    def _chunk_section_content(
+        self, 
+        learning_points: List[str], 
+        key_concepts: List[str], 
+        max_slides: int
+    ) -> List[List[str]]:
+        """Split content into digestible chunks for slides"""
+        
+        all_points = learning_points + key_concepts
+        if not all_points:
+            return [["This section provides important insights for your learning journey."]]
+        
+        # Aim for 3-4 points per slide for optimal learning
+        points_per_slide = max(2, len(all_points) // max_slides)
+        
+        chunks = []
+        for i in range(0, len(all_points), points_per_slide):
+            chunk = all_points[i:i + points_per_slide]
+            if chunk:  # Only add non-empty chunks
+                chunks.append(chunk[:4])  # Max 4 points per slide
+        
+        return chunks[:max_slides]  # Respect max_slides limit
+    
+    def _create_section_specific_narration(
+        self,
+        section_content: str,
+        section_type: str,
+        employee_context: Dict[str, Any]
+    ) -> str:
+        """Create narration tailored to section type"""
+        
+        employee_name = employee_context.get('name', 'learner')
+        
+        # Section-specific narration approaches
+        if section_type == 'introduction':
+            intro = f"Hello {employee_name}, welcome to this important learning module."
+            body = "Let's start by understanding why this knowledge is crucial for your professional growth."
+        elif section_type == 'core_content':
+            intro = f"Now {employee_name}, let's dive deep into the fundamental concepts."
+            body = "Pay close attention to these core principles - they form the foundation of everything else."
+        elif section_type == 'practical':
+            intro = f"Great work so far, {employee_name}! Now let's see how to apply this knowledge."
+            body = "These practical examples will help you implement what you've learned in real situations."
+        elif section_type == 'case_study':
+            intro = f"Let's analyze some real-world scenarios together, {employee_name}."
+            body = "These case studies show how others have successfully applied these concepts."
+        elif section_type == 'assessment':
+            intro = f"Time to test your understanding, {employee_name}."
+            body = "These questions will help validate your learning and identify areas to review."
+        else:
+            intro = f"Let's continue learning, {employee_name}."
+            body = "This section contains valuable insights for your development."
+        
+        # Extract key narration points
+        key_points = self._extract_key_points(section_content)
+        narration_flow = []
+        
+        narration_flow.append(intro)
+        narration_flow.append(body)
+        
+        # Add content-specific narration
+        for i, point in enumerate(key_points[:3]):
+            if i == 0:
+                narration_flow.append(f"First, we'll focus on {point[0].lower()}{point[1:]}")
+            elif i == 1:
+                narration_flow.append(f"Next, we'll explore {point[0].lower()}{point[1:]}")
+            else:
+                narration_flow.append(f"Finally, we'll examine {point[0].lower()}{point[1:]}")
+        
+        narration_flow.append("This knowledge will directly benefit your work and career advancement.")
+        
+        return " ".join(narration_flow)
+    
+    def _create_section_narration(
+        self,
+        slides: List[SlideContent],
+        section_summary: Dict[str, Any],
+        employee_context: Dict[str, Any]
+    ) -> str:
+        """Create complete narration for section"""
+        
+        narration_parts = []
+        
+        for slide in slides:
+            narration_parts.append(slide.speaker_notes)
+            
+        return " ".join(narration_parts)
+    
+    def _extract_main_topic(self, content: str) -> str:
+        """Extract the main topic from content"""
+        # Look for headings or important terms
+        lines = content.split('\n')
+        for line in lines[:5]:  # Check first few lines
+            if line.startswith('#') or line.isupper():
+                topic = line.replace('#', '').strip()
+                if len(topic) > 5:
+                    return topic.lower()
+        
+        # Fallback: use first meaningful phrase
+        words = content.split()[:10]
+        important_words = [w for w in words if len(w) > 4 and w[0].isupper()]
+        if important_words:
+            return ' '.join(important_words[:3]).lower()
+        
+        return "this topic"
+    
+    def _estimate_slide_duration(self, content_points: List[str], section_type: str) -> float:
+        """Estimate duration for a slide based on content and section type"""
+        
+        base_duration = 30  # Base 30 seconds per slide
+        
+        # Adjust based on content complexity
+        total_words = sum(len(point.split()) for point in content_points)
+        content_duration = (total_words / 150) * 60  # 150 words per minute
+        
+        # Section-specific adjustments
+        multipliers = {
+            'introduction': 1.2,  # Slower for context setting
+            'core_content': 1.3,  # Slower for complex concepts
+            'practical': 1.1,    # Moderate for examples
+            'case_study': 1.2,   # Slower for analysis
+            'assessment': 1.0    # Standard for questions
+        }
+        
+        multiplier = multipliers.get(section_type, 1.0)
+        final_duration = max(base_duration, content_duration * multiplier)
+        
+        return min(final_duration, 90)  # Cap at 90 seconds per slide
+    
+    def _create_slide_specific_narration(
+        self,
+        content_points: List[str],
+        section_type: str,
+        employee_context: Dict[str, Any]
+    ) -> str:
+        """Create narration for specific slide content"""
+        
+        if not content_points:
+            return "This slide contains important information for your learning."
+        
+        # Section-specific narration style
+        if section_type == 'practical':
+            intro = "Let's see how this works in practice."
+        elif section_type == 'case_study':
+            intro = "Here's what happened in this real situation."
+        elif section_type == 'assessment':
+            intro = "Consider these questions carefully."
+        else:
+            intro = "Pay attention to these key points."
+        
+        # Combine points into flowing narration
+        narration_parts = [intro]
+        
+        for i, point in enumerate(content_points):
+            if i == 0:
+                narration_parts.append(point)
+            elif i == len(content_points) - 1:
+                narration_parts.append(f"Most importantly, {point[0].lower()}{point[1:]}")
+            else:
+                narration_parts.append(f"Additionally, {point[0].lower()}{point[1:]}")
+        
+        return " ".join(narration_parts)
+    
+    def _extract_section_takeaways(self, section_content: str) -> List[str]:
+        """Extract key takeaways from section content"""
+        
+        # Look for conclusion or summary patterns
+        takeaway_patterns = [
+            r'(?:in conclusion|to summarize|key takeaway|remember|important)\s*:?\s*(.+?)(?:\.|$)',
+            r'(?:the main point|most important|crucial|essential)\s*:?\s*(.+?)(?:\.|$)'
+        ]
+        
+        takeaways = []
+        for pattern in takeaway_patterns:
+            matches = re.findall(pattern, section_content, re.IGNORECASE)
+            takeaways.extend(matches[:2])
+        
+        # Fallback: extract from key points
+        if not takeaways:
+            key_points = self._extract_key_points(section_content)
+            takeaways = [f"Remember: {point}" for point in key_points[:3]]
+        
+        return takeaways[:3]  # Max 3 takeaways
+    
+    def _adjust_section_timing(self, slides: List[SlideContent], target_seconds: float) -> List[SlideContent]:
+        """Adjust slide timing to meet target duration"""
+        
+        current_duration = sum(slide.duration_estimate for slide in slides)
+        
+        if current_duration == 0:
+            return slides  # Avoid division by zero
+        
+        # Calculate adjustment factor
+        adjustment_factor = target_seconds / current_duration
+        
+        # Apply adjustment while respecting reasonable bounds
+        for slide in slides:
+            new_duration = slide.duration_estimate * adjustment_factor
+            # Keep within reasonable bounds (15-120 seconds per slide)
+            slide.duration_estimate = max(15, min(new_duration, 120))
+        
+        return slides
     
     def _generate_speaker_notes(
         self,

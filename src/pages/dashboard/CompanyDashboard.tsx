@@ -192,37 +192,50 @@ export default function CompanyDashboard() {
 
       const activePaths = activeAssignments?.length || 0;
 
-      // Calculate positions with gaps manually
-      const { data: positions } = await supabase
-        .from('st_company_positions')
-        .select('id, position_title')
-        .eq('company_id', userProfile.company_id);
+      // Calculate positions with gaps using the database function
+      const { data: gapAnalysis, error: gapError } = await supabase
+        .rpc('calculate_skills_gap', { p_company_id: userProfile.company_id });
 
       let positionsWithGaps = 0;
       let criticalGaps = 0;
 
-      if (positions && skillsProfiles) {
-        // Create a map of employee positions to match scores
-        const positionScores = new Map();
+      if (gapAnalysis && !gapError) {
+        // Count positions with gaps (less than 80% average match)
+        positionsWithGaps = gapAnalysis.filter(g => g.avg_match_percentage < 80).length;
         
-        for (const employee of employees || []) {
-          if (employee.current_position_id) {
-            const profile = skillsProfiles.find(p => p.employee_id === employee.id);
-            if (profile) {
-              const score = parseFloat(profile.skills_match_score) || 0;
-              if (!positionScores.has(employee.current_position_id)) {
-                positionScores.set(employee.current_position_id, []);
+        // Sum up critical gaps count across all positions
+        criticalGaps = gapAnalysis.reduce((total, g) => total + g.critical_gaps_count, 0);
+      } else if (gapError) {
+        console.error('Error calculating skills gap:', gapError);
+        // Fallback to manual calculation if database function fails
+        const { data: positions } = await supabase
+          .from('st_company_positions')
+          .select('id, position_title')
+          .eq('company_id', userProfile.company_id);
+
+        if (positions && skillsProfiles) {
+          // Create a map of employee positions to match scores
+          const positionScores = new Map();
+          
+          for (const employee of employees || []) {
+            if (employee.current_position_id) {
+              const profile = skillsProfiles.find(p => p.employee_id === employee.id);
+              if (profile) {
+                const score = parseFloat(profile.skills_match_score) || 0;
+                if (!positionScores.has(employee.current_position_id)) {
+                  positionScores.set(employee.current_position_id, []);
+                }
+                positionScores.get(employee.current_position_id).push(score);
               }
-              positionScores.get(employee.current_position_id).push(score);
             }
           }
-        }
 
-        // Calculate average scores per position
-        for (const [positionId, scores] of positionScores) {
-          const avgScore = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
-          if (avgScore < 80) positionsWithGaps++;
-          if (avgScore < 50) criticalGaps += scores.filter((s: number) => s < 50).length;
+          // Calculate average scores per position
+          for (const [positionId, scores] of positionScores) {
+            const avgScore = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+            if (avgScore < 80) positionsWithGaps++;
+            if (avgScore < 50) criticalGaps += scores.filter((s: number) => s < 50).length;
+          }
         }
       }
 

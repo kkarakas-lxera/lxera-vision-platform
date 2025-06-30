@@ -225,6 +225,21 @@ export default function Employees() {
         ? analyzedEmployees.reduce((sum, emp) => sum + emp.match_score, 0) / analyzedEmployees.length
         : 0;
 
+      // Fetch active courses count for the company
+      const { data: activeCourses, error: coursesError } = await supabase
+        .from('course_assignments')
+        .select('course_id', { count: 'exact' })
+        .eq('company_id', userProfile.company_id)
+        .in('status', ['assigned', 'in_progress']);
+
+      if (coursesError) {
+        console.error('Error fetching active courses:', coursesError);
+      }
+
+      // Count unique course IDs to get actual number of active courses
+      const uniqueCourseIds = new Set(activeCourses?.map(c => c.course_id).filter(Boolean));
+      const activeCoursesCount = uniqueCourseIds.size;
+
       setSummaryStats({
         totalEmployees: activeEmployees.length,
         analyzedCount: analyzedEmployees.length,
@@ -232,7 +247,7 @@ export default function Employees() {
           ? Math.round((analyzedEmployees.length / activeEmployees.length) * 100)
           : 0,
         avgMatchScore: Math.round(avgScore),
-        activeCoursesCount: 0 // TODO: Fetch actual course count
+        activeCoursesCount: activeCoursesCount
       });
 
     } catch (error) {

@@ -278,13 +278,20 @@ const Courses: React.FC = () => {
       if (error) throw error;
 
       const totalAssignments = assignments?.length || 0;
-      const activeAssignments = assignments?.filter(a => a.status === 'in_progress').length || 0;
       const completedAssignments = assignments?.filter(a => a.status === 'completed').length || 0;
       const avgProgress = assignments?.reduce((sum, a) => sum + (a.progress_percentage || 0), 0) / (totalAssignments || 1);
+      
+      // Count unique employees with active assignments (in_progress status)
+      const activeEmployeeIds = new Set(
+        assignments?.filter(a => a.status === 'in_progress')
+          .map(a => a.employee_id)
+          .filter(Boolean)
+      );
+      const activeLearners = activeEmployeeIds.size;
 
       setMetrics({
         totalCourses: new Set(assignments?.map(a => a.course_id).filter(Boolean)).size, // Unique courses by course_id
-        activeAssignments,
+        activeAssignments: activeLearners, // Count unique active learners instead of assignments
         completionRate: totalAssignments > 0 ? (completedAssignments / totalAssignments) * 100 : 0,
         avgProgress: avgProgress || 0
       });

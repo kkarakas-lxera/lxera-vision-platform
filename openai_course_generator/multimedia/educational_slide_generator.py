@@ -7,6 +7,7 @@ Creates professional educational slides with synchronized notes and animations
 import os
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
@@ -88,14 +89,14 @@ class EducationalSlideGenerator:
                 text_color=(25, 25, 25),           # Business Black (#191919)
                 secondary_color=(122, 229, 198),   # Future Green (#7AE5C6)
                 font_family='Georgia',
-                title_font_size=140,  # Maximum readability
-                body_font_size=72,    # Large, clear body text
+                title_font_size=120,  # Optimized for teaching clarity
+                body_font_size=56,    # Perfect for educational content
                 header_font_size=48,  # Professional headers
-                footer_font_size=28,  # Clear footers
-                padding=80,           # Optimal margins
-                line_spacing=2.0,     # Fixed to prevent text overlap
+                footer_font_size=36,  # Larger for Lxera.ai branding
+                padding=100,          # More space for content breathing
+                line_spacing=1.8,     # Better readability without crowding
                 header_height=120,    # Adequate header area
-                footer_height=100,    # Adequate footer area
+                footer_height=110,    # Slightly larger for branding
                 gradient_overlay=False  # Clean, no distractions
             )
         }
@@ -429,12 +430,12 @@ class EducationalSlideGenerator:
         line_height = int(self.current_design.body_font_size * self.current_design.line_spacing)
         
         # Calculate spacing for bullet points with new line spacing
-        num_points = min(len(slide_note.main_points), 5)  # Max 5 points
+        num_points = min(len(slide_note.main_points), 4)  # Max 4 points for clarity
         # Account for multi-line text: assume average 2 lines per point
-        bullet_spacing = line_height * 3 + 20  # Space for text + gap between points
+        bullet_spacing = line_height * 2.5 + 30  # More generous spacing
         
         # Draw bullet points with professional layout
-        for i, point in enumerate(slide_note.main_points[:5]):  # Limit to 5 points
+        for i, point in enumerate(slide_note.main_points[:4]):  # Limit to 4 points
             bullet_y = bullet_start_y + i * bullet_spacing
             
             # Check if we have space
@@ -442,18 +443,21 @@ class EducationalSlideGenerator:
                 break
             
             # Draw professional bullet
-            bullet_x = content_area['x'] + 30
+            bullet_x = content_area['x'] + 40
             self._draw_professional_bullet(draw, bullet_x, bullet_y + (line_height // 4), i)
             
             # Draw text with proper spacing
-            text_x = bullet_x + 60  # Space after bullet
-            max_text_width = content_area['width'] - 90  # Account for bullet and margins
+            text_x = bullet_x + 70  # More space after bullet
+            max_text_width = content_area['width'] - 120  # More margins
+            
+            # Convert point to teaching-friendly language
+            teaching_point = self._convert_to_teaching_language(point)
             
             # Smart text wrapping for readability
-            wrapped_lines = self._smart_wrap_text(point, body_font, max_text_width)
+            wrapped_lines = self._smart_wrap_text(teaching_point, body_font, max_text_width)
             
             # Draw each line of wrapped text with proper spacing
-            for j, line in enumerate(wrapped_lines[:3]):  # Max 3 lines per point
+            for j, line in enumerate(wrapped_lines[:2]):  # Max 2 lines per point for clarity
                 line_y = bullet_y + (j * line_height)  # Use full line height for proper spacing
                 draw.text((text_x, line_y), line, 
                          fill=self.current_design.text_color, font=body_font)
@@ -1069,7 +1073,7 @@ class EducationalSlideGenerator:
             logger.warning(f"Failed to add professional header: {e}")
     
     def _add_professional_footer(self, draw: ImageDraw.Draw, slide_note: Any, footer_area: Dict) -> None:
-        """Add clean, professional footer"""
+        """Add clean, professional footer with Lxera.ai branding"""
         try:
             # Subtle footer background
             footer_color = self._lighten_color(self.current_design.background_color, 0.98)
@@ -1082,38 +1086,40 @@ class EducationalSlideGenerator:
             draw.rectangle([0, footer_area['y'], self.width, footer_area['y'] + 2], 
                           fill=self.current_design.accent_color)
             
-            # Footer text
-            footer_font = self._get_font(self.current_design.footer_font_size)
+            # Footer text - use larger font for better visibility
+            footer_font = self._get_font(int(self.current_design.footer_font_size * 1.2))
+            small_font = self._get_font(self.current_design.footer_font_size)
             text_y = footer_area['y'] + (footer_area['height'] - self.current_design.footer_font_size) // 2
             
             # Left: Section name
             section_name = getattr(slide_note, 'content_section', 'Introduction').replace('_', ' ').title()
             draw.text((40, text_y), f"Section: {section_name}", 
-                     fill=self.current_design.secondary_color, font=footer_font)
+                     fill=self.current_design.secondary_color, font=small_font)
             
-            # Center: Company branding
-            company_text = "Lxera Learning Platform"
+            # Center: Lxera.ai branding with accent color
+            company_text = "Powered by Lxera.ai"
             try:
                 bbox = footer_font.getbbox(company_text)
                 text_width = bbox[2] - bbox[0]
             except:
-                text_width = len(company_text) * (self.current_design.footer_font_size * 0.6)
+                text_width = len(company_text) * (self.current_design.footer_font_size * 0.8)
             
             center_x = (self.width - text_width) // 2
-            draw.text((center_x, text_y), company_text, 
-                     fill=self.current_design.secondary_color, font=footer_font)
+            # Use accent color for branding to make it stand out
+            draw.text((center_x, text_y - 5), company_text, 
+                     fill=self.current_design.accent_color, font=footer_font)
             
             # Right: Slide number
             slide_num = getattr(slide_note, 'slide_number', 1)
             slide_text = f"Slide {slide_num}"
             try:
-                bbox = footer_font.getbbox(slide_text)
+                bbox = small_font.getbbox(slide_text)
                 text_width = bbox[2] - bbox[0]
             except:
                 text_width = len(slide_text) * (self.current_design.footer_font_size * 0.6)
             
             draw.text((self.width - text_width - 40, text_y), slide_text, 
-                     fill=self.current_design.secondary_color, font=footer_font)
+                     fill=self.current_design.secondary_color, font=small_font)
                      
         except Exception as e:
             logger.warning(f"Failed to add professional footer: {e}")
@@ -1132,3 +1138,48 @@ class EducationalSlideGenerator:
             logger.warning(f"Failed to draw professional bullet: {e}")
             # Fallback simple bullet
             draw.ellipse([x-8, y-8, x+8, y+8], fill=self.current_design.accent_color)
+    
+    def _convert_to_teaching_language(self, text: str) -> str:
+        """Convert technical content to teaching-friendly language"""
+        # Remove technical jargon and simplify
+        teaching_text = text
+        
+        # Replace common technical terms with simpler alternatives
+        replacements = {
+            "utilize": "use",
+            "implement": "put into practice",
+            "leverage": "use effectively",
+            "optimize": "improve",
+            "facilitate": "help with",
+            "demonstrate": "show",
+            "comprehensive": "complete",
+            "methodology": "approach",
+            "framework": "structure",
+            "paradigm": "model",
+            "synergy": "working together",
+            "stakeholder": "team member",
+            "deliverable": "result",
+            "bandwidth": "capacity",
+            "scalable": "can grow",
+            "robust": "strong",
+            "seamless": "smooth",
+            "proactive": "taking initiative",
+            "strategic": "well-planned",
+            "innovative": "new and creative"
+        }
+        
+        # Apply replacements case-insensitively
+        for old, new in replacements.items():
+            teaching_text = re.sub(rf'\b{old}\b', new, teaching_text, flags=re.IGNORECASE)
+        
+        # Ensure first letter is capitalized
+        if teaching_text:
+            teaching_text = teaching_text[0].upper() + teaching_text[1:]
+        
+        # Add action-oriented prefixes where appropriate
+        if not any(teaching_text.startswith(prefix) for prefix in ['Learn', 'Understand', 'Discover', 'Master', 'Explore']):
+            # Check if it's a concept that should be learned
+            if any(keyword in teaching_text.lower() for keyword in ['how', 'what', 'when', 'why', 'process', 'method', 'technique']):
+                teaching_text = "Learn " + teaching_text[0].lower() + teaching_text[1:]
+        
+        return teaching_text
