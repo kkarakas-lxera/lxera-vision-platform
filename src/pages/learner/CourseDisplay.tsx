@@ -186,7 +186,16 @@ export default function CourseDisplay() {
         console.log('Course content found:', courseContent);
       }
 
-      // Create module list from plan, marking which ones have content
+      // Fetch existing modules from database
+      const { data: existingModules } = await supabase
+        .from('course_modules')
+        .select('*')
+        .eq('assignment_id', assignment.id)
+        .order('module_number');
+
+      console.log('Existing modules in DB:', existingModules);
+
+      // Create module list from plan, using real module IDs when available
       const combinedModules = planModules.map((planModule: {
         week: number;
         title: string;
@@ -196,19 +205,22 @@ export default function CourseDisplay() {
       }, index: number) => {
         const moduleNumber = index + 1;
         
+        // Check if we have a real module in the database
+        const existingModule = existingModules?.find(m => m.module_number === moduleNumber);
+        
         // For now, we have content for the entire course, not individual modules
         // Mark first module as having content if course content exists
         const hasContent = courseContent && moduleNumber === 1;
         
         return {
-          id: `module-${moduleNumber}`,
+          id: existingModule?.id || `module-${moduleNumber}`,
           assignment_id: assignment.id,
           content_id: hasContent ? assignment.course_id : null,
           module_number: moduleNumber,
           module_title: planModule.title,
-          is_unlocked: moduleNumber === 1, // Only first module is unlocked by default
-          is_completed: false,
-          progress_percentage: 0,
+          is_unlocked: existingModule?.is_unlocked ?? (moduleNumber === 1),
+          is_completed: existingModule?.is_completed ?? false,
+          progress_percentage: existingModule?.progress_percentage ?? 0,
           is_placeholder: !hasContent // Flag to identify modules without content
         };
       });
@@ -391,15 +403,46 @@ export default function CourseDisplay() {
         module_id: currentModule?.id
       });
 
+      // For constructed modules, we need to find or create the actual module in DB
+      let actualModuleId = currentModule?.id;
+      
+      // If this is a placeholder module, try to find the real module in DB
+      if (currentModule?.id?.startsWith('module-')) {
+        const { data: realModule } = await supabase
+          .from('course_modules')
+          .select('id')
+          .eq('assignment_id', assignmentId)
+          .eq('module_number', currentModule.module_number)
+          .single();
+        
+        if (realModule) {
+          actualModuleId = realModule.id;
+        } else {
+          // Module doesn't exist in DB, skip module_id
+          actualModuleId = null;
+        }
+      }
+
+      const progressData: any = {
+        assignment_id: assignmentId,
+        section_name: section.section_name,
+        completed: true,
+        completed_at: new Date().toISOString(),
+        time_spent_seconds: 0 // For now, we'll track this later
+      };
+
+      // Only add module_id if we have a valid one
+      if (actualModuleId && !actualModuleId.startsWith('module-')) {
+        progressData.module_id = actualModuleId;
+      }
+
+      console.log('Saving progress with data:', progressData);
+
+      // Use upsert with onConflict to handle unique constraint
       const { error } = await supabase
         .from('course_section_progress')
-        .upsert({
-          assignment_id: assignmentId,
-          section_name: section.section_name,
-          module_id: currentModule?.id,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          time_spent_seconds: 0 // For now, we'll track this later
+        .upsert(progressData, {
+          onConflict: 'assignment_id,section_name'
         });
 
       if (error) throw error;
