@@ -4,6 +4,7 @@ import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -33,6 +34,7 @@ const MobileMenu = ({
   scrollToSection 
 }: MobileMenuProps) => {
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const handleRequestDemo = () => {
     scrollToSection('#contact');
@@ -283,16 +285,19 @@ const MobileMenu = ({
                     )}
                   </div>
                 ))}
-                <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                  <Link to="/login">
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-200 rounded-xl font-medium"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                </div>
+                {/* Only show Sign In button when user is not authenticated */}
+                {!user && (
+                  <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                    <Link to="/login">
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-200 rounded-xl font-medium"
+                      >
+                        Sign In
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </div>

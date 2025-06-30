@@ -190,10 +190,23 @@ class TimelineGenerator:
             # Clean text for TTS
             cleaned_text = self._clean_text_for_tts(text)
             
-            # Generate audio using OpenAI TTS
+            # Use more expressive voice options for human-like speech
+            voice_mapping = {
+                'nova': 'nova',      # Original clear voice
+                'alloy': 'alloy',    # Neutral and balanced (default)
+                'echo': 'echo',      # Warm and engaging
+                'fable': 'fable',    # Expressive British accent
+                'onyx': 'onyx',      # Deep and authoritative
+                'shimmer': 'shimmer' # Soft and gentle
+            }
+            
+            # Select appropriate voice
+            selected_voice = voice_mapping.get(voice, 'alloy')
+            
+            # Generate audio using OpenAI TTS with HD quality
             response = self.client.audio.speech.create(
-                model="tts-1-hd",  # High quality model
-                voice=voice,
+                model="tts-1-hd",  # High quality model for better expression
+                voice=selected_voice,
                 input=cleaned_text,
                 speed=speed
             )

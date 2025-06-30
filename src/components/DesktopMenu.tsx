@@ -10,6 +10,7 @@ import DemoModal from "./DemoModal";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DesktopMenuProps {
   menuItems: Array<{
@@ -31,6 +32,7 @@ interface DesktopMenuProps {
 
 const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
@@ -363,14 +365,17 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           Request a Demo
         </Button>
 
-        <Link to="/login">
-          <Button 
-            variant="outline" 
-            className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3 font-inter font-normal"
-          >
-            Sign In
-          </Button>
-        </Link>
+        {/* Only show Sign In button when user is not authenticated */}
+        {!user && (
+          <Link to="/login">
+            <Button 
+              variant="outline" 
+              className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-105 rounded-xl px-6 py-3 font-inter font-normal"
+            >
+              Sign In
+            </Button>
+          </Link>
+        )}
       </div>
 
       <DemoModal 

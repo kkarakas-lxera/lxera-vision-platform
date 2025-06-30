@@ -48,52 +48,52 @@ class EducationalSlideGenerator:
         self.width = 1920
         self.height = 1080
         
-        # Professional slide design presets optimized for 1920x1080 video
+        # Lxera brand-aligned slide design presets optimized for 1920x1080 video
         self.designs = {
             'professional': SlideDesign(
-                background_color=(255, 255, 255),  # Pure white for maximum contrast
-                accent_color=(37, 99, 235),        # Professional blue
-                text_color=(31, 41, 55),           # Dark gray for readability
-                secondary_color=(107, 114, 128),   # Medium gray for supporting text
+                background_color=(239, 239, 227),  # Smart Beige (#EFEFE3)
+                accent_color=(122, 229, 198),      # Future Green (#7AE5C6)
+                text_color=(25, 25, 25),           # Business Black (#191919)
+                secondary_color=(137, 186, 239),   # Lxera Blue (#89BAEF)
                 font_family='Arial',
                 title_font_size=140,  # Dramatically increased for visibility
                 body_font_size=72,    # Large, readable body text
                 header_font_size=48,  # Clear header text
                 footer_font_size=28,  # Readable footer
                 padding=80,           # Proper margins for 1920x1080
-                line_spacing=1.4,     # Optimal line spacing for readability
+                line_spacing=2.0,     # Fixed spacing to prevent overlap
                 header_height=120,    # Adequate header space
                 footer_height=100,    # Adequate footer space
                 gradient_overlay=False  # No gradients behind text
             ),
             'modern': SlideDesign(
-                background_color=(248, 250, 252),  # Light gray background
-                accent_color=(79, 70, 229),        # Modern purple
-                text_color=(17, 24, 39),           # Very dark gray
-                secondary_color=(75, 85, 99),      # Medium gray
+                background_color=(255, 255, 255),  # Lxera White
+                accent_color=(122, 229, 198),      # Future Green (#7AE5C6)
+                text_color=(25, 25, 25),           # Business Black (#191919)
+                secondary_color=(232, 250, 155),   # Light Green (#E8FA9B)
                 font_family='Helvetica',
                 title_font_size=135,  # Large titles
                 body_font_size=70,    # Large body text
                 header_font_size=46,  # Clear headers
                 footer_font_size=26,  # Readable footers
                 padding=85,           # Good margins
-                line_spacing=1.4,     # Readable spacing
+                line_spacing=2.0,     # Fixed spacing
                 header_height=115,    # Adequate space
                 footer_height=95,     # Adequate space
                 gradient_overlay=False
             ),
             'educational': SlideDesign(
-                background_color=(255, 255, 255),  # Pure white for clarity
-                accent_color=(16, 185, 129),       # Educational green
-                text_color=(17, 24, 39),           # Very dark for contrast
-                secondary_color=(75, 85, 99),      # Supporting gray
+                background_color=(239, 239, 227),  # Smart Beige (#EFEFE3)
+                accent_color=(2, 156, 85),         # Emerald (#029C55)
+                text_color=(25, 25, 25),           # Business Black (#191919)
+                secondary_color=(122, 229, 198),   # Future Green (#7AE5C6)
                 font_family='Georgia',
                 title_font_size=140,  # Maximum readability
                 body_font_size=72,    # Large, clear body text
                 header_font_size=48,  # Professional headers
                 footer_font_size=28,  # Clear footers
                 padding=80,           # Optimal margins
-                line_spacing=1.4,     # Best readability spacing
+                line_spacing=2.0,     # Fixed to prevent text overlap
                 header_height=120,    # Adequate header area
                 footer_height=100,    # Adequate footer area
                 gradient_overlay=False  # Clean, no distractions
@@ -372,9 +372,10 @@ class EducationalSlideGenerator:
         body_font = self._get_font(self.current_design.body_font_size)
         line_height = int(self.current_design.body_font_size * self.current_design.line_spacing)
         
-        # Calculate spacing for bullet points
+        # Calculate spacing for bullet points with new line spacing
         num_points = min(len(slide_note.main_points), 5)  # Max 5 points
-        bullet_spacing = max(line_height + 30, 100)  # Generous spacing
+        # Account for multi-line text: assume average 2 lines per point
+        bullet_spacing = line_height * 3 + 20  # Space for text + gap between points
         
         # Draw bullet points with professional layout
         for i, point in enumerate(slide_note.main_points[:5]):  # Limit to 5 points
@@ -395,9 +396,9 @@ class EducationalSlideGenerator:
             # Smart text wrapping for readability
             wrapped_lines = self._smart_wrap_text(point, body_font, max_text_width)
             
-            # Draw each line of wrapped text
+            # Draw each line of wrapped text with proper spacing
             for j, line in enumerate(wrapped_lines[:3]):  # Max 3 lines per point
-                line_y = bullet_y + j * (line_height - 10)  # Tighter line spacing
+                line_y = bullet_y + (j * line_height)  # Use full line height for proper spacing
                 draw.text((text_x, line_y), line, 
                          fill=self.current_design.text_color, font=body_font)
         

@@ -21,7 +21,7 @@ const Index = () => {
   const getAuthSection = () => {
     if (user && userProfile) {
       const dashboardLink = userProfile.role === 'super_admin' ? '/admin' : 
-                           userProfile.role === 'company_admin' ? '/dashboard' : '/learn';
+                           userProfile.role === 'company_admin' ? '/dashboard' : '/learner';
       
       return (
         <div className="fixed top-4 right-4 z-50">
