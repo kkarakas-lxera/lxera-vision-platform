@@ -54,14 +54,15 @@ interface CourseData {
 
 interface ModuleData {
   id: string;
-  content_id: string;
+  content_id: string | null;
   module_number: number;
   module_title: string;
   is_unlocked: boolean;
   is_completed: boolean;
   progress_percentage: number;
-  started_at: string | null;
-  completed_at: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  is_placeholder?: boolean;
 }
 
 interface SectionData {
@@ -165,22 +166,53 @@ export default function CourseDisplay() {
         plan
       });
 
-      // Fetch course modules
-      const { data: modulesData, error: modulesError } = await supabase
-        .from('course_modules')
+      // Get modules from the course plan
+      const planModules = plan?.course_structure?.modules || [];
+      
+      // Check if we have course content
+      const { data: courseContent } = await supabase
+        .from('cm_module_content')
         .select('*')
-        .eq('assignment_id', assignment.id)
-        .order('module_number');
+        .eq('content_id', assignment.course_id)
+        .single();
 
-      if (modulesError) throw modulesError;
+      // Create module list from plan, marking which ones have content
+      const combinedModules = planModules.map((planModule: {
+        week: number;
+        title: string;
+        topics: string[];
+        duration: string;
+        priority: string;
+      }, index: number) => {
+        const moduleNumber = index + 1;
+        
+        // For now, we have content for the entire course, not individual modules
+        // Mark first module as having content if course content exists
+        const hasContent = courseContent && moduleNumber === 1;
+        
+        return {
+          id: `module-${moduleNumber}`,
+          assignment_id: assignment.id,
+          content_id: hasContent ? assignment.course_id : null,
+          module_number: moduleNumber,
+          module_title: planModule.title,
+          is_unlocked: moduleNumber === 1, // Only first module is unlocked by default
+          is_completed: false,
+          progress_percentage: 0,
+          is_placeholder: !hasContent // Flag to identify modules without content
+        };
+      });
+
+      setModules(combinedModules);
       
-      setModules(modulesData || []);
-      
-      // Set current module
-      const activeModule = modulesData?.find(m => !m.is_completed) || modulesData?.[0];
-      if (activeModule) {
-        setCurrentModule(activeModule);
-        fetchModuleSections(activeModule.content_id);
+      // Set first module as current and load sections if content exists
+      if (combinedModules.length > 0) {
+        const firstModule = combinedModules[0];
+        setCurrentModule(firstModule);
+        
+        if (firstModule.content_id && courseContent) {
+          fetchModuleSections(firstModule.content_id);
+        }
       }
 
     } catch (error) {
@@ -232,8 +264,14 @@ export default function CourseDisplay() {
       toast.error('Complete previous modules to unlock this one');
       return;
     }
+    if (module.is_placeholder) {
+      toast.info('This module content is coming soon');
+      return;
+    }
     setCurrentModule(module);
-    fetchModuleSections(module.content_id);
+    if (module.content_id) {
+      fetchModuleSections(module.content_id);
+    }
   };
 
   const handleSectionComplete = async (sectionId: string) => {
@@ -430,22 +468,46 @@ export default function CourseDisplay() {
                     </CardHeader>
                   </Card>
 
-                  {/* Video Player Placeholder */}
-                  <VideoPlayer
-                    videoUrl=""
-                    title={currentSection?.section_name || ''}
-                    onFeedback={(isPositive) => {
-                      console.log('Feedback:', isPositive ? 'positive' : 'negative');
-                    }}
-                  />
+                  {currentModule.is_placeholder ? (
+                    // Show coming soon message for placeholder modules
+                    <Card>
+                      <CardContent className="p-12 text-center">
+                        <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Module Content Coming Soon</h3>
+                        <p className="text-muted-foreground">
+                          This module is part of your learning path but the content is still being prepared. 
+                          Check back soon!
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <>
+                      {/* Video Player Placeholder */}
+                      <VideoPlayer
+                        videoUrl=""
+                        title={currentSection?.section_name || ''}
+                        onFeedback={(isPositive) => {
+                          console.log('Feedback:', isPositive ? 'positive' : 'negative');
+                        }}
+                      />
 
-                  {/* Course Content */}
-                  {currentSection && (
-                    <CourseContentSection
-                      section={currentSection}
-                      onComplete={() => handleSectionComplete(currentSection.section_id)}
-                      isLastSection={sections.indexOf(currentSection) === sections.length - 1}
-                    />
+                      {/* Course Content */}
+                      {currentSection ? (
+                        <CourseContentSection
+                          section={currentSection}
+                          onComplete={() => handleSectionComplete(currentSection.section_id)}
+                          isLastSection={sections.indexOf(currentSection) === sections.length - 1}
+                        />
+                      ) : sections.length === 0 ? (
+                        <Card>
+                          <CardContent className="p-8 text-center">
+                            <p className="text-muted-foreground">
+                              Loading module content...
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ) : null}
+                    </>
                   )}
                 </>
               )}

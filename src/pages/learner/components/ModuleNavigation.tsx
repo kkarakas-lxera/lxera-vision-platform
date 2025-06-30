@@ -6,12 +6,13 @@ import { CheckCircle, Circle, Lock, PlayCircle } from 'lucide-react';
 
 interface Module {
   id: string;
-  content_id: string;
+  content_id: string | null;
   module_number: number;
   module_title: string;
   is_unlocked: boolean;
   is_completed: boolean;
   progress_percentage: number;
+  is_placeholder?: boolean;
 }
 
 interface Section {
@@ -73,12 +74,12 @@ export default function ModuleNavigation({
             <button
               key={module.id}
               onClick={() => onModuleSelect(module)}
-              disabled={!module.is_unlocked}
+              disabled={!module.is_unlocked || module.is_placeholder}
               className={cn(
                 "w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3",
                 module.id === currentModule?.id
                   ? "bg-blue-50 text-blue-700 font-medium"
-                  : module.is_unlocked
+                  : module.is_unlocked && !module.is_placeholder
                   ? "hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed",
                 "border",
@@ -86,7 +87,15 @@ export default function ModuleNavigation({
               )}
             >
               {getModuleIcon(module)}
-              <span className="text-sm">Module {module.module_number}</span>
+              <div className="flex-1">
+                <div className="text-sm font-medium">Module {module.module_number}</div>
+                <div className="text-xs text-muted-foreground line-clamp-2">
+                  {module.module_title}
+                </div>
+                {module.is_placeholder && (
+                  <span className="text-xs text-orange-600 mt-1 block">Coming soon</span>
+                )}
+              </div>
             </button>
           ))}
         </div>
