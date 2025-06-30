@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,20 +9,24 @@ import {
   Settings,
   ThumbsUp,
   ThumbsDown,
-  Subtitles
+  Subtitles,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
   videoUrl: string;
+  videoId?: string;
   title: string;
   onFeedback: (isPositive: boolean) => void;
 }
 
-export default function VideoPlayer({ videoUrl, title, onFeedback }: VideoPlayerProps) {
+export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [videoSrc, setVideoSrc] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   const handleFeedback = (isPositive: boolean) => {
     setFeedbackGiven(isPositive ? 'positive' : 'negative');
@@ -35,7 +39,7 @@ export default function VideoPlayer({ videoUrl, title, onFeedback }: VideoPlayer
   };
 
   // Show feedback prompt after 10 seconds of "playing"
-  React.useEffect(() => {
+  useEffect(() => {
     if (isPlaying && !feedbackGiven) {
       const timer = setTimeout(() => {
         setShowFeedback(true);
@@ -44,108 +48,96 @@ export default function VideoPlayer({ videoUrl, title, onFeedback }: VideoPlayer
     }
   }, [isPlaying, feedbackGiven]);
 
+  // Fetch HeyGen video URL if videoId is provided
+  useEffect(() => {
+    if (videoId) {
+      setLoading(true);
+      // For now, use a direct URL format for HeyGen videos
+      // In production, you might need to fetch this from HeyGen's API
+      const heygenVideoUrl = `https://resource.heygen.com/video/${videoId}.mp4`;
+      setVideoSrc(heygenVideoUrl);
+      setLoading(false);
+    } else if (videoUrl) {
+      setVideoSrc(videoUrl);
+    }
+  }, [videoId, videoUrl]);
+
   return (
     <Card className="overflow-hidden">
       <div className="relative bg-black aspect-video">
-        {/* Video Placeholder */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {!isPlaying ? (
+        {/* Loading State */}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 text-white animate-spin" />
+          </div>
+        )}
+        
+        {/* Video Element for HeyGen */}
+        {!loading && videoSrc ? (
+          <video
+            className="absolute inset-0 w-full h-full object-contain"
+            controls
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            src={videoSrc}
+          >
+            Your browser does not support the video tag.
+          </video>
+        ) : !loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white text-lg">
+              No video available for this section
+              <br />
+              <span className="text-sm text-white/70">"{title}"</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Play Button Overlay (only show when video is not playing) */}
+        {!loading && videoSrc && !isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
             <button
-              onClick={() => setIsPlaying(true)}
+              onClick={() => {
+                const video = document.querySelector('video');
+                if (video) {
+                  video.play();
+                  setIsPlaying(true);
+                }
+              }}
               className="bg-white/20 hover:bg-white/30 rounded-full p-8 transition-colors"
             >
               <Play className="h-12 w-12 text-white" fill="white" />
             </button>
-          ) : (
-            <div className="text-white text-lg">
-              Video Player Placeholder
-              <br />
-              <span className="text-sm text-white/70">"{title}"</span>
-            </div>
-          )}
-        </div>
-
-        {/* Video Controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <div className="space-y-2">
-            {/* Progress Bar */}
-            <div className="relative h-1 bg-white/30 rounded-full overflow-hidden">
-              <div className="absolute left-0 top-0 h-full w-1/3 bg-blue-500" />
-            </div>
-
-            {/* Control Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                  onClick={() => setIsPlaying(!isPlaying)}
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                <span className="text-white text-sm">0:00 / 12:34</span>
-              </div>
-
-              <div className="flex items-center gap-1">
-                {/* Feedback Buttons */}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className={cn(
-                    "text-white hover:bg-white/20",
-                    feedbackGiven === 'positive' && "bg-green-600/30"
-                  )}
-                  onClick={() => handleFeedback(true)}
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className={cn(
-                    "text-white hover:bg-white/20",
-                    feedbackGiven === 'negative' && "bg-red-600/30"
-                  )}
-                  onClick={() => handleFeedback(false)}
-                >
-                  <ThumbsDown className="h-4 w-4" />
-                </Button>
-                
-                <div className="w-px h-6 bg-white/30 mx-1" />
-                
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                >
-                  <Subtitles className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                >
-                  <Volume2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                >
-                  <Maximize className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </div>
-        </div>
+        )}
+
+        {/* Feedback Buttons Overlay */}
+        {isPlaying && (
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className={cn(
+                "bg-black/50 hover:bg-black/70 text-white",
+                feedbackGiven === 'positive' && "bg-green-600/50"
+              )}
+              onClick={() => handleFeedback(true)}
+            >
+              <ThumbsUp className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className={cn(
+                "bg-black/50 hover:bg-black/70 text-white",
+                feedbackGiven === 'negative' && "bg-red-600/50"
+              )}
+              onClick={() => handleFeedback(false)}
+            >
+              <ThumbsDown className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Feedback Prompt */}
         {showFeedback && !feedbackGiven && (

@@ -603,14 +603,25 @@ export default function CourseDisplay() {
                     </Card>
                   ) : (
                     <>
-                      {/* Video Player Placeholder */}
-                      <VideoPlayer
-                        videoUrl=""
-                        title={currentSection?.section_name || ''}
-                        onFeedback={(isPositive) => {
-                          console.log('Feedback:', isPositive ? 'positive' : 'negative');
-                        }}
-                      />
+                      {/* Video Player - Show video for introduction section */}
+                      {currentSection?.section_name === 'introduction' ? (
+                        <VideoPlayer
+                          videoUrl="https://api.heygen.com/v1/video_status.get?video_id=e11be856835644f4802cefbd23136885"
+                          videoId="e11be856835644f4802cefbd23136885"
+                          title="Introduction to Business Performance Reporting"
+                          onFeedback={(isPositive) => {
+                            console.log('Feedback:', isPositive ? 'positive' : 'negative');
+                          }}
+                        />
+                      ) : (
+                        <VideoPlayer
+                          videoUrl=""
+                          title={currentSection?.section_name || ''}
+                          onFeedback={(isPositive) => {
+                            console.log('Feedback:', isPositive ? 'positive' : 'negative');
+                          }}
+                        />
+                      )}
 
                       {/* Course Content */}
                       {currentSection ? (
