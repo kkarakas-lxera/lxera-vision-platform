@@ -285,340 +285,278 @@ export default function SkillsOverview() {
     : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Skills Analytics</h1>
-        <p className="text-muted-foreground mt-1">
-          Track and analyze your team's skills development
-        </p>
-      </div>
-
-      {/* Overall Progress */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-medium">Skills Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">
-                  {analyzedEmployees} of {totalEmployees} employees analyzed
-                </span>
-                <span className="text-sm font-medium">{coveragePercentage}%</span>
-              </div>
-              <Progress value={coveragePercentage} className="h-2" />
-            </div>
-            {analyzedEmployees > 0 && (
-              <div className="text-center py-4">
-                <div className="text-3xl font-bold">{avgMatchScore}%</div>
-                <div className="text-sm text-muted-foreground">average skills match</div>
-              </div>
-            )}
+    <div className="space-y-4">
+      {/* Compact Header with Integrated Metrics */}
+      <div className="bg-card rounded-lg border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Skills Analytics</h1>
+            <p className="text-sm text-muted-foreground">Team skills development overview</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Analyzed
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Coverage</div>
+              <div className="text-lg font-semibold">{coveragePercentage}%</div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyzedEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              of {totalEmployees} total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Match Score
-              </CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Avg Score</div>
+              <div className="text-lg font-semibold">{avgMatchScore}%</div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{avgMatchScore}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              average match
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Skills
-              </CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Analyzed</div>
+              <div className="text-lg font-semibold">{analyzedEmployees}</div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalSkills}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              unique skills tracked
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Positions
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </div>
+        
+        {/* Compact Progress Indicator */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+              <span>{analyzedEmployees} of {totalEmployees} employees</span>
+              <span>{totalSkills} skills • {positionCoverage.length} roles</span>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{positionCoverage.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              roles defined
-            </p>
-          </CardContent>
-        </Card>
+            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-300 rounded-full"
+                style={{ width: `${coveragePercentage}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Department Breakdown */}
+      {/* Streamlined Department Grid */}
       {departmentSummaries.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Department Skills Breakdown</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Skills performance across different departments
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {departmentSummaries.map((dept) => {
-                const coveragePercent = dept.total_employees > 0
-                  ? Math.round((dept.analyzed_employees / dept.total_employees) * 100)
-                  : 0;
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-foreground">Departments</h2>
+            <span className="text-sm text-muted-foreground">{departmentSummaries.length} teams</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {departmentSummaries.map((dept) => {
+              const getDepartmentIcon = (deptName: string) => {
+                switch (deptName.toLowerCase()) {
+                  case 'finance': return '💼';
+                  case 'engineering': return '🔧';
+                  case 'marketing': return '📢';
+                  case 'operations': return '⚙️';
+                  default: return '🏢';
+                }
+              };
 
-                const getDepartmentIcon = (deptName: string) => {
-                  switch (deptName.toLowerCase()) {
-                    case 'finance': return '💼';
-                    case 'engineering': return '🔧';
-                    case 'marketing': return '📢';
-                    case 'operations': return '⚙️';
-                    default: return '🏢';
-                  }
-                };
+              const getScoreColor = (score: number) => {
+                if (score >= 80) return 'text-green-600';
+                if (score >= 60) return 'text-orange-600';
+                return 'text-red-600';
+              };
 
-                const getScoreColor = (score: number) => {
-                  if (score >= 80) return 'text-green-600';
-                  if (score >= 60) return 'text-orange-600';
-                  return 'text-red-600';
-                };
+              const getStatusIndicator = (dept: typeof departmentSummaries[0]) => {
+                if (dept.critical_gaps > 0) return { color: 'bg-red-500', label: `${dept.critical_gaps} critical` };
+                if (dept.moderate_gaps > 0) return { color: 'bg-orange-500', label: `${dept.moderate_gaps} moderate` };
+                return { color: 'bg-green-500', label: 'Good' };
+              };
 
-                return (
-                  <div 
-                    key={dept.department} 
-                    className="space-y-2 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getDepartmentIcon(dept.department)}</span>
-                        <span className="font-medium">{dept.department}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {dept.analyzed_employees}/{dept.total_employees} analyzed
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`font-medium ${getScoreColor(dept.avg_skills_match)}`}>
-                          {Math.round(dept.avg_skills_match)}%
-                        </span>
-                        {dept.critical_gaps > 0 && (
-                          <Badge variant="destructive" className="text-xs">
-                            🔴 {dept.critical_gaps} critical
-                          </Badge>
-                        )}
-                        {dept.moderate_gaps > 0 && dept.critical_gaps === 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            🟡 {dept.moderate_gaps} moderate
-                          </Badge>
-                        )}
-                        {dept.critical_gaps === 0 && dept.moderate_gaps === 0 && (
-                          <Badge variant="default" className="text-xs">
-                            🟢 Good
-                          </Badge>
-                        )}
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                    <Progress 
-                      value={dept.avg_skills_match} 
-                      className={`h-2 ${
-                        dept.avg_skills_match < 60 ? '[&>div]:bg-red-500' : 
-                        dept.avg_skills_match < 80 ? '[&>div]:bg-orange-500' : ''
-                      }`}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              const status = getStatusIndicator(dept);
 
-      {/* Critical Skills Gaps */}
-      {criticalSkillsGaps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Critical Skills Gaps</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Skills that need immediate attention across the organization
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {criticalSkillsGaps.slice(0, 5).map((gap) => {
-                const getSeverityColor = (severity: string) => {
-                  switch (severity) {
-                    case 'critical': return 'text-red-600';
-                    case 'moderate': return 'text-orange-600';
-                    default: return 'text-yellow-600';
-                  }
-                };
-
-                const getSeverityIcon = (severity: string) => {
-                  switch (severity) {
-                    case 'critical': return '🔴';
-                    case 'moderate': return '🟡';
-                    default: return '🟨';
-                  }
-                };
-
-                return (
-                  <div key={`${gap.skill_name}-${gap.department}`} className="flex items-center justify-between py-2">
+              return (
+                <div
+                  key={dept.department}
+                  className="bg-card border rounded-lg p-3 hover:shadow-md cursor-pointer transition-all duration-200 hover:border-primary/20"
+                  onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
+                >
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span>{getSeverityIcon(gap.gap_severity)}</span>
-                      <div>
-                        <p className="font-medium">{gap.skill_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {gap.department} • {gap.employees_with_gap} people affected
-                        </p>
-                      </div>
+                      <span className="text-base">{getDepartmentIcon(dept.department)}</span>
+                      <span className="font-medium text-sm">{dept.department}</span>
                     </div>
-                    <div className="text-right">
-                      <Badge 
-                        variant={gap.gap_severity === 'critical' ? 'destructive' : 'secondary'}
-                        className="text-xs"
-                      >
-                        Avg: {gap.avg_proficiency}/5
-                      </Badge>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                      <ChevronRight className="h-3 w-3 text-muted-foreground" />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-xl font-bold ${getScoreColor(dept.avg_skills_match)}`}>
+                      {Math.round(dept.avg_skills_match)}%
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {dept.analyzed_employees}/{dept.total_employees} people
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{status.label}</span>
+                    <div className="h-1 w-16 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-300 rounded-full ${
+                          dept.avg_skills_match >= 80 ? 'bg-green-500' :
+                          dept.avg_skills_match >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${dept.avg_skills_match}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      {/* Position Coverage */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Position Coverage</CardTitle>
+      {/* Critical Skills Gaps - Compact */}
+      {criticalSkillsGaps.length > 0 && (
+        <div className="bg-card rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-foreground">Priority Skills</h2>
+            <span className="text-sm text-muted-foreground">{criticalSkillsGaps.length} gaps found</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {criticalSkillsGaps.slice(0, 6).map((gap) => {
+              const getSeverityColor = (severity: string) => {
+                switch (severity) {
+                  case 'critical': return 'border-red-200 bg-red-50';
+                  case 'moderate': return 'border-orange-200 bg-orange-50';
+                  default: return 'border-yellow-200 bg-yellow-50';
+                }
+              };
+
+              const getSeverityDot = (severity: string) => {
+                switch (severity) {
+                  case 'critical': return 'bg-red-500';
+                  case 'moderate': return 'bg-orange-500';
+                  default: return 'bg-yellow-500';
+                }
+              };
+
+              return (
+                <div key={`${gap.skill_name}-${gap.department}`} 
+                     className={`border rounded-lg p-2 ${getSeverityColor(gap.gap_severity)}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${getSeverityDot(gap.gap_severity)}`} />
+                      <span className="font-medium text-sm">{gap.skill_name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{gap.avg_proficiency}/5</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {gap.department} • {gap.employees_with_gap} people
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Compact Position Coverage & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Position Coverage */}
+        <div className="bg-card rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-foreground">Position Coverage</h2>
             <Button 
               size="sm" 
-              variant="ghost"
+              variant="outline"
               onClick={() => navigate('/dashboard/onboarding')}
+              className="h-7 px-2 text-xs"
             >
               Analyze More
-              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {positionCoverage.map((position) => {
+          <div className="space-y-2">
+            {positionCoverage.slice(0, 4).map((position) => {
               const coveragePercent = position.total_employees > 0
                 ? Math.round((position.analyzed_employees / position.total_employees) * 100)
                 : 0;
 
               return (
-                <div key={position.position_id} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <span className="font-medium">{position.position_title}</span>
+                <div key={position.position_id} className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium truncate">{position.position_title}</span>
                       <span className="text-xs text-muted-foreground ml-2">
-                        {position.analyzed_employees} of {position.total_employees} analyzed
+                        {position.analyzed_employees}/{position.total_employees}
                       </span>
                     </div>
-                    {position.analyzed_employees > 0 && (
-                      <span className="text-sm font-medium">
-                        {position.avg_match_score}% avg
-                      </span>
-                    )}
+                    <div className="mt-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-300 rounded-full"
+                        style={{ width: `${coveragePercent}%` }}
+                      />
+                    </div>
                   </div>
-                  <Progress value={coveragePercent} className="h-2" />
+                  {position.analyzed_employees > 0 && (
+                    <span className="text-sm font-medium ml-3">
+                      {position.avg_match_score}%
+                    </span>
+                  )}
                 </div>
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recent Analysis Activity */}
-      {recentAnalyses.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Recent Analysis Activity</CardTitle>
+        {/* Recent Analysis Activity */}
+        {recentAnalyses.length > 0 && (
+          <div className="bg-card rounded-lg border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentAnalyses.map((analysis) => (
-                <div key={analysis.employee_id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm font-medium">{analysis.employee_name}</p>
+            <div className="space-y-2">
+              {recentAnalyses.slice(0, 4).map((analysis) => (
+                <div key={analysis.employee_id} className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{analysis.employee_name}</p>
                     <p className="text-xs text-muted-foreground">{analysis.position_title}</p>
                   </div>
-                  <div className="text-right">
-                    <Badge variant={analysis.skills_match_score >= 80 ? 'default' : 'secondary'}>
-                      {Math.round(analysis.skills_match_score)}% match
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-right ml-2">
+                    <div className={`text-sm font-medium ${
+                      analysis.skills_match_score >= 80 ? 'text-green-600' :
+                      analysis.skills_match_score >= 60 ? 'text-orange-600' : 'text-red-600'
+                    }`}>
+                      {Math.round(analysis.skills_match_score)}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">
                       {formatTimeAgo(analysis.analyzed_at)}
-                    </p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
+      </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => navigate('/dashboard/skills/employees')}>
-          <Users className="h-4 w-4 mr-2" />
-          View All Employees
+      {/* Compact Actions */}
+      <div className="flex justify-center gap-2 pt-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate('/dashboard/skills/employees')}
+          className="h-8 px-3 text-xs"
+        >
+          <Users className="h-3 w-3 mr-1" />
+          All Employees
         </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/skills/positions')}>
-          <Target className="h-4 w-4 mr-2" />
-          Position Requirements
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate('/dashboard/skills/positions')}
+          className="h-8 px-3 text-xs"
+        >
+          <Target className="h-3 w-3 mr-1" />
+          Positions
         </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/skills/report')}>
-          <FileText className="h-4 w-4 mr-2" />
-          Export Report
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate('/dashboard/skills/report')}
+          className="h-8 px-3 text-xs"
+        >
+          <FileText className="h-3 w-3 mr-1" />
+          Export
         </Button>
       </div>
     </div>

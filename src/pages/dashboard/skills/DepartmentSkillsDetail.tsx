@@ -299,180 +299,134 @@ export default function DepartmentSkillsDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/dashboard/skills')}
-          className="h-8 w-8 p-0"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{getDepartmentIcon(department)}</span>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="bg-card rounded-lg border p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/dashboard/skills')}
+            className="h-7 w-7 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-xl">{getDepartmentIcon(department)}</span>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {decodeURIComponent(department)} Department
+            <h1 className="text-2xl font-bold text-foreground">
+              {decodeURIComponent(department)}
             </h1>
-            <p className="text-muted-foreground">
-              Skills analysis and performance breakdown
-            </p>
+            <p className="text-sm text-muted-foreground">Department Skills Analysis</p>
+          </div>
+        </div>
+        
+        {/* Inline Stats */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className="text-lg font-bold">{departmentStats.totalEmployees}</div>
+              <div className="text-xs text-muted-foreground">Total People</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold">{departmentStats.avgScore}%</div>
+              <div className="text-xs text-muted-foreground">Avg Score</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-red-600">{departmentStats.criticalGaps}</div>
+              <div className="text-xs text-muted-foreground">Critical</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-orange-600">{departmentStats.moderateGaps}</div>
+              <div className="text-xs text-muted-foreground">Moderate</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <div className="text-sm font-medium">{departmentStats.analyzedEmployees} analyzed</div>
+              <div className="h-1.5 w-24 bg-secondary rounded-full overflow-hidden mt-1">
+                <div 
+                  className="h-full bg-primary transition-all duration-300 rounded-full"
+                  style={{ width: `${departmentStats.totalEmployees > 0 ? (departmentStats.analyzedEmployees / departmentStats.totalEmployees) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Department Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total People
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{departmentStats.totalEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {departmentStats.analyzedEmployees} analyzed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Average Score
-              </CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{departmentStats.avgScore}%</div>
-            <Progress value={departmentStats.avgScore} className="mt-2 h-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Critical Gaps
-              </CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {departmentStats.criticalGaps}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              below 50% match
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Moderate Gaps
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-orange-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {departmentStats.moderateGaps}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              50-70% match
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Skills Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Skills Analysis</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Skills performance breakdown for {decodeURIComponent(department)}
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {skillBreakdown.slice(0, 8).map((skill) => (
-                <div key={skill.skill_name} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{skill.skill_name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {skill.skill_type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {skill.employees_count} people
+      {/* Dense Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Compact Skills Analysis */}
+        <div className="bg-card rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Skills Analysis</h2>
+            <span className="text-sm text-muted-foreground">{skillBreakdown.length} skills</span>
+          </div>
+          <div className="space-y-2">
+            {skillBreakdown.slice(0, 8).map((skill) => (
+              <div key={skill.skill_name} className="border-b border-border/50 pb-2 last:border-b-0">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{skill.skill_name}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      skill.skill_type === 'technical' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      {skill.skill_type === 'technical' ? 'Tech' : 'Soft'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{skill.employees_count} people</span>
+                    {skill.below_target_count > 0 && (
+                      <span className="text-red-600">
+                        {skill.below_target_count} need training
                       </span>
-                      {skill.below_target_count > 0 && (
-                        <span className="text-xs text-red-600">
-                          {skill.below_target_count} need training
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <Progress 
-                    value={(skill.avg_proficiency / 5) * 100} 
-                    className={`h-2 ${
-                      skill.avg_proficiency < 2 ? '[&>div]:bg-red-500' : 
-                      skill.avg_proficiency < 3 ? '[&>div]:bg-orange-500' : ''
-                    }`}
-                  />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 rounded-full ${
+                        skill.avg_proficiency < 2 ? 'bg-red-500' : 
+                        skill.avg_proficiency < 3 ? 'bg-orange-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${(skill.avg_proficiency / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium w-8">{skill.avg_proficiency.toFixed(1)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        {/* People in Department */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Team Members</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Individual performance overview
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {employees.map((employee) => (
-                <div key={employee.employee_id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium">{employee.employee_name}</p>
-                    <p className="text-xs text-muted-foreground">{employee.position_title}</p>
+        {/* Compact Team Members */}
+        <div className="bg-card rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Team Members</h2>
+            <span className="text-sm text-muted-foreground">{employees.length} people</span>
+          </div>
+          <div className="space-y-2">
+            {employees.map((employee) => (
+              <div key={employee.employee_id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-b-0">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{employee.employee_name}</p>
+                  <p className="text-xs text-muted-foreground">{employee.position_title}</p>
+                </div>
+                <div className="text-right ml-2">
+                  <div className={`text-sm font-medium ${
+                    employee.skills_match_score >= 80 ? 'text-green-600' : 
+                    employee.skills_match_score >= 60 ? 'text-orange-600' : 'text-red-600'
+                  }`}>
+                    {Math.round(employee.skills_match_score)}%
                   </div>
-                  <div className="text-right">
-                    <Badge 
-                      variant={
-                        employee.skills_match_score >= 80 ? 'default' : 
-                        employee.skills_match_score >= 60 ? 'secondary' : 'destructive'
-                      }
-                    >
-                      {Math.round(employee.skills_match_score)}% match
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatTimeAgo(employee.analyzed_at)}
-                    </p>
+                  <div className="text-xs text-muted-foreground">
+                    {formatTimeAgo(employee.analyzed_at)}
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
