@@ -25,11 +25,17 @@ class SlideDesign:
     background_color: Tuple[int, int, int]
     accent_color: Tuple[int, int, int]
     text_color: Tuple[int, int, int]
+    secondary_color: Tuple[int, int, int]
     font_family: str
     title_font_size: int
     body_font_size: int
+    header_font_size: int
+    footer_font_size: int
     padding: int
     line_spacing: float
+    header_height: int
+    footer_height: int
+    gradient_overlay: bool = True
 
 class EducationalSlideGenerator:
     """Generates professional educational slides with various templates"""
@@ -42,37 +48,55 @@ class EducationalSlideGenerator:
         self.width = 1920
         self.height = 1080
         
-        # Design presets
+        # Enhanced design presets with headers, footers, and personalization
         self.designs = {
             'professional': SlideDesign(
-                background_color=(245, 245, 250),
+                background_color=(248, 250, 252),
                 accent_color=(59, 130, 246),
                 text_color=(30, 41, 59),
+                secondary_color=(71, 85, 105),
                 font_family='Arial',
                 title_font_size=72,
                 body_font_size=48,
-                padding=100,
-                line_spacing=1.5
+                header_font_size=28,
+                footer_font_size=24,
+                padding=80,
+                line_spacing=1.5,
+                header_height=100,
+                footer_height=80,
+                gradient_overlay=True
             ),
             'modern': SlideDesign(
                 background_color=(15, 23, 42),
                 accent_color=(99, 102, 241),
                 text_color=(241, 245, 249),
+                secondary_color=(148, 163, 184),
                 font_family='Helvetica',
                 title_font_size=80,
                 body_font_size=44,
-                padding=120,
-                line_spacing=1.6
+                header_font_size=32,
+                footer_font_size=26,
+                padding=100,
+                line_spacing=1.6,
+                header_height=120,
+                footer_height=90,
+                gradient_overlay=True
             ),
-            'warm': SlideDesign(
-                background_color=(254, 249, 195),
-                accent_color=(245, 158, 11),
-                text_color=(120, 53, 15),
+            'educational': SlideDesign(
+                background_color=(255, 255, 255),
+                accent_color=(16, 185, 129),
+                text_color=(17, 24, 39),
+                secondary_color=(75, 85, 99),
                 font_family='Georgia',
-                title_font_size=76,
+                title_font_size=68,
                 body_font_size=46,
-                padding=110,
-                line_spacing=1.5
+                header_font_size=30,
+                footer_font_size=24,
+                padding=90,
+                line_spacing=1.4,
+                header_height=110,
+                footer_height=85,
+                gradient_overlay=False
             )
         }
         
@@ -122,7 +146,8 @@ class EducationalSlideGenerator:
         slide_notes: List[Any],  # SlideNote objects from SlideContentExtractor
         output_dir: str,
         design_theme: str = 'professional',
-        include_animations: bool = True
+        include_animations: bool = True,
+        employee_context: Dict[str, Any] = None
     ) -> List[Dict[str, Any]]:
         """
         Generate a complete slide deck from extracted slide notes
@@ -141,6 +166,9 @@ class EducationalSlideGenerator:
         # Set design theme
         if design_theme in self.designs:
             self.current_design = self.designs[design_theme]
+        
+        # Store employee context for personalization
+        self.employee_context = employee_context or {}
         
         # Create output directory
         output_path = Path(output_dir)
@@ -205,14 +233,36 @@ class EducationalSlideGenerator:
         title_font = self._get_font(self.current_design.title_font_size)
         body_font = self._get_font(self.current_design.body_font_size)
         
+        # Add header and footer sections
+        self._add_header_section(draw, slide_note, self.employee_context)
+        self._add_footer_section(draw, slide_note, self.employee_context)
+        
+        # Content area between header and footer
+        content_start_y = self.current_design.header_height + 50
+        content_end_y = self.height - self.current_design.footer_height - 50
+        content_center_y = content_start_y + (content_end_y - content_start_y) // 2
+        
         # Draw main title
         title = slide_note.main_points[0] if slide_note.main_points else "Welcome"
         title_bbox = draw.textbbox((0, 0), title, font=title_font)
         title_width = title_bbox[2] - title_bbox[0]
         title_x = (self.width - title_width) // 2
-        title_y = self.height // 3
+        title_y = content_center_y - 100
         
         draw.text((title_x, title_y), title, fill=self.current_design.text_color, font=title_font)
+        
+        # Add personalized subtitle
+        if self.employee_context and self.employee_context.get('name'):
+            subtitle = f"Personalized for {self.employee_context['name']}"
+            if self.employee_context.get('role'):
+                subtitle += f" - {self.employee_context['role']}"
+            subtitle_font = self._get_font(int(self.current_design.body_font_size * 0.8))
+            subtitle_bbox = draw.textbbox((0, 0), subtitle, font=subtitle_font)
+            subtitle_width = subtitle_bbox[2] - subtitle_bbox[0]
+            subtitle_x = (self.width - subtitle_width) // 2
+            subtitle_y = title_y + 100
+            draw.text((subtitle_x, subtitle_y), subtitle, 
+                     fill=self.current_design.secondary_color, font=subtitle_font)
         
         # Draw subtitle/objectives
         y_offset = title_y + self.current_design.title_font_size + 50
@@ -616,5 +666,128 @@ class EducationalSlideGenerator:
         
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(manifest, f, indent=2)
+    
+    def _add_header_section(self, draw: ImageDraw.Draw, slide_note: Any, employee_context: Dict[str, Any] = None) -> None:
+        """Add professional header section to slide"""
+        try:
+            # Header background
+            header_rect = [0, 0, self.width, self.current_design.header_height]
+            draw.rectangle(header_rect, fill=self.current_design.accent_color)
+            
+            # Header gradient overlay
+            for i in range(self.current_design.header_height):
+                alpha = int(255 * (1 - i / self.current_design.header_height) * 0.2)
+                color = (*self.current_design.background_color, alpha)
+                if hasattr(draw, 'rectangle'):
+                    overlay_rect = [0, i, self.width, i + 1]
+                    # Simplified for basic PIL
+            
+            # Module title in header
+            header_font = self._get_font(self.current_design.header_font_size, bold=True)
+            module_name = getattr(slide_note, 'module_name', 'Business Performance Reporting')
+            
+            # Left side - module name
+            draw.text((30, 30), module_name, fill=(255, 255, 255), font=header_font)
+            
+            # Right side - personalization
+            if employee_context and employee_context.get('name'):
+                employee_text = f"Learning path for {employee_context['name']}"
+                text_bbox = draw.textbbox((0, 0), employee_text, font=header_font)
+                text_width = text_bbox[2] - text_bbox[0]
+                draw.text((self.width - text_width - 30, 30), employee_text, 
+                         fill=(255, 255, 255), font=header_font)
+                         
+        except Exception as e:
+            logger.warning(f"Failed to add header section: {e}")
+    
+    def _add_footer_section(self, draw: ImageDraw.Draw, slide_note: Any, employee_context: Dict[str, Any] = None) -> None:
+        """Add professional footer section to slide"""
+        try:
+            # Footer background
+            footer_y = self.height - self.current_design.footer_height
+            footer_rect = [0, footer_y, self.width, self.height]
+            
+            # Subtle footer background
+            footer_color = self._darken_color(self.current_design.background_color, 0.95)
+            draw.rectangle(footer_rect, fill=footer_color)
+            
+            # Accent line at top of footer
+            line_rect = [0, footer_y, self.width, footer_y + 3]
+            draw.rectangle(line_rect, fill=self.current_design.accent_color)
+            
+            # Footer content
+            footer_font = self._get_font(self.current_design.footer_font_size)
+            
+            # Left side - section and progress
+            section_name = getattr(slide_note, 'content_section', 'Introduction').replace('_', ' ').title()
+            progress_text = f"Section: {section_name}"
+            draw.text((30, footer_y + 25), progress_text, fill=self.current_design.secondary_color, font=footer_font)
+            
+            # Center - company branding
+            company_text = "Lxera Learning Platform"
+            text_bbox = draw.textbbox((0, 0), company_text, font=footer_font)
+            text_width = text_bbox[2] - text_bbox[0]
+            center_x = (self.width - text_width) // 2
+            draw.text((center_x, footer_y + 25), company_text, 
+                     fill=self.current_design.secondary_color, font=footer_font)
+            
+            # Right side - slide number
+            slide_num = getattr(slide_note, 'slide_number', 1)
+            slide_text = f"Slide {slide_num}"
+            text_bbox = draw.textbbox((0, 0), slide_text, font=footer_font)
+            text_width = text_bbox[2] - text_bbox[0]
+            draw.text((self.width - text_width - 30, footer_y + 25), slide_text, 
+                     fill=self.current_design.secondary_color, font=footer_font)
+                     
+        except Exception as e:
+            logger.warning(f"Failed to add footer section: {e}")
+    
+    def _add_personalized_elements(self, draw: ImageDraw.Draw, slide_note: Any, employee_context: Dict[str, Any]) -> None:
+        """Add personalized elements based on employee context"""
+        try:
+            if not employee_context:
+                return
+                
+            # Add role-specific icons or elements
+            role = employee_context.get('role', '').lower()
+            if 'analyst' in role:
+                self._add_analyst_icons(draw)
+            elif 'manager' in role:
+                self._add_manager_icons(draw)
+            elif 'director' in role:
+                self._add_executive_icons(draw)
+            
+            # Add skill-gap indicators
+            skill_gaps = employee_context.get('skill_gaps', [])
+            if skill_gaps and hasattr(slide_note, 'content_section'):
+                # Highlight relevant sections
+                if any(gap in slide_note.content_section.lower() for gap in skill_gaps):
+                    self._add_priority_indicator(draw)
+                    
+        except Exception as e:
+            logger.warning(f"Failed to add personalized elements: {e}")
+    
+    def _add_priority_indicator(self, draw: ImageDraw.Draw) -> None:
+        """Add priority indicator for skill gaps"""
+        # Small colored indicator in top-right
+        indicator_size = 20
+        x = self.width - 150
+        y = self.current_design.header_height + 20
+        
+        # Circle indicator
+        bbox = [x, y, x + indicator_size, y + indicator_size]
+        draw.ellipse(bbox, fill=(255, 165, 0))  # Orange for priority
+        
+        # "!" symbol
+        font = self._get_font(14, bold=True)
+        draw.text((x + 7, y + 2), "!", fill=(255, 255, 255), font=font)
+    
+    def _darken_color(self, color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
+        """Darken a color by a given factor"""
+        return tuple(int(c * factor) for c in color)
+    
+    def _lighten_color(self, color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
+        """Lighten a color by a given factor"""
+        return tuple(min(255, int(c * factor)) for c in color)
         
         logger.info(f"Slide manifest exported to: {output_path}")

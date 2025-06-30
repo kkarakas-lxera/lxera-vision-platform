@@ -91,7 +91,7 @@ export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: Vi
               <span className="text-sm text-white/70">"{title}"</span>
             </div>
           </div>
-        )}
+        ) : null}
         
         {/* Play Button Overlay (only show when video is not playing) */}
         {!loading && videoSrc && !isPlaying && (

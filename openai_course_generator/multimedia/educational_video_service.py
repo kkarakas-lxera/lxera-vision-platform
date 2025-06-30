@@ -320,6 +320,17 @@ class EducationalVideoService:
             content = self.content_manager.get_module_content(content_id)
             if not content:
                 raise ValueError(f"Content not found: {content_id}")
+            
+            # Create multimedia session if session_id provided
+            session_id = options.get('session_id') if options else None
+            if session_id:
+                self.multimedia_manager.create_multimedia_session(
+                    session_id=session_id,
+                    content_id=content_id,
+                    module_name=content['module_name'],
+                    employee_name=employee_context['name'],
+                    content_sections=sections or ['introduction', 'practical_applications', 'case_studies', 'assessments']
+                )
                 
             # Generate section videos
             section_videos = await self.section_generator.generate_section_videos(
@@ -333,18 +344,26 @@ class EducationalVideoService:
             # Store results in database
             for video in section_videos:
                 if hasattr(self, 'multimedia_manager'):
+                    # Get file size
+                    file_size_bytes = os.path.getsize(video.video_path) if os.path.exists(video.video_path) else 0
+                    
                     asset_id = self.multimedia_manager.register_multimedia_asset(
                         session_id=options.get('session_id') if options else None,
                         content_id=f"{content_id}_{video.section_name}",
                         course_id=content_id,
                         module_name=f"{content['module_name']} - {video.section_name}",
                         asset_type='video',
-                        asset_category=f'educational_{video.section_name}',
                         file_path=video.video_path,
                         file_name=Path(video.video_path).name,
+                        section_name=video.section_name,
                         duration_seconds=video.duration,
-                        file_format='mp4',
-                        generated_with='section_pipeline'
+                        file_size_bytes=file_size_bytes,
+                        mime_type='video/mp4',
+                        generation_config={
+                            'voice': video.metadata.get('voice') if video.metadata else None,
+                            'theme': video.metadata.get('theme') if video.metadata else None,
+                            'slide_count': video.slide_count
+                        }
                     )
                     
                     self.multimedia_manager.update_asset_status(

@@ -186,6 +186,76 @@ class MultimediaManager:
         except Exception as e:
             logger.error(f"Failed to generate personalized script: {e}")
             raise
+    
+    def create_multimedia_session(
+        self,
+        execution_id: str = None,
+        session_id: str = None,
+        content_id: str = None,
+        module_name: str = None,
+        employee_name: str = None,
+        company_id: str = "00000000-0000-0000-0000-000000000000",
+        session_type: str = "section_based",
+        content_sections: list = None,
+        **metadata
+    ) -> str:
+        """Create a multimedia session in the database."""
+        try:
+            # Use provided session_id or execution_id
+            session_id = session_id or execution_id
+            
+            session_data = {
+                'session_id': session_id,
+                'content_id': content_id,
+                'company_id': company_id,
+                'session_type': session_type,
+                'module_name': module_name,
+                'employee_name': employee_name,
+                'content_sections': content_sections or [],
+                'status': 'started',
+                'current_stage': 'initializing',
+                'progress_percentage': 0,
+                'total_assets_generated': 0,
+                'slides_generated': 0,
+                'audio_files_generated': 0,
+                'video_files_generated': 0,
+                **metadata
+            }
+            
+            result = self.supabase.table('mm_multimedia_sessions').insert(session_data).execute()
+            logger.info(f"Created multimedia session: {session_id}")
+            return session_id
+            
+        except Exception as e:
+            logger.error(f"Failed to create multimedia session: {e}")
+            raise
+    
+    def update_session_status(
+        self,
+        session_id: str,
+        status: str = None,
+        current_stage: str = None,
+        progress_percentage: float = None,
+        **updates
+    ):
+        """Update multimedia session status."""
+        try:
+            update_data = {}
+            if status:
+                update_data['status'] = status
+            if current_stage:
+                update_data['current_stage'] = current_stage
+            if progress_percentage is not None:
+                update_data['progress_percentage'] = progress_percentage
+            if updates:
+                update_data.update(updates)
+                
+            self.supabase.table('mm_multimedia_sessions').update(update_data).eq('session_id', session_id).execute()
+            logger.info(f"Session status updated: {session_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to update session status: {e}")
+            raise
 
 
 # Initialize global multimedia manager

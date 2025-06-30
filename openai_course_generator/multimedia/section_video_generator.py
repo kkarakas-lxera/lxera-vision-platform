@@ -194,7 +194,8 @@ class SectionVideoGenerator:
             slide_notes=extracted_content.slide_notes,
             output_dir=str(slides_dir),
             design_theme=config['theme'],
-            include_animations=True
+            include_animations=True,
+            employee_context=employee_context
         )
         
         # 4. Generate timeline with audio
