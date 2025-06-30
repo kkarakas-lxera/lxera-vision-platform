@@ -5,9 +5,15 @@ import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
+  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
+
+  const handleContactSales = () => {
+    setIsContactSalesModalOpen(true);
+  };
 
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
@@ -208,6 +214,7 @@ const Pricing = () => {
                   </ul>
 
                   <Button
+                    onClick={plan.name === 'Enterprise' ? handleContactSales : undefined}
                     className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
                       plan.name === 'Enterprise'
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
@@ -265,6 +272,11 @@ const Pricing = () => {
         </div>
 
         <Footer />
+
+        <ContactSalesModal 
+          isOpen={isContactSalesModalOpen} 
+          onClose={() => setIsContactSalesModalOpen(false)}
+        />
       </div>
     </TooltipProvider>
   );

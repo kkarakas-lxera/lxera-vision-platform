@@ -191,7 +191,6 @@ const CoursesPage = () => {
   return (
     <>
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Course Management</h1>
@@ -203,7 +202,6 @@ const CoursesPage = () => {
           </Button>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
@@ -254,7 +252,6 @@ const CoursesPage = () => {
           </Card>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -289,7 +286,6 @@ const CoursesPage = () => {
           </Select>
         </div>
 
-        {/* Courses List */}
         <Card>
           <CardHeader>
             <CardTitle>Course Assignments</CardTitle>
