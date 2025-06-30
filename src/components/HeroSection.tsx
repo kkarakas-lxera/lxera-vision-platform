@@ -1,3 +1,4 @@
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
@@ -8,16 +9,16 @@ import { useState } from "react";
 const HeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
-  // Smooth scroll to #contact
-  const handleScrollToContact = () => {
-    const el = document.getElementById("contact");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
+  };
+
+  const handleExploreClick = () => {
+    // Scroll to how it works section
+    const element = document.getElementById('how-it-works');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -86,6 +87,7 @@ const HeroSection = () => {
                   <Button
                     size="lg"
                     className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    onClick={handleExploreClick}
                     aria-label="Explore the Platform"
                   >
                     Explore the Platform
@@ -123,7 +125,8 @@ const HeroSection = () => {
 
         <DemoModal 
           isOpen={isDemoModalOpen} 
-          onClose={() => setIsDemoModalOpen(false)} 
+          onClose={() => setIsDemoModalOpen(false)}
+          source="Hero Section"
         />
       </section>
 

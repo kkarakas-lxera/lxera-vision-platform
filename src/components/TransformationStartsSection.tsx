@@ -1,8 +1,16 @@
 
 import { Button } from "@/components/ui/button";
+import DemoModal from "@/components/DemoModal";
 import { ArrowDown } from "lucide-react";
+import { useState } from "react";
 
 const TransformationStartsSection = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
+  const handleGetEarlyAccess = () => {
+    setIsDemoModalOpen(true);
+  };
+
   return (
     <>
       <section className="w-full py-16 px-6 text-center bg-gradient-to-b from-future-green/10 via-smart-beige/40 to-future-green/18 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
@@ -31,6 +39,7 @@ const TransformationStartsSection = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6 animate-fade-in-up animate-delay-700">
             <Button
               size="lg"
+              onClick={handleGetEarlyAccess}
               className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
               aria-label="Get Early Access"
             >
@@ -50,6 +59,12 @@ const TransformationStartsSection = () => {
             ))}
           </div>
         </div>
+
+        <DemoModal 
+          isOpen={isDemoModalOpen} 
+          onClose={() => setIsDemoModalOpen(false)}
+          source="Transformation Starts Section"
+        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}
@@ -60,4 +75,5 @@ const TransformationStartsSection = () => {
     </>
   );
 };
+
 export default TransformationStartsSection;

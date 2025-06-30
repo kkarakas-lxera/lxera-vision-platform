@@ -1,15 +1,21 @@
 
 import { Button } from "@/components/ui/button";
 import VideoModal from "@/components/VideoModal";
+import DemoModal from "@/components/DemoModal";
 import React, { useState } from "react";
 import { stepsData } from "@/data/howItWorksSteps";
 import { Play } from "lucide-react";
 
 const HowItWorksSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   const handleVideoClick = (videoUrl: string, videoCaption: string) => {
     setSelectedVideo({ url: videoUrl, caption: videoCaption });
+  };
+
+  const handleRequestDemo = () => {
+    setIsDemoModalOpen(true);
   };
 
   return (
@@ -81,6 +87,7 @@ const HowItWorksSection = () => {
           </p>
           
           <Button 
+            onClick={handleRequestDemo}
             className="bg-future-green text-business-black font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus-ring-future-green/50 focus:ring-offset-2"
             aria-label="Request a demo"
           >
@@ -97,6 +104,13 @@ const HowItWorksSection = () => {
             videoCaption={selectedVideo.caption}
           />
         )}
+
+        {/* Demo Modal */}
+        <DemoModal 
+          isOpen={isDemoModalOpen} 
+          onClose={() => setIsDemoModalOpen(false)}
+          source="How It Works Section"
+        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}
