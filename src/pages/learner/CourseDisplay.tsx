@@ -724,31 +724,44 @@ export default function CourseDisplay() {
                           
                           <div className="relative p-8 text-white">
                             <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                    <PlayCircle className="h-6 w-6 text-white" />
+                              <div className="flex items-center gap-6 flex-1">
+                                {/* Video Thumbnail */}
+                                <div className="relative w-32 h-20 bg-black/30 rounded-lg overflow-hidden backdrop-blur-sm border border-white/20">
+                                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center">
+                                      <PlayCircle className="h-5 w-5 text-white" />
+                                    </div>
                                   </div>
-                                  <div>
-                                    <h3 className="text-xl font-bold">Course Welcome Message</h3>
-                                    <p className="text-white/80 text-sm">
-                                      Personal greeting from your instructor
-                                    </p>
+                                  {/* Simulated video preview */}
+                                  <div className="absolute bottom-1 left-1 right-1 h-1 bg-white/20 rounded-full">
+                                    <div className="h-full w-1/3 bg-white/60 rounded-full"></div>
                                   </div>
                                 </div>
-                                <p className="text-white/90 mb-4 max-w-lg">
-                                  Start your learning journey with a personalized welcome message designed 
-                                  specifically for your role and learning path.
-                                </p>
-                                <div className="flex items-center gap-4 text-sm text-white/70">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    ~2 min
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Users className="h-4 w-4" />
-                                    AI Generated
-                                  </span>
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div>
+                                      <h3 className="text-xl font-bold text-gray-100">Course Welcome Message</h3>
+                                      <p className="text-gray-200 text-sm">
+                                        Personal greeting from your instructor
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-100 mb-4 max-w-lg">
+                                    Start your learning journey with a personalized welcome message designed 
+                                    specifically for your role and learning path.
+                                  </p>
+                                  <div className="flex items-center gap-4 text-sm text-gray-300">
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      ~2 min
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Users className="h-4 w-4" />
+                                      Personalized
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                               <div className="ml-6">
