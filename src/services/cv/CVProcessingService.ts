@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { llmService } from '@/services/llm/LLMService';
 
@@ -38,15 +39,18 @@ export class CVProcessingService {
     }
   }
 
-  async storeCVData(employeeId: string, cvAnalysis: any) {
+  async storeCVData(employeeId: string, fileName: string, fileData: string, fileSize: number) {
     try {
       const { error } = await supabase
-        .from('employee_cv_data')
+        .from('employee_cv_uploads')
         .insert([
           {
             employee_id: employeeId,
-            analysis_data: cvAnalysis,
-            processed_at: new Date().toISOString(),
+            file_name: fileName,
+            file_data: fileData,
+            file_size: fileSize,
+            file_type: 'application/pdf',
+            uploaded_at: new Date().toISOString(),
           },
         ]);
 
@@ -63,10 +67,10 @@ export class CVProcessingService {
   async getCVData(employeeId: string): Promise<any | null> {
     try {
       const { data, error } = await supabase
-        .from('employee_cv_data')
+        .from('employee_cv_uploads')
         .select('*')
         .eq('employee_id', employeeId)
-        .order('processed_at', { ascending: false })
+        .order('uploaded_at', { ascending: false })
         .limit(1)
         .single();
 
@@ -82,3 +86,8 @@ export class CVProcessingService {
     }
   }
 }
+
+// Export a default instance factory function
+export const createCVProcessingService = (companyId: string) => {
+  return new CVProcessingService(companyId);
+};

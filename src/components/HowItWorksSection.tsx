@@ -88,7 +88,8 @@ const HowItWorksSection = () => {
           
           <Button 
             onClick={handleRequestDemo}
-            className="bg-future-green text-business-black font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus-ring-future-green/50 focus:ring-offset-2"
+            size="lg"
+            className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
             aria-label="Request a demo"
           >
             Request a Demo

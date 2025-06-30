@@ -1,5 +1,5 @@
 import React from 'react';
-import { CompactDemoRequestsTable } from '@/components/admin/DemoRequestsManagement/CompactDemoRequestsTable';
+import CompactDemoRequestsTable from "@/components/admin/DemoRequestsManagement/CompactDemoRequestsTable";
 
 const DemoRequests = () => {
   return (

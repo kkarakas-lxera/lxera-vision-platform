@@ -2,570 +2,364 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  BookOpen,
-  Users,
-  Clock,
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  GraduationCap,
-  Target,
-  Sparkles,
-  ChevronRight
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCourseGeneration } from '@/contexts/CourseGenerationContext';
-import { toast } from 'sonner';
-import { BulkGenerationView } from '@/components/CourseGeneration/BulkGenerationView';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from '@/hooks/useUser';
+import { useEmployee } from '@/hooks/useEmployee';
+import { CourseGenerationParams } from '@/services/courseGenerationService';
+import { generateCourse } from '@/services/courseGenerationService';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { createCVProcessingService } from '@/services/cv/CVProcessingService';
 
 interface CourseGenerationModalProps {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
-  onComplete: () => void;
-  preSelectedEmployees?: string[];
+  onCourseGenerated: () => void;
 }
 
-interface EmployeeWithGaps {
-  id: string;
-  full_name: string;
-  email: string;
-  position: string;
-  department: string;
-  skills_profile?: {
-    skills_match_score: number;
-    gap_analysis_completed_at: string;
-    technical_skills: any;
-    soft_skills: any;
-  };
-  estimated_modules?: number;
-  estimated_hours?: number;
-  critical_gaps?: number;
-  moderate_gaps?: number;
-}
-
-const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
-  open,
-  onClose,
-  onComplete,
-  preSelectedEmployees = []
-}) => {
-  const { user, userProfile } = useAuth();
-  const { startGeneration } = useCourseGeneration();
-  const [step, setStep] = useState<'selection' | 'generating' | 'complete'>('selection');
-  const [employees, setEmployees] = useState<EmployeeWithGaps[]>([]);
-  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set(preSelectedEmployees));
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentEmployee, setCurrentEmployee] = useState<string>('');
-  const [generatedCourses, setGeneratedCourses] = useState<any[]>([]);
-  const [showBulkGeneration, setShowBulkGeneration] = useState(false);
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({ isOpen, onClose, onCourseGenerated }) => {
+  const [courseTitle, setCourseTitle] = useState('');
+  const [courseDescription, setCourseDescription] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [learningObjectives, setLearningObjectives] = useState('');
+  const [estimatedDuration, setEstimatedDuration] = useState('');
+  const [additionalNotes, setAdditionalNotes] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationSuccess, setGenerationSuccess] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvText, setCvText] = useState<string>('');
+  const { toast } = useToast();
+  const { user } = useUser();
+  const { employee } = useEmployee();
+  const { uploadFile } = useFileUpload();
 
   useEffect(() => {
-    if (open && userProfile) {
-      fetchEmployeesWithGaps();
+    if (cvFile) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        setCvText(e.target.result);
+      };
+      reader.readAsText(cvFile);
     }
-  }, [open, userProfile]);
+  }, [cvFile]);
 
-  const fetchEmployeesWithGaps = async () => {
-    try {
-      setLoading(true);
-      
-      // Ensure we have userProfile and company_id
-      if (!userProfile?.company_id) {
-        console.error('No company_id found in userProfile:', userProfile);
-        toast.error('Unable to load employees. Please refresh the page.');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('Fetching employees for company_id:', userProfile.company_id);
-      
-      // Fetch employees with their skills profiles
-      const query = supabase
-        .from('employees')
-        .select(`
-          id,
-          position,
-          department,
-          users!inner (
-            full_name,
-            email
-          ),
-          st_employee_skills_profile (
-            skills_match_score,
-            gap_analysis_completed_at,
-            technical_skills,
-            soft_skills,
-            extracted_skills
-          )
-        `)
-        .eq('company_id', userProfile.company_id)
-        .eq('is_active', true);
-
-      // If pre-selected employees, filter by them
-      if (preSelectedEmployees.length > 0) {
-        query.in('id', preSelectedEmployees);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      
-      console.log('Fetched employees data:', data);
-      console.log('Pre-selected employee IDs:', preSelectedEmployees);
-
-      // Transform and calculate estimates
-      const transformedEmployees = data?.map(emp => {
-        // Handle both array and object responses from Supabase
-        const skillsProfile = Array.isArray(emp.st_employee_skills_profile) 
-          ? emp.st_employee_skills_profile?.[0]
-          : emp.st_employee_skills_profile;
-        const hasGapAnalysis = skillsProfile?.gap_analysis_completed_at !== null;
-        
-        // Calculate estimated modules and hours based on skills gaps
-        let criticalGaps = 0;
-        let moderateGaps = 0;
-        
-        // For now, estimate gaps based on skills match score
-        // Lower score = more gaps
-        if (skillsProfile?.skills_match_score) {
-          const score = parseFloat(skillsProfile.skills_match_score);
-          if (score < 50) {
-            criticalGaps = 5;
-            moderateGaps = 3;
-          } else if (score < 70) {
-            criticalGaps = 3;
-            moderateGaps = 4;
-          } else if (score < 85) {
-            criticalGaps = 1;
-            moderateGaps = 3;
-          } else {
-            criticalGaps = 0;
-            moderateGaps = 2;
-          }
-        }
-
-        const estimatedModules = Math.max(3, Math.min(12, criticalGaps * 2 + moderateGaps));
-        const estimatedHours = estimatedModules * 4;
-
-        return {
-          id: emp.id,
-          full_name: emp.users?.full_name || 'Unknown',
-          email: emp.users?.email || '',
-          position: emp.position || 'Unassigned',
-          department: emp.department || 'Unassigned',
-          skills_profile: skillsProfile,
-          estimated_modules: hasGapAnalysis ? estimatedModules : 0,
-          estimated_hours: hasGapAnalysis ? estimatedHours : 0,
-          critical_gaps: criticalGaps,
-          moderate_gaps: moderateGaps
-        };
-      }) || [];
-
-      setEmployees(transformedEmployees);
-      
-      console.log('Transformed employees:', transformedEmployees);
-      console.log('Employees with gap analysis:', transformedEmployees.filter(emp => emp.skills_profile?.gap_analysis_completed_at));
-      
-      // Auto-select employees with gap analysis completed
-      const eligibleEmployees = transformedEmployees
-        .filter(emp => emp.skills_profile?.gap_analysis_completed_at)
-        .map(emp => emp.id);
-      
-      console.log('Eligible employee IDs:', eligibleEmployees);
-      
-      setSelectedEmployees(new Set([...preSelectedEmployees, ...eligibleEmployees]));
-    } catch (error) {
-      console.error('Error fetching employees:', error);
-      toast.error('Failed to load employees');
-    } finally {
-      setLoading(false);
-    }
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files && event.target.files[0];
+    setCvFile(file || null);
   };
 
-  const handleGenerateCourses = async () => {
-    if (selectedEmployees.size === 0) {
-      toast.error('Please select at least one employee');
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!user || !employee) {
+      toast({
+        title: "Authentication Error",
+        description: "User or employee data not found. Please ensure you are logged in.",
+        variant: "destructive",
+      });
       return;
     }
 
-    try {
-      const employeesToGenerate = employees.filter(emp => selectedEmployees.has(emp.id));
-      const employeeIds = employeesToGenerate.map(emp => emp.id);
-
-      // Close the selection modal and show bulk generation view
-      onClose();
-      setShowBulkGeneration(true);
-
-      // Import and use the comprehensive pipeline
-      const { CourseGenerationPipeline } = await import('@/services/CourseGenerationPipeline');
-      
-      let jobId: string | null = null;
-      
-      const pipeline = new CourseGenerationPipeline(
-        userProfile?.company_id || '',
-        (progress) => {
-          // Capture the job ID when it's created
-          if (progress.phase === 'job_created' && progress.message) {
-            jobId = progress.message;
-            setCurrentJobId(jobId);
-            // Start tracking the job
-            startGeneration(jobId);
-          }
-        },
-        true // Use edge function by default for real AI generation
-      );
-
-      // Start the generation process (it will run in the background)
-      pipeline.generateCoursesForEmployees(
-        employeeIds,
-        userProfile?.id || '' // assigned_by_id
-      ).then((results) => {
-        // This will complete in the background
-        console.log('Course generation completed:', results);
-        setShowBulkGeneration(false);
-        toast.success('All courses generated successfully!');
-        onComplete();
-      }).catch((error) => {
-        console.error('Course generation failed:', error);
-        toast.error('Course generation failed: ' + error.message);
-        setShowBulkGeneration(false);
+    if (!courseTitle || !courseDescription || !targetAudience || !learningObjectives || !estimatedDuration) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
       });
+      return;
+    }
 
-    } catch (error) {
-      console.error('Course generation error:', error);
-      toast.error('Failed to start course generation');
+    setIsGenerating(true);
+    setGenerationSuccess(false);
+    setGenerationError(null);
+
+    try {
+      if (!cvFile) {
+        toast({
+          title: "CV Required",
+          description: "Please upload a CV to personalize the course generation.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      if (!user.company_id) {
+        toast({
+          title: "Company ID Missing",
+          description: "Your user profile is missing the company ID. Contact support.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      // Upload the CV file
+      const filePath = `${user.company_id}/${employee.id}/${cvFile.name}`;
+      const uploadResult = await uploadFile('employee-cvs', cvFile, filePath);
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Failed to upload CV');
+      }
+
+      // Call CV processing service
+      if (!user.company_id) {
+        toast({
+          title: "Company ID Missing",
+          description: "Your user profile is missing the company ID. Contact support.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      try {
+        const cvService = createCVProcessingService(user.company_id);
+        const analysis = await cvService.processCV(
+          cvText,
+          employee.id,
+          user.id,
+        );
+      } catch (cvError: any) {
+        console.error("CV Processing Failed:", cvError);
+        toast({
+          title: "CV Processing Failed",
+          description: "There was an error processing your CV. Please try again or contact support.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      const courseParams: CourseGenerationParams = {
+        courseTitle,
+        courseDescription,
+        targetAudience,
+        learningObjectives,
+        estimatedDuration,
+        additionalNotes,
+        employeeId: employee.id,
+        companyId: user.company_id,
+      };
+
+      const result = await generateCourse(courseParams);
+
+      if (result.success) {
+        setGenerationSuccess(true);
+        toast({
+          title: "Course Generation Started!",
+          description: "The course generation process has started. You'll receive a notification when it's complete.",
+        });
+        onCourseGenerated();
+      } else {
+        setGenerationError(result.error || 'An unexpected error occurred');
+        toast({
+          title: "Course Generation Failed",
+          description: result.error || "There was an error generating the course. Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Course Generation Failed:", error);
+      setGenerationError(error.message || 'An unexpected error occurred');
+      toast({
+        title: "Course Generation Failed",
+        description: error.message || "There was an error generating the course. Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleComplete = () => {
-    onComplete();
+  const handleClose = () => {
+    if (!isGenerating) {
+      onClose();
+    }
+  };
+
+  const handleSuccessClose = () => {
+    setGenerationSuccess(false);
     onClose();
   };
 
-  const toggleEmployee = (employeeId: string) => {
-    const newSelected = new Set(selectedEmployees);
-    if (newSelected.has(employeeId)) {
-      newSelected.delete(employeeId);
-    } else {
-      newSelected.add(employeeId);
-    }
-    setSelectedEmployees(newSelected);
-  };
-
-  const toggleAll = () => {
-    const eligibleEmployees = employees.filter(emp => emp.skills_profile?.gap_analysis_completed_at);
-    if (selectedEmployees.size === eligibleEmployees.length) {
-      setSelectedEmployees(new Set());
-    } else {
-      setSelectedEmployees(new Set(eligibleEmployees.map(emp => emp.id)));
-    }
-  };
-
   return (
-    <>
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
-            {step === 'selection' && 'Generate Personalized Courses'}
-            {step === 'generating' && 'Generating Courses...'}
-            {step === 'complete' && 'Course Generation Complete'}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-future-green/20">
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
+            {generationSuccess ? "Course Generation Started!" : "Generate New Course"}
           </DialogTitle>
-          <DialogDescription>
-            {step === 'selection' && 'Select employees to generate personalized learning paths based on their skills gaps'}
-            {step === 'generating' && 'Creating customized courses based on individual skill assessments'}
-            {step === 'complete' && 'Courses have been successfully generated and assigned'}
+          <DialogDescription className="text-business-black/70">
+            {generationSuccess ? "The course generation process has started. You'll receive a notification when it's complete." : "Fill in the details below to start generating a new personalized course."}
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'selection' && (
-          <>
-            <div className="flex-1 overflow-hidden flex flex-col space-y-4">
-              {/* Summary */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-muted-foreground" />
-                      <span className="font-medium">Selected Employees: {selectedEmployees.size}</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={toggleAll}
-                    >
-                      {selectedEmployees.size === employees.filter(e => e.skills_profile?.gap_analysis_completed_at).length 
-                        ? 'Deselect All' 
-                        : 'Select All Eligible'}
-                    </Button>
-                  </div>
-
-                  {selectedEmployees.size > 0 && (
-                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold">
-                          {employees.filter(e => selectedEmployees.has(e.id))
-                            .reduce((sum, e) => sum + (e.estimated_modules || 0), 0)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Total Modules</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold">
-                          {employees.filter(e => selectedEmployees.has(e.id))
-                            .reduce((sum, e) => sum + (e.estimated_hours || 0), 0)}h
-                        </p>
-                        <p className="text-sm text-muted-foreground">Total Hours</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold">~{selectedEmployees.size * 3}</p>
-                        <p className="text-sm text-muted-foreground">Est. Minutes</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Employee List */}
-              <ScrollArea className="flex-1 pr-4">
-                <div className="space-y-2">
-                  {loading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin" />
-                    </div>
-                  ) : employees.length === 0 ? (
-                    <Card>
-                      <CardContent className="flex flex-col items-center justify-center py-8">
-                        <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="text-center text-muted-foreground">
-                          No employees found with completed skills analysis
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    employees.map((employee) => {
-                      const hasGapAnalysis = employee.skills_profile?.gap_analysis_completed_at !== null;
-                      const isSelected = selectedEmployees.has(employee.id);
-
-                      return (
-                        <Card 
-                          key={employee.id} 
-                          className={`cursor-pointer transition-colors ${
-                            isSelected ? 'border-primary' : ''
-                          } ${!hasGapAnalysis ? 'opacity-60' : ''}`}
-                          onClick={() => hasGapAnalysis && toggleEmployee(employee.id)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={isSelected}
-                                disabled={!hasGapAnalysis}
-                                onCheckedChange={() => hasGapAnalysis && toggleEmployee(employee.id)}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <p className="font-medium">{employee.full_name}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {employee.position} • {employee.department}
-                                    </p>
-                                  </div>
-                                  {hasGapAnalysis ? (
-                                    <div className="text-right">
-                                      <Badge variant="outline" className="mb-1">
-                                        {employee.skills_profile?.skills_match_score || 0}% Match
-                                      </Badge>
-                                      <p className="text-xs text-muted-foreground">
-                                        {employee.critical_gaps} critical, {employee.moderate_gaps} moderate gaps
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <Badge variant="secondary">No Analysis</Badge>
-                                  )}
-                                </div>
-                                {hasGapAnalysis && (
-                                  <div className="flex items-center gap-4 mt-2 text-sm">
-                                    <div className="flex items-center gap-1">
-                                      <BookOpen className="h-3 w-3" />
-                                      <span>{employee.estimated_modules} modules</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      <span>{employee.estimated_hours} hours</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-
-            <DialogFooter className="pt-4">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleGenerateCourses}
-                disabled={selectedEmployees.size === 0}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Generate {selectedEmployees.size} Course{selectedEmployees.size !== 1 ? 's' : ''}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {step === 'generating' && (
-          <div className="space-y-6 py-8">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">Generating Personalized Courses</h3>
-              <p className="text-sm text-muted-foreground">
-                Currently processing: {currentEmployee}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Overall Progress</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>Analyzing skills gaps and learning objectives</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>Researching relevant content and resources</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    {progress > 50 ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    )}
-                    <span>Generating personalized course content</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    {progress > 75 ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <div className="h-4 w-4 rounded-full border-2 border-muted" />
-                    )}
-                    <span>Creating multimedia assets and assessments</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {generationSuccess ? (
+          <div className="text-center py-8 space-y-4">
+            <CheckCircle className="w-16 h-16 text-future-green mx-auto" />
+            <Button
+              onClick={handleSuccessClose}
+              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-2 rounded-xl"
+            >
+              Close
+            </Button>
           </div>
-        )}
-
-        {step === 'complete' && (
-          <div className="space-y-6">
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="courseTitle" className="text-sm font-medium text-business-black">
+                  Course Title
+                </Label>
+                <Input
+                  type="text"
+                  id="courseTitle"
+                  placeholder="e.g., Advanced Python for Data Science"
+                  value={courseTitle}
+                  onChange={(e) => setCourseTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                  required
+                />
               </div>
-              <h3 className="text-lg font-medium mb-2">Course Generation Complete!</h3>
-              <p className="text-sm text-muted-foreground">
-                Successfully generated {generatedCourses.length} personalized courses
-              </p>
+
+              <div>
+                <Label htmlFor="estimatedDuration" className="text-sm font-medium text-business-black">
+                  Estimated Duration
+                </Label>
+                <Input
+                  type="text"
+                  id="estimatedDuration"
+                  placeholder="e.g., 4 weeks"
+                  value={estimatedDuration}
+                  onChange={(e) => setEstimatedDuration(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                  required
+                />
+              </div>
             </div>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  {generatedCourses.map((course, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <GraduationCap className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">{course.employee_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {course.module_count} modules generated
-                          </p>
-                        </div>
-                      </div>
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    </div>
-                  ))}
+            <div>
+              <Label htmlFor="courseDescription" className="text-sm font-medium text-business-black">
+                Course Description
+              </Label>
+              <Textarea
+                id="courseDescription"
+                placeholder="Describe the course in detail..."
+                value={courseDescription}
+                onChange={(e) => setCourseDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="targetAudience" className="text-sm font-medium text-business-black">
+                Target Audience
+              </Label>
+              <Input
+                type="text"
+                id="targetAudience"
+                placeholder="e.g., Mid-level software engineers"
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="learningObjectives" className="text-sm font-medium text-business-black">
+                Learning Objectives
+              </Label>
+              <Textarea
+                id="learningObjectives"
+                placeholder="What should learners achieve?..."
+                value={learningObjectives}
+                onChange={(e) => setLearningObjectives(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="additionalNotes" className="text-sm font-medium text-business-black">
+                Additional Notes
+              </Label>
+              <Textarea
+                id="additionalNotes"
+                placeholder="Any other specifications?..."
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="cvFile" className="text-sm font-medium text-business-black">
+                Upload CV
+              </Label>
+              <Input
+                type="file"
+                id="cvFile"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={handleFileChange}
+                className="w-full"
+              />
+              {cvFile && (
+                <div className="mt-2 text-sm text-business-black/70">
+                  Selected file: {cvFile.name}
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Next Steps:</h4>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  Courses have been automatically assigned to employees
-                </li>
-                <li className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  Email notifications will be sent within 5 minutes
-                </li>
-                <li className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  Track progress in the Courses dashboard
-                </li>
-              </ul>
+              )}
             </div>
+
+            {generationError && (
+              <div className="text-red-500 text-sm flex items-center gap-2">
+                <XCircle className="w-4 h-4" />
+                {generationError}
+              </div>
+            )}
 
             <DialogFooter>
-              <Button onClick={handleComplete}>
-                View Courses
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isGenerating}
+                className="flex-1 border-2 border-gray-300 text-business-black hover:bg-gray-50 hover:text-business-black font-medium py-2 rounded-xl transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isGenerating}
+                className="flex-1 bg-future-green text-business-black hover:bg-future-green/90 font-medium py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Course"
+                )}
               </Button>
             </DialogFooter>
-          </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>
-
-    {/* Bulk Generation View - Shows after employee selection */}
-    {showBulkGeneration && currentJobId && (
-      <BulkGenerationView
-        jobId={currentJobId}
-        totalEmployees={selectedEmployees.size}
-        onClose={() => {
-          setShowBulkGeneration(false);
-          onComplete();
-        }}
-        onMinimize={() => {
-          // The bulk generation view handles its own minimized state
-        }}
-      />
-    )}
-  </>
   );
 };
 
