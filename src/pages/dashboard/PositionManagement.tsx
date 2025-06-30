@@ -345,6 +345,7 @@ export default function PositionManagement() {
               setCreateOpen(false);
               fetchPositions();
             }}
+            onCancel={() => setCreateOpen(false)}
           />
         </DialogContent>
       </Dialog>

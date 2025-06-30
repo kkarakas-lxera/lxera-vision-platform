@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, BookOpen, Clock, Target, User, Calendar } from 'lucide-react';
-import { ModuleNavigation } from './components/ModuleNavigation';
-import { CourseContentSection } from './components/CourseContentSection';
-import { VideoPlayer } from './components/VideoPlayer';
+import ModuleNavigation from './components/ModuleNavigation';
+import CourseContentSection from './components/CourseContentSection';
+import VideoPlayer from './components/VideoPlayer';
 import { parseCourseStructure } from '@/utils/typeGuards';
 
 interface CourseData {
@@ -92,7 +92,7 @@ export default function CourseDisplay() {
           status,
           started_at,
           completed_at,
-          course_plans!inner(course_structure)
+          cm_course_plans!inner(course_structure)
         `)
         .eq('id', courseId)
         .eq('employee_id', employee.id)
@@ -101,8 +101,14 @@ export default function CourseDisplay() {
       if (assignmentError) throw assignmentError;
       if (!assignment) throw new Error('Course not found');
 
+      // Safely access course structure
+      const courseStructureData = assignment.cm_course_plans?.course_structure;
+      if (!courseStructureData) {
+        throw new Error('Course structure not found');
+      }
+
       // Parse the course structure safely
-      const courseStructure = parseCourseStructure(assignment.course_plans.course_structure);
+      const courseStructure = parseCourseStructure(courseStructureData);
 
       const formattedCourse: CourseData = {
         id: assignment.id,

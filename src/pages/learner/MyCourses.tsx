@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, PlayCircle, CheckCircle, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { BookOpen, Clock, User, ChevronRight, Play } from 'lucide-react';
+import { parseCourseStructure } from '@/utils/typeGuards';
 
 interface CourseAssignment {
   id: string;
@@ -15,9 +16,9 @@ interface CourseAssignment {
   plan_id: string;
   progress_percentage: number;
   status: string;
-  started_at: string | null;
+  started_at: string;
   completed_at: string | null;
-  course_plan?: {
+  course_plan: {
     course_structure: {
       title: string;
       modules: Array<{
@@ -32,34 +33,37 @@ interface CourseAssignment {
 }
 
 export default function MyCourses() {
-  const { userProfile } = useAuth();
   const navigate = useNavigate();
+  const { userProfile } = useAuth();
+  const [courses, setCourses] = useState<CourseAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [assignments, setAssignments] = useState<CourseAssignment[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (userProfile) {
-      fetchCourses();
+      fetchMyCourses();
     }
   }, [userProfile]);
 
-  const fetchCourses = async () => {
+  const fetchMyCourses = async () => {
+    if (!userProfile) return;
+
     try {
-      // Get employee record
-      const { data: employees } = await supabase
+      setLoading(true);
+
+      // Get employee ID
+      const { data: employee } = await supabase
         .from('employees')
         .select('id')
-        .eq('user_id', userProfile?.id);
-      
-      const employee = employees?.[0];
+        .eq('user_id', userProfile.id)
+        .single();
+
       if (!employee) {
-        toast.error('Employee profile not found');
-        setLoading(false);
-        return;
+        throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignments with plan details
-      const { data: courseAssignments, error } = await supabase
+      // Fetch course assignments with course plans
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
         .select(`
           id,
@@ -68,39 +72,41 @@ export default function MyCourses() {
           progress_percentage,
           status,
           started_at,
-          completed_at
+          completed_at,
+          cm_course_plans!inner(course_structure)
         `)
         .eq('employee_id', employee.id)
-        .order('updated_at', { ascending: false });
+        .order('started_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Fetch course plan details for each assignment
-      let finalAssignments: CourseAssignment[] = [];
-      
-      if (courseAssignments && courseAssignments.length > 0) {
-        const assignmentsWithPlans = await Promise.all(
-          courseAssignments.map(async (assignment) => {
-            const { data: plan } = await supabase
-              .from('cm_course_plans')
-              .select('course_structure')
-              .eq('plan_id', assignment.plan_id)
-              .single();
-            
-            return {
-              ...assignment,
-              course_plan: plan
-            };
-          })
-        );
-        
-        finalAssignments = assignmentsWithPlans.filter(a => a.course_plan);
-      }
-      
-      setAssignments(finalAssignments);
-    } catch (error) {
+      if (assignmentsError) throw assignmentsError;
+
+      // Process and format courses
+      const formattedCourses: CourseAssignment[] = (assignments || [])
+        .map(assignment => {
+          const courseStructureData = assignment.cm_course_plans?.course_structure;
+          if (!courseStructureData) return null;
+
+          const courseStructure = parseCourseStructure(courseStructureData);
+          
+          return {
+            id: assignment.id,
+            course_id: assignment.course_id,
+            plan_id: assignment.plan_id,
+            progress_percentage: assignment.progress_percentage || 0,
+            status: assignment.status,
+            started_at: assignment.started_at,
+            completed_at: assignment.completed_at,
+            course_plan: {
+              course_structure: courseStructure
+            }
+          };
+        })
+        .filter(Boolean) as CourseAssignment[];
+
+      setCourses(formattedCourses);
+    } catch (error: any) {
       console.error('Error fetching courses:', error);
-      toast.error('Failed to load courses');
+      setError(error.message || 'Failed to load courses');
     } finally {
       setLoading(false);
     }
@@ -108,135 +114,119 @@ export default function MyCourses() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'in_progress':
-        return 'secondary';
-      default:
-        return 'outline';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'in_progress':
-        return <PlayCircle className="h-4 w-4" />;
-      default:
-        return <BookOpen className="h-4 w-4" />;
-    }
-  };
-
-  const handleContinueCourse = (courseId: string) => {
-    navigate(`/learner/course/${courseId}`);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your courses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-4">Error Loading Courses</h1>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={fetchMyCourses}>Try Again</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">My Courses</h1>
-        <p className="text-muted-foreground mt-1">
-          Track your learning progress and access your assigned courses
-        </p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">My Learning Path</h1>
+        <p className="text-muted-foreground">Continue your personalized learning journey</p>
       </div>
 
-      {/* Courses Grid */}
-      {assignments.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No courses assigned yet</h3>
-            <p className="text-muted-foreground">
-              Your learning journey will begin once courses are assigned to you.
-            </p>
-          </CardContent>
-        </Card>
+      {courses.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No courses assigned yet</h2>
+          <p className="text-muted-foreground mb-4">
+            Your learning journey will begin once courses are assigned to you
+          </p>
+        </div>
       ) : (
-        <div className="grid gap-4">
-          {assignments.map((assignment) => (
-            <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {courses.map((course) => (
+            <Card key={course.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">
-                      {assignment.course_plan?.course_structure?.title || 'Course'}
+                    <CardTitle className="text-lg mb-2 line-clamp-2">
+                      {course.course_plan.course_structure.title}
                     </CardTitle>
-                    <CardDescription className="mt-2">
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" />
-                          {assignment.course_plan?.course_structure?.modules?.length || 0} modules
-                        </span>
-                        <span className="text-muted-foreground">•</span>
-                        <span>
-                          {assignment.course_plan?.course_structure?.modules?.reduce(
-                            (acc, mod) => acc + parseInt(mod.duration || '1'), 0
-                          ) || 0} weeks total
-                        </span>
-                      </div>
-                    </CardDescription>
+                    <Badge className={`text-xs ${getStatusColor(course.status)}`}>
+                      {course.status.replace('_', ' ')}
+                    </Badge>
                   </div>
-                  <Badge variant={getStatusColor(assignment.status)} className="ml-4">
-                    <span className="flex items-center gap-1">
-                      {getStatusIcon(assignment.status)}
-                      {assignment.status.replace('_', ' ')}
-                    </span>
-                  </Badge>
                 </div>
               </CardHeader>
+              
               <CardContent className="space-y-4">
-                {/* Progress */}
+                {/* Progress Bar */}
                 <div>
-                  <div className="flex items-center justify-between text-sm mb-2">
+                  <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{Math.round(assignment.progress_percentage)}%</span>
+                    <span className="font-medium">{Math.round(course.progress_percentage)}%</span>
                   </div>
-                  <Progress value={assignment.progress_percentage} className="h-2" />
+                  <Progress value={course.progress_percentage} className="h-2" />
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  {assignment.started_at && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      Started {new Date(assignment.started_at).toLocaleDateString()}
-                    </div>
-                  )}
-                  {assignment.completed_at && (
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      Completed {new Date(assignment.completed_at).toLocaleDateString()}
+                {/* Course Info */}
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{course.course_plan.course_structure.modules.length} modules</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>Started {formatDate(course.started_at)}</span>
+                  </div>
+
+                  {course.completed_at && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Completed {formatDate(course.completed_at)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Action */}
+                {/* Action Button */}
                 <Button 
-                  onClick={() => handleContinueCourse(assignment.course_id)}
-                  className="w-full"
-                  variant={assignment.status === 'completed' ? 'outline' : 'default'}
+                  className="w-full mt-4" 
+                  onClick={() => navigate(`/learner/course/${course.id}`)}
+                  variant={course.status === 'completed' ? 'outline' : 'default'}
                 >
-                  {assignment.status === 'completed' ? 'Review Course' : 
-                   assignment.status === 'in_progress' ? 'Continue Learning' : 
-                   'Start Course'}
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  {course.status === 'completed' ? (
+                    <>Review Course</>
+                  ) : course.progress_percentage > 0 ? (
+                    <>Continue Learning <ChevronRight className="h-4 w-4 ml-2" /></>
+                  ) : (
+                    <>Start Course <Play className="h-4 w-4 ml-2" /></>
+                  )}
                 </Button>
               </CardContent>
             </Card>
