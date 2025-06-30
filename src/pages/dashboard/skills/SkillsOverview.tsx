@@ -28,6 +28,24 @@ interface PositionCoverage {
   avg_match_score: number;
 }
 
+interface DepartmentSummary {
+  department: string;
+  total_employees: number;
+  analyzed_employees: number;
+  avg_skills_match: number;
+  critical_gaps: number;
+  moderate_gaps: number;
+  exceeding_targets: number;
+}
+
+interface CriticalSkillsGap {
+  skill_name: string;
+  employees_with_gap: number;
+  avg_proficiency: number;
+  gap_severity: 'critical' | 'moderate' | 'minor';
+  department: string;
+}
+
 interface RecentAnalysis {
   employee_id: string;
   employee_name: string;
@@ -46,6 +64,8 @@ export default function SkillsOverview() {
   const [totalSkills, setTotalSkills] = useState(0);
   const [positionCoverage, setPositionCoverage] = useState<PositionCoverage[]>([]);
   const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([]);
+  const [departmentSummaries, setDepartmentSummaries] = useState<DepartmentSummary[]>([]);
+  const [criticalSkillsGaps, setCriticalSkillsGaps] = useState<CriticalSkillsGap[]>([]);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -170,6 +190,12 @@ export default function SkillsOverview() {
         setRecentAnalyses(recent);
       }
 
+      // Fetch department summaries
+      await fetchDepartmentSummaries();
+      
+      // Fetch critical skills gaps
+      await fetchCriticalSkillsGaps();
+
     } catch (error) {
       console.error('Error fetching skills data:', error);
       toast({
@@ -179,6 +205,53 @@ export default function SkillsOverview() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDepartmentSummaries = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      const { data: departmentData, error } = await supabase
+        .from('v_department_skills_summary')
+        .select('*')
+        .eq('company_id', userProfile.company_id)
+        .order('avg_skills_match', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching department summaries:', error);
+        return;
+      }
+
+      if (departmentData) {
+        setDepartmentSummaries(departmentData);
+      }
+    } catch (error) {
+      console.error('Error fetching department summaries:', error);
+    }
+  };
+
+  const fetchCriticalSkillsGaps = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      const { data: gapsData, error } = await supabase
+        .from('v_critical_skills_gaps')
+        .select('*')
+        .eq('company_id', userProfile.company_id)
+        .order('employees_with_gap', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching critical skills gaps:', error);
+        return;
+      }
+
+      if (gapsData) {
+        setCriticalSkillsGaps(gapsData);
+      }
+    } catch (error) {
+      console.error('Error fetching critical skills gaps:', error);
     }
   };
 
@@ -317,6 +390,144 @@ export default function SkillsOverview() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Department Breakdown */}
+      {departmentSummaries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Department Skills Breakdown</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Skills performance across different departments
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {departmentSummaries.map((dept) => {
+                const coveragePercent = dept.total_employees > 0
+                  ? Math.round((dept.analyzed_employees / dept.total_employees) * 100)
+                  : 0;
+
+                const getDepartmentIcon = (deptName: string) => {
+                  switch (deptName.toLowerCase()) {
+                    case 'finance': return '💼';
+                    case 'engineering': return '🔧';
+                    case 'marketing': return '📢';
+                    case 'operations': return '⚙️';
+                    default: return '🏢';
+                  }
+                };
+
+                const getScoreColor = (score: number) => {
+                  if (score >= 80) return 'text-green-600';
+                  if (score >= 60) return 'text-orange-600';
+                  return 'text-red-600';
+                };
+
+                return (
+                  <div 
+                    key={dept.department} 
+                    className="space-y-2 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{getDepartmentIcon(dept.department)}</span>
+                        <span className="font-medium">{dept.department}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {dept.analyzed_employees}/{dept.total_employees} analyzed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`font-medium ${getScoreColor(dept.avg_skills_match)}`}>
+                          {Math.round(dept.avg_skills_match)}%
+                        </span>
+                        {dept.critical_gaps > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            🔴 {dept.critical_gaps} critical
+                          </Badge>
+                        )}
+                        {dept.moderate_gaps > 0 && dept.critical_gaps === 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            🟡 {dept.moderate_gaps} moderate
+                          </Badge>
+                        )}
+                        {dept.critical_gaps === 0 && dept.moderate_gaps === 0 && (
+                          <Badge variant="default" className="text-xs">
+                            🟢 Good
+                          </Badge>
+                        )}
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <Progress 
+                      value={dept.avg_skills_match} 
+                      className={`h-2 ${
+                        dept.avg_skills_match < 60 ? '[&>div]:bg-red-500' : 
+                        dept.avg_skills_match < 80 ? '[&>div]:bg-orange-500' : ''
+                      }`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Critical Skills Gaps */}
+      {criticalSkillsGaps.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Critical Skills Gaps</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Skills that need immediate attention across the organization
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {criticalSkillsGaps.slice(0, 5).map((gap) => {
+                const getSeverityColor = (severity: string) => {
+                  switch (severity) {
+                    case 'critical': return 'text-red-600';
+                    case 'moderate': return 'text-orange-600';
+                    default: return 'text-yellow-600';
+                  }
+                };
+
+                const getSeverityIcon = (severity: string) => {
+                  switch (severity) {
+                    case 'critical': return '🔴';
+                    case 'moderate': return '🟡';
+                    default: return '🟨';
+                  }
+                };
+
+                return (
+                  <div key={`${gap.skill_name}-${gap.department}`} className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      <span>{getSeverityIcon(gap.gap_severity)}</span>
+                      <div>
+                        <p className="font-medium">{gap.skill_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {gap.department} • {gap.employees_with_gap} people affected
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge 
+                        variant={gap.gap_severity === 'critical' ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
+                        Avg: {gap.avg_proficiency}/5
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Position Coverage */}
       <Card>
