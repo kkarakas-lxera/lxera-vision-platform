@@ -103,7 +103,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <img
                 src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
                 alt="LXERA logo"
-                className="h-8 object-contain"
+                className="h-8 object-contain brightness-0 invert"
                 draggable={false}
               />
             </div>
