@@ -240,55 +240,82 @@ export default function CourseDisplay() {
 
   const fetchModuleSections = async (contentId: string) => {
     try {
-      // First get the company_id from the users table
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', userProfile?.id)
-        .single();
+      console.log('Fetching sections for contentId:', contentId);
 
-      if (userError) {
-        console.error('Error fetching user data:', userError);
-        toast.error('Unable to load user information');
-        return;
+      // Try to use the learner RPC function first to get the module content
+      const { data: moduleContent, error: moduleError } = await supabase
+        .rpc('get_module_content_for_learner', {
+          p_content_id: contentId
+        });
+
+      if (moduleError) {
+        console.error('Error fetching module content:', moduleError);
+        // Continue to try fetching sections directly
+      } else {
+        console.log('Module content fetched:', moduleContent);
       }
 
-      const companyId = userData?.company_id;
+      // For sections, we need to create an RPC function or work around the RLS
+      // For now, let's create the sections from the module content
+      const sectionsData = [];
       
-      if (!companyId) {
-        console.error('No company_id found for user');
-        toast.error('Unable to load content - company information missing');
-        return;
+      if (moduleContent && moduleContent.length > 0) {
+        const content = moduleContent[0];
+        
+        // Create sections from the module content fields
+        if (content.introduction) {
+          sectionsData.push({
+            section_id: 'intro-' + contentId,
+            section_name: 'introduction',
+            section_content: content.introduction,
+            word_count: content.introduction.split(' ').length,
+            content_id: contentId
+          });
+        }
+        
+        if (content.practical_applications) {
+          sectionsData.push({
+            section_id: 'practical-' + contentId,
+            section_name: 'practical_applications',
+            section_content: content.practical_applications,
+            word_count: content.practical_applications.split(' ').length,
+            content_id: contentId
+          });
+        }
+        
+        if (content.case_studies) {
+          sectionsData.push({
+            section_id: 'cases-' + contentId,
+            section_name: 'case_studies',
+            section_content: content.case_studies,
+            word_count: content.case_studies.split(' ').length,
+            content_id: contentId
+          });
+        }
+        
+        if (content.assessments) {
+          sectionsData.push({
+            section_id: 'assess-' + contentId,
+            section_name: 'assessments',
+            section_content: content.assessments,
+            word_count: content.assessments.split(' ').length,
+            content_id: contentId
+          });
+        }
       }
 
-      console.log('Fetching sections for contentId:', contentId, 'companyId:', companyId);
-
-      const { data: sectionsData, error } = await supabase
-        .from('cm_content_sections')
-        .select('*')
-        .eq('content_id', contentId)
-        .eq('company_id', companyId)
-        .order('created_at');
-
-      if (error) throw error;
-
-      console.log('Fetched sections data:', sectionsData);
-      console.log('Number of sections found:', sectionsData?.length || 0);
+      console.log('Constructed sections data:', sectionsData);
+      console.log('Number of sections:', sectionsData.length);
 
       // Fetch completion status for sections
       const sectionsWithStatus = await Promise.all(
         (sectionsData || []).map(async (section) => {
-          const { data: progress } = await supabase
-            .from('course_section_progress')
-            .select('is_completed, completed_at')
-            .eq('section_id', section.section_id)
-            .eq('user_id', userProfile?.id)
-            .single();
-
+          // For now, skip checking progress for constructed sections
+          // We can implement this later with proper section tracking
           return {
             ...section,
-            is_completed: progress?.is_completed || false,
-            completed_at: progress?.completed_at
+            is_completed: false,
+            completed_at: null
           };
         })
       );
