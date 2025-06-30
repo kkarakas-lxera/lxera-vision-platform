@@ -61,111 +61,176 @@ export default function DepartmentSkillsDetail() {
     try {
       setLoading(true);
 
-      // Fetch department employees with skills profiles
-      const { data: employeesData, error: employeesError } = await supabase
+      // First fetch employees in the department
+      const { data: employeesInDept, error: empError } = await supabase
+        .from('employees')
+        .select(`
+          id,
+          department,
+          current_position_id,
+          user_id,
+          users!employees_user_id_fkey(full_name)
+        `)
+        .eq('company_id', userProfile.company_id)
+        .eq('department', decodeURIComponent(department));
+
+      if (empError) {
+        console.error('Error fetching employees:', empError);
+        throw empError;
+      }
+
+      if (!employeesInDept?.length) {
+        setEmployees([]);
+        setDepartmentStats({
+          totalEmployees: 0,
+          analyzedEmployees: 0,
+          avgScore: 0,
+          criticalGaps: 0,
+          moderateGaps: 0
+        });
+        setLoading(false);
+        return;
+      }
+
+      const employeeIds = employeesInDept.map(emp => emp.id);
+
+      // Fetch skills profiles for these employees
+      const { data: skillsData, error: skillsError } = await supabase
         .from('st_employee_skills_profile')
         .select(`
           employee_id,
           skills_match_score,
           analyzed_at,
           technical_skills,
-          soft_skills,
-          employees!inner(
-            id,
-            full_name,
-            department,
-            current_position_id,
-            company_id,
-            st_company_positions(position_title)
-          )
+          soft_skills
         `)
-        .eq('employees.company_id', userProfile.company_id)
-        .eq('employees.department', decodeURIComponent(department))
+        .in('employee_id', employeeIds)
         .not('analyzed_at', 'is', null);
 
-      if (employeesError) {
-        console.error('Error fetching employees:', employeesError);
-        throw employeesError;
+      if (skillsError) {
+        console.error('Error fetching skills profiles:', skillsError);
+        throw skillsError;
       }
 
-      if (employeesData) {
-        const formattedEmployees = employeesData.map(profile => ({
-          employee_id: profile.employee_id,
-          employee_name: profile.employees.full_name || 'Unknown',
-          position_title: profile.employees.st_company_positions?.position_title || 'Not Assigned',
-          skills_match_score: parseFloat(profile.skills_match_score) || 0,
-          analyzed_at: profile.analyzed_at,
-          technical_skills: Array.isArray(profile.technical_skills) ? profile.technical_skills : [],
-          soft_skills: Array.isArray(profile.soft_skills) ? profile.soft_skills : []
-        }));
+      // Fetch positions for these employees
+      const positionIds = employeesInDept
+        .map(emp => emp.current_position_id)
+        .filter(Boolean);
 
-        setEmployees(formattedEmployees);
+      let positionsMap = new Map();
+      if (positionIds.length > 0) {
+        const { data: positionsData } = await supabase
+          .from('st_company_positions')
+          .select('id, position_title')
+          .in('id', positionIds);
 
-        // Calculate department stats
-        const totalAnalyzed = formattedEmployees.length;
-        const avgScore = totalAnalyzed > 0 
-          ? formattedEmployees.reduce((sum, emp) => sum + emp.skills_match_score, 0) / totalAnalyzed 
-          : 0;
-        const criticalCount = formattedEmployees.filter(emp => emp.skills_match_score < 50).length;
-        const moderateCount = formattedEmployees.filter(emp => emp.skills_match_score >= 50 && emp.skills_match_score < 70).length;
-
-        setDepartmentStats({
-          totalEmployees: totalAnalyzed, // For now, assuming all employees are analyzed
-          analyzedEmployees: totalAnalyzed,
-          avgScore: Math.round(avgScore),
-          criticalGaps: criticalCount,
-          moderateGaps: moderateCount
-        });
-
-        // Generate skill breakdown
-        const skillMap = new Map<string, { total: number; proficiencies: number[]; type: 'technical' | 'soft' }>();
-
-        formattedEmployees.forEach(employee => {
-          // Process technical skills
-          employee.technical_skills.forEach(skill => {
-            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
-            
-            if (skillName) {
-              if (!skillMap.has(skillName)) {
-                skillMap.set(skillName, { total: 0, proficiencies: [], type: 'technical' });
-              }
-              const existing = skillMap.get(skillName)!;
-              existing.total++;
-              existing.proficiencies.push(proficiency);
-            }
+        if (positionsData) {
+          positionsData.forEach(pos => {
+            positionsMap.set(pos.id, pos.position_title);
           });
-
-          // Process soft skills
-          employee.soft_skills.forEach(skill => {
-            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
-            
-            if (skillName) {
-              if (!skillMap.has(skillName)) {
-                skillMap.set(skillName, { total: 0, proficiencies: [], type: 'soft' });
-              }
-              const existing = skillMap.get(skillName)!;
-              existing.total++;
-              existing.proficiencies.push(proficiency);
-            }
-          });
-        });
-
-        // Convert to breakdown format
-        const breakdown: DepartmentSkillBreakdown[] = Array.from(skillMap.entries())
-          .map(([skillName, data]) => ({
-            skill_name: skillName,
-            employees_count: data.total,
-            avg_proficiency: data.proficiencies.reduce((sum, p) => sum + p, 0) / data.proficiencies.length,
-            below_target_count: data.proficiencies.filter(p => p < 4).length,
-            skill_type: data.type
-          }))
-          .filter(skill => skill.employees_count >= 2) // Only show skills with 2+ people
-          .sort((a, b) => b.below_target_count - a.below_target_count);
-
-        setSkillBreakdown(breakdown);
+        }
       }
+
+      // Combine the data
+      const employeesData = employeesInDept
+        .map(emp => {
+          const skillsProfile = skillsData?.find(sp => sp.employee_id === emp.id);
+          if (!skillsProfile) return null;
+
+          return {
+            employee_id: emp.id,
+            skills_match_score: parseFloat(skillsProfile.skills_match_score) || 0,
+            analyzed_at: skillsProfile.analyzed_at,
+            technical_skills: Array.isArray(skillsProfile.technical_skills) ? skillsProfile.technical_skills : [],
+            soft_skills: Array.isArray(skillsProfile.soft_skills) ? skillsProfile.soft_skills : [],
+            employees: {
+              id: emp.id,
+              department: emp.department,
+              current_position_id: emp.current_position_id,
+              users: emp.users,
+              position_title: positionsMap.get(emp.current_position_id) || 'Not Assigned'
+            }
+          };
+        })
+        .filter(Boolean);
+
+      const formattedEmployees = employeesData.map(profile => ({
+        employee_id: profile.employee_id,
+        employee_name: profile.employees.users?.full_name || 'Unknown',
+        position_title: profile.employees.position_title || 'Not Assigned',
+        skills_match_score: profile.skills_match_score,
+        analyzed_at: profile.analyzed_at,
+        technical_skills: profile.technical_skills,
+        soft_skills: profile.soft_skills
+      }));
+
+      setEmployees(formattedEmployees);
+
+      // Calculate department stats
+      const totalAnalyzed = formattedEmployees.length;
+      const totalInDept = employeesInDept.length;
+      const avgScore = totalAnalyzed > 0 
+        ? formattedEmployees.reduce((sum, emp) => sum + emp.skills_match_score, 0) / totalAnalyzed 
+        : 0;
+      const criticalCount = formattedEmployees.filter(emp => emp.skills_match_score < 50).length;
+      const moderateCount = formattedEmployees.filter(emp => emp.skills_match_score >= 50 && emp.skills_match_score < 70).length;
+
+      setDepartmentStats({
+        totalEmployees: totalInDept,
+        analyzedEmployees: totalAnalyzed,
+        avgScore: Math.round(avgScore),
+        criticalGaps: criticalCount,
+        moderateGaps: moderateCount
+      });
+
+      // Generate skill breakdown
+      const skillMap = new Map<string, { total: number; proficiencies: number[]; type: 'technical' | 'soft' }>();
+
+      formattedEmployees.forEach(employee => {
+        // Process technical skills
+        employee.technical_skills.forEach(skill => {
+          const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
+          const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+          
+          if (skillName) {
+            if (!skillMap.has(skillName)) {
+              skillMap.set(skillName, { total: 0, proficiencies: [], type: 'technical' });
+            }
+            const existing = skillMap.get(skillName)!;
+            existing.total++;
+            existing.proficiencies.push(proficiency);
+          }
+        });
+
+        // Process soft skills
+        employee.soft_skills.forEach(skill => {
+          const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
+          const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+          
+          if (skillName) {
+            if (!skillMap.has(skillName)) {
+              skillMap.set(skillName, { total: 0, proficiencies: [], type: 'soft' });
+            }
+            const existing = skillMap.get(skillName)!;
+            existing.total++;
+            existing.proficiencies.push(proficiency);
+          }
+        });
+      });
+
+      // Convert to breakdown format
+      const breakdown: DepartmentSkillBreakdown[] = Array.from(skillMap.entries())
+        .map(([skillName, data]) => ({
+          skill_name: skillName,
+          employees_count: data.total,
+          avg_proficiency: data.proficiencies.reduce((sum, p) => sum + p, 0) / data.proficiencies.length,
+          below_target_count: data.proficiencies.filter(p => p < 4).length,
+          skill_type: data.type
+        }))
+        .filter(skill => skill.employees_count >= 2) // Only show skills with 2+ people
+        .sort((a, b) => b.below_target_count - a.below_target_count);
+
+      setSkillBreakdown(breakdown);
 
     } catch (error) {
       console.error('Error fetching department data:', error);
@@ -261,9 +326,9 @@ export default function DepartmentSkillsDetail() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{departmentStats.analyzedEmployees}</div>
+            <div className="text-2xl font-bold">{departmentStats.totalEmployees}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              all analyzed
+              {departmentStats.analyzedEmployees} analyzed
             </p>
           </CardContent>
         </Card>
