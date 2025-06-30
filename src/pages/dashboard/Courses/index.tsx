@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -361,7 +360,7 @@ const CoursesPage = () => {
               {modules.map((module, index) => (
                 <Card key={index} className="p-4">
                   <h3 className="font-medium text-sm mb-2">
-                    {typeof module === 'object' && module?.module_name ? module.module_name : `Module ${index + 1}`}
+                    {typeof module === 'object' && module && 'module_name' in module ? module.module_name : `Module ${index + 1}`}
                   </h3>
                   <p className="text-xs text-gray-600">
                     Click to view module details
