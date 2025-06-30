@@ -254,13 +254,13 @@ class CVProcessingService {
               position
             );
 
-            // Update session item with analysis results
+            // Update session item with analysis results - ensure JSON serialization
             await supabase
               .from('st_import_session_items')
               .update({
                 cv_analysis_result: cvProfile.extracted_skills,
                 confidence_score: matchAnalysis.overallScore / 100,
-                position_match_analysis: matchAnalysis,
+                position_match_analysis: JSON.parse(JSON.stringify(matchAnalysis)),
                 analysis_completed_at: new Date().toISOString(),
                 status: 'completed'
               })
@@ -288,7 +288,7 @@ class CVProcessingService {
           await supabase
             .from('st_import_session_items')
             .update({
-              suggested_positions: suggestions
+              suggested_positions: JSON.parse(JSON.stringify(suggestions))
             })
             .eq('id', queueItem.session_item_id);
         }

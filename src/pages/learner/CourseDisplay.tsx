@@ -94,42 +94,66 @@ export default function CourseDisplay() {
         throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignment with course plan - fix the relation name
+      // Fetch course content directly from cm_module_content
+      const { data: moduleContent, error: moduleError } = await supabase
+        .from('cm_module_content')
+        .select('*')
+        .eq('content_id', courseId)
+        .single();
+
+      if (moduleError || !moduleContent) {
+        throw new Error('Course content not found');
+      }
+
+      // Check if this content is assigned to the employee
       const { data: assignment, error: assignmentError } = await supabase
         .from('course_assignments')
-        .select(`
-          id,
-          course_id,
-          plan_id,
-          progress_percentage,
-          status,
-          started_at,
-          completed_at,
-          cm_course_plans!plan_id(course_structure)
-        `)
-        .eq('id', courseId)
+        .select('*')
+        .eq('course_id', courseId)
         .eq('employee_id', employee.id)
         .single();
 
-      if (assignmentError) throw assignmentError;
-      if (!assignment) throw new Error('Course not found');
-
-      // Safely access course structure
-      const courseStructureData = assignment.cm_course_plans?.course_structure;
-      if (!courseStructureData) {
-        throw new Error('Course structure not found');
+      if (assignmentError || !assignment) {
+        throw new Error('Course not assigned to this employee');
       }
 
-      // Parse the course structure safely
-      const courseStructure = parseCourseStructure(courseStructureData);
+      // Parse the course structure from module spec
+      const courseStructure = moduleContent.module_spec ? {
+        title: moduleContent.module_name,
+        description: moduleContent.module_spec.description || '',
+        modules: moduleContent.module_spec.learning_objectives ? 
+          moduleContent.module_spec.learning_objectives.map((obj: any, index: number) => ({
+            week: index + 1,
+            title: obj.skill || `Module ${index + 1}`,
+            topics: [obj.skill],
+            duration: '2 hours',
+            priority: obj.importance || 'medium'
+          })) : [{
+            week: 1,
+            title: moduleContent.module_name,
+            topics: ['Course Content'],
+            duration: '2 hours',
+            priority: 'high'
+          }]
+      } : {
+        title: moduleContent.module_name,
+        description: '',
+        modules: [{
+          week: 1,
+          title: moduleContent.module_name,
+          topics: ['Course Content'],
+          duration: '2 hours',
+          priority: 'high'
+        }]
+      };
 
       const formattedCourse: CourseData = {
         id: assignment.id,
         course_id: assignment.course_id,
-        plan_id: assignment.plan_id,
+        plan_id: assignment.plan_id || '',
         progress_percentage: assignment.progress_percentage || 0,
         status: assignment.status,
-        started_at: assignment.started_at,
+        started_at: assignment.started_at || assignment.assigned_at,
         completed_at: assignment.completed_at,
         course_plan: {
           course_structure: courseStructure

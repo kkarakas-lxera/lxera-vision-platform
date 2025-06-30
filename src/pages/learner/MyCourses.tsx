@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,46 +62,73 @@ export default function MyCourses() {
         throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignments with course plans - fix the relation name
+      // Fetch course assignments
       const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select(`
-          id,
-          course_id,
-          plan_id,
-          progress_percentage,
-          status,
-          started_at,
-          completed_at,
-          cm_course_plans!plan_id(course_structure)
-        `)
+        .select('*')
         .eq('employee_id', employee.id)
         .order('started_at', { ascending: false });
 
       if (assignmentsError) throw assignmentsError;
 
       // Process and format courses
-      const formattedCourses: CourseAssignment[] = (assignments || [])
-        .map(assignment => {
-          const courseStructureData = assignment.cm_course_plans?.course_structure;
-          if (!courseStructureData) return null;
+      const formattedCourses: CourseAssignment[] = [];
 
-          const courseStructure = parseCourseStructure(courseStructureData);
+      for (const assignment of assignments || []) {
+        try {
+          // Get the course content
+          const { data: moduleContent } = await supabase
+            .from('cm_module_content')
+            .select('*')
+            .eq('content_id', assignment.course_id)
+            .single();
+
+          if (!moduleContent) continue;
+
+          // Create course structure from module content
+          const courseStructure = moduleContent.module_spec ? {
+            title: moduleContent.module_name,
+            modules: moduleContent.module_spec.learning_objectives ? 
+              moduleContent.module_spec.learning_objectives.map((obj: any, index: number) => ({
+                week: index + 1,
+                title: obj.skill || `Module ${index + 1}`,
+                topics: [obj.skill],
+                duration: '2 hours',
+                priority: obj.importance || 'medium'
+              })) : [{
+                week: 1,
+                title: moduleContent.module_name,
+                topics: ['Course Content'],
+                duration: '2 hours',
+                priority: 'high'
+              }]
+          } : {
+            title: moduleContent.module_name,
+            modules: [{
+              week: 1,
+              title: moduleContent.module_name,
+              topics: ['Course Content'],
+              duration: '2 hours',
+              priority: 'high'
+            }]
+          };
           
-          return {
+          formattedCourses.push({
             id: assignment.id,
             course_id: assignment.course_id,
-            plan_id: assignment.plan_id,
+            plan_id: assignment.plan_id || '',
             progress_percentage: assignment.progress_percentage || 0,
             status: assignment.status,
-            started_at: assignment.started_at,
+            started_at: assignment.started_at || assignment.assigned_at,
             completed_at: assignment.completed_at,
             course_plan: {
               course_structure: courseStructure
             }
-          };
-        })
-        .filter(Boolean) as CourseAssignment[];
+          });
+        } catch (error) {
+          console.error('Error processing assignment:', assignment.id, error);
+        }
+      }
 
       setCourses(formattedCourses);
     } catch (error: any) {

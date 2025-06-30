@@ -1,9 +1,10 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface ModuleContentInfo {
   content_id: string;
   module_name: string;
-  plan_id: string;
+  session_id: string;
   created_at: string;
 }
 
@@ -13,19 +14,19 @@ interface ModuleContentInfo {
  */
 export async function createCourseModules(
   assignmentId: string,
-  planId: string
+  sessionId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Fetch all module content for this plan
+    // Fetch all module content for this session
     const { data: modules, error: modulesError } = await supabase
       .from('cm_module_content')
-      .select('content_id, module_name, plan_id, created_at')
-      .eq('plan_id', planId)
+      .select('content_id, module_name, session_id, created_at')
+      .eq('session_id', sessionId)
       .order('created_at', { ascending: true });
 
     if (modulesError) throw modulesError;
     if (!modules || modules.length === 0) {
-      throw new Error('No modules found for this course plan');
+      throw new Error('No modules found for this session');
     }
 
     // Create course_modules entries
@@ -166,12 +167,12 @@ export async function getCurrentModule(
 }
 
 export const courseModuleService = {
-  async getModuleContent(planId: string) {
+  async getModuleContent(sessionId: string) {
     try {
       const { data, error } = await supabase
         .from('cm_module_content')
         .select('*')
-        .eq('session_id', planId) // Use session_id instead of plan_id
+        .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
 
       if (error) {

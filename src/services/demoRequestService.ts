@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DemoRequest {
@@ -89,6 +90,27 @@ export const demoRequestService = {
     }));
 
     return typedData;
+  },
+
+  // Alias for backward compatibility
+  async getDemoRequests(): Promise<DemoRequestRecord[]> {
+    return this.getAllDemoRequests();
+  },
+
+  async getDemoRequestStats(): Promise<{ total: number; new: number }> {
+    const { data, error } = await supabase
+      .from('demo_requests')
+      .select('status');
+
+    if (error) {
+      console.error('Error fetching demo request stats:', error);
+      return { total: 0, new: 0 };
+    }
+
+    const total = data?.length || 0;
+    const newRequests = data?.filter(item => item.status === 'new').length || 0;
+
+    return { total, new: newRequests };
   },
 
   async getDemoRequestById(id: string): Promise<DemoRequestRecord | null> {
