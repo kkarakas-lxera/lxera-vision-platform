@@ -222,7 +222,7 @@ export default function CourseDisplay() {
         
         if (firstModule.content_id && courseContent) {
           console.log('Fetching sections for first module:', firstModule.content_id);
-          fetchModuleSections(firstModule.content_id, courseContent);
+          fetchModuleSections(firstModule.content_id, courseContent, assignment.id);
         } else {
           console.log('No content_id for first module or no course content found');
           console.log('First module content_id:', firstModule.content_id);
@@ -238,7 +238,7 @@ export default function CourseDisplay() {
     }
   };
 
-  const fetchModuleSections = async (contentId: string, moduleContentData?: any) => {
+  const fetchModuleSections = async (contentId: string, moduleContentData?: any, assignmentId?: string) => {
     try {
       console.log('Fetching sections for contentId:', contentId);
 
@@ -315,8 +315,22 @@ export default function CourseDisplay() {
       // Fetch completion status for sections
       const sectionsWithStatus = await Promise.all(
         (sectionsData || []).map(async (section) => {
-          // For now, skip checking progress for constructed sections
-          // We can implement this later with proper section tracking
+          // Check if we have progress for this section
+          if (assignmentId) {
+            const { data: progress } = await supabase
+              .from('course_section_progress')
+              .select('completed, completed_at')
+              .eq('assignment_id', assignmentId)
+              .eq('section_name', section.section_name)
+              .single();
+
+            return {
+              ...section,
+              is_completed: progress?.completed || false,
+              completed_at: progress?.completed_at
+            };
+          }
+          
           return {
             ...section,
             is_completed: false,
@@ -350,20 +364,42 @@ export default function CourseDisplay() {
     setCurrentModule(module);
     if (module.content_id) {
       // For now, we'll fetch without the content data
-      fetchModuleSections(module.content_id);
+      fetchModuleSections(module.content_id, null, courseData?.id);
     }
   };
 
   const handleSectionComplete = async (sectionId: string) => {
     try {
+      // Find the section to get its name
+      const section = sections.find(s => s.section_id === sectionId);
+      if (!section) {
+        console.error('Section not found:', sectionId);
+        return;
+      }
+
+      // We need the assignment_id for this progress record
+      const assignmentId = courseData?.id;
+      if (!assignmentId) {
+        console.error('No assignment ID found');
+        toast.error('Unable to save progress - assignment not found');
+        return;
+      }
+
+      console.log('Marking section complete:', {
+        assignment_id: assignmentId,
+        section_name: section.section_name,
+        module_id: currentModule?.id
+      });
+
       const { error } = await supabase
         .from('course_section_progress')
         .upsert({
-          section_id: sectionId,
-          user_id: userProfile?.id,
+          assignment_id: assignmentId,
+          section_name: section.section_name,
           module_id: currentModule?.id,
-          is_completed: true,
-          completed_at: new Date().toISOString()
+          completed: true,
+          completed_at: new Date().toISOString(),
+          time_spent_seconds: 0 // For now, we'll track this later
         });
 
       if (error) throw error;
@@ -381,6 +417,11 @@ export default function CourseDisplay() {
       const currentIndex = sections.findIndex(s => s.section_id === sectionId);
       if (currentIndex < sections.length - 1) {
         setCurrentSection(sections[currentIndex + 1]);
+        // Scroll to top of content area
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // All sections completed
+        toast.success('Module completed! 🎉');
       }
     } catch (error) {
       console.error('Error marking section complete:', error);
