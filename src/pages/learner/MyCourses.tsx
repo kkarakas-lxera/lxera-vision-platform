@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Clock, User, ChevronRight, Play } from 'lucide-react';
-import { parseCourseStructure } from '@/utils/typeGuards';
 
 interface CourseAssignment {
   id: string;
@@ -85,33 +84,41 @@ export default function MyCourses() {
 
           if (!moduleContent) continue;
 
-          // Create course structure from module content
-          const courseStructure = moduleContent.module_spec ? {
-            title: moduleContent.module_name,
-            modules: moduleContent.module_spec.learning_objectives ? 
-              moduleContent.module_spec.learning_objectives.map((obj: any, index: number) => ({
-                week: index + 1,
-                title: obj.skill || `Module ${index + 1}`,
-                topics: [obj.skill],
-                duration: '2 hours',
-                priority: obj.importance || 'medium'
-              })) : [{
+          // Create course structure from module content with proper type checking
+          const moduleSpec = moduleContent.module_spec;
+          let courseStructure;
+          
+          if (moduleSpec && typeof moduleSpec === 'object' && moduleSpec !== null) {
+            const spec = moduleSpec as any;
+            courseStructure = {
+              title: moduleContent.module_name,
+              modules: spec.learning_objectives && Array.isArray(spec.learning_objectives) ? 
+                spec.learning_objectives.map((obj: any, index: number) => ({
+                  week: index + 1,
+                  title: obj.skill || `Module ${index + 1}`,
+                  topics: [obj.skill],
+                  duration: '2 hours',
+                  priority: obj.importance || 'medium'
+                })) : [{
+                  week: 1,
+                  title: moduleContent.module_name,
+                  topics: ['Course Content'],
+                  duration: '2 hours',
+                  priority: 'high'
+                }]
+            };
+          } else {
+            courseStructure = {
+              title: moduleContent.module_name,
+              modules: [{
                 week: 1,
                 title: moduleContent.module_name,
                 topics: ['Course Content'],
                 duration: '2 hours',
                 priority: 'high'
               }]
-          } : {
-            title: moduleContent.module_name,
-            modules: [{
-              week: 1,
-              title: moduleContent.module_name,
-              topics: ['Course Content'],
-              duration: '2 hours',
-              priority: 'high'
-            }]
-          };
+            };
+          }
           
           formattedCourses.push({
             id: assignment.id,
