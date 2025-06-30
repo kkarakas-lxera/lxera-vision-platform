@@ -101,8 +101,7 @@ export default function DepartmentSkillsDetail() {
           employee_id,
           skills_match_score,
           analyzed_at,
-          technical_skills,
-          soft_skills
+          extracted_skills
         `)
         .in('employee_id', employeeIds)
         .not('analyzed_at', 'is', null);
@@ -137,12 +136,17 @@ export default function DepartmentSkillsDetail() {
           const skillsProfile = skillsData?.find(sp => sp.employee_id === emp.id);
           if (!skillsProfile) return null;
 
+          // Extract technical and soft skills from extracted_skills array
+          const extractedSkills = Array.isArray(skillsProfile.extracted_skills) ? skillsProfile.extracted_skills : [];
+          const technicalSkills = extractedSkills.filter(skill => skill?.category === 'technical');
+          const softSkills = extractedSkills.filter(skill => skill?.category === 'soft');
+
           return {
             employee_id: emp.id,
             skills_match_score: parseFloat(skillsProfile.skills_match_score) || 0,
             analyzed_at: skillsProfile.analyzed_at,
-            technical_skills: Array.isArray(skillsProfile.technical_skills) ? skillsProfile.technical_skills : [],
-            soft_skills: Array.isArray(skillsProfile.soft_skills) ? skillsProfile.soft_skills : [],
+            technical_skills: technicalSkills,
+            soft_skills: softSkills,
             employees: {
               id: emp.id,
               department: emp.department,
@@ -188,34 +192,38 @@ export default function DepartmentSkillsDetail() {
 
       formattedEmployees.forEach(employee => {
         // Process technical skills
-        employee.technical_skills.forEach(skill => {
-          const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-          const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
-          
-          if (skillName) {
-            if (!skillMap.has(skillName)) {
-              skillMap.set(skillName, { total: 0, proficiencies: [], type: 'technical' });
+        if (Array.isArray(employee.technical_skills)) {
+          employee.technical_skills.forEach(skill => {
+            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
+            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+            
+            if (skillName) {
+              if (!skillMap.has(skillName)) {
+                skillMap.set(skillName, { total: 0, proficiencies: [], type: 'technical' });
+              }
+              const existing = skillMap.get(skillName)!;
+              existing.total++;
+              existing.proficiencies.push(proficiency);
             }
-            const existing = skillMap.get(skillName)!;
-            existing.total++;
-            existing.proficiencies.push(proficiency);
-          }
-        });
+          });
+        }
 
         // Process soft skills
-        employee.soft_skills.forEach(skill => {
-          const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
-          const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
-          
-          if (skillName) {
-            if (!skillMap.has(skillName)) {
-              skillMap.set(skillName, { total: 0, proficiencies: [], type: 'soft' });
+        if (Array.isArray(employee.soft_skills)) {
+          employee.soft_skills.forEach(skill => {
+            const skillName = typeof skill === 'string' ? skill : skill?.skill_name;
+            const proficiency = typeof skill === 'object' ? (skill?.proficiency_level || 3) : 3;
+            
+            if (skillName) {
+              if (!skillMap.has(skillName)) {
+                skillMap.set(skillName, { total: 0, proficiencies: [], type: 'soft' });
+              }
+              const existing = skillMap.get(skillName)!;
+              existing.total++;
+              existing.proficiencies.push(proficiency);
             }
-            const existing = skillMap.get(skillName)!;
-            existing.total++;
-            existing.proficiencies.push(proficiency);
-          }
-        });
+          });
+        }
       });
 
       // Convert to breakdown format
@@ -227,7 +235,7 @@ export default function DepartmentSkillsDetail() {
           below_target_count: data.proficiencies.filter(p => p < 4).length,
           skill_type: data.type
         }))
-        .filter(skill => skill.employees_count >= 2) // Only show skills with 2+ people
+        .filter(skill => skill.employees_count >= 1) // Show all skills
         .sort((a, b) => b.below_target_count - a.below_target_count);
 
       setSkillBreakdown(breakdown);
