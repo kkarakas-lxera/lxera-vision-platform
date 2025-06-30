@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -578,9 +579,9 @@ const Courses: React.FC = () => {
       {/* Course Generation Modal */}
       {showGenerationModal && (
         <CourseGenerationModal
-          open={showGenerationModal}
+          isOpen={showGenerationModal}
           onClose={() => setShowGenerationModal(false)}
-          onComplete={handleGenerationComplete}
+          onCourseGenerated={handleGenerationComplete}
         />
       )}
     </div>

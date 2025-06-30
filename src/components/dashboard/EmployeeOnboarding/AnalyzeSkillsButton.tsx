@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { BarChart3, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEnhancedOnboarding } from '@/hooks/useEnhancedOnboarding';
+import useEnhancedOnboarding from '@/hooks/useEnhancedOnboarding';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,7 +50,7 @@ export function AnalyzeSkillsButton({
         
         if (error) throw error;
         employeesToAnalyze = data.map(item => ({ 
-          id: item.id, // Use session item ID for existing sessions
+          id: item.id,
           employee_id: item.employee_id,
           cv_file_path: item.cv_file_path 
         }));
@@ -63,7 +64,7 @@ export function AnalyzeSkillsButton({
         
         if (error) throw error;
         employeesToAnalyze = data.map(emp => ({ 
-          id: emp.id, // For direct analysis, this is employee ID initially
+          id: emp.id,
           employee_id: emp.id,
           cv_file_path: emp.cv_file_path 
         }));
@@ -77,7 +78,7 @@ export function AnalyzeSkillsButton({
 
       setProgress({ processed: 0, total: employeesToAnalyze.length });
 
-      // Create a session if none exists (for direct analysis)
+      // Create a session if none exists
       let analysisSessionId = sessionId;
       if (!analysisSessionId) {
         const newSession = await createImportSession('direct_cv_analysis');
@@ -85,36 +86,6 @@ export function AnalyzeSkillsButton({
           throw new Error('Failed to create analysis session');
         }
         analysisSessionId = newSession.id;
-
-        // Create session items for direct analysis
-        const employeeIds = employeesToAnalyze.map(emp => emp.employee_id || emp.id);
-        const { error: sessionItemsError } = await supabase
-          .rpc('create_session_items_for_employees', {
-            p_session_id: analysisSessionId,
-            p_employee_ids: employeeIds
-          });
-
-        if (sessionItemsError) {
-          console.warn('Failed to create session items:', sessionItemsError);
-          throw new Error('Failed to create session items for analysis');
-        }
-
-        // Now fetch the created session items to get their IDs
-        const { data: sessionItems, error: fetchError } = await supabase
-          .from('st_import_session_items')
-          .select('id, employee_id, cv_file_path')
-          .eq('import_session_id', analysisSessionId);
-
-        if (fetchError || !sessionItems) {
-          throw new Error('Failed to fetch session items');
-        }
-
-        // Update employeesToAnalyze with proper session item IDs
-        employeesToAnalyze = sessionItems.map(item => ({
-          id: item.id, // Now we have the session item ID
-          employee_id: item.employee_id,
-          cv_file_path: item.cv_file_path
-        }));
       }
 
       // Queue CVs for processing

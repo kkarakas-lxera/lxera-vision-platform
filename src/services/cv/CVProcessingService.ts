@@ -42,7 +42,7 @@ export class CVProcessingService {
   async storeCVData(employeeId: string, fileName: string, fileData: string, fileSize: number) {
     try {
       const { error } = await supabase
-        .from('employee_cv_uploads')
+        .from('employee_cv_data')
         .insert([
           {
             employee_id: employeeId,
@@ -50,7 +50,6 @@ export class CVProcessingService {
             file_data: fileData,
             file_size: fileSize,
             file_type: 'application/pdf',
-            uploaded_at: new Date().toISOString(),
           },
         ]);
 
@@ -67,7 +66,7 @@ export class CVProcessingService {
   async getCVData(employeeId: string): Promise<any | null> {
     try {
       const { data, error } = await supabase
-        .from('employee_cv_uploads')
+        .from('employee_cv_data')
         .select('*')
         .eq('employee_id', employeeId)
         .order('uploaded_at', { ascending: false })

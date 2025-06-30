@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -11,13 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from '@/hooks/useUser';
 import { useEmployee } from '@/hooks/useEmployee';
-import { CourseGenerationParams } from '@/services/courseGenerationService';
-import { generateCourse } from '@/services/courseGenerationService';
+import { CourseGenerationParams, generateCourse } from '@/services/courseGenerationService';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { createCVProcessingService } from '@/services/cv/CVProcessingService';
 
@@ -114,16 +113,6 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({ isOpen, o
       }
 
       // Call CV processing service
-      if (!user.company_id) {
-        toast({
-          title: "Company ID Missing",
-          description: "Your user profile is missing the company ID. Contact support.",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
       try {
         const cvService = createCVProcessingService(user.company_id);
         const analysis = await cvService.processCV(
@@ -348,7 +337,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({ isOpen, o
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 w-4 mr-2 animate-spin" />
                     Generating...
                   </>
                 ) : (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Minimize2, Maximize2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,7 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
       return;
     }
 
-    setJob(data as GenerationJob);
+    setJob(data);
     setIsVisible(true);
 
     // If job is complete, call onComplete after a delay
@@ -78,7 +79,7 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
     const { data, error } = await supabase
       .from('course_generation_jobs')
       .select('*')
-      .eq('created_by', user.id)
+      .eq('initiated_by', user.id)
       .in('status', ['pending', 'processing'])
       .order('created_at', { ascending: false })
       .limit(1);
@@ -87,7 +88,7 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
       return;
     }
 
-    setJob(data[0] as GenerationJob);
+    setJob(data[0]);
     setIsVisible(true);
     subscribeToUpdates(data[0].id);
   };
@@ -155,6 +156,28 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
       default:
         return 'Unknown';
     }
+  };
+
+  const getPhaseStatus = (currentPhase?: string) => {
+    const phases = [
+      'Retrieving employee data',
+      'Retrieving skills gap analysis', 
+      'Creating personalized course plan',
+      'Researching relevant content',
+      'Generating course content with AI',
+      'Enhancing content quality',
+      'Storing course content',
+      'Creating course assignment',
+      'Course generation complete'
+    ];
+
+    const currentIndex = currentPhase ? phases.findIndex(p => p === currentPhase) : -1;
+    
+    return phases.map((phase, index) => ({
+      name: phase,
+      completed: currentIndex > index,
+      active: currentIndex === index
+    }));
   };
 
   if (!isVisible || !job) return null;
@@ -301,29 +324,6 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({ jobId
     </div>
   );
 };
-
-// Helper function to get phase status
-function getPhaseStatus(currentPhase?: string): Array<{name: string, completed: boolean, active: boolean}> {
-  const phases = [
-    'Retrieving employee data',
-    'Retrieving skills gap analysis',
-    'Creating personalized course plan',
-    'Researching relevant content',
-    'Generating course content with AI',
-    'Enhancing content quality',
-    'Storing course content',
-    'Creating course assignment',
-    'Course generation complete'
-  ];
-
-  const currentIndex = currentPhase ? phases.findIndex(p => p === currentPhase) : -1;
-  
-  return phases.map((phase, index) => ({
-    name: phase,
-    completed: currentIndex > index,
-    active: currentIndex === index
-  }));
-}
 
 // Helper function to calculate duration
 function calculateDuration(start: string, end: string): string {
