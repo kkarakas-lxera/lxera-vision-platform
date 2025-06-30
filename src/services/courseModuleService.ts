@@ -164,3 +164,36 @@ export async function getCurrentModule(
     return null;
   }
 }
+
+export const courseModuleService = {
+  async getModuleContent(planId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('cm_module_content')
+        .select('*')
+        .eq('session_id', planId) // Use session_id instead of plan_id
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching module content:', error);
+        return [];
+      }
+
+      return (data || []).map(module => ({
+        id: module.content_id || 'unknown',
+        title: module.module_name || 'Untitled Module',
+        content: {
+          introduction: module.introduction || '',
+          core_content: module.core_content || '',
+          practical_applications: module.practical_applications || '',
+          case_studies: module.case_studies || '',
+          assessments: module.assessments || ''
+        },
+        status: module.status || 'draft'
+      }));
+    } catch (error) {
+      console.error('Unexpected error in getModuleContent:', error);
+      return [];
+    }
+  }
+};

@@ -502,6 +502,35 @@ class CVProcessingService {
   isActive(): boolean {
     return this.isProcessing;
   }
+
+  /**
+   * Update session item
+   */
+  async updateSessionItem(sessionItemId: string, updates: any) {
+    try {
+      const updateData = {
+        ...updates,
+        // Cast complex objects to JSON for database storage
+        position_match_analysis: updates.position_match_analysis ? 
+          JSON.parse(JSON.stringify(updates.position_match_analysis)) : undefined,
+        suggested_positions: updates.suggested_positions ?
+          JSON.parse(JSON.stringify(updates.suggested_positions)) : undefined
+      };
+
+      const { data, error } = await supabase
+        .from('st_import_session_items')
+        .update(updateData)
+        .eq('id', sessionItemId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating session item:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

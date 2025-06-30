@@ -41,11 +41,24 @@ interface SectionData {
   section_name: string;
   section_content: string;
   word_count: number;
+  section_id?: string;
 }
 
 interface Section {
   section_name: string;
   content: string;
+  section_id: string;
+}
+
+interface Module {
+  id: string;
+  content_id: string | null;
+  module_number: number;
+  module_title: string;
+  is_unlocked: boolean;
+  is_completed: boolean;
+  progress_percentage: number;
+  is_placeholder?: boolean;
 }
 
 export default function CourseDisplay() {
@@ -81,7 +94,7 @@ export default function CourseDisplay() {
         throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignment with course plan
+      // Fetch course assignment with course plan - fix the relation name
       const { data: assignment, error: assignmentError } = await supabase
         .from('course_assignments')
         .select(`
@@ -92,7 +105,7 @@ export default function CourseDisplay() {
           status,
           started_at,
           completed_at,
-          cm_course_plans!inner(course_structure)
+          cm_course_plans!plan_id(course_structure)
         `)
         .eq('id', courseId)
         .eq('employee_id', employee.id)
@@ -145,7 +158,8 @@ export default function CourseDisplay() {
       const mockSection: SectionData = {
         section_name: 'Introduction',
         section_content: `Welcome to ${courseData?.course_plan.course_structure.title || 'this course'}! This is module ${moduleIndex + 1}.`,
-        word_count: 50
+        word_count: 50,
+        section_id: `section_${moduleIndex}_intro`
       };
       
       setCurrentSection(mockSection);
@@ -166,7 +180,8 @@ export default function CourseDisplay() {
     const sectionData: SectionData = {
       section_name: section.section_name,
       section_content: section.content,
-      word_count: section.content.split(' ').length
+      word_count: section.content.split(' ').length,
+      section_id: section.section_id
     };
     setCurrentSection(sectionData);
   };
@@ -198,6 +213,24 @@ export default function CourseDisplay() {
   }
 
   const currentModuleData = courseData.course_plan.course_structure.modules[currentModule];
+  
+  // Convert course structure modules to Module interface format
+  const modules: Module[] = courseData.course_plan.course_structure.modules.map((module, index) => ({
+    id: `module_${index}`,
+    content_id: null,
+    module_number: index + 1,
+    module_title: module.title,
+    is_unlocked: index === 0 || index <= currentModule,
+    is_completed: false,
+    progress_percentage: index < currentModule ? 100 : (index === currentModule ? 50 : 0),
+    is_placeholder: false
+  }));
+
+  const sections: { section_id: string; section_name: string; is_completed?: boolean }[] = [
+    { section_id: 'intro', section_name: 'introduction', is_completed: false },
+    { section_id: 'content', section_name: 'core_content', is_completed: false },
+    { section_id: 'practical', section_name: 'practical_applications', is_completed: false }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -244,10 +277,12 @@ export default function CourseDisplay() {
           {/* Module Navigation */}
           <div className="lg:col-span-1">
             <ModuleNavigation
-              modules={courseData.course_plan.course_structure.modules}
-              currentModule={currentModule}
-              onModuleChange={handleModuleChange}
-              progress={courseData.progress_percentage}
+              modules={modules}
+              currentModule={modules[currentModule] || null}
+              onModuleSelect={(module) => handleModuleChange(module.module_number - 1)}
+              sections={sections}
+              currentSection={sections[0] || null}
+              onSectionSelect={(section) => console.log('Section selected:', section)}
             />
           </div>
 
@@ -292,16 +327,21 @@ export default function CourseDisplay() {
 
             {/* Video Player */}
             <VideoPlayer
-              moduleTitle={currentModuleData.title}
-              assignmentId={courseData.id}
+              videoUrl=""
+              title={currentModuleData.title}
+              onFeedback={(isPositive) => console.log('Feedback:', isPositive)}
             />
 
             {/* Course Content */}
             {currentSection && (
               <CourseContentSection
-                section={currentSection}
-                onSectionProgress={handleSectionProgress}
-                assignmentId={courseData.id}
+                section={{
+                  ...currentSection,
+                  section_id: currentSection.section_id || 'default_section',
+                  is_completed: false
+                }}
+                onComplete={() => console.log('Section completed')}
+                isLastSection={false}
               />
             )}
           </div>

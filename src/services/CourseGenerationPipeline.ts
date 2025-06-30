@@ -68,6 +68,14 @@ interface PipelineProgress {
   message: string;
 }
 
+interface MultimediaGenerationRequest {
+  contentId: string;
+  companyId: string;
+  moduleName: string;
+  employeeName: string;
+  moduleContent: any;
+}
+
 export class CourseGenerationPipeline {
   private company_id: string;
   private session_id: string;
@@ -830,6 +838,62 @@ export class CourseGenerationPipeline {
         progress: 0,
         message: `Error: ${error.message}`
       });
+      throw error;
+    }
+  }
+
+  async createMultimediaSession(request: MultimediaGenerationRequest) {
+    try {
+      const sessionData = {
+        content_id: request.contentId,
+        company_id: request.companyId,
+        session_type: 'full_generation',
+        module_name: request.moduleName,
+        employee_name: request.employeeName,
+        content_sections: ['introduction', 'core_content', 'practical_applications'], // Add required field
+        status: 'started',
+        total_assets_generated: 0,
+        slides_generated: 0,
+        audio_files_generated: 0,
+        video_files_generated: 0
+      };
+
+      const { data, error } = await supabase
+        .from('mm_multimedia_sessions')
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating multimedia session:', error);
+      throw error;
+    }
+  }
+
+  async createMultimediaAssets(sessionId: string, assets: any[]) {
+    try {
+      const assetsData = assets.map(asset => ({
+        session_id: sessionId,
+        content_id: asset.content_id || sessionId, // Add required field
+        company_id: asset.company_id || '', // Add required field
+        asset_name: asset.file_name || 'Generated Asset', // Add required field
+        asset_type: asset.asset_type,
+        file_path: asset.file_path,
+        file_size_bytes: asset.file_size, // Use correct field name
+        duration_seconds: asset.duration_seconds
+      }));
+
+      const { data, error } = await supabase
+        .from('mm_multimedia_assets')
+        .insert(assetsData)
+        .select();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating multimedia assets:', error);
       throw error;
     }
   }

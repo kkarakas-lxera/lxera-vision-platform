@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +61,7 @@ export default function MyCourses() {
         throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignments with course plans
+      // Fetch course assignments with course plans - fix the relation name
       const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
         .select(`
@@ -73,7 +72,7 @@ export default function MyCourses() {
           status,
           started_at,
           completed_at,
-          cm_course_plans!inner(course_structure)
+          cm_course_plans!plan_id(course_structure)
         `)
         .eq('employee_id', employee.id)
         .order('started_at', { ascending: false });

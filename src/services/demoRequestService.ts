@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DemoRequest {
@@ -11,7 +10,7 @@ export interface DemoRequest {
   companySize?: string;
   country?: string;
   message?: string;
-  source?: string;
+  source: string;
 }
 
 export interface DemoRequestRecord {
@@ -20,84 +19,99 @@ export interface DemoRequestRecord {
   last_name: string;
   email: string;
   company: string;
-  job_title?: string;
-  phone?: string;
-  company_size?: string;
-  country?: string;
-  message?: string;
-  source?: string;
+  job_title: string | null;
+  phone: string | null;
+  company_size: string | null;
+  country: string | null;
+  message: string | null;
+  source: string;
   status: 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected';
+  notes: string | null;
+  processed_by: string | null;
+  processed_at: string | null;
   submitted_at: string;
-  processed_at?: string;
-  processed_by?: string;
-  notes?: string;
   created_at: string;
   updated_at: string;
 }
 
-class DemoRequestService {
-  async submitDemoRequest(request: DemoRequest): Promise<{ success: boolean; error?: string }> {
+export const demoRequestService = {
+  async submitDemoRequest(demoRequest: DemoRequest): Promise<{ success: boolean; error?: string }> {
     try {
-      // Use edge function for public submissions (no auth required)
-      const response = await supabase.functions.invoke('submit-demo-request', {
-        body: request
-      });
+      const { data, error } = await supabase
+        .from('demo_requests')
+        .insert([
+          {
+            first_name: demoRequest.firstName,
+            last_name: demoRequest.lastName,
+            email: demoRequest.email,
+            company: demoRequest.company,
+            job_title: demoRequest.jobTitle || null,
+            phone: demoRequest.phone || null,
+            company_size: demoRequest.companySize || null,
+            country: demoRequest.country || null,
+            message: demoRequest.message || null,
+            source: demoRequest.source,
+            status: 'new', // Default status
+            notes: null,
+            processed_by: null,
+            processed_at: null,
+            submitted_at: new Date().toISOString(),
+          },
+        ]);
 
-      if (response.error) {
-        console.error('Error submitting demo request:', response.error);
-        return { success: false, error: response.error.message };
+      if (error) {
+        console.error('Error submitting demo request:', error);
+        return { success: false, error: error.message };
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected error submitting demo request:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { success: false, error: error.message || 'An unexpected error occurred' };
     }
-  }
+  },
 
-  async getDemoRequests(filters?: {
-    status?: string;
-    startDate?: string;
-    endDate?: string;
-  }): Promise<DemoRequestRecord[]> {
-    let query = supabase
+  async getAllDemoRequests(): Promise<DemoRequestRecord[]> {
+    const { data, error } = await supabase
       .from('demo_requests')
       .select('*')
       .order('submitted_at', { ascending: false });
 
-    if (filters?.status) {
-      query = query.eq('status', filters.status);
-    }
-
-    if (filters?.startDate) {
-      query = query.gte('submitted_at', filters.startDate);
-    }
-
-    if (filters?.endDate) {
-      query = query.lte('submitted_at', filters.endDate);
-    }
-
-    const { data, error } = await query;
-
     if (error) {
       console.error('Error fetching demo requests:', error);
-      return [];
+      throw new Error(`Failed to fetch demo requests: ${error.message}`);
     }
 
-    return data || [];
-  }
+    // Cast the data to match our expected type structure
+    const typedData: DemoRequestRecord[] = (data || []).map(item => ({
+      ...item,
+      status: (item.status as DemoRequestRecord['status']) || 'new'
+    }));
+
+    return typedData;
+  },
+
+  async getDemoRequestById(id: string): Promise<DemoRequestRecord | null> {
+    const { data, error } = await supabase
+      .from('demo_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching demo request by ID:', error);
+      return null;
+    }
+
+    return data as DemoRequestRecord;
+  },
 
   async updateDemoRequest(
-    id: string, 
-    updates: {
-      status?: string;
-      notes?: string;
-      processed_at?: string;
-      processed_by?: string;
-    }
+    id: string,
+    updates: Partial<DemoRequestRecord>
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('demo_requests')
         .update(updates)
         .eq('id', id);
@@ -108,50 +122,28 @@ class DemoRequestService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected error updating demo request:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { success: false, error: error.message || 'An unexpected error occurred' };
     }
-  }
+  },
 
-  async getDemoRequestStats(): Promise<{
-    total: number;
-    new: number;
-    contacted: number;
-    qualified: number;
-    converted: number;
-    todayCount: number;
-  }> {
-    const { data, error } = await supabase
-      .from('demo_requests')
-      .select('status, submitted_at');
+  async deleteDemoRequest(id: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('demo_requests')
+        .delete()
+        .eq('id', id);
 
-    if (error || !data) {
-      console.error('Error fetching demo request stats:', error);
-      return {
-        total: 0,
-        new: 0,
-        contacted: 0,
-        qualified: 0,
-        converted: 0,
-        todayCount: 0,
-      };
+      if (error) {
+        console.error('Error deleting demo request:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Unexpected error deleting demo request:', error);
+      return { success: false, error: error.message || 'An unexpected error occurred' };
     }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const stats = {
-      total: data.length,
-      new: data.filter(r => r.status === 'new').length,
-      contacted: data.filter(r => r.status === 'contacted').length,
-      qualified: data.filter(r => r.status === 'qualified').length,
-      converted: data.filter(r => r.status === 'converted').length,
-      todayCount: data.filter(r => new Date(r.submitted_at) >= today).length,
-    };
-
-    return stats;
-  }
-}
-
-export const demoRequestService = new DemoRequestService();
+  },
+};
