@@ -4,7 +4,6 @@ import HeroSection from "@/components/HeroSection";
 import WhyLXERASection from "@/components/WhyLXERASection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import PlatformHighlightsSection from "@/components/PlatformHighlightsSection";
-import IndustryUseCases from "@/components/IndustryUseCases";
 import TransformationStartsSection from "@/components/TransformationStartsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -23,7 +22,6 @@ const Index = () => {
         <WhyLXERASection />
         <HowItWorksSection />
         <PlatformHighlightsSection />
-        <IndustryUseCases />
         <TransformationStartsSection />
         <CTASection />
         <Footer />

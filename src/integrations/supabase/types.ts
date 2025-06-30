@@ -9,77 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      demo_requests: {
-        Row: {
-          id: string
-          first_name: string
-          last_name: string
-          email: string
-          company: string
-          job_title: string | null
-          phone: string | null
-          company_size: string | null
-          country: string | null
-          message: string | null
-          source: string
-          status: string
-          submitted_at: string
-          processed_at: string | null
-          processed_by: string | null
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          first_name: string
-          last_name: string
-          email: string
-          company: string
-          job_title?: string | null
-          phone?: string | null
-          company_size?: string | null
-          country?: string | null
-          message?: string | null
-          source?: string
-          status?: string
-          submitted_at?: string
-          processed_at?: string | null
-          processed_by?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          first_name?: string
-          last_name?: string
-          email?: string
-          company?: string
-          job_title?: string | null
-          phone?: string | null
-          company_size?: string | null
-          country?: string | null
-          message?: string | null
-          source?: string
-          status?: string
-          submitted_at?: string
-          processed_at?: string | null
-          processed_by?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "demo_requests_processed_by_fkey"
-            columns: ["processed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       cm_agent_handoffs: {
         Row: {
           content_id: string | null
@@ -1229,6 +1158,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      demo_requests: {
+        Row: {
+          company: string
+          company_size: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          job_title: string | null
+          last_name: string
+          message: string | null
+          notes: string | null
+          phone: string | null
+          processed_at: string | null
+          processed_by: string | null
+          source: string | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company: string
+          company_size?: string | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          job_title?: string | null
+          last_name: string
+          message?: string | null
+          notes?: string | null
+          phone?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string
+          company_size?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          job_title?: string | null
+          last_name?: string
+          message?: string | null
+          notes?: string | null
+          phone?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       employee_cv_data: {
         Row: {
