@@ -222,7 +222,7 @@ export default function CourseDisplay() {
         
         if (firstModule.content_id && courseContent) {
           console.log('Fetching sections for first module:', firstModule.content_id);
-          fetchModuleSections(firstModule.content_id);
+          fetchModuleSections(firstModule.content_id, courseContent);
         } else {
           console.log('No content_id for first module or no course content found');
           console.log('First module content_id:', firstModule.content_id);
@@ -238,29 +238,34 @@ export default function CourseDisplay() {
     }
   };
 
-  const fetchModuleSections = async (contentId: string) => {
+  const fetchModuleSections = async (contentId: string, moduleContentData?: any) => {
     try {
       console.log('Fetching sections for contentId:', contentId);
 
-      // Try to use the learner RPC function first to get the module content
-      const { data: moduleContent, error: moduleError } = await supabase
-        .rpc('get_module_content_for_learner', {
-          p_content_id: contentId
-        });
+      // Use the passed moduleContentData if available, otherwise try to fetch
+      let content = moduleContentData;
+      
+      if (!content) {
+        // Try to use the learner RPC function first to get the module content
+        const { data: moduleContent, error: moduleError } = await supabase
+          .rpc('get_module_content_for_learner', {
+            p_content_id: contentId
+          });
 
-      if (moduleError) {
-        console.error('Error fetching module content:', moduleError);
-        // Continue to try fetching sections directly
-      } else {
-        console.log('Module content fetched:', moduleContent);
+        if (moduleError) {
+          console.error('Error fetching module content:', moduleError);
+          // Continue to try fetching sections directly
+        } else {
+          console.log('Module content fetched:', moduleContent);
+          content = moduleContent?.[0];
+        }
       }
 
       // For sections, we need to create an RPC function or work around the RLS
       // For now, let's create the sections from the module content
       const sectionsData = [];
       
-      if (moduleContent && moduleContent.length > 0) {
-        const content = moduleContent[0];
+      if (content) {
         
         // Create sections from the module content fields
         if (content.introduction) {
@@ -344,6 +349,7 @@ export default function CourseDisplay() {
     }
     setCurrentModule(module);
     if (module.content_id) {
+      // For now, we'll fetch without the content data
       fetchModuleSections(module.content_id);
     }
   };
