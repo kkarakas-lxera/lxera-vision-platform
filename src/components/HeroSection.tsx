@@ -1,16 +1,23 @@
 
+
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import HeroStats from "./HeroStats";
 import DemoModal from "./DemoModal";
+import WaitlistModal from "./WaitlistModal";
 import { useState } from "react";
 
 const HeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
+  };
+
+  const handleGetEarlyAccess = () => {
+    setIsWaitlistModalOpen(true);
   };
 
   const handleExploreClick = () => {
@@ -87,10 +94,10 @@ const HeroSection = () => {
                   <Button
                     size="lg"
                     className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
-                    onClick={handleExploreClick}
-                    aria-label="Explore the Platform"
+                    onClick={handleGetEarlyAccess}
+                    aria-label="Get Early Access"
                   >
-                    Explore the Platform
+                    Get Early Access
                   </Button>
                 </div>
               </div>
@@ -128,6 +135,11 @@ const HeroSection = () => {
           onClose={() => setIsDemoModalOpen(false)}
           source="Hero Section"
         />
+
+        <WaitlistModal 
+          isOpen={isWaitlistModalOpen} 
+          onClose={() => setIsWaitlistModalOpen(false)}
+        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}
@@ -140,3 +152,4 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+

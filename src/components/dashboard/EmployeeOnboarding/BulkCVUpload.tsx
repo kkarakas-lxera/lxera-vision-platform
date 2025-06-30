@@ -1,7 +1,11 @@
+
 import React from 'react';
 
-// Placeholder component - implement actual functionality
-export const BulkCVUpload = () => {
+interface BulkCVUploadProps {
+  onUploadComplete?: () => Promise<void>;
+}
+
+export const BulkCVUpload: React.FC<BulkCVUploadProps> = ({ onUploadComplete }) => {
   return (
     <div className="p-4">
       <h3 className="text-lg font-medium mb-2">Bulk CV Upload</h3>

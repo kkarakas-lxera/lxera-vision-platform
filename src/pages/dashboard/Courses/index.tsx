@@ -58,6 +58,7 @@ const CoursesPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
+  const [modules, setModules] = useState<any[]>([]);
 
   useEffect(() => {
     if (userProfile) {
@@ -355,6 +356,26 @@ const CoursesPage = () => {
             </div>
           </CardContent>
         </Card>
+
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Course Modules</h2>
+          {modules && modules.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {modules.map((module, index) => (
+                <Card key={index} className="p-4">
+                  <h3 className="font-medium text-sm mb-2">
+                    {Array.isArray(module) ? module[0]?.module_name || `Module ${index + 1}` : module.module_name || `Module ${index + 1}`}
+                  </h3>
+                  <p className="text-xs text-gray-600">
+                    Click to view module details
+                  </p>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600">No modules available</p>
+          )}
+        </div>
       </div>
 
       <CourseGenerationModal

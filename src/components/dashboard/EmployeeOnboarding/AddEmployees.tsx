@@ -1,7 +1,17 @@
+
 import React from 'react';
 
-// Placeholder component - implement actual functionality
-export const AddEmployees = () => {
+interface AddEmployeesProps {
+  onImportComplete?: () => void;
+  importSessions?: any[];
+  onNextStep?: () => void;
+}
+
+export const AddEmployees: React.FC<AddEmployeesProps> = ({ 
+  onImportComplete, 
+  importSessions, 
+  onNextStep 
+}) => {
   return (
     <div className="p-4">
       <h3 className="text-lg font-medium mb-2">Add Employees</h3>
