@@ -113,7 +113,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium text-business-black">
-                  👤 Full Name
+                  Full Name
                 </Label>
                 <Input
                   id="fullName"
@@ -128,7 +128,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-business-black">
-                  📧 Email
+                  Email
                 </Label>
                 <Input
                   id="email"
@@ -143,7 +143,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="interest" className="text-sm font-medium text-business-black">
-                  💡 Why are you interested? (Optional)
+                  Why are you interested? (Optional)
                 </Label>
                 <Textarea
                   id="interest"
@@ -175,7 +175,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
                       Joining...
                     </>
                   ) : (
-                    "🔓 Join the Waitlist"
+                    "Join the Waitlist"
                   )}
                 </Button>
               </div>
