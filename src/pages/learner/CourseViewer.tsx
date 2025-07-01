@@ -6,10 +6,34 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, ArrowRight, CheckCircle, Circle, PlayCircle, FileDown, Target, BookOpen, Menu, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle, 
+  Circle, 
+  PlayCircle, 
+  FileText, 
+  Target, 
+  BookOpen, 
+  Menu, 
+  Lock,
+  ChevronRight,
+  ChevronDown,
+  Home,
+  Book,
+  Lightbulb,
+  Users,
+  ClipboardCheck,
+  ExternalLink,
+  FileDown
+} from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import VideoPlayer from '@/components/learner/VideoPlayer';
+import { cn } from '@/lib/utils';
 import MissionBriefing from '@/components/learner/game/MissionBriefing';
 import GameScreen from '@/components/learner/game/GameScreen';
 import GameResults from '@/components/learner/game/GameResults';
@@ -25,6 +49,8 @@ interface CourseContent {
   case_studies: string | null;
   practical_applications: string | null;
   assessments: string | null;
+  research_context?: any;
+  module_spec?: any;
 }
 
 interface CourseAssignment {
@@ -41,11 +67,11 @@ interface SectionProgress {
 }
 
 const COURSE_SECTIONS = [
-  { id: 'introduction', name: 'Introduction', icon: BookOpen },
-  { id: 'core_content', name: 'Core Content', icon: Target },
-  { id: 'case_studies', name: 'Case Studies', icon: FileDown },
-  { id: 'practical_applications', name: 'Practical Applications', icon: PlayCircle },
-  { id: 'assessments', name: 'Assessments', icon: CheckCircle }
+  { id: 'introduction', name: 'Introduction', icon: BookOpen, color: 'text-blue-400' },
+  { id: 'core_content', name: 'Core Content', icon: Book, color: 'text-green-400' },
+  { id: 'practical_applications', name: 'Practical Applications', icon: Lightbulb, color: 'text-yellow-400' },
+  { id: 'case_studies', name: 'Case Studies', icon: Users, color: 'text-purple-400' },
+  { id: 'assessments', name: 'Assessments', icon: ClipboardCheck, color: 'text-red-400' }
 ];
 
 export default function CourseViewer() {
@@ -62,6 +88,8 @@ export default function CourseViewer() {
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moduleInfo, setModuleInfo] = useState<{ currentModule: number; totalModules: number } | null>(null);
+  const [moduleHierarchyExpanded, setModuleHierarchyExpanded] = useState(true);
+  const [researchSources, setResearchSources] = useState<any[]>([]);
   
   // Game state
   const [showMissionBriefing, setShowMissionBriefing] = useState(false);
@@ -102,6 +130,12 @@ export default function CourseViewer() {
 
       if (contentError) throw contentError;
       setCourseContent(content);
+
+      // Extract research sources from research_context
+      if (content.research_context) {
+        const sources = content.research_context.research_results || [];
+        setResearchSources(sources);
+      }
 
       // Extract module information from module_spec
       if (content.module_spec && typeof content.module_spec === 'object') {
@@ -396,18 +430,24 @@ export default function CourseViewer() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading course content...</p>
+        </div>
       </div>
     );
   }
 
   if (!courseContent) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Course not found</h2>
-          <Button onClick={() => navigate('/learner')}>Back to Dashboard</Button>
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Course not found</h1>
+          <Button onClick={() => navigate('/learner/courses')} variant="secondary">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to My Courses
+          </Button>
         </div>
       </div>
     );
@@ -416,74 +456,193 @@ export default function CourseViewer() {
   const currentSectionData = availableSections.find(s => s.id === currentSection);
   const currentIndex = availableSections.findIndex(s => s.id === currentSection);
 
-  return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <div className="border-b px-4 py-3 flex items-center justify-between bg-card">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate('/learner')}
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Dashboard
-        </Button>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden md:block">
-            <span className="text-sm text-muted-foreground">
-              {moduleInfo ? `Module ${moduleInfo.currentModule} of ${moduleInfo.totalModules}` : courseContent.module_name}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Progress value={assignment?.progress_percentage || 0} className="w-24 h-2 [&>div]:bg-future-green" />
-            <span className="text-sm font-medium">{assignment?.progress_percentage || 0}%</span>
-          </div>
-          
-          {/* Mobile menu trigger */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0 bg-smart-beige/30">
-              <CourseOutline
-                sections={availableSections}
-                currentSection={currentSection}
-                sectionProgress={sectionProgress}
-                onSectionClick={(sectionId) => {
-                  setCurrentSection(sectionId);
-                  setMobileMenuOpen(false);
-                }}
-                courseProgress={assignment?.progress_percentage || 0}
-                moduleSpec={courseContent?.module_spec}
-                currentModuleIndex={moduleInfo?.currentModule ? moduleInfo.currentModule - 1 : 0}
-              />
-            </SheetContent>
-          </Sheet>
+  const CourseHierarchy = () => (
+    <div className="space-y-2">
+      <button
+        onClick={() => setModuleHierarchyExpanded(!moduleHierarchyExpanded)}
+        className="flex items-center justify-between w-full px-3 py-2 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-md transition-colors"
+      >
+        <span className="flex items-center">
+          <BookOpen className="h-4 w-4 mr-2" />
+          Course Structure
+        </span>
+        {moduleHierarchyExpanded ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
+      
+      {moduleHierarchyExpanded && (
+        <div className="ml-2 space-y-1">
+          {availableSections.map((section) => {
+            const Icon = section.icon;
+            const isActive = currentSection === section.id;
+            const isCompleted = sectionProgress[section.id];
+            
+            return (
+              <button
+                key={section.id}
+                onClick={() => setCurrentSection(section.id)}
+                className={cn(
+                  "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+              >
+                <span className="flex items-center">
+                  <Icon className={cn("h-4 w-4 mr-2", section.color)} />
+                  {section.name}
+                </span>
+                {isCompleted && (
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const Sidebar = () => (
+    <div className="h-full bg-slate-900 border-r border-slate-800 flex flex-col">
+      {/* Course Title */}
+      <div className="p-6 border-b border-slate-800">
+        <h3 className="text-lg font-semibold text-white mb-2">{courseContent.module_name}</h3>
+        <div className="space-y-2">
+          <Progress value={assignment?.progress_percentage || 0} className="h-2 bg-slate-700" />
+          <p className="text-xs text-slate-400">
+            {assignment?.progress_percentage || 0}% Complete
+          </p>
         </div>
       </div>
 
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-4 py-6">
+        <div className="space-y-6">
+          {/* Course Hierarchy */}
+          <CourseHierarchy />
+
+          {/* Resources */}
+          {researchSources.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-slate-300 px-3">Research Sources</h4>
+              <div className="space-y-1">
+                {researchSources.slice(0, 5).map((source, index) => (
+                  <a
+                    key={index}
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-3 py-2 text-xs text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2 flex-shrink-0" />
+                    <span className="truncate">{source.title || 'Research Source'}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Back Button */}
+      <div className="p-4 border-t border-slate-800">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800"
+          onClick={() => navigate('/learner/courses')}
+        >
+          <Home className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-900 flex">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-80">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="p-0 w-80">
+          <Sidebar />
+        </SheetContent>
+      </Sheet>
+
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block w-64 border-r bg-smart-beige/50">
-          <CourseOutline
-            sections={availableSections}
-            currentSection={currentSection}
-            sectionProgress={sectionProgress}
-            onSectionClick={setCurrentSection}
-            courseProgress={assignment?.progress_percentage || 0}
-            moduleSpec={courseContent?.module_spec}
-            currentModuleIndex={moduleInfo?.currentModule ? moduleInfo.currentModule - 1 : 0}
-          />
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-slate-800 border-b border-slate-700 shadow-lg">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden text-slate-400 hover:text-white"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              
+              <div className="flex items-center space-x-2">
+                {currentSectionData?.icon && (
+                  <div className={cn(
+                    "p-2 rounded-lg bg-slate-900",
+                    currentSectionData?.color
+                  )}>
+                    {React.createElement(
+                      currentSectionData?.icon || BookOpen,
+                      { className: "h-5 w-5" }
+                    )}
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-xl font-semibold text-white">
+                    {currentSectionData?.name}
+                  </h1>
+                  <p className="text-sm text-slate-400">{courseContent.module_name}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateSection('prev')}
+                disabled={currentIndex === 0}
+                className="text-slate-400 hover:text-white hover:bg-slate-700"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              
+              <span className="text-sm text-slate-400 px-2">
+                {currentIndex + 1} / {availableSections.length}
+              </span>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateSection('next')}
+                disabled={currentIndex === availableSections.length - 1}
+                className="text-slate-400 hover:text-white hover:bg-slate-700"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-smart-beige/20">
-          <div className="max-w-3xl mx-auto p-4 md:p-6">
+        <ScrollArea className="flex-1">
+          <div className="container max-w-4xl mx-auto p-6 space-y-6">
             {/* Game Mode Rendering */}
             {gameMode === 'briefing' && (
               <MissionBriefing
@@ -533,92 +692,88 @@ export default function CourseViewer() {
 
             {/* Normal Course Content (when not in game mode) */}
             {gameMode === 'none' && (
-              <Card className="p-4 md:p-6 shadow-sm">
-                {/* Compact Section Header */}
-                <div className="mb-4 pb-4 border-b">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    {currentSectionData?.icon && <currentSectionData.icon className="h-4 w-4" />}
-                    <span>Section {currentIndex + 1} of {availableSections.length}</span>
-                  </div>
-                  <h1 className="text-xl font-semibold">
-                    {currentSectionData?.name}
-                  </h1>
-                </div>
+              <>
+                {/* Video Player */}
+                <VideoPlayer sectionName={currentSection} />
 
-                {/* Content */}
-                <div className="prose prose-sm prose-gray max-w-none">
-                  <ReactMarkdown
-                    components={{
-                      h1: ({ children }) => <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-base font-medium mt-4 mb-2 text-foreground">{children}</h3>,
-                      p: ({ children }) => <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
-                      li: ({ children }) => <li className="text-sm text-muted-foreground">{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      blockquote: ({ children }) => (
-                        <blockquote className="border-l-4 border-primary/20 pl-4 my-3 text-sm italic text-muted-foreground">
-                          {children}
-                        </blockquote>
-                      ),
-                      code: ({ children }) => (
-                        <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>
-                      ),
-                    }}
+                {/* Content Card */}
+                <Card className="bg-slate-800 border-slate-700">
+                  <div className="p-6">
+                    <div className="prose prose-invert max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => <h1 className="text-2xl font-bold text-white mb-4">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-xl font-semibold text-white mt-6 mb-3">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-lg font-medium text-white mt-4 mb-2">{children}</h3>,
+                          p: ({ children }) => <p className="text-slate-300 mb-4 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc pl-6 mb-4 text-slate-300 space-y-2">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 text-slate-300 space-y-2">{children}</ol>,
+                          li: ({ children }) => <li className="text-slate-300">{children}</li>,
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4">
+                              {children}
+                            </blockquote>
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded text-sm">
+                              {children}
+                            </code>
+                          ),
+                          pre: ({ children }) => (
+                            <pre className="bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4">
+                              {children}
+                            </pre>
+                          ),
+                        }}
+                      >
+                        {getSectionContent()}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center">
+                  <Button
+                    variant="outline"
+                    onClick={navigateToPreviousSection}
+                    disabled={currentIndex === 0}
+                    className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
                   >
-                    {getSectionContent()}
-                  </ReactMarkdown>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Previous Section
+                  </Button>
+
+                  {!sectionProgress[currentSection] ? (
+                    <Button
+                      onClick={markSectionComplete}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Mark as Complete
+                    </Button>
+                  ) : (
+                    <Badge className="bg-green-600/20 text-green-400 border-green-600/50">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Completed
+                    </Badge>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={navigateToNextSection}
+                    disabled={currentIndex === availableSections.length - 1}
+                    className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
+                  >
+                    Next Section
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </div>
-              </Card>
+              </>
             )}
           </div>
-        </div>
+        </ScrollArea>
       </div>
-
-      {/* Footer Navigation - only show when not in game mode */}
-      {gameMode === 'none' && (
-        <div className="border-t px-4 py-3 bg-card">
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={navigateToPreviousSection}
-              disabled={currentIndex === 0}
-              className="gap-1"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Previous
-            </Button>
-
-            <Button
-              size="sm"
-              onClick={markSectionComplete}
-              className="gap-1"
-            >
-              {sectionProgress[currentSection] ? (
-                currentIndex === availableSections.length - 1 ? (
-                  <>
-                    Dashboard
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                )
-              ) : (
-                <>
-                  Complete & Continue
-                  <CheckCircle className="h-3.5 w-3.5" />
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Task Decision Modal - overlay */}
       {gameMode === 'decision' && selectedTask && employeeId && (
