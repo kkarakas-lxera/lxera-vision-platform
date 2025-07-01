@@ -740,23 +740,7 @@ export default function CourseViewer() {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-between"
-          onClick={toggleTheme}
-        >
-          <span className="flex items-center">
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4 mr-2" />
-            ) : (
-              <Moon className="h-4 w-4 mr-2" />
-            )}
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </span>
-        </Button>
-        
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <Button
           variant="ghost"
           className="w-full justify-start"
@@ -834,6 +818,24 @@ export default function CourseViewer() {
                 disabled={currentIndex === availableSections.length - 1}
               >
                 <ArrowRight className="h-4 w-4" />
+              </Button>
+              
+              <Separator orientation="vertical" className="h-6 mx-2" />
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="flex items-center gap-2"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {theme === 'dark' ? 'Light' : 'Dark'}
+                </span>
               </Button>
             </div>
           </div>
