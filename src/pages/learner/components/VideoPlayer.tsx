@@ -73,7 +73,7 @@ export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: Vi
         )}
         
         {/* Video Element for HeyGen */}
-        {!loading && videoSrc ? (
+        {!loading && videoSrc && (
           <video
             className="absolute inset-0 w-full h-full object-contain"
             controls
@@ -83,7 +83,10 @@ export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: Vi
           >
             Your browser does not support the video tag.
           </video>
-        ) : !loading ? (
+        )}
+        
+        {/* No Video Available Message */}
+        {!loading && !videoSrc && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-white text-lg">
               No video available for this section
@@ -91,7 +94,7 @@ export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: Vi
               <span className="text-sm text-white/70">"{title}"</span>
             </div>
           </div>
-        ) : null}
+        )}
         
         {/* Play Button Overlay (only show when video is not playing) */}
         {!loading && videoSrc && !isPlaying && (
