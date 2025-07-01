@@ -209,13 +209,10 @@ export default function CourseViewer() {
       });
       setAvailableSections(sectionsWithContent);
 
-      // Fetch assignment details with course plan
+      // Fetch assignment details
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('course_assignments')
-        .select(`
-          *,
-          course_modules (*)
-        `)
+        .select('*')
         .eq('employee_id', employee.id)
         .eq('course_id', courseId)
         .single();
@@ -224,6 +221,13 @@ export default function CourseViewer() {
         console.error('Error fetching assignment:', assignmentError);
         throw assignmentError;
       }
+      
+      // Fetch course modules if needed
+      const { data: modulesData } = await supabase
+        .from('course_modules')
+        .select('*')
+        .eq('assignment_id', assignmentData.id)
+        .order('module_number');
       
       // Fetch course plan if plan_id exists
       if (assignmentData.plan_id) {
