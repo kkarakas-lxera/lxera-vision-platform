@@ -435,10 +435,10 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   const categoryBg = CATEGORIES[currentTask.category as keyof typeof CATEGORIES]?.bg || 'bg-gray-50';
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+    <div className="w-full max-w-lg mx-auto space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">🎮 Task Rolodex</h2>
+        <h2 className="text-2xl font-bold">🎡 Wheel of Learning</h2>
         <p className="text-muted-foreground">Swipe right to select, left to skip</p>
         <div className="flex justify-center gap-4 text-sm">
           <div className="flex items-center gap-1">
@@ -452,8 +452,21 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         </div>
       </div>
 
-      {/* Task Card Stack */}
+      {/* Wheel Container */}
       <div className="relative h-96">
+        {/* Wheel Background */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-80 h-80 rounded-full border-4 border-dashed border-gray-300 opacity-30"></div>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-64 h-64 rounded-full border-2 border-gray-200 opacity-50"></div>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-48 h-48 rounded-full border border-gray-100 opacity-30"></div>
+        </div>
+
+        {/* Task Card Stack */}
+        <div className="relative h-full">
         {/* Background cards */}
         {tasks.slice(currentIndex + 1, currentIndex + 3).map((task, index) => (
           <Card 
@@ -474,76 +487,83 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
           </Card>
         ))}
 
-        {/* Current task card */}
+        {/* Current task card - Wheel-like design */}
         <Card 
           ref={cardRef}
-          className={`absolute inset-0 cursor-grab active:cursor-grabbing transition-all duration-200 ${
-            swipeDirection === 'right' ? 'border-green-500 shadow-green-200' : 
-            swipeDirection === 'left' ? 'border-red-500 shadow-red-200' : 
-            'border-primary shadow-lg'
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full cursor-grab active:cursor-grabbing transition-all duration-200 overflow-hidden ${
+            swipeDirection === 'right' ? 'border-green-500 shadow-green-200 shadow-2xl scale-105' : 
+            swipeDirection === 'left' ? 'border-red-500 shadow-red-200 shadow-2xl scale-105' : 
+            'border-primary shadow-xl hover:shadow-2xl'
           }`}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           style={{ zIndex: 10 }}
         >
-          <CardHeader className={`${categoryBg} border-b`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CategoryIcon className={`h-5 w-5 ${categoryColor}`} />
-                <span className="font-medium capitalize">{currentTask.category}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className={getDifficultyColor(currentTask.difficulty_level)}>
-                  {currentTask.difficulty_level}
-                </Badge>
-                <Badge variant="outline" className="gap-1">
-                  <Trophy className="h-3 w-3" />
-                  {currentTask.points_value}
-                </Badge>
-              </div>
+          {/* Circular Card Content */}
+          <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center">
+            {/* Category Icon - Top */}
+            <div className={`${categoryBg} rounded-full p-4 mb-4 shadow-md`}>
+              <CategoryIcon className={`h-8 w-8 ${categoryColor}`} />
             </div>
-          </CardHeader>
-          
-          <CardContent className="p-6 space-y-4">
-            <div className="space-y-2">
-              <CardTitle className="text-lg">{currentTask.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">{currentTask.description}</p>
+            
+            {/* Category & Difficulty */}
+            <div className="mb-3">
+              <h3 className="font-bold text-lg capitalize text-gray-800">{currentTask.category}</h3>
+              <Badge className={`${getDifficultyColor(currentTask.difficulty_level)} text-xs`}>
+                {currentTask.difficulty_level}
+              </Badge>
+            </div>
+            
+            {/* Task Title - Center */}
+            <CardTitle className="text-base font-semibold mb-3 px-2 leading-tight" style={{ 
+              display: '-webkit-box', 
+              WebkitLineClamp: 2, 
+              WebkitBoxOrient: 'vertical', 
+              overflow: 'hidden' 
+            }}>
+              {currentTask.title}
+            </CardTitle>
+            
+            {/* Points Badge */}
+            <div className="mb-4">
+              <Badge variant="outline" className="gap-1 bg-yellow-50 border-yellow-300">
+                <Trophy className="h-3 w-3 text-yellow-600" />
+                <span className="text-yellow-700 font-semibold">{currentTask.points_value} pts</span>
+              </Badge>
             </div>
 
-            {/* Interest indicator */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span>Your interest in {currentTask.category}</span>
-                <span>{interestScores[currentTask.category] || 0} points</span>
-              </div>
+            {/* Interest Level */}
+            <div className="mb-4 w-full max-w-32">
+              <div className="text-xs text-muted-foreground mb-1">Interest Level</div>
               <Progress 
                 value={Math.min(100, (interestScores[currentTask.category] || 0) * 10)} 
                 className="h-2" 
               />
+              <div className="text-xs text-center mt-1">{interestScores[currentTask.category] || 0} pts</div>
             </div>
 
-            {/* Swipe indicators */}
-            <div className="flex justify-between items-center pt-4">
-              <div className="flex items-center gap-2 text-red-500">
-                <ChevronLeft className="h-5 w-5" />
-                <span className="text-sm">Skip</span>
+            {/* Swipe Instructions - Bottom */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-between items-center px-8">
+              <div className="text-red-500 text-xs">
+                <ChevronLeft className="h-4 w-4 mx-auto" />
+                <div>Skip</div>
               </div>
-              <div className="text-center">
-                <Clock className="h-6 w-6 mx-auto text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">2-5 min</span>
+              <div className="text-muted-foreground text-xs">
+                <Clock className="h-4 w-4 mx-auto" />
+                <div>2-5m</div>
               </div>
-              <div className="flex items-center gap-2 text-green-500">
-                <span className="text-sm">Select</span>
-                <ChevronRight className="h-5 w-5" />
+              <div className="text-green-500 text-xs">
+                <ChevronRight className="h-4 w-4 mx-auto" />
+                <div>Select</div>
               </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
         {/* Swipe overlay indicators */}
         {swipeDirection && (
-          <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-20 ${
+          <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full flex items-center justify-center pointer-events-none z-20 ${
             swipeDirection === 'right' ? 'bg-green-500/20' : 'bg-red-500/20'
           }`}>
             <div className={`text-6xl font-bold ${
@@ -553,6 +573,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Manual controls */}

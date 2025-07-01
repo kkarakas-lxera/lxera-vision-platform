@@ -1094,14 +1094,24 @@ export default function CourseViewer() {
                   </Button>
 
                   <div className="flex items-center gap-2">
-                    {/* Game Button */}
+                    {/* Swipe-to-Learn Button - Direct Rolodex Entry */}
+                    <Button
+                      variant="outline"
+                      onClick={() => setGameMode('rolodex')}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0"
+                    >
+                      <Target className="h-4 w-4 mr-2" />
+                      Swipe-to-Learn
+                    </Button>
+
+                    {/* Traditional Game Button */}
                     <Button
                       variant="outline"
                       onClick={() => setGameMode('briefing')}
                       className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 border-0"
                     >
                       <PlayCircle className="h-4 w-4 mr-2" />
-                      Start Learning Game
+                      Mission Briefing
                     </Button>
 
                     {!sectionProgress[currentSection] ? (
