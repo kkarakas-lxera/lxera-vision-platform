@@ -18,25 +18,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, userProfile, loading } = useAuth();
   const location = useLocation();
 
-  console.log('ProtectedRoute check:', { user: !!user, userProfile, loading, allowedRoles });
-
   if (loading) {
     return <Loading />;
   }
 
   if (!user) {
-    console.log('No user, redirecting to login');
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   if (!userProfile) {
-    console.log('No user profile, redirecting to login');
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // Check if user role is allowed
   if (allowedRoles && !allowedRoles.includes(userProfile.role)) {
-    console.log('User role not allowed, redirecting based on role:', userProfile.role);
     // Redirect based on user role
     switch (userProfile.role) {
       case 'super_admin':
@@ -50,6 +45,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  console.log('Access granted to protected route');
   return <>{children}</>;
 };

@@ -54,7 +54,7 @@ export default function CourseViewer() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [courseContent, setCourseContent] = useState<CourseContent | null>(null);
-  const [sectionContents, setSectionContents] = useState<any[]>([]);
+  // Removed sectionContents - using cm_module_content directly
   const [availableSections, setAvailableSections] = useState<typeof COURSE_SECTIONS>([]);
   const [assignment, setAssignment] = useState<CourseAssignment | null>(null);
   const [currentSection, setCurrentSection] = useState('introduction');
@@ -116,30 +116,12 @@ export default function CourseViewer() {
         }
       }
 
-      // Fetch detailed section contents
-      const { data: sectionsData, error: sectionsError } = await supabase
-        .from('cm_content_sections')
-        .select('*')
-        .eq('content_id', moduleId || courseId)
-        .order('section_name');
+      // Note: All content is now read directly from cm_module_content columns
 
-      if (sectionsError) {
-        console.error('Error fetching section contents:', sectionsError);
-      } else {
-        setSectionContents(sectionsData || []);
-      }
-
-      // Filter available sections based on content (check both main content and detailed sections)
+      // Filter available sections based on content in cm_module_content
       const sectionsWithContent = COURSE_SECTIONS.filter(section => {
-        // Check if we have detailed section content
-        const hasDetailedContent = sectionsData?.some(s => 
-          s.section_name === section.id && s.section_content?.trim().length > 0
-        );
-        
-        // Fallback to main module content
-        const hasMainContent = content[section.id as keyof CourseContent];
-        
-        return hasDetailedContent || (hasMainContent && hasMainContent.trim().length > 0);
+        const sectionContent = content[section.id as keyof CourseContent];
+        return sectionContent && sectionContent.trim().length > 0;
       });
       setAvailableSections(sectionsWithContent);
 
@@ -372,7 +354,8 @@ export default function CourseViewer() {
       const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
         body: {
           employee_id: employeeId,
-          content_section_id: task.content_section_id,
+          module_content_id: task.module_content_id || courseContent.content_id,
+          section_name: task.section_name || currentSection,
           difficulty_level: task.difficulty_level,
           questions_count: 3,
           category: task.category,
@@ -391,15 +374,9 @@ export default function CourseViewer() {
   };
 
   const getSectionContent = () => {
-    if (!courseContent || !sectionContents) return '';
+    if (!courseContent) return '';
     
-    // First try to get detailed content from sections
-    const sectionDetail = sectionContents.find(s => s.section_name === currentSection);
-    if (sectionDetail && sectionDetail.section_content) {
-      return sectionDetail.section_content;
-    }
-    
-    // Fallback to main module content
+    // Read directly from cm_module_content columns
     switch (currentSection) {
       case 'introduction':
         return courseContent.introduction || 'No introduction available.';
@@ -460,7 +437,7 @@ export default function CourseViewer() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Progress value={assignment?.progress_percentage || 0} className="w-24 h-2" />
+            <Progress value={assignment?.progress_percentage || 0} className="w-24 h-2 [&>div]:bg-future-green" />
             <span className="text-sm font-medium">{assignment?.progress_percentage || 0}%</span>
           </div>
           
@@ -471,7 +448,7 @@ export default function CourseViewer() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
+            <SheetContent side="left" className="w-64 p-0 bg-smart-beige/30">
               <CourseOutline
                 sections={availableSections}
                 currentSection={currentSection}
@@ -492,7 +469,7 @@ export default function CourseViewer() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block w-64 border-r bg-card">
+        <div className="hidden md:block w-64 border-r bg-smart-beige/50">
           <CourseOutline
             sections={availableSections}
             currentSection={currentSection}
@@ -505,7 +482,7 @@ export default function CourseViewer() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-muted/10">
+        <div className="flex-1 overflow-y-auto bg-smart-beige/20">
           <div className="max-w-3xl mx-auto p-4 md:p-6">
             {/* Game Mode Rendering */}
             {gameMode === 'briefing' && (
@@ -521,6 +498,9 @@ export default function CourseViewer() {
               <TaskRolodex
                 onTaskSelect={handleTaskSelect}
                 onBackToCourse={handleBackToCourse}
+                courseContentId={courseContent.content_id}
+                currentSection={currentSection}
+                moduleId={moduleId}
               />
             )}
 
@@ -674,11 +654,11 @@ function CourseOutline({
   currentModuleIndex = 0
 }: CourseOutlineProps) {
   return (
-    <div className="h-full flex flex-col bg-background">
-      <div className="p-3 border-b">
-        <h3 className="font-medium text-sm mb-2">Course Progress</h3>
-        <Progress value={courseProgress} className="h-1.5" />
-        <p className="text-xs text-muted-foreground mt-1">{courseProgress}% Complete</p>
+    <div className="h-full flex flex-col bg-smart-beige/30">
+      <div className="p-3 border-b border-business-black/10">
+        <h3 className="font-medium text-sm mb-2 text-business-black">Course Progress</h3>
+        <Progress value={courseProgress} className="h-1.5 [&>div]:bg-future-green" />
+        <p className="text-xs text-business-black/60 mt-1">{courseProgress}% Complete</p>
       </div>
       
       <ScrollArea className="flex-1">
@@ -693,15 +673,15 @@ function CourseOutline({
                 <div key={`module-${moduleIdx}`} className="space-y-1">
                   <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm ${
                     isLocked ? 'opacity-60' : ''
-                  }`}>
+                  } text-business-black`}>
                     {isLocked ? (
                       <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                     ) : (
-                      <BookOpen className="h-3.5 w-3.5 text-primary" />
+                      <BookOpen className="h-3.5 w-3.5 text-future-green" />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-xs">Module {module.module}</div>
-                      <div className="text-xs text-muted-foreground truncate">{module.title}</div>
+                      <div className="text-xs text-business-black/60 truncate">{module.title}</div>
                     </div>
                   </div>
                   
@@ -719,14 +699,14 @@ function CourseOutline({
                             onClick={() => onSectionClick(section.id)}
                             className={`w-full text-left px-2 py-1.5 rounded transition-colors text-xs ${
                               isCurrent
-                                ? 'bg-primary text-primary-foreground'
+                                ? 'bg-future-green text-business-black font-medium'
                                 : isCompleted
-                                ? 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                                : 'hover:bg-muted/50'
+                                ? 'bg-smart-beige hover:bg-smart-beige/80 text-business-black/60'
+                                : 'hover:bg-smart-beige/50 text-business-black/80'
                             }`}
                           >
                             <div className="flex items-center gap-1.5">
-                              <div className={`flex-shrink-0 ${isCurrent ? 'text-primary-foreground' : ''}`}>
+                              <div className={`flex-shrink-0 ${isCurrent ? 'text-business-black' : ''}`}>
                                 {isCompleted ? (
                                   <CheckCircle className="h-3 w-3 text-green-600" />
                                 ) : (
@@ -758,10 +738,10 @@ function CourseOutline({
                   onClick={() => onSectionClick(section.id)}
                   className={`w-full text-left p-3 rounded-md transition-colors ${
                     isCurrent
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-future-green text-business-black font-medium'
                       : isCompleted
-                      ? 'bg-muted hover:bg-muted/80'
-                      : 'hover:bg-muted/50'
+                      ? 'bg-smart-beige hover:bg-smart-beige/80 text-business-black/60'
+                      : 'hover:bg-smart-beige/50 text-business-black/80'
                   }`}
                 >
                   <div className="flex items-center gap-3">

@@ -85,8 +85,6 @@ export const useCourses = () => {
 
         if (modulesError) throw modulesError;
 
-        console.log('Fetched company modules:', companyModules);
-
         // Transform modules into course format
         const coursesData = (companyModules || []).map((module: any) => {
           const moduleSpec = module.module_spec || {};

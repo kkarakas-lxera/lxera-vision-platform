@@ -207,31 +207,29 @@ export default function CourseDisplay() {
 
   const fetchModuleContent = async (assignmentId: string, moduleIndex: number) => {
     try {
-      // Fetch actual content from cm_content_sections
-      const { data: sections, error } = await supabase
-        .from('cm_content_sections')
+      // Fetch actual content from cm_module_content
+      const { data: moduleContent, error } = await supabase
+        .from('cm_module_content')
         .select('*')
         .eq('content_id', courseId)
-        .order('section_name');
+        .single();
       
       if (error) {
-        console.error('Error fetching sections:', error);
+        console.error('Error fetching module content:', error);
         return;
       }
       
-      // Get the first section or introduction section
-      const introSection = sections?.find(s => s.section_name === 'introduction') || sections?.[0];
-      
-      if (introSection) {
+      // Get the introduction section from module content
+      if (moduleContent && moduleContent.introduction) {
         const sectionData: SectionData = {
-          section_name: introSection.section_name,
-          section_content: introSection.section_content,
-          word_count: introSection.word_count || 0,
-          section_id: introSection.section_id
+          section_name: 'introduction',
+          section_content: moduleContent.introduction,
+          word_count: moduleContent.introduction.split(' ').length,
+          section_id: `${courseId}-introduction`
         };
         setCurrentSection(sectionData);
       } else {
-        // Fallback if no sections found
+        // Fallback if no content found
         const mockSection: SectionData = {
           section_name: 'Introduction',
           section_content: `Welcome to ${courseData?.course_plan.course_structure.title || 'this course'}! This is module ${moduleIndex + 1}.`,

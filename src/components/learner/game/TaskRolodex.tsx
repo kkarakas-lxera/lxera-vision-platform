@@ -28,11 +28,16 @@ interface Task {
   difficulty_level: string;
   points_value: number;
   content_section_id: string;
+  module_content_id?: string;
+  section_name?: string;
 }
 
 interface TaskRolodexProps {
   onTaskSelect: (task: Task) => void;
   onBackToCourse: () => void;
+  courseContentId?: string;
+  currentSection?: string;
+  moduleId?: string;
 }
 
 const CATEGORIES = {
@@ -43,7 +48,7 @@ const CATEGORIES = {
   general: { icon: Target, color: 'text-gray-600', bg: 'bg-gray-50' }
 };
 
-export default function TaskRolodex({ onTaskSelect, onBackToCourse }: TaskRolodexProps) {
+export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseContentId, currentSection, moduleId }: TaskRolodexProps) {
   const { userProfile } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,7 +94,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse }: TaskRolode
       setInterestScores(interestMap);
 
       // Load available tasks
-      await loadTasks(employee.id, interestMap);
+      await loadTasks(employee.id, interestMap, courseContentId, currentSection, moduleId);
     } catch (error) {
       console.error('Error initializing rolodex:', error);
       toast.error('Failed to load tasks');
@@ -98,35 +103,71 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse }: TaskRolode
     }
   };
 
-  const loadTasks = async (employeeId: string, interests: Record<string, number>) => {
+  const loadTasks = async (employeeId: string, interests: Record<string, number>, contentId?: string, section?: string, moduleId?: string) => {
     try {
-      // Get available tasks from content sections
-      const { data: contentSections } = await supabase
-        .from('cm_content_sections')
-        .select('*')
-        .order('created_at');
+      // Get content from cm_module_content
+      let query = supabase
+        .from('cm_module_content')
+        .select('*');
+      
+      // Filter by content_id if provided
+      if (contentId || moduleId) {
+        query = query.eq('content_id', moduleId || contentId);
+      }
+      
+      const { data: modules } = await query;
+      if (!modules || modules.length === 0) return;
 
-      if (!contentSections) return;
+      // Convert module content to task sections
+      const contentSections: any[] = [];
+      const sectionNames = ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'];
+      
+      for (const module of modules) {
+        // If specific section requested, only use that one
+        const sectionsToProcess = section ? [section] : sectionNames;
+        
+        for (const sectionName of sectionsToProcess) {
+          const sectionContent = module[sectionName];
+          if (sectionContent && sectionContent.trim() && sectionContent !== 'Content will be available when unlocked') {
+            contentSections.push({
+              section_id: `${module.content_id}-${sectionName}`,
+              content_id: module.content_id,
+              section_name: sectionName,
+              title: sectionName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              content: sectionContent,
+              module_name: module.module_name
+            });
+          }
+        }
+      }
 
-      // Create tasks from content sections with AI-generated variety
-      const generatedTasks: Task[] = contentSections.map((section, index) => {
-        const categories = ['finance', 'marketing', 'hr', 'production'];
-        const difficulties = ['easy', 'medium', 'hard'];
-        const pointValues = { easy: 10, medium: 20, hard: 50 };
+      // Create tasks from content sections with intelligent categorization
+      const generatedTasks: Task[] = [];
+      
+      for (const section of contentSections) {
+        // Determine category based on content keywords
+        const category = determineCategory(section.content || '', section.title || '');
         
-        const category = categories[index % categories.length];
-        const difficulty = difficulties[index % difficulties.length];
+        // Generate multiple difficulty levels for each section
+        const difficulties: Array<'easy' | 'medium' | 'hard'> = ['easy', 'medium', 'hard'];
+        const pointValues = { easy: 15, medium: 20, hard: 30 };
         
-        return {
-          id: `task-${section.section_id}-${index}`,
-          title: generateTaskTitle(section.title || 'Learning Challenge', category),
-          description: generateTaskDescription(section.content?.substring(0, 100) || '', category),
-          category,
-          difficulty_level: difficulty,
-          points_value: pointValues[difficulty as keyof typeof pointValues],
-          content_section_id: section.section_id
-        };
-      });
+        // Create one task per difficulty level
+        difficulties.forEach((difficulty, idx) => {
+          generatedTasks.push({
+            id: `task-${section.section_id}-${difficulty}`,
+            title: generateTaskTitle(section.title || section.section_name || 'Learning Challenge', category, difficulty),
+            description: generateTaskDescription(section.content?.substring(0, 200) || '', category, difficulty),
+            category,
+            difficulty_level: difficulty,
+            points_value: pointValues[difficulty],
+            content_section_id: section.section_id,
+            module_content_id: section.content_id,
+            section_name: section.section_name
+          });
+        });
+        
+      }
 
       // Sort tasks by interest scores (higher interest first)
       const sortedTasks = generatedTasks.sort((a, b) => {
@@ -142,31 +183,107 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse }: TaskRolode
     }
   };
 
-  const generateTaskTitle = (baseTitle: string, category: string): string => {
+  const determineCategory = (content: string, title: string): string => {
+    const text = (title + ' ' + content).toLowerCase();
+    
+    // Keywords for each category
+    const categoryKeywords = {
+      finance: ['budget', 'cost', 'revenue', 'profit', 'financial', 'investment', 'roi', 'expense', 'accounting', 'cash flow'],
+      marketing: ['marketing', 'brand', 'customer', 'campaign', 'advertising', 'promotion', 'sales', 'market', 'audience', 'engagement'],
+      hr: ['employee', 'team', 'culture', 'recruitment', 'performance', 'training', 'development', 'talent', 'hr', 'human resources'],
+      production: ['production', 'operations', 'efficiency', 'process', 'quality', 'manufacturing', 'supply chain', 'logistics', 'workflow', 'optimization']
+    };
+    
+    // Count keyword matches for each category
+    let maxMatches = 0;
+    let bestCategory = 'general';
+    
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      const matches = keywords.filter(keyword => text.includes(keyword)).length;
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestCategory = category;
+      }
+    }
+    
+    return bestCategory;
+  };
+
+  const generateTaskTitle = (baseTitle: string, category: string, difficulty: string): string => {
     const prefixes = {
-      finance: ['💰 Finance Challenge:', '📊 Budget Master:', '💳 Financial Quiz:'],
-      marketing: ['📈 Marketing Mission:', '🎯 Brand Builder:', '📱 Campaign Creator:'],
-      hr: ['👥 People Power:', '🎓 Team Builder:', '💼 HR Challenge:'],
-      production: ['⚙️ Production Pro:', '🏭 Operations Quest:', '📦 Efficiency Expert:'],
-      general: ['🎯 Quick Challenge:', '💡 Knowledge Test:', '📚 Learning Quest:']
+      finance: {
+        easy: ['💰 Finance Basics:', '📊 Budget Introduction:', '💳 Financial Fundamentals:'],
+        medium: ['💰 Finance Challenge:', '📊 Budget Analysis:', '💳 Financial Strategy:'],
+        hard: ['💰 Finance Mastery:', '📊 Advanced Budgeting:', '💳 Financial Excellence:']
+      },
+      marketing: {
+        easy: ['📈 Marketing Basics:', '🎯 Brand Essentials:', '📱 Campaign Fundamentals:'],
+        medium: ['📈 Marketing Mission:', '🎯 Brand Builder:', '📱 Campaign Creator:'],
+        hard: ['📈 Marketing Mastery:', '🎯 Brand Excellence:', '📱 Campaign Expert:']
+      },
+      hr: {
+        easy: ['👥 People Basics:', '🎓 Team Essentials:', '💼 HR Fundamentals:'],
+        medium: ['👥 People Power:', '🎓 Team Builder:', '💼 HR Challenge:'],
+        hard: ['👥 People Excellence:', '🎓 Team Mastery:', '💼 HR Expert:']
+      },
+      production: {
+        easy: ['⚙️ Operations Basics:', '🏭 Process Essentials:', '📦 Efficiency 101:'],
+        medium: ['⚙️ Production Pro:', '🏭 Operations Quest:', '📦 Efficiency Expert:'],
+        hard: ['⚙️ Operations Mastery:', '🏭 Production Excellence:', '📦 Peak Efficiency:']
+      },
+      general: {
+        easy: ['🎯 Quick Review:', '💡 Knowledge Check:', '📚 Learning Basics:'],
+        medium: ['🎯 Quick Challenge:', '💡 Knowledge Test:', '📚 Learning Quest:'],
+        hard: ['🎯 Expert Challenge:', '💡 Knowledge Mastery:', '📚 Advanced Learning:']
+      }
     };
     
     const categoryPrefixes = prefixes[category as keyof typeof prefixes] || prefixes.general;
-    const prefix = categoryPrefixes[Math.floor(Math.random() * categoryPrefixes.length)];
+    const difficultyPrefixes = categoryPrefixes[difficulty as keyof typeof categoryPrefixes] || categoryPrefixes.medium;
+    const prefix = difficultyPrefixes[Math.floor(Math.random() * difficultyPrefixes.length)];
     
     return `${prefix} ${baseTitle}`;
   };
 
-  const generateTaskDescription = (baseContent: string, category: string): string => {
+  const generateTaskDescription = (baseContent: string, category: string, difficulty: string): string => {
     const templates = {
-      finance: 'Test your financial knowledge and help optimize our budget decisions...',
-      marketing: 'Boost our marketing strategy with your creative insights and market knowledge...',
-      hr: 'Help build a stronger team culture and improve our people management...',
-      production: 'Optimize our operations and increase efficiency in production processes...',
-      general: 'Expand your knowledge and contribute to our organizational success...'
+      finance: {
+        easy: 'Learn the fundamentals of financial management and basic budgeting concepts.',
+        medium: 'Apply financial knowledge to solve real-world budget optimization challenges.',
+        hard: 'Master advanced financial strategies and complex investment decisions.'
+      },
+      marketing: {
+        easy: 'Understand core marketing principles and customer engagement basics.',
+        medium: 'Develop effective marketing strategies and campaign optimization skills.',
+        hard: 'Lead strategic marketing initiatives and drive brand excellence.'
+      },
+      hr: {
+        easy: 'Learn essential people management and team building fundamentals.',
+        medium: 'Build strong team cultures and effective performance management systems.',
+        hard: 'Transform organizational culture and lead strategic HR initiatives.'
+      },
+      production: {
+        easy: 'Understand basic operations and efficiency improvement concepts.',
+        medium: 'Optimize production processes and implement quality improvements.',
+        hard: 'Lead operational excellence and strategic process transformation.'
+      },
+      general: {
+        easy: 'Build foundational knowledge in this important area.',
+        medium: 'Apply your knowledge to solve practical challenges.',
+        hard: 'Demonstrate mastery and strategic thinking in this domain.'
+      }
     };
     
-    return templates[category as keyof typeof templates] || templates.general;
+    const categoryTemplates = templates[category as keyof typeof templates] || templates.general;
+    const template = categoryTemplates[difficulty as keyof typeof categoryTemplates] || categoryTemplates.medium;
+    
+    // Add snippet of actual content if available
+    if (baseContent && baseContent.trim()) {
+      const snippet = baseContent.substring(0, 100).trim();
+      return `${template} Topic focus: "${snippet}..."`;  
+    }
+    
+    return template;
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {

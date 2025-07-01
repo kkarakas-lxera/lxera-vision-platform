@@ -251,14 +251,8 @@ class ContentManager:
             if not main_update_success:
                 return False
             
-            # Also create/update content_sections entry for granular tracking
-            # This is secondary - if it fails, we'll log but not fail the entire operation
-            try:
-                self._create_or_update_content_section(content_id, section_name, section_content, metadata)
-                logger.info(f"✅ Content sections table updated for '{section_name}'")
-            except Exception as sections_error:
-                logger.warning(f"⚠️ Failed to update content_sections table: {sections_error}")
-                logger.warning(f"⚠️ Main content update succeeded, but granular tracking failed")
+            # Note: cm_content_sections table has been deprecated
+            # All content is now stored directly in cm_module_content columns
             
             logger.info(f"✅ Section '{section_name}' updated successfully for content {content_id[:8]}")
             return True
@@ -325,15 +319,8 @@ class ContentManager:
             if hasattr(result, 'data') and result.data:
                 logger.info(f"✅ Batch updated {len(update_data)} sections successfully")
                 
-                # Update content_sections table for each section
-                for section_name, section_content in update_data.items():
-                    try:
-                        self._create_or_update_content_section(
-                            content_id, section_name, section_content, 
-                            metadata or {"batch_update": True, "updated_at": datetime.now(timezone.utc).isoformat()}
-                        )
-                    except Exception as e:
-                        logger.warning(f"⚠️ Failed to update content_sections for '{section_name}': {e}")
+                # Note: cm_content_sections table has been deprecated
+                # All content is now stored directly in cm_module_content columns
                 
                 return True
             else:

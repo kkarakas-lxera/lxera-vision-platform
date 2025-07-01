@@ -39,8 +39,6 @@ export const MagicLinkSender = () => {
         title: "Magic link sent!",
         description: `A secure login link has been sent to ${email}`,
       });
-
-      console.log('Magic link sent successfully:', data);
     } catch (error) {
       console.error('Failed to send magic link:', error);
       toast({
