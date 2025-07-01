@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   BookOpen, 
   Search,
@@ -79,8 +80,9 @@ interface ModuleContent {
   assessments: string;
 }
 
-export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) => {
+export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { companyId?: string } = {}) => {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const [assignments, setAssignments] = useState<EmployeeAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,14 +92,19 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
   const [selectedModule, setSelectedModule] = useState<ModuleContent | null>(null);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
 
+  // Use propCompanyId if provided, otherwise use userProfile.company_id
+  const companyId = propCompanyId || userProfile?.company_id;
+
   useEffect(() => {
     if (companyId) {
       fetchAssignments();
       fetchDepartments();
     }
-  }, [companyId]);
+  }, [companyId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDepartments = async () => {
+    if (!companyId) return;
+    
     try {
       const { data, error } = await supabase
         .from('departments')
@@ -115,7 +122,14 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
   };
 
   const fetchAssignments = async () => {
+    if (!companyId) {
+      console.log('No companyId available');
+      setLoading(false);
+      return;
+    }
+    
     try {
+      console.log('Fetching assignments for company:', companyId);
       setLoading(true);
       
       // Fetch course assignments with related data
@@ -124,6 +138,7 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
         .select(`
           id,
           employee_id,
+          course_id,
           plan_id,
           status,
           progress_percentage,
@@ -139,98 +154,128 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
         .eq('company_id', companyId)
         .order('assigned_at', { ascending: false });
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('Assignments error:', assignmentsError);
+        throw assignmentsError;
+      }
 
-      // Transform the data
-      const transformedAssignments = await Promise.all((assignmentsData || []).map(async (assignment) => {
-        // Get user info
-        const { data: userData } = await supabase
-          .from('users')
-          .select('full_name, email')
-          .eq('id', assignment.employees.user_id)
-          .single();
+      console.log('Assignments data:', assignmentsData);
 
-        // Get department info
-        const { data: deptData } = await supabase
-          .from('departments')
-          .select('code, name')
-          .eq('company_id', companyId)
-          .eq('code', assignment.employees.department)
-          .single();
+      if (!assignmentsData || assignmentsData.length === 0) {
+        setAssignments([]);
+        setLoading(false);
+        return;
+      }
 
-        // Get course plan data if plan_id exists
-        let courseTitle = 'No Course Plan';
+      // Batch fetch all related data to avoid N+1 queries
+      const userIds = [...new Set(assignmentsData.map(a => a.employees.user_id))];
+      const departmentCodes = [...new Set(assignmentsData.map(a => a.employees.department).filter(Boolean))];
+      const planIds = [...new Set(assignmentsData.map(a => a.plan_id).filter(Boolean))];
+      const courseIds = [...new Set(assignmentsData.map(a => a.course_id).filter(Boolean))];
+
+      // Batch fetch users
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', userIds);
+      
+      const usersMap = new Map(usersData?.map(u => [u.id, u]) || []);
+
+      // Batch fetch departments
+      const { data: deptsData } = await supabase
+        .from('departments')
+        .select('code, name')
+        .eq('company_id', companyId)
+        .in('code', departmentCodes);
+      
+      const deptsMap = new Map(deptsData?.map(d => [d.code, d]) || []);
+
+      // Batch fetch course plans if any
+      let plansMap = new Map();
+      if (planIds.length > 0) {
+        const { data: plansData } = await supabase
+          .from('cm_course_plans')
+          .select('plan_id, course_title, course_structure, prioritized_gaps')
+          .in('plan_id', planIds);
+        
+        plansMap = new Map(plansData?.map(p => [p.plan_id, p]) || []);
+      }
+
+      // Batch fetch courses if any
+      let coursesMap = new Map();
+      if (courseIds.length > 0) {
+        const { data: coursesData } = await supabase
+          .from('cm_module_content')
+          .select('content_id, module_name')
+          .in('content_id', courseIds);
+        
+        coursesMap = new Map(coursesData?.map(c => [c.content_id, c]) || []);
+      }
+
+      // Transform the data without additional queries
+      const transformedAssignments = assignmentsData.map((assignment) => {
+        const user = usersMap.get(assignment.employees.user_id);
+        const dept = deptsMap.get(assignment.employees.department);
+        const plan = plansMap.get(assignment.plan_id);
+        const course = coursesMap.get(assignment.course_id);
+
+        // Get course title from plan or course
+        let courseTitle = 'No Course Assigned';
         let skillsGapPercentage = 0;
         let modules: ModuleInfo[] = [];
 
-        if (assignment.plan_id) {
-          const { data: planData } = await supabase
-            .from('cm_course_plans')
-            .select('course_title, course_structure, prioritized_gaps')
-            .eq('plan_id', assignment.plan_id)
-            .single();
+        if (plan) {
+          courseTitle = plan.course_title;
+          
+          // Calculate skills gap from plan data
+          if (plan.prioritized_gaps) {
+            const gapsData = plan.prioritized_gaps;
+            let totalGaps = 0;
+            let totalMaxLevel = 0;
+            let totalCurrentLevel = 0;
 
-          if (planData) {
-            courseTitle = planData.course_title;
-
-            // Calculate skills gap percentage from prioritized_gaps
-            if (planData.prioritized_gaps) {
-              const gapsData = planData.prioritized_gaps;
-              let totalGaps = 0;
-              let totalMaxLevel = 0;
-              let totalCurrentLevel = 0;
-
-              // Extract gaps from the nested structure
-              Object.values(gapsData).forEach((category: any) => {
-                if (category.gaps && Array.isArray(category.gaps)) {
-                  category.gaps.forEach((gap: any) => {
-                    const current = gap.current_level || 0;
-                    const required = gap.required_level || 0;
-                    totalCurrentLevel += current;
-                    totalMaxLevel += required;
-                    totalGaps++;
-                  });
-                }
-              });
-
-              if (totalMaxLevel > 0) {
-                // Calculate gap as percentage of missing skills
-                skillsGapPercentage = Math.round(((totalMaxLevel - totalCurrentLevel) / totalMaxLevel) * 100);
-              }
-            }
-
-            // Extract modules from course structure
-            if (planData.course_structure?.modules) {
-              const courseModules = planData.course_structure.modules;
-              
-              for (const [index, module] of courseModules.entries()) {
-                // Check if module has content
-                const { data: contentData } = await supabase
-                  .from('cm_module_content')
-                  .select('content_id, status')
-                  .eq('company_id', companyId)
-                  .eq('module_name', module.module_title || module.title)
-                  .maybeSingle();
-
-                modules.push({
-                  module_name: module.module_title || module.title || `Module ${index + 1}`,
-                  module_order: index + 1,
-                  has_content: !!contentData,
-                  content_id: contentData?.content_id,
-                  status: contentData?.status
+            // Extract gaps from the nested structure
+            Object.values(gapsData).forEach((category: any) => {
+              if (category.gaps && Array.isArray(category.gaps)) {
+                category.gaps.forEach((gap: any) => {
+                  const current = gap.current_level || 0;
+                  const required = gap.required_level || 0;
+                  totalCurrentLevel += current;
+                  totalMaxLevel += required;
+                  totalGaps++;
                 });
               }
+            });
+
+            if (totalMaxLevel > 0) {
+              // Calculate gap as percentage of missing skills
+              skillsGapPercentage = Math.round(((totalMaxLevel - totalCurrentLevel) / totalMaxLevel) * 100);
             }
           }
+
+          // Extract modules from course structure
+          if (plan.course_structure?.modules) {
+            const courseModules = plan.course_structure.modules;
+            
+            modules = courseModules.map((module: any, index: number) => ({
+              module_name: module.module_title || module.title || `Module ${index + 1}`,
+              module_order: index + 1,
+              has_content: false, // Will update this later
+              content_id: undefined,
+              status: undefined
+            }));
+          }
+        } else if (course) {
+          courseTitle = course.module_name;
         }
 
         return {
           assignment_id: assignment.id,
           employee_id: assignment.employee_id,
-          employee_name: userData?.full_name || 'Unknown Employee',
-          employee_email: userData?.email || 'No Email',
+          employee_name: user?.full_name || 'Unknown Employee',
+          employee_email: user?.email || 'No Email',
           department_code: assignment.employees.department || 'N/A',
-          department_name: deptData?.name || 'Unknown Department',
+          department_name: dept?.name || 'Unknown Department',
           plan_id: assignment.plan_id,
           course_title: courseTitle,
           skills_gap_percentage: skillsGapPercentage,
@@ -241,7 +286,7 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
           assigned_at: assignment.assigned_at,
           modules
         };
-      }));
+      });
 
       setAssignments(transformedAssignments);
     } catch (error) {
@@ -367,6 +412,18 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
 
   const filteredAssignments = getFilteredAssignments();
 
+  if (!companyId) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+          <p className="text-lg font-medium">No company selected</p>
+          <p className="text-muted-foreground">Please ensure you are logged in with a company account.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -427,9 +484,15 @@ export const EmployeeCourseAssignments = ({ companyId }: { companyId: string }) 
           </div>
         </CardHeader>
         <CardContent>
-          {filteredAssignments.length === 0 ? (
+          {assignments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No course assignments yet</p>
+              <p>Course assignments will appear here once employees are assigned to courses.</p>
+            </div>
+          ) : filteredAssignments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No course assignments found matching your filters</p>
             </div>
           ) : (
