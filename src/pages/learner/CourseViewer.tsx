@@ -167,9 +167,18 @@ export default function CourseViewer() {
         .from('cm_module_content')
         .select('*')
         .eq('content_id', moduleId || courseId)
+        .eq('is_current_version', true)
         .single();
 
-      if (contentError) throw contentError;
+      if (contentError) {
+        console.error('Error fetching module content:', contentError);
+        throw contentError;
+      }
+      
+      if (!content) {
+        throw new Error('No content found for this course');
+      }
+      
       setCourseContent(content);
 
       // Extract research sources from research_context
@@ -196,7 +205,7 @@ export default function CourseViewer() {
       // Filter available sections based on content in cm_module_content
       const sectionsWithContent = COURSE_SECTIONS.filter(section => {
         const sectionContent = content[section.id as keyof CourseContent];
-        return sectionContent && sectionContent.trim().length > 0;
+        return sectionContent && typeof sectionContent === 'string' && sectionContent.trim().length > 0;
       });
       setAvailableSections(sectionsWithContent);
 
@@ -211,7 +220,10 @@ export default function CourseViewer() {
         .eq('course_id', courseId)
         .single();
 
-      if (assignmentError) throw assignmentError;
+      if (assignmentError) {
+        console.error('Error fetching assignment:', assignmentError);
+        throw assignmentError;
+      }
       
       // Fetch course plan if plan_id exists
       if (assignmentData.plan_id) {
@@ -301,10 +313,15 @@ export default function CourseViewer() {
           })
           .eq('id', assignmentData.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching course data:', error);
-      toast.error('Failed to load course');
-      navigate('/learner');
+      const errorMessage = error?.message || 'Failed to load course';
+      toast.error(errorMessage);
+      
+      // Only navigate away if it's a critical error
+      if (error?.code === 'PGRST116' || !courseId) {
+        navigate('/learner/courses');
+      }
     } finally {
       setLoading(false);
     }
