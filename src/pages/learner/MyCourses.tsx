@@ -251,7 +251,7 @@ export default function MyCourses() {
                 {/* Action Button */}
                 <Button 
                   className="w-full mt-4" 
-                  onClick={() => navigate(`/learner/course/${course.id}`)}
+                  onClick={() => navigate(`/learner/course/${course.course_id}`)}
                   variant={course.status === 'completed' ? 'outline' : 'default'}
                 >
                   {course.status === 'completed' ? (
