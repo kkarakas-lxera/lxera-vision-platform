@@ -45,28 +45,31 @@ export default function VideoPlayer({ sectionName, duration = "5:00" }: VideoPla
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-90" />
         
         {/* Center Content */}
-        <div className="relative z-10 text-center">
-          <div className="mb-4">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600/20 rounded-full mb-4">
-              <Play className="h-10 w-10 text-blue-400" />
-            </div>
-          </div>
-          <h3 className="text-2xl font-semibold text-white mb-2">
-            {formatSectionName(sectionName)}
-          </h3>
-          <p className="text-slate-400">Video content coming soon</p>
-        </div>
-
-        {/* Overlay Play Button */}
         {!isPlaying && (
-          <button
-            onClick={togglePlayPause}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
-          >
-            <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
-              <Play className="h-10 w-10 text-white ml-1" />
+          <div className="relative z-10 text-center">
+            <h3 className="text-2xl font-semibold text-white mb-2">
+              {formatSectionName(sectionName)}
+            </h3>
+            <p className="text-slate-400 mb-8">Video content coming soon</p>
+            <button
+              onClick={togglePlayPause}
+              className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors group"
+            >
+              <Play className="h-10 w-10 text-white ml-1 group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
+        )}
+        
+        {/* Playing State */}
+        {isPlaying && (
+          <div className="relative z-10 text-center">
+            <div className="animate-pulse">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600/20 rounded-full mb-4">
+                <Play className="h-10 w-10 text-blue-400" />
+              </div>
             </div>
-          </button>
+            <p className="text-slate-400">Playing: {formatSectionName(sectionName)}</p>
+          </div>
         )}
       </div>
 

@@ -27,7 +27,8 @@ import {
   Users,
   ClipboardCheck,
   ExternalLink,
-  FileDown
+  FileDown,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
@@ -51,6 +52,41 @@ interface CourseContent {
   assessments: string | null;
   research_context?: any;
   module_spec?: any;
+}
+
+interface CoursePlan {
+  plan_id: string;
+  course_title: string;
+  course_structure: {
+    modules: Array<{
+      module: number;
+      title: string;
+      topics: string[];
+      status?: string;
+    }>;
+  };
+  total_modules: number;
+}
+
+interface ResearchResults {
+  research_findings: {
+    topics: Array<{
+      topic: string;
+      sources: Array<{
+        title: string;
+        url: string;
+        type: string;
+        summary: string;
+      }>;
+      synthesis: string;
+      key_findings: string[];
+    }>;
+  };
+  content_library: {
+    primary_sources: any[];
+    practice_resources: any[];
+    supplementary_materials: any[];
+  };
 }
 
 interface CourseAssignment {
@@ -90,6 +126,11 @@ export default function CourseViewer() {
   const [moduleInfo, setModuleInfo] = useState<{ currentModule: number; totalModules: number } | null>(null);
   const [moduleHierarchyExpanded, setModuleHierarchyExpanded] = useState(true);
   const [researchSources, setResearchSources] = useState<any[]>([]);
+  const [coursePlan, setCoursePlan] = useState<CoursePlan | null>(null);
+  const [researchResults, setResearchResults] = useState<ResearchResults | null>(null);
+  const [contentExpanded, setContentExpanded] = useState(true);
+  const [researchExpanded, setResearchExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'content' | 'research'>('content');
   
   // Game state
   const [showMissionBriefing, setShowMissionBriefing] = useState(false);
@@ -159,15 +200,42 @@ export default function CourseViewer() {
       });
       setAvailableSections(sectionsWithContent);
 
-      // Fetch assignment details
+      // Fetch assignment details with course plan
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('course_assignments')
-        .select('*')
+        .select(`
+          *,
+          course_modules (*)
+        `)
         .eq('employee_id', employee.id)
         .eq('course_id', courseId)
         .single();
 
       if (assignmentError) throw assignmentError;
+      
+      // Fetch course plan if plan_id exists
+      if (assignmentData.plan_id) {
+        const { data: planData, error: planError } = await supabase
+          .from('cm_course_plans')
+          .select('*')
+          .eq('plan_id', assignmentData.plan_id)
+          .single();
+          
+        if (!planError && planData) {
+          setCoursePlan(planData);
+          
+          // Fetch research results
+          const { data: researchData } = await supabase
+            .from('cm_research_results')
+            .select('*')
+            .eq('plan_id', assignmentData.plan_id)
+            .single();
+            
+          if (researchData) {
+            setResearchResults(researchData);
+          }
+        }
+      }
       
       // Fix progress_percentage to be a number
       const fixedAssignment = {
@@ -456,61 +524,155 @@ export default function CourseViewer() {
   const currentSectionData = availableSections.find(s => s.id === currentSection);
   const currentIndex = availableSections.findIndex(s => s.id === currentSection);
 
-  const CourseHierarchy = () => (
-    <div className="space-y-2">
-      <button
-        onClick={() => setModuleHierarchyExpanded(!moduleHierarchyExpanded)}
-        className="flex items-center justify-between w-full px-3 py-2 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-md transition-colors"
-      >
-        <span className="flex items-center">
-          <BookOpen className="h-4 w-4 mr-2" />
-          Course Structure
-        </span>
-        {moduleHierarchyExpanded ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
+  const CourseHierarchy = () => {
+    // Get current module number from course content or assignment
+    const getCurrentModuleNumber = () => {
+      if (courseContent?.module_spec?.modules) {
+        const modules = courseContent.module_spec.modules;
+        for (let i = 0; i < modules.length; i++) {
+          if (modules[i].title === courseContent.module_name) {
+            return i + 1;
+          }
+        }
+      }
+      return 1;
+    };
+
+    const currentModuleNumber = getCurrentModuleNumber();
+
+    return (
+      <div className="space-y-2">
+        <button
+          onClick={() => setModuleHierarchyExpanded(!moduleHierarchyExpanded)}
+          className="flex items-center justify-between w-full px-3 py-2 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-md transition-colors"
+        >
+          <span className="flex items-center">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Course Structure
+          </span>
+          {moduleHierarchyExpanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </button>
+        
+        {moduleHierarchyExpanded && coursePlan && (
+          <div className="ml-2 space-y-2">
+            {coursePlan.course_structure.modules.map((module, index) => {
+              const moduleNumber = index + 1;
+              const isCurrentModule = moduleNumber === currentModuleNumber;
+              const hasContent = moduleNumber === currentModuleNumber; // Only current module has content loaded
+              const isLocked = moduleNumber > currentModuleNumber;
+              
+              return (
+                <div key={module.module} className="space-y-1">
+                  <div
+                    className={cn(
+                      "flex items-center justify-between w-full px-3 py-2 rounded-md transition-all duration-200",
+                      isCurrentModule
+                        ? "bg-slate-800 text-white"
+                        : isLocked
+                        ? "text-slate-600 cursor-not-allowed"
+                        : "text-slate-400 hover:bg-slate-800/50"
+                    )}
+                  >
+                    <span className="flex items-center">
+                      {isLocked ? (
+                        <Lock className="h-4 w-4 mr-2" />
+                      ) : (
+                        <BookOpen className={cn("h-4 w-4 mr-2", isCurrentModule ? "text-blue-400" : "")} />
+                      )}
+                      <div className="text-left">
+                        <div className="text-xs font-medium">Module {module.module}</div>
+                        <div className="text-xs opacity-80">{module.title}</div>
+                      </div>
+                    </span>
+                    {hasContent && (
+                      <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/50 text-xs">
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Show sections only for current module with content */}
+                  {isCurrentModule && hasContent && (
+                    <div className="ml-6 space-y-1">
+                      {availableSections.map((section) => {
+                        const Icon = section.icon;
+                        const isActive = currentSection === section.id;
+                        const isCompleted = sectionProgress[section.id];
+                        
+                        return (
+                          <button
+                            key={section.id}
+                            onClick={() => setCurrentSection(section.id)}
+                            className={cn(
+                              "flex items-center justify-between w-full px-3 py-1.5 text-xs rounded-md transition-all duration-200",
+                              isActive
+                                ? "bg-blue-600 text-white shadow-lg"
+                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                            )}
+                          >
+                            <span className="flex items-center">
+                              <Icon className={cn("h-3 w-3 mr-2", section.color)} />
+                              {section.name}
+                            </span>
+                            {isCompleted && (
+                              <CheckCircle className="h-3 w-3 text-green-400" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
-      </button>
-      
-      {moduleHierarchyExpanded && (
-        <div className="ml-2 space-y-1">
-          {availableSections.map((section) => {
-            const Icon = section.icon;
-            const isActive = currentSection === section.id;
-            const isCompleted = sectionProgress[section.id];
-            
-            return (
-              <button
-                key={section.id}
-                onClick={() => setCurrentSection(section.id)}
-                className={cn(
-                  "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-all duration-200",
-                  isActive
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-              >
-                <span className="flex items-center">
-                  <Icon className={cn("h-4 w-4 mr-2", section.color)} />
-                  {section.name}
-                </span>
-                {isCompleted && (
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+        
+        {/* Fallback to section-only view if no course plan */}
+        {moduleHierarchyExpanded && !coursePlan && (
+          <div className="ml-2 space-y-1">
+            {availableSections.map((section) => {
+              const Icon = section.icon;
+              const isActive = currentSection === section.id;
+              const isCompleted = sectionProgress[section.id];
+              
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => setCurrentSection(section.id)}
+                  className={cn(
+                    "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-all duration-200",
+                    isActive
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  )}
+                >
+                  <span className="flex items-center">
+                    <Icon className={cn("h-4 w-4 mr-2", section.color)} />
+                    {section.name}
+                  </span>
+                  {isCompleted && (
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const Sidebar = () => (
     <div className="h-full bg-slate-900 border-r border-slate-800 flex flex-col">
       {/* Course Title */}
       <div className="p-6 border-b border-slate-800">
-        <h3 className="text-lg font-semibold text-white mb-2">{courseContent.module_name}</h3>
+        <h3 className="text-lg font-semibold text-white mb-1">{coursePlan?.course_title || courseContent.module_name}</h3>
+        <p className="text-sm text-slate-400 mb-3">Current: {courseContent.module_name}</p>
         <div className="space-y-2">
           <Progress value={assignment?.progress_percentage || 0} className="h-2 bg-slate-700" />
           <p className="text-xs text-slate-400">
@@ -696,41 +858,163 @@ export default function CourseViewer() {
                 {/* Video Player */}
                 <VideoPlayer sectionName={currentSection} />
 
-                {/* Content Card */}
-                <Card className="bg-slate-800 border-slate-700">
-                  <div className="p-6">
-                    <div className="prose prose-invert max-w-none">
-                      <ReactMarkdown
-                        components={{
-                          h1: ({ children }) => <h1 className="text-2xl font-bold text-white mb-4">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-xl font-semibold text-white mt-6 mb-3">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-lg font-medium text-white mt-4 mb-2">{children}</h3>,
-                          p: ({ children }) => <p className="text-slate-300 mb-4 leading-relaxed">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc pl-6 mb-4 text-slate-300 space-y-2">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 text-slate-300 space-y-2">{children}</ol>,
-                          li: ({ children }) => <li className="text-slate-300">{children}</li>,
-                          blockquote: ({ children }) => (
-                            <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4">
-                              {children}
-                            </blockquote>
-                          ),
-                          code: ({ children }) => (
-                            <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded text-sm">
-                              {children}
-                            </code>
-                          ),
-                          pre: ({ children }) => (
-                            <pre className="bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4">
-                              {children}
-                            </pre>
-                          ),
-                        }}
-                      >
-                        {getSectionContent()}
-                      </ReactMarkdown>
+                {/* Tabs */}
+                <div className="flex space-x-1 mb-4">
+                  <button
+                    onClick={() => setActiveTab('content')}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                      activeTab === 'content'
+                        ? "bg-slate-800 text-white border-b-2 border-blue-500"
+                        : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
+                    )}
+                  >
+                    Content
+                  </button>
+                  {researchResults && (
+                    <button
+                      onClick={() => setActiveTab('research')}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                        activeTab === 'research'
+                          ? "bg-slate-800 text-white border-b-2 border-blue-500"
+                          : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
+                      )}
+                    >
+                      Research
+                    </button>
+                  )}
+                </div>
+
+                {/* Content Tab */}
+                {activeTab === 'content' && (
+                  <Card className="bg-slate-800 border-slate-700">
+                    <div 
+                      className="p-6 cursor-pointer"
+                      onClick={() => setContentExpanded(!contentExpanded)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-white flex items-center">
+                          <FileText className="h-5 w-5 mr-2" />
+                          Reading Material
+                        </h2>
+                        {contentExpanded ? (
+                          <ChevronDown className="h-5 w-5 text-slate-400" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-slate-400" />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                    
+                    {contentExpanded && (
+                      <div className="px-6 pb-6 border-t border-slate-700 pt-4">
+                        <div className="prose prose-invert max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => <h1 className="text-2xl font-bold text-white mb-4">{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-xl font-semibold text-white mt-6 mb-3">{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-lg font-medium text-white mt-4 mb-2">{children}</h3>,
+                              p: ({ children }) => <p className="text-slate-300 mb-4 leading-relaxed">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc pl-6 mb-4 text-slate-300 space-y-2">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 text-slate-300 space-y-2">{children}</ol>,
+                              li: ({ children }) => <li className="text-slate-300">{children}</li>,
+                              blockquote: ({ children }) => (
+                                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4">
+                                  {children}
+                                </blockquote>
+                              ),
+                              code: ({ children }) => (
+                                <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded text-sm">
+                                  {children}
+                                </code>
+                              ),
+                              pre: ({ children }) => (
+                                <pre className="bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4">
+                                  {children}
+                                </pre>
+                              ),
+                            }}
+                          >
+                            {getSectionContent()}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                )}
+
+                {/* Research Tab */}
+                {activeTab === 'research' && researchResults && (
+                  <Card className="bg-slate-800 border-slate-700">
+                    <div className="p-6">
+                      <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2" />
+                        Research Materials
+                      </h2>
+                      
+                      {researchResults.research_findings?.topics?.map((topic, topicIndex) => (
+                        <div key={topicIndex} className="mb-6">
+                          <div 
+                            className="cursor-pointer py-2"
+                            onClick={() => setResearchExpanded(!researchExpanded)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-md font-medium text-white">
+                                {topic.topic}
+                              </h3>
+                              {researchExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          {researchExpanded && (
+                            <div className="ml-4 space-y-3">
+                              <div className="text-sm text-slate-300 mb-3">
+                                <p className="mb-2">{topic.synthesis}</p>
+                                {topic.key_findings && (
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    {topic.key_findings.map((finding, idx) => (
+                                      <li key={idx}>{finding}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                              
+                              {topic.sources && (
+                                <div className="space-y-2">
+                                  <h4 className="text-sm font-medium text-slate-400">Sources:</h4>
+                                  {topic.sources.map((source, sourceIndex) => (
+                                    <a
+                                      key={sourceIndex}
+                                      href={source.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block p-3 bg-slate-900 rounded-md hover:bg-slate-700 transition-colors"
+                                    >
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-blue-400">{source.title}</p>
+                                          <p className="text-xs text-slate-500 mt-1">{source.type}</p>
+                                          {source.summary && (
+                                            <p className="text-xs text-slate-400 mt-2">{source.summary}</p>
+                                          )}
+                                        </div>
+                                        <ExternalLink className="h-4 w-4 text-slate-500 flex-shrink-0 ml-2" />
+                                      </div>
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex justify-between items-center">
