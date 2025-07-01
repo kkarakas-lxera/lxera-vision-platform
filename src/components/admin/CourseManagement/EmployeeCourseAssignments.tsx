@@ -28,6 +28,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Search,
@@ -43,6 +44,12 @@ import {
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface EmployeeAssignment {
   assignment_id: string;
@@ -54,6 +61,7 @@ interface EmployeeAssignment {
   plan_id: string;
   course_title: string;
   skills_gap_percentage: number;
+  targeted_skills?: string[];
   total_modules: number;
   modules_completed: number;
   progress_percentage: number;
@@ -83,6 +91,7 @@ interface ModuleContent {
 export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { companyId?: string } = {}) => {
   const { toast } = useToast();
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState<EmployeeAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -222,6 +231,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         // Get course title from plan or course
         let courseTitle = 'No Course Assigned';
         let skillsGapPercentage = 0;
+        let targetedSkills: string[] = [];
         let modules: ModuleInfo[] = [];
 
         if (plan) {
@@ -243,6 +253,11 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                   totalCurrentLevel += current;
                   totalMaxLevel += required;
                   totalGaps++;
+                  
+                  // Collect targeted skills
+                  if (gap.skill_name && current < required) {
+                    targetedSkills.push(gap.skill_name);
+                  }
                 });
               }
             });
@@ -279,6 +294,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
           plan_id: assignment.plan_id,
           course_title: courseTitle,
           skills_gap_percentage: skillsGapPercentage,
+          targeted_skills: targetedSkills,
           total_modules: assignment.total_modules || modules.length,
           modules_completed: assignment.modules_completed || 0,
           progress_percentage: assignment.progress_percentage || 0,
@@ -400,14 +416,38 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
     );
   };
 
-  const getSkillsGapBadge = (percentage: number) => {
-    if (percentage >= 70) {
-      return <Badge variant="destructive">Critical Gap ({percentage}%)</Badge>;
-    } else if (percentage >= 40) {
-      return <Badge variant="default">Moderate Gap ({percentage}%)</Badge>;
-    } else {
-      return <Badge variant="secondary">Low Gap ({percentage}%)</Badge>;
+  const getSkillsGapBadge = (percentage: number, targetedSkills?: string[]) => {
+    const variant = percentage >= 70 ? "destructive" : percentage >= 40 ? "default" : "secondary";
+    const label = percentage >= 70 ? "Critical" : percentage >= 40 ? "Moderate" : "Low";
+    
+    const badge = (
+      <Badge variant={variant}>
+        {label} Gap ({percentage}%)
+      </Badge>
+    );
+
+    if (targetedSkills && targetedSkills.length > 0) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badge}
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p className="font-medium mb-1">Targeted Skills:</p>
+            <ul className="text-xs space-y-1">
+              {targetedSkills.slice(0, 5).map((skill, index) => (
+                <li key={index}>• {skill}</li>
+              ))}
+              {targetedSkills.length > 5 && (
+                <li className="text-muted-foreground">...and {targetedSkills.length - 5} more</li>
+              )}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      );
     }
+
+    return badge;
   };
 
   const filteredAssignments = getFilteredAssignments();
@@ -436,7 +476,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
   }
 
   return (
-    <>
+    <TooltipProvider>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -524,16 +564,13 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Building className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{assignment.department_code}</p>
-                          <p className="text-xs text-muted-foreground">{assignment.department_name}</p>
-                        </div>
+                        <p className="font-medium">{assignment.department_code}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Target className="h-4 w-4 text-muted-foreground" />
-                        {getSkillsGapBadge(assignment.skills_gap_percentage)}
+                        {getSkillsGapBadge(assignment.skills_gap_percentage, assignment.targeted_skills)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -545,35 +582,50 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        {assignment.modules.slice(0, 3).map((module, index) => (
-                          <div key={index} className="flex items-center space-x-1">
-                            {module.has_content ? (
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                            ) : (
-                              <Clock className="h-3 w-3 text-gray-400" />
-                            )}
-                            <span className="text-xs truncate max-w-[150px]">
-                              {module.module_name}
-                            </span>
-                            {module.has_content && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0 ml-1"
-                                onClick={() => fetchModuleContent(module.content_id!)}
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="space-y-1 cursor-help">
+                            {assignment.modules.slice(0, 3).map((module, index) => (
+                              <div key={index} className="flex items-center space-x-1">
+                                {module.has_content ? (
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                ) : (
+                                  <Clock className="h-3 w-3 text-gray-400" />
+                                )}
+                                <span className="text-xs truncate max-w-[150px]">
+                                  {module.module_name}
+                                </span>
+                                {module.has_content && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-4 w-4 p-0 ml-1"
+                                    onClick={() => fetchModuleContent(module.content_id!)}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            {assignment.modules.length > 3 && (
+                              <p className="text-xs text-muted-foreground">
+                                +{assignment.modules.length - 3} more modules
+                              </p>
                             )}
                           </div>
-                        ))}
-                        {assignment.modules.length > 3 && (
-                          <p className="text-xs text-muted-foreground">
-                            +{assignment.modules.length - 3} more modules
-                          </p>
-                        )}
-                      </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-medium mb-1">All Modules:</p>
+                          <ul className="text-xs space-y-1">
+                            {assignment.modules.map((module, index) => (
+                              <li key={index}>
+                                {index + 1}. {module.module_name}
+                                {module.has_content && <span className="text-green-600 ml-1">✓</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -598,16 +650,22 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          // Here you can add navigation to detailed view
-                          console.log('View details for:', assignment);
-                        }}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              navigate(`/dashboard/employees/${assignment.employee_id}`);
+                            }}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          View employee profile
+                        </TooltipContent>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -676,6 +734,6 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   );
 };
