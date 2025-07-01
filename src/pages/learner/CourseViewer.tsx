@@ -11,6 +11,12 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import MultimediaPlaceholder, { MultimediaSection } from '@/components/learner/MultimediaPlaceholder';
+import MissionBriefing from '@/components/learner/game/MissionBriefing';
+import GameScreen from '@/components/learner/game/GameScreen';
+import GameResults from '@/components/learner/game/GameResults';
+import TaskRolodex from '@/components/learner/game/TaskRolodex';
+import TaskDecisionModal from '@/components/learner/game/TaskDecisionModal';
+import PuzzleProgress from '@/components/learner/game/PuzzleProgress';
 
 interface CourseContent {
   content_id: string;
@@ -55,6 +61,13 @@ export default function CourseViewer() {
   const [sectionProgress, setSectionProgress] = useState<Record<string, boolean>>({});
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Game state
+  const [showMissionBriefing, setShowMissionBriefing] = useState(false);
+  const [gameMode, setGameMode] = useState<'none' | 'briefing' | 'rolodex' | 'decision' | 'playing' | 'results' | 'puzzle'>('none');
+  const [currentMissionId, setCurrentMissionId] = useState<string | null>(null);
+  const [gameResults, setGameResults] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     if (userProfile && courseId) {
@@ -202,13 +215,15 @@ export default function CourseViewer() {
 
       toast.success('Section completed!');
       
+      // NEW: Show mission briefing after section completion (instead of immediate navigation)
       if (progressPercentage === 100) {
         toast.success('Congratulations! You\'ve completed the course!', {
           duration: 5000
         });
         setTimeout(() => navigate('/learner'), 2000);
       } else {
-        navigateToNextSection();
+        // Show task rolodex for the completed section
+        setGameMode('rolodex');
       }
     } catch (error) {
       console.error('Error marking section complete:', error);
@@ -229,6 +244,88 @@ export default function CourseViewer() {
     if (currentIndex > 0) {
       setCurrentSection(availableSections[currentIndex - 1].id);
       setMobileMenuOpen(false);
+    }
+  };
+
+  // Game handler functions
+  const handleMissionStart = (missionId: string) => {
+    setCurrentMissionId(missionId);
+    setGameMode('playing');
+  };
+
+  const handleGameComplete = (results: any) => {
+    setGameResults(results);
+    setGameMode('results');
+  };
+
+  const handleGameExit = () => {
+    setGameMode('none');
+    setCurrentMissionId(null);
+    setGameResults(null);
+  };
+
+  const handleContinueAfterGame = () => {
+    setGameMode('puzzle');
+  };
+
+  const handleMissionContinue = () => {
+    setGameMode('none');
+    navigateToNextSection();
+  };
+
+  // New handlers for swipe-to-learn flow
+  const handleTaskSelect = (task: any) => {
+    setSelectedTask(task);
+    setGameMode('decision');
+  };
+
+  const handleTaskDecisionProceed = () => {
+    setGameMode('playing');
+    // Generate mission from selected task
+    generateMissionFromTask(selectedTask);
+  };
+
+  const handleTaskDecisionCancel = () => {
+    setGameMode('rolodex');
+    setSelectedTask(null);
+  };
+
+  const handleBackToCourse = () => {
+    setGameMode('none');
+    setSelectedTask(null);
+    setCurrentMissionId(null);
+    setGameResults(null);
+  };
+
+  const handlePuzzleComplete = () => {
+    setGameMode('none');
+    setSelectedTask(null);
+    setCurrentMissionId(null);
+    setGameResults(null);
+    navigateToNextSection();
+  };
+
+  const generateMissionFromTask = async (task: any) => {
+    try {
+      // Call the edge function to generate mission from selected task
+      const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
+        body: {
+          employee_id: employeeId,
+          content_section_id: task.content_section_id,
+          difficulty_level: task.difficulty_level,
+          questions_count: 3,
+          category: task.category,
+          task_title: task.title
+        }
+      });
+
+      if (error) throw error;
+      if (data.success) {
+        setCurrentMissionId(data.mission_id);
+      }
+    } catch (error) {
+      console.error('Error generating mission from task:', error);
+      toast.error('Failed to generate mission');
     }
   };
 
@@ -356,30 +453,77 @@ export default function CourseViewer() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-3xl mx-auto p-6 md:p-8">
-            {/* Section Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold mb-2">
-                {courseContent.module_name}
-              </h1>
-              <h2 className="text-lg text-muted-foreground flex items-center gap-2">
-                {currentSectionData?.icon && <currentSectionData.icon className="h-5 w-5" />}
-                Module {currentIndex + 1} of {availableSections.length}: {currentSectionData?.name}
-              </h2>
-            </div>
+            {/* Game Mode Rendering */}
+            {gameMode === 'briefing' && (
+              <MissionBriefing
+                contentSectionId={`${courseContent.content_id}-${currentSection}`}
+                sectionName={currentSection}
+                onMissionStart={handleMissionStart}
+                onContinue={handleMissionContinue}
+              />
+            )}
 
-            {/* Learning Objectives (for introduction) */}
-            {renderLearningObjectives()}
+            {gameMode === 'rolodex' && (
+              <TaskRolodex
+                onTaskSelect={handleTaskSelect}
+                onBackToCourse={handleBackToCourse}
+              />
+            )}
 
-            {/* Content */}
-            <div className="prose prose-gray max-w-none">
-              <ReactMarkdown>{getSectionContent()}</ReactMarkdown>
-            </div>
+            {gameMode === 'playing' && currentMissionId && (
+              <GameScreen
+                missionId={currentMissionId}
+                onComplete={handleGameComplete}
+                onExit={handleGameExit}
+              />
+            )}
 
-            {/* Multimedia Placeholders */}
-            <MultimediaSection sectionType={currentSection} />
+            {gameMode === 'results' && gameResults && (
+              <GameResults
+                results={gameResults}
+                missionTitle={selectedTask?.title || "Section Mission"}
+                onContinue={handleContinueAfterGame}
+                onReturnToCourse={() => navigate('/learner')}
+                onViewProgress={() => {}}
+              />
+            )}
 
-            {/* Interactive Content Elements */}
-            <div className="mt-8 space-y-6">
+            {gameMode === 'puzzle' && employeeId && gameResults && (
+              <PuzzleProgress
+                employeeId={employeeId}
+                category={selectedTask?.category || 'general'}
+                pointsEarned={gameResults.pointsEarned}
+                onClose={handlePuzzleComplete}
+              />
+            )}
+
+            {/* Normal Course Content (when not in game mode) */}
+            {gameMode === 'none' && (
+              <>
+                {/* Section Header */}
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold mb-2">
+                    {courseContent.module_name}
+                  </h1>
+                  <h2 className="text-lg text-muted-foreground flex items-center gap-2">
+                    {currentSectionData?.icon && <currentSectionData.icon className="h-5 w-5" />}
+                    Module {currentIndex + 1} of {availableSections.length}: {currentSectionData?.name}
+                  </h2>
+                </div>
+
+                {/* Learning Objectives (for introduction) */}
+                {renderLearningObjectives()}
+
+                {/* Content */}
+                <div className="prose prose-gray max-w-none">
+                  <ReactMarkdown>{getSectionContent()}</ReactMarkdown>
+                </div>
+
+                {/* Multimedia Placeholders */}
+                <MultimediaSection sectionType={currentSection} />
+
+                {/* Interactive Content Elements */}
+                <div className="mt-8 space-y-6">
               {/* Video Content */}
               {currentSection === 'core_content' && (
                 <Card className="p-6 bg-blue-50 border-blue-200">
@@ -529,50 +673,64 @@ export default function CourseViewer() {
                     Start Assessment
                   </Button>
                 </Card>
-              )}
-            </div>
+                )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer Navigation */}
-      <div className="border-t px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={navigateToPreviousSection}
-            disabled={currentIndex === 0}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Previous
-          </Button>
+      {/* Footer Navigation - only show when not in game mode */}
+      {gameMode === 'none' && (
+        <div className="border-t px-6 py-4">
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={navigateToPreviousSection}
+              disabled={currentIndex === 0}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Previous
+            </Button>
 
-          <Button
-            onClick={markSectionComplete}
-            className="gap-2"
-          >
-            {sectionProgress[currentSection] ? (
-              currentIndex === availableSections.length - 1 ? (
-                <>
-                  Back to Dashboard
-                  <ArrowRight className="h-4 w-4" />
-                </>
+            <Button
+              onClick={markSectionComplete}
+              className="gap-2"
+            >
+              {sectionProgress[currentSection] ? (
+                currentIndex === availableSections.length - 1 ? (
+                  <>
+                    Back to Dashboard
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Next Section
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )
               ) : (
                 <>
-                  Next Section
-                  <ArrowRight className="h-4 w-4" />
+                  Complete & Continue
+                  <CheckCircle className="h-4 w-4" />
                 </>
-              )
-            ) : (
-              <>
-                Complete & Continue
-                <CheckCircle className="h-4 w-4" />
-              </>
-            )}
-          </Button>
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Task Decision Modal - overlay */}
+      {gameMode === 'decision' && selectedTask && employeeId && (
+        <TaskDecisionModal
+          task={selectedTask}
+          onProceed={handleTaskDecisionProceed}
+          onCancel={handleTaskDecisionCancel}
+          employeeId={employeeId}
+        />
+      )}
     </div>
   );
 }
