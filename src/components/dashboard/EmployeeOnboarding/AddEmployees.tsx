@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CSVImportWizard } from './CSVImportWizard';
 
 interface AddEmployeesProps {
   onImportComplete?: () => void;
@@ -12,17 +14,30 @@ interface AddEmployeesProps {
 
 export const AddEmployees: React.FC<AddEmployeesProps> = ({ 
   onImportComplete, 
-  importSessions, 
+  importSessions = [], 
   onNextStep,
-  isOpen,
+  isOpen = false,
   onClose,
   onComplete
 }) => {
+  const handleImportComplete = () => {
+    onImportComplete?.();
+    onComplete?.();
+    onClose?.();
+  };
+
   return (
-    <div className="p-4">
-      <h3 className="text-lg font-medium mb-2">Add Employees</h3>
-      <p className="text-gray-600">Add employees functionality will be implemented here.</p>
-    </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Employees</DialogTitle>
+        </DialogHeader>
+        <CSVImportWizard 
+          onImportComplete={handleImportComplete}
+          importSessions={importSessions}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 

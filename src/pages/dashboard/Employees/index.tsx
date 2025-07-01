@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,8 +39,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import AddEmployees from '@/components/dashboard/EmployeeOnboarding/AddEmployees';
-import BulkCVUpload from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
 import CourseGenerationModal from '@/pages/dashboard/Courses/CourseGenerationModal';
 
 interface Employee {
@@ -58,12 +57,11 @@ interface Employee {
 }
 
 const EmployeesPage = () => {
+  const navigate = useNavigate();
   const { userProfile } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddEmployees, setShowAddEmployees] = useState(false);
-  const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showCourseGeneration, setShowCourseGeneration] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
@@ -171,16 +169,6 @@ const EmployeesPage = () => {
           <p className="text-muted-foreground">Manage your team and track their learning progress</p>
         </div>
         
-        <div className="flex gap-2">
-          <Button onClick={() => setShowBulkUpload(true)} variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Bulk Import
-          </Button>
-          <Button onClick={() => setShowAddEmployees(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Employee
-          </Button>
-        </div>
       </div>
 
       {/* Stats Cards */}
@@ -349,7 +337,9 @@ const EmployeesPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               View Profile
                             </DropdownMenuItem>
@@ -384,23 +374,6 @@ const EmployeesPage = () => {
       </Card>
 
       {/* Modals */}
-      <AddEmployees 
-        isOpen={showAddEmployees}
-        onClose={() => setShowAddEmployees(false)}
-        onComplete={() => {
-          setShowAddEmployees(false);
-          fetchEmployees();
-        }}
-      />
-
-      <BulkCVUpload
-        isOpen={showBulkUpload}
-        onClose={() => setShowBulkUpload(false)}
-        onComplete={() => {
-          setShowBulkUpload(false);
-          fetchEmployees();
-        }}
-      />
 
       <CourseGenerationModal
         isOpen={showCourseGeneration}

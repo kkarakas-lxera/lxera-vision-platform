@@ -100,12 +100,16 @@ export default function SkillsOverview() {
       const avgMatch = analyzedEmployees > 0 
         ? deptData?.reduce((sum, dept) => sum + ((Number(dept.avg_skills_match) || 0) * (Number(dept.analyzed_employees) || 0)), 0) / analyzedEmployees
         : 0;
+      
+      // Count critical gaps from the actual gaps data
+      const criticalGapsCount = gapsData?.filter(gap => gap.gap_severity === 'critical').length || 0;
+      const allGapsCount = gapsData?.length || 0;
 
       setOverallStats({
         totalEmployees,
         analyzedEmployees,
         avgSkillsMatch: Math.round(avgMatch || 0),
-        totalCriticalGaps: gapsData?.length || 0,
+        totalCriticalGaps: criticalGapsCount > 0 ? criticalGapsCount : allGapsCount, // Show all gaps if no critical ones
         departmentsCount: deptData?.length || 0
       });
 
@@ -204,9 +208,9 @@ export default function SkillsOverview() {
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Critical Gaps</p>
+                <p className="text-sm font-medium text-gray-600">Skills Gaps</p>
                 <p className="text-2xl font-bold text-gray-900">{overallStats.totalCriticalGaps}</p>
-                <p className="text-xs text-gray-500">Require attention</p>
+                <p className="text-xs text-gray-500">Need improvement</p>
               </div>
             </div>
           </CardContent>
@@ -240,7 +244,7 @@ export default function SkillsOverview() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/dashboard/skills/departments')}
+              onClick={() => navigate('/dashboard/skills/employees')}
               className="text-xs"
             >
               View All <ArrowRight className="h-3 w-3 ml-1" />
@@ -251,7 +255,7 @@ export default function SkillsOverview() {
               <div 
                 key={index} 
                 className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/dashboard/skills/departments/${encodeURIComponent(dept.department)}`)}
+                onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
               >
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
@@ -322,32 +326,6 @@ export default function SkillsOverview() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/dashboard/skills/requirements')}>
-          <CardContent className="p-4 text-center">
-            <Target className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            <h3 className="font-medium mb-1">Position Requirements</h3>
-            <p className="text-sm text-gray-600">Review skills coverage by role</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/dashboard/skills/gaps')}>
-          <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-            <h3 className="font-medium mb-1">Skills Gap Analysis</h3>
-            <p className="text-sm text-gray-600">Identify and address skill gaps</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/dashboard/courses')}>
-          <CardContent className="p-4 text-center">
-            <BookOpen className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <h3 className="font-medium mb-1">Training Programs</h3>
-            <p className="text-sm text-gray-600">Create targeted learning paths</p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
