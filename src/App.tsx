@@ -87,7 +87,6 @@ import DepartmentSkillsDetail from "./pages/dashboard/skills/DepartmentSkillsDet
 const queryClient = new QueryClient();
 
 const App = () => {
-  console.log('LXERA: App component rendering...');
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

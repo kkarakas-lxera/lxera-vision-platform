@@ -45,7 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      console.log('Fetching user profile for:', userId);
       
       const { data, error } = await supabase
         .from('users')
@@ -59,11 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!data) {
-        console.log('No user profile found, this might be a new user');
         return null;
       }
-
-      console.log('User profile fetched successfully:', data);
       return data as UserProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -73,7 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
-      console.log('Refreshing profile for user:', user.id);
       const profile = await fetchUserProfile(user.id);
       setUserProfile(profile);
     }
@@ -85,7 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
         
         if (!mounted) return;
 
@@ -117,8 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
         return;
       }
-
-      console.log('Initial session check:', session?.user?.email);
       
       if (!session) {
         setLoading(false);
@@ -136,7 +128,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Initialize content manager when user profile is ready
     if (userProfile?.company_id && userProfile?.id) {
       setContentManagerReady(true);
-      console.log('ContentManager ready for company:', userProfile.company_id);
     } else {
       setContentManagerReady(false);
     }
@@ -145,7 +136,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      console.log('Attempting to sign in:', email);
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -186,7 +176,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('Signing out user');
     setLoading(true);
     await supabase.auth.signOut();
     setUser(null);

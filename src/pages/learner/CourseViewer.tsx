@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, ArrowRight, CheckCircle, Circle, PlayCircle, FileDown, Target, BookOpen, Menu } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Circle, PlayCircle, FileDown, Target, BookOpen, Menu, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -417,26 +417,6 @@ export default function CourseViewer() {
     }
   };
 
-  const renderLearningObjectives = () => {
-    if (currentSection !== 'introduction') return null;
-    
-    return (
-      <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
-        <div className="flex items-start gap-3">
-          <Target className="h-5 w-5 text-primary mt-0.5" />
-          <div className="space-y-2">
-            <h3 className="font-medium">What you'll learn:</h3>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• Understand the core concepts</li>
-              <li>• Apply practical techniques</li>
-              <li>• Work through real-world examples</li>
-              <li>• Complete hands-on exercises</li>
-            </ul>
-          </div>
-        </div>
-      </Card>
-    );
-  };
 
   if (loading) {
     return (
@@ -461,9 +441,9 @@ export default function CourseViewer() {
   const currentIndex = availableSections.findIndex(s => s.id === currentSection);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b px-4 py-3 flex items-center justify-between">
+      <div className="border-b px-4 py-3 flex items-center justify-between bg-card">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -502,6 +482,8 @@ export default function CourseViewer() {
                   setMobileMenuOpen(false);
                 }}
                 courseProgress={assignment?.progress_percentage || 0}
+                moduleSpec={courseContent?.module_spec}
+                currentModuleIndex={moduleInfo?.currentModule ? moduleInfo.currentModule - 1 : 0}
               />
             </SheetContent>
           </Sheet>
@@ -518,12 +500,14 @@ export default function CourseViewer() {
             sectionProgress={sectionProgress}
             onSectionClick={setCurrentSection}
             courseProgress={assignment?.progress_percentage || 0}
+            moduleSpec={courseContent?.module_spec}
+            currentModuleIndex={moduleInfo?.currentModule ? moduleInfo.currentModule - 1 : 0}
           />
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto p-6 md:p-8">
+        <div className="flex-1 overflow-y-auto bg-muted/30">
+          <div className="max-w-4xl mx-auto p-6">
             {/* Game Mode Rendering */}
             {gameMode === 'briefing' && (
               <MissionBriefing
@@ -570,7 +554,7 @@ export default function CourseViewer() {
 
             {/* Normal Course Content (when not in game mode) */}
             {gameMode === 'none' && (
-              <>
+              <Card className="p-6">
                 {/* Section Header */}
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold mb-2">
@@ -582,171 +566,30 @@ export default function CourseViewer() {
                   </h2>
                 </div>
 
-                {/* Learning Objectives (for introduction) */}
-                {renderLearningObjectives()}
-
                 {/* Content */}
-                <div className="prose prose-gray max-w-none">
-                  <ReactMarkdown>{getSectionContent()}</ReactMarkdown>
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-4">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl font-semibold mt-4 mb-3">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg font-medium mt-3 mb-2">{children}</h3>,
+                      p: ({ children }) => <p className="mb-4 text-base leading-relaxed">{children}</p>,
+                      ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-1">{children}</ol>,
+                      li: ({ children }) => <li className="text-base">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                    }}
+                  >
+                    {getSectionContent()}
+                  </ReactMarkdown>
                 </div>
 
-                {/* Multimedia Placeholders */}
-                <MultimediaSection sectionType={currentSection} />
-
-                {/* Interactive Content Elements */}
-                <div className="mt-8 space-y-6">
-              {/* Video Content */}
-              {currentSection === 'core_content' && (
-                <Card className="p-6 bg-blue-50 border-blue-200">
-                  <div className="flex items-start gap-3">
-                    <PlayCircle className="h-6 w-6 text-blue-600 mt-1" />
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-2">Video: Understanding the Concepts</h3>
-                      <div className="bg-white rounded-lg p-8 text-center">
-                        <PlayCircle className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground">Video player would go here (8:42)</p>
-                        <Button className="mt-3" size="sm">
-                          <PlayCircle className="h-4 w-4 mr-2" />
-                          Play Video
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              {/* Interactive Exercise */}
-              {currentSection === 'core_content' && (
-                <Card className="p-6 bg-green-50 border-green-200">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <Target className="h-5 w-5 text-green-600" />
-                    Interactive Exercise
-                  </h3>
-                  <div className="space-y-4">
-                    <p className="text-sm">Calculate the current ratio for Company X:</p>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>Current Assets: $500,000</div>
-                      <div>Current Liabilities: $250,000</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="text" 
-                        placeholder="Enter your answer..." 
-                        className="px-3 py-2 border rounded-md flex-1"
-                      />
-                      <Button size="sm">Check Answer</Button>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              {/* Practice Files */}
-              {(currentSection === 'core_content' || currentSection === 'practical_applications') && (
-                <Card className="p-6">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <FileDown className="h-5 w-5" />
-                    Practice Files & Resources
-                  </h3>
-                  <div className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <FileDown className="h-4 w-4" />
-                      Download practice_data.xlsx
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <FileDown className="h-4 w-4" />
-                      Financial Analysis Template.xlsx
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Additional Reading: Industry Standards
-                    </Button>
-                  </div>
-                </Card>
-              )}
-
-              {/* Case Study Interactive Elements */}
-              {currentSection === 'case_studies' && (
-                <div className="space-y-6">
-                  <Card className="p-6 bg-purple-50 border-purple-200">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Target className="h-5 w-5 text-purple-600" />
-                      Case Study: TechCorp Analysis
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                      <div className="space-y-1">
-                        <div className="font-medium">Revenue:</div>
-                        <div>$10,000,000</div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="font-medium">Expenses:</div>
-                        <div>$8,000,000</div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="font-medium">Assets:</div>
-                        <div>$15,000,000</div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="font-medium">Liabilities:</div>
-                        <div>$5,000,000</div>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full">
-                      <FileDown className="h-4 w-4 mr-2" />
-                      Download Full Financial Statements
-                    </Button>
-                  </Card>
-
-                  <Card className="p-6">
-                    <h3 className="font-semibold mb-3">Your Analysis Notes</h3>
-                    <textarea 
-                      className="w-full h-32 p-3 border rounded-md resize-none" 
-                      placeholder="Write your analysis of TechCorp's financial position..."
-                    />
-                    <div className="mt-3 space-y-2">
-                      <h4 className="font-medium text-sm">Task Checklist:</h4>
-                      <div className="space-y-1">
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" />
-                          Download financial data
-                        </label>
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" />
-                          Calculate 5 key ratios
-                        </label>
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" />
-                          Write analysis summary
-                        </label>
-                      </div>
-                    </div>
-                  </Card>
+                {/* Multimedia Placeholders - Only show if available */}
+                <div className="mt-6">
+                  <MultimediaSection sectionType={currentSection} />
                 </div>
-              )}
-
-              {/* Assessment Preview */}
-              {currentSection === 'assessments' && (
-                <Card className="p-6 bg-yellow-50 border-yellow-200">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-yellow-600" />
-                    Final Assessment Preview
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Test your understanding with 10 multiple-choice questions covering all course topics.
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>• Financial statement analysis</div>
-                    <div>• Ratio calculations</div>
-                    <div>• Industry comparisons</div>
-                    <div>• Case study applications</div>
-                  </div>
-                  <Button className="w-full">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Start Assessment
-                  </Button>
-                </Card>
-                )}
-                </div>
-              </>
+              </Card>
             )}
           </div>
         </div>
@@ -813,54 +656,128 @@ interface CourseOutlineProps {
   sectionProgress: Record<string, boolean>;
   onSectionClick: (sectionId: string) => void;
   courseProgress: number;
+  moduleSpec?: any;
+  currentModuleIndex?: number;
 }
 
-function CourseOutline({ sections, currentSection, sectionProgress, onSectionClick, courseProgress }: CourseOutlineProps) {
+function CourseOutline({ 
+  sections, 
+  currentSection, 
+  sectionProgress, 
+  onSectionClick, 
+  courseProgress,
+  moduleSpec,
+  currentModuleIndex = 0
+}: CourseOutlineProps) {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-background">
       <div className="p-4 border-b">
-        <h3 className="font-medium mb-2">Course Progress</h3>
+        <h3 className="font-semibold text-lg mb-2">Course Plan</h3>
         <Progress value={courseProgress} className="h-2" />
         <p className="text-sm text-muted-foreground mt-1">{courseProgress}% Complete</p>
       </div>
       
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
-          {sections.map((section, index) => {
-            const Icon = section.icon;
-            const isCompleted = sectionProgress[section.id];
-            const isCurrent = section.id === currentSection;
-            
-            return (
-              <button
-                key={section.id}
-                onClick={() => onSectionClick(section.id)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
-                  isCurrent
-                    ? 'bg-primary text-primary-foreground'
-                    : isCompleted
-                    ? 'bg-green-50 hover:bg-green-100'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`flex-shrink-0 ${isCurrent ? 'text-primary-foreground' : ''}`}>
-                    {isCompleted ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+        <div className="p-4 space-y-4">
+          {/* Show all modules if moduleSpec exists */}
+          {moduleSpec?.modules ? (
+            moduleSpec.modules.map((module: any, moduleIdx: number) => {
+              const isCurrentModule = moduleIdx === currentModuleIndex;
+              const isLocked = module.status === 'locked';
+              
+              return (
+                <div key={`module-${moduleIdx}`} className="space-y-2">
+                  <div className={`flex items-center gap-2 p-2 rounded-md ${
+                    isLocked ? 'opacity-50' : ''
+                  }`}>
+                    {isLocked ? (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <Icon className="h-5 w-5" />
+                      <BookOpen className="h-4 w-4 text-primary" />
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{section.name}</div>
-                    <div className={`text-xs ${isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                      Module {index + 1}
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">Module {module.module}</div>
+                      <div className="text-xs text-muted-foreground">{module.title}</div>
                     </div>
                   </div>
+                  
+                  {/* Show sections only for current module */}
+                  {isCurrentModule && !isLocked && (
+                    <div className="ml-6 space-y-1">
+                      {sections.map((section, index) => {
+                        const Icon = section.icon;
+                        const isCompleted = sectionProgress[section.id];
+                        const isCurrent = section.id === currentSection;
+                        
+                        return (
+                          <button
+                            key={section.id}
+                            onClick={() => onSectionClick(section.id)}
+                            className={`w-full text-left p-2 rounded-md transition-colors text-sm ${
+                              isCurrent
+                                ? 'bg-primary text-primary-foreground'
+                                : isCompleted
+                                ? 'bg-muted hover:bg-muted/80'
+                                : 'hover:bg-muted/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`flex-shrink-0 ${isCurrent ? 'text-primary-foreground' : ''}`}>
+                                {isCompleted ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Icon className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className={`${isCurrent ? '' : isCompleted ? 'text-muted-foreground' : ''}`}>
+                                  {section.name}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </button>
-            );
-          })}
+              );
+            })
+          ) : (
+            // Fallback to just sections if no module spec
+            sections.map((section, index) => {
+              const Icon = section.icon;
+              const isCompleted = sectionProgress[section.id];
+              const isCurrent = section.id === currentSection;
+              
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => onSectionClick(section.id)}
+                  className={`w-full text-left p-3 rounded-md transition-colors ${
+                    isCurrent
+                      ? 'bg-primary text-primary-foreground'
+                      : isCompleted
+                      ? 'bg-muted hover:bg-muted/80'
+                      : 'hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex-shrink-0 ${isCurrent ? 'text-primary-foreground' : ''}`}>
+                      {isCompleted ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <Icon className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{section.name}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       </ScrollArea>
     </div>
