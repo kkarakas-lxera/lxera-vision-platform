@@ -122,24 +122,47 @@ export default function CourseDisplay() {
       
       if (moduleSpec && typeof moduleSpec === 'object' && moduleSpec !== null) {
         const spec = moduleSpec as any;
-        courseStructure = {
-          title: moduleContent.module_name,
-          description: spec.description || '',
-          modules: spec.learning_objectives && Array.isArray(spec.learning_objectives) ? 
-            spec.learning_objectives.map((obj: any, index: number) => ({
+        
+        // Check if spec has the correct structure with modules array
+        if (spec.modules && Array.isArray(spec.modules)) {
+          courseStructure = {
+            title: spec.course_title || moduleContent.module_name,
+            description: spec.description || '',
+            modules: spec.modules.map((module: any) => ({
+              week: module.module || 1,
+              title: module.title,
+              topics: [module.title], // Use module title as topic
+              duration: '2 hours',
+              priority: module.status === 'available' ? 'high' : 'medium'
+            }))
+          };
+        } else if (spec.learning_objectives && Array.isArray(spec.learning_objectives)) {
+          // Fallback to learning objectives
+          courseStructure = {
+            title: moduleContent.module_name,
+            description: spec.description || '',
+            modules: spec.learning_objectives.map((obj: any, index: number) => ({
               week: index + 1,
               title: obj.skill || `Module ${index + 1}`,
               topics: [obj.skill],
               duration: '2 hours',
               priority: obj.importance || 'medium'
-            })) : [{
+            }))
+          };
+        } else {
+          // Default single module
+          courseStructure = {
+            title: moduleContent.module_name,
+            description: '',
+            modules: [{
               week: 1,
               title: moduleContent.module_name,
               topics: ['Course Content'],
               duration: '2 hours',
               priority: 'high'
             }]
-        };
+          };
+        }
       } else {
         courseStructure = {
           title: moduleContent.module_name,
@@ -184,16 +207,39 @@ export default function CourseDisplay() {
 
   const fetchModuleContent = async (assignmentId: string, moduleIndex: number) => {
     try {
-      // For now, we'll create mock content since the content system is complex
-      // In a real implementation, this would fetch from cm_module_content
-      const mockSection: SectionData = {
-        section_name: 'Introduction',
-        section_content: `Welcome to ${courseData?.course_plan.course_structure.title || 'this course'}! This is module ${moduleIndex + 1}.`,
-        word_count: 50,
-        section_id: `section_${moduleIndex}_intro`
-      };
+      // Fetch actual content from cm_content_sections
+      const { data: sections, error } = await supabase
+        .from('cm_content_sections')
+        .select('*')
+        .eq('content_id', courseId)
+        .order('section_name');
       
-      setCurrentSection(mockSection);
+      if (error) {
+        console.error('Error fetching sections:', error);
+        return;
+      }
+      
+      // Get the first section or introduction section
+      const introSection = sections?.find(s => s.section_name === 'introduction') || sections?.[0];
+      
+      if (introSection) {
+        const sectionData: SectionData = {
+          section_name: introSection.section_name,
+          section_content: introSection.section_content,
+          word_count: introSection.word_count || 0,
+          section_id: introSection.section_id
+        };
+        setCurrentSection(sectionData);
+      } else {
+        // Fallback if no sections found
+        const mockSection: SectionData = {
+          section_name: 'Introduction',
+          section_content: `Welcome to ${courseData?.course_plan.course_structure.title || 'this course'}! This is module ${moduleIndex + 1}.`,
+          word_count: 50,
+          section_id: `section_${moduleIndex}_intro`
+        };
+        setCurrentSection(mockSection);
+      }
     } catch (error) {
       console.error('Error fetching module content:', error);
     }

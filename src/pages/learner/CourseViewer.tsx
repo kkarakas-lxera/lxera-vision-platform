@@ -62,6 +62,7 @@ export default function CourseViewer() {
   const [sectionProgress, setSectionProgress] = useState<Record<string, boolean>>({});
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moduleInfo, setModuleInfo] = useState<{ currentModule: number; totalModules: number } | null>(null);
   
   // Game state
   const [showMissionBriefing, setShowMissionBriefing] = useState(false);
@@ -103,6 +104,19 @@ export default function CourseViewer() {
       if (contentError) throw contentError;
       setCourseContent(content);
 
+      // Extract module information from module_spec
+      if (content.module_spec && typeof content.module_spec === 'object') {
+        const spec = content.module_spec as any;
+        if (spec.modules && Array.isArray(spec.modules) && spec.total_modules) {
+          // Find current module based on status or default to first
+          const currentModuleIndex = spec.modules.findIndex((m: any) => m.status === 'available') || 0;
+          setModuleInfo({
+            currentModule: currentModuleIndex + 1,
+            totalModules: spec.total_modules
+          });
+        }
+      }
+
       // Fetch detailed section contents
       const { data: sectionsData, error: sectionsError } = await supabase
         .from('cm_content_sections')
@@ -139,7 +153,15 @@ export default function CourseViewer() {
         .single();
 
       if (assignmentError) throw assignmentError;
-      setAssignment(assignmentData);
+      
+      // Fix progress_percentage to be a number
+      const fixedAssignment = {
+        ...assignmentData,
+        progress_percentage: typeof assignmentData.progress_percentage === 'string' 
+          ? parseInt(assignmentData.progress_percentage) || 0 
+          : assignmentData.progress_percentage || 0
+      };
+      setAssignment(fixedAssignment);
 
       // Fetch section progress
       const { data: progressData } = await supabase
@@ -152,6 +174,25 @@ export default function CourseViewer() {
         progress[p.section_name] = p.completed;
       });
       setSectionProgress(progress);
+
+      // Calculate actual progress based on completed sections
+      if (progressData && progressData.length > 0 && sectionsWithContent.length > 0) {
+        const completedSections = progressData.filter(p => p.completed).length;
+        const actualProgress = Math.round((completedSections / sectionsWithContent.length) * 100);
+        
+        // Update assignment if progress is different
+        if (actualProgress !== fixedAssignment.progress_percentage) {
+          await supabase
+            .from('course_assignments')
+            .update({ 
+              progress_percentage: actualProgress,
+              status: assignmentData.status === 'assigned' ? 'in_progress' : assignmentData.status
+            })
+            .eq('id', assignmentData.id);
+            
+          setAssignment(prev => prev ? { ...prev, progress_percentage: actualProgress } : null);
+        }
+      }
 
       // Set current section
       if (assignmentData.current_section && sectionsWithContent.some(s => s.id === assignmentData.current_section)) {
@@ -434,9 +475,11 @@ export default function CourseViewer() {
         </Button>
         
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground hidden md:block">
-            {courseContent.module_name}
-          </span>
+          <div className="text-right hidden md:block">
+            <span className="text-sm text-muted-foreground">
+              {moduleInfo ? `Module ${moduleInfo.currentModule} of ${moduleInfo.totalModules}` : courseContent.module_name}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <Progress value={assignment?.progress_percentage || 0} className="w-24 h-2" />
             <span className="text-sm font-medium">{assignment?.progress_percentage || 0}%</span>
@@ -535,7 +578,7 @@ export default function CourseViewer() {
                   </h1>
                   <h2 className="text-lg text-muted-foreground flex items-center gap-2">
                     {currentSectionData?.icon && <currentSectionData.icon className="h-5 w-5" />}
-                    Module {currentIndex + 1} of {availableSections.length}: {currentSectionData?.name}
+                    Section {currentIndex + 1} of {availableSections.length}: {currentSectionData?.name}
                   </h2>
                 </div>
 
