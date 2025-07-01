@@ -298,7 +298,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
     const diff = currentXRef.current - startXRef.current;
     
     if (cardRef.current) {
-      cardRef.current.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+      cardRef.current.style.transform = `translate(-50%, -50%) translateX(${diff}px) rotate(${diff * 0.1}deg)`;
       
       if (Math.abs(diff) > 50) {
         setSwipeDirection(diff > 0 ? 'right' : 'left');
@@ -323,7 +323,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
     } else {
       // Snap back
       if (cardRef.current) {
-        cardRef.current.style.transform = 'translateX(0px) rotate(0deg)';
+        cardRef.current.style.transform = 'translate(-50%, -50%) translateX(0px) rotate(0deg)';
       }
     }
     

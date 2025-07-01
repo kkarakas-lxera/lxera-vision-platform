@@ -477,9 +477,12 @@ export default function CourseViewer() {
 
   const generateMissionFromTask = async (task: any) => {
     try {
-      console.log('Generating mission from task:', task);
-      console.log('Employee ID:', employeeId);
-      console.log('Course Content ID:', courseContent?.content_id);
+      console.log('🎮 Generating mission from task:', task);
+      console.log('👤 Employee ID:', employeeId);
+      console.log('📚 Course Content ID:', courseContent?.content_id);
+      
+      // Show loading state
+      toast.loading('Creating your mission...', { id: 'mission-generation' });
       
       const requestBody = {
         employee_id: employeeId,
@@ -491,30 +494,36 @@ export default function CourseViewer() {
         task_title: task.title
       };
       
-      console.log('Request body:', requestBody);
+      console.log('📋 Request body:', requestBody);
+      
+      // Validate required fields
+      if (!requestBody.employee_id) {
+        throw new Error('Employee ID is required');
+      }
       
       // Call the edge function to generate mission from selected task
       const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
         body: requestBody
       });
 
-      console.log('Edge function response:', { data, error });
+      console.log('🚀 Edge function response:', { data, error });
 
       if (error) {
-        console.error('Edge function error details:', error);
-        throw error;
+        console.error('❌ Edge function error details:', error);
+        throw new Error(`Edge function error: ${error.message || 'Unknown error'}`);
       }
       
       if (!data?.success) {
-        console.error('Edge function returned failure:', data);
+        console.error('❌ Edge function returned failure:', data);
         throw new Error(data?.error || 'Failed to generate mission');
       }
       
       setCurrentMissionId(data.mission_id);
-      toast.success('Mission generated! Starting questions...');
+      toast.success('🎮 Mission created! Starting questions...', { id: 'mission-generation' });
+      console.log('✅ Mission created with ID:', data.mission_id);
     } catch (error) {
-      console.error('Error generating mission from task:', error);
-      toast.error('Failed to generate mission. Please try again.');
+      console.error('💥 Error generating mission from task:', error);
+      toast.error(`Failed to generate mission: ${error.message}`, { id: 'mission-generation' });
       // Don't stay in playing mode if generation failed
       setGameMode('rolodex');
     }

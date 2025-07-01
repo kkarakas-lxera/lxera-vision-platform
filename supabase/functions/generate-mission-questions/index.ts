@@ -24,22 +24,52 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🎮 Starting mission generation function...');
+    
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+    
+    console.log('✅ Supabase client created');
+
+    // Parse request body with error handling
+    let requestBody: RequestBody;
+    try {
+      requestBody = await req.json();
+      console.log('📋 Request body parsed:', JSON.stringify(requestBody, null, 2));
+    } catch (parseError) {
+      console.error('❌ Failed to parse request body:', parseError);
+      throw new Error('Invalid request body - must be valid JSON');
+    }
 
     const { 
       employee_id, 
       content_section_id, 
       module_content_id,
-      section_name = 'general',
+      section_name = 'core_content',
       difficulty_level = 'medium', 
       questions_count = 4,
       category = 'general',
       task_title
-    }: RequestBody = await req.json()
+    } = requestBody;
+    
+    console.log('📝 Extracted parameters:', {
+      employee_id,
+      content_section_id,
+      module_content_id,
+      section_name,
+      difficulty_level,
+      questions_count,
+      category,
+      task_title
+    });
+
+    // Validate required parameters
+    if (!employee_id) {
+      throw new Error('employee_id is required');
+    }
 
     // Get the actual course content for context
     let courseContent = ''
