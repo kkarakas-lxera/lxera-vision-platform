@@ -93,21 +93,29 @@ serve(async (req) => {
       throw new Error('Employee not found')
     }
 
+    // Validate and fix section_name to match database constraints
+    const validSections = ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'];
+    const validSectionName = validSections.includes(section_name) ? section_name : 'core_content';
+    
+    // Validate difficulty_level
+    const validDifficulties = ['easy', 'medium', 'hard'];
+    const validDifficulty = validDifficulties.includes(difficulty_level) ? difficulty_level : 'medium';
+
     // Create mission first
     const missionData = {
       content_section_id: contentId,
       employee_id,
       company_id: employee.company_id, // Required for RLS
-      mission_title: task_title || `Master ${section_name.replace('_', ' ')} - ${difficulty_level} Challenge`,
-      mission_description: `Test your understanding of ${section_name.replace('_', ' ')} concepts through this interactive ${difficulty_level} level challenge.`,
-      difficulty_level,
-      points_value: difficulty_level === 'easy' ? 50 : difficulty_level === 'medium' ? 100 : 150,
+      mission_title: task_title || `Master ${validSectionName.replace('_', ' ')} - ${validDifficulty} Challenge`,
+      mission_description: `Test your understanding of ${validSectionName.replace('_', ' ')} concepts through this interactive ${validDifficulty} level challenge.`,
+      difficulty_level: validDifficulty,
+      points_value: validDifficulty === 'easy' ? 50 : validDifficulty === 'medium' ? 100 : 150,
       estimated_minutes: Math.round(questions_count * 1.5),
       questions_count,
       skill_focus: [category, 'Problem Solving', 'Critical Thinking'],
       is_active: true,
       category,
-      section_name
+      section_name: validSectionName
     }
 
     const { data: mission, error: missionError } = await supabaseClient

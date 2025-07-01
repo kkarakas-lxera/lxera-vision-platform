@@ -477,26 +477,46 @@ export default function CourseViewer() {
 
   const generateMissionFromTask = async (task: any) => {
     try {
+      console.log('Generating mission from task:', task);
+      console.log('Employee ID:', employeeId);
+      console.log('Course Content ID:', courseContent?.content_id);
+      
+      const requestBody = {
+        employee_id: employeeId,
+        content_section_id: task.content_section_id || courseContent?.content_id,
+        section_name: task.section_name || currentSection,
+        difficulty_level: task.difficulty_level || 'medium',
+        questions_count: 3,
+        category: task.category || 'general',
+        task_title: task.title
+      };
+      
+      console.log('Request body:', requestBody);
+      
       // Call the edge function to generate mission from selected task
       const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
-        body: {
-          employee_id: employeeId,
-          module_content_id: task.module_content_id || courseContent.content_id,
-          section_name: task.section_name || currentSection,
-          difficulty_level: task.difficulty_level,
-          questions_count: 3,
-          category: task.category,
-          task_title: task.title
-        }
+        body: requestBody
       });
 
-      if (error) throw error;
-      if (data.success) {
-        setCurrentMissionId(data.mission_id);
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error details:', error);
+        throw error;
       }
+      
+      if (!data?.success) {
+        console.error('Edge function returned failure:', data);
+        throw new Error(data?.error || 'Failed to generate mission');
+      }
+      
+      setCurrentMissionId(data.mission_id);
+      toast.success('Mission generated! Starting questions...');
     } catch (error) {
       console.error('Error generating mission from task:', error);
-      toast.error('Failed to generate mission');
+      toast.error('Failed to generate mission. Please try again.');
+      // Don't stay in playing mode if generation failed
+      setGameMode('rolodex');
     }
   };
 
@@ -1094,24 +1114,14 @@ export default function CourseViewer() {
                   </Button>
 
                   <div className="flex items-center gap-2">
-                    {/* Swipe-to-Learn Button - Direct Rolodex Entry */}
+                    {/* Single Game Entry Point - Rolodex */}
                     <Button
                       variant="outline"
                       onClick={() => setGameMode('rolodex')}
                       className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0"
                     >
                       <Target className="h-4 w-4 mr-2" />
-                      Swipe-to-Learn
-                    </Button>
-
-                    {/* Traditional Game Button */}
-                    <Button
-                      variant="outline"
-                      onClick={() => setGameMode('briefing')}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 border-0"
-                    >
-                      <PlayCircle className="h-4 w-4 mr-2" />
-                      Mission Briefing
+                      Start Learning Game
                     </Button>
 
                     {!sectionProgress[currentSection] ? (
