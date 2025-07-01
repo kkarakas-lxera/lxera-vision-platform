@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Clock, Target, TrendingUp, Star, BookOpen, Home, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import PuzzleProgress from './PuzzleProgress';
 
 interface GameResultsProps {
   results: {
@@ -16,6 +18,7 @@ interface GameResultsProps {
     skillImprovements: { [skill: string]: number };
   };
   missionTitle: string;
+  category: string;
   onContinue: () => void;
   onReturnToCourse: () => void;
   onViewProgress: () => void;
@@ -32,21 +35,44 @@ interface Achievement {
 export default function GameResults({ 
   results, 
   missionTitle, 
+  category,
   onContinue, 
   onReturnToCourse, 
   onViewProgress 
 }: GameResultsProps) {
+  const { userProfile } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [newLevel, setNewLevel] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [showPuzzleProgress, setShowPuzzleProgress] = useState(false);
 
   useEffect(() => {
     checkForAchievements();
+    getEmployeeId();
     if (results.accuracy >= 75) {
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 3000);
     }
   }, [results]);
+
+  const getEmployeeId = async () => {
+    if (!userProfile) return;
+    
+    try {
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', userProfile.id)
+        .single();
+      
+      if (employee) {
+        setEmployeeId(employee.id);
+      }
+    } catch (error) {
+      console.error('Error getting employee ID:', error);
+    }
+  };
 
   const checkForAchievements = () => {
     const unlockedAchievements: Achievement[] = [];
@@ -238,24 +264,36 @@ export default function GameResults({
             </div>
           )}
 
-          {/* Puzzle Progress Placeholder */}
-          <div className="bg-white/50 p-4 rounded-lg">
-            <h4 className="font-semibold mb-3">🧩 Puzzle Progress</h4>
-            <div className="text-center">
-              <div className="inline-grid grid-cols-3 gap-1 p-3 bg-white rounded">
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white text-xs">💰</div>
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white text-xs">📊</div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">2/9 pieces collected</p>
+          {/* Real Puzzle Progress */}
+          {employeeId && (
+            <div className="bg-white/50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                🧩 Puzzle Progress
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowPuzzleProgress(!showPuzzleProgress)}
+                  className="text-xs"
+                >
+                  {showPuzzleProgress ? 'Hide' : 'Show'}
+                </Button>
+              </h4>
+              {showPuzzleProgress ? (
+                <PuzzleProgress
+                  employeeId={employeeId}
+                  category={category}
+                  pointsEarned={results.pointsEarned}
+                  onClose={() => setShowPuzzleProgress(false)}
+                />
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Click "Show" to view your puzzle progress and unlock new pieces!
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">

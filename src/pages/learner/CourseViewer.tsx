@@ -423,9 +423,13 @@ export default function CourseViewer() {
     setGameMode('playing');
   };
 
-  const handleGameComplete = (results: any) => {
+  const handleGameComplete = async (results: any) => {
     setGameResults(results);
     setGameMode('results');
+    // Mark game as completed in state
+    if (currentMissionId) {
+      await completeGameState(currentMissionId, results);
+    }
   };
 
   const handleGameExit = () => {
@@ -528,6 +532,144 @@ export default function CourseViewer() {
       setGameMode('rolodex');
     }
   };
+
+  // Game State Persistence Functions
+  const saveGameState = async (missionId: string, questionResponses: any[] = [], currentQuestionIndex: number = 0) => {
+    if (!employeeId || !missionId) return;
+
+    try {
+      const gameStateData = {
+        employee_id: employeeId,
+        mission_id: missionId,
+        current_question_index: currentQuestionIndex,
+        responses: questionResponses,
+        game_mode: gameMode,
+        selected_task: selectedTask,
+        content_section_id: courseContent?.content_id,
+        section_name: currentSection,
+        started_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('game_progress_state')
+        .upsert(gameStateData, { 
+          onConflict: 'employee_id,mission_id' 
+        });
+
+      if (error) {
+        console.error('Error saving game state:', error);
+      } else {
+        console.log('✅ Game state saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving game state:', error);
+    }
+  };
+
+  const loadGameState = async () => {
+    if (!employeeId) return null;
+
+    try {
+      const { data: gameState, error } = await supabase
+        .from('game_progress_state')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .is('completed_at', null) // Only get incomplete games
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading game state:', error);
+        return null;
+      }
+
+      return gameState;
+    } catch (error) {
+      console.error('Error loading game state:', error);
+      return null;
+    }
+  };
+
+  const completeGameState = async (missionId: string, finalResults: any) => {
+    if (!employeeId || !missionId) return;
+
+    try {
+      const { error } = await supabase
+        .from('game_progress_state')
+        .update({
+          completed_at: new Date().toISOString(),
+          final_results: finalResults,
+          updated_at: new Date().toISOString()
+        })
+        .eq('employee_id', employeeId)
+        .eq('mission_id', missionId);
+
+      if (error) {
+        console.error('Error completing game state:', error);
+      } else {
+        console.log('✅ Game state completed successfully');
+      }
+    } catch (error) {
+      console.error('Error completing game state:', error);
+    }
+  };
+
+  const resumeGameFromState = async (gameState: any) => {
+    try {
+      console.log('🔄 Resuming game from saved state:', gameState);
+      
+      // Restore game state
+      setCurrentMissionId(gameState.mission_id);
+      setSelectedTask(gameState.selected_task);
+      setGameMode(gameState.game_mode || 'playing');
+      
+      // If there was a current section, navigate to it
+      if (gameState.section_name && gameState.section_name !== currentSection) {
+        setCurrentSection(gameState.section_name);
+      }
+      
+      toast.success('🎮 Resumed your previous game session!');
+      
+      return true;
+    } catch (error) {
+      console.error('Error resuming game state:', error);
+      toast.error('Failed to resume previous game session');
+      return false;
+    }
+  };
+
+  // Check for saved game state on component mount
+  useEffect(() => {
+    const checkForSavedGame = async () => {
+      if (employeeId && gameMode === 'none') {
+        const savedState = await loadGameState();
+        if (savedState) {
+          // Ask user if they want to resume
+          const resume = window.confirm(
+            'You have an unfinished game session. Would you like to continue where you left off?'
+          );
+          
+          if (resume) {
+            await resumeGameFromState(savedState);
+          } else {
+            // Mark the old session as completed if user chooses not to resume
+            await completeGameState(savedState.mission_id, { abandoned: true });
+          }
+        }
+      }
+    };
+
+    checkForSavedGame();
+  }, [employeeId, gameMode]);
+
+  // Auto-save game state when mission is created
+  useEffect(() => {
+    if (currentMissionId && employeeId && gameMode === 'playing') {
+      saveGameState(currentMissionId, [], 0);
+    }
+  }, [currentMissionId, employeeId, gameMode]);
 
   const getSectionContent = () => {
     if (!courseContent) return '';
@@ -918,6 +1060,9 @@ export default function CourseViewer() {
                 missionId={currentMissionId}
                 onComplete={handleGameComplete}
                 onExit={handleGameExit}
+                onSaveProgress={(responses, questionIndex) => 
+                  saveGameState(currentMissionId, responses, questionIndex)
+                }
               />
             )}
 
@@ -925,9 +1070,10 @@ export default function CourseViewer() {
               <GameResults
                 results={gameResults}
                 missionTitle={selectedTask?.title || "Section Mission"}
+                category={selectedTask?.category || 'general'}
                 onContinue={handleContinueAfterGame}
                 onReturnToCourse={() => navigate('/learner')}
-                onViewProgress={() => {}}
+                onViewProgress={() => setGameMode('puzzle')}
               />
             )}
 

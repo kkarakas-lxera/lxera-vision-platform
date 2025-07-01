@@ -21,6 +21,7 @@ interface GameScreenProps {
   missionId: string;
   onComplete: (results: GameResults) => void;
   onExit: () => void;
+  onSaveProgress?: (questionResponses: any[], currentQuestionIndex: number) => void;
 }
 
 interface GameResults {
@@ -32,7 +33,7 @@ interface GameResults {
   skillImprovements: { [skill: string]: number };
 }
 
-export default function GameScreen({ missionId, onComplete, onExit }: GameScreenProps) {
+export default function GameScreen({ missionId, onComplete, onExit, onSaveProgress }: GameScreenProps) {
   const { userProfile } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -111,6 +112,17 @@ export default function GameScreen({ missionId, onComplete, onExit }: GameScreen
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = selectedAnswer;
     setAnswers(newAnswers);
+
+    // Save progress after each question
+    if (onSaveProgress) {
+      const questionResponses = newAnswers.map((answer, index) => ({
+        question_index: index,
+        selected_answer: answer,
+        is_correct: answer === questions[index]?.correct_answer,
+        answered_at: new Date().toISOString()
+      }));
+      onSaveProgress(questionResponses, currentQuestionIndex + 1);
+    }
 
     setIsCorrect(correct);
     setShowFeedback(true);
