@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CourseGenerationProvider } from "@/contexts/CourseGenerationContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -94,9 +95,10 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AuthProvider>
-              <CourseGenerationProvider>
-                <Routes>
+            <ThemeProvider>
+              <AuthProvider>
+                <CourseGenerationProvider>
+                  <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -213,6 +215,7 @@ const App = () => {
                 </Routes>
               </CourseGenerationProvider>
             </AuthProvider>
+            </ThemeProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -28,7 +29,9 @@ import {
   ClipboardCheck,
   ExternalLink,
   FileDown,
-  FileText
+  FileText,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
@@ -103,17 +106,18 @@ interface SectionProgress {
 }
 
 const COURSE_SECTIONS = [
-  { id: 'introduction', name: 'Introduction', icon: BookOpen, color: 'text-blue-400' },
-  { id: 'core_content', name: 'Core Content', icon: Book, color: 'text-green-400' },
-  { id: 'practical_applications', name: 'Practical Applications', icon: Lightbulb, color: 'text-yellow-400' },
-  { id: 'case_studies', name: 'Case Studies', icon: Users, color: 'text-purple-400' },
-  { id: 'assessments', name: 'Assessments', icon: ClipboardCheck, color: 'text-red-400' }
+  { id: 'introduction', name: 'Introduction', icon: BookOpen, color: 'text-blue-500 dark:text-blue-400' },
+  { id: 'core_content', name: 'Core Content', icon: Book, color: 'text-green-500 dark:text-green-400' },
+  { id: 'practical_applications', name: 'Practical Applications', icon: Lightbulb, color: 'text-yellow-500 dark:text-yellow-400' },
+  { id: 'case_studies', name: 'Case Studies', icon: Users, color: 'text-purple-500 dark:text-purple-400' },
+  { id: 'assessments', name: 'Assessments', icon: ClipboardCheck, color: 'text-red-500 dark:text-red-400' }
 ];
 
 export default function CourseViewer() {
   const { courseId, moduleId } = useParams();
   const { userProfile } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [courseContent, setCourseContent] = useState<CourseContent | null>(null);
   // Removed sectionContents - using cm_module_content directly
@@ -519,10 +523,10 @@ export default function CourseViewer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading course content...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading course content...</p>
         </div>
       </div>
     );
@@ -530,9 +534,9 @@ export default function CourseViewer() {
 
   if (!courseContent) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-400 mb-4">Course not found</h1>
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Course not found</h1>
           <Button onClick={() => navigate('/learner/courses')} variant="secondary">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to My Courses
@@ -565,7 +569,7 @@ export default function CourseViewer() {
       <div className="space-y-2">
         <button
           onClick={() => setModuleHierarchyExpanded(!moduleHierarchyExpanded)}
-          className="flex items-center justify-between w-full px-3 py-2 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 rounded-md transition-colors"
+          className="flex items-center justify-between w-full px-3 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
         >
           <span className="flex items-center">
             <BookOpen className="h-4 w-4 mr-2" />
@@ -592,17 +596,17 @@ export default function CourseViewer() {
                     className={cn(
                       "flex items-center justify-between w-full px-3 py-2 rounded-md transition-all duration-200",
                       isCurrentModule
-                        ? "bg-slate-800 text-white"
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                         : isLocked
-                        ? "text-slate-600 cursor-not-allowed"
-                        : "text-slate-400 hover:bg-slate-800/50"
+                        ? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     )}
                   >
                     <span className="flex items-center">
                       {isLocked ? (
                         <Lock className="h-4 w-4 mr-2" />
                       ) : (
-                        <BookOpen className={cn("h-4 w-4 mr-2", isCurrentModule ? "text-blue-400" : "")} />
+                        <BookOpen className={cn("h-4 w-4 mr-2", isCurrentModule ? "text-blue-500" : "")} />
                       )}
                       <div className="text-left">
                         <div className="text-xs font-medium">Module {module.module}</div>
@@ -610,7 +614,7 @@ export default function CourseViewer() {
                       </div>
                     </span>
                     {hasContent && (
-                      <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/50 text-xs">
+                      <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-0 text-xs">
                         Active
                       </Badge>
                     )}
@@ -631,8 +635,8 @@ export default function CourseViewer() {
                             className={cn(
                               "flex items-center justify-between w-full px-3 py-1.5 text-xs rounded-md transition-all duration-200",
                               isActive
-                                ? "bg-blue-600 text-white shadow-lg"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white shadow-sm"
+                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                             )}
                           >
                             <span className="flex items-center">
@@ -640,7 +644,7 @@ export default function CourseViewer() {
                               {section.name}
                             </span>
                             {isCompleted && (
-                              <CheckCircle className="h-3 w-3 text-green-400" />
+                              <CheckCircle className="h-3 w-3 text-green-500" />
                             )}
                           </button>
                         );
@@ -668,8 +672,8 @@ export default function CourseViewer() {
                   className={cn(
                     "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-all duration-200",
                     isActive
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                      ? "bg-blue-500 text-white shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   )}
                 >
                   <span className="flex items-center">
@@ -689,14 +693,18 @@ export default function CourseViewer() {
   };
 
   const Sidebar = () => (
-    <div className="h-full bg-slate-900 border-r border-slate-800 flex flex-col">
+    <div className="h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
       {/* Course Title */}
-      <div className="p-6 border-b border-slate-800">
-        <h3 className="text-lg font-semibold text-white mb-1">{coursePlan?.course_title || courseContent.module_name}</h3>
-        <p className="text-sm text-slate-400 mb-3">Current: {courseContent.module_name}</p>
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{coursePlan?.course_title || courseContent.module_name}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Current: {courseContent.module_name}</p>
         <div className="space-y-2">
-          <Progress value={assignment?.progress_percentage || 0} className="h-2 bg-slate-700" />
-          <p className="text-xs text-slate-400">
+          <Progress 
+            value={assignment?.progress_percentage || 0} 
+            className="h-2" 
+            indicatorClassName="bg-gradient-to-r from-blue-500 to-green-500"
+          />
+          <p className="text-xs text-gray-600 dark:text-gray-400">
             {assignment?.progress_percentage || 0}% Complete
           </p>
         </div>
@@ -711,18 +719,18 @@ export default function CourseViewer() {
           {/* Resources */}
           {researchSources.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-slate-300 px-3">Research Sources</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 px-3">Quick Resources</h4>
               <div className="space-y-1">
-                {researchSources.slice(0, 5).map((source, index) => (
+                {researchSources.slice(0, 3).map((source, index) => (
                   <a
                     key={index}
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center px-3 py-2 text-xs text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition-colors"
+                    className="flex items-center px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
                   >
                     <ExternalLink className="h-3 w-3 mr-2 flex-shrink-0" />
-                    <span className="truncate">{source.title || 'Research Source'}</span>
+                    <span className="truncate">{source.title || 'Resource'}</span>
                   </a>
                 ))}
               </div>
@@ -731,11 +739,27 @@ export default function CourseViewer() {
         </div>
       </ScrollArea>
 
-      {/* Back Button */}
-      <div className="p-4 border-t border-slate-800">
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800"
+          size="sm"
+          className="w-full justify-between"
+          onClick={toggleTheme}
+        >
+          <span className="flex items-center">
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4 mr-2" />
+            ) : (
+              <Moon className="h-4 w-4 mr-2" />
+            )}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </span>
+        </Button>
+        
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
           onClick={() => navigate('/learner/courses')}
         >
           <Home className="h-4 w-4 mr-2" />
@@ -746,7 +770,7 @@ export default function CourseViewer() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block w-80">
         <Sidebar />
@@ -762,13 +786,13 @@ export default function CourseViewer() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-slate-800 border-b border-slate-700 shadow-lg">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden text-slate-400 hover:text-white"
+                className="lg:hidden"
                 onClick={() => setMobileMenuOpen(true)}
               >
                 <Menu className="h-5 w-5" />
@@ -776,21 +800,15 @@ export default function CourseViewer() {
               
               <div className="flex items-center space-x-2">
                 {currentSectionData?.icon && (
-                  <div className={cn(
-                    "p-2 rounded-lg bg-slate-900",
-                    currentSectionData?.color
-                  )}>
-                    {React.createElement(
-                      currentSectionData?.icon || BookOpen,
-                      { className: "h-5 w-5" }
-                    )}
+                  <div className={cn("p-2 rounded-lg bg-gray-100 dark:bg-gray-800", currentSectionData?.color)}>
+                    {React.createElement(currentSectionData?.icon || BookOpen, { className: "h-5 w-5" })}
                   </div>
                 )}
                 <div>
-                  <h1 className="text-xl font-semibold text-white">
+                  <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                     {currentSectionData?.name}
                   </h1>
-                  <p className="text-sm text-slate-400">{courseContent.module_name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{courseContent.module_name}</p>
                 </div>
               </div>
             </div>
@@ -801,12 +819,11 @@ export default function CourseViewer() {
                 size="sm"
                 onClick={() => navigateSection('prev')}
                 disabled={currentIndex === 0}
-                className="text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               
-              <span className="text-sm text-slate-400 px-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400 px-2">
                 {currentIndex + 1} / {availableSections.length}
               </span>
               
@@ -815,7 +832,6 @@ export default function CourseViewer() {
                 size="sm"
                 onClick={() => navigateSection('next')}
                 disabled={currentIndex === availableSections.length - 1}
-                className="text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -886,8 +902,8 @@ export default function CourseViewer() {
                     className={cn(
                       "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
                       activeTab === 'content'
-                        ? "bg-slate-800 text-white border-b-2 border-blue-500"
-                        : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
+                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
+                        : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                     )}
                   >
                     Content
@@ -898,8 +914,8 @@ export default function CourseViewer() {
                       className={cn(
                         "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
                         activeTab === 'research'
-                          ? "bg-slate-800 text-white border-b-2 border-blue-500"
-                          : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
+                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
+                          : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       )}
                     >
                       Research
@@ -909,48 +925,48 @@ export default function CourseViewer() {
 
                 {/* Content Tab */}
                 {activeTab === 'content' && (
-                  <Card className="bg-slate-800 border-slate-700">
+                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <div 
                       className="p-6 cursor-pointer"
                       onClick={() => setContentExpanded(!contentExpanded)}
                     >
                       <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-white flex items-center">
+                        <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center">
                           <FileText className="h-5 w-5 mr-2" />
                           Reading Material
                         </h2>
                         {contentExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-slate-400" />
+                          <ChevronDown className="h-5 w-5 text-gray-400" />
                         ) : (
-                          <ChevronRight className="h-5 w-5 text-slate-400" />
+                          <ChevronRight className="h-5 w-5 text-gray-400" />
                         )}
                       </div>
                     </div>
                     
                     {contentExpanded && (
-                      <div className="px-6 pb-6 border-t border-slate-700 pt-4">
-                        <div className="prose prose-invert max-w-none">
+                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
                           <ReactMarkdown
                             components={{
-                              h1: ({ children }) => <h1 className="text-2xl font-bold text-white mb-4">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-xl font-semibold text-white mt-6 mb-3">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-lg font-medium text-white mt-4 mb-2">{children}</h3>,
-                              p: ({ children }) => <p className="text-slate-300 mb-4 leading-relaxed">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc pl-6 mb-4 text-slate-300 space-y-2">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 text-slate-300 space-y-2">{children}</ol>,
-                              li: ({ children }) => <li className="text-slate-300">{children}</li>,
+                              h1: ({ children }) => <h1 className="text-xl font-bold mb-4">{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-lg font-semibold mt-6 mb-3">{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-base font-medium mt-4 mb-2">{children}</h3>,
+                              p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
+                              li: ({ children }) => <li>{children}</li>,
                               blockquote: ({ children }) => (
-                                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4">
+                                <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4">
                                   {children}
                                 </blockquote>
                               ),
                               code: ({ children }) => (
-                                <code className="bg-slate-900 text-blue-400 px-1.5 py-0.5 rounded text-sm">
+                                <code className="bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-sm">
                                   {children}
                                 </code>
                               ),
                               pre: ({ children }) => (
-                                <pre className="bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4">
+                                <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4">
                                   {children}
                                 </pre>
                               ),
@@ -966,84 +982,90 @@ export default function CourseViewer() {
 
                 {/* Research Tab */}
                 {activeTab === 'research' && researchResults && (
-                  <Card className="bg-slate-800 border-slate-700">
+                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <div className="p-6">
-                      <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                         <ExternalLink className="h-5 w-5 mr-2" />
                         Research Materials
                       </h2>
                       
-                      {researchResults.research_findings?.topics?.map((topic, topicIndex) => (
-                        <div key={topicIndex} className="mb-6">
-                          <div 
-                            className="cursor-pointer py-2"
-                            onClick={() => setResearchExpanded(!researchExpanded)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-md font-medium text-white">
-                                {topic.topic}
-                              </h3>
-                              {researchExpanded ? (
-                                <ChevronDown className="h-4 w-4 text-slate-400" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-slate-400" />
-                              )}
-                            </div>
-                          </div>
-                          
-                          {researchExpanded && (
-                            <div className="ml-4 space-y-3">
-                              <div className="text-sm text-slate-300 mb-3">
-                                <p className="mb-2">{topic.synthesis}</p>
-                                {topic.key_findings && (
-                                  <ul className="list-disc pl-5 space-y-1">
-                                    {topic.key_findings.map((finding, idx) => (
-                                      <li key={idx}>{finding}</li>
-                                    ))}
-                                  </ul>
+                      <div className="space-y-6">
+                        {researchResults.research_findings?.topics?.map((topic, topicIndex) => (
+                          <div key={topicIndex} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-6 last:pb-0">
+                            <button
+                              className="w-full text-left mb-4"
+                              onClick={() => setResearchExpanded(!researchExpanded)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                                  {topic.topic}
+                                </h3>
+                                {researchExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-gray-400" />
                                 )}
                               </div>
-                              
-                              {topic.sources && (
-                                <div className="space-y-2">
-                                  <h4 className="text-sm font-medium text-slate-400">Sources:</h4>
-                                  {topic.sources.map((source, sourceIndex) => (
-                                    <a
-                                      key={sourceIndex}
-                                      href={source.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="block p-3 bg-slate-900 rounded-md hover:bg-slate-700 transition-colors"
-                                    >
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium text-blue-400">{source.title}</p>
-                                          <p className="text-xs text-slate-500 mt-1">{source.type}</p>
-                                          {source.summary && (
-                                            <p className="text-xs text-slate-400 mt-2">{source.summary}</p>
-                                          )}
-                                        </div>
-                                        <ExternalLink className="h-4 w-4 text-slate-500 flex-shrink-0 ml-2" />
-                                      </div>
-                                    </a>
-                                  ))}
+                            </button>
+                          
+                            {researchExpanded && (
+                              <div className="space-y-4">
+                                <div className="text-sm text-gray-700 dark:text-gray-300">
+                                  <p className="mb-3">{topic.synthesis}</p>
+                                  {topic.key_findings && topic.key_findings.length > 0 && (
+                                    <div>
+                                      <h4 className="font-medium mb-2">Key Findings:</h4>
+                                      <ul className="list-disc pl-5 space-y-1">
+                                        {topic.key_findings.map((finding, idx) => (
+                                          <li key={idx}>{finding}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                                
+                                {topic.sources && topic.sources.length > 0 && (
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sources:</h4>
+                                    <div className="space-y-2">
+                                      {topic.sources.map((source, sourceIndex) => (
+                                        <a
+                                          key={sourceIndex}
+                                          href={source.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="block p-3 bg-gray-50 dark:bg-gray-900 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                        >
+                                          <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{source.title}</p>
+                                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{source.type}</p>
+                                              {source.summary && (
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">{source.summary}</p>
+                                              )}
+                                            </div>
+                                            <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                                          </div>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </Card>
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center pt-4">
                   <Button
                     variant="outline"
                     onClick={navigateToPreviousSection}
                     disabled={currentIndex === 0}
-                    className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Previous Section
@@ -1052,13 +1074,13 @@ export default function CourseViewer() {
                   {!sectionProgress[currentSection] ? (
                     <Button
                       onClick={markSectionComplete}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Mark as Complete
                     </Button>
                   ) : (
-                    <Badge className="bg-green-600/20 text-green-400 border-green-600/50">
+                    <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Completed
                     </Badge>
@@ -1068,7 +1090,6 @@ export default function CourseViewer() {
                     variant="outline"
                     onClick={navigateToNextSection}
                     disabled={currentIndex === availableSections.length - 1}
-                    className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
                   >
                     Next Section
                     <ArrowRight className="h-4 w-4 ml-2" />
