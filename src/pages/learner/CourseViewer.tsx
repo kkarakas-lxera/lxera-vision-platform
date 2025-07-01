@@ -55,6 +55,7 @@ export default function CourseViewer() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [courseContent, setCourseContent] = useState<CourseContent | null>(null);
+  const [sectionContents, setSectionContents] = useState<any[]>([]);
   const [availableSections, setAvailableSections] = useState<typeof COURSE_SECTIONS>([]);
   const [assignment, setAssignment] = useState<CourseAssignment | null>(null);
   const [currentSection, setCurrentSection] = useState('introduction');
@@ -102,10 +103,30 @@ export default function CourseViewer() {
       if (contentError) throw contentError;
       setCourseContent(content);
 
-      // Filter available sections based on content
+      // Fetch detailed section contents
+      const { data: sectionsData, error: sectionsError } = await supabase
+        .from('cm_content_sections')
+        .select('*')
+        .eq('content_id', moduleId || courseId)
+        .order('section_name');
+
+      if (sectionsError) {
+        console.error('Error fetching section contents:', sectionsError);
+      } else {
+        setSectionContents(sectionsData || []);
+      }
+
+      // Filter available sections based on content (check both main content and detailed sections)
       const sectionsWithContent = COURSE_SECTIONS.filter(section => {
-        const hasContent = content[section.id as keyof CourseContent];
-        return hasContent && hasContent.trim().length > 0;
+        // Check if we have detailed section content
+        const hasDetailedContent = sectionsData?.some(s => 
+          s.section_name === section.id && s.section_content?.trim().length > 0
+        );
+        
+        // Fallback to main module content
+        const hasMainContent = content[section.id as keyof CourseContent];
+        
+        return hasDetailedContent || (hasMainContent && hasMainContent.trim().length > 0);
       });
       setAvailableSections(sectionsWithContent);
 
@@ -330,8 +351,15 @@ export default function CourseViewer() {
   };
 
   const getSectionContent = () => {
-    if (!courseContent) return '';
+    if (!courseContent || !sectionContents) return '';
     
+    // First try to get detailed content from sections
+    const sectionDetail = sectionContents.find(s => s.section_name === currentSection);
+    if (sectionDetail && sectionDetail.section_content) {
+      return sectionDetail.section_content;
+    }
+    
+    // Fallback to main module content
     switch (currentSection) {
       case 'introduction':
         return courseContent.introduction || 'No introduction available.';
