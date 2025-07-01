@@ -865,9 +865,9 @@ export default function CourseViewer() {
         <ScrollArea className="flex-1">
           <div className="container max-w-4xl mx-auto p-6 space-y-6">
             {/* Game Mode Rendering */}
-            {gameMode === 'briefing' && (
+            {gameMode === 'briefing' && courseContent && (
               <MissionBriefing
-                contentSectionId={`${courseContent.content_id}-${currentSection}`}
+                contentSectionId={courseContent.content_id}
                 sectionName={currentSection}
                 onMissionStart={handleMissionStart}
                 onContinue={handleMissionContinue}

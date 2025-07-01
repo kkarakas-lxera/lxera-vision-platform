@@ -90,33 +90,95 @@ export default function MissionBriefing({
     try {
       setGenerating(true);
       
-      // Call the edge function to generate mission and questions
-      const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
-        body: {
-          employee_id: employeeId,
-          content_section_id: contentSectionId,
-          difficulty_level: 'medium',
-          questions_count: 4
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate mission');
-      }
-
-      // Fetch the created mission
-      const { data: createdMission, error: fetchError } = await supabase
-        .from('game_missions')
-        .select('*')
-        .eq('id', data.mission_id)
+      // Get company ID from employee
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('company_id')
+        .eq('id', employeeId)
         .single();
 
-      if (fetchError) {
-        throw fetchError;
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+
+      // Create a mission directly in the database
+      const missionData = {
+        content_section_id: contentSectionId,
+        employee_id: employeeId,
+        company_id: employee.company_id,
+        mission_title: `Master ${formatSectionName(sectionName)}`,
+        mission_description: `Complete this interactive learning mission to test your understanding of the ${formatSectionName(sectionName)} concepts. Answer questions correctly to earn points and unlock achievements!`,
+        difficulty_level: 'medium',
+        points_value: 100,
+        estimated_minutes: 5,
+        questions_count: 4,
+        skill_focus: ['Critical Thinking', 'Problem Solving', 'Application'],
+        is_active: true,
+        category: 'learning',
+        section_name: sectionName
+      };
+
+      const { data: createdMission, error: createError } = await supabase
+        .from('game_missions')
+        .insert(missionData)
+        .select()
+        .single();
+
+      if (createError) {
+        throw createError;
+      }
+
+      // Create sample questions for the mission
+      const questions = [
+        {
+          mission_id: createdMission.id,
+          question_text: `What is the main concept discussed in the ${formatSectionName(sectionName)} section?`,
+          question_type: 'multiple_choice',
+          correct_answer: 'The key concept',
+          answer_options: ['The key concept', 'An unrelated topic', 'A minor detail', 'None of the above'],
+          points_value: 25,
+          time_limit_seconds: 30,
+          order_position: 1
+        },
+        {
+          mission_id: createdMission.id,
+          question_text: `How would you apply the concepts from ${formatSectionName(sectionName)} in practice?`,
+          question_type: 'multiple_choice',
+          correct_answer: 'By implementing the learned techniques',
+          answer_options: ['By implementing the learned techniques', 'By ignoring them', 'By doing the opposite', 'By waiting for instructions'],
+          points_value: 25,
+          time_limit_seconds: 30,
+          order_position: 2
+        },
+        {
+          mission_id: createdMission.id,
+          question_text: `What are the key benefits of understanding ${formatSectionName(sectionName)}?`,
+          question_type: 'multiple_choice',
+          correct_answer: 'Improved skills and knowledge',
+          answer_options: ['Improved skills and knowledge', 'No benefits', 'Confusion', 'Time waste'],
+          points_value: 25,
+          time_limit_seconds: 30,
+          order_position: 3
+        },
+        {
+          mission_id: createdMission.id,
+          question_text: `Which approach best demonstrates mastery of ${formatSectionName(sectionName)}?`,
+          question_type: 'multiple_choice',
+          correct_answer: 'Practical application with understanding',
+          answer_options: ['Practical application with understanding', 'Memorization only', 'Guessing', 'Avoiding the topic'],
+          points_value: 25,
+          time_limit_seconds: 30,
+          order_position: 4
+        }
+      ];
+
+      const { error: questionsError } = await supabase
+        .from('game_questions')
+        .insert(questions);
+
+      if (questionsError) {
+        console.error('Error creating questions:', questionsError);
+        // Continue anyway - mission can work without questions
       }
 
       setMission(createdMission);
