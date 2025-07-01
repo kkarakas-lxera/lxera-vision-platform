@@ -67,6 +67,8 @@ import MyCourses from "./pages/learner/MyCourses";
 import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
 import UsersManagement from "./pages/admin/users/UsersManagement";
 import CoursesManagement from "./pages/admin/courses/CoursesManagement";
+import AnalyticsDashboard from "./pages/admin/analytics/AnalyticsDashboard";
+import Settings from "./pages/admin/Settings";
 
 // Import company dashboard pages
 import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
@@ -151,8 +153,8 @@ const App = () => {
                       <Route path="/companies" element={<CompaniesManagement />} />
                       <Route path="/users" element={<UsersManagement />} />
                       <Route path="/courses" element={<CoursesManagement />} />
-                      <Route path="/analytics" element={<div>Analytics Dashboard Coming Soon</div>} />
-                      <Route path="/settings" element={<div>Settings Page Coming Soon</div>} />
+                      <Route path="/analytics" element={<AnalyticsDashboard />} />
+                      <Route path="/settings" element={<Settings />} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>

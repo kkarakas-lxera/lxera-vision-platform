@@ -41,6 +41,7 @@ export default function SkillsOverview() {
     analyzedEmployees: 0,
     avgSkillsMatch: 0,
     totalCriticalGaps: 0,
+    totalModerateGaps: 0,
     departmentsCount: 0
   });
 
@@ -101,15 +102,17 @@ export default function SkillsOverview() {
         ? deptData?.reduce((sum, dept) => sum + ((Number(dept.avg_skills_match) || 0) * (Number(dept.analyzed_employees) || 0)), 0) / analyzedEmployees
         : 0;
       
-      // Count critical gaps from the actual gaps data
-      const criticalGapsCount = gapsData?.filter(gap => gap.gap_severity === 'critical').length || 0;
-      const allGapsCount = gapsData?.length || 0;
+      // Sum up all skill gaps from department data
+      const totalCriticalGaps = deptData?.reduce((sum, dept) => sum + (Number(dept.critical_gaps) || 0), 0) || 0;
+      const totalModerateGaps = deptData?.reduce((sum, dept) => sum + (Number(dept.moderate_gaps) || 0), 0) || 0;
+      const totalGaps = totalCriticalGaps + totalModerateGaps;
 
       setOverallStats({
         totalEmployees,
         analyzedEmployees,
         avgSkillsMatch: Math.round(avgMatch || 0),
-        totalCriticalGaps: criticalGapsCount > 0 ? criticalGapsCount : allGapsCount, // Show all gaps if no critical ones
+        totalCriticalGaps,
+        totalModerateGaps,
         departmentsCount: deptData?.length || 0
       });
 
@@ -209,8 +212,11 @@ export default function SkillsOverview() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Skills Gaps</p>
-                <p className="text-2xl font-bold text-gray-900">{overallStats.totalCriticalGaps}</p>
-                <p className="text-xs text-gray-500">Need improvement</p>
+                <p className="text-2xl font-bold text-gray-900">{overallStats.totalCriticalGaps + overallStats.totalModerateGaps}</p>
+                <div className="flex gap-3 text-xs text-gray-500">
+                  <span className="text-red-600">{overallStats.totalCriticalGaps} Critical</span>
+                  <span className="text-orange-600">{overallStats.totalModerateGaps} Moderate</span>
+                </div>
               </div>
             </div>
           </CardContent>

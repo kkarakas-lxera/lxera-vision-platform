@@ -16,7 +16,8 @@ import {
   MoreHorizontal,
   BookOpen,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Filter
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import CourseGenerationModal from '@/pages/dashboard/Courses/CourseGenerationModal';
 
 interface Employee {
@@ -62,9 +70,13 @@ const EmployeesPage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [positionFilter, setPositionFilter] = useState('all');
   const [showCourseGeneration, setShowCourseGeneration] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [positions, setPositions] = useState<string[]>([]);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -85,6 +97,22 @@ const EmployeesPage = () => {
 
       if (error) throw error;
       setEmployees(data || []);
+      
+      // Extract unique departments and positions
+      if (data) {
+        const uniqueDepartments = [...new Set(data
+          .filter(emp => emp.department)
+          .map(emp => emp.department)
+        )].sort();
+        
+        const uniquePositions = [...new Set(data
+          .filter(emp => emp.position)
+          .map(emp => emp.position)
+        )].sort();
+        
+        setDepartments(uniqueDepartments);
+        setPositions(uniquePositions);
+      }
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast.error('Failed to load employees');
@@ -120,12 +148,30 @@ const EmployeesPage = () => {
     setShowCourseGeneration(true);
   };
 
-  const filteredEmployees = employees.filter(employee =>
-    employee.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (employee.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (employee.position?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter(employee => {
+    // Search filter
+    const matchesSearch = 
+      employee.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (employee.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (employee.position?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    
+    // Department filter
+    const matchesDepartment = departmentFilter === 'all' || employee.department === departmentFilter;
+    
+    // Position filter  
+    const matchesPosition = positionFilter === 'all' || employee.position === positionFilter;
+    
+    return matchesSearch && matchesDepartment && matchesPosition;
+  });
+
+  const hasActiveFilters = departmentFilter !== 'all' || positionFilter !== 'all' || searchTerm !== '';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDepartmentFilter('all');
+    setPositionFilter('all');
+  };
 
   const getSkillsStatus = (employee: Employee) => {
     if (!employee.skills_last_analyzed) {
@@ -236,25 +282,64 @@ const EmployeesPage = () => {
       </div>
 
       {/* Search and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search employees..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        {selectedEmployees.length > 0 && (
-          <div className="flex gap-2">
-            <Button onClick={handleGenerateCourses} size="sm">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Generate Courses ({selectedEmployees.length})
-            </Button>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search employees..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        )}
+          
+          <div className="flex flex-wrap gap-2">
+            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={positionFilter} onValueChange={setPositionFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="All Positions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Positions</SelectItem>
+                {positions.map(pos => (
+                  <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {hasActiveFilters && (
+              <Button 
+                onClick={clearFilters} 
+                variant="outline" 
+                size="sm"
+                className="text-gray-600"
+              >
+                Clear filters
+              </Button>
+            )}
+            
+            {selectedEmployees.length > 0 && (
+              <Button onClick={handleGenerateCourses} size="sm">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Generate Courses ({selectedEmployees.length})
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Employees Table */}
@@ -365,8 +450,20 @@ const EmployeesPage = () => {
                 <Users className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {searchTerm ? 'Try adjusting your search terms.' : 'Get started by adding your first employee.'}
+                  {hasActiveFilters 
+                    ? 'Try adjusting your filters or search terms.' 
+                    : 'Get started by adding your first employee.'}
                 </p>
+                {hasActiveFilters && (
+                  <Button 
+                    onClick={clearFilters} 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </div>
             )}
           </div>
