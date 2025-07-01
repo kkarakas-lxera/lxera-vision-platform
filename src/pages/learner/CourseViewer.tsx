@@ -790,7 +790,14 @@ export default function CourseViewer() {
                 )}
                 <div>
                   <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {currentSectionData?.name}
+                    {gameMode !== 'none' ? (
+                      <span className="flex items-center gap-2">
+                        <PlayCircle className="h-5 w-5 text-purple-500" />
+                        Learning Game Mode
+                      </span>
+                    ) : (
+                      currentSectionData?.name
+                    )}
                   </h1>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{courseContent.module_name}</p>
                 </div>
@@ -798,27 +805,40 @@ export default function CourseViewer() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigateSection('prev')}
-                disabled={currentIndex === 0}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              
-              <span className="text-sm text-gray-600 dark:text-gray-400 px-2">
-                {currentIndex + 1} / {availableSections.length}
-              </span>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigateSection('next')}
-                disabled={currentIndex === availableSections.length - 1}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+              {gameMode !== 'none' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGameExit}
+                  className="border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  Exit Game
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateSection('prev')}
+                    disabled={currentIndex === 0}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <span className="text-sm text-gray-600 dark:text-gray-400 px-2">
+                    {currentIndex + 1} / {availableSections.length}
+                  </span>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateSection('next')}
+                    disabled={currentIndex === availableSections.length - 1}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
               
               <Separator orientation="vertical" className="h-6 mx-2" />
               
@@ -1073,20 +1093,32 @@ export default function CourseViewer() {
                     Previous Section
                   </Button>
 
-                  {!sectionProgress[currentSection] ? (
+                  <div className="flex items-center gap-2">
+                    {/* Game Button */}
                     <Button
-                      onClick={markSectionComplete}
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      variant="outline"
+                      onClick={() => setGameMode('briefing')}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 border-0"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Mark as Complete
+                      <PlayCircle className="h-4 w-4 mr-2" />
+                      Start Learning Game
                     </Button>
-                  ) : (
-                    <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Completed
-                    </Badge>
-                  )}
+
+                    {!sectionProgress[currentSection] ? (
+                      <Button
+                        onClick={markSectionComplete}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark as Complete
+                      </Button>
+                    ) : (
+                      <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Completed
+                      </Badge>
+                    )}
+                  </div>
 
                   <Button
                     variant="outline"
