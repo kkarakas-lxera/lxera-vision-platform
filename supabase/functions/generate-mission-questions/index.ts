@@ -82,16 +82,27 @@ serve(async (req) => {
       }
     }
 
+    // Get employee's company_id for mission creation
+    const { data: employee } = await supabaseClient
+      .from('employees')
+      .select('company_id')
+      .eq('id', employee_id)
+      .single()
+
+    if (!employee) {
+      throw new Error('Employee not found')
+    }
+
     // Create mission first
     const missionData = {
       content_section_id: contentId,
       employee_id,
-      company_id: null, // Will be filled by trigger or policy
+      company_id: employee.company_id, // Required for RLS
       mission_title: task_title || `Master ${section_name.replace('_', ' ')} - ${difficulty_level} Challenge`,
       mission_description: `Test your understanding of ${section_name.replace('_', ' ')} concepts through this interactive ${difficulty_level} level challenge.`,
       difficulty_level,
       points_value: difficulty_level === 'easy' ? 50 : difficulty_level === 'medium' ? 100 : 150,
-      estimated_minutes: questions_count * 1.5,
+      estimated_minutes: Math.round(questions_count * 1.5),
       questions_count,
       skill_focus: [category, 'Problem Solving', 'Critical Thinking'],
       is_active: true,
@@ -239,10 +250,23 @@ Generate engaging, practical questions that help learners apply the concepts in 
 
   } catch (error) {
     console.error('Function error:', error)
+    console.error('Error stack:', error.stack)
+    
+    // Log more details about the error
+    const errorMessage = error.message || 'Internal server error'
+    const errorDetails = {
+      name: error.name,
+      message: errorMessage,
+      stack: error.stack
+    }
+    
+    console.error('Detailed error:', JSON.stringify(errorDetails))
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'Internal server error'
+        error: errorMessage,
+        details: errorDetails
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
