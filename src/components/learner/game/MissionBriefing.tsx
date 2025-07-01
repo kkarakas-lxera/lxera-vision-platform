@@ -90,99 +90,42 @@ export default function MissionBriefing({
     try {
       setGenerating(true);
       
-      // Get company ID from employee
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('company_id')
-        .eq('id', employeeId)
-        .single();
-
-      if (!employee) {
-        throw new Error('Employee not found');
-      }
-
-      // Create a mission directly in the database
-      const missionData = {
-        content_section_id: contentSectionId,
-        employee_id: employeeId,
-        company_id: employee.company_id,
-        mission_title: `Master ${formatSectionName(sectionName)}`,
-        mission_description: `Complete this interactive learning mission to test your understanding of the ${formatSectionName(sectionName)} concepts. Answer questions correctly to earn points and unlock achievements!`,
-        difficulty_level: 'medium',
-        points_value: 100,
-        estimated_minutes: 5,
-        questions_count: 4,
-        skill_focus: ['Critical Thinking', 'Problem Solving', 'Application'],
-        is_active: true,
-        category: 'learning',
-        section_name: sectionName
-      };
-
-      const { data: createdMission, error: createError } = await supabase
-        .from('game_missions')
-        .insert(missionData)
-        .select()
-        .single();
-
-      if (createError) {
-        throw createError;
-      }
-
-      // Create sample questions for the mission
-      const questions = [
-        {
-          mission_id: createdMission.id,
-          question_text: `What is the main concept discussed in the ${formatSectionName(sectionName)} section?`,
-          question_type: 'multiple_choice',
-          correct_answer: 'The key concept',
-          answer_options: ['The key concept', 'An unrelated topic', 'A minor detail', 'None of the above'],
-          points_value: 25,
-          time_limit_seconds: 30,
-          order_position: 1
-        },
-        {
-          mission_id: createdMission.id,
-          question_text: `How would you apply the concepts from ${formatSectionName(sectionName)} in practice?`,
-          question_type: 'multiple_choice',
-          correct_answer: 'By implementing the learned techniques',
-          answer_options: ['By implementing the learned techniques', 'By ignoring them', 'By doing the opposite', 'By waiting for instructions'],
-          points_value: 25,
-          time_limit_seconds: 30,
-          order_position: 2
-        },
-        {
-          mission_id: createdMission.id,
-          question_text: `What are the key benefits of understanding ${formatSectionName(sectionName)}?`,
-          question_type: 'multiple_choice',
-          correct_answer: 'Improved skills and knowledge',
-          answer_options: ['Improved skills and knowledge', 'No benefits', 'Confusion', 'Time waste'],
-          points_value: 25,
-          time_limit_seconds: 30,
-          order_position: 3
-        },
-        {
-          mission_id: createdMission.id,
-          question_text: `Which approach best demonstrates mastery of ${formatSectionName(sectionName)}?`,
-          question_type: 'multiple_choice',
-          correct_answer: 'Practical application with understanding',
-          answer_options: ['Practical application with understanding', 'Memorization only', 'Guessing', 'Avoiding the topic'],
-          points_value: 25,
-          time_limit_seconds: 30,
-          order_position: 4
+      // Call the OpenAI edge function to generate mission and questions
+      const { data, error } = await supabase.functions.invoke('generate-mission-questions', {
+        body: {
+          employee_id: employeeId,
+          content_section_id: contentSectionId,
+          section_name: sectionName,
+          difficulty_level: 'medium',
+          questions_count: 4,
+          category: inferCategoryFromSection(sectionName),
+          task_title: `Master ${formatSectionName(sectionName)}`
         }
-      ];
+      });
 
-      const { error: questionsError } = await supabase
-        .from('game_questions')
-        .insert(questions);
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to generate mission');
+      }
 
-      if (questionsError) {
-        console.error('Error creating questions:', questionsError);
-        // Continue anyway - mission can work without questions
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate mission');
+      }
+
+      // Fetch the created mission
+      const { data: createdMission, error: fetchError } = await supabase
+        .from('game_missions')
+        .select('*')
+        .eq('id', data.mission_id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching created mission:', fetchError);
+        throw fetchError;
       }
 
       setMission(createdMission);
-      toast.success('Mission generated successfully!');
+      toast.success(`🎮 Mission Generated! ${data.questions_generated} questions created.`);
     } catch (error) {
       console.error('Error generating mission:', error);
       setError(error.message || 'Failed to generate mission');
@@ -190,6 +133,24 @@ export default function MissionBriefing({
     } finally {
       setGenerating(false);
     }
+  };
+
+  // Helper function to infer category from section name
+  const inferCategoryFromSection = (section: string): string => {
+    const sectionLower = section.toLowerCase();
+    if (sectionLower.includes('finance') || sectionLower.includes('budget') || sectionLower.includes('cost')) {
+      return 'finance';
+    }
+    if (sectionLower.includes('market') || sectionLower.includes('sales') || sectionLower.includes('brand')) {
+      return 'marketing';
+    }
+    if (sectionLower.includes('hr') || sectionLower.includes('people') || sectionLower.includes('team')) {
+      return 'hr';
+    }
+    if (sectionLower.includes('production') || sectionLower.includes('operations') || sectionLower.includes('process')) {
+      return 'production';
+    }
+    return 'general';
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -251,13 +212,24 @@ export default function MissionBriefing({
         <CardContent className="py-8">
           <div className="text-center">
             <div className="mb-4">
-              <Gamepad2 className="h-12 w-12 mx-auto text-primary animate-pulse" />
+              <div className="relative">
+                <Gamepad2 className="h-12 w-12 mx-auto text-primary animate-pulse" />
+                <div className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1">
+                  <span className="text-white text-xs font-bold">AI</span>
+                </div>
+              </div>
             </div>
             <h3 className="text-lg font-semibold mb-2">Creating Your Mission</h3>
             <p className="text-muted-foreground mb-4">
-              AI is analyzing the content you just learned and creating personalized questions...
+              Analyzing your course content and generating personalized questions...
             </p>
+            <div className="space-y-2 mb-4">
+              <div className="text-sm text-muted-foreground">• Reading course content</div>
+              <div className="text-sm text-muted-foreground">• Generating personalized questions</div>
+              <div className="text-sm text-muted-foreground">• Creating difficulty-appropriate challenges</div>
+            </div>
             <Progress value={75} className="w-full max-w-xs mx-auto" />
+            <p className="text-xs text-muted-foreground mt-2">This may take 5-10 seconds...</p>
           </div>
         </CardContent>
       </Card>
