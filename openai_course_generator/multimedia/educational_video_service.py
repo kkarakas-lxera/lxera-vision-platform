@@ -40,7 +40,7 @@ class EducationalVideoService:
         
         # Initialize components
         self.script_generator = EducationalScriptGenerator(self.openai_api_key)
-        self.content_extractor = SlideContentExtractor()
+        self.content_extractor = SlideContentExtractor(enable_gpt_enrichment=True)
         self.slide_generator = EducationalSlideGenerator(self.openai_api_key)
         self.timeline_generator = TimelineGenerator(self.openai_api_key)
         self.video_assembler = VideoAssemblyService()
@@ -132,7 +132,9 @@ class EducationalVideoService:
                         }
                         for slide in script.slides
                     ]
-                }
+                },
+                course_plan=None,  # TODO: Fetch from database if available
+                employee_context=employee_context
             )
             
             # Export extracted content
@@ -148,7 +150,8 @@ class EducationalVideoService:
                 slide_notes=extracted_content.slide_notes,
                 output_dir=slides_dir,
                 design_theme=design_theme,
-                include_animations=include_animations
+                include_animations=include_animations,
+                employee_context=employee_context
             )
             
             # Export slide manifest

@@ -2,8 +2,10 @@
 """
 Slide Content Extractor
 Extracts structured content for slides with synchronized notes from course modules
+Enhanced with GPT-4 Turbo for richer slide content generation
 """
 
+import os
 import re
 import json
 import logging
@@ -20,6 +22,16 @@ try:
 except:
     NLTK_AVAILABLE = False
     logging.warning("NLTK not available, using basic text processing")
+
+# Import OpenAI for content enrichment
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+except:
+    OPENAI_AVAILABLE = False
+    openai_client = None
+    logging.warning("OpenAI not available, using basic extraction")
 
 logger = logging.getLogger(__name__)
 
@@ -45,26 +57,37 @@ class ExtractedSlideContent:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class SlideContentExtractor:
-    """Extracts and structures content for educational slides"""
+    """Extracts and structures content for educational slides with optional GPT-4 enrichment"""
     
-    def __init__(self):
-        """Initialize the content extractor"""
+    def __init__(self, enable_gpt_enrichment: bool = True, employee_context: Dict[str, Any] = None):
+        """Initialize the content extractor with optional GPT enrichment"""
         # Configuration
         self.max_points_per_slide = 5
         self.min_points_per_slide = 2
         self.ideal_note_length = 150  # words
         self.max_note_length = 200   # words
         
+        # GPT enrichment settings
+        self.enable_gpt_enrichment = enable_gpt_enrichment and OPENAI_AVAILABLE
+        self.employee_context = employee_context or {}
+        
         # Text processing
         if NLTK_AVAILABLE:
             self.stop_words = set(stopwords.words('english'))
         else:
             self.stop_words = set()
+        
+        if self.enable_gpt_enrichment:
+            logger.info("🚀 Slide Content Extractor initialized with GPT-4 Turbo enrichment")
+        else:
+            logger.info("📝 Slide Content Extractor initialized with basic extraction")
     
     def extract_slide_content(
         self,
         content: Dict[str, Any],
-        script_data: Optional[Dict[str, Any]] = None
+        script_data: Optional[Dict[str, Any]] = None,
+        course_plan: Optional[Dict[str, Any]] = None,
+        employee_context: Optional[Dict[str, Any]] = None
     ) -> ExtractedSlideContent:
         """
         Extract structured content for slides from module content
@@ -72,11 +95,20 @@ class SlideContentExtractor:
         Args:
             content: Module content from database
             script_data: Optional script data from EducationalScriptGenerator
+            course_plan: Optional complete course plan for context
+            employee_context: Optional employee information for personalization
             
         Returns:
             ExtractedSlideContent with all slide information
         """
         logger.info(f"Extracting slide content for module: {content.get('module_name', 'Unknown')}")
+        
+        # Update employee context if provided
+        if employee_context:
+            self.employee_context = employee_context
+        
+        # Store course plan for context
+        self.course_plan = course_plan or {}
         
         # Build content hierarchy
         content_hierarchy = self._build_content_hierarchy(content)
@@ -187,7 +219,24 @@ class SlideContentExtractor:
         return cleaned
     
     def _extract_key_points(self, text: str) -> List[str]:
-        """Extract key points from text"""
+        """Extract key points from text, with optional GPT-4 enrichment"""
+        
+        # First, try basic extraction
+        basic_points = self._extract_basic_key_points(text)
+        
+        # If GPT enrichment is enabled and we have meaningful content, enhance it
+        if self.enable_gpt_enrichment and text and len(text) > 100:
+            try:
+                enriched_points = self._enrich_key_points_with_gpt(text, basic_points)
+                return enriched_points
+            except Exception as e:
+                logger.warning(f"GPT enrichment failed, falling back to basic extraction: {e}")
+                return basic_points
+        
+        return basic_points
+    
+    def _extract_basic_key_points(self, text: str) -> List[str]:
+        """Basic key point extraction (original method)"""
         key_points = []
         
         # Look for explicit lists
@@ -220,6 +269,112 @@ class SlideContentExtractor:
                 unique_points.append(point)
         
         return unique_points
+    
+    def _enrich_key_points_with_gpt(self, text: str, basic_points: List[str]) -> List[str]:
+        """Enrich key points using GPT-4 Turbo with full context"""
+        try:
+            # Build context for GPT
+            employee_name = self.employee_context.get('name', 'Learner')
+            employee_role = self.employee_context.get('role', 'Professional')
+            current_role = self.employee_context.get('current_role', employee_role)
+            target_role = self.employee_context.get('target_role', 'Advanced ' + current_role)
+            
+            # Get course context
+            course_title = self.course_plan.get('course_title', 'Professional Development Course')
+            module_number = self.course_plan.get('current_module', 1)
+            total_modules = self.course_plan.get('total_modules', 1)
+            
+            # Create enrichment prompt
+            prompt = f"""
+You are creating rich, comprehensive slide content for an educational presentation.
+
+LEARNER CONTEXT:
+- Name: {employee_name}
+- Current Role: {current_role}
+- Target Role: {target_role}
+- Course: {course_title} (Module {module_number} of {total_modules})
+
+SECTION CONTENT:
+{text[:1000]}... [content continues]
+
+BASIC POINTS EXTRACTED:
+{json.dumps(basic_points, indent=2)}
+
+TASK: Transform these basic points into rich, comprehensive slide content that:
+
+1. EXPANDS each point into 2-3 detailed sentences (40-60 words each)
+2. ADDS specific examples relevant to {current_role}
+3. INCLUDES actionable insights and practical applications
+4. INCORPORATES statistics, data, or industry standards where relevant
+5. PERSONALIZES content for {employee_name}'s journey from {current_role} to {target_role}
+6. ENSURES each point teaches a concrete skill or concept
+7. MAKES points memorable with analogies or real-world connections
+
+OUTPUT FORMAT:
+Return a JSON array of enriched points. Each point should be:
+- 40-60 words long
+- Self-contained and meaningful
+- Directly applicable to their role
+- Engaging and educational
+
+Example format:
+[
+  "Master financial forecasting by leveraging Excel's advanced functions like FORECAST.ETS for time-series predictions. This skill transforms raw data into strategic insights, enabling you to predict quarterly revenues with 85% accuracy and support executive decision-making.",
+  "Implement variance analysis workflows that compare actual vs. budgeted performance across departments. Use PowerBI dashboards to visualize deviations exceeding 10%, creating actionable reports that help managers course-correct within the same quarter."
+]
+
+Generate 4-6 rich, detailed points that transform this content into an engaging learning experience.
+"""
+            
+            # Call GPT-4 Turbo
+            response = openai_client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert instructional designer creating rich, detailed slide content for professional education. Transform basic points into comprehensive, engaging learning content."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                response_format={"type": "json_object"},
+                max_tokens=1000
+            )
+            
+            # Parse response
+            result = json.loads(response.choices[0].message.content)
+            
+            # Extract points from various possible formats
+            if isinstance(result, list):
+                enriched_points = result
+            elif isinstance(result, dict):
+                # Handle different possible keys
+                enriched_points = (
+                    result.get('points', []) or 
+                    result.get('enriched_points', []) or 
+                    result.get('content', []) or
+                    []
+                )
+            else:
+                enriched_points = []
+            
+            # Validate and clean points
+            valid_points = []
+            for point in enriched_points:
+                if isinstance(point, str) and 20 < len(point) < 500:
+                    valid_points.append(point.strip())
+            
+            # If we got good enriched content, use it; otherwise fall back
+            if len(valid_points) >= 2:
+                logger.info(f"✅ GPT enriched {len(basic_points)} basic points into {len(valid_points)} rich points")
+                return valid_points[:6]  # Limit to 6 points max
+            else:
+                logger.warning("GPT enrichment produced insufficient points, using basic extraction")
+                return basic_points
+                
+        except Exception as e:
+            logger.error(f"GPT enrichment failed: {e}")
+            return basic_points
     
     def _extract_examples(self, text: str) -> List[Dict[str, str]]:
         """Extract examples from text"""
@@ -421,8 +576,20 @@ immediately apply in your professional role.
         points: List[str],
         section_name: str
     ) -> str:
-        """Create detailed speaker notes for a slide"""
+        """Create detailed speaker notes for a slide, with optional GPT enrichment"""
         
+        # If GPT enrichment is enabled, generate comprehensive speaker notes
+        if self.enable_gpt_enrichment and points:
+            try:
+                enriched_notes = self._generate_enriched_speaker_notes(
+                    paragraph, points, section_name
+                )
+                if enriched_notes:
+                    return enriched_notes
+            except Exception as e:
+                logger.warning(f"Failed to generate enriched speaker notes: {e}")
+        
+        # Fallback to basic notes generation
         # Start with context
         section_intro = {
             'introduction': "Let's begin by understanding",
@@ -455,6 +622,71 @@ immediately apply in your professional role.
             notes += " This is a key concept that will help you in your role."
         
         return notes.strip()
+    
+    def _generate_enriched_speaker_notes(
+        self,
+        paragraph: str,
+        points: List[str],
+        section_name: str
+    ) -> Optional[str]:
+        """Generate rich speaker notes using GPT-4 Turbo"""
+        try:
+            employee_name = self.employee_context.get('name', 'Learner')
+            employee_role = self.employee_context.get('role', 'Professional')
+            
+            prompt = f"""
+Generate comprehensive speaker notes for presenting this slide to {employee_name} ({employee_role}).
+
+SLIDE SECTION: {section_name.replace('_', ' ').title()}
+
+SLIDE POINTS:
+{json.dumps(points, indent=2)}
+
+CONTEXT PARAGRAPH:
+{paragraph[:500]}...
+
+CREATE SPEAKER NOTES THAT:
+1. Welcome and engage {employee_name} personally
+2. Explain each point with practical context for their role as {employee_role}
+3. Include 1-2 specific examples or anecdotes
+4. Add transitions between points
+5. Suggest when to pause for emphasis
+6. Include a question to engage the learner
+7. End with a connection to the next concept
+
+Target length: 150-200 words
+Style: Conversational, engaging, educational
+
+The notes should guide the presenter to deliver an engaging, personalized learning experience.
+"""
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert instructional designer creating engaging speaker notes for educational presentations. Make the notes conversational and focused on the learner's journey."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,
+                max_tokens=400
+            )
+            
+            speaker_notes = response.choices[0].message.content.strip()
+            
+            # Validate length
+            word_count = len(speaker_notes.split())
+            if 100 < word_count < 250:
+                logger.info(f"✅ Generated enriched speaker notes: {word_count} words")
+                return speaker_notes
+            else:
+                logger.warning(f"Generated speaker notes outside target length: {word_count} words")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to generate enriched speaker notes: {e}")
+            return None
     
     def _generate_timing_cues(
         self,

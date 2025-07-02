@@ -57,12 +57,12 @@ class EducationalSlideGenerator:
                 text_color=(25, 25, 25),           # Business Black (#191919)
                 secondary_color=(137, 186, 239),   # Lxera Blue (#89BAEF)
                 font_family='Arial',
-                title_font_size=140,  # Dramatically increased for visibility
-                body_font_size=72,    # Large, readable body text
+                title_font_size=120,  # Slightly smaller for longer titles
+                body_font_size=56,    # Optimized for richer content
                 header_font_size=48,  # Clear header text
                 footer_font_size=28,  # Readable footer
                 padding=80,           # Proper margins for 1920x1080
-                line_spacing=2.0,     # Fixed spacing to prevent overlap
+                line_spacing=1.8,     # Better spacing for multi-line content
                 header_height=120,    # Adequate header space
                 footer_height=100,    # Adequate footer space
                 gradient_overlay=False  # No gradients behind text
@@ -457,8 +457,8 @@ class EducationalSlideGenerator:
             wrapped_lines = self._smart_wrap_text(teaching_point, body_font, max_text_width)
             
             # Draw each line of wrapped text with proper spacing
-            for j, line in enumerate(wrapped_lines[:2]):  # Max 2 lines per point for clarity
-                line_y = bullet_y + (j * line_height)  # Use full line height for proper spacing
+            for j, line in enumerate(wrapped_lines[:3]):  # Allow up to 3 lines for richer content
+                line_y = bullet_y + (j * line_height * 0.8)  # Slightly tighter spacing for more content
                 draw.text((text_x, line_y), line, 
                          fill=self.current_design.text_color, font=body_font)
         
