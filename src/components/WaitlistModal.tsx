@@ -48,13 +48,18 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
     setIsSubmitting(true);
 
     try {
+      // Split full name into first and last name
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       const result = await ticketService.submitTicket({
         ticketType: 'early_access',
-        fullName: formData.fullName,
+        firstName,
+        lastName,
         email: formData.email,
-        interest: formData.interest,
-        firstName: '', // Will be handled by service
-        lastName: '', // Will be handled by service
+        company: 'Not Provided', // Required field but not collected in waitlist
+        message: formData.interest || 'Interested in early access',
         source: 'Waitlist Modal'
       });
 

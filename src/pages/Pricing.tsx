@@ -6,13 +6,19 @@ import PlanComparisonSection from "@/components/PlanComparisonSection";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ContactSalesModal from "@/components/ContactSalesModal";
+import WaitlistModal from "@/components/WaitlistModal";
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
   const handleContactSales = () => {
     setIsContactSalesModalOpen(true);
+  };
+
+  const handleGetStarted = () => {
+    setIsWaitlistModalOpen(true);
   };
 
   const featureExplanations: {[key: string]: string} = {
@@ -214,7 +220,7 @@ const Pricing = () => {
                   </ul>
 
                   <Button
-                    onClick={plan.name === 'Enterprise' ? handleContactSales : undefined}
+                    onClick={plan.name === 'Enterprise' ? handleContactSales : handleGetStarted}
                     className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
                       plan.name === 'Enterprise'
                         ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
@@ -276,6 +282,10 @@ const Pricing = () => {
         <ContactSalesModal 
           isOpen={isContactSalesModalOpen} 
           onClose={() => setIsContactSalesModalOpen(false)}
+        />
+        <WaitlistModal 
+          isOpen={isWaitlistModalOpen} 
+          onClose={() => setIsWaitlistModalOpen(false)}
         />
       </div>
     </TooltipProvider>

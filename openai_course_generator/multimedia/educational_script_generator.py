@@ -205,12 +205,18 @@ class EducationalScriptGenerator:
         """
         logger.info(f"Generating contextually intelligent script for: {section_name} in {module_name}")
         
-        # Default to 4 minutes for section-based videos (optimal for microlearning)
-        target_duration = target_duration or 4
+        # STEP 1: Use AI to analyze section purpose and determine optimal parameters
+        section_intelligence = self._ai_analyze_section_purpose(
+            section_name, section_content, module_name, all_sections or {}
+        )
         
-        # STEP 1: Analyze course context and section's role in learning journey
+        # Use AI-determined duration if not specified
+        if target_duration is None:
+            target_duration = section_intelligence['optimal_duration']
+        
+        # STEP 2: Analyze course context and section's role in learning journey
         course_context = self._analyze_full_course_context(all_sections or {}, module_name)
-        section_role = self._determine_section_role_in_journey(section_name, section_content, course_context)
+        section_role = section_intelligence['educational_role']
         
         # STEP 2: Deep employee analysis for personalized examples
         employee_insights = self._analyze_employee_for_context(employee_context, section_name, course_context)
@@ -230,6 +236,9 @@ class EducationalScriptGenerator:
             section_name, enhanced_content, module_name, employee_context
         )
         
+        # Use AI-determined slide count
+        max_slides = section_intelligence.get('recommended_slides', 4)
+        
         # STEP 6: Create focused slide structure (3-4 slides for better focus)
         slides = []
         slide_number = 1
@@ -245,12 +254,12 @@ class EducationalScriptGenerator:
         slides.append(title_slide)
         slide_number += 1
         
-        # Content slides (2-3 slides max for focus)
+        # Content slides (AI-determined count for optimal pacing)
         content_slides = self._create_section_content_slides(
             section_summary,
             employee_context,
             slide_number,
-            max_slides=3
+            max_slides=max_slides - 1  # Subtract title slide
         )
         slides.extend(content_slides)
         
@@ -2042,6 +2051,105 @@ Thank you for your attention and commitment to professional development!
     
     # ========== CONTEXTUAL INTELLIGENCE METHODS ==========
     
+    def _ai_analyze_section_purpose(
+        self, 
+        section_name: str, 
+        section_content: str, 
+        module_name: str,
+        all_sections: Dict[str, str]
+    ) -> Dict[str, Any]:
+        """Use AI to intelligently analyze section purpose and determine optimal parameters"""
+        
+        # Content analysis
+        word_count = len(section_content.split())
+        has_learning_objectives = any(phrase in section_content.lower() for phrase in 
+            ['learning objective', 'you will learn', 'by the end', 'objectives'])
+        has_practical_examples = any(phrase in section_content.lower() for phrase in 
+            ['example', 'case study', 'practical', 'real-world', 'application'])
+        has_assessments = any(phrase in section_content.lower() for phrase in 
+            ['quiz', 'test', 'assessment', 'check your understanding'])
+        
+        # Analyze section position in course
+        section_names = list(all_sections.keys())
+        section_index = section_names.index(section_name) if section_name in section_names else 0
+        is_first_section = section_index == 0
+        is_last_section = section_index == len(section_names) - 1
+        
+        # Determine section purpose
+        section_lower = section_name.lower()
+        content_lower = section_content.lower()
+        
+        # Smart detection based on content, not just name
+        if is_first_section or 'welcome' in content_lower or 'overview' in content_lower:
+            section_type = 'introduction'
+            purpose = 'orientation'
+        elif has_assessments:
+            section_type = 'assessment'
+            purpose = 'evaluation'
+        elif has_practical_examples and ('apply' in content_lower or 'implement' in content_lower):
+            section_type = 'practical'
+            purpose = 'application'
+        elif 'case' in section_lower or 'scenario' in content_lower:
+            section_type = 'case_study'
+            purpose = 'analysis'
+        elif is_last_section and ('summary' in content_lower or 'conclusion' in content_lower):
+            section_type = 'summary'
+            purpose = 'reinforcement'
+        else:
+            section_type = 'core_content'
+            purpose = 'teaching'
+        
+        # Determine optimal duration based on purpose and content
+        if purpose == 'orientation':
+            # Introductions should be concise
+            optimal_duration = min(2, max(1, word_count / 300))  # 1-2 minutes
+            recommended_slides = 2 if word_count < 300 else 3
+            pacing = 1.5  # Faster pacing
+        elif purpose == 'evaluation':
+            # Assessments need time for reflection
+            optimal_duration = min(5, max(3, word_count / 200))  # 3-5 minutes
+            recommended_slides = 4
+            pacing = 0.8  # Slower pacing
+        elif purpose == 'application':
+            # Practical sections need detailed explanation
+            optimal_duration = min(6, max(4, word_count / 180))  # 4-6 minutes
+            recommended_slides = 5
+            pacing = 1.0  # Normal pacing
+        elif purpose == 'analysis':
+            # Case studies need thorough exploration
+            optimal_duration = min(7, max(5, word_count / 170))  # 5-7 minutes
+            recommended_slides = 6
+            pacing = 0.9  # Slightly slower
+        elif purpose == 'reinforcement':
+            # Summaries should be quick recaps
+            optimal_duration = min(3, max(2, word_count / 250))  # 2-3 minutes
+            recommended_slides = 3
+            pacing = 1.2  # Slightly faster
+        else:  # teaching
+            # Core content needs appropriate depth
+            optimal_duration = min(5, max(3, word_count / 200))  # 3-5 minutes
+            recommended_slides = 4
+            pacing = 1.0  # Normal pacing
+        
+        # Get educational role
+        educational_role = self._get_section_role(section_type)
+        
+        return {
+            'type': section_type,
+            'purpose': purpose,
+            'optimal_duration': optimal_duration,
+            'recommended_slides': recommended_slides,
+            'pacing': pacing,
+            'educational_role': educational_role,
+            'content_characteristics': {
+                'word_count': word_count,
+                'has_objectives': has_learning_objectives,
+                'has_examples': has_practical_examples,
+                'has_assessments': has_assessments,
+                'position': 'beginning' if is_first_section else 'end' if is_last_section else 'middle'
+            }
+        }
+    
     def _analyze_full_course_context(self, all_sections: Dict[str, str], module_name: str) -> Dict[str, Any]:
         """Analyze the complete course to understand learning journey and relationships"""
         context = {
@@ -2543,22 +2651,25 @@ ENHANCED VERSION:"""
 Section: Introduction
 Themes: {themes}
 
+IMPORTANT: Extract and present the ACTUAL content provided, don't create new content.
+
 Transform this content into:
-1. ENGAGING INTRODUCTION (3-4 min narration):
-   - Hook: Immediate connection to {role} challenges
-   - Why: Career benefits in first paragraph
-   - Examples: 2 specific to {role}
-   - Tone: Conversational, exciting
+1. ENGAGING INTRODUCTION (1-2 min narration):
+   - Use the EXACT topics mentioned in the source
+   - Keep the actual learning objectives from the content
+   - Reference specific module elements mentioned
+   - Tone: Welcoming and orienting
 
-2. LEARNING OBJECTIVES (3 total, 10-15 words each):
-   - Action verbs (understand, apply, master)
-   - Specific to {role} daily work
-   - Measurable outcomes
+2. LEARNING OBJECTIVES (extract from source):
+   - Use the objectives actually stated in the content
+   - If no explicit objectives, derive from module overview
+   - Stay true to the course subject matter
 
-3. SLIDE TITLES (3-4 titles, 3-7 words each):
-   - Specific to content, not generic
-   - Progressive flow
-   - Professional and engaging
+3. SLIDE TITLES (2-3 titles, based on actual content):
+   - Use the EXACT section headings from the markdown (## headings)
+   - If no clear headings, use the course title "{module_name}"
+   - Include "Business Performance Reporting" if mentioned in content
+   - NO generic analytical terms - be specific to the source material
 
 CONTENT:
 {section_content}
@@ -2771,6 +2882,8 @@ FORMAT YOUR RESPONSE EXACTLY AS:
                 match = re.match(pattern, line)
                 if match:
                     title = match.group(1).strip()
+                    # Clean up title formatting
+                    title = self._clean_slide_title(title)
                     # Basic validation - not too long, not too short
                     if 2 <= len(title.split()) <= 10 and len(title) < 60:
                         titles.append(title)
@@ -2778,9 +2891,65 @@ FORMAT YOUR RESPONSE EXACTLY AS:
             else:
                 # If no pattern matched but line looks like a title
                 if line and not line.startswith('===') and 2 <= len(line.split()) <= 10:
-                    titles.append(line)
+                    titles.append(self._clean_slide_title(line))
         
         return titles
+    
+    def _get_section_role(self, section_type: str) -> Dict[str, Any]:
+        """Get educational role configuration for section type"""
+        roles = {
+            'introduction': {
+                'teaching_approach': 'engaging_introduction',
+                'focus': 'orientation_and_motivation',
+                'tone': 'welcoming',
+                'pacing': 'brisk'
+            },
+            'core_content': {
+                'teaching_approach': 'progressive_development',
+                'focus': 'concept_mastery',
+                'tone': 'instructional',
+                'pacing': 'steady'
+            },
+            'practical': {
+                'teaching_approach': 'application_focused',
+                'focus': 'skill_building',
+                'tone': 'hands_on',
+                'pacing': 'methodical'
+            },
+            'case_study': {
+                'teaching_approach': 'analytical_exploration',
+                'focus': 'critical_thinking',
+                'tone': 'investigative',
+                'pacing': 'deliberate'
+            },
+            'assessment': {
+                'teaching_approach': 'knowledge_validation',
+                'focus': 'competency_check',
+                'tone': 'evaluative',
+                'pacing': 'reflective'
+            },
+            'summary': {
+                'teaching_approach': 'reinforcement_recap',
+                'focus': 'consolidation',
+                'tone': 'conclusive',
+                'pacing': 'rapid'
+            }
+        }
+        return roles.get(section_type, roles['core_content'])
+    
+    def _clean_slide_title(self, title: str) -> str:
+        """Clean up slide title formatting"""
+        # Remove surrounding quotes
+        title = title.strip('"\'')
+        # Remove numbering at start
+        title = re.sub(r'^\d+\.\s*', '', title)
+        # Remove extra quotes inside
+        title = title.replace('""', '"')
+        # Trim if too long
+        if len(title) > 50:
+            words = title.split()
+            title = ' '.join(words[:7]) + '...'
+        return title
     
     def _extract_learning_objectives(self, objectives_text: str) -> List[str]:
         """Extract learning objectives with flexible parsing"""

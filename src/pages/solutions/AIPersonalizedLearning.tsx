@@ -5,18 +5,20 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import ContactSalesModal from "@/components/ContactSalesModal";
+import WaitlistModal from "@/components/WaitlistModal";
 import { ArrowRight, Brain, CheckCircle, Users, Target, BarChart3, Zap, Star, Search, BookOpen, Lightbulb } from "lucide-react";
 import { useState } from "react";
 
 const AIPersonalizedLearning = () => {
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
   const handleContactSales = () => {
     setIsContactSalesModalOpen(true);
   };
 
   const handleGetEarlyAccess = () => {
-    setIsContactSalesModalOpen(true);
+    setIsWaitlistModalOpen(true);
   };
 
   const features = [
@@ -213,6 +215,10 @@ const AIPersonalizedLearning = () => {
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}
+      />
+      <WaitlistModal 
+        isOpen={isWaitlistModalOpen} 
+        onClose={() => setIsWaitlistModalOpen(false)}
       />
     </>
   );
