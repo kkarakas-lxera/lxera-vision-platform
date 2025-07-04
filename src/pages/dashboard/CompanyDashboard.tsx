@@ -23,7 +23,6 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import RecentFeedbackCard from '@/components/feedback/RecentFeedbackCard';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface DashboardMetrics {
@@ -836,8 +835,6 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
 
-        {/* Team Feedback */}
-        <RecentFeedbackCard showCompanyFeedback={true} maxItems={4} />
       </div>
     </div>
   );

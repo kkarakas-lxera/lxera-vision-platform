@@ -156,7 +156,7 @@ const App = () => {
                       <Route path="/courses" element={<CoursesManagement />} />
                       <Route path="/analytics" element={<AnalyticsDashboard />} />
                       <Route path="/settings" element={<Settings />} />
-                      <Route path="/customer-feedback" element={<CustomerFeedback />} />
+                      <Route path="/feedback" element={<CustomerFeedback />} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>

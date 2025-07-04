@@ -65,6 +65,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+          { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
       case 'learner':
         return [
@@ -129,7 +130,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href || 
                 (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/learner' && 
-                 location.pathname.startsWith(item.href));
+                 item.href !== '#feedback' && location.pathname.startsWith(item.href));
+              
+              if (item.action === 'feedback') {
+                return (
+                  <FeedbackButton
+                    key={item.href}
+                    variant="ghost"
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group w-full justify-start",
+                      "text-slate-300 hover:bg-slate-800 hover:text-white",
+                      !sidebarExpanded && "justify-center"
+                    )}
+                    title={!sidebarExpanded ? item.label : undefined}
+                  >
+                    <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                    {sidebarExpanded && <span>{item.label}</span>}
+                  </FeedbackButton>
+                );
+              }
               
               return (
                 <Link
@@ -190,14 +209,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <div className="w-full">
-                    <FeedbackButton variant="ghost" size="sm" className="w-full justify-start p-0 h-auto">
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      Platform Feedback
-                    </FeedbackButton>
-                  </div>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />

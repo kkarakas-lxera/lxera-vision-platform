@@ -103,7 +103,7 @@ const AdminDashboard: React.FC = () => {
         supabase.from('course_assignments').select('id, status, progress_percentage'),
         supabase.from('tickets').select('*').order('submitted_at', { ascending: false }),
         supabase.from('companies').select('id, created_at', { count: 'exact' }),
-        supabase.from('content_feedback').select('*').order('created_at', { ascending: false })
+        supabase.from('company_feedback').select('*').order('created_at', { ascending: false })
       ]);
 
       const totalEmployees = employeesData.count || 0;
@@ -125,9 +125,17 @@ const AdminDashboard: React.FC = () => {
       }).length || 0;
 
       const allFeedback = feedbackData.data || [];
-      const criticalIssues = allFeedback.filter(f => !f.is_positive).length;
-      const positiveFeedback = allFeedback.filter(f => f.is_positive).length;
-      const averageRating = allFeedback.length > 0 ? (positiveFeedback / allFeedback.length) * 5 : 0;
+      const criticalIssues = allFeedback.filter(f => f.priority === 'high' && f.status === 'new').length;
+      
+      // Calculate average satisfaction from general feedback
+      const generalFeedbacks = allFeedback.filter(f => f.type === 'general_feedback');
+      const satisfactionRatings = generalFeedbacks
+        .map(f => f.metadata?.satisfaction_rating)
+        .filter(rating => rating != null);
+      const averageRating = satisfactionRatings.length > 0 
+        ? satisfactionRatings.reduce((sum, rating) => sum + rating, 0) / satisfactionRatings.length 
+        : 0;
+      
       const oneDayAgo = new Date();
       oneDayAgo.setDate(oneDayAgo.getDate() - 1);
       const newFeedback = allFeedback.filter(f => {
@@ -322,7 +330,7 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/customer-feedback')}>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/feedback')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -432,7 +440,7 @@ const AdminDashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => navigate('/admin/customer-feedback')}
+              onClick={() => navigate('/admin/feedback')}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Customer Feedback

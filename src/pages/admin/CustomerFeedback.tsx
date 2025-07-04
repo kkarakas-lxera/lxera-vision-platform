@@ -14,34 +14,34 @@ import {
   Download,
   Search,
   Filter,
-  ChevronDown,
+  Bug,
+  Lightbulb,
   Clock,
   CheckCircle,
   XCircle,
   BarChart3,
-  Calendar,
-  ArrowUp,
-  ArrowDown,
-  Lightbulb
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface FeedbackRecord {
+interface CompanyFeedbackRecord {
   id: string;
-  content_id: string;
-  section_id: string | null;
+  company_id: string;
   user_id: string;
-  feedback_type: string;
-  is_positive: boolean;
-  timestamp_seconds: number | null;
+  type: 'bug_report' | 'feature_request' | 'general_feedback';
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  title: string;
+  description: string;
+  status: 'new' | 'in_progress' | 'resolved' | 'wont_fix';
+  user_email: string;
+  user_name: string;
   created_at: string;
+  metadata?: any;
   // Joined fields
-  user_name?: string;
   company_name?: string;
-  content_title?: string;
-  section_name?: string;
 }
 
 interface FeedbackStats {
@@ -53,16 +53,9 @@ interface FeedbackStats {
   weeklyGrowth: number;
 }
 
-interface FeatureRequest {
-  feature: string;
-  count: number;
-  percentage: number;
-}
-
 const CustomerFeedback: React.FC = () => {
   const { userProfile } = useAuth();
-  const [feedback, setFeedback] = useState<FeedbackRecord[]>([]);
-  const [filteredFeedback, setFilteredFeedback] = useState<FeedbackRecord[]>([]);
+  const [feedbacks, setFeedbacks] = useState<CompanyFeedbackRecord[]>([]);
   const [stats, setStats] = useState<FeedbackStats>({
     totalFeedback: 0,
     criticalIssues: 0,
@@ -71,13 +64,9 @@ const CustomerFeedback: React.FC = () => {
     todaysFeedback: 0,
     weeklyGrowth: 0
   });
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'positive' | 'negative'>('all');
-  const [sortField, setSortField] = useState<'created_at' | 'feedback_type' | 'is_positive'>('created_at');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [filterType, setFilterType] = useState<string>('all');
 
   useEffect(() => {
     if (userProfile) {
@@ -85,84 +74,69 @@ const CustomerFeedback: React.FC = () => {
     }
   }, [userProfile]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [feedback, searchTerm, filterType, sortField, sortDirection]);
-
   const fetchFeedbackData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch feedback data first
-      const { data: feedbackData, error } = await supabase
-        .from('content_feedback')
-        .select('*')
+
+      // Fetch feedback with company information
+      const { data: feedbackData, error: feedbackError } = await supabase
+        .from('company_feedback')
+        .select(`
+          *,
+          companies!company_feedback_company_id_fkey(name)
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (feedbackError) {
+        console.error('Error fetching feedback:', feedbackError);
+        toast.error('Failed to load feedback data');
+        return;
+      }
 
-      // Transform the data with basic info for now
-      const transformedFeedback: FeedbackRecord[] = (feedbackData || []).map(item => ({
+      // Transform data to include company name
+      const transformedData: CompanyFeedbackRecord[] = (feedbackData || []).map(item => ({
         ...item,
-        user_name: 'User', // Simplified for demo
-        company_name: 'Company', // Simplified for demo
-        content_title: 'Content', // Simplified for demo
-        section_name: null
+        company_name: item.companies?.name || 'Unknown Company'
       }));
 
-      setFeedback(transformedFeedback);
+      setFeedbacks(transformedData);
+
+      // Calculate statistics
+      const total = transformedData.length;
+      const critical = transformedData.filter(f => f.priority === 'high' && f.status === 'new').length;
       
-      // Calculate stats
-      const total = transformedFeedback.length;
-      const critical = transformedFeedback.filter(f => !f.is_positive).length;
-      const positive = transformedFeedback.filter(f => f.is_positive).length;
-      const avgRating = total > 0 ? (positive / total) * 5 : 0;
-      const satisfactionRate = total > 0 ? (positive / total) * 100 : 0;
+      // Calculate satisfaction rate from general feedback
+      const generalFeedbacks = transformedData.filter(f => f.type === 'general_feedback');
+      const satisfactionRatings = generalFeedbacks
+        .map(f => f.metadata?.satisfaction_rating)
+        .filter(rating => rating != null);
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayCount = transformedFeedback.filter(f => {
-        const feedbackDate = new Date(f.created_at);
-        return feedbackDate >= today;
-      }).length;
+      const avgRating = satisfactionRatings.length > 0 
+        ? satisfactionRatings.reduce((sum, rating) => sum + rating, 0) / satisfactionRatings.length 
+        : 0;
 
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const thisWeekCount = transformedFeedback.filter(f => {
-        const feedbackDate = new Date(f.created_at);
-        return feedbackDate >= weekAgo;
-      }).length;
+      const satisfactionRate = satisfactionRatings.length > 0
+        ? (satisfactionRatings.filter(rating => rating >= 4).length / satisfactionRatings.length) * 100
+        : 0;
 
-      const prevWeekStart = new Date();
-      prevWeekStart.setDate(prevWeekStart.getDate() - 14);
-      const prevWeekEnd = new Date();
-      prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
-      const prevWeekCount = transformedFeedback.filter(f => {
-        const feedbackDate = new Date(f.created_at);
-        return feedbackDate >= prevWeekStart && feedbackDate < prevWeekEnd;
-      }).length;
+      // Today's feedback
+      const today = new Date().toISOString().split('T')[0];
+      const todaysCount = transformedData.filter(f => 
+        f.created_at.startsWith(today)
+      ).length;
 
-      const weeklyGrowth = prevWeekCount > 0 ? ((thisWeekCount - prevWeekCount) / prevWeekCount) * 100 : 0;
+      // Weekly growth (mock calculation)
+      const weeklyGrowth = 12; // Placeholder
 
       setStats({
         totalFeedback: total,
         criticalIssues: critical,
         averageRating: avgRating,
-        satisfactionRate: satisfactionRate,
-        todaysFeedback: todayCount,
-        weeklyGrowth: weeklyGrowth
+        satisfactionRate,
+        todaysFeedback: todaysCount,
+        weeklyGrowth
       });
 
-      // Generate mock feature requests (in a real app, this would come from analyzing feedback text)
-      const mockFeatures: FeatureRequest[] = [
-        { feature: 'Dark Mode', count: 23, percentage: 15.3 },
-        { feature: 'Mobile App', count: 18, percentage: 12.0 },
-        { feature: 'Offline Support', count: 15, percentage: 10.0 },
-        { feature: 'Advanced Search', count: 12, percentage: 8.0 },
-        { feature: 'Team Collaboration', count: 9, percentage: 6.0 }
-      ];
-      setFeatureRequests(mockFeatures);
-      
     } catch (error) {
       console.error('Error fetching feedback data:', error);
       toast.error('Failed to load feedback data');
@@ -171,102 +145,89 @@ const CustomerFeedback: React.FC = () => {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...feedback];
+  const filteredFeedbacks = feedbacks.filter(feedback => {
+    const matchesSearch = 
+      feedback.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feedback.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feedback.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feedback.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(f =>
-        f.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.content_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.feedback_type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    const matchesFilter = 
+      filterType === 'all' || 
+      (filterType === 'critical' && feedback.priority === 'high') ||
+      (filterType === 'bug_report' && feedback.type === 'bug_report') ||
+      (filterType === 'feature_request' && feedback.type === 'feature_request') ||
+      (filterType === 'general_feedback' && feedback.type === 'general_feedback');
 
-    // Apply type filter
-    if (filterType !== 'all') {
-      filtered = filtered.filter(f => 
-        filterType === 'positive' ? f.is_positive : !f.is_positive
-      );
-    }
+    return matchesSearch && matchesFilter;
+  });
 
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+  const exportToCSV = () => {
+    const csvData = filteredFeedbacks.map(feedback => ({
+      Date: new Date(feedback.created_at).toLocaleDateString(),
+      Type: feedback.type.replace('_', ' '),
+      Company: feedback.company_name,
+      User: feedback.user_name,
+      Email: feedback.user_email,
+      Title: feedback.title,
+      Priority: feedback.priority,
+      Status: feedback.status,
+      Category: feedback.category
+    }));
 
-      if (sortField === 'created_at') {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
-      } else if (sortField === 'is_positive') {
-        aValue = aValue ? 1 : 0;
-        bValue = bValue ? 1 : 0;
-      }
-
-      const comparison = aValue > bValue ? 1 : -1;
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-    setFilteredFeedback(filtered);
-  };
-
-  const handleSort = (field: typeof sortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  const handleExport = () => {
     const csvContent = [
-      ['Date', 'User', 'Company', 'Content', 'Section', 'Type', 'Sentiment', 'Rating'].join(','),
-      ...filteredFeedback.map(f => [
-        new Date(f.created_at).toLocaleDateString(),
-        f.user_name || '',
-        f.company_name || '',
-        f.content_title || '',
-        f.section_name || '',
-        f.feedback_type,
-        f.is_positive ? 'Positive' : 'Negative',
-        f.is_positive ? '5' : '1'
-      ].join(','))
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `feedback-export-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = 'customer_feedback.csv';
     link.click();
-    URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(url);
   };
 
-  const getSentimentBadge = (isPositive: boolean) => {
-    return (
-      <Badge variant={isPositive ? 'default' : 'destructive'}>
-        {isPositive ? (
-          <><CheckCircle className="h-3 w-3 mr-1" /> Positive</>
-        ) : (
-          <><XCircle className="h-3 w-3 mr-1" /> Negative</>
-        )}
-      </Badge>
-    );
-  };
-
-  const formatTimeAgo = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
+    
     if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
     return `${diffDays}d ago`;
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'bug_report': return <Bug className="h-4 w-4 text-red-500" />;
+      case 'feature_request': return <Lightbulb className="h-4 w-4 text-blue-500" />;
+      case 'general_feedback': return <MessageSquare className="h-4 w-4 text-green-500" />;
+      default: return <MessageSquare className="h-4 w-4" />;
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const variants = {
+      high: 'destructive',
+      medium: 'secondary',
+      low: 'outline'
+    };
+    return <Badge variant={variants[priority as keyof typeof variants] as any}>{priority}</Badge>;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      new: 'destructive',
+      in_progress: 'secondary',
+      resolved: 'default',
+      wont_fix: 'outline'
+    };
+    return <Badge variant={variants[status as keyof typeof variants] as any}>{status.replace('_', ' ')}</Badge>;
   };
 
   if (loading) {
@@ -274,8 +235,8 @@ const CustomerFeedback: React.FC = () => {
       <div className="p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
             ))}
           </div>
@@ -290,229 +251,184 @@ const CustomerFeedback: React.FC = () => {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">Customer Feedback</h1>
-          <p className="text-muted-foreground mt-1">Monitor and analyze customer feedback across all content</p>
+          <p className="text-muted-foreground mt-1">Feature requests and bug reports from company administrators</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleExport} variant="outline">
+          <Button variant="outline" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={fetchFeedbackData} variant="outline">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Refresh Data
+            Export
           </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Feedback</p>
                 <p className="text-2xl font-bold">{stats.totalFeedback}</p>
               </div>
-              <MessageSquare className="h-6 w-6 text-blue-600" />
+              <MessageSquare className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Critical Issues</p>
                 <p className="text-2xl font-bold text-red-600">{stats.criticalIssues}</p>
               </div>
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+              <AlertTriangle className="h-8 w-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Avg Rating</p>
-                <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+                <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}/5</p>
               </div>
-              <Star className="h-6 w-6 text-yellow-600" />
+              <Star className="h-8 w-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Satisfaction</p>
                 <p className="text-2xl font-bold">{stats.satisfactionRate.toFixed(0)}%</p>
               </div>
-              <TrendingUp className="h-6 w-6 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Today</p>
                 <p className="text-2xl font-bold">{stats.todaysFeedback}</p>
               </div>
-              <Calendar className="h-6 w-6 text-purple-600" />
+              <Clock className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Weekly Growth</p>
-                <p className={`text-2xl font-bold ${stats.weeklyGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.weeklyGrowth >= 0 ? '+' : ''}{stats.weeklyGrowth.toFixed(1)}%
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Growth</p>
+                <p className="text-2xl font-bold text-green-600">+{stats.weeklyGrowth}%</p>
               </div>
-              {stats.weeklyGrowth >= 0 ? (
-                <ArrowUp className="h-6 w-6 text-green-600" />
-              ) : (
-                <ArrowDown className="h-6 w-6 text-red-600" />
-              )}
+              <BarChart3 className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Feedback Table */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Feedback Priority Queue</CardTitle>
-            <CardDescription>All customer feedback sorted by priority and recency</CardDescription>
-            
-            {/* Filters */}
-            <div className="flex gap-4 mt-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search feedback..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Feedback</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="negative">Critical Issues</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('created_at')}
-                    >
-                      Date {sortField === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Content</TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('feedback_type')}
-                    >
-                      Type {sortField === 'feedback_type' && (sortDirection === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('is_positive')}
-                    >
-                      Sentiment {sortField === 'is_positive' && (sortDirection === 'asc' ? '↑' : '↓')}
-                    </TableHead>
+      {/* Filters */}
+      <div className="flex gap-4 items-center">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search feedback..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Feedback</SelectItem>
+            <SelectItem value="critical">Critical Issues</SelectItem>
+            <SelectItem value="bug_report">Bug Reports</SelectItem>
+            <SelectItem value="feature_request">Feature Requests</SelectItem>
+            <SelectItem value="general_feedback">General Feedback</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Feedback Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Feedback</CardTitle>
+          <CardDescription>
+            {filteredFeedbacks.length} feedback submissions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredFeedbacks.map((feedback) => (
+                  <TableRow key={feedback.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getTypeIcon(feedback.type)}
+                        <span className="text-sm font-medium">
+                          {feedback.type.replace('_', ' ')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{feedback.title}</p>
+                        <p className="text-sm text-muted-foreground truncate max-w-xs">
+                          {feedback.description}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{feedback.company_name}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="text-sm font-medium">{feedback.user_name}</p>
+                        <p className="text-xs text-muted-foreground">{feedback.user_email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getPriorityBadge(feedback.priority)}</TableCell>
+                    <TableCell>{getStatusBadge(feedback.status)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{feedback.category}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {formatTimeAgo(feedback.created_at)}
+                      </span>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFeedback.length > 0 ? (
-                    filteredFeedback.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {formatTimeAgo(item.created_at)}
-                        </TableCell>
-                        <TableCell>{item.user_name}</TableCell>
-                        <TableCell>{item.company_name}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{item.content_title}</p>
-                            {item.section_name && (
-                              <p className="text-sm text-muted-foreground">{item.section_name}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{item.feedback_type}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {getSentimentBadge(item.is_positive)}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        No feedback found matching your criteria
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Most Requested Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="h-5 w-5" />
-              Most Requested Features
-            </CardTitle>
-            <CardDescription>Top feature requests from feedback analysis</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {featureRequests.map((request, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{request.feature}</p>
-                    <p className="text-sm text-muted-foreground">{request.count} requests</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{request.percentage}%</p>
-                    <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary" 
-                        style={{ width: `${request.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
