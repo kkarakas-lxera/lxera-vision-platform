@@ -254,11 +254,12 @@ class EducationalScriptGenerator:
         slides.append(title_slide)
         slide_number += 1
         
-        # Content slides (AI-determined count for optimal pacing)
-        content_slides = self._create_section_content_slides(
+        # Content slides using source headings (AI-determined count for optimal pacing)
+        content_slides = self._create_section_content_slides_from_source(
             section_summary,
             employee_context,
             slide_number,
+            slide_plan=getattr(self, '_current_slide_plan', []),
             max_slides=max_slides - 1  # Subtract title slide
         )
         slides.extend(content_slides)
@@ -1261,6 +1262,88 @@ BULLET POINTS:
         
         return chunks[:max_slides]  # Respect max_slides limit
     
+    def _create_section_content_slides_from_source(
+        self,
+        section_summary: Dict[str, Any],
+        employee_context: Dict[str, Any],
+        start_slide_number: int,
+        slide_plan: List[Dict[str, str]] = None,
+        max_slides: int = 3
+    ) -> List[SlideContent]:
+        """Create content slides using source-based slide plan"""
+        
+        slides = []
+        learning_points = section_summary['learning_points']
+        key_concepts = section_summary['key_concepts']
+        section_type = section_summary['section_type']
+        
+        # Use slide plan if available, otherwise fall back to chunking
+        if slide_plan and len(slide_plan) > 1:  # Skip first slide (already created as title)
+            content_plan = slide_plan[1:]  # Skip title slide
+        else:
+            # Fallback to generic chunking
+            content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
+            content_plan = [{"title": f"Key Concept {i+1}", "source": "content"} for i, _ in enumerate(content_chunks)]
+        
+        # Split content into focused chunks based on plan
+        if slide_plan:
+            content_chunks = self._chunk_content_by_plan(learning_points, key_concepts, content_plan)
+        else:
+            content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
+        
+        for i, (chunk, plan_item) in enumerate(zip(content_chunks, content_plan)):
+            slide_number = start_slide_number + i
+            
+            # Use source-based slide title
+            slide_title = plan_item["title"]
+            
+            # Estimate duration based on content complexity
+            duration = self._estimate_slide_duration(chunk, section_type)
+            
+            slide = SlideContent(
+                slide_number=slide_number,
+                title=slide_title,
+                bullet_points=chunk,
+                speaker_notes=self._create_slide_specific_narration(
+                    chunk, section_type, employee_context
+                ),
+                duration_estimate=duration,
+                visual_cues=[f"{section_type}_content"],
+                emphasis_points=chunk[:2]  # Emphasize first 2 points
+            )
+            
+            slides.append(slide)
+        
+        return slides
+    
+    def _chunk_content_by_plan(
+        self,
+        learning_points: List[str],
+        key_concepts: List[str],
+        content_plan: List[Dict[str, str]]
+    ) -> List[List[str]]:
+        """Chunk content based on source-derived slide plan"""
+        
+        all_points = learning_points + key_concepts
+        if not all_points:
+            return [["This section provides important insights for your learning journey."] for _ in content_plan]
+        
+        # Distribute content across planned slides
+        points_per_slide = max(1, len(all_points) // len(content_plan))
+        chunks = []
+        
+        for i, plan_item in enumerate(content_plan):
+            start_idx = i * points_per_slide
+            end_idx = start_idx + points_per_slide if i < len(content_plan) - 1 else len(all_points)
+            
+            chunk = all_points[start_idx:end_idx]
+            if not chunk and all_points:  # Ensure we have some content
+                chunk = [all_points[0]]
+                
+            chunks.append(chunk[:4])  # Max 4 points per slide
+        
+        return chunks
+    
     def _create_section_specific_narration(
         self,
         section_content: str,
@@ -2099,37 +2182,73 @@ Thank you for your attention and commitment to professional development!
             section_type = 'core_content'
             purpose = 'teaching'
         
-        # Determine optimal duration based on purpose and content
+        # Enhanced dynamic duration logic for better engagement
+        content_richness = self._calculate_content_richness(section_content)
+        engagement_factor = self._calculate_engagement_factor(section_content, has_practical_examples, has_learning_objectives)
+        
         if purpose == 'orientation':
-            # Introductions should be concise
-            optimal_duration = min(2, max(1, word_count / 300))  # 1-2 minutes
-            recommended_slides = 2 if word_count < 300 else 3
-            pacing = 1.5  # Faster pacing
+            # Introductions - balance concise with thorough orientation
+            base_duration = max(2, min(4, word_count / 250))  # 2-4 minutes
+            recommended_slides = min(5, max(3, len(self._extract_markdown_headings(section_content)) or 3))
+            pacing = 1.3  # Slightly faster for orientation
         elif purpose == 'evaluation':
-            # Assessments need time for reflection
-            optimal_duration = min(5, max(3, word_count / 200))  # 3-5 minutes
-            recommended_slides = 4
-            pacing = 0.8  # Slower pacing
+            # Assessments need time for reflection and interaction
+            base_duration = max(4, min(8, word_count / 180))  # 4-8 minutes
+            recommended_slides = min(6, max(4, word_count // 150))
+            pacing = 0.8  # Slower for comprehension
         elif purpose == 'application':
-            # Practical sections need detailed explanation
-            optimal_duration = min(6, max(4, word_count / 180))  # 4-6 minutes
-            recommended_slides = 5
-            pacing = 1.0  # Normal pacing
+            # Practical sections need detailed explanation and examples
+            base_duration = max(5, min(10, word_count / 160))  # 5-10 minutes
+            recommended_slides = min(8, max(5, word_count // 120))
+            pacing = 0.9  # Slightly slower for practical understanding
         elif purpose == 'analysis':
-            # Case studies need thorough exploration
-            optimal_duration = min(7, max(5, word_count / 170))  # 5-7 minutes
-            recommended_slides = 6
-            pacing = 0.9  # Slightly slower
+            # Case studies need thorough exploration and discussion
+            base_duration = max(6, min(12, word_count / 140))  # 6-12 minutes
+            recommended_slides = min(10, max(6, word_count // 100))
+            pacing = 0.85  # Slower for analysis
         elif purpose == 'reinforcement':
-            # Summaries should be quick recaps
-            optimal_duration = min(3, max(2, word_count / 250))  # 2-3 minutes
-            recommended_slides = 3
-            pacing = 1.2  # Slightly faster
+            # Summaries with adequate review time
+            base_duration = max(3, min(6, word_count / 200))  # 3-6 minutes
+            recommended_slides = min(5, max(3, word_count // 150))
+            pacing = 1.1  # Slightly faster for review
         else:  # teaching
-            # Core content needs appropriate depth
-            optimal_duration = min(5, max(3, word_count / 200))  # 3-5 minutes
-            recommended_slides = 4
+            # Core content with appropriate depth for understanding
+            base_duration = max(4, min(8, word_count / 180))  # 4-8 minutes
+            # Enhanced slide recommendation based on content structure
+            recommended_slides = min(8, max(4, max(word_count // 130, headings_count + 1)))
             pacing = 1.0  # Normal pacing
+        
+        # Apply engagement and richness factors
+        optimal_duration = base_duration * (1 + engagement_factor * 0.3) * (1 + content_richness * 0.2)
+        
+        # Enhanced duration calculation based on content structure and engagement requirements
+        headings_count = len(self._extract_markdown_headings(section_content))
+        
+        # Base minimum duration on content richness and structure
+        if word_count > 500:  # Rich content deserves more time
+            min_duration = 4.5  # Increased from 4.0 for substantial content
+        else:
+            min_duration = 3.5  # Increased from 3.0 for shorter content
+            
+        # For sections with multiple headings (like our 6-heading introduction), ensure proper coverage
+        if headings_count >= 5:
+            # Rich structured content needs significant time for proper coverage
+            heading_time = headings_count * 0.8  # 48 seconds per heading minimum
+            min_duration = max(min_duration, heading_time)
+            logger.info(f"📊 Rich content with {headings_count} headings - minimum duration: {min_duration:.1f} minutes")
+        elif headings_count >= 3:
+            # Moderate structured content
+            heading_time = headings_count * 0.7  # 42 seconds per heading
+            min_duration = max(min_duration, heading_time)
+            
+        optimal_duration = max(optimal_duration, min_duration)
+        
+        # Special handling for introduction sections with comprehensive content
+        if purpose == 'orientation' and headings_count >= 4:
+            # Introduction sections with many headings need extra time for proper orientation
+            comprehensive_time = headings_count * 0.9  # 54 seconds per heading for introductions
+            optimal_duration = max(optimal_duration, comprehensive_time)
+            logger.info(f"📋 Comprehensive introduction with {headings_count} headings - target duration: {optimal_duration:.1f} minutes")
         
         # Get educational role
         educational_role = self._get_section_role(section_type)
@@ -2597,6 +2716,12 @@ ENHANCED VERSION:"""
             
             # Parse the structured response
             response_text = response.choices[0].message.content.strip()
+            
+            # Check for insufficient source content response
+            if "INSUFFICIENT_SOURCE_CONTENT" in response_text:
+                logger.warning("GPT-4 identified insufficient source content")
+                return response_text, []
+            
             enhanced_content, learning_objectives, slide_titles = self._parse_batch_response(response_text)
             
             call_duration = (datetime.now() - call_start_time).total_seconds()
@@ -2622,6 +2747,204 @@ ENHANCED VERSION:"""
             )
             return enhanced_content, learning_objectives
     
+    def _preserve_markdown_structure(self, content: str, max_length: int) -> str:
+        """Preserve markdown headings when truncating content"""
+        if len(content) <= max_length:
+            return content
+        
+        # Find natural break points at section boundaries
+        sections = content.split('##')
+        preserved_content = sections[0]  # Always keep intro
+        
+        for section in sections[1:]:
+            section_with_header = '##' + section
+            if len(preserved_content + section_with_header) <= max_length:
+                preserved_content += section_with_header
+            else:
+                break
+        
+        if preserved_content == sections[0] and len(preserved_content) > max_length:
+            # No sections found, truncate at sentence boundary
+            sentences = preserved_content.split('. ')
+            truncated = sentences[0]
+            for sentence in sentences[1:]:
+                if len(truncated + '. ' + sentence) <= max_length:
+                    truncated += '. ' + sentence
+                else:
+                    break
+            preserved_content = truncated + ('.' if not truncated.endswith('.') else '')
+        
+        return preserved_content
+    
+    def _validate_source_content(self, section_content: str) -> Dict[str, Any]:
+        """Validate source has sufficient educational content"""
+        validation = {
+            'has_headings': bool(re.search(r'##\s+\w+', section_content)),
+            'has_objectives': bool(re.search(r'(learning objectives?|you will|by the end)', section_content, re.I)),
+            'has_structure': len(section_content.split('\n')) > 5,
+            'word_count': len(section_content.split()),
+            'markdown_sections': len(section_content.split('##')) - 1
+        }
+        
+        validation['is_sufficient'] = (
+            validation['word_count'] > 100 and 
+            (validation['has_headings'] or validation['has_objectives'] or validation['has_structure'])
+        )
+        
+        return validation
+    
+    def _extract_literal_objectives(self, content: str) -> List[str]:
+        """Extract actual learning objectives from source content"""
+        objectives = []
+        
+        # Look for explicit objective patterns
+        patterns = [
+            r'(?:learning objectives?|you will)[:\n]\s*(.+?)(?=\n\n|\n#|$)',
+            r'(?:by the end[^:]*)[:\n]\s*(.+?)(?=\n\n|\n#|$)',
+            r'(?:^|\n)(?:\d+\.|\*|\-)\s*(.+?)(?=\n\d+\.|\n\*|\n\-|\n\n|$)'
+        ]
+        
+        for pattern in patterns:
+            matches = re.findall(pattern, content, re.I | re.MULTILINE | re.DOTALL)
+            for match in matches:
+                cleaned = match.strip()
+                if len(cleaned) > 10 and ('understand' in cleaned.lower() or 'learn' in cleaned.lower() or 'master' in cleaned.lower()):
+                    objectives.append(cleaned)
+        
+        return objectives[:3] if objectives else []
+    
+    def _extract_markdown_headings(self, content: str) -> List[str]:
+        """Extract ## headings from markdown content"""
+        headings = re.findall(r'##\s+(.+)', content)
+        return [heading.strip() for heading in headings if len(heading.strip()) > 2]
+    
+    def _create_slide_plan_from_source(self, source_headings: List[str], content: str) -> List[Dict[str, str]]:
+        """Create a slide plan based on source content structure"""
+        slide_plan = []
+        
+        if not source_headings:
+            # No headings found, create basic structure
+            slide_plan = [
+                {"title": "Introduction", "source": "module_title"},
+                {"title": "Key Points", "source": "content_summary"},
+                {"title": "Summary", "source": "conclusion"}
+            ]
+        else:
+            # Strategy: Use MORE source headings for better content coverage
+            slide_plan = []
+            
+            # Always include intro/title slide first
+            slide_plan.append({"title": "Introduction", "source": "module_title"})
+            
+            # Use intelligent grouping to include more headings
+            if len(source_headings) <= 4:
+                # Use all headings if we have 4 or fewer
+                for heading in source_headings:
+                    slide_plan.append({"title": heading, "source": f"## {heading} section"})
+            
+            elif len(source_headings) <= 6:
+                # Use ALL headings for comprehensive coverage - this is optimal for engagement
+                logger.info(f"Using all {len(source_headings)} source headings for maximum content coverage")
+                
+                # Add ALL source headings to maximize content depth and duration
+                for heading in source_headings:
+                    slide_plan.append({"title": heading, "source": f"## {heading} section"})
+                
+                logger.info(f"Created slide plan with {len(slide_plan)} slides (intro + {len(source_headings)} content slides)")
+            
+            else:
+                # Many headings (7+): Group related ones and use representative headings
+                # Prioritize the most educational headings
+                must_include = []
+                should_include = []
+                optional_include = []
+                
+                for heading in source_headings:
+                    heading_lower = heading.lower()
+                    if any(keyword in heading_lower for keyword in ['learning', 'objective']):
+                        must_include.append(heading)
+                    elif any(keyword in heading_lower for keyword in ['relevance', 'importance', 'overview']):
+                        should_include.append(heading)
+                    else:
+                        optional_include.append(heading)
+                
+                # Build final slide plan with better representation
+                for heading in must_include:
+                    slide_plan.append({"title": heading, "source": f"## {heading} section"})
+                
+                remaining_slots = 6 - len(slide_plan)
+                
+                for heading in should_include[:remaining_slots]:
+                    slide_plan.append({"title": heading, "source": f"## {heading} section"})
+                    remaining_slots -= 1
+                
+                for heading in optional_include[:remaining_slots]:
+                    slide_plan.append({"title": heading, "source": f"## {heading} section"})
+        
+        # Allow up to 8 slides total (intro + 7 content slides) for rich content
+        max_slides = 8 if len(source_headings) >= 5 else 7
+        final_plan = slide_plan[:max_slides]
+        
+        logger.info(f"Final slide plan: {len(final_plan)} slides - {[slide['title'] for slide in final_plan]}")
+        return final_plan
+    
+    def _calculate_content_richness(self, content: str) -> float:
+        """Calculate content richness based on structure and detail"""
+        score = 0.0
+        
+        # Check for structured content
+        headings = len(re.findall(r'##\s+', content))
+        if headings > 3:
+            score += 0.3
+        elif headings > 1:
+            score += 0.2
+        
+        # Check for lists and examples
+        lists = len(re.findall(r'(?:^|\n)(?:\d+\.|\*|\-)\s+', content, re.MULTILINE))
+        if lists > 5:
+            score += 0.3
+        elif lists > 2:
+            score += 0.2
+        
+        # Check for detailed explanations
+        long_sentences = len([s for s in content.split('.') if len(s.split()) > 15])
+        if long_sentences > 3:
+            score += 0.2
+        
+        # Check for technical terms or concepts
+        technical_indicators = ['process', 'method', 'approach', 'technique', 'strategy', 'framework']
+        technical_count = sum(1 for term in technical_indicators if term in content.lower())
+        if technical_count > 3:
+            score += 0.3
+        
+        return min(score, 1.0)
+    
+    def _calculate_engagement_factor(self, content: str, has_practical: bool, has_objectives: bool) -> float:
+        """Calculate engagement factor based on interactive and practical elements"""
+        score = 0.0
+        
+        # Practical examples boost engagement
+        if has_practical:
+            score += 0.4
+        
+        # Clear objectives help engagement
+        if has_objectives:
+            score += 0.3
+        
+        # Interactive elements
+        interactive_terms = ['exercise', 'activity', 'practice', 'try', 'implement', 'apply']
+        interactive_count = sum(1 for term in interactive_terms if term in content.lower())
+        if interactive_count > 2:
+            score += 0.3
+        
+        # Questions and scenarios
+        questions = len(re.findall(r'\?', content))
+        scenarios = content.lower().count('scenario') + content.lower().count('example')
+        if questions > 2 or scenarios > 1:
+            score += 0.2
+        
+        return min(score, 1.0)
+    
     def _create_batch_enhancement_prompt(
         self, 
         section_name: str, 
@@ -2636,58 +2959,87 @@ ENHANCED VERSION:"""
         exp_level = employee_insights['experience_level']
         themes = ', '.join(course_context.get('key_themes', [])[:3])
         
-        # Truncate content to ensure room for quality response
-        max_content_length = 1200
+        # Enhanced content preservation for comprehensive slide generation
+        # Allow larger content to preserve all source headings for complete coverage
+        max_content_length = 5000  # Increased to accommodate content with 6+ headings
         if len(section_content) > max_content_length:
-            section_content = section_content[:max_content_length] + "... [truncated]"
+            section_content = self._preserve_markdown_structure(section_content, max_content_length)
+            logger.info(f"Content preserved with {len(section_content)} chars after structure preservation")
         
-        # Validate content has substance
-        if len(section_content.strip()) < 100:
-            logger.warning(f"Section content very short: {len(section_content)} chars")
+        # Validate content has substance and structure
+        validation = self._validate_source_content(section_content)
+        if not validation['is_sufficient']:
+            logger.warning(f"Source content insufficient: {validation}")
+            return f"""INSUFFICIENT_SOURCE_CONTENT
+Module: {section_name.replace('_', ' ').title()}
+Issues: Word count: {validation['word_count']}, Headings: {validation['has_headings']}, Objectives: {validation['has_objectives']}
+
+The source content lacks sufficient educational structure for video generation.
+Required: At least 100 words with clear headings (##) or learning objectives.
+
+Please provide more detailed source content with:
+- Clear section headings (## format)
+- Explicit learning objectives
+- Structured educational content""", []
         
-        # Section-specific batch prompt (concise for better results)
+        # CRITICAL: Extract headings from ORIGINAL content before any processing
+        # This ensures we preserve all source structure regardless of GPT modifications
+        original_headings = self._extract_markdown_headings(section_content)
+        logger.info(f"DEBUG: Section content length: {len(section_content)} chars")
+        logger.info(f"DEBUG: First 200 chars: {section_content[:200]}...")
+        logger.info(f"ORIGINAL content headings found: {original_headings}")
+        
+        # Use original headings for slide planning to ensure all content is preserved
+        source_headings = original_headings
+        logger.info(f"Using {len(source_headings)} original headings for slide planning")
+        
+        # Create slide plan based on source structure
+        self._current_slide_plan = self._create_slide_plan_from_source(source_headings, section_content)
+        logger.info(f"Generated slide plan: {self._current_slide_plan}")
+        
+        # Section-specific batch prompt (content-faithful approach)
         if section_role['teaching_approach'] == 'engaging_introduction':
-            batch_prompt = f"""Role: {exp_level} {role}
-Section: Introduction
-Themes: {themes}
+            batch_prompt = f"""CRITICAL: You must ONLY use content from the source material provided. 
+Do NOT create new interpretive content or generic business analysis terms.
 
-IMPORTANT: Extract and present the ACTUAL content provided, don't create new content.
+Your task is to EXTRACT and STRUCTURE the existing content, not interpret or expand it.
 
-Transform this content into:
-1. ENGAGING INTRODUCTION (1-2 min narration):
-   - Use the EXACT topics mentioned in the source
-   - Keep the actual learning objectives from the content
-   - Reference specific module elements mentioned
-   - Tone: Welcoming and orienting
+Role: {exp_level} {role}
+Module: {section_name.replace('_', ' ').title()}
 
-2. LEARNING OBJECTIVES (extract from source):
-   - Use the objectives actually stated in the content
-   - If no explicit objectives, derive from module overview
-   - Stay true to the course subject matter
+SOURCE STRUCTURE ANALYSIS:
+Found {len(source_headings)} headings: {', '.join(source_headings)}
 
-3. SLIDE TITLES (2-3 titles, based on actual content):
-   - Use the EXACT section headings from the markdown (## headings)
-   - If no clear headings, use the course title "{module_name}"
-   - Include "Business Performance Reporting" if mentioned in content
-   - NO generic analytical terms - be specific to the source material
+SLIDE PLANNING (create exactly {len(self._current_slide_plan)} slides):
+{chr(10).join([f'{i+1}. {slide["title"]} (Source: {slide["source"]})' for i, slide in enumerate(self._current_slide_plan)])}
 
-CONTENT:
+EXTRACTION REQUIREMENTS:
+1. FIND actual learning objectives in source (look for "By the end", "You will", "Learning Objectives", numbered lists)
+2. USE the exact ## headings found in source as slide titles
+3. PRESERVE exact terminology and concepts mentioned in source
+4. CREATE slides that match the source content structure
+
+FORBIDDEN:
+- Generic titles like "Key Concept 1", "Overview", "Introduction" 
+- Creating new interpretive content
+- Using business jargon not in source
+
+REQUIRED: Use the exact ## headings as slide titles: {', '.join(source_headings)}
+
+SOURCE CONTENT:
 {section_content}
 
 FORMAT YOUR RESPONSE EXACTLY AS:
 ===ENHANCED_CONTENT===
-[Your enhanced introduction here]
+[Restructured source content for narration - no new interpretations]
 
 ===LEARNING_OBJECTIVES===
-1. [Objective without bullets/formatting]
-2. [Objective without bullets/formatting]
-3. [Objective without bullets/formatting]
+1. [Actual objective from source, or "None explicitly stated"]
+2. [Actual objective from source, or "None explicitly stated"] 
+3. [Actual objective from source, or "None explicitly stated"]
 
 ===SLIDE_TITLES===
-1. [Title 1]
-2. [Title 2]
-3. [Title 3]
-4. [Title 4 if needed]"""
+{chr(10).join([f'{i+1}. {slide["title"]}' for i, slide in enumerate(self._current_slide_plan)])}"""
         
         elif section_role['teaching_approach'] == 'progressive_development':
             batch_prompt = f"""Role: {exp_level} {role}

@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   MessageSquare, 
   Star, 
@@ -20,7 +22,13 @@ import {
   CheckCircle,
   XCircle,
   BarChart3,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  Edit,
+  MessageCircle,
+  Building2,
+  Calendar,
+  MoreHorizontal
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -50,7 +58,9 @@ interface FeedbackStats {
   averageRating: number;
   satisfactionRate: number;
   todaysFeedback: number;
-  weeklyGrowth: number;
+  resolvedThisWeek: number;
+  pendingFeedback: number;
+  companiesWithFeedback: number;
 }
 
 const CustomerFeedback: React.FC = () => {
@@ -62,11 +72,18 @@ const CustomerFeedback: React.FC = () => {
     averageRating: 0,
     satisfactionRate: 0,
     todaysFeedback: 0,
-    weeklyGrowth: 0
+    resolvedThisWeek: 0,
+    pendingFeedback: 0,
+    companiesWithFeedback: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const [companies, setCompanies] = useState<Array<{id: string, name: string}>>([]);
+  const [selectedFeedback, setSelectedFeedback] = useState<CompanyFeedbackRecord | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [adminNotes, setAdminNotes] = useState('');
 
   useEffect(() => {
     if (userProfile) {
@@ -111,10 +128,12 @@ const CustomerFeedback: React.FC = () => {
       }));
 
       setFeedbacks(transformedData);
+      setCompanies(companiesData || []);
 
       // Calculate statistics
       const total = transformedData.length;
       const critical = transformedData.filter(f => f.priority === 'high' && f.status === 'new').length;
+      const pending = transformedData.filter(f => f.status === 'new' || f.status === 'in_progress').length;
       
       // Calculate satisfaction rate from general feedback
       const generalFeedbacks = transformedData.filter(f => f.type === 'general_feedback');
@@ -136,8 +155,16 @@ const CustomerFeedback: React.FC = () => {
         f.created_at.startsWith(today)
       ).length;
 
-      // Weekly growth (mock calculation)
-      const weeklyGrowth = 12; // Placeholder
+      // This week's resolved feedback
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const resolvedThisWeek = transformedData.filter(f => {
+        const updatedDate = new Date(f.updated_at);
+        return f.status === 'resolved' && updatedDate > oneWeekAgo;
+      }).length;
+
+      // Unique companies with feedback
+      const uniqueCompanies = new Set(transformedData.map(f => f.company_id)).size;
 
       setStats({
         totalFeedback: total,
@@ -145,7 +172,9 @@ const CustomerFeedback: React.FC = () => {
         averageRating: avgRating,
         satisfactionRate,
         todaysFeedback: todaysCount,
-        weeklyGrowth
+        resolvedThisWeek,
+        pendingFeedback: pending,
+        companiesWithFeedback: uniqueCompanies
       });
 
     } catch (error) {
@@ -154,6 +183,46 @@ const CustomerFeedback: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Status update function
+  const updateFeedbackStatus = async (feedbackId: string, newStatus: string, notes?: string) => {
+    try {
+      const updateData: any = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      
+      if (notes) {
+        updateData.admin_notes = notes;
+      }
+
+      const { error } = await supabase
+        .from('company_feedback')
+        .update(updateData)
+        .eq('id', feedbackId);
+
+      if (error) {
+        console.error('Error updating feedback:', error);
+        toast.error('Failed to update feedback status');
+        return;
+      }
+
+      toast.success(`Feedback marked as ${newStatus.replace('_', ' ')}`);
+      fetchFeedbackData(); // Refresh data
+      setIsDetailModalOpen(false);
+      setSelectedFeedback(null);
+    } catch (error) {
+      console.error('Error updating feedback:', error);
+      toast.error('Failed to update feedback status');
+    }
+  };
+
+  // Open detail modal
+  const openDetailModal = (feedback: CompanyFeedbackRecord) => {
+    setSelectedFeedback(feedback);
+    setAdminNotes(feedback.admin_notes || '');
+    setIsDetailModalOpen(true);
   };
 
   const filteredFeedbacks = feedbacks.filter(feedback => {
@@ -168,9 +237,15 @@ const CustomerFeedback: React.FC = () => {
       (filterType === 'critical' && feedback.priority === 'high') ||
       (filterType === 'bug_report' && feedback.type === 'bug_report') ||
       (filterType === 'feature_request' && feedback.type === 'feature_request') ||
-      (filterType === 'general_feedback' && feedback.type === 'general_feedback');
+      (filterType === 'general_feedback' && feedback.type === 'general_feedback') ||
+      (filterType === 'new' && feedback.status === 'new') ||
+      (filterType === 'in_progress' && feedback.status === 'in_progress') ||
+      (filterType === 'resolved' && feedback.status === 'resolved');
 
-    return matchesSearch && matchesFilter;
+    const matchesCompany = 
+      selectedCompany === 'all' || feedback.company_id === selectedCompany;
+
+    return matchesSearch && matchesFilter && matchesCompany;
   });
 
   const exportToCSV = () => {
@@ -273,7 +348,7 @@ const CustomerFeedback: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -338,18 +413,42 @@ const CustomerFeedback: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Growth</p>
-                <p className="text-2xl font-bold text-green-600">+{stats.weeklyGrowth}%</p>
+                <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.pendingFeedback}</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-green-500" />
+              <Clock className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Resolved This Week</p>
+                <p className="text-2xl font-bold text-green-600">{stats.resolvedThisWeek}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Companies</p>
+                <p className="text-2xl font-bold">{stats.companiesWithFeedback}</p>
+              </div>
+              <Building2 className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1 relative">
+      <div className="flex gap-4 items-center flex-wrap">
+        <div className="flex-1 min-w-64 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search feedback..."
@@ -358,13 +457,31 @@ const CustomerFeedback: React.FC = () => {
             className="pl-10"
           />
         </div>
+        
+        <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by company" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Companies</SelectItem>
+            {companies.map(company => (
+              <SelectItem key={company.id} value={company.id}>
+                {company.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by type" />
+            <SelectValue placeholder="Filter by type/status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Feedback</SelectItem>
             <SelectItem value="critical">Critical Issues</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
             <SelectItem value="bug_report">Bug Reports</SelectItem>
             <SelectItem value="feature_request">Feature Requests</SelectItem>
             <SelectItem value="general_feedback">General Feedback</SelectItem>
@@ -393,6 +510,7 @@ const CustomerFeedback: React.FC = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -433,6 +551,35 @@ const CustomerFeedback: React.FC = () => {
                         {formatTimeAgo(feedback.created_at)}
                       </span>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDetailModal(feedback)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {feedback.status === 'new' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateFeedbackStatus(feedback.id, 'in_progress')}
+                          >
+                            Start
+                          </Button>
+                        )}
+                        {feedback.status === 'in_progress' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateFeedbackStatus(feedback.id, 'resolved')}
+                          >
+                            Resolve
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -440,6 +587,140 @@ const CustomerFeedback: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detailed Feedback Modal */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFeedback && getTypeIcon(selectedFeedback.type)}
+              {selectedFeedback?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Submitted by {selectedFeedback?.user_name} from {selectedFeedback?.company_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedFeedback && (
+            <div className="space-y-6">
+              {/* Feedback Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Type</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getTypeIcon(selectedFeedback.type)}
+                    <span className="text-sm">{selectedFeedback.type.replace('_', ' ')}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Priority</label>
+                  <div className="mt-1">
+                    {getPriorityBadge(selectedFeedback.priority)}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedFeedback.status)}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Category</label>
+                  <div className="mt-1">
+                    <Badge variant="outline">{selectedFeedback.category}</Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Submitted</label>
+                  <p className="text-sm mt-1">{new Date(selectedFeedback.created_at).toLocaleString()}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
+                  <p className="text-sm mt-1">{new Date(selectedFeedback.updated_at).toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <div className="mt-2 p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm whitespace-pre-wrap">{selectedFeedback.description}</p>
+                </div>
+              </div>
+
+              {/* Metadata */}
+              {selectedFeedback.metadata && Object.keys(selectedFeedback.metadata).length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Additional Information</label>
+                  <div className="mt-2 p-4 bg-muted/50 rounded-lg">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {Object.entries(selectedFeedback.metadata).map(([key, value]) => (
+                        <div key={key}>
+                          <span className="font-medium">{key.replace('_', ' ')}:</span> {String(value)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Admin Notes</label>
+                <Textarea
+                  placeholder="Add internal notes about this feedback..."
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  className="mt-2"
+                  rows={3}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between pt-4 border-t">
+                <div className="flex gap-2">
+                  {selectedFeedback.status === 'new' && (
+                    <Button 
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, 'in_progress', adminNotes)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Start Working
+                    </Button>
+                  )}
+                  {selectedFeedback.status === 'in_progress' && (
+                    <Button 
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, 'resolved', adminNotes)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Mark as Resolved
+                    </Button>
+                  )}
+                  {selectedFeedback.status === 'resolved' && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, 'in_progress', adminNotes)}
+                    >
+                      Reopen
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline"
+                    onClick={() => updateFeedbackStatus(selectedFeedback.id, 'wont_fix', adminNotes)}
+                  >
+                    Won't Fix
+                  </Button>
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => updateFeedbackStatus(selectedFeedback.id, selectedFeedback.status, adminNotes)}
+                >
+                  Update Notes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -480,12 +480,43 @@ class CourseVideoGenerator:
                     'status': 'processed'
                 }).eq('asset_id', video_asset_id).execute()
                 
-                # 10. Update session as completed (removed updated_at field that doesn't exist in schema)
-                self.supabase.table('mm_multimedia_sessions').update({
-                    'status': 'completed',
-                    'current_stage': 'completed',
-                    'progress_percentage': 100
-                }).eq('session_id', session_id).execute()
+                # 10. Update session as completed with schema-aware error handling
+                try:
+                    # First, try with all fields
+                    update_data = {
+                        'status': 'completed',
+                        'completed_at': datetime.now().isoformat(),
+                        'total_file_size_mb': round(result.file_size / (1024 * 1024), 2),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    # Try to add optional fields that may not exist in all schemas
+                    try:
+                        update_data.update({
+                            'modules_processed': 1,
+                            'assets_generated': len(slide_assets) + len(timeline.audio_segments) + 1,
+                            'success_rate': 100.0,
+                            'package_ready': True
+                        })
+                    except:
+                        pass  # These fields might not exist in the schema
+                    
+                    self.supabase.table('mm_multimedia_sessions').update(update_data).eq('session_id', session_id).execute()
+                    
+                    logger.info("✅ Session successfully updated in database")
+                except Exception as db_error:
+                    # Fallback to minimal update if full update fails
+                    try:
+                        minimal_update = {
+                            'status': 'completed',
+                            'updated_at': datetime.now().isoformat()
+                        }
+                        self.supabase.table('mm_multimedia_sessions').update(minimal_update).eq('session_id', session_id).execute()
+                        logger.info("✅ Session status updated with minimal fields")
+                    except Exception as minimal_error:
+                        logger.warning(f"⚠️  Database update failed, but video was created successfully: {db_error}")
+                        logger.warning(f"⚠️  Minimal update also failed: {minimal_error}")
+                    # Don't fail the entire process for database issues
                 
                 logger.info(f"✅ Section video successfully generated!")
                 logger.info(f"📹 Video URL: {public_url}")
@@ -516,12 +547,16 @@ class CourseVideoGenerator:
         except Exception as e:
             logger.error(f"Section video generation failed: {e}")
             
-            # Update session as failed
+            # Update session as failed with better error handling
             if 'session_id' in locals():
-                self.supabase.table('mm_multimedia_sessions').update({
-                    'status': 'failed',
-                    'error_details': str(e)
-                }).eq('session_id', session_id).execute()
+                try:
+                    self.supabase.table('mm_multimedia_sessions').update({
+                        'status': 'failed',
+                        'error_details': str(e),
+                        'updated_at': datetime.now().isoformat()
+                    }).eq('session_id', session_id).execute()
+                except Exception as db_error:
+                    logger.warning(f"Could not update session failure status: {db_error}")
             
             return {
                 'success': False,
