@@ -66,7 +66,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     },
     {
       name: "AI Mentorship & Support",
-      href: "/solutions/scalable-learning-support-mentorship",
+      href: "/solutions/ai-mentorship-support",
       icon: MessageCircle,
       color: "bg-gradient-to-br from-purple-100 to-violet-100",
       iconColor: "text-purple-600",
@@ -74,7 +74,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     },
     {
       name: "Learning Analytics & Insights",
-      href: "/solutions/learning-analytics-insights",
+      href: "/solutions/learning-analytics-engagement",
       icon: BarChart3,
       color: "bg-gradient-to-br from-emerald-100 to-teal-100", 
       iconColor: "text-emerald-600",
@@ -82,7 +82,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     },
     {
       name: "Citizen Developer Enablement",
-      href: "/solutions/citizen-developer-enablement", 
+      href: "/solutions/citizen-led-innovation", 
       icon: Lightbulb,
       color: "bg-gradient-to-br from-yellow-100 to-amber-100",
       iconColor: "text-amber-600",

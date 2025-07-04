@@ -241,34 +241,41 @@ class SlideContentExtractor:
         
         # Look for explicit lists
         list_patterns = [
-            r'(?:^|\n)[-•*]\s*(.+?)(?=\n|$)',
-            r'(?:^|\n)\d+[.)]\s*(.+?)(?=\n|$)',
-            r'(?:^|\n)(?:[a-z][.)]\s*)?(.+?)(?=\n|$)'
+            r'(?:^|\n)[-•*]\s*(.+?)(?=\n[-•*]|\n\n|$)',  # Improved to capture full list items
+            r'(?:^|\n)\d+[.)]\s*(.+?)(?=\n\d+[.)]|\n\n|$)',     # Improved for numbered lists
+            r'(?:^|\n)(?:[a-z][.)]\s*)?(.+?)(?=\n[a-z][.)]|\n\n|$)'  # Letter lists
         ]
         
         for pattern in list_patterns:
-            matches = re.findall(pattern, text, re.MULTILINE)
+            matches = re.findall(pattern, text, re.MULTILINE | re.DOTALL)
             for match in matches:
                 point = match.strip()
-                if 20 < len(point) < 200:
+                # Clean up the point
+                point = re.sub(r'\s+', ' ', point)  # Normalize whitespace
+                if 20 < len(point) < 400:  # Increased max length for richer content
                     key_points.append(point)
         
         # Look for key sentences if no lists found
         if not key_points:
             sentences = self._split_into_sentences(text)
             for sentence in sentences:
-                if self._is_key_sentence(sentence):
-                    key_points.append(sentence)
+                if self._is_key_sentence(sentence) or len(sentence.split()) > 10:
+                    # Clean and add complete sentences
+                    clean_sentence = sentence.strip()
+                    if not clean_sentence.endswith('.'):
+                        clean_sentence += '.'
+                    key_points.append(clean_sentence)
         
         # Remove duplicates while preserving order
         seen = set()
         unique_points = []
         for point in key_points:
-            if point.lower() not in seen:
-                seen.add(point.lower())
+            point_lower = point.lower().strip()
+            if point_lower not in seen and len(point) > 20:
+                seen.add(point_lower)
                 unique_points.append(point)
         
-        return unique_points
+        return unique_points[:8]  # Return more points for better coverage
     
     def _enrich_key_points_with_gpt(self, text: str, basic_points: List[str]) -> List[str]:
         """Enrich key points using GPT-4 Turbo with full context"""
@@ -311,28 +318,30 @@ TASK: Transform these basic points into rich, comprehensive slide content that:
 7. MAKES points memorable with analogies or real-world connections
 
 OUTPUT FORMAT:
-Return a JSON array of enriched points. Each point should be:
+Return a JSON object with a "points" array containing the enriched points. Each point should be:
 - 40-60 words long
 - Self-contained and meaningful
 - Directly applicable to their role
 - Engaging and educational
 
 Example format:
-[
-  "Master financial forecasting by leveraging Excel's advanced functions like FORECAST.ETS for time-series predictions. This skill transforms raw data into strategic insights, enabling you to predict quarterly revenues with 85% accuracy and support executive decision-making.",
-  "Implement variance analysis workflows that compare actual vs. budgeted performance across departments. Use PowerBI dashboards to visualize deviations exceeding 10%, creating actionable reports that help managers course-correct within the same quarter."
-]
+{{
+  "points": [
+    "Master financial forecasting by leveraging Excel's advanced functions like FORECAST.ETS for time-series predictions. This skill transforms raw data into strategic insights, enabling you to predict quarterly revenues with 85% accuracy and support executive decision-making.",
+    "Implement variance analysis workflows that compare actual vs. budgeted performance across departments. Use PowerBI dashboards to visualize deviations exceeding 10%, creating actionable reports that help managers course-correct within the same quarter."
+  ]
+}}
 
 Generate 4-6 rich, detailed points that transform this content into an engaging learning experience.
 """
             
-            # Call GPT-4 Turbo
+            # Call GPT-4 Turbo with proper error handling
             response = openai_client.chat.completions.create(
                 model="gpt-4-turbo",
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert instructional designer creating rich, detailed slide content for professional education. Transform basic points into comprehensive, engaging learning content."
+                        "content": "You are an expert instructional designer creating rich, detailed slide content for professional education. Transform basic points into comprehensive, engaging learning content. Always return valid JSON."
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -341,36 +350,41 @@ Generate 4-6 rich, detailed points that transform this content into an engaging 
                 max_tokens=1000
             )
             
-            # Parse response
-            result = json.loads(response.choices[0].message.content)
+            # Parse response safely
+            try:
+                result = json.loads(response.choices[0].message.content)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse GPT-4 JSON response: {e}")
+                logger.debug(f"Raw response: {response.choices[0].message.content}")
+                return basic_points
             
-            # Extract points from various possible formats
-            if isinstance(result, list):
-                enriched_points = result
-            elif isinstance(result, dict):
-                # Handle different possible keys
-                enriched_points = (
-                    result.get('points', []) or 
-                    result.get('enriched_points', []) or 
-                    result.get('content', []) or
-                    []
-                )
+            # Extract points from the expected format
+            enriched_points = []
+            if isinstance(result, dict) and 'points' in result:
+                enriched_points = result['points']
             else:
-                enriched_points = []
+                logger.warning(f"Unexpected GPT-4 response format: {type(result)}")
+                return basic_points
             
             # Validate and clean points
             valid_points = []
             for point in enriched_points:
                 if isinstance(point, str) and 20 < len(point) < 500:
-                    valid_points.append(point.strip())
+                    # Clean any residual formatting
+                    cleaned_point = point.strip()
+                    # Ensure proper sentence ending
+                    if cleaned_point and not cleaned_point[-1] in '.!?':
+                        cleaned_point += '.'
+                    valid_points.append(cleaned_point)
             
             # If we got good enriched content, use it; otherwise fall back
             if len(valid_points) >= 2:
                 logger.info(f"✅ GPT enriched {len(basic_points)} basic points into {len(valid_points)} rich points")
-                return valid_points[:6]  # Limit to 6 points max
+                # Return enriched points, maintaining quality over quantity
+                return valid_points[:5]  # Limit to 5 points for better slide focus
             else:
                 logger.warning("GPT enrichment produced insufficient points, using basic extraction")
-                return basic_points
+                return basic_points[:5]  # Also limit basic points
                 
         except Exception as e:
             logger.error(f"GPT enrichment failed: {e}")
@@ -508,12 +522,22 @@ immediately apply in your professional role.
         key_points = section_data.get('key_points', [])
         examples = section_data.get('examples', [])
         
-        # Determine number of slides needed
+        # Determine number of slides needed based on content richness
         content_length = len(' '.join(paragraphs).split())
-        num_slides = max(1, min(3, content_length // 300))  # 1-3 slides per section
+        num_key_points = len(key_points)
+        
+        # Calculate optimal number of slides (2-4 slides per section for better focus)
+        if num_key_points <= 4:
+            num_slides = 1
+        elif num_key_points <= 8:
+            num_slides = 2
+        elif num_key_points <= 12:
+            num_slides = 3
+        else:
+            num_slides = min(4, max(1, content_length // 250))  # Max 4 slides
         
         # Distribute content across slides
-        points_per_slide = len(key_points) // num_slides if num_slides > 0 else len(key_points)
+        points_per_slide = max(3, (len(key_points) + num_slides - 1) // num_slides)  # At least 3 points per slide
         
         for i in range(num_slides):
             slide_id = f"slide_{start_slide_id + i}"
@@ -530,7 +554,15 @@ immediately apply in your professional role.
                 additional_points = self._extract_key_sentences(paragraphs[para_idx])
                 slide_points.extend(additional_points[:self.min_points_per_slide - len(slide_points)])
             
-            # Limit points
+            # If we have examples, integrate them into the points
+            if examples and i < len(examples):
+                example = examples[i]
+                # Add example as a point if we have room
+                if len(slide_points) < self.max_points_per_slide:
+                    example_point = f"Example: {example['text'][:100]}..."
+                    slide_points.append(example_point)
+            
+            # Limit points but ensure they're complete
             slide_points = slide_points[:self.max_points_per_slide]
             
             # Create detailed notes from corresponding paragraph
@@ -589,37 +621,49 @@ immediately apply in your professional role.
             except Exception as e:
                 logger.warning(f"Failed to generate enriched speaker notes: {e}")
         
-        # Fallback to basic notes generation
-        # Start with context
+        # Fallback to basic notes generation with better structure
+        # Start with engaging context
         section_intro = {
-            'introduction': "Let's begin by understanding",
-            'core_content': "Now, let's dive into the core concepts",
-            'practical_applications': "Here's how you can apply this knowledge",
-            'case_studies': "Let's look at a real-world example",
-            'assessments': "Let's check your understanding"
+            'introduction': "Welcome! Let's begin by exploring the fundamentals",
+            'core_content': "Now we'll dive deep into the essential concepts",
+            'practical_applications': "Time to put theory into practice",
+            'case_studies': "Let's examine a real-world scenario",
+            'assessments': "Let's validate your understanding"
         }
         
-        notes = section_intro.get(section_name, "Let's explore") + ". "
+        notes = section_intro.get(section_name, "Let's explore this important topic") + ". "
         
-        # Add main content, avoiding repetition of bullet points
-        # Remove content that's already in points
+        # Add contextual bridge
+        if points:
+            notes += f"In this slide, we'll cover {len(points)} key concepts that are essential for your professional development. "
+        
+        # Extract the essence of the paragraph without duplicating points
         cleaned_paragraph = paragraph
         for point in points:
-            cleaned_paragraph = cleaned_paragraph.replace(point, '')
+            # Remove similar content to avoid repetition
+            point_words = point.lower().split()[:5]  # First 5 words
+            pattern = r'\b' + r'\s*'.join(re.escape(word) for word in point_words)
+            cleaned_paragraph = re.sub(pattern, '', cleaned_paragraph, flags=re.IGNORECASE)
         
-        # Add remaining content
+        # Add supporting context from the paragraph
         sentences = self._split_into_sentences(cleaned_paragraph)
-        relevant_sentences = [s for s in sentences if len(s) > 30][:3]
+        supporting_sentences = []
+        for s in sentences:
+            if len(s) > 40 and not any(point[:20].lower() in s.lower() for point in points):
+                supporting_sentences.append(s)
         
-        if relevant_sentences:
-            notes += ' '.join(relevant_sentences)
+        if supporting_sentences:
+            notes += ' '.join(supporting_sentences[:2]) + " "
         
-        # Ensure proper length
+        # Add transition or summary
+        notes += "Pay close attention to each point as we discuss them - they build upon each other to create a comprehensive understanding."
+        
+        # Ensure optimal length
         words = notes.split()
         if len(words) > self.max_note_length:
             notes = ' '.join(words[:self.max_note_length]) + "..."
-        elif len(words) < 50:
-            notes += " This is a key concept that will help you in your role."
+        elif len(words) < self.ideal_note_length:
+            notes += " Each concept presented here has been carefully selected to enhance your skills and knowledge in this area."
         
         return notes.strip()
     
@@ -822,11 +866,23 @@ knowledge to apply in your role. Keep these points in mind as you move forward.
     def _split_into_sentences(self, text: str) -> List[str]:
         """Split text into sentences"""
         if NLTK_AVAILABLE:
-            return sent_tokenize(text)
+            sentences = sent_tokenize(text)
         else:
-            # Basic sentence splitting
-            sentences = re.split(r'[.!?]+', text)
-            return [s.strip() for s in sentences if s.strip()]
+            # Improved sentence splitting that preserves punctuation
+            # Split on sentence endings but keep the punctuation
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+        
+        # Clean and validate sentences
+        clean_sentences = []
+        for s in sentences:
+            s = s.strip()
+            if len(s) > 20:  # Minimum sentence length
+                # Ensure sentence ends with punctuation
+                if s and not s[-1] in '.!?':
+                    s += '.'
+                clean_sentences.append(s)
+        
+        return clean_sentences
     
     def _is_key_sentence(self, sentence: str) -> bool:
         """Determine if a sentence is key/important"""

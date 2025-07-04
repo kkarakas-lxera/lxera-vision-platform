@@ -1,12 +1,17 @@
 
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Puzzle, Users, Calendar, BarChart3, ArrowRight, CheckCircle, Zap, Link as LinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import DemoModal from "@/components/DemoModal";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const Integrations = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const integrationCategories = [
     {
       title: "Learning Management Systems",
@@ -86,10 +91,19 @@ const Integrations = () => {
             create a unified learning ecosystem that works within your current workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
+              onClick={() => setIsContactSalesModalOpen(true)}
+            >
               Talk to Our Experts
             </Button>
           </div>
@@ -215,19 +229,37 @@ const Integrations = () => {
             Explore our integrations and discover how LXERA fits seamlessly into your existing workflow
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
-              <Link to="/solutions">
-                Talk to Our Experts
-              </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
+              onClick={() => setIsContactSalesModalOpen(true)}
+            >
+              Talk to Our Experts
             </Button>
           </div>
         </div>
       </section>
 
       <Footer />
+      
+      {/* Modals */}
+      <DemoModal 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)}
+        source="Integrations Page"
+      />
+      <ContactSalesModal 
+        isOpen={isContactSalesModalOpen} 
+        onClose={() => setIsContactSalesModalOpen(false)}
+      />
     </div>
   );
 };

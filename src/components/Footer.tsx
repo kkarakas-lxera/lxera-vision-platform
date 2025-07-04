@@ -45,17 +45,17 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/solutions/citizen-developer-enablement" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                <Link to="/solutions/citizen-led-innovation" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Citizen Developer Enablement
                 </Link>
               </li>
               <li>
-                <Link to="/solutions/learning-analytics-insights" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                <Link to="/solutions/learning-analytics-engagement" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Learning Analytics
                 </Link>
               </li>
               <li>
-                <Link to="/solutions/scalable-learning-support-mentorship" className="text-white/70 hover:text-future-green transition-colors duration-300">
+                <Link to="/solutions/scalable-learning-support" className="text-white/70 hover:text-future-green transition-colors duration-300">
                   Scalable Learning Support
                 </Link>
               </li>
@@ -133,13 +133,13 @@ const Footer = () => {
             © {currentYear} All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/legal/privacy-policy" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            <Link to="/legal/privacy" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Privacy Policy
             </Link>
-            <Link to="/legal/terms-of-service" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            <Link to="/legal/terms" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Terms of Service
             </Link>
-            <Link to="/legal/cookie-policy" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
+            <Link to="/legal/cookies" className="text-white/50 hover:text-future-green text-sm transition-colors duration-300">
               Cookie Policy
             </Link>
           </div>

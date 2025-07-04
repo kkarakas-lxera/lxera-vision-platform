@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ticketService } from "@/services/ticketService";
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -47,8 +48,19 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - replace with actual waitlist service
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await ticketService.submitTicket({
+        ticketType: 'early_access',
+        fullName: formData.fullName,
+        email: formData.email,
+        interest: formData.interest,
+        firstName: '', // Will be handled by service
+        lastName: '', // Will be handled by service
+        source: 'Waitlist Modal'
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to join waitlist');
+      }
       
       setIsSubmitted(true);
       toast({
@@ -59,7 +71,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
       console.error('Waitlist submission failed:', error);
       toast({
         title: "Submission Failed",
-        description: "There was an error joining the waitlist. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error joining the waitlist. Please try again.",
         variant: "destructive",
       });
     } finally {

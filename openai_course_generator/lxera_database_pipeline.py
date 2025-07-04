@@ -642,67 +642,106 @@ class LXERADatabasePipeline:
             return None
     
     async def _retrieve_skills_gaps(self, employee_id: str, position: str) -> List[Dict[str, Any]]:
-        """Retrieve skills gap analysis from database."""
+        """Retrieve skills gap analysis from database by comparing position requirements with employee skills."""
         try:
-            # Get skills profile with gap analysis
-            response = self.supabase.table('st_employee_skills_profile').select(
-                '*'
+            # Get employee skills profile
+            profile_response = self.supabase.table('st_employee_skills_profile').select(
+                'extracted_skills, technical_skills, soft_skills, current_position_id'
             ).eq('employee_id', employee_id).single().execute()
             
-            if not response.data or not response.data.get('gap_analysis_completed_at'):
-                raise Exception("Skills gap analysis not found or not completed")
+            if not profile_response.data:
+                raise Exception("Employee skills profile not found")
             
-            profile = response.data
+            profile = profile_response.data
+            
+            # Get position requirements
+            position_response = self.supabase.table('st_company_positions').select(
+                'required_skills, nice_to_have_skills'
+            ).eq('id', profile['current_position_id']).single().execute()
+            
+            if not position_response.data:
+                raise Exception("Position requirements not found")
+            
+            position_data = position_response.data
+            required_skills = position_data.get('required_skills', [])
+            
+            # Create a lookup of employee's current skills
+            employee_skills = {}
+            
+            # Process extracted_skills (this contains all skills from CV analysis)
+            if profile.get('extracted_skills') and isinstance(profile['extracted_skills'], list):
+                for skill in profile['extracted_skills']:
+                    skill_name = skill.get('skill_name', '').lower()
+                    employee_skills[skill_name] = skill.get('proficiency_level', 3)
+            
+            # Process technical_skills
+            if profile.get('technical_skills') and isinstance(profile['technical_skills'], list):
+                for skill in profile['technical_skills']:
+                    skill_name = skill.get('skill_name', '').lower()
+                    employee_skills[skill_name] = skill.get('proficiency_level', 3)
+            
+            # Process soft_skills
+            if profile.get('soft_skills') and isinstance(profile['soft_skills'], list):
+                for skill in profile['soft_skills']:
+                    skill_name = skill.get('skill_name', '').lower()
+                    employee_skills[skill_name] = skill.get('proficiency_level', 3)
+            
             skills_gaps = []
             
-            # Extract technical skills gaps - handle array format from database
-            if profile.get('technical_skills') and isinstance(profile['technical_skills'], list):
-                for skill_data in profile['technical_skills']:
-                    # For skills analysis, assume all skills have some improvement potential
-                    skill_name = skill_data.get('skill_name', 'Unknown Skill')
-                    current_level = skill_data.get('proficiency_level', 3)
-                    required_level = 5  # Assume target level is expert
+            # Analyze each required skill
+            for required_skill in required_skills:
+                skill_name = required_skill.get('skill_name', '')
+                required_level = required_skill.get('proficiency_level', 3)
+                is_mandatory = required_skill.get('is_mandatory', False)
+                skill_type = required_skill.get('skill_type', 'technical')
+                
+                # Check if employee has this skill
+                employee_skill_key = skill_name.lower()
+                current_level = employee_skills.get(employee_skill_key, 0)  # 0 if skill not found
+                
+                # Calculate gap
+                if current_level < required_level:
+                    gap_severity = self._calculate_gap_severity(current_level, required_level, is_mandatory)
                     
-                    # Calculate gap severity based on proficiency difference
-                    if current_level < required_level:
-                        gap_severity = 'critical' if current_level < 2 else 'moderate' if current_level < 4 else 'minor'
-                        skills_gaps.append({
-                            'skill_name': skill_name,
-                            'gap_severity': gap_severity,
-                            'current_level': current_level,
-                            'required_level': required_level,
-                            'skill_type': 'technical'
-                        })
+                    skills_gaps.append({
+                        'skill_name': skill_name,
+                        'gap_severity': gap_severity,
+                        'current_level': current_level,
+                        'required_level': required_level,
+                        'skill_type': skill_type,
+                        'is_mandatory': is_mandatory,
+                        'gap_points': required_level - current_level,
+                        'learning_priority': 'high' if is_mandatory else 'medium'
+                    })
             
-            # Extract soft skills gaps - handle array format from database
-            if profile.get('soft_skills') and isinstance(profile['soft_skills'], list):
-                for skill_data in profile['soft_skills']:
-                    # For skills analysis, assume all skills have some improvement potential
-                    skill_name = skill_data.get('skill_name', 'Unknown Skill')
-                    current_level = skill_data.get('proficiency_level', 3)
-                    required_level = 5  # Assume target level is expert
-                    
-                    # Calculate gap severity based on proficiency difference
-                    if current_level < required_level:
-                        gap_severity = 'critical' if current_level < 2 else 'moderate' if current_level < 4 else 'minor'
-                        skills_gaps.append({
-                            'skill_name': skill_name,
-                            'gap_severity': gap_severity,
-                            'current_level': current_level,
-                            'required_level': required_level,
-                            'skill_type': 'soft'
-                        })
+            # Sort by priority: mandatory gaps first, then by gap size
+            skills_gaps.sort(key=lambda x: (
+                0 if x['is_mandatory'] else 1,  # Mandatory first
+                -x['gap_points']  # Larger gaps first
+            ))
             
-            # Sort by severity
-            severity_order = {'critical': 0, 'major': 1, 'moderate': 2, 'minor': 3}
-            skills_gaps.sort(key=lambda x: severity_order.get(x['gap_severity'], 4))
+            logger.info(f"📊 Found {len(skills_gaps)} skills gaps for employee")
+            for gap in skills_gaps[:3]:  # Log top 3 gaps
+                logger.info(f"   - {gap['skill_name']}: {gap['current_level']}/{gap['required_level']} ({gap['gap_severity']})")
             
-            logger.info(f"📊 Retrieved {len(skills_gaps)} skills gaps for employee")
             return skills_gaps
             
         except Exception as e:
             logger.error(f"Failed to retrieve skills gaps: {e}")
             raise
+    
+    def _calculate_gap_severity(self, current_level: int, required_level: int, is_mandatory: bool) -> str:
+        """Calculate gap severity based on skill levels and importance."""
+        gap_size = required_level - current_level
+        
+        if current_level == 0:  # Skill completely missing
+            return 'critical' if is_mandatory else 'high'
+        elif gap_size >= 3:
+            return 'high'
+        elif gap_size >= 2:
+            return 'moderate'
+        else:
+            return 'minor'
     
     
     async def _create_course_assignment(

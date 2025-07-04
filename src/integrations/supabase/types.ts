@@ -1159,8 +1159,9 @@ export type Database = {
           },
         ]
       }
-      demo_requests: {
+      tickets: {
         Row: {
+          budget_range: string | null
           company: string
           company_size: string | null
           country: string | null
@@ -1175,12 +1176,17 @@ export type Database = {
           phone: string | null
           processed_at: string | null
           processed_by: string | null
+          referral_source: string | null
           source: string | null
           status: string | null
           submitted_at: string | null
+          ticket_type: 'demo_request' | 'contact_sales' | 'early_access'
+          timeline: string | null
           updated_at: string | null
+          use_case: string | null
         }
         Insert: {
+          budget_range?: string | null
           company: string
           company_size?: string | null
           country?: string | null
@@ -1195,12 +1201,17 @@ export type Database = {
           phone?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          referral_source?: string | null
           source?: string | null
           status?: string | null
           submitted_at?: string | null
+          ticket_type?: 'demo_request' | 'contact_sales' | 'early_access'
+          timeline?: string | null
           updated_at?: string | null
+          use_case?: string | null
         }
         Update: {
+          budget_range?: string | null
           company?: string
           company_size?: string | null
           country?: string | null
@@ -1215,10 +1226,14 @@ export type Database = {
           phone?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          referral_source?: string | null
           source?: string | null
           status?: string | null
           submitted_at?: string | null
+          ticket_type?: 'demo_request' | 'contact_sales' | 'early_access'
+          timeline?: string | null
           updated_at?: string | null
+          use_case?: string | null
         }
         Relationships: []
       }

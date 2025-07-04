@@ -1,11 +1,16 @@
 
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, Users, Target, TrendingUp, Eye, Clock, Award, ArrowRight, CheckCircle } from "lucide-react";
+import DemoModal from "@/components/DemoModal";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const EngagementInsights = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const insightFeatures = [
     {
       title: "Real-Time Engagement Tracking",
@@ -76,7 +81,11 @@ const EngagementInsights = () => {
             and accelerate learning outcomes across your organization.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
@@ -179,10 +188,19 @@ const EngagementInsights = () => {
             Get actionable insights that drive better learning outcomes and business results
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
+              onClick={() => setIsContactSalesModalOpen(true)}
+            >
               Talk to Our Experts
             </Button>
           </div>
@@ -190,6 +208,17 @@ const EngagementInsights = () => {
       </section>
 
       <Footer />
+      
+      {/* Modals */}
+      <DemoModal 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)}
+        source="Engagement Insights Page"
+      />
+      <ContactSalesModal 
+        isOpen={isContactSalesModalOpen} 
+        onClose={() => setIsContactSalesModalOpen(false)}
+      />
     </div>
   );
 };

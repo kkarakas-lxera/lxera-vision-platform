@@ -26,43 +26,24 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import DemoRequestDetailModal from '@/components/admin/DemoRequestsManagement/DemoRequestDetailModal';
+import TicketDetailModal from '@/components/admin/TicketsManagement/TicketDetailModal';
+import { ticketService, TicketRecord } from '@/services/ticketService';
 
 interface DashboardStats {
   totalEmployees: number;
   totalCourses: number;
   activeLearners: number;
   completionRate: number;
-  totalDemoRequests: number;
-  newDemoRequests: number;
+  totalTickets: number;
+  newTickets: number;
   totalCompanies: number;
   activeCompanies: number;
 }
 
-interface LocalDemoRequestRecord {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  company: string;
-  status: string;
-  created_at: string;
-  job_title?: string;
-  phone?: string;
-  company_size?: string;
-  country?: string;
-  message?: string;
-  source?: string;
-  notes?: string;
-  processed_by?: string;
-  processed_at?: string;
-  submitted_at?: string;
-  updated_at?: string;
-}
 
 interface RecentActivity {
   id: string;
-  type: 'demo_request' | 'company_joined' | 'course_completed';
+  type: 'ticket' | 'company_joined' | 'course_completed';
   title: string;
   description: string;
   timestamp: string;
@@ -77,16 +58,16 @@ const AdminDashboard: React.FC = () => {
     totalCourses: 0,
     activeLearners: 0,
     completionRate: 0,
-    totalDemoRequests: 0,
-    newDemoRequests: 0,
+    totalTickets: 0,
+    newTickets: 0,
     totalCompanies: 0,
     activeCompanies: 0
   });
-  const [recentDemoRequests, setRecentDemoRequests] = useState<LocalDemoRequestRecord[]>([]);
+  const [recentTickets, setRecentTickets] = useState<TicketRecord[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDemoRequest, setSelectedDemoRequest] = useState<LocalDemoRequestRecord | null>(null);
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
   useEffect(() => {
     if (userProfile) {
@@ -103,13 +84,13 @@ const AdminDashboard: React.FC = () => {
         employeesData, 
         coursesData, 
         assignmentsData, 
-        demoRequestsData,
+        ticketsData,
         companiesData
       ] = await Promise.all([
         supabase.from('employees').select('id', { count: 'exact' }),
         supabase.from('cm_module_content').select('content_id', { count: 'exact' }),
         supabase.from('course_assignments').select('id, status, progress_percentage'),
-        supabase.from('demo_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('tickets').select('*').order('submitted_at', { ascending: false }),
         supabase.from('companies').select('id, created_at', { count: 'exact' })
       ]);
 
@@ -120,8 +101,8 @@ const AdminDashboard: React.FC = () => {
       const completedAssignments = assignments.filter(a => a.status === 'completed').length;
       const completionRate = assignments.length > 0 ? (completedAssignments / assignments.length) * 100 : 0;
 
-      const demoRequests = demoRequestsData.data || [];
-      const newDemoRequests = demoRequests.filter(r => r.status === 'new').length;
+      const tickets = ticketsData.data || [];
+      const newTickets = tickets.filter(t => t.status === 'new').length;
 
       const totalCompanies = companiesData.count || 0;
       const activeCompanies = companiesData.data?.filter(c => {
@@ -136,47 +117,31 @@ const AdminDashboard: React.FC = () => {
         totalCourses,
         activeLearners,
         completionRate,
-        totalDemoRequests: demoRequests.length,
-        newDemoRequests,
+        totalTickets: tickets.length,
+        newTickets,
         totalCompanies,
         activeCompanies
       });
 
-      // Map demo requests
-      const mappedRequests: LocalDemoRequestRecord[] = demoRequests.slice(0, 5).map(req => ({
-        id: req.id,
-        first_name: req.first_name,
-        last_name: req.last_name,
-        email: req.email,
-        company: req.company,
-        status: req.status,
-        created_at: req.created_at,
-        job_title: req.job_title || '',
-        phone: req.phone,
-        company_size: req.company_size,
-        country: req.country,
-        message: req.message,
-        source: req.source,
-        notes: req.notes,
-        processed_by: req.processed_by,
-        processed_at: req.processed_at,
-        submitted_at: req.submitted_at,
-        updated_at: req.updated_at
-      }));
-      
-      setRecentDemoRequests(mappedRequests);
+      // Set recent tickets
+      setRecentTickets(tickets.slice(0, 5) as TicketRecord[]);
 
       // Create recent activity
       const activities: RecentActivity[] = [];
       
-      // Add recent demo requests to activity
-      demoRequests.slice(0, 3).forEach(req => {
+      // Add recent tickets to activity
+      tickets.slice(0, 3).forEach(ticket => {
+        const typeLabels = {
+          demo_request: 'Demo Request',
+          contact_sales: 'Sales Contact',
+          early_access: 'Early Access'
+        };
         activities.push({
-          id: req.id,
-          type: 'demo_request',
-          title: 'New Demo Request',
-          description: `${req.first_name} ${req.last_name} from ${req.company}`,
-          timestamp: req.created_at,
+          id: ticket.id,
+          type: 'ticket',
+          title: `New ${typeLabels[ticket.ticket_type as keyof typeof typeLabels]}`,
+          description: `${ticket.first_name} ${ticket.last_name}${ticket.company ? ` from ${ticket.company}` : ''}`,
+          timestamp: ticket.submitted_at,
           icon: <Mail className="h-4 w-4" />
         });
       });
@@ -193,9 +158,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleViewDemoDetails = (request: LocalDemoRequestRecord) => {
-    setSelectedDemoRequest(request);
-    setIsDemoModalOpen(true);
+  const handleViewTicketDetails = (ticket: TicketRecord) => {
+    setSelectedTicket(ticket);
+    setIsTicketModalOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -311,15 +276,15 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/demo-requests')}>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/tickets')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Demo Requests</p>
-                <p className="text-3xl font-bold mt-1">{stats.totalDemoRequests}</p>
-                {stats.newDemoRequests > 0 && (
+                <p className="text-sm font-medium text-muted-foreground">Customer Tickets</p>
+                <p className="text-3xl font-bold mt-1">{stats.totalTickets}</p>
+                {stats.newTickets > 0 && (
                   <Badge variant="default" className="mt-1">
-                    {stats.newDemoRequests} new
+                    {stats.newTickets} new
                   </Badge>
                 )}
               </div>
@@ -403,10 +368,10 @@ const AdminDashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => navigate('/admin/demo-requests')}
+              onClick={() => navigate('/admin/tickets')}
             >
               <Mail className="h-4 w-4 mr-2" />
-              Demo Requests
+              Customer Tickets
             </Button>
             <Button 
               variant="outline" 
@@ -428,54 +393,62 @@ const AdminDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Demo Requests Table */}
+      {/* Recent Tickets Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Recent Demo Requests</CardTitle>
-            <CardDescription>Latest demo requests from potential customers</CardDescription>
+            <CardTitle>Recent Tickets</CardTitle>
+            <CardDescription>Latest customer interactions across all types</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/admin/demo-requests')}>
+          <Button variant="outline" size="sm" onClick={() => navigate('/admin/tickets')}>
             View All
             <ArrowUpRight className="h-4 w-4 ml-1" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {recentDemoRequests.map((request) => (
-              <div 
-                key={request.id} 
-                className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => handleViewDemoDetails(request)}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-medium">
-                        {request.first_name} {request.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{request.company}</p>
+            {recentTickets.map((ticket) => {
+              const typeIcons = {
+                demo_request: '🎯',
+                contact_sales: '💰',
+                early_access: '🚀'
+              };
+              return (
+                <div 
+                  key={ticket.id} 
+                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => handleViewTicketDetails(ticket)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">{typeIcons[ticket.ticket_type]}</span>
+                      <div>
+                        <p className="font-medium">
+                          {ticket.first_name} {ticket.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{ticket.company || ticket.ticket_type.replace(/_/g, ' ')}</p>
+                      </div>
+                      {getStatusBadge(ticket.status)}
                     </div>
-                    {getStatusBadge(request.status)}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{ticket.email}</span>
+                    <span>{formatTimeAgo(ticket.submitted_at)}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{request.email}</span>
-                  <span>{formatTimeAgo(request.created_at)}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      {/* Demo Request Detail Modal */}
-      <DemoRequestDetailModal
-        request={selectedDemoRequest}
-        isOpen={isDemoModalOpen}
+      {/* Ticket Detail Modal */}
+      <TicketDetailModal
+        ticket={selectedTicket}
+        isOpen={isTicketModalOpen}
         onClose={() => {
-          setIsDemoModalOpen(false);
-          setSelectedDemoRequest(null);
+          setIsTicketModalOpen(false);
+          setSelectedTicket(null);
         }}
         onStatusUpdate={fetchDashboardData}
       />

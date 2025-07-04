@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
-interface DemoRequestPayload {
+interface EarlyAccessPayload {
   firstName: string
   lastName: string
   email: string
@@ -12,12 +12,9 @@ interface DemoRequestPayload {
   companySize?: string
   country?: string
   message?: string
-  source?: string
-  ticketType?: 'demo_request' | 'contact_sales' | 'early_access'
-  budgetRange?: string
-  timeline?: string
   useCase?: string
   referralSource?: string
+  source?: string
 }
 
 serve(async (req) => {
@@ -32,7 +29,7 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const payload: DemoRequestPayload = await req.json()
+    const payload: EarlyAccessPayload = await req.json()
 
     // Validate required fields
     if (!payload.firstName || !payload.lastName || !payload.email || !payload.company) {
@@ -45,7 +42,7 @@ serve(async (req) => {
       )
     }
 
-    // Insert ticket using service role key (bypasses RLS)
+    // Insert early access ticket using service role key (bypasses RLS)
     const { data, error } = await supabase
       .from('tickets')
       .insert({
@@ -59,9 +56,7 @@ serve(async (req) => {
         country: payload.country || null,
         message: payload.message || null,
         source: payload.source || 'Website',
-        ticket_type: payload.ticketType || 'demo_request',
-        budget_range: payload.budgetRange || null,
-        timeline: payload.timeline || null,
+        ticket_type: 'early_access',
         use_case: payload.useCase || null,
         referral_source: payload.referralSource || null,
       })
@@ -69,9 +64,9 @@ serve(async (req) => {
       .single()
 
     if (error) {
-      console.error('Error inserting demo request:', error)
+      console.error('Error inserting early access ticket:', error)
       return new Response(
-        JSON.stringify({ error: 'Failed to submit demo request' }),
+        JSON.stringify({ error: 'Failed to submit early access request' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

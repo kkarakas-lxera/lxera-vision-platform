@@ -1,11 +1,16 @@
 
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lightbulb, Users, Target, Brain, BarChart3, MessageCircle, ArrowRight, CheckCircle, Zap } from "lucide-react";
+import DemoModal from "@/components/DemoModal";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const InnovationHub = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const hubFeatures = [
     {
       title: "AI-Powered Ideation",
@@ -77,7 +82,11 @@ const InnovationHub = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
@@ -181,10 +190,19 @@ const InnovationHub = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
+              onClick={() => setIsContactSalesModalOpen(true)}
+            >
               Talk to Our Experts
             </Button>
           </div>
@@ -192,6 +210,17 @@ const InnovationHub = () => {
       </section>
 
       <Footer />
+      
+      {/* Modals */}
+      <DemoModal 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)}
+        source="Innovation Hub Page"
+      />
+      <ContactSalesModal 
+        isOpen={isContactSalesModalOpen} 
+        onClose={() => setIsContactSalesModalOpen(false)}
+      />
     </div>
   );
 };

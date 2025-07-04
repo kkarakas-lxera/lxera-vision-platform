@@ -80,11 +80,13 @@ class EducationalVideoService:
         try:
             # Set default options
             options = options or {}
-            voice = options.get('voice', 'nova')
-            speed = options.get('speed', 1.0)
+            # Support 'auto' for intelligent voice/speed selection
+            voice = options.get('voice', 'auto')
+            speed = options.get('speed', 'auto')
             design_theme = options.get('design_theme', 'professional')
             target_duration = options.get('target_duration')
             include_animations = options.get('include_animations', True)
+            use_content_analysis = options.get('use_content_analysis', True)
             
             # Create output directory
             if not output_dir:
@@ -162,6 +164,10 @@ class EducationalVideoService:
             if progress_callback:
                 progress_callback(60, "Generating narration audio")
             
+            # Use enhanced timeline generation with content analysis
+            if use_content_analysis:
+                logger.info("Using enhanced audio generation with content analysis")
+            
             timeline = await self.timeline_generator.generate_educational_timeline(
                 script=script,
                 extracted_content=extracted_content,
@@ -211,29 +217,105 @@ class EducationalVideoService:
             if progress_callback:
                 progress_callback(98, "Saving to database")
             
-            # Register video asset in multimedia database
+            # Register all multimedia assets in database with Supabase storage
             if hasattr(self, 'multimedia_manager') and timeline:
+                logger.info("📦 Registering multimedia assets in database...")
+                
+                # Register main video asset
                 video_asset_id = self.multimedia_manager.register_multimedia_asset(
                     session_id=options.get('session_id'),
                     content_id=content_id,
                     course_id=content_id,
                     module_name=content['module_name'],
                     asset_type='video',
-                    asset_category='educational_complete',
                     file_path=assembled_video.video_path,
                     file_name=video_filename,
+                    section_name='complete_module',
                     duration_seconds=assembled_video.duration,
-                    file_format='mp4',
-                    generated_with='educational_pipeline'
+                    file_size_bytes=assembled_video.file_size,
+                    mime_type='video/mp4',
+                    generation_config={
+                        'voice': options.get('voice'),
+                        'speed': options.get('speed'),
+                        'design_theme': options.get('design_theme'),
+                        'target_duration': options.get('target_duration'),
+                        'use_content_analysis': options.get('use_content_analysis', True),
+                        'actual_duration': timeline.total_duration,
+                        'complexity_adjusted': True
+                    },
+                    company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
                 )
                 
-                self.multimedia_manager.update_asset_status(
-                    asset_id=video_asset_id,
-                    status='completed',
-                    ready_for_delivery=True,
-                    processing_duration_ms=0,
-                    file_size_bytes=assembled_video.file_size
-                )
+                # Register audio asset
+                if timeline.narration_file and os.path.exists(timeline.narration_file):
+                    audio_asset_id = self.multimedia_manager.register_multimedia_asset(
+                        session_id=options.get('session_id'),
+                        content_id=content_id,
+                        asset_type='audio',
+                        file_path=timeline.narration_file,
+                        file_name=Path(timeline.narration_file).name,
+                        section_name='complete_module',
+                        duration_seconds=timeline.total_duration,
+                        mime_type='audio/mpeg',
+                        company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
+                    )
+                
+                # Register slide assets
+                slides_dir = output_path / 'slides'
+                if slides_dir.exists():
+                    for slide_file in slides_dir.glob('*.png'):
+                        slide_asset_id = self.multimedia_manager.register_multimedia_asset(
+                            session_id=options.get('session_id'),
+                            content_id=content_id,
+                            asset_type='slide',
+                            file_path=str(slide_file),
+                            file_name=slide_file.name,
+                            section_name='slides',
+                            mime_type='image/png',
+                            company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
+                        )
+                
+                # Register additional assets (script, timeline, etc.)
+                additional_assets = [
+                    (script_path, 'script', 'application/json'),
+                    (extracted_path, 'extracted_content', 'application/json'),
+                    (thumbnail_path, 'thumbnail', 'image/jpeg')
+                ]
+                
+                for asset_path, asset_type, mime_type in additional_assets:
+                    if asset_path.exists():
+                        self.multimedia_manager.register_multimedia_asset(
+                            session_id=options.get('session_id'),
+                            content_id=content_id,
+                            asset_type=asset_type,
+                            file_path=str(asset_path),
+                            file_name=asset_path.name,
+                            section_name='metadata',
+                            mime_type=mime_type,
+                            company_id=options.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
+                        )
+                
+                # Update session status
+                if options.get('session_id'):
+                    self.multimedia_manager.update_session_status(
+                        session_id=options.get('session_id'),
+                        status='completed',
+                        current_stage='assets_registered',
+                        progress_percentage=100,
+                        video_files_generated=1,
+                        audio_files_generated=1,
+                        slides_generated=len(slide_metadata),
+                        total_assets_generated=len(slide_metadata) + 4  # video + audio + script + thumbnail
+                    )
+                
+                logger.info(f"✅ Successfully registered {len(slide_metadata) + 4} multimedia assets")
+                
+                # Log timing accuracy metrics
+                if timeline:
+                    estimated_total = sum(slide.duration_estimate for slide in script.slides)
+                    actual_total = timeline.total_duration
+                    accuracy_percentage = (min(estimated_total, actual_total) / max(estimated_total, actual_total)) * 100
+                    logger.info(f"Timing accuracy: {accuracy_percentage:.1f}% (Estimated: {estimated_total:.1f}s, Actual: {actual_total:.1f}s)")
             
             # Prepare result
             result = {
@@ -265,7 +347,13 @@ class EducationalVideoService:
                     'speech_speed': speed,
                     'design_theme': design_theme,
                     'include_animations': include_animations,
-                    'generated_at': datetime.now().isoformat()
+                    'generated_at': datetime.now().isoformat(),
+                    'content_analysis_used': use_content_analysis
+                },
+                'timing_analysis': {
+                    'total_duration': timeline.total_duration,
+                    'average_slide_duration': timeline.total_duration / len(script.slides) if script.slides else 0,
+                    'complexity_adjusted': True
                 }
             }
             

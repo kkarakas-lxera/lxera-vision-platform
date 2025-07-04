@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 import openai
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,8 @@ class SlideContent:
     duration_estimate: float  # seconds
     visual_cues: List[str] = field(default_factory=list)
     emphasis_points: List[str] = field(default_factory=list)
+    slide_id: str = field(default_factory=lambda: f"slide_{int(datetime.now().timestamp())}")
+    timing_cues: List[str] = field(default_factory=list)
 
 @dataclass
 class EducationalScript:
@@ -127,6 +130,55 @@ class EducationalScriptGenerator:
         )
         slides.append(title_slide)
         slide_number += 1
+        
+        # Content slides for each educational summary (limit to 3-4 sections)
+        for i, summary in enumerate(educational_summaries[:4]):  # Limit to 4 sections max
+            section_slides = self._create_section_slides_from_summary(
+                summary,
+                employee_context,
+                slide_number
+            )
+            slides.extend(section_slides)
+            slide_number += len(section_slides)
+        
+        # Summary slide
+        key_takeaways = self._extract_key_takeaways(sections)
+        summary_slide = self._create_summary_slide(
+            slide_number,
+            key_takeaways,
+            employee_context
+        )
+        slides.append(summary_slide)
+        
+        # Generate full narration
+        full_narration = self._combine_narration(slides, employee_context)
+        
+        # Calculate total duration
+        total_duration = sum(slide.duration_estimate for slide in slides)
+        
+        # Adjust timing if target duration specified
+        if target_duration:
+            target_seconds = target_duration * 60
+            if total_duration > target_seconds * 1.2:  # Too long
+                slides = self._compress_content(slides, target_seconds)
+                full_narration = self._combine_narration(slides, employee_context)
+                total_duration = sum(slide.duration_estimate for slide in slides)
+        
+        return EducationalScript(
+            module_name=content.get('module_name', 'Training Module'),
+            total_duration=total_duration,
+            slides=slides,
+            full_narration=full_narration,
+            learning_objectives=learning_objectives,
+            key_takeaways=key_takeaways,
+            metadata={
+                'content_id': content.get('content_id'),
+                'employee_name': employee_context.get('name'),
+                'generation_timestamp': datetime.now().isoformat(),
+                'word_count': len(full_narration.split()),
+                'slide_count': len(slides)
+            }
+        )
     
     def generate_section_script(
         self,
@@ -235,55 +287,6 @@ class EducationalScriptGenerator:
                 'generation_timestamp': datetime.now().isoformat()
             }
         )
-        
-        # Content slides for each educational summary (limit to 3-4 videos)
-        for i, summary in enumerate(educational_summaries[:4]):  # Limit to 4 sections max
-            section_slides = self._create_section_slides_from_summary(
-                summary,
-                employee_context,
-                slide_number
-            )
-            slides.extend(section_slides)
-            slide_number += len(section_slides)
-        
-        # Summary slide
-        key_takeaways = self._extract_key_takeaways(sections)
-        summary_slide = self._create_summary_slide(
-            slide_number,
-            key_takeaways,
-            employee_context
-        )
-        slides.append(summary_slide)
-        
-        # Generate full narration
-        full_narration = self._combine_narration(slides, employee_context)
-        
-        # Calculate total duration
-        total_duration = sum(slide.duration_estimate for slide in slides)
-        
-        # Adjust timing if target duration specified
-        if target_duration:
-            target_seconds = target_duration * 60
-            if total_duration > target_seconds * 1.2:  # Too long
-                slides = self._compress_content(slides, target_seconds)
-                full_narration = self._combine_narration(slides, employee_context)
-                total_duration = sum(slide.duration_estimate for slide in slides)
-        
-        return EducationalScript(
-            module_name=content.get('module_name', 'Training Module'),
-            total_duration=total_duration,
-            slides=slides,
-            full_narration=full_narration,
-            learning_objectives=learning_objectives,
-            key_takeaways=key_takeaways,
-            metadata={
-                'content_id': content.get('content_id'),
-                'employee_name': employee_context.get('name'),
-                'generation_timestamp': datetime.now().isoformat(),
-                'word_count': len(full_narration.split()),
-                'slide_count': len(slides)
-            }
-        )
     
     def _extract_content_sections(self, content: Dict[str, Any]) -> Dict[str, str]:
         """Extract and organize content sections"""
@@ -367,7 +370,7 @@ Let's begin by looking at what you'll learn today.
             title=module_name,
             bullet_points=bullet_points,
             speaker_notes=speaker_notes.strip(),
-            duration_estimate=20.0,  # 20 seconds for introduction
+            duration_estimate=self._estimate_duration(speaker_notes),
             visual_cues=["Professional setting", "Welcoming atmosphere"],
             emphasis_points=["specially designed", "excel in your role"]
         )
@@ -440,75 +443,285 @@ Let's begin by looking at what you'll learn today.
         return chunks
     
     def _extract_key_points(self, content: str) -> List[str]:
-        """Extract meaningful bullet points from GPT-4 enhanced content"""
+        """Extract meaningful bullet points from GPT-4 enhanced content with improved parsing"""
         if not self.openai_api_key:
             return self._fallback_key_points_extraction(content)
         
         try:
+            # First, check if API key is actually set
+            if not openai.api_key:
+                logger.warning("OpenAI API key not set, using fallback")
+                return self._fallback_key_points_extraction(content)
+            
             # Use GPT-4 to extract meaningful bullet points from enhanced content
             extraction_prompt = f"""
 Extract 3-4 clear, actionable bullet points from this educational content. Each bullet point should:
-1. Be concise (8-12 words max)
-2. Focus on what the learner will gain
-3. Use action-oriented language
-4. Be immediately understandable
+1. Be a complete, self-contained idea (10-15 words)
+2. Start with an action verb or key concept
+3. Focus on practical value for the learner
+4. Be specific and concrete, not generic
+
+IMPORTANT: Return ONLY the bullet points, one per line. Do not include:
+- Bullet symbols (•, -, *)
+- Numbers (1., 2., etc.)
+- Quotation marks
+- Any prefixes or labels
 
 CONTENT:
 {content[:1500]}
 
-Return only the bullet points, one per line, without bullets or numbers:
+BULLET POINTS:
 """
             
             response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert at creating clear, educational bullet points."},
+                    {"role": "system", "content": "You are an expert instructional designer who creates clear, actionable learning points. Output only the requested bullet points without any formatting."},
                     {"role": "user", "content": extraction_prompt}
                 ],
-                max_tokens=200,
+                max_tokens=300,
                 temperature=0.3,
                 timeout=30  # Add timeout for reliability
             )
             
             bullet_text = response.choices[0].message.content.strip()
-            bullet_points = [line.strip() for line in bullet_text.split('\n') if line.strip()]
             
-            # Clean and validate bullet points
-            clean_points = []
-            for point in bullet_points[:4]:
-                # Remove any bullet markers that might have been added
-                point = re.sub(r'^[-•*]\s*', '', point)
-                point = re.sub(r'^\d+\.\s*', '', point)
+            # Parse bullet points with improved validation
+            bullet_points = []
+            for line in bullet_text.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                # Remove any formatting that might have been added
+                cleaned = self._clean_bullet_point(line)
                 
-                # Ensure reasonable length
-                if 5 <= len(point) <= 80:
-                    clean_points.append(point)
+                # Validate the bullet point
+                if self._validate_bullet_point(cleaned):
+                    bullet_points.append(cleaned)
             
-            return clean_points[:4] if clean_points else self._fallback_key_points_extraction(content)
+            # If we got good bullet points, return them
+            if len(bullet_points) >= 2:
+                return bullet_points[:4]
+            
+            # Otherwise, try enhanced markdown parsing
+            return self._enhanced_markdown_extraction(content)
             
         except Exception as e:
             logger.error(f"Failed to extract key points with GPT-4: {e}")
-            return self._fallback_key_points_extraction(content)
+            return self._enhanced_markdown_extraction(content)
+    
+    def _clean_bullet_point(self, text: str) -> str:
+        """Clean a bullet point of unwanted formatting"""
+        # Remove common bullet markers
+        text = re.sub(r'^[-•*●◆▪]\s*', '', text)
+        text = re.sub(r'^\d+[.)\]]\s*', '', text)
+        text = re.sub(r'^[a-zA-Z][.)\]]\s*', '', text)
+        
+        # Remove quotes if they wrap the entire text
+        if text.startswith('"') and text.endswith('"'):
+            text = text[1:-1]
+        if text.startswith("'") and text.endswith("'"):
+            text = text[1:-1]
+        
+        # Remove common prefixes
+        prefixes_to_remove = ['Bullet: ', 'Point: ', 'Item: ', '- ']
+        for prefix in prefixes_to_remove:
+            if text.startswith(prefix):
+                text = text[len(prefix):]
+        
+        return text.strip()
+    
+    def _validate_bullet_point(self, text: str) -> bool:
+        """Validate if a text is a good bullet point"""
+        # Check length
+        word_count = len(text.split())
+        if word_count < 3 or word_count > 20:
+            return False
+        
+        # Check character count
+        if len(text) < 15 or len(text) > 120:
+            return False
+        
+        # Ensure it's not just a single word or phrase
+        if not ' ' in text:
+            return False
+        
+        # Check for complete thought (has a verb or action word)
+        action_indicators = ['understand', 'learn', 'master', 'develop', 'apply', 'create', 
+                           'analyze', 'implement', 'use', 'build', 'design', 'manage',
+                           'improve', 'enhance', 'optimize', 'evaluate', 'assess',
+                           'techniques', 'strategies', 'methods', 'approaches', 'tools',
+                           'skills', 'knowledge', 'expertise', 'competency', 'ability']
+        
+        text_lower = text.lower()
+        has_action = any(indicator in text_lower for indicator in action_indicators)
+        
+        return has_action
+    
+    def _enhanced_markdown_extraction(self, content: str) -> List[str]:
+        """Enhanced extraction with markdown parsing and complete sentence extraction"""
+        bullet_points = []
+        
+        # First, try to find markdown-style lists
+        list_patterns = [
+            r'^[-*+]\s+(.+)$',  # Markdown bullets
+            r'^\d+\.\s+(.+)$',  # Numbered lists
+            r'^\s*•\s+(.+)$',   # Bullet character
+        ]
+        
+        lines = content.split('\n')
+        for line in lines:
+            line = line.strip()
+            for pattern in list_patterns:
+                match = re.match(pattern, line)
+                if match:
+                    point = match.group(1).strip()
+                    if self._validate_bullet_point(point):
+                        bullet_points.append(point)
+                        break
+        
+        # If we found good markdown points, return them
+        if len(bullet_points) >= 2:
+            return bullet_points[:4]
+        
+        # Otherwise, extract key sentences
+        return self._extract_key_sentences(content)
     
     def _fallback_key_points_extraction(self, content: str) -> List[str]:
         """Fallback method for extracting key points without GPT-4"""
-        # Simple sentence extraction approach
-        sentences = re.split(r'[.!?]+', content)
-        good_sentences = []
+        return self._extract_key_sentences(content)
+    
+    def _extract_key_sentences(self, content: str) -> List[str]:
+        """Extract key sentences that work well as bullet points"""
+        # Split into sentences more carefully
+        sentences = self._smart_sentence_split(content)
         
+        scored_sentences = []
         for sentence in sentences:
-            sentence = sentence.strip()
-            # Look for sentences with key educational indicators
-            if (len(sentence) > 20 and len(sentence) < 100 and 
-                any(word in sentence.lower() for word in ['will', 'can', 'learn', 'understand', 'help', 'enable'])):
-                good_sentences.append(sentence)
+            score = self._score_sentence_importance(sentence)
+            if score > 0:
+                scored_sentences.append((score, sentence))
         
-        # If we found good sentences, return them
-        if good_sentences:
-            return good_sentences[:4]
+        # Sort by score and take top sentences
+        scored_sentences.sort(reverse=True, key=lambda x: x[0])
         
-        # Last resort: take first few sentences
-        return [s.strip() for s in sentences[:4] if len(s.strip()) > 20]
+        bullet_points = []
+        for score, sentence in scored_sentences[:6]:  # Get more than needed for filtering
+            # Clean and format the sentence
+            formatted = self._format_as_bullet_point(sentence)
+            if self._validate_bullet_point(formatted):
+                bullet_points.append(formatted)
+                if len(bullet_points) >= 4:
+                    break
+        
+        # If still not enough, create from key concepts
+        if len(bullet_points) < 2:
+            bullet_points.extend(self._create_bullets_from_concepts(content))
+        
+        return bullet_points[:4]
+    
+    def _smart_sentence_split(self, content: str) -> List[str]:
+        """Smart sentence splitting that handles abbreviations and edge cases"""
+        # Replace known abbreviations to avoid false splits
+        abbreviations = ['Dr.', 'Mr.', 'Mrs.', 'Ms.', 'Prof.', 'Sr.', 'Jr.', 'Ph.D.', 
+                        'M.D.', 'B.A.', 'M.A.', 'B.S.', 'M.S.', 'LL.B.', 'LL.M.', 
+                        'Inc.', 'Corp.', 'Co.', 'Ltd.', 'e.g.', 'i.e.', 'etc.', 'vs.']
+        
+        temp_content = content
+        for abbr in abbreviations:
+            temp_content = temp_content.replace(abbr, abbr.replace('.', '<!DOT!>'))
+        
+        # Split by sentence endings
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', temp_content)
+        
+        # Restore dots and clean
+        cleaned_sentences = []
+        for sentence in sentences:
+            sentence = sentence.replace('<!DOT!>', '.').strip()
+            if len(sentence) > 15:  # Minimum viable sentence
+                cleaned_sentences.append(sentence)
+        
+        return cleaned_sentences
+    
+    def _score_sentence_importance(self, sentence: str) -> float:
+        """Score a sentence based on its importance for learning"""
+        score = 0.0
+        sentence_lower = sentence.lower()
+        
+        # High-value action words
+        action_words = {
+            'learn': 3, 'understand': 3, 'master': 3, 'develop': 3,
+            'apply': 2.5, 'implement': 2.5, 'create': 2.5, 'build': 2.5,
+            'improve': 2, 'enhance': 2, 'optimize': 2, 'analyze': 2,
+            'enables': 2, 'allows': 2, 'helps': 2, 'provides': 2,
+            'key': 2, 'important': 2, 'essential': 2, 'critical': 2,
+            'fundamental': 2, 'core': 2, 'primary': 2, 'main': 1.5
+        }
+        
+        for word, weight in action_words.items():
+            if word in sentence_lower:
+                score += weight
+        
+        # Bonus for optimal length (40-80 characters)
+        length = len(sentence)
+        if 40 <= length <= 80:
+            score += 1
+        elif 80 < length <= 100:
+            score += 0.5
+        
+        # Penalty for too long or too short
+        if length > 120 or length < 20:
+            score -= 2
+        
+        # Bonus for containing practical indicators
+        practical_indicators = ['example', 'practice', 'real-world', 'application', 
+                               'scenario', 'use case', 'demonstrate', 'hands-on']
+        if any(indicator in sentence_lower for indicator in practical_indicators):
+            score += 1.5
+        
+        return score
+    
+    def _format_as_bullet_point(self, sentence: str) -> str:
+        """Format a sentence to work well as a bullet point"""
+        # Remove unnecessary starting words
+        starters_to_remove = [
+            'This means that', 'This is', 'It is', 'There are', 'There is',
+            'You will find that', 'You can see that', 'We can see',
+            'Furthermore,', 'Moreover,', 'Additionally,', 'Also,',
+            'In this section,', 'In this module,', 'Here,'
+        ]
+        
+        formatted = sentence
+        for starter in starters_to_remove:
+            if formatted.lower().startswith(starter.lower()):
+                formatted = formatted[len(starter):].strip()
+                # Capitalize first letter
+                if formatted:
+                    formatted = formatted[0].upper() + formatted[1:]
+                break
+        
+        # Ensure it ends with proper punctuation
+        if formatted and not formatted[-1] in '.!?':
+            formatted += '.'
+        
+        return formatted
+    
+    def _create_bullets_from_concepts(self, content: str) -> List[str]:
+        """Create bullet points from key concepts when sentence extraction fails"""
+        bullets = []
+        
+        # Extract key noun phrases
+        key_phrases = self._extract_key_concepts(content)[:3]
+        
+        for phrase in key_phrases:
+            # Create action-oriented bullet from concept
+            if len(phrase.split()) > 1:
+                bullets.append(f"Master the concepts of {phrase.lower()}")
+            else:
+                bullets.append(f"Understand {phrase.lower()} principles and applications")
+        
+        return bullets
     
     def _extract_key_phrase(self, sentence: str) -> str:
         """Extract the key phrase from a sentence"""
@@ -766,12 +979,26 @@ Return only the bullet points, one per line, without bullets or numbers:
         return " ".join(narration_parts)
     
     def _estimate_section_duration(self, content: str) -> float:
-        """Estimate duration for a section in seconds"""
+        """Estimate duration for a section in seconds with enhanced analysis"""
         word_count = len(content.split())
-        # Assume 150 words per minute for educational content
-        duration = (word_count / 150) * 60
-        # Add time for pauses and emphasis
-        return max(30, min(duration * 1.3, 90))  # Between 30-90 seconds
+        
+        # Calculate complexity
+        complexity = self._calculate_content_complexity(content)
+        
+        # Adjust reading speed based on complexity
+        adjusted_wpm = 150 * (1 - complexity * 0.3)  # Slower for complex content
+        
+        # Base duration
+        duration = (word_count / adjusted_wpm) * 60
+        
+        # Add pause time
+        pause_time = self._calculate_pause_time(content)
+        duration += pause_time
+        
+        # Add buffer for comprehension and transitions
+        duration *= 1.2  # 20% buffer
+        
+        return max(30, min(duration, 90))  # Between 30-90 seconds
     
     def _generate_learning_objectives_from_summaries(self, summaries: List[Dict[str, Any]]) -> List[str]:
         """Generate learning objectives from educational summaries"""
@@ -969,15 +1196,19 @@ Return only the bullet points, one per line, without bullets or numbers:
         for i, chunk in enumerate(content_chunks):
             slide_number = start_slide_number + i
             
-            # Create section-specific slide title
-            if section_type == 'practical':
-                slide_title = f"Real-World Application {i + 1}"
-            elif section_type == 'case_study':
-                slide_title = f"Case Analysis {i + 1}"
-            elif section_type == 'assessment':
-                slide_title = f"Knowledge Check {i + 1}"
+            # Use dynamic slide titles if available
+            if hasattr(self, '_current_slide_titles') and i < len(self._current_slide_titles):
+                slide_title = self._current_slide_titles[i]
             else:
-                slide_title = f"Key Concept {i + 1}"
+                # Fallback to section-specific slide title
+                if section_type == 'practical':
+                    slide_title = f"Real-World Application {i + 1}"
+                elif section_type == 'case_study':
+                    slide_title = f"Case Analysis {i + 1}"
+                elif section_type == 'assessment':
+                    slide_title = f"Knowledge Check {i + 1}"
+                else:
+                    slide_title = f"Key Concept {i + 1}"
             
             # Estimate duration based on content complexity
             duration = self._estimate_slide_duration(chunk, section_type)
@@ -1105,26 +1336,67 @@ Return only the bullet points, one per line, without bullets or numbers:
         return "this topic"
     
     def _estimate_slide_duration(self, content_points: List[str], section_type: str) -> float:
-        """Estimate duration for a slide based on content and section type"""
+        """Estimate duration for a slide based on content complexity and section type"""
         
-        base_duration = 30  # Base 30 seconds per slide
+        # Combine all content for analysis
+        combined_content = ' '.join(content_points)
         
-        # Adjust based on content complexity
-        total_words = sum(len(point.split()) for point in content_points)
-        content_duration = (total_words / 150) * 60  # 150 words per minute
+        # Calculate base duration from word count
+        total_words = len(combined_content.split())
+        
+        # Analyze content complexity
+        complexity_score = self._calculate_content_complexity(combined_content)
+        
+        # Dynamic words per minute based on complexity and section type
+        base_wpm = {
+            'introduction': 140,  # Slower for welcoming tone
+            'core_content': 130,  # Slower for comprehension
+            'practical': 150,     # Normal pace for examples
+            'case_study': 140,    # Moderate for storytelling
+            'assessment': 145,    # Clear pace for questions
+            'summary': 135        # Reflective pace
+        }.get(section_type, 150)
+        
+        # Adjust WPM based on complexity
+        adjusted_wpm = base_wpm * (1 - complexity_score * 0.25)
+        
+        # Calculate speaking duration
+        speaking_duration = (total_words / adjusted_wpm) * 60
+        
+        # Add pause time
+        pause_duration = self._calculate_pause_time(combined_content)
+        
+        # Add time for visual processing (learners need time to read slides)
+        visual_processing_time = len(content_points) * 2  # 2 seconds per bullet point
         
         # Section-specific adjustments
-        multipliers = {
-            'introduction': 1.2,  # Slower for context setting
-            'core_content': 1.3,  # Slower for complex concepts
-            'practical': 1.1,    # Moderate for examples
-            'case_study': 1.2,   # Slower for analysis
-            'assessment': 1.0    # Standard for questions
+        section_adjustments = {
+            'introduction': 1.15,  # Extra time for engagement
+            'core_content': 1.2,   # Extra time for understanding
+            'practical': 1.1,      # Moderate extra time
+            'case_study': 1.15,    # Time for reflection
+            'assessment': 1.05,    # Minimal extra time
+            'summary': 1.1         # Time for recap
         }
         
-        multiplier = multipliers.get(section_type, 1.0)
-        final_duration = max(base_duration, content_duration * multiplier)
+        adjustment = section_adjustments.get(section_type, 1.0)
         
+        # Calculate total duration
+        total_duration = (speaking_duration + pause_duration + visual_processing_time) * adjustment
+        
+        # Ensure minimum engagement time
+        min_duration = {
+            'introduction': 35,
+            'core_content': 40,
+            'practical': 30,
+            'case_study': 35,
+            'assessment': 25,
+            'summary': 30
+        }.get(section_type, 30)
+        
+        final_duration = max(min_duration, total_duration)
+        
+        # Cap at maximum to maintain engagement
         return min(final_duration, 90)  # Cap at 90 seconds per slide
     
     def _create_slide_specific_narration(
@@ -1209,63 +1481,269 @@ Return only the bullet points, one per line, without bullets or numbers:
         is_first_slide: bool,
         section_name: str
     ) -> str:
-        """Generate engaging speaker notes with human touch"""
+        """Generate engaging speaker notes with dynamic pacing, emphasis, and personalization"""
         
         employee_name = employee_context.get('name', 'there')
+        role = employee_context.get('role', 'Professional')
+        experience_level = self._infer_experience_level(role)
+        
+        # Analyze content complexity for adaptive pacing
+        complexity = self._analyze_content_complexity(content)
         
         # Use essence extractor for better content understanding
         if hasattr(self, 'essence_extractor') and self.essence_extractor is not None:
-            slide_essence = self.essence_extractor.extract_slide_essence(
-                content, section_name
-            )
-            
-            # Build narrative around the essence
-            notes = ""
-            
-            if is_first_slide:
-                notes += f"Now, {employee_name}, let's dive into {section_name.lower()}. "
-                notes += f"{slide_essence.headline}. "
-            
-            # Add the core insight
-            notes += f"{slide_essence.insight} "
-            
-            # Add personal impact
-            notes += f"This will help you {slide_essence.impact.lower()}. "
-            
+            try:
+                slide_essence = self.essence_extractor.extract_slide_essence(
+                    content, section_name
+                )
+                
+                # Build narrative with dynamic pacing
+                notes_parts = []
+                
+                if is_first_slide:
+                    # Personalized opening based on section and role
+                    opening = self._create_personalized_opening(
+                        employee_name, role, section_name, complexity
+                    )
+                    notes_parts.append(opening)
+                    notes_parts.append(f"{slide_essence.headline}.")
+                
+                # Add core insight with pacing markers
+                if complexity == 'high':
+                    notes_parts.append(f"[PAUSE] Let me break this down for you. {slide_essence.insight}")
+                else:
+                    notes_parts.append(slide_essence.insight)
+                
+                # Add personal impact with role context
+                impact_statement = self._create_impact_statement(
+                    slide_essence.impact, role, experience_level
+                )
+                notes_parts.append(impact_statement)
+                
+                notes = " ".join(notes_parts)
+                
+            except Exception as e:
+                logger.debug(f"Essence extractor failed, using enhanced fallback: {e}")
+                notes = self._generate_enhanced_fallback_notes(
+                    content, key_points, employee_context, is_first_slide, 
+                    section_name, complexity
+                )
         else:
-            # Fallback to original approach
-            notes = ""
-            
-            if is_first_slide:
-                notes += f"Now let's explore {section_name.lower()}. "
-            
-            # Add personalized context
-            if 'practical' in section_name.lower():
-                notes += f"These practical applications will be especially relevant to your work. "
-            elif 'case' in section_name.lower():
-                notes += f"Let's look at some real-world examples that demonstrate these concepts. "
+            notes = self._generate_enhanced_fallback_notes(
+                content, key_points, employee_context, is_first_slide, 
+                section_name, complexity
+            )
         
-        # Incorporate the content naturally
-        # Remove duplicate information from key points
-        content_for_notes = content
-        for point in key_points:
-            content_for_notes = content_for_notes.replace(point, '')
+        # Add natural transitions and emphasis
+        notes = self._add_natural_flow(notes, key_points, employee_name)
         
-        # Clean and enhance the content
-        content_for_notes = re.sub(r'\s+', ' ', content_for_notes).strip()
+        # Add timing cues for complex content
+        if complexity == 'high':
+            notes = self._add_timing_cues(notes)
         
-        # Make it conversational
-        notes += content_for_notes
+        return notes.strip()
+    
+    def _infer_experience_level(self, role: str) -> str:
+        """Infer experience level from role title"""
+        if not role:
+            return 'intermediate'
         
-        # Add natural transitions
+        role_lower = role.lower()
+        if any(word in role_lower for word in ['junior', 'associate', 'entry', 'trainee', 'intern']):
+            return 'beginner'
+        elif any(word in role_lower for word in ['senior', 'lead', 'principal', 'manager', 'director', 'head']):
+            return 'advanced'
+        else:
+            return 'intermediate'
+    
+    def _analyze_content_complexity(self, content: str) -> str:
+        """Analyze content complexity for adaptive pacing"""
+        words = content.split()
+        word_count = len(words)
+        
+        # Count complex indicators
+        technical_terms = len(re.findall(r'\b[A-Z][a-zA-Z]*[A-Z][a-zA-Z]*\b', content))  # CamelCase
+        long_words = len([w for w in words if len(w) > 10])
+        acronyms = len(re.findall(r'\b[A-Z]{2,}\b', content))
+        
+        # Calculate complexity score
+        complexity_score = (technical_terms * 2 + long_words + acronyms * 1.5) / max(word_count, 1)
+        
+        if complexity_score > 0.15:
+            return 'high'
+        elif complexity_score > 0.08:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def _create_personalized_opening(
+        self, 
+        employee_name: str, 
+        role: str, 
+        section_name: str,
+        complexity: str
+    ) -> str:
+        """Create personalized opening based on context"""
+        section_type = self._classify_section_type(section_name)
+        
+        openings = {
+            'introduction': {
+                'low': f"Welcome, {employee_name}! Let's start with the fundamentals that will transform how you work as a {role}.",
+                'medium': f"Hello {employee_name}, as a {role}, you'll find these concepts particularly valuable for your daily challenges.",
+                'high': f"Alright {employee_name}, we're going to tackle some advanced concepts that will elevate your expertise as a {role}."
+            },
+            'core_content': {
+                'low': f"Great progress, {employee_name}! Now let's build on what we've learned.",
+                'medium': f"Excellent, {employee_name}. Let's dive deeper into the core principles that drive success in your {role} position.",
+                'high': f"Now {employee_name}, let's explore the sophisticated techniques that distinguish exceptional {role}s."
+            },
+            'practical': {
+                'low': f"Time to put theory into practice, {employee_name}!",
+                'medium': f"Let's see how this applies to your work as a {role}, {employee_name}.",
+                'high': f"Ready for advanced implementation strategies, {employee_name}? These will set you apart as a {role}."
+            }
+        }
+        
+        default = f"Let's continue your learning journey, {employee_name}."
+        return openings.get(section_type, {}).get(complexity, default)
+    
+    def _create_impact_statement(self, impact: str, role: str, experience_level: str) -> str:
+        """Create personalized impact statement"""
+        impact_lower = impact.lower()
+        
+        # Add role-specific context
+        if experience_level == 'beginner':
+            prefix = "As you develop your skills, this will help you"
+        elif experience_level == 'advanced':
+            prefix = "This advanced knowledge will enable you to"
+        else:
+            prefix = "This will empower you to"
+        
+        # Add role-specific benefits
+        if 'manager' in role.lower():
+            suffix = ", leading to better team outcomes and organizational success."
+        elif 'analyst' in role.lower():
+            suffix = ", resulting in more insightful analysis and data-driven decisions."
+        elif 'developer' in role.lower() or 'engineer' in role.lower():
+            suffix = ", improving your technical solutions and code quality."
+        else:
+            suffix = " in your professional journey."
+        
+        return f"{prefix} {impact_lower}{suffix}"
+    
+    def _generate_enhanced_fallback_notes(
+        self,
+        content: str,
+        key_points: List[str],
+        employee_context: Dict[str, Any],
+        is_first_slide: bool,
+        section_name: str,
+        complexity: str
+    ) -> str:
+        """Enhanced fallback note generation with better personalization"""
+        employee_name = employee_context.get('name', 'there')
+        role = employee_context.get('role', 'Professional')
+        
+        notes_parts = []
+        
+        if is_first_slide:
+            opening = self._create_personalized_opening(
+                employee_name, role, section_name, complexity
+            )
+            notes_parts.append(opening)
+        
+        # Create narrative from content
+        narrative = self._create_content_narrative(content, section_name, complexity)
+        notes_parts.append(narrative)
+        
+        # Add role-specific examples
+        if 'practical' in section_name.lower() or complexity == 'medium':
+            example = self._generate_role_example(role, key_points)
+            if example:
+                notes_parts.append(example)
+        
+        return " ".join(notes_parts)
+    
+    def _create_content_narrative(self, content: str, section_name: str, complexity: str) -> str:
+        """Create engaging narrative from content"""
+        # Clean content first
+        cleaned = re.sub(r'\s+', ' ', content).strip()
+        
+        # Add narrative elements based on complexity
+        if complexity == 'high':
+            # Break down complex content
+            sentences = self._smart_sentence_split(cleaned)
+            if len(sentences) > 2:
+                narrative = sentences[0]
+                narrative += " [PAUSE] Let me explain this further. "
+                narrative += " ".join(sentences[1:3])
+            else:
+                narrative = cleaned
+        else:
+            narrative = cleaned
+        
+        return narrative
+    
+    def _generate_role_example(self, role: str, key_points: List[str]) -> str:
+        """Generate role-specific example"""
+        if not key_points:
+            return ""
+        
+        role_lower = role.lower()
+        first_point = key_points[0].lower()
+        
+        if 'manager' in role_lower:
+            return f"For instance, when managing your team, you can {first_point}."
+        elif 'analyst' in role_lower:
+            return f"In your analysis work, this means you'll {first_point}."
+        elif 'developer' in role_lower:
+            return f"In your development projects, you'll {first_point}."
+        else:
+            return f"In practice, this allows you to {first_point}."
+    
+    def _add_natural_flow(self, notes: str, key_points: List[str], employee_name: str) -> str:
+        """Add natural transitions and emphasis to notes"""
         if not notes.endswith('.'):
             notes += '.'
         
-        # Add emphasis on key points with more natural language
+        # Add key points emphasis with variety
         if key_points:
-            notes += f" Now, {employee_name}, these are the key points I want you to remember."
+            transition = self._get_transition_phrase(len(notes.split()))
+            emphasis = f" {transition}, {employee_name}, "
+            
+            if len(key_points) == 1:
+                emphasis += f"the key takeaway here is to {key_points[0].lower()}."
+            elif len(key_points) == 2:
+                emphasis += f"remember these two critical points: {key_points[0].lower()}, and {key_points[1].lower()}."
+            else:
+                emphasis += "let me highlight the essential points you'll want to remember."
+            
+            notes += emphasis
         
-        return notes.strip()
+        return notes
+    
+    def _get_transition_phrase(self, word_count: int) -> str:
+        """Get varied transition phrases based on position in narration"""
+        if word_count < 50:
+            return "Now"
+        elif word_count < 100:
+            return "Moving forward"
+        elif word_count < 150:
+            return "Most importantly"
+        else:
+            return "To summarize"
+    
+    def _add_timing_cues(self, notes: str) -> str:
+        """Add timing cues for complex content"""
+        # Add pauses after complex explanations
+        notes = re.sub(r'\. ([A-Z])', r'. [BRIEF PAUSE] \1', notes)
+        
+        # Add emphasis markers for key terms
+        important_terms = ['critical', 'essential', 'important', 'key', 'fundamental', 'crucial']
+        for term in important_terms:
+            notes = notes.replace(f' {term} ', f' [EMPHASIZE] {term} ')
+        
+        return notes
     
     def _suggest_visual_cues(self, section_name: str, content: str) -> List[str]:
         """Suggest appropriate visuals for the content"""
@@ -1435,14 +1913,83 @@ Thank you for your attention and commitment to professional development!
             return " ".join(narration_parts)
     
     def _estimate_duration(self, speaker_notes: str) -> float:
-        """Estimate speaking duration in seconds"""
+        """Estimate speaking duration in seconds with enhanced complexity analysis"""
         word_count = len(speaker_notes.split())
-        duration = (word_count / self.words_per_minute) * 60
+        
+        # Calculate content complexity
+        complexity_score = self._calculate_content_complexity(speaker_notes)
+        
+        # Adjust words per minute based on complexity
+        adjusted_wpm = self.words_per_minute * (1 - complexity_score * 0.3)
+        
+        # Base duration calculation
+        duration = (word_count / adjusted_wpm) * 60
+        
+        # Add time for natural pauses
+        pause_time = self._calculate_pause_time(speaker_notes)
+        duration += pause_time
+        
+        # Add time for emphasis and comprehension
+        if 'important' in speaker_notes.lower() or 'key' in speaker_notes.lower():
+            duration *= 1.1  # 10% slower for important content
         
         # Ensure within bounds
         duration = max(self.min_slide_duration, min(duration, self.max_slide_duration))
         
         return round(duration, 1)
+    
+    def _calculate_content_complexity(self, text: str) -> float:
+        """Calculate complexity score (0-1) based on content analysis"""
+        words = text.split()
+        sentences = re.split(r'[.!?]+', text)
+        
+        # Average sentence length
+        avg_sentence_length = len(words) / max(len([s for s in sentences if s.strip()]), 1)
+        
+        # Technical term density
+        technical_terms = ['algorithm', 'framework', 'implementation', 'architecture', 
+                         'methodology', 'analysis', 'synthesis', 'evaluation', 'integration']
+        technical_count = sum(1 for word in words if word.lower() in technical_terms)
+        technical_density = technical_count / max(len(words), 1)
+        
+        # Multi-syllable word ratio (approximation)
+        complex_words = sum(1 for word in words if len(word) > 7)
+        complex_ratio = complex_words / max(len(words), 1)
+        
+        # Calculate overall complexity
+        complexity = (
+            min(avg_sentence_length / 25, 1) * 0.4 +  # Sentence complexity
+            technical_density * 0.3 +  # Technical content
+            complex_ratio * 0.3  # Word complexity
+        )
+        
+        return min(complexity, 1.0)
+    
+    def _calculate_pause_time(self, text: str) -> float:
+        """Calculate additional time needed for natural pauses"""
+        pause_time = 0
+        
+        # Count punctuation pauses
+        pause_time += text.count(',') * 0.3  # Short pause
+        pause_time += text.count('.') * 0.5  # Medium pause
+        pause_time += text.count('!') * 0.6  # Emphasis pause
+        pause_time += text.count('?') * 0.6  # Question pause
+        pause_time += text.count(':') * 0.4  # List pause
+        pause_time += text.count(';') * 0.4  # Semi-colon pause
+        
+        # Count transition word pauses
+        transition_words = ['however', 'therefore', 'furthermore', 'moreover', 
+                          'nevertheless', 'consequently', 'additionally']
+        for word in transition_words:
+            pause_time += text.lower().count(word) * 0.3
+        
+        # Count emphasis phrase pauses
+        emphasis_phrases = ['pay attention', 'important to note', 'key point', 
+                          'remember that', 'for example']
+        for phrase in emphasis_phrases:
+            pause_time += text.lower().count(phrase) * 0.4
+        
+        return pause_time
     
     def _compress_content(self, slides: List[SlideContent], target_seconds: float) -> List[SlideContent]:
         """Compress content to fit target duration"""
@@ -1818,87 +2365,82 @@ Return exactly 3 learning objectives, one per line:
         employee_insights: Dict[str, Any], 
         course_context: Dict[str, Any]
     ) -> str:
-        """Create a specific enhancement prompt based on section type and context"""
+        """Create concise, effective enhancement prompts for better GPT-4 results"""
         
-        base_context = f"""
-CONTEXT:
-- Employee Role: {employee_insights['role']}
-- Experience Level: {employee_insights['experience_level']}
-- Course: {course_context['module_name']}
-- Section: {section_name} ({section_role['type']})
-- Learning Position: {section_role['position']} in learning journey
-- Teaching Approach: {section_role['teaching_approach']}
-- Course Themes: {', '.join(course_context.get('key_themes', []))}
-
-ORIGINAL CONTENT:
-{section_content}
-"""
+        role = employee_insights['role']
+        exp_level = employee_insights['experience_level']
+        themes = ', '.join(course_context.get('key_themes', [])[:3])  # Limit themes
         
-        # Section-type-specific prompts
+        # Truncate content if too long to leave room for response
+        max_content_length = 1500
+        if len(section_content) > max_content_length:
+            section_content = section_content[:max_content_length] + "... [content truncated]"
+        
+        # Section-type-specific prompts (more concise)
         if section_role['teaching_approach'] == 'engaging_introduction':
-            enhancement_prompt = f"""{base_context}
+            enhancement_prompt = f"""Transform this introduction into an engaging 3-4 minute learning experience for a {exp_level} {role}.
 
-TASK: Transform this introduction content into an engaging, motivational learning experience.
+KEY REQUIREMENTS:
+- Hook: Connect immediately to {role}'s daily challenges
+- Why: Clear career benefits in first 30 seconds
+- Tone: Conversational, building excitement
+- Examples: 2 specific to {role} work
+- Flow: Natural progression to main content
 
-REQUIREMENTS:
-1. Start with a compelling hook that connects to the {employee_insights['role']}'s daily work
-2. Clearly explain WHY this knowledge matters for their career success
-3. Use conversational, encouraging tone that builds excitement for learning
-4. Include 1-2 specific examples relevant to their role
-5. Set clear expectations for what they'll achieve
-6. Create smooth flow that naturally leads to core learning
-7. Keep it concise but impactful (aim for 3-4 minutes of narration)
+CONTEXT: {themes}
 
-ENHANCED CONTENT:"""
+CONTENT:
+{section_content}
+
+ENHANCED VERSION:"""
 
         elif section_role['teaching_approach'] == 'progressive_development':
-            enhancement_prompt = f"""{base_context}
+            enhancement_prompt = f"""Transform this into progressive learning for a {exp_level} {role}.
 
-TASK: Transform this core content into a clear, progressive learning experience.
+STRUCTURE:
+1. Concept → Clear explanation
+2. {role} example → Practical application
+3. Building blocks → Each idea connects
+4. Transitions → "Now that you understand X..."
 
-REQUIREMENTS:
-1. Structure content in logical learning sequence (concept → explanation → example → application)
-2. Use "building block" approach - each concept builds on the previous
-3. Include {employee_insights['role']}-specific examples and scenarios
-4. Add smooth transitions between concepts ("Now that you understand X, let's explore Y")
-5. Use active learning language ("You'll notice", "Try this", "Consider when")
-6. Break complex ideas into digestible chunks
-7. Maintain professional but friendly teaching tone
+TONE: Professional yet friendly, active learning ("You'll notice", "Try this")
 
-ENHANCED CONTENT:"""
+CONTENT:
+{section_content}
+
+ENHANCED VERSION:"""
 
         elif section_role['teaching_approach'] == 'synthesis_validation':
-            enhancement_prompt = f"""{base_context}
+            enhancement_prompt = f"""Create a synthesis that validates learning for a {exp_level} {role}.
 
-TASK: Transform this content into a powerful synthesis and validation experience.
+FOCUS:
+- Connect all concepts into unified understanding
+- Real {role} scenario showing integrated application
+- 3 immediate action steps
+- Confidence-building summary of new capabilities
 
-REQUIREMENTS:
-1. Begin by connecting all previous learning together
-2. Show how concepts work together in real {employee_insights['role']} scenarios
-3. Provide concrete action steps they can take immediately
-4. Include validation of their learning journey progress
-5. End with confidence-building summary of their new capabilities
-6. Create sense of achievement and readiness for implementation
-7. Use empowering, forward-looking language
+TONE: Empowering, forward-looking
 
-ENHANCED CONTENT:"""
+CONTENT:
+{section_content}
+
+ENHANCED VERSION:"""
 
         else:
-            # Default enhancement for practical/case study sections
-            enhancement_prompt = f"""{base_context}
-
-TASK: Transform this content into engaging, practical learning material.
+            # Default for practical/case study sections
+            enhancement_prompt = f"""Make this practical and immediately applicable for a {exp_level} {role}.
 
 REQUIREMENTS:
-1. Focus on real-world application for {employee_insights['role']}s
-2. Use story-telling approach with relatable scenarios
-3. Include step-by-step guidance and best practices
-4. Add "what-if" scenarios and problem-solving approaches
-5. Connect to their daily work challenges and opportunities
-6. Use encouraging, supportive tone that builds confidence
-7. End with clear takeaways they can use immediately
+- Real {role} scenario as framework
+- Step-by-step implementation guide
+- Common pitfalls and solutions
+- "What-if" problem-solving
+- 3 takeaways for immediate use
 
-ENHANCED CONTENT:"""
+CONTENT:
+{section_content}
+
+ENHANCED VERSION:"""
         
         return enhancement_prompt
     
@@ -1947,13 +2489,17 @@ ENHANCED CONTENT:"""
             
             # Parse the structured response
             response_text = response.choices[0].message.content.strip()
-            enhanced_content, learning_objectives = self._parse_batch_response(response_text)
+            enhanced_content, learning_objectives, slide_titles = self._parse_batch_response(response_text)
             
             call_duration = (datetime.now() - call_start_time).total_seconds()
             logger.info(f"✅ GPT-4 Batch Call completed in {call_duration:.2f}s")
             logger.info(f"   - Enhanced content: {len(enhanced_content)} chars")
             logger.info(f"   - Learning objectives: {len(learning_objectives)}")
+            logger.info(f"   - Slide titles: {len(slide_titles)}")
             logger.info(f"   - Token efficiency: {len(enhanced_content) / len(batch_prompt):.2f} output/input ratio")
+            
+            # Store slide titles in a format accessible later
+            self._current_slide_titles = slide_titles
             
             return enhanced_content, learning_objectives
             
@@ -1976,157 +2522,368 @@ ENHANCED CONTENT:"""
         employee_insights: Dict[str, Any], 
         course_context: Dict[str, Any]
     ) -> str:
-        """Create comprehensive batch prompt for content enhancement and objectives"""
+        """Create concise batch prompt for better GPT-4 performance"""
         
-        base_context = f"""
-CONTEXT:
-- Employee Role: {employee_insights['role']}
-- Experience Level: {employee_insights['experience_level']}
-- Course: {course_context['module_name']}
-- Section: {section_name} ({section_role['type']})
-- Learning Position: {section_role['position']} in learning journey
-- Teaching Approach: {section_role['teaching_approach']}
-- Course Themes: {', '.join(course_context.get('key_themes', []))}
-
-ORIGINAL CONTENT:
-{section_content}
-"""
+        role = employee_insights['role']
+        exp_level = employee_insights['experience_level']
+        themes = ', '.join(course_context.get('key_themes', [])[:3])
         
-        # Section-specific batch prompt
+        # Truncate content to ensure room for quality response
+        max_content_length = 1200
+        if len(section_content) > max_content_length:
+            section_content = section_content[:max_content_length] + "... [truncated]"
+        
+        # Validate content has substance
+        if len(section_content.strip()) < 100:
+            logger.warning(f"Section content very short: {len(section_content)} chars")
+        
+        # Section-specific batch prompt (concise for better results)
         if section_role['teaching_approach'] == 'engaging_introduction':
-            batch_prompt = f"""{base_context}
+            batch_prompt = f"""Role: {exp_level} {role}
+Section: Introduction
+Themes: {themes}
 
-TASK: Transform this introduction content and create learning objectives in a single response.
+Transform this content into:
+1. ENGAGING INTRODUCTION (3-4 min narration):
+   - Hook: Immediate connection to {role} challenges
+   - Why: Career benefits in first paragraph
+   - Examples: 2 specific to {role}
+   - Tone: Conversational, exciting
 
-REQUIREMENTS:
-1. ENHANCED CONTENT: Create engaging, motivational introduction (3-4 minutes of narration)
-   - Start with compelling hook connecting to {employee_insights['role']}'s daily work
-   - Explain WHY this knowledge matters for career success
-   - Use conversational, encouraging tone
-   - Include 1-2 role-specific examples
-   - Set clear expectations for achievements
+2. LEARNING OBJECTIVES (3 total, 10-15 words each):
+   - Action verbs (understand, apply, master)
+   - Specific to {role} daily work
+   - Measurable outcomes
 
-2. LEARNING OBJECTIVES: Create 3 specific, actionable objectives
-   - Specific to what the learner will achieve
-   - Relevant to {employee_insights['role']} daily work
-   - Use measurable action verbs
-   - 10-15 words max each
+3. SLIDE TITLES (3-4 titles, 3-7 words each):
+   - Specific to content, not generic
+   - Progressive flow
+   - Professional and engaging
 
-OUTPUT FORMAT:
+CONTENT:
+{section_content}
+
+FORMAT YOUR RESPONSE EXACTLY AS:
 ===ENHANCED_CONTENT===
-[Enhanced content here]
+[Your enhanced introduction here]
 
 ===LEARNING_OBJECTIVES===
-1. [First objective]
-2. [Second objective]
-3. [Third objective]
-"""
+1. [Objective without bullets/formatting]
+2. [Objective without bullets/formatting]
+3. [Objective without bullets/formatting]
+
+===SLIDE_TITLES===
+1. [Title 1]
+2. [Title 2]
+3. [Title 3]
+4. [Title 4 if needed]"""
         
         elif section_role['teaching_approach'] == 'progressive_development':
-            batch_prompt = f"""{base_context}
+            batch_prompt = f"""Role: {exp_level} {role}
+Section: Core Content
 
-TASK: Transform core content into progressive learning experience with objectives.
+Transform into progressive learning:
+1. ENHANCED CONTENT:
+   - Structure: Concept → Explanation → {role} Example → Application
+   - Each idea builds on previous
+   - Transitions: "Now that you understand X..."
+   - Active voice: "You'll discover", "Let's explore"
 
-REQUIREMENTS:
-1. ENHANCED CONTENT: Create clear, progressive learning experience
-   - Structure: concept → explanation → example → application
-   - Building block approach - each concept builds on previous
-   - Include {employee_insights['role']}-specific examples
-   - Smooth transitions between concepts
-   - Active learning language
-   - Professional but friendly tone
+2. OBJECTIVES (3 total, action-focused):
+   - Master core concepts
+   - Apply to {role} scenarios
+   - Build progressive skills
 
-2. LEARNING OBJECTIVES: Create 3 specific objectives for this core content
-   - Focus on mastering fundamental concepts
-   - Relevant to {employee_insights['role']} scenarios
-   - Progressive skill building
-   - 10-15 words max each
+3. SLIDE TITLES (3-4 specific titles):
+   - Based on actual concepts covered
+   - Progressive difficulty
+   - Clear and professional
 
-OUTPUT FORMAT:
+CONTENT:
+{section_content}
+
+FORMAT YOUR RESPONSE EXACTLY AS:
 ===ENHANCED_CONTENT===
-[Enhanced content here]
+[Your enhanced content here]
 
 ===LEARNING_OBJECTIVES===
-1. [First objective]
-2. [Second objective]
-3. [Third objective]
-"""
+1. [Objective]
+2. [Objective]
+3. [Objective]
+
+===SLIDE_TITLES===
+1. [Title 1]
+2. [Title 2]
+3. [Title 3]
+4. [Title 4 if needed]"""
         
         else:
-            # Default for practical/case study sections
-            batch_prompt = f"""{base_context}
+            # Practical/case study sections
+            batch_prompt = f"""Role: {exp_level} {role}
+Section: Practical Application
 
-TASK: Transform content into engaging practical learning with objectives.
+Create immediately applicable content:
+1. ENHANCED CONTENT:
+   - Real {role} scenario framework
+   - Step-by-step implementation
+   - Common pitfalls + solutions
+   - 3 immediate takeaways
 
-REQUIREMENTS:
-1. ENHANCED CONTENT: Create practical, application-focused content
-   - Real-world application for {employee_insights['role']}s
-   - Story-telling with relatable scenarios
-   - Step-by-step guidance and best practices
-   - "What-if" scenarios and problem-solving
-   - Connect to daily work challenges
-   - Encouraging, confidence-building tone
+2. OBJECTIVES (3 action-oriented):
+   - Implement specific techniques
+   - Solve {role} challenges
+   - Achieve measurable results
 
-2. LEARNING OBJECTIVES: Create 3 implementation-focused objectives
-   - Emphasize practical application
-   - Relevant to {employee_insights['role']} responsibilities
-   - Action-oriented outcomes
-   - 10-15 words max each
+3. SLIDE TITLES (3-4 practical titles):
+   - Action-oriented
+   - Specific to techniques covered
+   - Results-focused
 
-OUTPUT FORMAT:
+CONTENT:
+{section_content}
+
+FORMAT YOUR RESPONSE EXACTLY AS:
 ===ENHANCED_CONTENT===
-[Enhanced content here]
+[Your enhanced content here]
 
 ===LEARNING_OBJECTIVES===
-1. [First objective]
-2. [Second objective]
-3. [Third objective]
-"""
+1. [Objective]
+2. [Objective]
+3. [Objective]
+
+===SLIDE_TITLES===
+1. [Title 1]
+2. [Title 2]
+3. [Title 3]
+4. [Title 4 if needed]"""
         
         return batch_prompt
     
-    def _parse_batch_response(self, response_text: str) -> Tuple[str, List[str]]:
-        """Parse the structured batch response from GPT-4"""
+    def _parse_batch_response(self, response_text: str) -> Tuple[str, List[str], List[str]]:
+        """Parse the structured batch response from GPT-4 with validation"""
         
         # Split by sections
         content_marker = "===ENHANCED_CONTENT==="
         objectives_marker = "===LEARNING_OBJECTIVES==="
+        titles_marker = "===SLIDE_TITLES==="
         
         try:
             # Extract enhanced content
             content_start = response_text.find(content_marker)
             objectives_start = response_text.find(objectives_marker)
+            titles_start = response_text.find(titles_marker)
             
             if content_start == -1 or objectives_start == -1:
-                raise ValueError("Response markers not found")
+                logger.warning("Response markers not found, attempting flexible parsing")
+                # Try case-insensitive search
+                content_start = response_text.lower().find(content_marker.lower())
+                objectives_start = response_text.lower().find(objectives_marker.lower())
+                titles_start = response_text.lower().find(titles_marker.lower())
+                
+                if content_start == -1 or objectives_start == -1:
+                    raise ValueError("Response markers not found even with flexible parsing")
             
             # Get enhanced content
             enhanced_content = response_text[
                 content_start + len(content_marker):objectives_start
             ].strip()
             
+            # Validate enhanced content
+            enhanced_content = self._validate_enhanced_content(enhanced_content)
+            
             # Get learning objectives
-            objectives_text = response_text[
-                objectives_start + len(objectives_marker):
-            ].strip()
+            if titles_start == -1:
+                # Old format without slide titles
+                objectives_text = response_text[
+                    objectives_start + len(objectives_marker):
+                ].strip()
+            else:
+                # New format with slide titles
+                objectives_text = response_text[
+                    objectives_start + len(objectives_marker):titles_start
+                ].strip()
             
-            # Parse objectives
-            learning_objectives = []
-            for line in objectives_text.split('\n'):
-                line = line.strip()
-                if line and (line.startswith('1.') or line.startswith('2.') or line.startswith('3.')):
-                    # Remove numbering and clean
-                    objective = re.sub(r'^\d+\.\s*', '', line).strip()
-                    if objective:
-                        learning_objectives.append(objective)
+            # Parse objectives with improved extraction
+            learning_objectives = self._extract_learning_objectives(objectives_text)
             
-            # Validate
+            # Get slide titles if available
+            slide_titles = []
+            if titles_start != -1:
+                titles_text = response_text[titles_start + len(titles_marker):].strip()
+                slide_titles = self._extract_slide_titles(titles_text)
+            
+            # Final validation
             if not enhanced_content or len(learning_objectives) == 0:
-                raise ValueError("Parsed content is empty")
+                raise ValueError("Parsed content is empty or invalid")
             
-            return enhanced_content, learning_objectives[:3]  # Ensure max 3 objectives
+            # Log success metrics
+            logger.info(f"Successfully parsed batch response: {len(enhanced_content)} chars, {len(learning_objectives)} objectives, {len(slide_titles)} titles")
+            
+            return enhanced_content, learning_objectives[:3], slide_titles  # Return with slide titles
             
         except Exception as e:
             logger.error(f"Failed to parse batch response: {e}")
-            # Fallback parsing - just return the response as content
-            return response_text, ["Apply key concepts to daily work", "Understand fundamental principles", "Implement best practices"]
+            logger.debug(f"Response preview: {response_text[:200]}...")
+            
+            # Intelligent fallback - try to extract something useful
+            return self._intelligent_fallback_parsing(response_text)
+    
+    def _validate_enhanced_content(self, content: str) -> str:
+        """Validate and clean enhanced content"""
+        # Remove any accidental marker repetitions
+        content = re.sub(r'===.*?===', '', content).strip()
+        
+        # Remove excessive whitespace
+        content = re.sub(r'\n{3,}', '\n\n', content)
+        content = re.sub(r' {2,}', ' ', content)
+        
+        # Ensure content has substance
+        if len(content) < 100:
+            raise ValueError(f"Enhanced content too short: {len(content)} chars")
+        
+        # Check for common GPT-4 errors
+        if content.lower().startswith('[enhanced content here]') or content.lower().startswith('[your enhanced'):
+            raise ValueError("GPT-4 returned placeholder text")
+        
+        return content.strip()
+    
+    def _extract_slide_titles(self, titles_text: str) -> List[str]:
+        """Extract slide titles with flexible parsing"""
+        titles = []
+        
+        # Use same patterns as objectives
+        patterns = [
+            r'^\d+\.\s*(.+)$',  # 1. Title
+            r'^-\s*(.+)$',       # - Title
+            r'^•\s*(.+)$',       # • Title
+            r'^\*\s*(.+)$',      # * Title
+            r'^\[\d+\]\s*(.+)$', # [1] Title
+        ]
+        
+        lines = titles_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Try each pattern
+            for pattern in patterns:
+                match = re.match(pattern, line)
+                if match:
+                    title = match.group(1).strip()
+                    # Basic validation - not too long, not too short
+                    if 2 <= len(title.split()) <= 10 and len(title) < 60:
+                        titles.append(title)
+                        break
+            else:
+                # If no pattern matched but line looks like a title
+                if line and not line.startswith('===') and 2 <= len(line.split()) <= 10:
+                    titles.append(line)
+        
+        return titles
+    
+    def _extract_learning_objectives(self, objectives_text: str) -> List[str]:
+        """Extract learning objectives with flexible parsing"""
+        objectives = []
+        
+        # Try multiple patterns
+        patterns = [
+            r'^\d+\.\s*(.+)$',  # 1. Objective
+            r'^-\s*(.+)$',       # - Objective
+            r'^•\s*(.+)$',       # • Objective
+            r'^\*\s*(.+)$',      # * Objective
+            r'^\[\d+\]\s*(.+)$', # [1] Objective
+        ]
+        
+        lines = objectives_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Try each pattern
+            objective_found = False
+            for pattern in patterns:
+                match = re.match(pattern, line)
+                if match:
+                    objective = match.group(1).strip()
+                    if self._validate_learning_objective(objective):
+                        objectives.append(objective)
+                        objective_found = True
+                        break
+            
+            # If no pattern matched but line looks like objective
+            if not objective_found and self._validate_learning_objective(line):
+                objectives.append(line)
+        
+        return objectives
+    
+    def _validate_learning_objective(self, objective: str) -> bool:
+        """Validate if text is a proper learning objective"""
+        # Check length
+        word_count = len(objective.split())
+        if word_count < 3 or word_count > 20:
+            return False
+        
+        # Check for action verbs
+        action_verbs = ['understand', 'apply', 'create', 'analyze', 'implement', 
+                       'develop', 'master', 'demonstrate', 'evaluate', 'design',
+                       'build', 'identify', 'explain', 'use', 'perform']
+        
+        objective_lower = objective.lower()
+        has_action = any(verb in objective_lower for verb in action_verbs)
+        
+        # Check it's not a placeholder
+        placeholders = ['[objective', 'first objective', 'second objective', 
+                       'third objective', 'your objective', 'here']
+        is_placeholder = any(ph in objective_lower for ph in placeholders)
+        
+        return has_action and not is_placeholder and len(objective) > 15
+    
+    def _intelligent_fallback_parsing(self, response_text: str) -> Tuple[str, List[str], List[str]]:
+        """Intelligent fallback when structured parsing fails"""
+        logger.info("Using intelligent fallback parsing")
+        
+        # Try to find content section
+        content = ""
+        objectives = []
+        
+        # Look for content patterns
+        lines = response_text.split('\n')
+        in_objectives = False
+        
+        for line in lines:
+            line_lower = line.lower()
+            
+            # Check for objective section markers
+            if 'objective' in line_lower and (':' in line or '===' in line):
+                in_objectives = True
+                continue
+            
+            # If we're in objectives section
+            if in_objectives:
+                cleaned = self._clean_bullet_point(line)
+                if self._validate_learning_objective(cleaned):
+                    objectives.append(cleaned)
+            else:
+                # Otherwise it's content
+                if line.strip() and not '===' in line:
+                    content += line + '\n'
+        
+        # Clean up content
+        content = content.strip()
+        
+        # If we didn't find much, just use the whole response as content
+        if len(content) < 200:
+            content = response_text
+        
+        # Generate default objectives if needed
+        if not objectives:
+            objectives = [
+                "Apply key concepts to improve daily work performance",
+                "Master fundamental principles through practical examples",
+                "Implement best practices for immediate results"
+            ]
+        
+        # Return empty slide titles in fallback
+        return content, objectives[:3], []

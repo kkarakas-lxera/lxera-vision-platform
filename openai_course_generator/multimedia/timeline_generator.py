@@ -17,6 +17,8 @@ from openai import OpenAI
 import numpy as np
 import wave
 import struct
+import re
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +66,18 @@ class TimelineGenerator:
         
         # Audio settings
         self.sample_rate = 24000  # OpenAI TTS sample rate
+        
+        # Enhanced voice mappings for different content types
+        self.voice_profiles = {
+            'introduction': {'voice': 'nova', 'speed': 0.95, 'description': 'warm and welcoming'},
+            'core_content': {'voice': 'alloy', 'speed': 0.9, 'description': 'clear and measured'},
+            'practical': {'voice': 'echo', 'speed': 1.0, 'description': 'confident and engaging'},
+            'case_study': {'voice': 'fable', 'speed': 0.95, 'description': 'storytelling tone'},
+            'assessment': {'voice': 'nova', 'speed': 0.9, 'description': 'supportive and clear'},
+            'summary': {'voice': 'shimmer', 'speed': 0.95, 'description': 'reflective and calm'},
+            'default': {'voice': 'nova', 'speed': 1.0, 'description': 'balanced and friendly'}
+        }
+        
         self.voices = {
             'alloy': 'neutral and fast',
             'echo': 'smooth and confident', 
@@ -79,6 +93,143 @@ class TimelineGenerator:
         self.words_per_minute = 150
         self.pause_between_slides = 0.5  # seconds
         
+        # Content complexity metrics
+        self.complexity_factors = {
+            'technical_terms': ['algorithm', 'framework', 'architecture', 'implementation', 'infrastructure'],
+            'concept_indicators': ['understand', 'analyze', 'evaluate', 'synthesize', 'integrate'],
+            'pause_triggers': ['however', 'therefore', 'importantly', 'remember', 'note that']
+        }
+        
+    def analyze_content_complexity(self, text: str) -> Dict[str, Any]:
+        """
+        Analyze content complexity to adjust speech rate and timing
+        
+        Returns:
+            Dictionary with complexity metrics
+        """
+        words = text.split()
+        sentences = re.split(r'[.!?]+', text)
+        
+        # Calculate basic metrics
+        word_count = len(words)
+        sentence_count = len([s for s in sentences if s.strip()])
+        avg_sentence_length = word_count / max(sentence_count, 1)
+        
+        # Count syllables (approximation)
+        syllable_count = sum(self._count_syllables(word) for word in words)
+        avg_syllables_per_word = syllable_count / max(word_count, 1)
+        
+        # Count technical terms
+        technical_count = sum(1 for word in words 
+                            if word.lower() in self.complexity_factors['technical_terms'])
+        
+        # Count concept indicators
+        concept_count = sum(1 for word in words 
+                          if word.lower() in self.complexity_factors['concept_indicators'])
+        
+        # Calculate complexity score (0-1)
+        complexity_score = min(1.0, (
+            (avg_sentence_length / 20) * 0.3 +  # Sentence length factor
+            (avg_syllables_per_word / 3) * 0.3 +  # Word complexity factor
+            (technical_count / word_count) * 0.2 +  # Technical density
+            (concept_count / word_count) * 0.2  # Conceptual density
+        ))
+        
+        # Recommended adjustments
+        recommended_speed = 1.0 - (complexity_score * 0.3)  # Slower for complex content
+        recommended_wpm = self.words_per_minute * (1 - complexity_score * 0.2)
+        
+        # Calculate pause points
+        pause_points = self._identify_pause_points(text)
+        
+        return {
+            'word_count': word_count,
+            'sentence_count': sentence_count,
+            'avg_sentence_length': avg_sentence_length,
+            'avg_syllables_per_word': avg_syllables_per_word,
+            'technical_density': technical_count / max(word_count, 1),
+            'concept_density': concept_count / max(word_count, 1),
+            'complexity_score': complexity_score,
+            'recommended_speed': recommended_speed,
+            'recommended_wpm': recommended_wpm,
+            'pause_points': pause_points,
+            'estimated_duration': (word_count / recommended_wpm) * 60 * 1.2  # Add 20% for pauses
+        }
+    
+    def _count_syllables(self, word: str) -> int:
+        """Estimate syllable count for a word"""
+        word = word.lower().strip(string.punctuation)
+        
+        # Simple syllable counting heuristic
+        count = 0
+        vowels = 'aeiouy'
+        previous_was_vowel = False
+        
+        for char in word:
+            is_vowel = char in vowels
+            if is_vowel and not previous_was_vowel:
+                count += 1
+            previous_was_vowel = is_vowel
+        
+        # Adjust for silent e
+        if word.endswith('e') and count > 1:
+            count -= 1
+        
+        # Ensure at least one syllable
+        return max(1, count)
+    
+    def _identify_pause_points(self, text: str) -> List[Dict[str, Any]]:
+        """Identify natural pause points in text"""
+        pause_points = []
+        
+        # Find punctuation-based pauses
+        for match in re.finditer(r'[.,;:!?]', text):
+            pause_type = 'short' if match.group() in ',' else 'long'
+            pause_duration = 0.3 if pause_type == 'short' else 0.6
+            pause_points.append({
+                'position': match.start(),
+                'type': pause_type,
+                'duration': pause_duration
+            })
+        
+        # Find trigger word pauses
+        for trigger in self.complexity_factors['pause_triggers']:
+            pattern = rf'\b{trigger}\b'
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                pause_points.append({
+                    'position': match.start(),
+                    'type': 'emphasis',
+                    'duration': 0.4
+                })
+        
+        # Sort by position
+        pause_points.sort(key=lambda x: x['position'])
+        
+        return pause_points
+    
+    def select_voice_for_content(self, section_type: str, content: str) -> Tuple[str, float]:
+        """
+        Select appropriate voice and speed based on content type and analysis
+        
+        Returns:
+            Tuple of (voice_name, speed)
+        """
+        # Get base profile for section type
+        profile = self.voice_profiles.get(section_type, self.voice_profiles['default'])
+        
+        # Analyze content complexity
+        complexity = self.analyze_content_complexity(content)
+        
+        # Adjust speed based on complexity
+        adjusted_speed = profile['speed'] * complexity['recommended_speed']
+        
+        # Ensure speed is within OpenAI's limits (0.25 to 4.0)
+        adjusted_speed = max(0.25, min(4.0, adjusted_speed))
+        
+        logger.info(f"Selected voice '{profile['voice']}' with speed {adjusted_speed:.2f} for {section_type} content")
+        
+        return profile['voice'], adjusted_speed
+    
     async def generate_educational_timeline(
         self,
         script: Any,  # EducationalScript from script generator
@@ -118,20 +269,49 @@ class TimelineGenerator:
         for i, slide in enumerate(script.slides):
             logger.info(f"Processing slide {i+1}/{len(script.slides)}")
             
-            # Create audio segment
+            # Determine section type from slide context
+            section_type = self._determine_section_type(slide, i, len(script.slides))
+            
+            # Select voice and speed based on content analysis
+            selected_voice, selected_speed = self.select_voice_for_content(
+                section_type, 
+                slide.speaker_notes
+            )
+            
+            # Override with user preference if specified
+            if voice and voice != 'auto':
+                selected_voice = voice
+            if speed and speed != 'auto':
+                selected_speed = speed
+            
+            # Create audio segment with enhanced processing
             segment = await self._generate_audio_segment(
                 slide_id=f"slide_{slide.slide_number}",
                 text=slide.speaker_notes,
-                voice=voice,
-                speed=speed,
+                voice=selected_voice,
+                speed=selected_speed,
                 audio_dir=audio_dir,
-                segment_number=i+1
+                segment_number=i+1,
+                section_type=section_type
             )
             
-            # Calculate timing
-            segment.start_time = current_time
-            segment.end_time = current_time + slide.duration_estimate
-            current_time = segment.end_time + self.pause_between_slides
+            # Calculate timing based on actual audio duration if available
+            if segment.audio_file:
+                actual_duration = self.calculate_audio_duration(segment.audio_file)
+                if actual_duration > 0:
+                    segment.start_time = current_time
+                    segment.end_time = current_time + actual_duration
+                    current_time = segment.end_time + self.pause_between_slides
+                else:
+                    # Fallback to estimate
+                    segment.start_time = current_time
+                    segment.end_time = current_time + slide.duration_estimate
+                    current_time = segment.end_time + self.pause_between_slides
+            else:
+                # Use estimate if no audio file
+                segment.start_time = current_time
+                segment.end_time = current_time + slide.duration_estimate
+                current_time = segment.end_time + self.pause_between_slides
             
             audio_segments.append(segment)
         
@@ -173,6 +353,21 @@ class TimelineGenerator:
         logger.info(f"Timeline generation complete: {total_duration:.2f} seconds")
         return timeline
     
+    def _determine_section_type(self, slide: Any, index: int, total_slides: int) -> str:
+        """Determine the section type based on slide position and content"""
+        if index == 0:
+            return 'introduction'
+        elif index == total_slides - 1:
+            return 'summary'
+        elif 'case' in slide.title.lower() or 'example' in slide.title.lower():
+            return 'case_study'
+        elif 'practice' in slide.title.lower() or 'apply' in slide.title.lower():
+            return 'practical'
+        elif 'assess' in slide.title.lower() or 'test' in slide.title.lower():
+            return 'assessment'
+        else:
+            return 'core_content'
+    
     async def _generate_audio_segment(
         self,
         slide_id: str,
@@ -180,15 +375,26 @@ class TimelineGenerator:
         voice: str,
         speed: float,
         audio_dir: Path,
-        segment_number: int
+        segment_number: int,
+        section_type: str = 'default'
     ) -> AudioSegment:
         """Generate audio for a single segment using OpenAI TTS"""
         
         try:
             logger.info(f"Generating audio for slide {slide_id}")
             
-            # Clean text for TTS
+            # Clean and enhance text for TTS
             cleaned_text = self._clean_text_for_tts(text)
+            enhanced_text = self._enhance_text_with_ssml_markers(cleaned_text, section_type)
+            
+            # Analyze complexity for final adjustments
+            complexity = self.analyze_content_complexity(cleaned_text)
+            
+            # Fine-tune speed based on complexity
+            final_speed = speed * complexity['recommended_speed']
+            final_speed = max(0.25, min(4.0, final_speed))  # Keep within OpenAI limits
+            
+            logger.info(f"Generating audio for {section_type} section with complexity score: {complexity['complexity_score']:.2f}")
             
             # Use more expressive voice options for human-like speech
             voice_mapping = {
@@ -207,8 +413,8 @@ class TimelineGenerator:
             response = self.client.audio.speech.create(
                 model="tts-1-hd",  # High quality model for better expression
                 voice=selected_voice,
-                input=cleaned_text,
-                speed=speed
+                input=enhanced_text,
+                speed=final_speed
             )
             
             # Save audio file
@@ -220,17 +426,20 @@ class TimelineGenerator:
             
             logger.info(f"Audio segment saved: {audio_path}")
             
-            # Estimate duration (will be refined when merging)
-            estimated_duration = len(cleaned_text.split()) / self.words_per_minute * 60
+            # Calculate actual duration if possible
+            actual_duration = self.calculate_audio_duration(str(audio_path))
+            if actual_duration <= 0:
+                # Fallback to enhanced estimation based on complexity
+                actual_duration = complexity['estimated_duration']
             
             return AudioSegment(
                 segment_id=slide_id,
                 text=cleaned_text,
                 start_time=0,  # Will be set later
-                end_time=estimated_duration,  # Will be adjusted
+                end_time=actual_duration,  # Will be adjusted
                 audio_file=str(audio_path),
                 voice=voice,
-                speed=speed
+                speed=final_speed
             )
             
         except Exception as e:
@@ -266,6 +475,71 @@ class TimelineGenerator:
         text = text.replace('Remember,', 'Remember...')
         
         return text.strip()
+    
+    def _enhance_text_with_ssml_markers(self, text: str, section_type: str) -> str:
+        """
+        Enhance text with SSML-like markers for better expression
+        Note: OpenAI doesn't support SSML, but we can use punctuation for similar effects
+        """
+        enhanced_text = text
+        
+        # Add emphasis pauses for key phrases
+        emphasis_phrases = [
+            ('important to note', 'important... to note'),
+            ('key point', 'key point...'),
+            ('pay attention', 'pay attention...'),
+            ('remember that', 'remember... that'),
+            ('for example', 'for example...'),
+            ('in other words', 'in other words...'),
+            ('however', 'however...'),
+            ('therefore', 'therefore...'),
+            ('furthermore', 'furthermore...'),
+            ('in conclusion', 'in conclusion...')
+        ]
+        
+        for original, replacement in emphasis_phrases:
+            enhanced_text = enhanced_text.replace(original, replacement)
+        
+        # Add section-specific enhancements
+        if section_type == 'introduction':
+            # Add welcoming pauses
+            enhanced_text = enhanced_text.replace('Welcome', 'Welcome...')
+            enhanced_text = enhanced_text.replace('Let\'s begin', 'Let\'s... begin')
+        
+        elif section_type == 'core_content':
+            # Add pauses for complex concepts
+            enhanced_text = re.sub(r'(\b(?:concept|principle|theory|method)\b)', r'\1...', enhanced_text)
+        
+        elif section_type == 'practical':
+            # Add pauses for steps
+            enhanced_text = re.sub(r'(First,|Second,|Third,|Next,|Finally,)', r'\1...', enhanced_text)
+        
+        elif section_type == 'summary':
+            # Add reflective pauses
+            enhanced_text = enhanced_text.replace('learned', 'learned...')
+            enhanced_text = enhanced_text.replace('covered', 'covered...')
+        
+        # Add natural breathing pauses at long sentences
+        sentences = enhanced_text.split('. ')
+        processed_sentences = []
+        
+        for sentence in sentences:
+            words = sentence.split()
+            if len(words) > 15:  # Long sentence
+                # Find a good breaking point around the middle
+                middle = len(words) // 2
+                for i in range(middle - 2, middle + 3):
+                    if i < len(words) and words[i].lower() in ['and', 'but', 'which', 'that', 'when', 'where', 'while']:
+                        words[i] = words[i] + '...'
+                        break
+            processed_sentences.append(' '.join(words))
+        
+        enhanced_text = '. '.join(processed_sentences)
+        
+        # Ensure we don't have multiple consecutive pauses
+        enhanced_text = re.sub(r'\.{3,}', '...', enhanced_text)
+        
+        return enhanced_text
     
     async def _merge_audio_segments(
         self,

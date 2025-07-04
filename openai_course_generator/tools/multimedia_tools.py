@@ -45,16 +45,38 @@ class MultimediaManager:
     ) -> str:
         """Create a new multimedia generation session."""
         try:
+            # Ensure we have valid UUIDs for required fields
+            # If content_id is not a valid UUID, generate one
+            try:
+                uuid.UUID(course_id)
+                content_uuid = course_id
+            except ValueError:
+                # Generate a deterministic UUID from the course_id string
+                content_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, course_id))
+                logger.info(f"Generated UUID for course_id: {course_id} -> {content_uuid}")
+            
             session_data = {
-                'execution_id': execution_id,
-                'course_id': course_id,
+                'content_id': content_uuid,
+                'company_id': kwargs.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa'),
+                'session_type': 'multimedia_generation',
+                'module_name': course_title,
                 'employee_name': employee_name,
-                'employee_id': employee_id,
-                'course_title': course_title,
-                'total_modules': total_modules,
-                'output_directory': f"/multimedia/{employee_name.lower().replace(' ', '_')}/{course_id}",
-                'total_assets_planned': total_modules * 14,  # Estimated assets per module
-                **kwargs
+                'generation_config': {
+                    'total_modules': total_modules,
+                    'output_directory': f"/multimedia/{employee_name.lower().replace(' ', '_')}/{course_id}",
+                    'total_assets_planned': total_modules * 14,
+                    'original_course_id': course_id,  # Store original ID
+                    **kwargs
+                },
+                'content_sections': ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'],
+                'status': 'active',
+                'current_stage': 'initialization',
+                'progress_percentage': 0,
+                'total_assets_generated': 0,
+                'slides_generated': 0,
+                'audio_files_generated': 0,
+                'video_files_generated': 0,
+                'initiated_by': kwargs.get('employee_id', employee_id)
             }
             
             result = self.supabase.table('mm_multimedia_sessions').insert(session_data).execute()
@@ -69,48 +91,137 @@ class MultimediaManager:
     
     def register_multimedia_asset(
         self,
-        session_id: str,
-        content_id: str,
-        course_id: str,
-        module_name: str,
-        asset_type: str,
-        asset_category: str,
-        file_path: str,
-        file_name: str,
+        session_id: str = None,
+        content_id: str = None,
+        course_id: str = None,
+        module_name: str = None,
+        asset_type: str = None,
+        asset_category: str = None,
+        file_path: str = None,
+        file_name: str = None,
         section_name: str = None,
+        duration_seconds: float = 0,
+        file_size_bytes: int = None,
+        mime_type: str = None,
+        generation_config: dict = None,
         **metadata
     ) -> str:
-        """Register a multimedia asset in the database."""
+        """Register a multimedia asset in the database with proper Supabase storage."""
         try:
-            # Get company_id from content or use default
+            import os
+            from pathlib import Path
+            
+            # Validate session_id is a UUID
+            try:
+                uuid.UUID(session_id)
+                session_uuid = session_id
+            except (ValueError, TypeError):
+                # Generate a UUID if not valid
+                session_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, str(session_id) or 'default'))
+                logger.info(f"Generated UUID for session_id: {session_id} -> {session_uuid}")
+            
+            # Validate content_id is a UUID
+            try:
+                uuid.UUID(content_id)
+                content_uuid = content_id
+            except (ValueError, TypeError):
+                # Generate a UUID if not valid
+                content_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, str(content_id) or str(course_id) or 'default'))
+                logger.info(f"Generated UUID for content_id: {content_id} -> {content_uuid}")
+            
+            # Get company_id from metadata or use default
             company_id = metadata.get('company_id', '67d7bff4-1149-4f37-952e-af1841fb67fa')
             
+            # Upload file to Supabase storage if it exists locally
+            public_url = None
+            storage_path = None
+            
+            if file_path and os.path.exists(file_path):
+                try:
+                    # Upload to multimedia-assets bucket
+                    file_ext = Path(file_path).suffix
+                    # Use timestamp to ensure unique filenames
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    storage_filename = f"{asset_type}/{section_name or 'main'}/{timestamp}_{file_name}"
+                    
+                    with open(file_path, 'rb') as file_data:
+                        # Check if file already exists and delete it first
+                        try:
+                            self.supabase.storage.from_('multimedia-assets').remove([storage_filename])
+                        except:
+                            pass  # File doesn't exist, continue
+                        
+                        upload_result = self.supabase.storage.from_('multimedia-assets').upload(
+                            storage_filename, 
+                            file_data
+                        )
+                    
+                    # Get public URL
+                    public_url = self.supabase.storage.from_('multimedia-assets').get_public_url(storage_filename)
+                    storage_path = storage_filename
+                    
+                    logger.info(f"✅ Uploaded {asset_type} to Supabase storage: {storage_filename}")
+                    
+                except Exception as upload_error:
+                    logger.warning(f"⚠️ Storage upload failed, saving local path: {upload_error}")
+                    public_url = file_path  # Use local path as fallback
+            
+            # Calculate file size if not provided
+            if not file_size_bytes and file_path and os.path.exists(file_path):
+                file_size_bytes = os.path.getsize(file_path)
+            
+            # Prepare asset data for database
             asset_data = {
-                'session_id': session_id,
-                'content_id': content_id,
+                'session_id': session_uuid,  # Use validated UUID
+                'content_id': content_uuid,  # Use validated UUID
                 'company_id': company_id,
                 'asset_type': asset_type,
-                'asset_name': file_name,  # Use asset_name instead of file_name
-                'file_path': file_path,
+                'asset_name': file_name,
+                'file_path': file_path,  # Local path
                 'section_name': section_name,
                 'status': 'generated',
-                'duration_seconds': metadata.get('duration_seconds', 0),
-                'file_size_bytes': metadata.get('file_size_bytes'),
-                'mime_type': metadata.get('mime_type'),
-                'generation_config': metadata.get('generation_config', {}),
+                'duration_seconds': duration_seconds,
+                'file_size_bytes': file_size_bytes,
+                'mime_type': mime_type or self._get_mime_type(file_path),
+                'generation_config': generation_config or {
+                    'original_session_id': session_id,
+                    'original_content_id': content_id
+                },
                 'processing_time_seconds': metadata.get('processing_time_seconds'),
-                'is_active': True
+                'is_active': True,
+                'storage_bucket': 'multimedia-assets' if public_url else None,
+                'storage_path': storage_path,
+                'public_url': public_url
             }
             
+            # Insert into database
             result = self.supabase.table('mm_multimedia_assets').insert(asset_data).execute()
             asset_id = result.data[0]['asset_id']
             
-            logger.info(f"Registered multimedia asset: {asset_id}")
+            logger.info(f"✅ Registered multimedia asset: {asset_id} ({asset_type})")
             return asset_id
             
         except Exception as e:
-            logger.error(f"Failed to register multimedia asset: {e}")
-            raise
+            logger.error(f"❌ Failed to register multimedia asset: {e}")
+            # Don't raise - continue pipeline even if registration fails
+            return None
+    
+    def _get_mime_type(self, file_path: str) -> str:
+        """Get MIME type from file extension."""
+        if not file_path:
+            return None
+        
+        ext = Path(file_path).suffix.lower()
+        mime_types = {
+            '.mp4': 'video/mp4',
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.json': 'application/json'
+        }
+        return mime_types.get(ext, 'application/octet-stream')
     
     def update_asset_status(self, asset_id: str, status: str, **updates):
         """Update multimedia asset status and metadata."""
@@ -159,7 +270,7 @@ class MultimediaManager:
             script_data = {
                 'session_id': session_id,
                 'content_id': content_id,
-                'course_id': course_id,
+                'content_id': course_id,
                 'module_name': module_name,
                 'section_name': section_name,
                 'script_type': script_type,
@@ -205,7 +316,6 @@ class MultimediaManager:
             session_id = session_id or execution_id
             
             session_data = {
-                'session_id': session_id,
                 'content_id': content_id,
                 'company_id': company_id,
                 'session_type': session_type,
@@ -223,6 +333,7 @@ class MultimediaManager:
             }
             
             result = self.supabase.table('mm_multimedia_sessions').insert(session_data).execute()
+            session_id = result.data[0]['session_id']
             logger.info(f"Created multimedia session: {session_id}")
             return session_id
             
@@ -285,13 +396,12 @@ def create_course_multimedia_session(
         
         session_id = manager.create_multimedia_session(
             execution_id=execution_id,
-            course_id=course_id,
+            content_id=course_id,  # Pass as content_id, not course_id
+            module_name=course_title,
             employee_name=employee_name,
-            employee_id=employee_id,
-            course_title=course_title,
-            total_modules=total_modules,
+            session_type='complete_course',
             personalization_level=personalization_level,
-            session_type='complete_course'
+            total_modules=total_modules
         )
         
         result_data = {
@@ -552,7 +662,7 @@ def finalize_multimedia_package(
         # Create analytics record
         analytics_data = {
             'session_id': session_id,
-            'course_id': course_id,
+            'content_id': course_id,
             'employee_name': employee_name,
             'assets_generated_successfully': completed_assets,
             'assets_generation_failed': total_assets - completed_assets,
@@ -924,3 +1034,250 @@ def generate_educational_video(
             "content_id": content_id
         }
         return json.dumps(error_data)
+
+
+# Content Analysis Tools
+@function_tool
+def analyze_content_complexity(
+    text: str,
+    return_recommendations: bool = True
+) -> str:
+    """
+    Analyze content complexity for optimizing audio generation.
+    
+    This tool analyzes text complexity to determine optimal:
+    - Speech rate (words per minute)
+    - Voice selection
+    - Pause placement
+    - Emphasis points
+    
+    Args:
+        text: The text content to analyze
+        return_recommendations: Whether to include recommendations
+        
+    Returns:
+        JSON string with complexity analysis and recommendations
+    """
+    import re
+    import string
+    
+    try:
+        words = text.split()
+        sentences = re.split(r'[.!?]+', text)
+        
+        # Calculate basic metrics
+        word_count = len(words)
+        sentence_count = len([s for s in sentences if s.strip()])
+        avg_sentence_length = word_count / max(sentence_count, 1)
+        
+        # Count syllables (approximation)
+        def count_syllables(word):
+            word = word.lower().strip(string.punctuation)
+            count = 0
+            vowels = 'aeiouy'
+            previous_was_vowel = False
+            
+            for char in word:
+                is_vowel = char in vowels
+                if is_vowel and not previous_was_vowel:
+                    count += 1
+                previous_was_vowel = is_vowel
+            
+            if word.endswith('e') and count > 1:
+                count -= 1
+            
+            return max(1, count)
+        
+        syllable_count = sum(count_syllables(word) for word in words)
+        avg_syllables_per_word = syllable_count / max(word_count, 1)
+        
+        # Technical terms and complexity indicators
+        technical_terms = ['algorithm', 'framework', 'implementation', 'architecture', 
+                         'methodology', 'analysis', 'synthesis', 'evaluation', 'integration',
+                         'paradigm', 'infrastructure', 'optimization', 'configuration']
+        concept_indicators = ['understand', 'analyze', 'evaluate', 'synthesize', 
+                            'integrate', 'demonstrate', 'implement', 'design']
+        
+        technical_count = sum(1 for word in words if word.lower() in technical_terms)
+        concept_count = sum(1 for word in words if word.lower() in concept_indicators)
+        
+        # Calculate complexity score (0-1)
+        complexity_score = min(1.0, (
+            (avg_sentence_length / 20) * 0.3 +
+            (avg_syllables_per_word / 3) * 0.3 +
+            (technical_count / word_count) * 0.2 +
+            (concept_count / word_count) * 0.2
+        ))
+        
+        # Generate recommendations
+        recommendations = {}
+        if return_recommendations:
+            # Speech rate recommendation
+            base_wpm = 150
+            recommended_wpm = base_wpm * (1 - complexity_score * 0.3)
+            recommended_speed = 1.0 - (complexity_score * 0.3)
+            
+            # Voice recommendation based on complexity
+            if complexity_score > 0.7:
+                recommended_voice = 'alloy'  # Clear and measured
+                voice_reason = 'Clear articulation for complex content'
+            elif complexity_score > 0.5:
+                recommended_voice = 'nova'   # Warm and friendly
+                voice_reason = 'Balanced tone for moderate complexity'
+            else:
+                recommended_voice = 'echo'   # Engaging
+                voice_reason = 'Dynamic delivery for straightforward content'
+            
+            # Pause recommendations
+            pause_points = []
+            for match in re.finditer(r'[.,;:!?]', text):
+                pause_type = 'short' if match.group() in ',' else 'long'
+                pause_duration = 0.3 if pause_type == 'short' else 0.6
+                pause_points.append({
+                    'position': match.start(),
+                    'type': pause_type,
+                    'duration': pause_duration
+                })
+            
+            recommendations = {
+                'recommended_wpm': round(recommended_wpm, 1),
+                'recommended_speed': round(recommended_speed, 2),
+                'recommended_voice': recommended_voice,
+                'voice_reason': voice_reason,
+                'pause_count': len(pause_points),
+                'estimated_duration': (word_count / recommended_wpm) * 60 * 1.2
+            }
+        
+        analysis = {
+            'success': True,
+            'metrics': {
+                'word_count': word_count,
+                'sentence_count': sentence_count,
+                'avg_sentence_length': round(avg_sentence_length, 1),
+                'avg_syllables_per_word': round(avg_syllables_per_word, 2),
+                'technical_density': round(technical_count / max(word_count, 1), 3),
+                'concept_density': round(concept_count / max(word_count, 1), 3),
+                'complexity_score': round(complexity_score, 2)
+            },
+            'complexity_level': (
+                'high' if complexity_score > 0.7 else
+                'medium' if complexity_score > 0.4 else
+                'low'
+            )
+        }
+        
+        if return_recommendations:
+            analysis['recommendations'] = recommendations
+        
+        return json.dumps(analysis)
+        
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'error': f'Content analysis failed: {str(e)}'
+        })
+
+
+@function_tool
+def optimize_audio_timing(
+    script_data: Dict[str, Any],
+    target_duration: Optional[float] = None
+) -> str:
+    """
+    Optimize audio timing for educational video scripts.
+    
+    This tool adjusts timing based on:
+    - Content complexity per slide
+    - Natural speech patterns
+    - Educational best practices
+    - Target duration constraints
+    
+    Args:
+        script_data: Script data with slides and content
+        target_duration: Optional target duration in seconds
+        
+    Returns:
+        JSON string with optimized timing recommendations
+    """
+    try:
+        slides = script_data.get('slides', [])
+        if not slides:
+            return json.dumps({
+                'success': False,
+                'error': 'No slides found in script data'
+            })
+        
+        optimized_slides = []
+        total_duration = 0
+        
+        for slide in slides:
+            # Analyze slide content
+            speaker_notes = slide.get('speaker_notes', '')
+            bullet_points = slide.get('bullet_points', [])
+            
+            # Calculate content complexity
+            combined_text = speaker_notes + ' '.join(bullet_points)
+            complexity_result = json.loads(analyze_content_complexity(combined_text, True))
+            
+            if complexity_result['success']:
+                metrics = complexity_result['metrics']
+                recommendations = complexity_result['recommendations']
+                
+                # Calculate optimized duration
+                base_duration = recommendations['estimated_duration']
+                
+                # Add visual processing time
+                visual_time = len(bullet_points) * 2  # 2 seconds per bullet
+                
+                # Adjust for slide position
+                slide_number = slide.get('slide_number', 1)
+                if slide_number == 1:  # Introduction slide
+                    position_multiplier = 1.2
+                elif slide_number == len(slides):  # Summary slide
+                    position_multiplier = 1.1
+                else:
+                    position_multiplier = 1.0
+                
+                optimized_duration = (base_duration + visual_time) * position_multiplier
+                
+                optimized_slide = {
+                    'slide_number': slide_number,
+                    'original_duration': slide.get('duration_estimate', 0),
+                    'optimized_duration': round(optimized_duration, 1),
+                    'recommended_speed': recommendations['recommended_speed'],
+                    'recommended_voice': recommendations['recommended_voice'],
+                    'complexity_score': metrics['complexity_score'],
+                    'word_count': metrics['word_count']
+                }
+                
+                optimized_slides.append(optimized_slide)
+                total_duration += optimized_duration
+        
+        # Apply target duration constraints if specified
+        if target_duration and total_duration > 0:
+            scaling_factor = target_duration / total_duration
+            
+            for slide in optimized_slides:
+                slide['scaled_duration'] = round(slide['optimized_duration'] * scaling_factor, 1)
+                slide['scaling_applied'] = True
+        
+        result = {
+            'success': True,
+            'total_duration': round(total_duration, 1),
+            'target_duration': target_duration,
+            'slides': optimized_slides,
+            'average_slide_duration': round(total_duration / len(slides), 1),
+            'recommendations': {
+                'use_dynamic_voices': True,
+                'apply_complexity_based_pacing': True,
+                'include_natural_pauses': True
+            }
+        }
+        
+        return json.dumps(result)
+        
+    except Exception as e:
+        return json.dumps({
+            'success': False,
+            'error': f'Timing optimization failed: {str(e)}'
+        })

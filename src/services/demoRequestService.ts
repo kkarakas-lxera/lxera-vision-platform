@@ -1,5 +1,7 @@
+// Backward compatibility wrapper for ticketService
+// This file is maintained to support legacy code that still uses demoRequestService
 
-import { supabase } from '@/integrations/supabase/client';
+import { ticketService, TicketRecord } from './ticketService';
 
 export interface DemoRequest {
   firstName: string;
@@ -35,137 +37,59 @@ export interface DemoRequestRecord {
   updated_at: string;
 }
 
+// Helper function to convert TicketRecord to DemoRequestRecord
+const ticketToDemoRequest = (ticket: TicketRecord): DemoRequestRecord => ({
+  id: ticket.id,
+  first_name: ticket.first_name,
+  last_name: ticket.last_name,
+  email: ticket.email,
+  company: ticket.company || '',
+  job_title: ticket.job_title,
+  phone: ticket.phone,
+  company_size: ticket.company_size,
+  country: ticket.country,
+  message: ticket.message,
+  source: ticket.source,
+  status: ticket.status,
+  notes: ticket.notes,
+  processed_by: ticket.processed_by,
+  processed_at: ticket.processed_at,
+  submitted_at: ticket.submitted_at,
+  created_at: ticket.created_at,
+  updated_at: ticket.updated_at
+});
+
 export const demoRequestService = {
   async submitDemoRequest(demoRequest: DemoRequest): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { data, error } = await supabase
-        .from('demo_requests')
-        .insert([
-          {
-            first_name: demoRequest.firstName,
-            last_name: demoRequest.lastName,
-            email: demoRequest.email,
-            company: demoRequest.company,
-            job_title: demoRequest.jobTitle || null,
-            phone: demoRequest.phone || null,
-            company_size: demoRequest.companySize || null,
-            country: demoRequest.country || null,
-            message: demoRequest.message || null,
-            source: demoRequest.source,
-            status: 'new', // Default status
-            notes: null,
-            processed_by: null,
-            processed_at: null,
-            submitted_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (error) {
-        console.error('Error submitting demo request:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Unexpected error submitting demo request:', error);
-      return { success: false, error: error.message || 'An unexpected error occurred' };
-    }
+    return ticketService.submitDemoRequest(demoRequest);
   },
 
   async getAllDemoRequests(): Promise<DemoRequestRecord[]> {
-    const { data, error } = await supabase
-      .from('demo_requests')
-      .select('*')
-      .order('submitted_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching demo requests:', error);
-      throw new Error(`Failed to fetch demo requests: ${error.message}`);
-    }
-
-    // Cast the data to match our expected type structure
-    const typedData: DemoRequestRecord[] = (data || []).map(item => ({
-      ...item,
-      status: (item.status as DemoRequestRecord['status']) || 'new'
-    }));
-
-    return typedData;
+    const tickets = await ticketService.getDemoRequests();
+    return tickets.map(ticketToDemoRequest);
   },
 
-  // Alias for backward compatibility
   async getDemoRequests(): Promise<DemoRequestRecord[]> {
     return this.getAllDemoRequests();
   },
 
   async getDemoRequestStats(): Promise<{ total: number; new: number }> {
-    const { data, error } = await supabase
-      .from('demo_requests')
-      .select('status');
-
-    if (error) {
-      console.error('Error fetching demo request stats:', error);
-      return { total: 0, new: 0 };
-    }
-
-    const total = data?.length || 0;
-    const newRequests = data?.filter(item => item.status === 'new').length || 0;
-
-    return { total, new: newRequests };
+    return ticketService.getDemoRequestStats();
   },
 
   async getDemoRequestById(id: string): Promise<DemoRequestRecord | null> {
-    const { data, error } = await supabase
-      .from('demo_requests')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching demo request by ID:', error);
-      return null;
-    }
-
-    return data as DemoRequestRecord;
+    const ticket = await ticketService.getTicketById(id);
+    return ticket && ticket.ticket_type === 'demo_request' ? ticketToDemoRequest(ticket) : null;
   },
 
   async updateDemoRequest(
     id: string,
     updates: Partial<DemoRequestRecord>
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { data, error } = await supabase
-        .from('demo_requests')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error updating demo request:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Unexpected error updating demo request:', error);
-      return { success: false, error: error.message || 'An unexpected error occurred' };
-    }
+    return ticketService.updateTicket(id, updates);
   },
 
   async deleteDemoRequest(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { data, error } = await supabase
-        .from('demo_requests')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting demo request:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Unexpected error deleting demo request:', error);
-      return { success: false, error: error.message || 'An unexpected error occurred' };
-    }
+    return ticketService.deleteTicket(id);
   },
 };

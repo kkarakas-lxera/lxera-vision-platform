@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ticketService } from "@/services/ticketService";
 
 interface ContactSalesModalProps {
   isOpen: boolean;
@@ -58,8 +59,25 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - replace with actual sales contact service
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Split name into firstName and lastName
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const result = await ticketService.submitTicket({
+        ticketType: 'contact_sales',
+        firstName,
+        lastName,
+        email: formData.email,
+        company: formData.company,
+        teamSize: formData.teamSize,
+        message: formData.message,
+        source: 'Contact Sales Modal'
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit contact request');
+      }
       
       setIsSubmitted(true);
       toast({
@@ -70,7 +88,7 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
       console.error('Contact sales submission failed:', error);
       toast({
         title: "Submission Failed",
-        description: "There was an error sending your request. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error sending your request. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -1,12 +1,17 @@
 
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle, Bot, Target, Eye, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
+import DemoModal from "@/components/DemoModal";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const MentorshipSupport = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const supportFeatures = [
     {
       title: "AI Behavior Monitoring",
@@ -77,7 +82,11 @@ const MentorshipSupport = () => {
             through dedicated chatbot mentors trained on your company's knowledge base.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
@@ -212,19 +221,37 @@ const MentorshipSupport = () => {
             Discover how AI-powered mentorship transforms learning outcomes with personalized, intelligent support
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter">
+            <Button 
+              size="lg" 
+              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
+              onClick={() => setIsDemoModalOpen(true)}
+            >
               Request a Demo
             </Button>
-            <Button variant="outline" size="lg" asChild className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
-              <Link to="/platform/security-privacy">
-                Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
+              onClick={() => setIsContactSalesModalOpen(true)}
+            >
+              Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
       </section>
 
       <Footer />
+      
+      {/* Modals */}
+      <DemoModal 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)}
+        source="Mentorship Support Page"
+      />
+      <ContactSalesModal 
+        isOpen={isContactSalesModalOpen} 
+        onClose={() => setIsContactSalesModalOpen(false)}
+      />
     </div>
   );
 };

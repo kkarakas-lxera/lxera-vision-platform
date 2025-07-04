@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import DemoModal from "./DemoModal";
 import Loading from "./Loading";
+import { ticketService } from "@/services/ticketService";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -70,19 +71,38 @@ const ContactSection = () => {
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Split name into firstName and lastName
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0] || ''; // Use first name as last name if only one name provided
       
-      console.log('Demo request submitted:', formData);
-      setIsSubmitted(true);
-      toast({
-        title: "Demo Request Submitted!",
-        description: "We'll get back to you within 24 hours.",
+      // Submit to database using ticketService
+      const result = await ticketService.submitTicket({
+        ticketType: 'demo_request',
+        firstName,
+        lastName,
+        email: formData.email,
+        company: formData.organization,
+        jobTitle: formData.role || undefined,
+        source: 'website_contact_form',
+        message: `Demo request submitted via contact form`
       });
+      
+      if (result.success) {
+        console.log('Demo request submitted successfully');
+        setIsSubmitted(true);
+        toast({
+          title: "Demo Request Submitted!",
+          description: "We'll get back to you within 24 hours.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to submit demo request');
+      }
     } catch (error) {
+      console.error('Error submitting demo request:', error);
       toast({
         title: "Submission Failed",
-        description: "Please try again or contact us directly.",
+        description: error instanceof Error ? error.message : "Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {

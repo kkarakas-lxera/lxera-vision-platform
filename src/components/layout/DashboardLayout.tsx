@@ -24,7 +24,8 @@ import {
   Upload,
   Target,
   BrainCircuit,
-  MessageSquare
+  MessageSquare,
+  Ticket
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -46,7 +47,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       case 'super_admin':
         return [
           { href: '/admin', icon: Home, label: 'Dashboard' },
-          { href: '/admin/demo-requests', icon: MessageSquare, label: 'Demo Requests' },
+          { href: '/admin/tickets', icon: Ticket, label: 'Tickets' },
           { href: '/admin/companies', icon: Building2, label: 'Companies' },
           { href: '/admin/users', icon: Users, label: 'Users' },
           { href: '/admin/courses', icon: BookOpen, label: 'Courses' },

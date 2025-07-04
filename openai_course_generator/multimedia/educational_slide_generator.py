@@ -411,8 +411,8 @@ class EducationalSlideGenerator:
         self._add_professional_header(draw, slide_note, header_area)
         self._add_professional_footer(draw, slide_note, footer_area)
         
-        # Draw section title
-        section_title = slide_note.content_section.replace('_', ' ').title()
+        # Generate meaningful slide title based on content
+        section_title = self._generate_meaningful_slide_title(slide_note)
         title_font = self._get_font(self.current_design.title_font_size)
         
         # Position title in title area
@@ -450,8 +450,8 @@ class EducationalSlideGenerator:
             text_x = bullet_x + 70  # More space after bullet
             max_text_width = content_area['width'] - 120  # More margins
             
-            # Convert point to teaching-friendly language
-            teaching_point = self._convert_to_teaching_language(point)
+            # Use the enhanced point directly (already teaching-friendly from GPT-4)
+            teaching_point = point
             
             # Smart text wrapping for readability
             wrapped_lines = self._smart_wrap_text(teaching_point, body_font, max_text_width)
@@ -1139,47 +1139,51 @@ class EducationalSlideGenerator:
             # Fallback simple bullet
             draw.ellipse([x-8, y-8, x+8, y+8], fill=self.current_design.accent_color)
     
-    def _convert_to_teaching_language(self, text: str) -> str:
-        """Convert technical content to teaching-friendly language"""
-        # Remove technical jargon and simplify
-        teaching_text = text
+    def _generate_meaningful_slide_title(self, slide_note: Any) -> str:
+        """Generate a meaningful title based on slide content"""
+        # Get the section name
+        section_name = slide_note.content_section.replace('_', ' ').title()
         
-        # Replace common technical terms with simpler alternatives
-        replacements = {
-            "utilize": "use",
-            "implement": "put into practice",
-            "leverage": "use effectively",
-            "optimize": "improve",
-            "facilitate": "help with",
-            "demonstrate": "show",
-            "comprehensive": "complete",
-            "methodology": "approach",
-            "framework": "structure",
-            "paradigm": "model",
-            "synergy": "working together",
-            "stakeholder": "team member",
-            "deliverable": "result",
-            "bandwidth": "capacity",
-            "scalable": "can grow",
-            "robust": "strong",
-            "seamless": "smooth",
-            "proactive": "taking initiative",
-            "strategic": "well-planned",
-            "innovative": "new and creative"
-        }
+        # If we have main points, use the first point to create a meaningful title
+        if slide_note.main_points:
+            first_point = slide_note.main_points[0]
+            
+            # Extract key concepts from the first point
+            if 'master' in first_point.lower():
+                # Extract what to master
+                match = re.search(r'master\s+(.+?)(?:\s+by|\s+through|\s+with|\.|$)', first_point, re.IGNORECASE)
+                if match:
+                    return f"Mastering {match.group(1).title()}"
+            elif 'understand' in first_point.lower():
+                match = re.search(r'understand\s+(.+?)(?:\s+to|\s+for|\s+and|\.|$)', first_point, re.IGNORECASE)
+                if match:
+                    return f"Understanding {match.group(1).title()}"
+            elif 'implement' in first_point.lower():
+                match = re.search(r'implement\s+(.+?)(?:\s+to|\s+for|\s+that|\.|$)', first_point, re.IGNORECASE)
+                if match:
+                    return f"Implementing {match.group(1).title()}"
+            elif 'apply' in first_point.lower():
+                match = re.search(r'apply\s+(.+?)(?:\s+to|\s+for|\s+in|\.|$)', first_point, re.IGNORECASE)
+                if match:
+                    return f"Applying {match.group(1).title()}"
+            
+            # If no action word found, extract the main noun phrase
+            # Look for capitalized phrases or important terms
+            words = first_point.split()
+            important_words = [w for w in words if len(w) > 4 and w[0].isupper()]
+            if important_words:
+                return ' '.join(important_words[:3])  # Use first 3 important words
         
-        # Apply replacements case-insensitively
-        for old, new in replacements.items():
-            teaching_text = re.sub(rf'\b{old}\b', new, teaching_text, flags=re.IGNORECASE)
-        
-        # Ensure first letter is capitalized
-        if teaching_text:
-            teaching_text = teaching_text[0].upper() + teaching_text[1:]
-        
-        # Add action-oriented prefixes where appropriate
-        if not any(teaching_text.startswith(prefix) for prefix in ['Learn', 'Understand', 'Discover', 'Master', 'Explore']):
-            # Check if it's a concept that should be learned
-            if any(keyword in teaching_text.lower() for keyword in ['how', 'what', 'when', 'why', 'process', 'method', 'technique']):
-                teaching_text = "Learn " + teaching_text[0].lower() + teaching_text[1:]
-        
-        return teaching_text
+        # Fallback to section-based titles
+        if section_name == 'Introduction':
+            return "Getting Started"
+        elif section_name == 'Core Content':
+            return "Essential Concepts"
+        elif section_name == 'Practical Applications':
+            return "Real-World Implementation"
+        elif section_name == 'Case Studies':
+            return "Success Stories"
+        elif section_name == 'Assessments':
+            return "Knowledge Check"
+        else:
+            return section_name

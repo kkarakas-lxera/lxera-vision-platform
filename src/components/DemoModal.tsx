@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle } from "lucide-react";
-import { demoRequestService, type DemoRequest } from "@/services/demoRequestService";
+import { ticketService } from "@/services/ticketService";
 import { useToast } from "@/hooks/use-toast";
 
 interface DemoModalProps {
@@ -271,7 +271,8 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const demoRequest: DemoRequest = {
+      const result = await ticketService.submitTicket({
+        ticketType: 'demo_request',
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -282,9 +283,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
         companySize: formData.companySize,
         country: formData.country,
         source,
-      };
-
-      const result = await demoRequestService.submitDemoRequest(demoRequest);
+      });
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to submit demo request');
