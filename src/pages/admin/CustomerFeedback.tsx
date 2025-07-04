@@ -78,25 +78,36 @@ const CustomerFeedback: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch feedback with company information
+      // Fetch feedback data
       const { data: feedbackData, error: feedbackError } = await supabase
         .from('company_feedback')
-        .select(`
-          *,
-          companies!company_feedback_company_id_fkey(name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
+        
+      // Fetch companies data separately
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('companies')
+        .select('id, name');
 
       if (feedbackError) {
         console.error('Error fetching feedback:', feedbackError);
         toast.error('Failed to load feedback data');
         return;
       }
+      
+      if (companiesError) {
+        console.error('Error fetching companies:', companiesError);
+        toast.error('Failed to load company data');
+        return;
+      }
+
+      // Create company lookup map
+      const companyMap = new Map((companiesData || []).map(company => [company.id, company.name]));
 
       // Transform data to include company name
       const transformedData: CompanyFeedbackRecord[] = (feedbackData || []).map(item => ({
         ...item,
-        company_name: item.companies?.name || 'Unknown Company'
+        company_name: companyMap.get(item.company_id) || 'Unknown Company'
       }));
 
       setFeedbacks(transformedData);
