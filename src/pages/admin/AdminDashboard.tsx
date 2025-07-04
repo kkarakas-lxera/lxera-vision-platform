@@ -20,7 +20,9 @@ import {
   ArrowUpRight,
   Activity,
   Target,
-  Zap
+  Zap,
+  MessageSquare,
+  Star
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +40,10 @@ interface DashboardStats {
   newTickets: number;
   totalCompanies: number;
   activeCompanies: number;
+  totalFeedback: number;
+  criticalIssues: number;
+  averageRating: number;
+  newFeedback: number;
 }
 
 
@@ -61,7 +67,11 @@ const AdminDashboard: React.FC = () => {
     totalTickets: 0,
     newTickets: 0,
     totalCompanies: 0,
-    activeCompanies: 0
+    activeCompanies: 0,
+    totalFeedback: 0,
+    criticalIssues: 0,
+    averageRating: 0,
+    newFeedback: 0
   });
   const [recentTickets, setRecentTickets] = useState<TicketRecord[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -85,13 +95,15 @@ const AdminDashboard: React.FC = () => {
         coursesData, 
         assignmentsData, 
         ticketsData,
-        companiesData
+        companiesData,
+        feedbackData
       ] = await Promise.all([
         supabase.from('employees').select('id', { count: 'exact' }),
         supabase.from('cm_module_content').select('content_id', { count: 'exact' }),
         supabase.from('course_assignments').select('id, status, progress_percentage'),
         supabase.from('tickets').select('*').order('submitted_at', { ascending: false }),
-        supabase.from('companies').select('id, created_at', { count: 'exact' })
+        supabase.from('companies').select('id, created_at', { count: 'exact' }),
+        supabase.from('content_feedback').select('*').order('created_at', { ascending: false })
       ]);
 
       const totalEmployees = employeesData.count || 0;
@@ -112,6 +124,17 @@ const AdminDashboard: React.FC = () => {
         return createdDate > thirtyDaysAgo;
       }).length || 0;
 
+      const allFeedback = feedbackData.data || [];
+      const criticalIssues = allFeedback.filter(f => !f.is_positive).length;
+      const positiveFeedback = allFeedback.filter(f => f.is_positive).length;
+      const averageRating = allFeedback.length > 0 ? (positiveFeedback / allFeedback.length) * 5 : 0;
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      const newFeedback = allFeedback.filter(f => {
+        const feedbackDate = new Date(f.created_at!);
+        return feedbackDate > oneDayAgo;
+      }).length;
+
       setStats({
         totalEmployees,
         totalCourses,
@@ -120,7 +143,11 @@ const AdminDashboard: React.FC = () => {
         totalTickets: tickets.length,
         newTickets,
         totalCompanies,
-        activeCompanies
+        activeCompanies,
+        totalFeedback: allFeedback.length,
+        criticalIssues,
+        averageRating,
+        newFeedback
       });
 
       // Set recent tickets
@@ -224,7 +251,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/companies')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -290,6 +317,35 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                 <Mail className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/customer-feedback')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Customer Feedback</p>
+                <p className="text-3xl font-bold mt-1">{stats.totalFeedback}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {stats.criticalIssues > 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      {stats.criticalIssues} critical
+                    </Badge>
+                  )}
+                  {stats.averageRating > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      <span className="text-xs text-muted-foreground">
+                        {stats.averageRating.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-orange-600" />
               </div>
             </div>
           </CardContent>
@@ -372,6 +428,14 @@ const AdminDashboard: React.FC = () => {
             >
               <Mail className="h-4 w-4 mr-2" />
               Customer Tickets
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate('/admin/customer-feedback')}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Customer Feedback
             </Button>
             <Button 
               variant="outline" 

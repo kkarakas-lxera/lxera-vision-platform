@@ -25,11 +25,13 @@ import {
   Target,
   BrainCircuit,
   MessageSquare,
-  Ticket
+  Ticket,
+  HelpCircle
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -186,6 +188,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <div className="w-full">
+                    <FeedbackButton variant="ghost" size="sm" className="w-full justify-start p-0 h-auto">
+                      <HelpCircle className="mr-2 h-4 w-4" />
+                      Platform Feedback
+                    </FeedbackButton>
+                  </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>

@@ -69,6 +69,7 @@ import UsersManagement from "./pages/admin/users/UsersManagement";
 import CoursesManagement from "./pages/admin/courses/CoursesManagement";
 import AnalyticsDashboard from "./pages/admin/analytics/AnalyticsDashboard";
 import Settings from "./pages/admin/Settings";
+import CustomerFeedback from "./pages/admin/CustomerFeedback";
 
 // Import company dashboard pages
 import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
@@ -155,6 +156,7 @@ const App = () => {
                       <Route path="/courses" element={<CoursesManagement />} />
                       <Route path="/analytics" element={<AnalyticsDashboard />} />
                       <Route path="/settings" element={<Settings />} />
+                      <Route path="/customer-feedback" element={<CustomerFeedback />} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>

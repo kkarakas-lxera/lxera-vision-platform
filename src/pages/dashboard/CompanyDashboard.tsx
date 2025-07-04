@@ -23,6 +23,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import RecentFeedbackCard from '@/components/feedback/RecentFeedbackCard';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface DashboardMetrics {
   totalEmployees: number;
@@ -505,7 +507,17 @@ export default function CompanyDashboard() {
 
       {/* Quick Actions */}
       <div className="space-y-3">
-        <h2 className="text-base font-medium text-foreground">Quick Actions</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-medium text-foreground">Quick Actions</h2>
+          <FeedbackButton 
+            variant="outline" 
+            size="sm" 
+            className="h-9"
+            defaultType="general_feedback"
+          >
+            Share Feedback
+          </FeedbackButton>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           <Button 
             variant="outline"
@@ -736,7 +748,7 @@ export default function CompanyDashboard() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
         <Card>
           <CardHeader>
@@ -823,6 +835,9 @@ export default function CompanyDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Team Feedback */}
+        <RecentFeedbackCard showCompanyFeedback={true} maxItems={4} />
       </div>
     </div>
   );
