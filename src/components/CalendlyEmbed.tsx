@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface CalendlyEmbedProps {
   url: string;
@@ -20,18 +20,34 @@ interface CalendlyEmbedProps {
   };
 }
 
-declare global {
-  interface Window {
-    Calendly: any;
-  }
-}
-
 const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
-  const embedRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Build URL with parameters
+  const buildCalendlyUrl = () => {
+    const params = new URLSearchParams();
+    
+    // Add prefill parameters
+    if (prefill?.email) params.append('email', prefill.email);
+    if (prefill?.firstName) params.append('first_name', prefill.firstName);
+    if (prefill?.lastName) params.append('last_name', prefill.lastName);
+    
+    // Add custom answers
+    if (prefill?.customAnswers?.a1) params.append('a1', prefill.customAnswers.a1);
+    if (prefill?.customAnswers?.a2) params.append('a2', prefill.customAnswers.a2);
+    if (prefill?.customAnswers?.a3) params.append('a3', prefill.customAnswers.a3);
+    if (prefill?.customAnswers?.a4) params.append('a4', prefill.customAnswers.a4);
+    
+    // Add UTM parameters
+    if (utm?.utmSource) params.append('utm_source', utm.utmSource);
+    if (utm?.utmMedium) params.append('utm_medium', utm.utmMedium);
+    if (utm?.utmCampaign) params.append('utm_campaign', utm.utmCampaign);
+    
+    return `${url}?${params.toString()}`;
+  };
 
   useEffect(() => {
-    // Load Calendly script
+    // Load Calendly script if not already loaded
     const existingScript = document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]');
     
     if (!existingScript) {
@@ -41,53 +57,12 @@ const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
       document.head.appendChild(script);
       
       script.onload = () => {
-        // Add a small delay to ensure Calendly is fully loaded
-        setTimeout(initializeWidget, 100);
+        setIsLoading(false);
       };
     } else {
-      // Script already loaded
-      setTimeout(initializeWidget, 100);
+      setIsLoading(false);
     }
-
-    function initializeWidget() {
-      if (window.Calendly && embedRef.current) {
-        try {
-          // Clear any existing content
-          embedRef.current.innerHTML = '';
-          
-          // Initialize Calendly inline widget with proper parameters
-          window.Calendly.initInlineWidget({
-            url: url,
-            parentElement: embedRef.current,
-            resize: true,
-            prefill: {
-              firstName: prefill?.firstName || '',
-              lastName: prefill?.lastName || '',
-              email: prefill?.email || '',
-              customAnswers: prefill?.customAnswers || {}
-            },
-            utm: {
-              utmSource: utm?.utmSource || '',
-              utmMedium: utm?.utmMedium || '',
-              utmCampaign: utm?.utmCampaign || ''
-            }
-          });
-          
-          setIsLoading(false);
-        } catch (error) {
-          console.error('Error initializing Calendly widget:', error);
-          setIsLoading(false);
-        }
-      }
-    }
-
-    // Cleanup function
-    return () => {
-      if (embedRef.current) {
-        embedRef.current.innerHTML = '';
-      }
-    };
-  }, [url, prefill, utm]);
+  }, []);
 
   return (
     <div className="relative">
@@ -97,8 +72,8 @@ const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
         </div>
       )}
       <div 
-        ref={embedRef}
         className="calendly-inline-widget" 
+        data-url={buildCalendlyUrl()}
         style={{ minWidth: '320px', height: '630px' }}
       />
     </div>
