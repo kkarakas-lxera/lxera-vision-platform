@@ -56,31 +56,67 @@ async def test_research_agent_only(plan_id: str = None):
         # Generate unique session ID
         session_id = f"test-research-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
         
-        # Create research request message
-        research_message = f"""
-        Execute comprehensive research for course plan_id: {plan_id}
+        # Check if enhanced research is enabled
+        enhanced_research_enabled = os.getenv('ENHANCED_RESEARCH_ENABLED', 'true').lower() == 'true'
         
-        SESSION ID: {session_id}
-        
-        Follow this exact workflow:
-        1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
-        2. tavily_search - Search for relevant content for each module topic
-           - Focus on Python fundamentals for AI/ML professionals
-           - Include practical examples with LangChain, OpenAI SDKs
-           - Find resources on Python best practices for production AI systems
-        3. firecrawl_extract - Extract detailed content from authoritative sources
-           - Python official documentation
-           - Real Python articles
-           - AI/ML specific Python tutorials
-        4. research_synthesizer - Synthesize findings into structured insights
-           - Group by module topics
-           - Highlight practical applications
-        5. store_research_results - Save your research findings with proper structure
-        
-        Focus on finding practical, industry-relevant content that bridges the gap between
-        AI/ML expertise and Python fundamentals. The learner already knows advanced AI concepts
-        but needs Python programming foundations.
-        """
+        if enhanced_research_enabled:
+            logger.info("🔬 Testing Enhanced Research with multi-agent coordination")
+            from course_agents.research_agent import create_enhanced_research_agent
+            research_agent = create_enhanced_research_agent()
+            
+            # Create enhanced research request message
+            research_message = f"""
+            Execute enhanced multi-source research for course plan_id: {plan_id}
+            
+            SESSION ID: {session_id}
+            
+            ENHANCED WORKFLOW:
+            1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
+            2. enhanced_multi_source_research - Execute parallel research across academic, industry, and technical sources
+               - Academic sources: Educational institutions, research papers
+               - Industry sources: McKinsey, Deloitte, HBR, industry leaders
+               - Technical sources: Official documentation, GitHub, Stack Overflow
+            3. enhanced_research_quality_validator - Validate research quality using 9-dimensional framework
+               - Source credibility validation
+               - Content accuracy assessment
+               - Evidence quality scoring
+            4. store_enhanced_research_results - Save comprehensive research findings
+            
+            QUALITY REQUIREMENTS:
+            - Minimum 7.5/10 overall quality score
+            - Multi-domain source coverage (academic, industry, technical)
+            - Source credibility validation (minimum 0.6 credibility score)
+            - Evidence-based synthesis with cross-source validation
+            
+            Focus on comprehensive, high-quality research for professional learning content.
+            """
+        else:
+            logger.info("📚 Testing Standard Research workflow")
+            research_agent = create_research_agent()
+            
+            # Create standard research request message
+            research_message = f"""
+            Execute comprehensive research for course plan_id: {plan_id}
+            
+            SESSION ID: {session_id}
+            
+            Follow this exact workflow:
+            1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
+            2. tavily_search - Search for relevant content for each module topic
+               - Focus on comprehensive domain expertise
+               - Include practical examples and best practices
+               - Find authoritative sources and documentation
+            3. firecrawl_extract - Extract detailed content from authoritative sources
+               - Official documentation
+               - Industry best practices
+               - Professional tutorials and guides
+            4. research_synthesizer - Synthesize findings into structured insights
+               - Group by module topics
+               - Highlight practical applications
+            5. store_research_results - Save your research findings with proper structure
+            
+            Focus on finding practical, industry-relevant content for professional learning.
+            """
         
         logger.info("🚀 Starting Research Agent execution...")
         
@@ -109,11 +145,16 @@ async def test_research_agent_only(plan_id: str = None):
             # Verify in database
             await verify_research_in_database(research_id, plan_id)
             
+            # Enhanced verification for enhanced research
+            if enhanced_research_enabled:
+                await verify_enhanced_research_features(research_id, plan_id)
+            
             return {
                 'success': True,
                 'research_id': research_id,
                 'plan_id': plan_id,
-                'session_id': session_id
+                'session_id': session_id,
+                'enhanced_research': enhanced_research_enabled
             }
         else:
             logger.error("❌ FAILED: No research_id found in result")
@@ -296,6 +337,77 @@ async def find_latest_research_for_plan(plan_id: str, session_id: str) -> Option
         logger.error(f"Error finding latest research: {e}")
         return None
 
+async def verify_enhanced_research_features(research_id: str, plan_id: str):
+    """Verify enhanced research features are working properly."""
+    from supabase import create_client
+    import os
+    
+    logger.info("\n🔬 ENHANCED RESEARCH VERIFICATION")
+    logger.info("=" * 50)
+    
+    supabase = create_client(
+        'https://xwfweumeryrgbguwrocr.supabase.co',
+        os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+    )
+    
+    try:
+        # 1. Verify enhanced research results
+        logger.info("1. Checking enhanced research results...")
+        result = supabase.table('cm_research_results')\
+            .select('research_findings, execution_metrics, total_sources, research_agent_version')\
+            .eq('research_id', research_id)\
+            .single().execute()
+        
+        if result.data:
+            data = result.data
+            metrics = data.get('execution_metrics', {})
+            
+            logger.info(f"   ✅ Research Agent Version: {data.get('research_agent_version')}")
+            logger.info(f"   ✅ Total Sources: {data.get('total_sources', 0)}")
+            logger.info(f"   ✅ Enhanced Features Used: {metrics.get('enhanced_features', False)}")
+            logger.info(f"   ✅ Multi-Agent Coordination: {metrics.get('multi_agent_coordination', False)}")
+            
+            # Check quality assessment
+            quality_assessment = metrics.get('quality_assessment', {})
+            if quality_assessment:
+                logger.info(f"   ✅ Quality Score: {quality_assessment.get('overall_score', 0):.2f}/10")
+                logger.info(f"   ✅ Quality Level: {quality_assessment.get('quality_level', 'unknown')}")
+                logger.info(f"   ✅ Meets Threshold: {quality_assessment.get('meets_threshold', False)}")
+        
+        # 2. Verify enhanced research session
+        logger.info("\n2. Checking enhanced research session...")
+        session_result = supabase.table('cm_research_sessions')\
+            .select('enhanced_research_enabled, multi_agent_coordination, research_methodology')\
+            .eq('research_id', research_id)\
+            .single().execute()
+        
+        if session_result.data:
+            session_data = session_result.data
+            logger.info(f"   ✅ Enhanced Research Enabled: {session_data.get('enhanced_research_enabled', False)}")
+            logger.info(f"   ✅ Multi-Agent Coordination: {session_data.get('multi_agent_coordination', False)}")
+            logger.info(f"   ✅ Research Methodology: {session_data.get('research_methodology', 'unknown')}")
+        
+        # 3. Verify quality assessment
+        logger.info("\n3. Checking quality assessment...")
+        quality_result = supabase.table('cm_quality_assessments')\
+            .select('overall_score, enhanced_assessment, assessment_methodology, source_credibility_score')\
+            .eq('content_id', research_id)\
+            .single().execute()
+        
+        if quality_result.data:
+            quality_data = quality_result.data
+            logger.info(f"   ✅ Overall Score: {quality_data.get('overall_score', 0)}")
+            logger.info(f"   ✅ Enhanced Assessment: {quality_data.get('enhanced_assessment', False)}")
+            logger.info(f"   ✅ Assessment Methodology: {quality_data.get('assessment_methodology', 'unknown')}")
+            logger.info(f"   ✅ Source Credibility Score: {quality_data.get('source_credibility_score', 0)}")
+        else:
+            logger.warning("   ⚠️  No quality assessment found")
+        
+        logger.info("\n🎉 Enhanced research verification completed!")
+        
+    except Exception as e:
+        logger.error(f"❌ Enhanced research verification failed: {e}")
+
 if __name__ == "__main__":
     import sys
     
@@ -315,7 +427,10 @@ if __name__ == "__main__":
         print(f"📝 Plan ID: {result['plan_id']}")
         print(f"🔍 Research ID: {result['research_id']}")
         print(f"📋 Session ID: {result['session_id']}")
+        print(f"🔬 Enhanced Research: {'ENABLED' if result.get('enhanced_research') else 'DISABLED'}")
         print("\n🎯 Next Step: Use plan_id and research_id to test Content Agent")
+        if result.get('enhanced_research'):
+            print("🚀 Enhanced features active: Multi-agent coordination, 9D quality assessment")
         print("="*60)
     else:
         print("\n" + "="*60)

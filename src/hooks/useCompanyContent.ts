@@ -36,15 +36,23 @@ export const useCompanyContent = () => {
       setLoading(true);
       const analytics = await contentManager.get_company_analytics();
       
+      interface Module {
+        status: 'draft' | 'quality_check' | 'approved';
+      }
+      
+      interface QualityEntry {
+        overall_score?: number;
+      }
+      
       const modulesInProgress = analytics.modules.filter(
-        (m: any) => m.status === 'draft' || m.status === 'quality_check'
+        (m: Module) => m.status === 'draft' || m.status === 'quality_check'
       ).length;
       
       const modulesCompleted = analytics.modules.filter(
-        (m: any) => m.status === 'approved'
+        (m: Module) => m.status === 'approved'
       ).length;
 
-      const qualityScores = analytics.quality.map((q: any) => q.overall_score).filter(Boolean);
+      const qualityScores = analytics.quality.map((q: QualityEntry) => q.overall_score).filter(Boolean);
       const averageQualityScore = qualityScores.length > 0 
         ? qualityScores.reduce((sum: number, score: number) => sum + score, 0) / qualityScores.length 
         : 0;

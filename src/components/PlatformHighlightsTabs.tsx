@@ -15,9 +15,16 @@ import {
   Bell,
 } from "lucide-react";
 
+interface Feature {
+  title: string;
+  description?: string;
+  icon?: string;
+  [key: string]: unknown;
+}
+
 interface PlatformHighlightsTabsProps {
   categories: string[];
-  groupedByCategory: Record<string, any[]>;
+  groupedByCategory: Record<string, Feature[]>;
 }
 
 // Map category names to Lucide icons with brand color accents and consistent radius/animation

@@ -1,8 +1,15 @@
 
 import FeatureCard from "./FeatureCard";
 
+interface Feature {
+  title: string;
+  description?: string;
+  icon?: string;
+  [key: string]: unknown;
+}
+
 interface PlatformHighlightsMobileStackProps {
-  features: any[];
+  features: Feature[];
 }
 
 const PlatformHighlightsMobileStack = ({ features }: PlatformHighlightsMobileStackProps) => (

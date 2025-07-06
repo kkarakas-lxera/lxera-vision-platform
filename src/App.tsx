@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import Solutions from "./pages/Solutions";
 import Resources from "./pages/Resources";
+import Platform from "./pages/Platform";
 import About from "./pages/company/About";
 import Blog from "./pages/company/Blog";
 import Careers from "./pages/company/Careers";
@@ -70,6 +71,7 @@ import CoursesManagement from "./pages/admin/courses/CoursesManagement";
 import AnalyticsDashboard from "./pages/admin/analytics/AnalyticsDashboard";
 import Settings from "./pages/admin/Settings";
 import CustomerFeedback from "./pages/admin/CustomerFeedback";
+import DemoRequests from "./pages/admin/DemoRequests";
 
 // Import company dashboard pages
 import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
@@ -104,6 +106,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/solutions" element={<Solutions />} />
+            <Route path="/platform" element={<Platform />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/company/about" element={<About />} />
             <Route path="/company/blog" element={<Blog />} />
@@ -157,6 +160,7 @@ const App = () => {
                       <Route path="/analytics" element={<AnalyticsDashboard />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/feedback" element={<CustomerFeedback />} />
+                      <Route path="/demo-requests" element={<DemoRequests />} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>

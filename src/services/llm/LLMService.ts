@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Position } from '@/types/database';
 
 export interface CVAnalysisResult {
   personalInfo: {
@@ -111,7 +112,7 @@ class LLMService {
 
   async analyzePositionMatch(
     cvAnalysis: CVAnalysisResult,
-    position: any,
+    position: Position,
     companyId: string,
     userId?: string
   ): Promise<PositionMatchAnalysis> {
@@ -135,7 +136,7 @@ class LLMService {
 
   async suggestPositions(
     cvAnalysis: CVAnalysisResult,
-    availablePositions: any[],
+    availablePositions: Position[],
     maxSuggestions: number,
     companyId: string,
     userId?: string

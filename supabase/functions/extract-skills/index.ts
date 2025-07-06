@@ -82,7 +82,12 @@ Be comprehensive but accurate. Only include skills that are clearly mentioned or
     }
 
     // Group skills by category
-    const groupedSkills = finalSkills.reduce((acc: any, skill: any) => {
+    interface Skill {
+      category?: string;
+      [key: string]: unknown;
+    }
+    
+    const groupedSkills = finalSkills.reduce((acc: Record<string, Skill[]>, skill: Skill) => {
       const category = skill.category || 'other'
       if (!acc[category]) acc[category] = []
       acc[category].push(skill)

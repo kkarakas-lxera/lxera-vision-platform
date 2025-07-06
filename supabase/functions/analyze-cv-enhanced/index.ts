@@ -217,7 +217,18 @@ serve(async (req) => {
       })
 
     // Enhanced skills extraction with better structure
-    const extractedSkills = (analysisResult.skills || []).map((skill: any) => ({
+    interface AnalysisSkill {
+      skill_name?: string;
+      name?: string;
+      category?: string;
+      proficiency_level?: number;
+      level?: number;
+      years_experience?: number;
+      evidence?: string;
+      context?: string;
+    }
+    
+    const extractedSkills = (analysisResult.skills || []).map((skill: AnalysisSkill) => ({
       skill_id: null, // Will be mapped to NESTA taxonomy later
       skill_name: skill.skill_name || skill.name,
       category: skill.category || 'technical',

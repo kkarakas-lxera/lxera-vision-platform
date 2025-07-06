@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import DemoModal from "./DemoModal";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,6 +33,7 @@ interface DesktopMenuProps {
 const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const { user, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
@@ -196,7 +197,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
     return `${baseClasses} ${isActive ? 'text-business-black' : ''} hover:text-business-black ${underlineEffect}`;
   };
 
-  const renderDropdownContent = (item: any) => {
+  const renderDropdownContent = (item: { name: string; href: string; id: string; hasDropdown?: boolean }) => {
     if (item.name === 'Platform') {
       return (
         <NavigationMenuContent className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-2xl rounded-2xl p-6 min-w-[420px]">
@@ -213,7 +214,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 return (
                   <button
                     key={index}
-                    onClick={() => scrollToSection(platform.href)}
+                    onClick={() => navigate(platform.href)}
                     className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
                     <div className={`w-10 h-10 rounded-2xl ${platform.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
@@ -232,9 +233,14 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
               })}
             </div>
             <div className="pt-3 mt-4 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center">
-                Designed with ❤️ for human-centered innovation
-              </p>
+              <Link to="/platform" className="block w-full">
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-business-black hover:bg-future-green/10 hover:text-business-black font-medium"
+                >
+                  View All Platform Features →
+                </Button>
+              </Link>
             </div>
           </div>
         </NavigationMenuContent>
@@ -255,7 +261,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 return (
                   <button
                     key={index}
-                    onClick={() => scrollToSection(solution.href)}
+                    onClick={() => navigate(solution.href)}
                     className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
                     <div className={`w-10 h-10 rounded-2xl ${solution.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
@@ -274,9 +280,14 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
               })}
             </div>
             <div className="pt-3 mt-4 border-t border-gray-200/50">
-              <p className="text-xs text-business-black/50 font-inter text-center">
-                Designed with ❤️ for human-centered innovation
-              </p>
+              <Link to="/solutions" className="block w-full">
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-business-black hover:bg-future-green/10 hover:text-business-black font-medium"
+                >
+                  View All Solutions →
+                </Button>
+              </Link>
             </div>
           </div>
         </NavigationMenuContent>
@@ -297,7 +308,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
                 return (
                   <button
                     key={index}
-                    onClick={() => scrollToSection(resource.href)}
+                    onClick={() => navigate(resource.href)}
                     className="flex items-start w-full text-left p-3 hover:bg-gradient-to-r hover:from-future-green/5 hover:to-emerald/5 rounded-xl transition-all duration-300 group border border-transparent hover:border-future-green/20"
                   >
                     <div className={`w-10 h-10 rounded-2xl ${resource.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>

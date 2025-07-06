@@ -9,11 +9,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface SkillData {
+  skill_name: string;
+  proficiency_level?: number;
+  years_experience?: number;
+  [key: string]: unknown;
+}
+
 interface AnalysisRequest {
   employeeId?: string
   profileId?: string
   action?: 'get' | 'update' | 'add-skill' | 'remove-skill'
-  skillData?: any
+  skillData?: SkillData
 }
 
 serve(async (req) => {

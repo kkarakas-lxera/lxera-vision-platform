@@ -50,57 +50,57 @@ export const CourseContentSection: React.FC<CourseContentSectionProps> = ({
         {children}
       </h3>
     ),
-    h4: ({ children, ...props }: any) => (
+    h4: ({ children, ...props }) => (
       <h4 className="text-sm font-medium mt-2 mb-1 text-foreground" {...props}>
         {children}
       </h4>
     ),
-    p: ({ children, ...props }: any) => (
+    p: ({ children, ...props }) => (
       <p className="text-sm leading-relaxed mb-3 text-muted-foreground" {...props}>
         {children}
       </p>
     ),
-    ul: ({ children, ...props }: any) => (
+    ul: ({ children, ...props }) => (
       <ul className="list-disc list-inside space-y-1 mb-3 text-sm text-muted-foreground pl-4" {...props}>
         {children}
       </ul>
     ),
-    ol: ({ children, ...props }: any) => (
+    ol: ({ children, ...props }) => (
       <ol className="list-decimal list-inside space-y-1 mb-3 text-sm text-muted-foreground pl-4" {...props}>
         {children}
       </ol>
     ),
-    li: ({ children, ...props }: any) => (
+    li: ({ children, ...props }) => (
       <li className="text-sm leading-relaxed text-muted-foreground" {...props}>
         {children}
       </li>
     ),
-    strong: ({ children, ...props }: any) => (
+    strong: ({ children, ...props }) => (
       <strong className="font-semibold text-foreground" {...props}>
         {children}
       </strong>
     ),
-    em: ({ children, ...props }: any) => (
+    em: ({ children, ...props }) => (
       <em className="italic" {...props}>
         {children}
       </em>
     ),
-    blockquote: ({ children, ...props }: any) => (
+    blockquote: ({ children, ...props }) => (
       <blockquote className="border-l-4 border-primary pl-4 italic text-sm text-muted-foreground my-3" {...props}>
         {children}
       </blockquote>
     ),
-    code: ({ children, ...props }: any) => (
+    code: ({ children, ...props }) => (
       <code className="bg-muted text-foreground px-1 py-0.5 rounded text-xs font-mono" {...props}>
         {children}
       </code>
     ),
-    pre: ({ children, ...props }: any) => (
+    pre: ({ children, ...props }) => (
       <pre className="bg-muted text-foreground p-3 rounded-md overflow-x-auto text-xs my-3" {...props}>
         {children}
       </pre>
     ),
-    a: ({ children, href, ...props }: any) => (
+    a: ({ children, href, ...props }) => (
       <a className="text-primary underline hover:no-underline" href={href} {...props}>
         {children}
       </a>

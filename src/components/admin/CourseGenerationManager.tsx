@@ -234,7 +234,7 @@ export const CourseGenerationManager = () => {
               </div>
               <div>
                 <Label htmlFor="personalization_level">Personalization Level</Label>
-                <Select value={formData.personalization_level} onValueChange={(value: any) => setFormData({...formData, personalization_level: value})}>
+                <Select value={formData.personalization_level} onValueChange={(value) => setFormData({...formData, personalization_level: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -247,7 +247,7 @@ export const CourseGenerationManager = () => {
               </div>
               <div>
                 <Label htmlFor="priority_level">Priority Level</Label>
-                <Select value={formData.priority_level} onValueChange={(value: any) => setFormData({...formData, priority_level: value})}>
+                <Select value={formData.priority_level} onValueChange={(value) => setFormData({...formData, priority_level: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

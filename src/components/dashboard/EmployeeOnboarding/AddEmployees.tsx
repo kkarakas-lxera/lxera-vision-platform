@@ -2,10 +2,11 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CSVImportWizard } from './CSVImportWizard';
+import { EmployeeImportSession } from '@/types/database';
 
 interface AddEmployeesProps {
   onImportComplete?: () => void;
-  importSessions?: any[];
+  importSessions?: EmployeeImportSession[];
   onNextStep?: () => void;
   isOpen?: boolean;
   onClose?: () => void;

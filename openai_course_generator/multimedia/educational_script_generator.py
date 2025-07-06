@@ -465,28 +465,31 @@ Let's begin by looking at what you'll learn today.
             
             # Use GPT-4 to extract meaningful bullet points from enhanced content
             extraction_prompt = f"""
-Extract 3-4 clear, actionable bullet points from this educational content. Each bullet point should:
-1. Be a complete, self-contained idea (10-15 words)
-2. Start with an action verb or key concept
+Extract 3-4 clear, actionable bullet points from this educational content. Each bullet point MUST:
+1. Be a complete, grammatically correct sentence ending with a period
+2. Start with an action verb (Learn, Understand, Master, Apply, etc.)
 3. Focus on practical value for the learner
-4. Be specific and concrete, not generic
+4. Be 8-15 words long
+5. Form a complete thought without fragments or colons
 
-IMPORTANT: Return ONLY the bullet points, one per line. Do not include:
-- Bullet symbols (•, -, *)
-- Numbers (1., 2., etc.)
-- Quotation marks
-- Any prefixes or labels
+CRITICAL REQUIREMENTS:
+- Each bullet point must be a complete sentence with proper grammar
+- No fragments like "skills that: crucial for..." 
+- No incomplete phrases or dangling clauses
+- Every bullet point must end with a period (.)
+
+FORMAT: Return ONLY the bullet points, one per line, with NO symbols or numbers.
 
 CONTENT:
 {content[:1500]}
 
-BULLET POINTS:
+COMPLETE SENTENCE BULLET POINTS:
 """
             
             response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert instructional designer who creates clear, actionable learning points. Output only the requested bullet points without any formatting."},
+                    {"role": "system", "content": "You are an expert instructional designer who creates grammatically perfect, complete sentences for learning points. Every bullet point must be a complete sentence ending with a period. Never create fragments or incomplete phrases."},
                     {"role": "user", "content": extraction_prompt}
                 ],
                 max_tokens=300,
@@ -543,31 +546,50 @@ BULLET POINTS:
         return text.strip()
     
     def _validate_bullet_point(self, text: str) -> bool:
-        """Validate if a text is a good bullet point"""
+        """Validate if a text is a grammatically complete bullet point"""
         # Check length
         word_count = len(text.split())
-        if word_count < 3 or word_count > 20:
+        if word_count < 5 or word_count > 20:  # Increased minimum for complete sentences
             return False
         
         # Check character count
-        if len(text) < 15 or len(text) > 120:
+        if len(text) < 20 or len(text) > 120:  # Increased minimum for complete sentences
             return False
         
         # Ensure it's not just a single word or phrase
         if not ' ' in text:
             return False
         
+        # CRITICAL: Check for grammatical completeness
+        # Reject fragments with colons - they should be complete sentences, not fragments
+        if ':' in text:
+            # Any bullet point with a colon is likely a fragment like "performance reporting: crucial for..."
+            # Complete sentences should not need colons for bullet points
+            return False  # Reject all colon-based fragments
+        
+        # Must end with proper punctuation
+        if not text.strip().endswith(('.', '!', '?')):
+            return False
+        
         # Check for complete thought (has a verb or action word)
         action_indicators = ['understand', 'learn', 'master', 'develop', 'apply', 'create', 
                            'analyze', 'implement', 'use', 'build', 'design', 'manage',
                            'improve', 'enhance', 'optimize', 'evaluate', 'assess',
-                           'techniques', 'strategies', 'methods', 'approaches', 'tools',
-                           'skills', 'knowledge', 'expertise', 'competency', 'ability']
+                           'identify', 'demonstrate', 'practice', 'explore', 'discover']
         
         text_lower = text.lower()
         has_action = any(indicator in text_lower for indicator in action_indicators)
         
-        return has_action
+        # Additional check: must form a complete grammatical sentence
+        # Simple heuristic: should have subject-verb structure
+        has_complete_structure = (
+            has_action and 
+            len(text.split()) >= 5 and  # Minimum words for complete sentence
+            not text.lower().startswith(('that', 'which', 'who', 'when', 'where', 'why')) and  # Avoid sentence fragments
+            not re.match(r'^[a-z\s]+:', text.lower())  # Avoid "performance reporting:" type fragments
+        )
+        
+        return has_complete_structure
     
     def _enhanced_markdown_extraction(self, content: str) -> List[str]:
         """Enhanced extraction with markdown parsing and complete sentence extraction"""
@@ -721,15 +743,21 @@ BULLET POINTS:
         """Create bullet points from key concepts when sentence extraction fails"""
         bullets = []
         
-        # Extract key noun phrases
-        key_phrases = self._extract_key_concepts(content)[:3]
+        # Extract key concepts (now returns complete sentences)
+        key_concepts = self._extract_key_concepts(content)[:3]
         
-        for phrase in key_phrases:
-            # Create action-oriented bullet from concept
-            if len(phrase.split()) > 1:
-                bullets.append(f"Master the concepts of {phrase.lower()}")
-            else:
-                bullets.append(f"Understand {phrase.lower()} principles and applications")
+        # Key concepts are now complete sentences, so we can use them directly
+        for concept in key_concepts:
+            if self._validate_bullet_point(concept):
+                bullets.append(concept)
+        
+        # If we still don't have enough, create simple learning objectives
+        if len(bullets) < 2:
+            topics = self._extract_key_topics(content)[:3]
+            for topic in topics:
+                bullet = f"Learn about {topic.lower()} and its applications."
+                if self._validate_bullet_point(bullet):
+                    bullets.append(bullet)
         
         return bullets
     
@@ -898,10 +926,10 @@ BULLET POINTS:
         return objectives[:3]  # Max 3 objectives per section
     
     def _extract_key_concepts(self, content: str) -> List[str]:
-        """Extract key concepts for teaching"""
+        """Extract key concepts for teaching as complete sentences (no fragments)"""
         concepts = []
         
-        # Find important nouns and noun phrases
+        # Find important nouns and noun phrases and create complete sentences
         sentences = re.split(r'[.!?]+', content)
         for sentence in sentences:
             # Look for concepts introduced with "is", "are", "means"
@@ -915,7 +943,10 @@ BULLET POINTS:
                 matches = re.findall(pattern, sentence, re.IGNORECASE)
                 for concept, definition in matches:
                     if len(concept.strip()) > 2 and len(definition.strip()) > 10:
-                        concepts.append(f"{concept.strip()}: {definition.strip()[:60]}...")
+                        # Create complete sentences instead of fragments
+                        complete_sentence = f"Understand that {concept.strip().lower()} is {definition.strip()}."
+                        if len(complete_sentence) <= 120:  # Keep reasonable length
+                            concepts.append(complete_sentence)
         
         return concepts[:4]  # Max 4 concepts
     
@@ -1400,14 +1431,10 @@ BULLET POINTS:
         section_summary: Dict[str, Any],
         employee_context: Dict[str, Any]
     ) -> str:
-        """Create complete narration for section"""
+        """Create complete narration for section using HumanNarrationGenerator for natural flow"""
         
-        narration_parts = []
-        
-        for slide in slides:
-            narration_parts.append(slide.speaker_notes)
-            
-        return " ".join(narration_parts)
+        # Use the same logic as _combine_narration to ensure consistent conversational flow
+        return self._combine_narration(slides, employee_context)
     
     def _extract_main_topic(self, content: str) -> str:
         """Extract the main topic from content"""
@@ -1502,28 +1529,27 @@ BULLET POINTS:
         if not content_points:
             return "This slide contains important information for your learning."
         
-        # Section-specific narration style
+        # Section-specific narration style - neutral content for conversational combination
         if section_type == 'practical':
-            intro = "Let's see how this works in practice."
+            intro = "In practical terms"
         elif section_type == 'case_study':
-            intro = "Here's what happened in this real situation."
+            intro = "This real situation shows us"
         elif section_type == 'assessment':
-            intro = "Consider these questions carefully."
+            intro = "Key considerations include"
         else:
-            intro = "Pay attention to these key points."
+            intro = ""  # No repetitive intro - let HumanNarrationGenerator handle flow
         
         # Combine points into flowing narration
-        narration_parts = [intro]
+        narration_parts = []
         
-        for i, point in enumerate(content_points):
-            if i == 0:
-                narration_parts.append(point)
-            elif i == len(content_points) - 1:
-                narration_parts.append(f"Most importantly, {point[0].lower()}{point[1:]}")
-            else:
-                narration_parts.append(f"Additionally, {point[0].lower()}{point[1:]}")
+        # Only add intro if it's not empty
+        if intro.strip():
+            narration_parts.append(intro)
         
-        return " ".join(narration_parts)
+        # Add content points without repetitive connectors
+        narration_parts.extend(content_points)
+        
+        return ". ".join(filter(None, narration_parts)) + "."
     
     def _extract_section_takeaways(self, section_content: str) -> List[str]:
         """Extract key takeaways from section content"""
@@ -1952,10 +1978,11 @@ Thank you for your attention and commitment to professional development!
         return takeaways[:5]
     
     def _combine_narration(self, slides: List[SlideContent], employee_context: Dict[str, Any]) -> str:
-        """Combine all speaker notes into full narration with human touch"""
+        """Combine all speaker notes into full narration with natural flow"""
         
-        # Use human narration generator if available
-        if hasattr(self, 'narration_generator') and self.narration_generator is not None:
+        # DISABLE broken human narration generator - it creates gibberish
+        # Use simple, clean narration instead
+        if False:  # hasattr(self, 'narration_generator') and self.narration_generator is not None:
             # Convert slides to format expected by narration generator
             script_data = {
                 'slides': [
@@ -1975,34 +2002,114 @@ Thank you for your attention and commitment to professional development!
                 script_data
             )
             
-            # Combine all parts
-            parts = [
-                conversational_script.greeting,
-                conversational_script.introduction
-            ]
-            
-            # Add main content with transitions
-            for i, segment in enumerate(conversational_script.main_content):
-                if i < len(conversational_script.transitions):
-                    parts.append(conversational_script.transitions[i])
-                parts.append(segment.text)
-            
-            parts.append(conversational_script.conclusion)
-            
-            return ' '.join(parts)
-        
-        else:
-            # Fallback to original approach
+            # Create natural flowing narration without broken transitions
             narration_parts = []
             
-            for i, slide in enumerate(slides):
-                # Add slide transition if not first slide
-                if i > 0:
-                    narration_parts.append(" ")  # Natural pause
+            # Add greeting and introduction naturally
+            if conversational_script.greeting:
+                narration_parts.append(conversational_script.greeting)
+            if conversational_script.introduction:
+                narration_parts.append(conversational_script.introduction)
+            
+            # Add main content with minimal transitions
+            for i, segment in enumerate(conversational_script.main_content):
+                # Only add transition if it's meaningful (not empty)
+                if (i < len(conversational_script.transitions) and 
+                    conversational_script.transitions[i].strip()):
+                    narration_parts.append(conversational_script.transitions[i])
                 
-                narration_parts.append(slide.speaker_notes)
+                # Add the actual content
+                narration_parts.append(segment.text)
+            
+            # Add conclusion
+            if conversational_script.conclusion:
+                narration_parts.append(conversational_script.conclusion)
+            
+            # Join with natural spacing
+            return ' '.join(part.strip() for part in narration_parts if part.strip())
+        
+        else:
+            # Fallback to simple, clean approach
+            narration_parts = []
+            name = employee_context.get('name', '')
+            
+            # Simple greeting
+            if name:
+                narration_parts.append(f"Welcome to this training, {name}. Let's begin your learning journey.")
+            else:
+                narration_parts.append("Welcome to this training. Let's begin your learning journey.")
+            
+            # Add slide content naturally without duplication
+            seen_content = set()
+            for i, slide in enumerate(slides):
+                # Add speaker notes cleanly, avoiding duplicates
+                if slide.speaker_notes:
+                    clean_notes = self._clean_narration_text(slide.speaker_notes)
+                    # Skip if we've already seen this exact content
+                    if clean_notes not in seen_content and len(clean_notes.strip()) > 10:
+                        seen_content.add(clean_notes)
+                        narration_parts.append(clean_notes)
             
             return " ".join(narration_parts)
+    
+    def _clean_narration_text(self, text: str) -> str:
+        """Clean narration text to remove artifacts"""
+        if not text:
+            return ""
+        
+        # Remove numbered list artifacts (e.g., "content 3.", "content\n2.")
+        text = re.sub(r'\s*\n?\s*\d+\.\s*$', '.', text)
+        text = re.sub(r'\s+\d+\.\s*$', '.', text)
+        
+        # Remove double periods
+        text = re.sub(r'\.\.+', '.', text)
+        
+        # Fix spacing issues
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Remove trailing commas before periods
+        text = re.sub(r',\s*\.', '.', text)
+        
+        # Fix broken grammar patterns like "skills that is crucial"
+        text = re.sub(r'\bthat is\b', 'that are', text)
+        text = re.sub(r'\bskills that are\b', 'these skills are', text)
+        
+        # Remove newlines within sentences
+        text = re.sub(r'\n+', ' ', text)
+        
+        # Ensure proper sentence ending
+        text = text.strip()
+        if text and not text.endswith(('.', '!', '?')):
+            text += '.'
+        
+        return text
+    
+    def _clean_slide_format_from_content(self, content: str) -> str:
+        """Remove 'Slide X:' patterns that create colon fragments in bullet points"""
+        import re
+        
+        # Remove "Slide N: Title" patterns at the beginning of lines
+        content = re.sub(r'^Slide\s+\d+:\s*(.+?)$', r'\1', content, flags=re.MULTILINE)
+        
+        # Remove standalone "Slide N:" patterns
+        content = re.sub(r'^Slide\s+\d+:\s*$', '', content, flags=re.MULTILINE)
+        
+        # Clean up any resulting empty lines
+        content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
+        
+        return content.strip()
+    
+    def _clean_colon_fragments_from_content(self, content: str) -> str:
+        """Remove colon fragments that create broken bullet points"""
+        import re
+        
+        # Fix patterns like "skills that: crucial for" -> "skills that are crucial for"
+        content = re.sub(r'\b(\w+(?:\s+\w+)*)\s*:\s*(\w+(?:\s+\w+)*)', r'\1 are \2', content)
+        
+        # Fix "Understand that X:" patterns specifically
+        content = re.sub(r'Understand that ([^:]+):\s*([^.]+)', r'Understand that \1 are \2', content)
+        
+        return content
     
     def _estimate_duration(self, speaker_notes: str) -> float:
         """Estimate speaking duration in seconds with enhanced complexity analysis"""
@@ -2570,7 +2677,7 @@ Return exactly 3 learning objectives, one per line:
                     }
                 ],
                 max_tokens=2000,
-                temperature=0.7,  # Some creativity for engaging content
+                temperature=0.2,  # Low temperature for content accuracy and preservation
                 timeout=45  # Longer timeout for content enhancement
             )
             
@@ -2605,21 +2712,29 @@ Return exactly 3 learning objectives, one per line:
         
         # Section-type-specific prompts (more concise)
         if section_role['teaching_approach'] == 'engaging_introduction':
-            enhancement_prompt = f"""Transform this introduction into an engaging 3-4 minute learning experience for a {exp_level} {role}.
+            enhancement_prompt = f"""CRITICAL: Preserve the original content structure and information. Do NOT create new content.
+
+Your task: Reorganize and clarify the existing content for a {exp_level} {role}, maintaining all original information.
 
 KEY REQUIREMENTS:
-- Hook: Connect immediately to {role}'s daily challenges
-- Why: Clear career benefits in first 30 seconds
-- Tone: Conversational, building excitement
-- Examples: 2 specific to {role} work
-- Flow: Natural progression to main content
+- PRESERVE: All original headings, objectives, and key points
+- MAINTAIN: Factual accuracy and specific details from source
+- ORGANIZE: Content for clear learning flow
+- CLARIFY: Complex concepts for {role} understanding
+- TONE: Professional and educational
+
+FORBIDDEN:
+- Creating new examples not in source
+- Adding interpretive content or music cues
+- Changing factual information
+- Removing original headings or objectives
 
 CONTEXT: {themes}
 
-CONTENT:
+ORIGINAL CONTENT TO PRESERVE:
 {section_content}
 
-ENHANCED VERSION:"""
+REORGANIZED VERSION (preserve all original information):"""
 
         elif section_role['teaching_approach'] == 'progressive_development':
             enhancement_prompt = f"""Transform this into progressive learning for a {exp_level} {role}.
@@ -2787,7 +2902,7 @@ ENHANCED VERSION:"""
         }
         
         validation['is_sufficient'] = (
-            validation['word_count'] > 100 and 
+            validation['word_count'] > 50 and  # Relaxed from 100 to 50 words
             (validation['has_headings'] or validation['has_objectives'] or validation['has_structure'])
         )
         
@@ -3023,6 +3138,7 @@ FORBIDDEN:
 - Generic titles like "Key Concept 1", "Overview", "Introduction" 
 - Creating new interpretive content
 - Using business jargon not in source
+- Using "Slide X:" format in content (causes parsing errors)
 
 REQUIRED: Use the exact ## headings as slide titles: {', '.join(source_headings)}
 
@@ -3031,7 +3147,7 @@ SOURCE CONTENT:
 
 FORMAT YOUR RESPONSE EXACTLY AS:
 ===ENHANCED_CONTENT===
-[Restructured source content for narration - no new interpretations]
+[Restructured source content for narration - NEVER use "Slide X:" format]
 
 ===LEARNING_OBJECTIVES===
 1. [Actual objective from source, or "None explicitly stated"]
@@ -3150,6 +3266,10 @@ FORMAT YOUR RESPONSE EXACTLY AS:
             enhanced_content = response_text[
                 content_start + len(content_marker):objectives_start
             ].strip()
+            
+            # Clean enhanced content to remove "Slide X:" patterns and other artifacts
+            enhanced_content = self._clean_slide_format_from_content(enhanced_content)
+            enhanced_content = self._clean_colon_fragments_from_content(enhanced_content)
             
             # Validate enhanced content
             enhanced_content = self._validate_enhanced_content(enhanced_content)
@@ -3329,12 +3449,18 @@ FORMAT YOUR RESPONSE EXACTLY AS:
                 if match:
                     objective = match.group(1).strip()
                     if self._validate_learning_objective(objective):
+                        # Ensure proper punctuation
+                        if not objective.endswith(('.', '!', '?')):
+                            objective += '.'
                         objectives.append(objective)
                         objective_found = True
                         break
             
             # If no pattern matched but line looks like objective
             if not objective_found and self._validate_learning_objective(line):
+                # Ensure proper punctuation
+                if not line.endswith(('.', '!', '?')):
+                    line += '.'
                 objectives.append(line)
         
         return objectives

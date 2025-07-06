@@ -205,9 +205,9 @@ Return only valid JSON.
 
 // Helper function to match skills to NESTA taxonomy
 async function matchSkillsToTaxonomy(
-  supabase: any, 
+  supabase: ReturnType<typeof createClient>, 
   extractedSkills: ExtractedSkill[]
-): Promise<any[]> {
+): Promise<ExtractedSkill[]> {
   const matchedSkills = []
 
   for (const skill of extractedSkills) {

@@ -30,11 +30,14 @@ async def test_content_faithful():
         employee_name = "Kubilay Cenk Karakas"
         company_id = "67d7bff4-1149-4f37-952e-af1841fb67fa"
         
-        logger.info("🎬 Testing enhanced content-faithful video generation")
+        logger.info("🎬 Testing FIXED content-faithful video generation")
         logger.info(f"📚 Module: {module_name}")
         logger.info("🎯 Expected: Video content should match source introduction about Business Performance Reporting")
         logger.info("⏱️  Expected: Dynamic duration based on content complexity (3+ minutes)")
         logger.info("🗄️  Expected: Complete database tracking without errors")
+        logger.info("🔧 NEW: Broken content fragments should be completely eliminated")
+        logger.info("📝 NEW: All bullet points should be grammatically complete sentences")
+        logger.info("🎙️ NEW: Narration should flow naturally without repetitive patterns")
         
         # Fetch all sections to provide context
         module_result = generator.supabase.table('cm_module_content').select('*').eq(
@@ -178,6 +181,88 @@ async def test_content_faithful():
                     logger.info(f"   ✅ '{heading}' - PRESERVED in slide titles")
                 else:
                     logger.info(f"   ❌ '{heading}' - NOT preserved in generated content")
+            
+            # NEW: Comprehensive content quality verification
+            logger.info("\n🔧 CONTENT QUALITY VERIFICATION (NEW FIXES):")
+            
+            # Check script content from the generated session
+            try:
+                import json
+                from pathlib import Path
+                
+                # Find the temporary directory for this session
+                session_id = result['session_id']
+                script_path = Path(f"/tmp/section_video_{session_id}/section_script.json")
+                
+                if script_path.exists():
+                    with open(script_path, 'r') as f:
+                        script_data = json.load(f)
+                    
+                    # Verify bullet points
+                    total_bullets = 0
+                    broken_bullets = 0
+                    incomplete_sentences = 0
+                    colon_fragments = 0
+                    
+                    for slide in script_data.get('slides', []):
+                        for bullet in slide.get('bullet_points', []):
+                            total_bullets += 1
+                            
+                            # Check for broken colon fragments
+                            if ':' in bullet and not bullet.strip().endswith(('.', '!', '?')):
+                                colon_fragments += 1
+                                logger.error(f"   ❌ COLON FRAGMENT: '{bullet}'")
+                            elif ':' in bullet:
+                                # Even with periods, check for fragment patterns
+                                import re
+                                if re.match(r'^[a-z\s]+:', bullet.lower()):
+                                    colon_fragments += 1
+                                    logger.error(f"   ❌ FRAGMENT PATTERN: '{bullet}'")
+                            
+                            # Check for incomplete sentences
+                            if not bullet.strip().endswith(('.', '!', '?')):
+                                incomplete_sentences += 1
+                                logger.warning(f"   ⚠️  MISSING PUNCTUATION: '{bullet}'")
+                            
+                            # Check for broken grammar patterns
+                            if re.search(r'\w+\s+that:\s+\w+', bullet):
+                                broken_bullets += 1
+                                logger.error(f"   ❌ BROKEN GRAMMAR: '{bullet}'")
+                    
+                    # Check narration for repetitive patterns
+                    narration = script_data.get('full_narration', '')
+                    pay_attention_count = narration.lower().count('pay attention')
+                    broken_narration_patterns = len(re.findall(r'\w+\s+that:\s+\w+', narration, re.IGNORECASE))
+                    
+                    logger.info(f"   📊 BULLET POINT ANALYSIS:")
+                    logger.info(f"      Total bullet points: {total_bullets}")
+                    logger.info(f"      Colon fragments: {colon_fragments}")
+                    logger.info(f"      Incomplete sentences: {incomplete_sentences}")
+                    logger.info(f"      Broken grammar: {broken_bullets}")
+                    
+                    logger.info(f"   🎙️ NARRATION ANALYSIS:")
+                    logger.info(f"      'Pay attention' count: {pay_attention_count}")
+                    logger.info(f"      Broken patterns: {broken_narration_patterns}")
+                    
+                    # Overall quality assessment
+                    total_issues = colon_fragments + incomplete_sentences + broken_bullets + pay_attention_count + broken_narration_patterns
+                    
+                    if total_issues == 0:
+                        logger.info(f"\n🎉 CONTENT QUALITY: PERFECT! All fixes successfully applied!")
+                        logger.info(f"   ✅ No broken colon fragments")
+                        logger.info(f"   ✅ All sentences properly punctuated")  
+                        logger.info(f"   ✅ No broken grammar patterns")
+                        logger.info(f"   ✅ No repetitive narration")
+                        logger.info(f"   ✅ Professional, cohesive content throughout")
+                    else:
+                        logger.error(f"\n❌ CONTENT QUALITY: {total_issues} issues remain!")
+                        logger.error(f"   The fixes did not completely resolve all content issues")
+                
+                else:
+                    logger.warning("   ⚠️  Script file not found for detailed verification")
+                    
+            except Exception as e:
+                logger.warning(f"   ⚠️  Could not verify script content: {e}")
                 
         else:
             logger.error(f"❌ Video generation failed: {result['error']}")

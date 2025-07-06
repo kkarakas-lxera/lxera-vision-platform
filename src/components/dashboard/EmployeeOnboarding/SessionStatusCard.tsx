@@ -15,7 +15,10 @@ interface ImportSession {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
   active_position_id?: string;
-  session_metadata?: any;
+  session_metadata?: {
+    position_title?: string;
+    [key: string]: unknown;
+  };
 }
 
 interface SessionStatusCardProps {

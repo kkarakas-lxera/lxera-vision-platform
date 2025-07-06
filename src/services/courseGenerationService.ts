@@ -32,8 +32,8 @@ export const generateCourse = async (params: CourseGenerationParams) => {
     if (error) throw error;
 
     return { success: true, jobId: data.id };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating course:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' };
   }
 };

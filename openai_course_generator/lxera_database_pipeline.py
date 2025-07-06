@@ -190,34 +190,69 @@ class LXERADatabasePipeline:
             
             logger.info(f"✅ Planning phase completed with plan_id: {plan_id}")
             
-            # Phase 2: Research Agent
+            # Phase 2: Enhanced Research Agent
             if job_id:
                 await self._update_job_progress(job_id, {
-                    'current_phase': 'Research Phase: Gathering course content',
+                    'current_phase': 'Research Phase: Enhanced comprehensive research with advanced Tavily/Firecrawl',
                     'progress_percentage': 60
                 })
             
-            from course_agents.research_agent import create_research_agent
-            research_agent = create_research_agent()
+            # Check feature flag for enhanced research
+            enhanced_research_enabled = os.getenv('ENHANCED_RESEARCH_ENABLED', 'true').lower() == 'true'
             
-            research_message = f"""
-            Execute comprehensive research for course plan_id: {plan_id}
+            if enhanced_research_enabled:
+                logger.info("🔬 Using Enhanced Research v2 with significantly improved Tavily/Firecrawl usage")
+                from course_agents.research_agent import create_enhanced_research_agent
+                research_agent = create_enhanced_research_agent()
+                
+                research_message = f"""
+                Execute enhanced comprehensive research for course plan_id: {plan_id}
+                
+                ENHANCED WORKFLOW (Significantly Improved Tavily/Firecrawl Usage):
+                1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
+                2. enhanced_comprehensive_research - Execute advanced multi-domain research with:
+                   - Academic sources: .edu, research institutions, peer-reviewed content
+                   - Industry sources: McKinsey, Deloitte, HBR, Bloomberg, industry leaders  
+                   - Technical sources: GitHub, Stack Overflow, official documentation
+                   - Advanced Firecrawl extraction with content quality validation
+                3. validate_research_comprehensively - 9-dimensional quality assessment:
+                   - Source credibility, content accuracy, comprehensiveness
+                   - Currency/timeliness, source diversity, evidence quality
+                   - Practical relevance, theoretical grounding, synthesis quality
+                4. store_enhanced_research_v2 - Save comprehensive results with detailed metadata
+                
+                ENHANCED QUALITY REQUIREMENTS:
+                - Minimum 0.75 overall quality score (significantly improved validation)
+                - Multi-domain source coverage with credibility scoring
+                - Advanced content extraction using Firecrawl's full parameter set
+                - Systematic quality gates with comprehensive source breakdown
+                - Evidence-based synthesis with proper citations
+                
+                Focus on research-grade content quality for professional learning.
+                """
+            else:
+                logger.info("📚 Using Standard Research workflow")
+                from course_agents.research_agent import create_research_agent
+                research_agent = create_research_agent()
+                
+                research_message = f"""
+                Execute comprehensive research for course plan_id: {plan_id}
+                
+                Follow this exact workflow:
+                1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
+                2. tavily_search - Search for relevant content for each module topic
+                3. firecrawl_extract - Extract detailed content from authoritative sources
+                4. research_synthesizer - Synthesize findings into structured insights
+                5. store_research_results - Save your research findings
+                
+                Focus on finding practical, industry-relevant content for the learner.
+                """
             
-            Follow this exact workflow:
-            1. fetch_course_plan - Load the course plan details using plan_id: {plan_id}
-            2. tavily_search - Search for relevant content for each module topic
-            3. firecrawl_extract - Extract detailed content from authoritative sources
-            4. research_synthesizer - Synthesize findings into structured insights
-            5. store_research_results - Save your research findings
-            
-            Focus on finding practical, industry-relevant content for the learner.
-            """
-            
-            with trace("research_phase"):
+            with trace("enhanced_research_phase" if enhanced_research_enabled else "research_phase"):
                 research_result = await Runner.run(
                     research_agent,
                     research_message,
-                    max_turns=15  # Research doesn't need as many turns
+                    max_turns=20 if enhanced_research_enabled else 15  # More turns for enhanced research
                 )
             
             # Extract research_id from research result
@@ -227,7 +262,12 @@ class LXERADatabasePipeline:
                 logger.warning("⚠️ Research phase completed but no research_id found")
                 # Continue anyway as research might have been stored
             else:
-                logger.info(f"✅ Research phase completed with research_id: {research_id}")
+                if enhanced_research_enabled:
+                    logger.info(f"✅ Enhanced research phase completed with research_id: {research_id}")
+                    # Log enhanced research metrics
+                    await self._log_enhanced_research_metrics(research_id, plan_id)
+                else:
+                    logger.info(f"✅ Standard research phase completed with research_id: {research_id}")
             
             # Phase 3: Content Generation Agent - Generate ALL modules
             if job_id:
@@ -785,6 +825,36 @@ class LXERADatabasePipeline:
             }).eq('id', job_id).execute()
         except Exception as e:
             logger.error(f"Failed to update job progress: {e}")
+    
+    async def _log_enhanced_research_metrics(self, research_id: str, plan_id: str):
+        """Log enhanced research metrics for performance tracking."""
+        try:
+            # Query enhanced research results
+            research_result = self.supabase.table('cm_research_results')\
+                .select('research_findings, execution_metrics, total_sources')\
+                .eq('research_id', research_id)\
+                .single().execute()
+            
+            if research_result.data:
+                metrics = research_result.data.get('execution_metrics', {})
+                quality_assessment = metrics.get('quality_assessment', {})
+                
+                # Log key metrics
+                logger.info(f"📊 Enhanced Research Metrics for {research_id}:")
+                logger.info(f"   - Sources: {research_result.data.get('total_sources', 0)}")
+                logger.info(f"   - Quality Score: {quality_assessment.get('overall_score', 0):.2f}")
+                logger.info(f"   - Multi-Agent: {metrics.get('multi_agent_coordination', False)}")
+                logger.info(f"   - Enhanced Features: {metrics.get('enhanced_features', False)}")
+                
+                # Update research session with enhanced flag
+                self.supabase.table('cm_research_sessions').update({
+                    'enhanced_research_enabled': True,
+                    'multi_agent_coordination': metrics.get('multi_agent_coordination', False),
+                    'research_methodology': 'enhanced_multi_agent'
+                }).eq('research_id', research_id).execute()
+                
+        except Exception as e:
+            logger.error(f"Failed to log enhanced research metrics: {e}")
 
 
 # Convenience function for edge function integration

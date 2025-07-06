@@ -2,8 +2,15 @@
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import FeatureCard from "./FeatureCard";
 
+interface Feature {
+  title: string;
+  description?: string;
+  icon?: string;
+  [key: string]: unknown;
+}
+
 interface PlatformHighlightsCarouselProps {
-  features: any[];
+  features: Feature[];
   cat: string;
 }
 

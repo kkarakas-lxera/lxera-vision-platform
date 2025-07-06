@@ -4,8 +4,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface Employee {
+  id: string;
+  name?: string;
+  email?: string;
+  [key: string]: unknown;
+}
+
 interface UseEnhancedOnboardingProps {
-  employee?: any;
+  employee?: Employee;
   cvFile?: File | null;
   cvText?: string;
   isCVUploaded?: boolean;

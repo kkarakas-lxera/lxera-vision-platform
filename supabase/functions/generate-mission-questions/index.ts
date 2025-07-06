@@ -73,7 +73,7 @@ serve(async (req) => {
 
     // Get the actual course content for context
     let courseContent = ''
-    let contentId = content_section_id || module_content_id
+    const contentId = content_section_id || module_content_id
 
     if (contentId) {
       const { data: content } = await supabaseClient
@@ -245,7 +245,17 @@ Generate engaging, practical questions that help learners apply the concepts in 
     }
 
     // Insert questions into database - match existing schema
-    const questionsToInsert = questionsData.questions.map((q: any, index: number) => {
+    interface GeneratedQuestion {
+      question_text: string;
+      question_type: string;
+      answer_options: string[];
+      correct_answer: 'A' | 'B' | 'C' | 'D';
+      explanation: string;
+      skill_focus: string;
+      source_content_snippet?: string;
+    }
+    
+    const questionsToInsert = questionsData.questions.map((q: GeneratedQuestion, index: number) => {
       // Convert correct answer from letter to index (A=0, B=1, C=2, D=3)
       const correctAnswerIndex = q.correct_answer === 'A' ? 0 : 
                                   q.correct_answer === 'B' ? 1 :

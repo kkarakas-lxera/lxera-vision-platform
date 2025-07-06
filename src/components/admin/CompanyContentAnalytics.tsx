@@ -39,20 +39,33 @@ export const CompanyContentAnalytics = () => {
     try {
       const data = await contentManager.get_company_analytics();
       
-      const modulesByStatus = data.modules.reduce((acc: Record<string, number>, module: any) => {
+      interface Module {
+        status: string;
+        total_word_count?: number;
+      }
+      
+      const modulesByStatus = data.modules.reduce((acc: Record<string, number>, module: Module) => {
         acc[module.status] = (acc[module.status] || 0) + 1;
         return acc;
       }, {});
 
-      const totalWordCount = data.modules.reduce((sum: number, module: any) => sum + (module.total_word_count || 0), 0);
+      const totalWordCount = data.modules.reduce((sum: number, module: Module) => sum + (module.total_word_count || 0), 0);
       const averageWordCount = data.modules.length > 0 ? Math.round(totalWordCount / data.modules.length) : 0;
 
-      const qualityScores = data.quality.map((q: any) => q.overall_score).filter(Boolean);
+      interface QualityEntry {
+        overall_score?: number;
+      }
+      
+      const qualityScores = data.quality.map((q: QualityEntry) => q.overall_score).filter(Boolean);
       const averageQualityScore = qualityScores.length > 0 
         ? qualityScores.reduce((sum: number, score: number) => sum + score, 0) / qualityScores.length 
         : 0;
 
-      const successfulEnhancements = data.enhancements.filter((e: any) => e.success).length;
+      interface Enhancement {
+        success: boolean;
+      }
+      
+      const successfulEnhancements = data.enhancements.filter((e: Enhancement) => e.success).length;
       const enhancementSuccess = data.enhancements.length > 0 
         ? (successfulEnhancements / data.enhancements.length) * 100 
         : 0;

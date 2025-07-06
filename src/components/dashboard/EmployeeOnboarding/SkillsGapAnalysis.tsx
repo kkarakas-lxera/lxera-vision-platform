@@ -9,6 +9,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+interface RequiredSkill {
+  skill_name: string;
+  skill_id?: string;
+  required_level?: number;
+}
+
+interface ExtractedSkill {
+  skill_name: string;
+  proficiency_level?: number;
+}
+
 interface EmployeeStatus {
   id: string;
   name: string;
@@ -123,7 +134,7 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
         const requiredSkills = position.required_skills || [];
         
         // For each required skill, check how many employees have it
-        requiredSkills.forEach((reqSkill: any) => {
+        requiredSkills.forEach((reqSkill: RequiredSkill) => {
           let employeesWithSkill = 0;
           let employeesMissingSkill = 0;
           let totalEmployeesWithProfiles = 0;
@@ -134,7 +145,7 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
             if (profile && profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
               totalEmployeesWithProfiles++;
               
-              const hasSkill = profile.extracted_skills.some((skill: any) => {
+              const hasSkill = profile.extracted_skills.some((skill: ExtractedSkill) => {
                 const skillName = skill.skill_name?.toLowerCase() || '';
                 const reqSkillName = reqSkill.skill_name?.toLowerCase() || '';
                 

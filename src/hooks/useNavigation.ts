@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useScrollOffset } from "./useScrollOffset";
 
 export const useNavigation = () => {
@@ -8,6 +9,7 @@ export const useNavigation = () => {
   const [activeSection, setActiveSection] = useState("");
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const { scrollToSection: scrollToSectionWithOffset } = useScrollOffset();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -137,8 +139,8 @@ export const useNavigation = () => {
 
   const scrollToSection = (href: string) => {
     if (href.startsWith('/')) {
-      // Navigate to page
-      window.location.href = href;
+      // Navigate to page using React Router
+      navigate(href);
     } else {
       // Scroll to section with enhanced animation
       scrollToSectionWithOffset(href);

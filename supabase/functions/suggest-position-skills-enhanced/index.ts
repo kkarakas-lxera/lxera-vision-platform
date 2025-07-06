@@ -54,7 +54,15 @@ serve(async (req) => {
       })
 
       if (!error && skills) {
-        const mappedSkills = skills.map((skill: any) => ({
+        interface DatabaseSkill {
+          skill_id: string;
+          skill_name: string;
+          description?: string;
+          skill_type?: string;
+          rank?: number;
+        }
+        
+        const mappedSkills = skills.map((skill: DatabaseSkill) => ({
           skill_id: skill.skill_id,
           skill_name: skill.skill_name,
           category: 'important' as const,

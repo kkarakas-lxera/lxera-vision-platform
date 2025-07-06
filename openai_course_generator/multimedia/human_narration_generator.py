@@ -205,37 +205,27 @@ class HumanNarrationGenerator:
         # Determine emotion based on content
         emotion = self._determine_emotion(slide)
         
-        # Start with natural opener
-        opener = self._select_natural_opener()
-        
-        # Build conversational narrative
+        # Build conversational narrative from speaker notes ONLY
         speaker_notes = slide.get('speaker_notes', '')
         
+        # Clean up the speaker notes text
+        conversational_text = self._clean_speaker_notes(speaker_notes)
+        
         # Add breathing pauses
-        conversational_text = self._add_natural_pauses(speaker_notes)
+        conversational_text = self._add_natural_pauses(conversational_text)
         
         # Add emphasis to key words
-        emphasis_words = self._identify_emphasis_words(speaker_notes)
+        emphasis_words = self._identify_emphasis_words(conversational_text)
         conversational_text = self._add_emphasis_markup(conversational_text, emphasis_words)
-        
-        # Add personal touches
-        if employee_context.get('name'):
-            conversational_text = self._add_personal_touches(
-                conversational_text, 
-                employee_context['name']
-            )
-        
-        # Combine with opener
-        full_text = f"{opener} {conversational_text}"
         
         # Determine pacing
         pace = self._determine_pace(slide)
         
         # Extract pause positions
-        pauses = self._extract_pause_positions(full_text)
+        pauses = self._extract_pause_positions(conversational_text)
         
         return NarrationSegment(
-            text=full_text,
+            text=conversational_text,
             emotion=emotion,
             pace=pace,
             emphasis_words=emphasis_words,
@@ -334,35 +324,59 @@ class HumanNarrationGenerator:
         return random.choice(self.filler_phrases)
     
     def _add_personal_touches(self, text: str, name: str) -> str:
-        """Add personal touches to make it more conversational"""
-        personal_phrases = [
-            f", {name},",
-            f" - and {name}, this is important - ",
-            f". {name}, think about",
-            f", and here's what I want you to remember, {name}:"
-        ]
+        """Add minimal, natural personal touches"""
+        # Only add name occasionally and naturally
+        if len(text.split()) > 20:  # Only for longer content
+            # Add name at the end occasionally
+            if not text.endswith(('.', '!', '?')):
+                text += '.'
+            # Occasionally add name before the final period
+            if len(text.split()) > 30 and name:
+                text = text[:-1] + f", {name}."
         
-        # Add occasional personal touches (not too many)
-        sentences = text.split('.')
-        if len(sentences) > 3:
-            # Add personal touch to middle sentence
-            mid_point = len(sentences) // 2
-            if sentences[mid_point]:
-                sentences[mid_point] = sentences[mid_point] + personal_phrases[0]
+        return text
+    
+    def _clean_speaker_notes(self, text: str) -> str:
+        """Clean up speaker notes to remove artifacts and improve flow"""
+        if not text:
+            return ""
         
-        return '.'.join(sentences)
+        # Remove double periods
+        text = re.sub(r'\.\.+', '.', text)
+        
+        # Fix spacing issues
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Remove trailing commas before periods
+        text = re.sub(r',\s*\.', '.', text)
+        
+        # Ensure proper sentence ending
+        text = text.strip()
+        if text and not text.endswith(('.', '!', '?')):
+            text += '.'
+        
+        return text
     
     def _select_transitions(self, num_segments: int) -> List[str]:
-        """Select appropriate transitions between segments"""
+        """Select minimal, natural transitions between segments"""
         transitions = []
         
-        # Introduction transition
-        transitions.append(self.transitions['introduction'][0])
+        # Simple, clean introduction
+        transitions.append("Let's dive right in.")
         
-        # Between segments
+        # Minimal transitions between segments - no repetitive phrases
+        simple_transitions = [
+            "", # No transition - let content flow naturally
+            "Moving on...",
+            "Next,",
+            "", # No transition
+            "Additionally,",
+            "", # No transition
+        ]
+        
+        # Between segments - use minimal transitions
         for i in range(num_segments - 1):
-            transition_options = self.transitions['between_points']
-            transitions.append(transition_options[i % len(transition_options)])
+            transitions.append(simple_transitions[i % len(simple_transitions)])
         
         return transitions
     

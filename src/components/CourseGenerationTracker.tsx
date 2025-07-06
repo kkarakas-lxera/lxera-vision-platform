@@ -19,7 +19,12 @@ interface GenerationJob {
   current_employee_name: string | null;
   employee_ids: string[];
   error_message: string | null;
-  results: any[];
+  results: Array<{
+    employee_id: string;
+    course_id?: string;
+    status: 'success' | 'failed';
+    error?: string;
+  }>;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -63,9 +68,9 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({
             onComplete();
           }
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching job status:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -90,14 +95,15 @@ const CourseGenerationTracker: React.FC<CourseGenerationTrackerProps> = ({
         },
         (payload) => {
           if (payload.new) {
+            const newData = payload.new as Record<string, unknown>;
             const typedJob: GenerationJob = {
-              ...payload.new as any,
-              status: (payload.new as any).status as 'pending' | 'processing' | 'completed' | 'failed',
-              results: Array.isArray((payload.new as any).results) ? (payload.new as any).results : []
-            };
+              ...newData,
+              status: newData.status as 'pending' | 'processing' | 'completed' | 'failed',
+              results: Array.isArray(newData.results) ? newData.results as GenerationJob['results'] : []
+            } as GenerationJob;
             setJob(typedJob);
 
-            if ((payload.new as any).status === 'completed' && onComplete) {
+            if (newData.status === 'completed' && onComplete) {
               onComplete();
             }
           }

@@ -47,6 +47,42 @@ except Exception as e:
         openai_client = None
         logger.error("No OpenAI API key available")
 
+def get_smart_section_plan(spec: Dict[str, Any], section_name: str, fallback_target: int = 1000) -> Dict[str, Any]:
+    """Get smart word planning for a specific section from module specification"""
+    
+    smart_word_plan = spec.get("smart_word_distribution", {})
+    if smart_word_plan and "section_plans" in smart_word_plan:
+        # Use smart word planning from planning agent
+        section_plan = smart_word_plan["section_plans"].get(section_name, {})
+        
+        plan = {
+            "word_target": section_plan.get("word_target", fallback_target),
+            "min_words": section_plan.get("min_words", int(fallback_target * 0.85)),
+            "max_words": section_plan.get("max_words", int(fallback_target * 1.25)),
+            "complexity_level": section_plan.get("complexity_level", "intermediate"),
+            "reasoning": section_plan.get("reasoning", "Default allocation"),
+            "is_smart_planned": True
+        }
+        
+        logger.info(f"📊 Smart word plan for {section_name}: {plan['word_target']} words ({plan['complexity_level']})")
+        logger.info(f"   📝 Reasoning: {plan['reasoning']}")
+        
+        return plan
+    else:
+        # Fallback planning
+        plan = {
+            "word_target": fallback_target,
+            "min_words": int(fallback_target * 0.9),
+            "max_words": int(fallback_target * 1.1),
+            "complexity_level": "intermediate",
+            "reasoning": "Fallback allocation",
+            "is_smart_planned": False
+        }
+        
+        logger.info(f"📚 Fallback word plan for {section_name}: {plan['word_target']} words")
+        
+        return plan
+
 def parse_word_count_target(word_count_input) -> int:
     """Parse word count target from string or int input.
     
@@ -107,11 +143,12 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         career_goal = spec.get("personalization_context", {}).get("career_goal", "Career advancement")
         tools = spec.get("tool_integration", [])
         
-        # Get word count target from outline (planning agent decision)
-        intro_outline = outline.get("module_outline", {}).get("introduction", {})
-        word_count_target = intro_outline.get("word_target", 800)  # Use planning agent's allocation
-        min_words = int(word_count_target * 0.9)  # Allow 10% variance
-        max_words = int(word_count_target * 1.1)
+        # SMART WORD PLANNING: Use intelligent word distribution from planning phase
+        section_plan = get_smart_section_plan(spec, "introduction", fallback_target=800)
+        word_count_target = section_plan["word_target"]
+        min_words = section_plan["min_words"]
+        max_words = section_plan["max_words"]
+        complexity_level = section_plan["complexity_level"]
         
         # Get content requirements from outline
         content_outline = intro_outline.get("content_outline", [])
@@ -123,10 +160,29 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         # Calculate max_tokens dynamically (1.5 tokens per word + buffer)
         max_tokens = int(word_count_target * 1.5 + 500)
         
-        # Integrate research findings
+        # Integrate enhanced research findings (v2 compatible)
         research_insights = research.get("research_insights", {})
-        research_key_concepts = research_insights.get("key_concepts", [])
-        practical_examples = research_insights.get("practical_examples", [])
+        
+        # Check if this is enhanced research v2 data
+        if "research_findings" in research:
+            # Enhanced research v2 structure
+            enhanced_findings = research.get("research_findings", {})
+            research_key_concepts = enhanced_findings.get("key_findings", [])[:5]  # Top 5 findings
+            practical_examples = enhanced_findings.get("practical_applications", [])[:3]  # Top 3 applications
+            research_quality_score = research.get("quality_assessment", {}).get("overall_score", 0.0)
+            research_statistics = enhanced_findings.get("data_statistics", [])[:3]  # Top 3 stats
+            source_quality = research.get("source_breakdown", {})
+            
+            logger.info(f"🔬 Using enhanced research v2 data (quality: {research_quality_score:.2f})")
+        else:
+            # Standard research structure (backward compatibility)
+            research_key_concepts = research_insights.get("key_concepts", [])
+            practical_examples = research_insights.get("practical_examples", [])
+            research_quality_score = 0.0
+            research_statistics = []
+            source_quality = {}
+            
+            logger.info("📚 Using standard research data")
         
         # Prepare content generation prompt using outline
         content_prompt = f"""
@@ -157,16 +213,20 @@ def generate_module_introduction(module_spec: str, module_outline: str = None, r
         ENGAGEMENT ELEMENTS:
         {', '.join(engagement_elements)}
         
-        RESEARCH INTEGRATION:
-        Research Key Concepts: {', '.join(research_key_concepts[:3])}
-        Practical Examples Available: {', '.join(practical_examples[:2])}
+        RESEARCH INTEGRATION {'(Enhanced v2 - Quality: ' + str(research_quality_score) + '/1.0)' if research_quality_score > 0 else '(Standard)'}:
+        Research Key Findings: {', '.join(research_key_concepts[:3])}
+        Practical Applications: {', '.join(practical_examples[:2])}
+        {('Research Statistics: ' + ', '.join(research_statistics[:2])) if research_statistics else ''}
+        {('Source Quality: ' + str(source_quality.get('avg_scores', {}).get('validation', 0)) + ' validation score') if source_quality else ''}
         
         ADDITIONAL REQUIREMENTS:
         - Highly personalized and relevant to their role
         - Explain strategic importance for their career  
         - Use engaging, professional tone
         - Include specific examples relevant to business performance reporting
-        - Reference current industry trends from research
+        {('- Reference high-quality research findings with ' + str(research_quality_score) + '/1.0 validation score') if research_quality_score > 0 else '- Reference current industry trends from research'}
+        {('- Integrate evidence-based insights from academic, industry, and technical sources') if research_quality_score > 0.7 else ''}
+        {('- Use verified statistics and data points from quality research') if research_statistics else ''}
         - Structure with clear headings and bullet points
         - Follow the content outline exactly as specified
         
@@ -284,20 +344,40 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
         tools = spec.get("tool_integration", [])
         difficulty = spec.get("difficulty_level", "intermediate")
         
-        # Get dynamic word count target from module spec
-        # Core content should be roughly 40% of total module content
-        module_word_target = parse_word_count_target(spec.get("word_count_target", 5000))
-        word_count_target = int(module_word_target * 0.4)  # 40% for core content
-        min_words = int(word_count_target * 0.8)
-        max_words = int(word_count_target * 1.2)
+        # SMART WORD PLANNING: Use intelligent word distribution from planning phase
+        fallback_target = int(parse_word_count_target(spec.get("word_count_target", 5000)) * 0.4)  # 40% fallback
+        section_plan = get_smart_section_plan(spec, "core_content", fallback_target=fallback_target)
+        word_count_target = section_plan["word_target"]
+        min_words = section_plan["min_words"]
+        max_words = section_plan["max_words"]
+        complexity_level = section_plan["complexity_level"]
         
         # Calculate max_tokens dynamically
         max_tokens = int(word_count_target * 1.5 + 500)
         
-        # Research integration
+        # Enhanced research integration (v2 compatible)
         research_insights = research.get("research_insights", {})
-        key_concepts = research_insights.get("key_concepts", [])
-        practical_examples = research_insights.get("practical_examples", [])
+        
+        # Check if this is enhanced research v2 data
+        if "research_findings" in research:
+            # Enhanced research v2 structure
+            enhanced_findings = research.get("research_findings", {})
+            key_concepts = enhanced_findings.get("key_findings", [])[:5]
+            practical_examples = enhanced_findings.get("practical_applications", [])[:4]
+            research_quality_score = research.get("quality_assessment", {}).get("overall_score", 0.0)
+            consensus_points = enhanced_findings.get("consensus_points", [])[:3]
+            research_statistics = enhanced_findings.get("data_statistics", [])[:4]
+            
+            logger.info(f"🔬 Core content using enhanced research v2 (quality: {research_quality_score:.2f})")
+        else:
+            # Standard research structure
+            key_concepts = research_insights.get("key_concepts", [])
+            practical_examples = research_insights.get("practical_examples", [])
+            research_quality_score = 0.0
+            consensus_points = []
+            research_statistics = []
+            
+            logger.info("📚 Core content using standard research")
         
         # Prepare content prompt
         content_prompt = f"""
@@ -309,9 +389,11 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
         - Difficulty: {difficulty}
         - This is the main instructional content section
         
-        RESEARCH INTEGRATION:
-        - Key Concepts: {', '.join(key_concepts)}
-        - Practical Examples: {', '.join(practical_examples[:3])}
+        ENHANCED RESEARCH INTEGRATION {'(Quality: ' + str(research_quality_score) + '/1.0)' if research_quality_score > 0 else '(Standard)'}:
+        - Key Findings: {', '.join(key_concepts)}
+        - Practical Applications: {', '.join(practical_examples)}
+        {('- Research Consensus: ' + ', '.join(consensus_points)) if consensus_points else ''}
+        {('- Verified Statistics: ' + ', '.join(research_statistics)) if research_statistics else ''}
         
         REQUIREMENTS:
         - Word count: {min_words}-{max_words} words (Target: {word_count_target} words)
@@ -320,7 +402,9 @@ def generate_core_content(module_spec: str, research_context: str = None) -> str
         - Include detailed explanations with step-by-step processes
         - Reference specific tools they use: {', '.join(tools)}
         - Make examples relevant to business performance reporting
-        - Include practical tips and best practices from research
+        {('- Integrate evidence-based insights with ' + str(research_quality_score) + '/1.0 quality validation') if research_quality_score > 0 else '- Include practical tips and best practices from research'}
+        {('- Reference verified statistics and current data points') if research_statistics else ''}
+        {('- Build on research consensus from academic, industry, and technical sources') if consensus_points else ''}
         - Use clear headings and subheadings
         - Add bullet points and numbered lists for clarity
         - Each section should be comprehensive and detailed
@@ -1054,12 +1138,52 @@ def enhance_with_current_data(content_section: str, enhancement_type: str, searc
     try:
         logger.info(f"🔍 Enhancing content with current data: {enhancement_type}")
         
-        # Import and use Tavily search
+        # Import enhanced research tools
         from tools.research_tools import tavily_search
         
-        # Execute web search for current information
-        search_result = tavily_search(search_query, "financial")
-        search_data = json.loads(search_result)
+        # Check if enhanced research v2 is available and enabled
+        try:
+            from tools.enhanced_research_tools_v2 import enhanced_comprehensive_research
+            enhanced_research_enabled = True
+        except ImportError:
+            enhanced_research_enabled = False
+        
+        # Execute enhanced or standard search based on availability
+        if enhanced_research_enabled:
+            logger.info("🔬 Using enhanced research v2 for content enhancement")
+            # Use enhanced research for higher quality results
+            research_result = enhanced_comprehensive_research(
+                "content_enhancement_" + datetime.now().strftime("%Y%m%d%H%M%S"),
+                json.dumps([search_query]),
+                "financial_content_enhancement"
+            )
+            research_data = json.loads(research_result)
+            
+            # Extract enhanced research findings for content integration
+            if research_data.get("success", False):
+                research_findings = research_data.get("research_results", {}).get("research_findings", {})
+                search_data = {
+                    "success": True,
+                    "search_results": [
+                        {
+                            "title": "Enhanced Research Insights",
+                            "content": research_findings.get("executive_summary", ""),
+                            "url": "enhanced_research_synthesis"
+                        }
+                    ],
+                    "enhanced_findings": research_findings,
+                    "quality_score": research_data.get("quality_assessment", {}).get("overall_score", 0.0),
+                    "source_breakdown": research_data.get("source_breakdown", {})
+                }
+            else:
+                # Fallback to standard search
+                search_result = tavily_search(search_query, "financial")
+                search_data = json.loads(search_result)
+        else:
+            logger.info("📚 Using standard research for content enhancement")
+            # Execute standard web search for current information
+            search_result = tavily_search(search_query, "financial")
+            search_data = json.loads(search_result)
         
         if not search_data.get("success", False):
             return json.dumps({
@@ -1069,27 +1193,68 @@ def enhance_with_current_data(content_section: str, enhancement_type: str, searc
                 "success": False
             })
         
-        # Create enhancement prompt
-        enhancement_prompt = f"""
-        Enhance this content section with current, real-time information from web search results.
-        
-        EXISTING CONTENT SECTION:
-        {content_section}
-        
-        ENHANCEMENT TYPE: {enhancement_type}
-        
-        CURRENT WEB SEARCH RESULTS:
-        {json.dumps(search_data.get("search_results", [])[:3], indent=2)}
-        
-        INSTRUCTIONS:
-        1. Integrate the most relevant and current information from web search
-        2. Add specific examples, statistics, or trends from 2024
-        3. Maintain the existing structure and flow
-        4. Ensure all new information is accurately sourced
-        5. Focus on {enhancement_type} improvements
-        
-        Return the enhanced content section.
-        """
+        # Create enhanced prompt based on research type
+        if search_data.get("enhanced_findings"):
+            # Enhanced research v2 prompt with rich data
+            enhanced_findings = search_data["enhanced_findings"]
+            enhancement_prompt = f"""
+            Enhance this content section with high-quality, research-grade information from enhanced multi-source research.
+            
+            EXISTING CONTENT SECTION:
+            {content_section}
+            
+            ENHANCEMENT TYPE: {enhancement_type}
+            
+            ENHANCED RESEARCH FINDINGS (Quality Score: {search_data.get('quality_score', 0):.2f}):
+            
+            EXECUTIVE SUMMARY:
+            {enhanced_findings.get('executive_summary', 'Not available')}
+            
+            KEY FINDINGS:
+            {json.dumps(enhanced_findings.get('key_findings', []), indent=2)}
+            
+            PRACTICAL APPLICATIONS:
+            {json.dumps(enhanced_findings.get('practical_applications', []), indent=2)}
+            
+            DATA & STATISTICS:
+            {json.dumps(enhanced_findings.get('data_statistics', []), indent=2)}
+            
+            SOURCE QUALITY BREAKDOWN:
+            {json.dumps(search_data.get('source_breakdown', {}), indent=2)}
+            
+            INSTRUCTIONS FOR ENHANCED INTEGRATION:
+            1. Integrate high-quality, evidence-based insights from the research findings
+            2. Use specific data points and statistics from the enhanced research
+            3. Include practical applications relevant to the learner's context
+            4. Maintain academic rigor while ensuring accessibility
+            5. Focus on {enhancement_type} improvements using research-grade evidence
+            6. Reference the quality of sources when making claims
+            7. Ensure all integrated information meets the research quality standards
+            
+            Return the enhanced content section with research-grade improvements.
+            """
+        else:
+            # Standard research prompt
+            enhancement_prompt = f"""
+            Enhance this content section with current, real-time information from web search results.
+            
+            EXISTING CONTENT SECTION:
+            {content_section}
+            
+            ENHANCEMENT TYPE: {enhancement_type}
+            
+            CURRENT WEB SEARCH RESULTS:
+            {json.dumps(search_data.get("search_results", [])[:3], indent=2)}
+            
+            INSTRUCTIONS:
+            1. Integrate the most relevant and current information from web search
+            2. Add specific examples, statistics, or trends from 2024
+            3. Maintain the existing structure and flow
+            4. Ensure all new information is accurately sourced
+            5. Focus on {enhancement_type} improvements
+            
+            Return the enhanced content section.
+            """
         
         response = openai_client.chat.completions.create(
             model="gpt-4",

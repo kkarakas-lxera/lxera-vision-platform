@@ -13,6 +13,7 @@ from typing import Dict, Any, List
 from lxera_agents import function_tool
 from openai import OpenAI
 from tools.json_utils import extract_json_from_text, safe_json_parse, fix_common_json_issues, fix_nested_json_issues
+from tools.smart_word_planning import get_smart_word_plan, log_word_plan
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -203,11 +204,73 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
             logger.error(f"Response preview: {response_content[:500]}...")
             raise Exception("Failed to parse course structure JSON")
         
+        # SMART WORD PLANNING INTEGRATION
+        # Apply intelligent word distribution to each module
+        enhanced_modules = []
+        for module in course_structure.get("modules", []):
+            try:
+                # Get total word count for this module
+                total_words = module.get("word_count", 4000)
+                
+                # Create mock research context for planning (will be enhanced later with actual research)
+                mock_research_context = {"research_insights": {"key_concepts": [], "practical_examples": []}}
+                
+                # Module specification for smart planning
+                module_spec = {
+                    "module_name": module.get("module_name", "Course Module"),
+                    "difficulty_level": module.get("difficulty", "intermediate"),
+                    "tool_integration": module.get("tools", []),
+                    "learning_outcomes": [],  # Will be filled by later planning steps
+                    "word_count_target": total_words,
+                    "personalization_context": {
+                        "employee_name": profile.get("employee_name", "Learner"),
+                        "current_role": profile.get("current_role", "Analyst"),
+                        "career_goal": profile.get("career_progression", {}).get("target_role", "")
+                    }
+                }
+                
+                # Generate smart word distribution plan
+                word_plan = get_smart_word_plan(total_words, module_spec, mock_research_context)
+                
+                # Add smart word distribution to module
+                module["smart_word_distribution"] = {
+                    "total_words": word_plan.total_words,
+                    "complexity_analysis": word_plan.complexity_analysis,
+                    "section_plans": {
+                        section_name: {
+                            "word_target": plan.word_target,
+                            "min_words": plan.min_words,
+                            "max_words": plan.max_words,
+                            "complexity_level": plan.complexity_level,
+                            "reasoning": plan.reasoning
+                        }
+                        for section_name, plan in word_plan.sections.items()
+                    },
+                    "distribution_reasoning": word_plan.distribution_reasoning
+                }
+                
+                # Log the smart word plan
+                logger.info(f"📊 Smart word plan for '{module.get('module_name', 'Module')}':")
+                logger.info(f"   Total: {word_plan.total_words} words, Complexity: {word_plan.complexity_analysis['complexity_level']}")
+                for section_name, plan in word_plan.sections.items():
+                    percentage = (plan.word_target / word_plan.total_words) * 100
+                    logger.info(f"   📝 {section_name}: {plan.word_target}w ({percentage:.1f}%) - {plan.complexity_level}")
+                
+                enhanced_modules.append(module)
+                
+            except Exception as e:
+                logger.warning(f"Failed to apply smart word planning to module {module.get('module_name', 'Unknown')}: {e}")
+                enhanced_modules.append(module)  # Add without smart planning
+        
+        # Replace modules with enhanced versions
+        course_structure["modules"] = enhanced_modules
+        
         # Add metadata
         course_structure["generation_metadata"] = {
             "tool_name": "generate_course_structure_plan",
             "openai_model": "gpt-4",
             "generation_timestamp": datetime.now().isoformat(),
+            "smart_word_planning_applied": True,
             "token_usage": {
                 "prompt_tokens": response.usage.prompt_tokens,
                 "completion_tokens": response.usage.completion_tokens,
@@ -216,7 +279,7 @@ def generate_course_structure_plan(profile_data: str, skills_gaps: str) -> str:
         }
         
         total_modules = len(course_structure.get("modules", []))
-        logger.info(f"✅ Course structure generated: {total_modules} modules across {course_structure.get('total_duration_weeks', 0)} weeks")
+        logger.info(f"✅ Course structure generated with smart word planning: {total_modules} modules across {course_structure.get('total_duration_weeks', 0)} weeks")
         
         return json.dumps(course_structure)
         

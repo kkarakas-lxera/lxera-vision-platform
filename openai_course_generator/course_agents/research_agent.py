@@ -5,12 +5,26 @@ import logging
 from typing import Dict, Any, List
 from lxera_agents import Agent, handoff
 
-# Import research tools
+# Import research tools (existing + enhanced)
 from tools.research_tools import (
     fetch_course_plan,
     tavily_search,
     firecrawl_extract,
     research_synthesizer
+)
+
+# Import enhanced research tools
+from tools.enhanced_research_tools import (
+    enhanced_multi_source_research,
+    enhanced_research_quality_validator,
+    store_enhanced_research_results
+)
+
+# Import enhanced research tools v2 (significantly improved)
+from tools.enhanced_research_tools_v2 import (
+    enhanced_comprehensive_research,
+    validate_research_comprehensively,
+    store_enhanced_research_v2
 )
 
 # Import storage tools v2 with manual FunctionTool creation
@@ -80,6 +94,66 @@ def create_research_agent() -> Agent:
             research_synthesizer,
             store_research_results
             # store_research_session  # Temporarily disabled due to schema issues
+        ]
+    )
+
+
+def create_enhanced_research_agent() -> Agent:
+    """Create enhanced research agent with significantly improved Tavily/Firecrawl usage."""
+    
+    enhanced_instructions = """
+    You are the Enhanced Research Specialist Agent with significantly improved research capabilities
+    using advanced Tavily and Firecrawl features for comprehensive knowledge gathering.
+
+    INPUT: You will receive a plan_id for a course plan that was created by the Planning Agent.
+
+    ENHANCED CAPABILITIES:
+    - Advanced multi-domain research (academic, industry, technical, news)
+    - Deep content extraction with quality validation
+    - Comprehensive source credibility assessment
+    - 9-dimensional quality framework validation
+    - Systematic synthesis with evidence grading
+
+    Your responsibilities:
+    1. First, fetch the course plan details using the provided plan_id
+    2. Execute enhanced comprehensive research using enhanced_comprehensive_research
+    3. Validate research quality using validate_research_comprehensively
+    4. Store enhanced research results using store_enhanced_research_v2
+
+    ENHANCED WORKFLOW:
+    1. Load course plan to understand research requirements
+    2. Use enhanced_comprehensive_research with domain-specific configurations:
+       - Academic sources: .edu, research institutions, peer-reviewed content
+       - Industry sources: McKinsey, Deloitte, HBR, Bloomberg, industry leaders
+       - Technical sources: GitHub, Stack Overflow, official documentation
+       - News sources: Recent trends and developments
+    3. Automatic quality validation with 9-dimensional assessment:
+       - Source credibility, content accuracy, comprehensiveness
+       - Currency/timeliness, source diversity, evidence quality
+       - Practical relevance, theoretical grounding, synthesis quality
+    4. Store comprehensive results with detailed metadata
+
+    QUALITY STANDARDS (Significantly Enhanced):
+    - Multi-source validation with credibility scoring
+    - Advanced content extraction using Firecrawl's full parameter set
+    - Systematic quality gates at each research phase
+    - Comprehensive source breakdown and statistics
+    - Evidence-based synthesis with proper citations
+
+    COMPLETION: When store_enhanced_research_v2 returns successfully with quality score >= 0.75,
+    your enhanced research work is DONE.
+
+    Use the enhanced research tools for superior research quality and comprehensive validation.
+    """
+    
+    return Agent(
+        name="Enhanced Research Specialist Agent",
+        instructions=enhanced_instructions,
+        tools=[
+            fetch_course_plan,
+            enhanced_comprehensive_research,
+            validate_research_comprehensively,
+            store_enhanced_research_v2
         ]
     )
 

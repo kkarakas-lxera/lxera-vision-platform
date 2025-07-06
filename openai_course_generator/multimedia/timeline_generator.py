@@ -262,6 +262,15 @@ class TimelineGenerator:
         voice = voice or self.default_voice
         speed = speed or self.default_speed
         
+        # Check if we have a complete narration for continuous flow
+        if hasattr(script, 'full_narration') and script.full_narration and len(script.full_narration.strip()) > 100:
+            logger.info("🎙️ Using continuous narration mode for natural flow")
+            return await self._generate_continuous_timeline(
+                script, extracted_content, output_path, audio_dir, voice, speed
+            )
+        
+        # Fallback to individual slide segments (legacy mode)
+        logger.info("📑 Using individual slide segments (legacy mode)")
         # Generate audio segments for each slide
         audio_segments = []
         current_time = 0.0
@@ -353,6 +362,101 @@ class TimelineGenerator:
         logger.info(f"Timeline generation complete: {total_duration:.2f} seconds")
         return timeline
     
+    async def _generate_continuous_timeline(
+        self,
+        script: Any,
+        extracted_content: Any,
+        output_path: Path,
+        audio_dir: Path,
+        voice: str,
+        speed: float
+    ) -> "VideoTimeline":
+        """
+        Generate timeline with continuous narration for natural flow
+        
+        This creates one seamless audio track and calculates slide transition
+        points within that continuous narration for a natural learning experience.
+        """
+        logger.info(f"Generating continuous narration: {len(script.full_narration)} characters")
+        
+        # Generate single continuous audio file
+        narration_file = audio_dir / f"{script.module_name.lower().replace(' ', '_')}_continuous_narration.mp3"
+        
+        # Select optimal voice and speed for the content
+        selected_voice, selected_speed = self.select_voice_for_content(
+            'introduction', script.full_narration
+        )
+        
+        # Override with user preferences if specified
+        if voice and voice != 'auto':
+            selected_voice = voice
+        if speed and speed != 'auto':
+            selected_speed = speed
+            
+        logger.info(f"Generating continuous audio with voice '{selected_voice}' at {selected_speed:.2f}x speed")
+        
+        # Generate the complete audio file
+        try:
+            client = OpenAI()
+            response = client.audio.speech.create(
+                model="tts-1",
+                voice=selected_voice,
+                input=script.full_narration,
+                speed=selected_speed
+            )
+            
+            # Save the audio file
+            with open(narration_file, "wb") as f:
+                f.write(response.content)
+                
+            logger.info(f"Continuous narration saved: {narration_file}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate continuous audio: {e}")
+            raise
+        
+        # Calculate actual audio duration
+        total_duration = self.calculate_audio_duration(str(narration_file))
+        logger.info(f"Continuous audio duration: {total_duration:.2f} seconds")
+        
+        # Calculate slide transition timing based on content distribution
+        slide_transitions = self._calculate_slide_transitions_from_content(
+            script.slides,
+            script.full_narration,
+            total_duration
+        )
+        
+        # Create unified audio segments for compatibility
+        audio_segments = self._create_unified_audio_segments(
+            script.slides,
+            slide_transitions,
+            str(narration_file)
+        )
+        
+        # Create timeline with continuous narration
+        timeline = VideoTimeline(
+            timeline_id=f"continuous_timeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            total_duration=total_duration,
+            audio_segments=audio_segments,
+            slide_transitions=slide_transitions,
+            narration_file=str(narration_file),
+            metadata={
+                'module_name': script.module_name,
+                'voice_used': selected_voice,
+                'speed_used': selected_speed,
+                'slide_count': len(script.slides),
+                'narration_mode': 'continuous',
+                'generation_timestamp': datetime.now().isoformat(),
+                'full_narration_length': len(script.full_narration)
+            }
+        )
+        
+        # Export timeline to JSON
+        self._export_timeline(timeline, output_path / 'timeline.json')
+        
+        logger.info(f"Continuous timeline generated: {total_duration:.2f} seconds with natural flow")
+        return timeline
+    
     def _determine_section_type(self, slide: Any, index: int, total_slides: int) -> str:
         """Determine the section type based on slide position and content"""
         if index == 0:
@@ -367,6 +471,122 @@ class TimelineGenerator:
             return 'assessment'
         else:
             return 'core_content'
+    
+    def _calculate_slide_transitions_from_content(
+        self,
+        slides: List[Any],
+        full_narration: str,
+        total_duration: float
+    ) -> List[Any]:
+        """
+        Calculate when to transition slides based on content analysis
+        
+        This analyzes the full narration to determine natural transition points
+        that align with slide content for smooth visual progression.
+        """
+        if not slides:
+            return []
+        
+        transitions = []
+        
+        # Calculate timing based on content distribution
+        # Each slide gets proportional time based on its content complexity
+        slide_weights = []
+        
+        for slide in slides:
+            # Calculate content weight based on bullet points and speaker notes
+            weight = 1.0  # Base weight
+            
+            if hasattr(slide, 'bullet_points') and slide.bullet_points:
+                weight += len(slide.bullet_points) * 0.3
+            
+            if hasattr(slide, 'speaker_notes') and slide.speaker_notes:
+                # More complex slides need more time
+                words = len(slide.speaker_notes.split())
+                weight += words / 100  # Roughly 100 words = +1 weight
+            
+            slide_weights.append(weight)
+        
+        # Normalize weights to total duration
+        total_weight = sum(slide_weights)
+        cumulative_time = 0.0
+        
+        for i, (slide, weight) in enumerate(zip(slides, slide_weights)):
+            # Calculate start time for this slide
+            start_time = cumulative_time
+            
+            # Calculate duration for this slide
+            slide_duration = (weight / total_weight) * total_duration
+            end_time = start_time + slide_duration
+            
+            # Ensure minimum slide duration
+            min_duration = 8.0  # Minimum 8 seconds per slide
+            if slide_duration < min_duration and len(slides) > 1:
+                slide_duration = min_duration
+                end_time = start_time + slide_duration
+            
+            transition = SlideTransition(
+                slide_id=getattr(slide, 'slide_id', f'slide_{i+1}'),
+                slide_number=getattr(slide, 'slide_number', i+1),
+                timestamp=start_time,
+                transition_type='natural_flow',
+                duration=slide_duration
+            )
+            # Add custom attributes for our enhanced functionality
+            transition.start_time = start_time
+            transition.end_time = end_time
+            transition.slide_title = getattr(slide, 'title', f'Slide {i+1}')
+            transition.content_weight = weight
+            
+            transitions.append(transition)
+            cumulative_time = end_time
+            
+            logger.info(f"Slide {i+1} '{transition.slide_title}': {start_time:.1f}s - {end_time:.1f}s (weight: {weight:.2f})")
+        
+        # Adjust final slide to match total duration
+        if transitions:
+            transitions[-1].end_time = total_duration
+        
+        return transitions
+    
+    def _create_unified_audio_segments(
+        self,
+        slides: List[Any],
+        slide_transitions: List[Any],
+        narration_file_path: str
+    ) -> List[Any]:
+        """
+        Create audio segments that reference the continuous audio file
+        
+        This maintains compatibility with the existing video assembly system
+        while using the continuous narration approach.
+        """
+        segments = []
+        
+        for i, (slide, transition) in enumerate(zip(slides, slide_transitions)):
+            segment = AudioSegment(
+                segment_id=f"continuous_segment_{i+1}",
+                text=getattr(slide, 'speaker_notes', ''),
+                start_time=getattr(transition, 'start_time', transition.timestamp),
+                end_time=getattr(transition, 'end_time', transition.timestamp + transition.duration),
+                audio_file=narration_file_path,  # All segments use the same continuous file
+                voice='continuous',
+                speed=1.0
+            )
+            # Add metadata as custom attributes
+            segment.slide_id = transition.slide_id
+            segment.metadata = {
+                'segment_type': 'continuous_narration',
+                'slide_number': transition.slide_number,
+                'slide_title': getattr(transition, 'slide_title', f'Slide {i+1}'),
+                'natural_flow': True,
+                'audio_start_offset': getattr(transition, 'start_time', transition.timestamp),
+                'audio_end_offset': getattr(transition, 'end_time', transition.timestamp + transition.duration)
+            }
+            segments.append(segment)
+        
+        logger.info(f"Created {len(segments)} unified audio segments for continuous narration")
+        return segments
     
     async def _generate_audio_segment(
         self,

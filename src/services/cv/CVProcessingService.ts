@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { llmService } from '@/services/llm/LLMService';
+import { llmService, CVAnalysisResult } from '@/services/llm/LLMService';
+import { Position } from '@/types/database';
 
 export class CVProcessingService {
   private companyId: string;
@@ -22,7 +23,7 @@ export class CVProcessingService {
     }
   }
 
-  async analyzeSkillsGap(cvAnalysis: any, position: any, userId?: string) {
+  async analyzeSkillsGap(cvAnalysis: CVAnalysisResult, position: Position, userId?: string) {
     try {
       // Analyze position match with proper parameters
       const matchAnalysis = await llmService.analyzePositionMatch(
@@ -57,13 +58,13 @@ export class CVProcessingService {
         console.error('Error storing CV data:', error);
         throw error;
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Unexpected error storing CV data:', error);
-      throw new Error(error.message || 'An unexpected error occurred');
+      throw new Error(error instanceof Error ? error.message : 'An unexpected error occurred');
     }
   }
 
-  async getCVData(employeeId: string): Promise<any | null> {
+  async getCVData(employeeId: string): Promise<{ id: string; employee_id: string; file_name: string; file_data: string; file_size: number; file_type: string; uploaded_at: string } | null> {
     try {
       const { data, error } = await supabase
         .from('employee_cv_data')
@@ -79,7 +80,7 @@ export class CVProcessingService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Unexpected error fetching CV data:', error);
       return null;
     }

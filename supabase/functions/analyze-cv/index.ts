@@ -80,7 +80,7 @@ serve(async (req) => {
     }
 
     // Update the employee record with CV file path and analysis timestamp
-    const updateData: any = { 
+    const updateData: { cv_file_path: string; skills_last_analyzed: string } = { 
       cv_file_path: file_path,
       skills_last_analyzed: new Date().toISOString()
     }
