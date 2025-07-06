@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -324,15 +324,14 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent 
         className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20 max-h-[90vh] overflow-y-auto"
-        aria-describedby="demo-modal-description"
       >
         <DialogHeader className="text-center pb-4">
           <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
             {isSubmitted ? "Thank You!" : "Request a Demo"}
           </DialogTitle>
-          <p id="demo-modal-description" className="sr-only">
+          <DialogDescription>
             {isSubmitted ? "Schedule your demo meeting" : "Fill out the form to request a demo"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         {isSubmitted ? (
@@ -368,7 +367,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                 utm={{
                   utmSource: "website",
                   utmMedium: "demo_request",
-                  utmCampaign: source.toLowerCase().replace(/\s+/g, '_')
+                  utmCampaign: source ? source.toLowerCase().replace(/\s+/g, '_') : "website"
                 }}
               />
             </div>

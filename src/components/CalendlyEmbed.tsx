@@ -55,11 +55,31 @@ const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
           // Clear any existing content
           embedRef.current.innerHTML = '';
           
+          // Build the full URL with parameters
+          const urlParams = new URLSearchParams();
+          
+          // Add prefill data as URL parameters
+          if (prefill?.email) urlParams.append('email', prefill.email);
+          if (prefill?.firstName) urlParams.append('first_name', prefill.firstName);
+          if (prefill?.lastName) urlParams.append('last_name', prefill.lastName);
+          if (prefill?.name) urlParams.append('name', prefill.name);
+          
+          // Add custom answers
+          if (prefill?.customAnswers?.a1) urlParams.append('a1', prefill.customAnswers.a1);
+          if (prefill?.customAnswers?.a2) urlParams.append('a2', prefill.customAnswers.a2);
+          if (prefill?.customAnswers?.a3) urlParams.append('a3', prefill.customAnswers.a3);
+          if (prefill?.customAnswers?.a4) urlParams.append('a4', prefill.customAnswers.a4);
+          
+          // Add UTM parameters
+          if (utm?.utmSource) urlParams.append('utm_source', utm.utmSource);
+          if (utm?.utmMedium) urlParams.append('utm_medium', utm.utmMedium);
+          if (utm?.utmCampaign) urlParams.append('utm_campaign', utm.utmCampaign);
+          
+          const fullUrl = `${url}?${urlParams.toString()}`;
+          
           window.Calendly.initInlineWidget({
-            url: url,
+            url: fullUrl,
             parentElement: embedRef.current,
-            prefill: prefill || {},
-            utm: utm || {},
           });
           
           setIsLoading(false);
