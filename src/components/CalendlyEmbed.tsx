@@ -6,7 +6,6 @@ interface CalendlyEmbedProps {
     email?: string;
     firstName?: string;
     lastName?: string;
-    name?: string;
     customAnswers?: {
       a1?: string; // Company
       a2?: string; // Job Title
@@ -42,11 +41,12 @@ const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
       document.head.appendChild(script);
       
       script.onload = () => {
-        initializeWidget();
+        // Add a small delay to ensure Calendly is fully loaded
+        setTimeout(initializeWidget, 100);
       };
     } else {
       // Script already loaded
-      initializeWidget();
+      setTimeout(initializeWidget, 100);
     }
 
     function initializeWidget() {
@@ -55,31 +55,22 @@ const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
           // Clear any existing content
           embedRef.current.innerHTML = '';
           
-          // Build the full URL with parameters
-          const urlParams = new URLSearchParams();
-          
-          // Add prefill data as URL parameters
-          if (prefill?.email) urlParams.append('email', prefill.email);
-          if (prefill?.firstName) urlParams.append('first_name', prefill.firstName);
-          if (prefill?.lastName) urlParams.append('last_name', prefill.lastName);
-          if (prefill?.name) urlParams.append('name', prefill.name);
-          
-          // Add custom answers
-          if (prefill?.customAnswers?.a1) urlParams.append('a1', prefill.customAnswers.a1);
-          if (prefill?.customAnswers?.a2) urlParams.append('a2', prefill.customAnswers.a2);
-          if (prefill?.customAnswers?.a3) urlParams.append('a3', prefill.customAnswers.a3);
-          if (prefill?.customAnswers?.a4) urlParams.append('a4', prefill.customAnswers.a4);
-          
-          // Add UTM parameters
-          if (utm?.utmSource) urlParams.append('utm_source', utm.utmSource);
-          if (utm?.utmMedium) urlParams.append('utm_medium', utm.utmMedium);
-          if (utm?.utmCampaign) urlParams.append('utm_campaign', utm.utmCampaign);
-          
-          const fullUrl = `${url}?${urlParams.toString()}`;
-          
+          // Initialize Calendly inline widget with proper parameters
           window.Calendly.initInlineWidget({
-            url: fullUrl,
+            url: url,
             parentElement: embedRef.current,
+            resize: true,
+            prefill: {
+              firstName: prefill?.firstName || '',
+              lastName: prefill?.lastName || '',
+              email: prefill?.email || '',
+              customAnswers: prefill?.customAnswers || {}
+            },
+            utm: {
+              utmSource: utm?.utmSource || '',
+              utmMedium: utm?.utmMedium || '',
+              utmCampaign: utm?.utmCampaign || ''
+            }
           });
           
           setIsLoading(false);

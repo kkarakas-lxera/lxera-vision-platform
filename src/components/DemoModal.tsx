@@ -356,10 +356,9 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                   email: formData.email,
                   firstName: formData.firstName,
                   lastName: formData.lastName,
-                  name: `${formData.firstName} ${formData.lastName}`,
                   customAnswers: {
                     a1: formData.company,
-                    a2: formData.jobTitle,
+                    a2: formData.jobTitle || '',
                     a3: formData.companySize,
                     a4: formData.country
                   }
