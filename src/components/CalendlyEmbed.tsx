@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface CalendlyEmbedProps {
   url: string;
@@ -28,51 +28,69 @@ declare global {
 }
 
 const CalendlyEmbed = ({ url, prefill, utm }: CalendlyEmbedProps) => {
+  const embedRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     // Load Calendly script
-    const head = document.querySelector('head');
-    const script = document.createElement('script');
-    script.src = 'https://assets.calendly.com/assets/external/widget.js';
-    script.async = true;
-    head?.appendChild(script);
+    const existingScript = document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]');
+    
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://assets.calendly.com/assets/external/widget.js';
+      script.async = true;
+      document.head.appendChild(script);
+      
+      script.onload = () => {
+        initializeWidget();
+      };
+    } else {
+      // Script already loaded
+      initializeWidget();
+    }
 
+    function initializeWidget() {
+      if (window.Calendly && embedRef.current) {
+        try {
+          // Clear any existing content
+          embedRef.current.innerHTML = '';
+          
+          window.Calendly.initInlineWidget({
+            url: url,
+            parentElement: embedRef.current,
+            prefill: prefill || {},
+            utm: utm || {},
+          });
+          
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error initializing Calendly widget:', error);
+          setIsLoading(false);
+        }
+      }
+    }
+
+    // Cleanup function
     return () => {
-      // Cleanup
-      head?.removeChild(script);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Initialize Calendly widget when script is loaded
-    const initializeCalendly = () => {
-      if (window.Calendly) {
-        window.Calendly.initInlineWidget({
-          url: url,
-          parentElement: document.getElementById('calendly-embed'),
-          prefill: prefill,
-          utm: utm,
-        });
+      if (embedRef.current) {
+        embedRef.current.innerHTML = '';
       }
     };
-
-    // Check if Calendly is already loaded
-    if (window.Calendly) {
-      initializeCalendly();
-    } else {
-      // Wait for script to load
-      const checkInterval = setInterval(() => {
-        if (window.Calendly) {
-          clearInterval(checkInterval);
-          initializeCalendly();
-        }
-      }, 100);
-
-      return () => clearInterval(checkInterval);
-    }
   }, [url, prefill, utm]);
 
   return (
-    <div className="calendly-inline-widget" id="calendly-embed" style={{ minWidth: '320px', height: '630px' }} />
+    <div className="relative">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
+          <div className="text-gray-500">Loading scheduler...</div>
+        </div>
+      )}
+      <div 
+        ref={embedRef}
+        className="calendly-inline-widget" 
+        style={{ minWidth: '320px', height: '630px' }}
+      />
+    </div>
   );
 };
 

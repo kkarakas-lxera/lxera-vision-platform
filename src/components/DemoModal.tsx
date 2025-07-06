@@ -291,10 +291,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
       }
       
       setIsSubmitted(true);
-      toast({
-        title: "Demo Request Submitted!",
-        description: "We'll be in touch within 24 hours to schedule your personalized demo.",
-      });
+      // Remove toast notification here - will show after Calendly scheduling
     } catch (error) {
       console.error('Demo request submission failed:', error);
       toast({
@@ -325,11 +322,17 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20 max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-future-green/20 max-h-[90vh] overflow-y-auto"
+        aria-describedby="demo-modal-description"
+      >
         <DialogHeader className="text-center pb-4">
           <DialogTitle className="text-2xl font-semibold text-business-black font-inter">
             {isSubmitted ? "Thank You!" : "Request a Demo"}
           </DialogTitle>
+          <p id="demo-modal-description" className="sr-only">
+            {isSubmitted ? "Schedule your demo meeting" : "Fill out the form to request a demo"}
+          </p>
         </DialogHeader>
 
         {isSubmitted ? (
@@ -372,7 +375,13 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
             
             <div className="text-center">
               <Button
-                onClick={handleClose}
+                onClick={() => {
+                  toast({
+                    title: "Demo Request Received!",
+                    description: "We'll be in touch within 24 hours to schedule your personalized demo.",
+                  });
+                  handleClose();
+                }}
                 variant="outline"
                 className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
               >
