@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Calendar } from "lucide-react";
 import { ticketService } from "@/services/ticketService";
 import { useToast } from "@/hooks/use-toast";
+import CalendlyEmbed from "./CalendlyEmbed";
 
 interface DemoModalProps {
   isOpen: boolean;
@@ -332,22 +333,52 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
         </DialogHeader>
 
         {isSubmitted ? (
-          <div className="text-center py-8 space-y-4">
-            <CheckCircle className="w-16 h-16 text-future-green mx-auto" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-business-black">
-                Your demo request has been submitted!
-              </h3>
-              <p className="text-business-black/70">
-                Our team will contact you within 24 hours to schedule your personalized LXERA demo.
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle className="w-6 h-6 text-future-green" />
+                <h3 className="text-lg font-semibold text-business-black">
+                  Great! Now let's schedule your demo
+                </h3>
+              </div>
+              <p className="text-sm text-business-black/70">
+                Choose a time that works best for you
               </p>
             </div>
-            <Button
-              onClick={handleClose}
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-2 rounded-xl"
-            >
-              Close
-            </Button>
+            
+            {/* Calendly Embed */}
+            <div className="relative">
+              <CalendlyEmbed 
+                url="https://calendly.com/kubilay-karakas-lxera/30min"
+                prefill={{
+                  email: formData.email,
+                  firstName: formData.firstName,
+                  lastName: formData.lastName,
+                  name: `${formData.firstName} ${formData.lastName}`,
+                  customAnswers: {
+                    a1: formData.company,
+                    a2: formData.jobTitle,
+                    a3: formData.companySize,
+                    a4: formData.country
+                  }
+                }}
+                utm={{
+                  utmSource: "website",
+                  utmMedium: "demo_request",
+                  utmCampaign: source.toLowerCase().replace(/\s+/g, '_')
+                }}
+              />
+            </div>
+            
+            <div className="text-center">
+              <Button
+                onClick={handleClose}
+                variant="outline"
+                className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
+              >
+                Skip Scheduling
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

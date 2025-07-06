@@ -69,21 +69,21 @@ const MobileMenu = ({
     },
     {
       name: "AI Mentorship & Support",
-      href: "/solutions/scalable-learning-support-mentorship",
+      href: "/solutions/ai-mentorship-support",
       icon: MessageCircle,
       color: "bg-purple-500",
       description: "Real-time guidance to keep learners engaged and on track"
     },
     {
       name: "Learning Analytics & Insights",
-      href: "/solutions/learning-analytics-insights",
+      href: "/solutions/learning-analytics-engagement",
       icon: BarChart3,
       color: "bg-teal-500", 
       description: "Turn engagement data into actionable insights"
     },
     {
       name: "Citizen Developer Enablement",
-      href: "/solutions/citizen-developer-enablement", 
+      href: "/solutions/citizen-led-innovation", 
       icon: Lightbulb,
       color: "bg-amber-500",
       description: "Equip business users to build and automate without coding"
