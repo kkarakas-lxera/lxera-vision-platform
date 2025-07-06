@@ -10,6 +10,16 @@ import TicketsTable from '@/components/admin/TicketsManagement/TicketsTable';
 import TicketStats from '@/components/admin/TicketsManagement/TicketStats';
 import { format } from 'date-fns';
 import { ticketService, TicketRecord, TicketType, TicketStats as TicketStatsType } from '@/services/ticketService';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState<TicketRecord[]>([]);
@@ -20,6 +30,8 @@ const Tickets = () => {
   const [typeFilter, setTypeFilter] = useState<TicketType | 'all'>('all');
   const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [stats, setStats] = useState<TicketStatsType>({
     total: 0,
     new: 0,
@@ -98,6 +110,32 @@ const Tickets = () => {
   const handleStatusUpdate = async () => {
     await fetchTickets();
     await fetchStats();
+  };
+
+  const handleDeleteClick = (ticketId: string) => {
+    setTicketToDelete(ticketId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!ticketToDelete) return;
+
+    try {
+      const result = await ticketService.deleteTicket(ticketToDelete);
+      if (result.success) {
+        toast.success('Ticket deleted successfully');
+        await fetchTickets();
+        await fetchStats();
+      } else {
+        toast.error(result.error || 'Failed to delete ticket');
+      }
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      toast.error('Failed to delete ticket');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setTicketToDelete(null);
+    }
   };
 
   const exportToCSV = () => {
@@ -209,6 +247,7 @@ const Tickets = () => {
           <TicketsTable
             tickets={filteredTickets}
             onViewDetails={handleViewDetails}
+            onDelete={handleDeleteClick}
             selectedType={typeFilter}
             onTypeChange={setTypeFilter}
           />
@@ -225,6 +264,29 @@ const Tickets = () => {
         }}
         onStatusUpdate={handleStatusUpdate}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this ticket? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteConfirmOpen(false);
+              setTicketToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

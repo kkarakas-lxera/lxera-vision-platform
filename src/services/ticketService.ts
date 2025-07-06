@@ -47,6 +47,7 @@ export interface TicketRecord {
   message: string | null;
   source: string;
   status: 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected';
+  priority: 'low' | 'medium' | 'high';
   notes: string | null;
   processed_by: string | null;
   processed_at: string | null;
@@ -75,6 +76,7 @@ export const ticketService = {
         message: ticket.message || null,
         source: ticket.source,
         status: 'new' as const,
+        priority: 'medium' as const,
         notes: null,
         processed_by: null,
         processed_at: null,

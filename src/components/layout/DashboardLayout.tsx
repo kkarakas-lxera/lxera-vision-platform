@@ -51,7 +51,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         return [
           { href: '/admin', icon: Home, label: 'Dashboard' },
           { href: '/admin/tickets', icon: Ticket, label: 'Tickets' },
-          { href: '/admin/demo-requests', icon: FileText, label: 'Demo Requests' },
+          { href: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
           { href: '/admin/companies', icon: Building2, label: 'Companies' },
           { href: '/admin/users', icon: Users, label: 'Users' },
           { href: '/admin/courses', icon: BookOpen, label: 'Courses' },

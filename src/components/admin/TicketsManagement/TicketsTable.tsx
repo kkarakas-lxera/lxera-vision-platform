@@ -3,10 +3,12 @@ import { TicketRecord, TicketType } from '@/services/ticketService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2 } from 'lucide-react';
 
 interface TicketsTableProps {
   tickets: TicketRecord[];
   onViewDetails: (id: string) => void;
+  onDelete?: (id: string) => void;
   selectedType: TicketType | 'all';
   onTypeChange: (type: TicketType | 'all') => void;
 }
@@ -14,6 +16,7 @@ interface TicketsTableProps {
 const TicketsTable: React.FC<TicketsTableProps> = ({
   tickets,
   onViewDetails,
+  onDelete,
   selectedType,
   onTypeChange
 }) => {
@@ -51,7 +54,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
     return labels[type];
   };
 
-  const getPriorityBadge = (priority: TicketRecord['priority']) => {
+  const getPriorityBadge = (priority: TicketRecord['priority'] | null | undefined) => {
+    const effectivePriority = priority || 'medium';
     const priorityColors = {
       low: 'bg-gray-100 text-gray-800',
       medium: 'bg-yellow-100 text-yellow-800',
@@ -59,8 +63,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
     };
 
     return (
-      <Badge className={priorityColors[priority]}>
-        {priority}
+      <Badge className={priorityColors[effectivePriority]}>
+        {effectivePriority}
       </Badge>
     );
   };
@@ -156,13 +160,25 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
                     {formatDate(ticket.submitted_at)}
                   </td>
                   <td className="px-4 py-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => onViewDetails(ticket.id)}
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onViewDetails(ticket.id)}
+                      >
+                        View Details
+                      </Button>
+                      {onDelete && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onDelete(ticket.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
