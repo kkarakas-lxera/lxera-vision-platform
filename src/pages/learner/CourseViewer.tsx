@@ -1347,10 +1347,8 @@ export default function CourseViewer() {
                     </div>
                   </Card>
                 )}
-                    </>
-                  )}
 
-                  {/* Action Buttons */}
+                {/* Action Buttons */}
                   <div className="flex justify-between items-center pt-4">
                     <Button
                       variant="outline"
@@ -1392,9 +1390,9 @@ export default function CourseViewer() {
                       variant="outline"
                       onClick={navigateToNextSection}
                       disabled={currentIndex === availableSections.length - 1}
-                  >
-                    Next Section
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    >
+                      Next Section
+                      <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
                 </>
