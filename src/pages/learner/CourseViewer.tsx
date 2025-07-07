@@ -368,19 +368,29 @@ export default function CourseViewer() {
       }
 
       // Query multimedia assets for videos matching this employee, module, and section
-      const { data: videoAssets } = await supabase
+      // Use courseContent.content_id since that's what's stored in mm_multimedia_assets
+      const contentIdToQuery = courseContent?.content_id || moduleId;
+      console.log(`Searching for videos with content_id: ${contentIdToQuery}, section: ${currentSection}`);
+      
+      const { data: videoAssets, error: videoError } = await supabase
         .from('mm_multimedia_assets')
         .select('public_url, asset_name, duration_seconds, file_size_bytes')
-        .eq('content_id', moduleId)
+        .eq('content_id', contentIdToQuery)
         .eq('asset_type', 'video')
         .eq('section_name', currentSection)
         .order('created_at', { ascending: false })
         .limit(1);
 
+      if (videoError) {
+        console.error('Error querying video assets:', videoError);
+      }
+
       if (videoAssets && videoAssets.length > 0) {
         const videoAsset = videoAssets[0];
         console.log(`Found personalized video for ${employeeName}:`, videoAsset);
-        setSectionVideoUrl(videoAsset.public_url);
+        // Clean the URL by removing trailing ? if present
+        const cleanUrl = videoAsset.public_url?.replace(/\?$/, '') || '';
+        setSectionVideoUrl(cleanUrl);
       } else {
         console.log(`No video found for section ${currentSection}, employee ${employeeName}`);
         setSectionVideoUrl('');
