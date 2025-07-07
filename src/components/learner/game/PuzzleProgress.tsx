@@ -21,7 +21,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface PuzzleProgressProps {
   employeeId: string;
-  category: string;
+  skillName: string;
+  skillId: string;
+  currentLevel: number;
+  requiredLevel: number;
   pointsEarned?: number;
   onClose?: () => void;
 }
@@ -42,24 +45,16 @@ interface PuzzleData {
   completed_at?: string;
 }
 
-const CATEGORY_THEMES = {
-  finance: {
-    icon: DollarSign,
-    color: 'text-green-600',
-    bg: 'bg-green-50',
-    gradient: 'from-green-400 to-emerald-500',
-    symbol: '💰',
-    pieces: ['💵', '💳', '📊', '📈', '💹', '🏦', '💎', '🪙', '💱']
-  },
-  marketing: {
-    icon: TrendingUp,
+const SKILL_THEMES = {
+  technical: {
+    icon: Briefcase,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
     gradient: 'from-blue-400 to-cyan-500',
-    symbol: '📈',
-    pieces: ['📱', '🎯', '📊', '🎨', '📢', '🌟', '🚀', '💡', '🎪']
+    symbol: '⚡',
+    pieces: ['💻', '⚡', '🔧', '🚀', '💡', '🎯', '🔥', '⭐', '🏆']
   },
-  hr: {
+  soft: {
     icon: Users,
     color: 'text-purple-600',
     bg: 'bg-purple-50',
@@ -67,13 +62,29 @@ const CATEGORY_THEMES = {
     symbol: '👥',
     pieces: ['👤', '🤝', '💼', '🎓', '⭐', '🏆', '💪', '🎊', '🎯']
   },
-  production: {
-    icon: Briefcase,
+  domain: {
+    icon: Target,
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+    gradient: 'from-green-400 to-emerald-500',
+    symbol: '🎯',
+    pieces: ['📊', '📈', '💹', '🏦', '💎', '🪙', '📱', '🌟', '🎪']
+  },
+  tool: {
+    icon: DollarSign,
     color: 'text-orange-600',
     bg: 'bg-orange-50',
     gradient: 'from-orange-400 to-amber-500',
-    symbol: '⚙️',
+    symbol: '🛠️',
     pieces: ['🔧', '⚙️', '🏭', '📦', '🚛', '📋', '⚡', '🎯', '🔥']
+  },
+  language: {
+    icon: TrendingUp,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    gradient: 'from-indigo-400 to-purple-500',
+    symbol: '🗣️',
+    pieces: ['🗣️', '🌍', '📝', '💬', '🎭', '🎪', '🌟', '⭐', '🏆']
   },
   general: {
     icon: Target,
@@ -85,32 +96,37 @@ const CATEGORY_THEMES = {
   }
 };
 
-export default function PuzzleProgress({ employeeId, category, pointsEarned = 0, onClose }: PuzzleProgressProps) {
+export default function PuzzleProgress({ employeeId, skillName, skillId, currentLevel, requiredLevel, pointsEarned = 0, onClose }: PuzzleProgressProps) {
   const { userProfile } = useAuth();
   const [puzzleData, setPuzzleData] = useState<PuzzleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [newPieceUnlocked, setNewPieceUnlocked] = useState(false);
   const [puzzleCompleted, setPuzzleCompleted] = useState(false);
 
-  const theme = CATEGORY_THEMES[category as keyof typeof CATEGORY_THEMES] || CATEGORY_THEMES.general;
+  // Determine skill type for theming
+  const skillType = skillName.toLowerCase().includes('javascript') || skillName.toLowerCase().includes('python') || skillName.toLowerCase().includes('aws') ? 'technical' :
+                   skillName.toLowerCase().includes('communication') || skillName.toLowerCase().includes('leadership') ? 'soft' :
+                   skillName.toLowerCase().includes('finance') || skillName.toLowerCase().includes('marketing') ? 'domain' : 'general';
+  
+  const theme = SKILL_THEMES[skillType as keyof typeof SKILL_THEMES] || SKILL_THEMES.general;
   const CategoryIcon = theme.icon;
 
   useEffect(() => {
-    if (employeeId && category) {
+    if (employeeId && skillId) {
       loadPuzzleProgress();
     }
-  }, [employeeId, category]);
+  }, [employeeId, skillId]);
 
   const loadPuzzleProgress = async () => {
     try {
       setLoading(true);
 
-      // Get current puzzle progress
+      // Get current puzzle progress for this skill
       const { data: currentPuzzle } = await supabase
         .from('puzzle_progress')
         .select('*')
         .eq('employee_id', employeeId)
-        .eq('category', category)
+        .eq('skill_id', skillId)
         .order('puzzle_size', { ascending: false })
         .limit(1)
         .single();
@@ -137,7 +153,8 @@ export default function PuzzleProgress({ employeeId, category, pointsEarned = 0,
     try {
       const initialPuzzle = {
         employee_id: employeeId,
-        category,
+        skill_id: skillId,
+        skill_name: skillName,
         puzzle_size: 4, // 2x2
         pieces_unlocked: pointsEarned > 0 ? 1 : 0,
         total_pieces: 4,
@@ -204,7 +221,8 @@ export default function PuzzleProgress({ employeeId, category, pointsEarned = 0,
       
       const nextPuzzle = {
         employee_id: employeeId,
-        category,
+        skill_id: skillId,
+        skill_name: skillName,
         puzzle_size: nextSize,
         pieces_unlocked: 0,
         total_pieces: nextSize,
@@ -309,8 +327,11 @@ export default function PuzzleProgress({ employeeId, category, pointsEarned = 0,
           <span className="text-2xl">{theme.symbol}</span>
         </div>
         <CardTitle className="text-xl">
-          {category.charAt(0).toUpperCase() + category.slice(1)} Puzzle
+          {skillName} Mastery
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Level {currentLevel} → {requiredLevel}
+        </p>
         <div className="flex items-center justify-center gap-2">
           <Badge variant="outline">
             {rows}×{cols} Grid
@@ -339,7 +360,7 @@ export default function PuzzleProgress({ employeeId, category, pointsEarned = 0,
             <Trophy className="h-12 w-12 mx-auto mb-2 text-yellow-500" />
             <h3 className="font-semibold text-xl">🏆 Puzzle Complete!</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              Amazing! You've completed the {rows}×{cols} {category} puzzle!
+              Amazing! You've completed the {rows}×{cols} {skillName} puzzle!
             </p>
             <Badge className="bg-yellow-500 text-white">
               🎯 Next Level: {Math.sqrt(getNextPuzzleSize(puzzleData?.total_pieces || 4))}×{Math.sqrt(getNextPuzzleSize(puzzleData?.total_pieces || 4))} Grid
@@ -381,7 +402,7 @@ export default function PuzzleProgress({ employeeId, category, pointsEarned = 0,
         {!puzzleCompleted && (
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              💡 Complete more {category} missions to unlock the next piece!
+              💡 Complete more {skillName} missions to unlock the next piece!
             </p>
           </div>
         )}

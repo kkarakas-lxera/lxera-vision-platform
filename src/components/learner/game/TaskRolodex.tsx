@@ -19,12 +19,19 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { SkillGapMissionService, type SkillGapMission } from '@/services/game/SkillGapMissionService';
 
 interface Task {
   id: string;
   title: string;
   description: string;
-  category: string;
+  target_skill_name: string;
+  current_skill_level: number;
+  required_skill_level: number;
+  skill_gap_size: number;
+  gap_severity: 'critical' | 'moderate' | 'minor';
+  position_title: string;
+  department: string;
   difficulty_level: string;
   points_value: number;
   content_section_id: string;
@@ -40,12 +47,19 @@ interface TaskRolodexProps {
   moduleId?: string;
 }
 
-const CATEGORIES = {
-  finance: { icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-  marketing: { icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+const DEPARTMENT_THEMES = {
+  engineering: { icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
+  marketing: { icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+  operations: { icon: DollarSign, color: 'text-orange-600', bg: 'bg-orange-50' },
   hr: { icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-  production: { icon: Briefcase, color: 'text-orange-600', bg: 'bg-orange-50' },
+  sales: { icon: Target, color: 'text-yellow-600', bg: 'bg-yellow-50' },
   general: { icon: Target, color: 'text-gray-600', bg: 'bg-gray-50' }
+};
+
+const SEVERITY_THEMES = {
+  critical: { emoji: '🔥', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-300' },
+  moderate: { emoji: '⚡', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-300' },
+  minor: { emoji: '💡', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' }
 };
 
 export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseContentId, currentSection, moduleId }: TaskRolodexProps) {
@@ -56,7 +70,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   const [swiping, setSwiping] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
-  const [interestScores, setInterestScores] = useState<Record<string, number>>({});
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
   const currentXRef = useRef<number>(0);
@@ -71,30 +85,19 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
     try {
       setLoading(true);
 
-      // Get employee ID
+      // Get employee ID and company
       const { data: employee } = await supabase
         .from('employees')
-        .select('id')
+        .select('id, company_id')
         .eq('user_id', userProfile?.id)
         .single();
 
       if (!employee) throw new Error('Employee not found');
       setEmployeeId(employee.id);
+      setCompanyId(employee.company_id);
 
-      // Load interest scores
-      const { data: interests } = await supabase
-        .from('employee_interest_scores')
-        .select('category, interest_score')
-        .eq('employee_id', employee.id);
-
-      const interestMap: Record<string, number> = {};
-      interests?.forEach(interest => {
-        interestMap[interest.category] = interest.interest_score;
-      });
-      setInterestScores(interestMap);
-
-      // Load available tasks
-      await loadTasks(employee.id, interestMap, courseContentId, currentSection, moduleId);
+      // Load skill gap based tasks
+      await loadSkillGapTasks(employee.id, employee.company_id, courseContentId, currentSection, moduleId);
     } catch (error) {
       console.error('Error initializing rolodex:', error);
       toast.error('Failed to load tasks');
@@ -103,80 +106,36 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
     }
   };
 
-  const loadTasks = async (employeeId: string, interests: Record<string, number>, contentId?: string, section?: string, moduleId?: string) => {
+  const loadSkillGapTasks = async (employeeId: string, companyId: string, contentId?: string, section?: string, moduleId?: string) => {
     try {
-      // Get content from cm_module_content
-      let query = supabase
-        .from('cm_module_content')
-        .select('*');
-      
-      // Filter by content_id if provided
-      if (contentId || moduleId) {
-        query = query.eq('content_id', moduleId || contentId);
-      }
-      
-      const { data: modules } = await query;
-      if (!modules || modules.length === 0) return;
+      // Generate skill gap based missions
+      const skillGapMissions = await SkillGapMissionService.generateSkillGapMissions(
+        employeeId,
+        companyId,
+        contentId || moduleId,
+        section
+      );
 
-      // Convert module content to task sections
-      const contentSections: any[] = [];
-      const sectionNames = ['introduction', 'core_content', 'practical_applications', 'case_studies', 'assessments'];
-      
-      for (const module of modules) {
-        // If specific section requested, only use that one
-        const sectionsToProcess = section ? [section] : sectionNames;
-        
-        for (const sectionName of sectionsToProcess) {
-          const sectionContent = module[sectionName];
-          if (sectionContent && sectionContent.trim() && sectionContent !== 'Content will be available when unlocked') {
-            contentSections.push({
-              section_id: `${module.content_id}-${sectionName}`,
-              content_id: module.content_id,
-              section_name: sectionName,
-              title: sectionName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-              content: sectionContent,
-              module_name: module.module_name
-            });
-          }
-        }
-      }
+      // Convert missions to Task format
+      const tasks: Task[] = skillGapMissions.map(mission => ({
+        id: mission.id,
+        title: mission.title,
+        description: mission.description,
+        target_skill_name: mission.target_skill_name,
+        current_skill_level: mission.current_skill_level,
+        required_skill_level: mission.required_skill_level,
+        skill_gap_size: mission.skill_gap_size,
+        gap_severity: mission.gap_severity,
+        position_title: mission.position_title,
+        department: mission.department,
+        difficulty_level: mission.difficulty_level,
+        points_value: mission.points_value,
+        content_section_id: mission.content_section_id || '',
+        module_content_id: mission.module_content_id,
+        section_name: section
+      }));
 
-      // Create tasks from content sections with intelligent categorization
-      const generatedTasks: Task[] = [];
-      
-      for (const section of contentSections) {
-        // Determine category based on content keywords
-        const category = determineCategory(section.content || '', section.title || '');
-        
-        // Generate multiple difficulty levels for each section
-        const difficulties: Array<'easy' | 'medium' | 'hard'> = ['easy', 'medium', 'hard'];
-        const pointValues = { easy: 15, medium: 20, hard: 30 };
-        
-        // Create one task per difficulty level
-        difficulties.forEach((difficulty, idx) => {
-          generatedTasks.push({
-            id: `task-${section.section_id}-${difficulty}`,
-            title: generateTaskTitle(section.title || section.section_name || 'Learning Challenge', category, difficulty),
-            description: generateTaskDescription(section.content?.substring(0, 200) || '', category, difficulty),
-            category,
-            difficulty_level: difficulty,
-            points_value: pointValues[difficulty],
-            content_section_id: section.section_id,
-            module_content_id: section.content_id,
-            section_name: section.section_name
-          });
-        });
-        
-      }
-
-      // Sort tasks by interest scores (higher interest first)
-      const sortedTasks = generatedTasks.sort((a, b) => {
-        const aScore = interests[a.category] || 0;
-        const bScore = interests[b.category] || 0;
-        return bScore - aScore;
-      });
-
-      setTasks(sortedTasks.slice(0, 10)); // Limit to 10 tasks for demo
+      setTasks(tasks.slice(0, 10)); // Show top 10 skill gaps
     } catch (error) {
       console.error('Error loading tasks:', error);
       toast.error('Failed to load tasks');
@@ -386,49 +345,20 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   const handleSwipeRight = async () => {
     const currentTask = tasks[currentIndex];
     if (!currentTask || !employeeId) return;
-
-    // Update interest score (+2 for selection)
-    await updateInterestScore(currentTask.category, 2);
     
-    // Show task selection
+    // Show task selection - no need to update interest scores
     onTaskSelect(currentTask);
   };
 
   const handleSwipeLeft = async () => {
     const currentTask = tasks[currentIndex];
     if (!currentTask || !employeeId) return;
-
-    // Update interest score (-1 for rejection)
-    await updateInterestScore(currentTask.category, -1);
     
-    // Move to next task
+    // Move to next task - no need to track rejection
     nextTask();
   };
 
-  const updateInterestScore = async (category: string, change: number) => {
-    if (!employeeId) return;
-
-    try {
-      const currentScore = interestScores[category] || 0;
-      const newScore = Math.max(0, currentScore + change);
-
-      await supabase
-        .from('employee_interest_scores')
-        .upsert({
-          employee_id: employeeId,
-          category,
-          interest_score: newScore,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'employee_id,category' });
-
-      setInterestScores(prev => ({
-        ...prev,
-        [category]: newScore
-      }));
-    } catch (error) {
-      console.error('Error updating interest score:', error);
-    }
-  };
+  // Category-based functions removed - now using skill gap data directly
 
   const nextTask = () => {
     if (cardRef.current) {
@@ -494,9 +424,9 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   }
 
   const currentTask = tasks[currentIndex];
-  const CategoryIcon = CATEGORIES[currentTask.category as keyof typeof CATEGORIES]?.icon || Target;
-  const categoryColor = CATEGORIES[currentTask.category as keyof typeof CATEGORIES]?.color || 'text-gray-600';
-  const categoryBg = CATEGORIES[currentTask.category as keyof typeof CATEGORIES]?.bg || 'bg-gray-50';
+  const departmentTheme = DEPARTMENT_THEMES[currentTask.department?.toLowerCase() as keyof typeof DEPARTMENT_THEMES] || DEPARTMENT_THEMES.general;
+  const severityTheme = SEVERITY_THEMES[currentTask.gap_severity];
+  const DepartmentIcon = departmentTheme.icon;
 
   return (
     <div className="w-full max-w-lg mx-auto space-y-6">
@@ -506,8 +436,8 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         <p className="text-muted-foreground">Swipe right to select, left to skip</p>
         <div className="flex justify-center gap-4 text-sm">
           <div className="flex items-center gap-1">
-            <Flame className="h-4 w-4 text-orange-500" />
-            <span>{Object.values(interestScores).reduce((a, b) => a + b, 0)} points</span>
+            <span className="text-lg">{severityTheme.emoji}</span>
+            <span className={severityTheme.color}>{currentTask.gap_severity} gap</span>
           </div>
           <div className="flex items-center gap-1">
             <Target className="h-4 w-4 text-blue-500" />
@@ -573,17 +503,22 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         >
           {/* Circular Card Content */}
           <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center">
-            {/* Category Icon - Top */}
-            <div className={`${categoryBg} rounded-full p-4 mb-4 shadow-md`}>
-              <CategoryIcon className={`h-8 w-8 ${categoryColor}`} />
+            {/* Department Icon - Top */}
+            <div className={`${departmentTheme.bg} rounded-full p-4 mb-4 shadow-md`}>
+              <DepartmentIcon className={`h-8 w-8 ${departmentTheme.color}`} />
             </div>
             
-            {/* Category & Difficulty */}
+            {/* Skill & Difficulty */}
             <div className="mb-3">
-              <h3 className="font-bold text-lg capitalize text-gray-800">{currentTask.category}</h3>
-              <Badge className={`${getDifficultyColor(currentTask.difficulty_level)} text-xs`}>
-                {currentTask.difficulty_level}
-              </Badge>
+              <h3 className="font-bold text-lg text-gray-800">{currentTask.target_skill_name}</h3>
+              <div className="flex gap-2 justify-center">
+                <Badge className={`${getDifficultyColor(currentTask.difficulty_level)} text-xs`}>
+                  {currentTask.difficulty_level}
+                </Badge>
+                <Badge className={`${severityTheme.bg} ${severityTheme.color} text-xs`}>
+                  {currentTask.gap_severity}
+                </Badge>
+              </div>
             </div>
             
             {/* Task Title - Center */}
@@ -604,14 +539,16 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
               </Badge>
             </div>
 
-            {/* Interest Level */}
+            {/* Skill Level Progress */}
             <div className="mb-4 w-full max-w-32">
-              <div className="text-xs text-muted-foreground mb-1">Interest Level</div>
+              <div className="text-xs text-muted-foreground mb-1">Skill Level</div>
               <Progress 
-                value={Math.min(100, (interestScores[currentTask.category] || 0) * 10)} 
+                value={(currentTask.current_skill_level / currentTask.required_skill_level) * 100} 
                 className="h-2" 
               />
-              <div className="text-xs text-center mt-1">{interestScores[currentTask.category] || 0} pts</div>
+              <div className="text-xs text-center mt-1">
+                {currentTask.current_skill_level}/{currentTask.required_skill_level}
+              </div>
             </div>
 
             {/* Swipe Instructions - Bottom */}

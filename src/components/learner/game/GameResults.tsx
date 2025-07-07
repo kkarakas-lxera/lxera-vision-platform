@@ -281,7 +281,10 @@ export default function GameResults({
               {showPuzzleProgress ? (
                 <PuzzleProgress
                   employeeId={employeeId}
-                  category={category}
+                  skillName={targetSkillName}
+                  skillId={targetSkillId}
+                  currentLevel={currentLevel}
+                  requiredLevel={requiredLevel}
                   pointsEarned={results.pointsEarned}
                   onClose={() => setShowPuzzleProgress(false)}
                 />
