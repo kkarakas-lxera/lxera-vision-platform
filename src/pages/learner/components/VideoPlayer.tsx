@@ -59,6 +59,9 @@ export default function VideoPlayer({ videoUrl, videoId, title, onFeedback }: Vi
       setLoading(false);
     } else if (videoUrl) {
       setVideoSrc(videoUrl);
+    } else {
+      // Clear video source when no videoId or videoUrl provided
+      setVideoSrc('');
     }
   }, [videoId, videoUrl]);
 

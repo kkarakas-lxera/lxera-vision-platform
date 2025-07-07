@@ -44,6 +44,7 @@ import GameResults from '@/components/learner/game/GameResults';
 import TaskRolodex from '@/components/learner/game/TaskRolodex';
 import TaskDecisionModal from '@/components/learner/game/TaskDecisionModal';
 import PuzzleProgress from '@/components/learner/game/PuzzleProgress';
+import AssessmentSection from '@/components/learner/assessments/AssessmentSection';
 
 interface CourseContent {
   content_id: string;
@@ -1058,7 +1059,7 @@ export default function CourseViewer() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigateSection('prev')}
+                    onClick={navigateToPreviousSection}
                     disabled={currentIndex === 0}
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -1071,7 +1072,7 @@ export default function CourseViewer() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigateSection('next')}
+                    onClick={navigateToNextSection}
                     disabled={currentIndex === availableSections.length - 1}
                   >
                     <ArrowRight className="h-4 w-4" />
@@ -1197,59 +1198,70 @@ export default function CourseViewer() {
 
                 {/* Content Tab */}
                 {activeTab === 'content' && (
-                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    <div 
-                      className="p-6 cursor-pointer"
-                      onClick={() => setContentExpanded(!contentExpanded)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center">
-                          <FileText className="h-5 w-5 mr-2" />
-                          Reading Material
-                        </h2>
-                        {contentExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    {contentExpanded && (
-                      <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <ReactMarkdown
-                            components={{
-                              h1: ({ children }) => <h1 className="text-xl font-bold mb-4">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-lg font-semibold mt-6 mb-3">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-base font-medium mt-4 mb-2">{children}</h3>,
-                              p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
-                              li: ({ children }) => <li>{children}</li>,
-                              blockquote: ({ children }) => (
-                                <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4">
-                                  {children}
-                                </blockquote>
-                              ),
-                              code: ({ children }) => (
-                                <code className="bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-sm">
-                                  {children}
-                                </code>
-                              ),
-                              pre: ({ children }) => (
-                                <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4">
-                                  {children}
-                                </pre>
-                              ),
-                            }}
-                          >
-                            {getSectionContent()}
-                          </ReactMarkdown>
+                  <>
+                    {/* Special handling for assessments section */}
+                    {currentSection === 'assessments' ? (
+                      <AssessmentSection 
+                        moduleId={moduleId || courseId || ''}
+                        employeeId={employeeId || ''}
+                        courseContent={courseContent}
+                      />
+                    ) : (
+                      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <div 
+                          className="p-6 cursor-pointer"
+                          onClick={() => setContentExpanded(!contentExpanded)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center">
+                              <FileText className="h-5 w-5 mr-2" />
+                              Reading Material
+                            </h2>
+                            {contentExpanded ? (
+                              <ChevronDown className="h-5 w-5 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            )}
+                          </div>
                         </div>
-                      </div>
+                        
+                        {contentExpanded && (
+                          <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  h1: ({ children }) => <h1 className="text-xl font-bold mb-4">{children}</h1>,
+                                  h2: ({ children }) => <h2 className="text-lg font-semibold mt-6 mb-3">{children}</h2>,
+                                  h3: ({ children }) => <h3 className="text-base font-medium mt-4 mb-2">{children}</h3>,
+                                  p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+                                  ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+                                  ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
+                                  li: ({ children }) => <li>{children}</li>,
+                                  blockquote: ({ children }) => (
+                                    <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4">
+                                      {children}
+                                    </blockquote>
+                                  ),
+                                  code: ({ children }) => (
+                                    <code className="bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-sm">
+                                      {children}
+                                    </code>
+                                  ),
+                                  pre: ({ children }) => (
+                                    <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4">
+                                      {children}
+                                    </pre>
+                                  ),
+                                }}
+                              >
+                                {getSectionContent()}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                      </Card>
                     )}
-                  </Card>
+                  </>
                 )}
 
                 {/* Research Tab */}
