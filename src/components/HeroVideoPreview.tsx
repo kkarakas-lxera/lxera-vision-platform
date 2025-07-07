@@ -1,19 +1,21 @@
 
 const HeroVideoPreview = () => {
-  // HeyGen embed URL
-  const videoUrl = "https://app.heygen.com/embeds/18ee945cf2e541d3af61dceb6120dbec";
+  // Google Drive video embed URL
+  // Original: https://drive.google.com/file/d/1gJjvAJFs-JCQrxHtSr-Iq-ZMwDJA2ElS/view?usp=sharing
+  // Converted to embed format: /preview instead of /view
+  const videoUrl = "https://drive.google.com/file/d/1gJjvAJFs-JCQrxHtSr-Iq-ZMwDJA2ElS/preview";
 
   return (
     <div className="relative w-full max-w-xl mx-auto rounded-2xl shadow-xl border border-future-green/30 overflow-hidden hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
-      {/* HeyGen iframe preview */}
+      {/* Google Drive video preview */}
       <iframe
         width="560"
         height="315"
         className="w-full aspect-video"
         src={videoUrl}
-        title="HeyGen video player"
+        title="LXERA Demo Video"
         frameBorder="0"
-        allow="encrypted-media; fullscreen;"
+        allow="autoplay; encrypted-media; fullscreen;"
         allowFullScreen
       />
       
