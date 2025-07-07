@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface GameMetrics {
   activePlayers: number;
@@ -84,12 +85,42 @@ export interface ActivityData {
 }
 
 export const useGameMetrics = () => {
+  const { userProfile } = useAuth();
+
   return useQuery({
-    queryKey: ['game-metrics'],
+    queryKey: ['game-metrics', userProfile?.company_id],
     queryFn: async (): Promise<GameMetrics> => {
+      if (!userProfile?.company_id) {
+        throw new Error('No company ID available');
+      }
+
+      // Get employees for this company first
+      const { data: employees, error: employeesError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) throw employeesError;
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+      
+      if (employeeIds.length === 0) {
+        return {
+          activePlayers: 0,
+          averageLevel: 0,
+          totalPoints: 0,
+          completionRate: 0,
+          playerGrowth: 0,
+          levelGrowth: 0,
+          pointsGrowth: 0,
+          completionGrowth: 0
+        };
+      }
+
       const { data: progressData, error } = await supabase
         .from('employee_game_progress')
-        .select('*');
+        .select('*')
+        .in('employee_id', employeeIds);
       
       if (error) throw error;
       
@@ -102,7 +133,8 @@ export const useGameMetrics = () => {
       // Get session data for completion rate
       const { data: sessionData } = await supabase
         .from('game_sessions')
-        .select('session_status');
+        .select('session_status')
+        .in('employee_id', employeeIds);
       
       const completionRate = sessionData && sessionData.length > 0
         ? (sessionData.filter(s => s.session_status === 'completed').length / sessionData.length) * 100
@@ -121,28 +153,51 @@ export const useGameMetrics = () => {
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!userProfile?.company_id,
   });
 };
 
 export const useMissionAnalytics = () => {
+  const { userProfile } = useAuth();
+
   return useQuery({
-    queryKey: ['mission-analytics'],
+    queryKey: ['mission-analytics', userProfile?.company_id],
     queryFn: async (): Promise<MissionAnalyticsData> => {
-      // Fetch missions with their session data
+      if (!userProfile?.company_id) {
+        throw new Error('No company ID available');
+      }
+
+      // Get employees for this company first
+      const { data: employees, error: employeesError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) throw employeesError;
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+
+      if (employeeIds.length === 0) {
+        return { missionData: [], categoryStats: [] };
+      }
+
+      // Fetch missions with their session data, filtered by company
       const { data: missions, error } = await supabase
         .from('game_missions')
         .select(`
           *,
-          game_sessions (
+          game_sessions!inner (
             id,
             points_earned,
             accuracy_percentage,
             time_spent_seconds,
             session_status,
             questions_answered,
-            correct_answers
+            correct_answers,
+            employee_id
           )
-        `);
+        `)
+        .eq('company_id', userProfile.company_id);
       
       if (error) throw error;
       
@@ -156,7 +211,7 @@ export const useMissionAnalytics = () => {
       
       // Process mission data
       const missionData: MissionData[] = missions?.map(mission => {
-        const sessions = mission.game_sessions || [];
+        const sessions = mission.game_sessions?.filter(s => employeeIds.includes(s.employee_id)) || [];
         const completedSessions = sessions.filter(s => s.session_status === 'completed');
         
         const completion_rate = sessions.length > 0 
@@ -233,16 +288,42 @@ export const useMissionAnalytics = () => {
       };
     },
     staleTime: 5 * 60 * 1000,
+    enabled: !!userProfile?.company_id,
   });
 };
 
 export const usePlayerAnalytics = () => {
+  const { userProfile } = useAuth();
+
   return useQuery({
-    queryKey: ['player-analytics'],
+    queryKey: ['player-analytics', userProfile?.company_id],
     queryFn: async (): Promise<PlayerAnalyticsData> => {
+      if (!userProfile?.company_id) {
+        throw new Error('No company ID available');
+      }
+
+      // Get employees for this company first
+      const { data: employees, error: employeesError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) throw employeesError;
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+
+      if (employeeIds.length === 0) {
+        return {
+          segments: { high: { count: 0, percentage: 0 }, regular: { count: 0, percentage: 0 }, beginner: { count: 0, percentage: 0 } },
+          levelDistribution: [],
+          topPerformers: []
+        };
+      }
+
       const { data: players, error } = await supabase
         .from('employee_game_progress')
         .select('*')
+        .in('employee_id', employeeIds)
         .order('total_points', { ascending: false });
       
       if (error) throw error;
@@ -342,16 +423,44 @@ export const usePlayerAnalytics = () => {
 };
 
 export const useActivityAnalytics = () => {
+  const { userProfile } = useAuth();
+
   return useQuery({
-    queryKey: ['activity-analytics'],
+    queryKey: ['activity-analytics', userProfile?.company_id],
     queryFn: async (): Promise<ActivityData> => {
+      if (!userProfile?.company_id) {
+        throw new Error('No company ID available');
+      }
+
+      // Get employees for this company first
+      const { data: employees, error: employeesError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) throw employeesError;
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+
+      if (employeeIds.length === 0) {
+        return {
+          todaySessions: 0,
+          avgDuration: 0,
+          activeStreaks: 0,
+          todayAchievements: 0,
+          puzzleProgress: [],
+          recentActivity: []
+        };
+      }
+
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
-      // Get today's sessions
+      // Get today's sessions for company employees
       const { data: todaySessions } = await supabase
         .from('game_sessions')
         .select('*')
+        .in('employee_id', employeeIds)
         .gte('started_at', todayStart.toISOString());
       
       // Calculate average duration
@@ -360,17 +469,19 @@ export const useActivityAnalytics = () => {
         ? completedSessions.reduce((sum, s) => sum + (s.time_spent_seconds || 0), 0) / completedSessions.length / 60
         : 0;
       
-      // Get active streaks
+      // Get active streaks for company employees
       const { data: progressData } = await supabase
         .from('employee_game_progress')
-        .select('current_streak');
+        .select('current_streak')
+        .in('employee_id', employeeIds);
       
       const activeStreaks = progressData?.filter(p => (p.current_streak || 0) > 0).length || 0;
       
-      // Get puzzle progress
+      // Get puzzle progress for company employees
       const { data: puzzleData } = await supabase
         .from('puzzle_progress')
-        .select('*');
+        .select('*')
+        .in('employee_id', employeeIds);
       
       const categoryPuzzleMap = new Map<string, { unlocked: number; total: number }>();
       const categoryEmojis: Record<string, string> = {
@@ -416,5 +527,6 @@ export const useActivityAnalytics = () => {
       };
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for activity data
+    enabled: !!userProfile?.company_id,
   });
 };
