@@ -81,37 +81,25 @@ export default function PositionManagement() {
 
       if (positionsError) throw positionsError;
 
-      // Fetch employees with their positions and skills profiles
-      // Using a more explicit query to ensure data is fetched correctly
+      // Fetch all employees with their positions and skills profiles
       const { data: employees, error: employeesError } = await supabase
         .from('employees')
         .select(`
           id,
           current_position_id,
-          st_employee_skills_profile!inner (
+          st_employee_skills_profile (
             skills_match_score
           )
         `)
         .eq('company_id', userProfile.company_id);
 
-      // Also fetch employees without profiles to get accurate total count
-      const { data: allEmployees, error: allEmployeesError } = await supabase
-        .from('employees')
-        .select('id, current_position_id')
-        .eq('company_id', userProfile.company_id);
-
-      if (employeesError && employeesError.code !== 'PGRST116') {
-        console.error('Error fetching employees with profiles:', employeesError);
-      }
-      
-      if (allEmployeesError) {
-        console.error('Error fetching all employees:', allEmployeesError);
-        throw allEmployeesError;
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        throw employeesError;
       }
 
       console.log('Company ID:', userProfile.company_id);
-      console.log('All employees:', allEmployees?.length || 0);
-      console.log('Employees with profiles:', employees?.length || 0);
+      console.log('Total employees:', employees?.length || 0);
       console.log('Sample employee data:', employees?.[0]);
 
       // Calculate metrics for each position
@@ -120,11 +108,10 @@ export default function PositionManagement() {
       let totalMatchScore = 0;
       let employeesWithScores = 0;
 
-      // First, count all employees by position
-      if (allEmployees) {
-        totalEmployees = allEmployees.length;
+      if (employees) {
+        totalEmployees = employees.length;
 
-        for (const employee of allEmployees) {
+        for (const employee of employees) {
           if (employee.current_position_id) {
             if (!positionMetrics.has(employee.current_position_id)) {
               positionMetrics.set(employee.current_position_id, {
@@ -134,20 +121,16 @@ export default function PositionManagement() {
                 employees_with_gaps: 0
               });
             }
+
             const metrics = positionMetrics.get(employee.current_position_id);
             metrics.employee_count++;
-          }
-        }
-      }
 
-      // Then, add skills profile data for employees who have it
-      if (employees) {
-        for (const employee of employees) {
-          if (employee.current_position_id && positionMetrics.has(employee.current_position_id)) {
-            const metrics = positionMetrics.get(employee.current_position_id);
-            
             // Check if employee has skills profile
-            const profile = employee.st_employee_skills_profile?.[0];
+            // Handle both array and object response formats
+            const profile = Array.isArray(employee.st_employee_skills_profile) 
+              ? employee.st_employee_skills_profile?.[0]
+              : employee.st_employee_skills_profile;
+            
             if (profile?.skills_match_score !== null && profile?.skills_match_score !== undefined) {
               metrics.total_score += profile.skills_match_score;
               metrics.scored_employees++;

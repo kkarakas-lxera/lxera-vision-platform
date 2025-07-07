@@ -36,33 +36,47 @@ export class SkillGapMissionService {
   
   static async getEmployeeSkillGaps(employeeId: string): Promise<EmployeeSkillGap[]> {
     try {
-      // Get employee's position and skills profile
-      const { data: employeeData } = await supabase
+      // First get the employee data
+      const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
-        .select(`
-          id,
-          current_position_id,
-          st_company_positions (
-            position_title,
-            department,
-            required_skills,
-            nice_to_have_skills
-          )
-        `)
+        .select('id, current_position_id, user_id')
         .eq('id', employeeId)
         .single();
 
       console.log('Employee data:', employeeData);
+      
+      if (employeeError || !employeeData) {
+        console.error('Error fetching employee:', employeeError);
+        return [];
+      }
 
-      if (!employeeData?.st_company_positions) {
+      if (!employeeData.current_position_id) {
         console.warn('Employee has no position assigned');
         return [];
       }
 
-      const position = employeeData.st_company_positions;
+      // Then get the position data separately to avoid RLS issues
+      const { data: positionData, error: positionError } = await supabase
+        .from('st_company_positions')
+        .select(`
+          position_title,
+          department,
+          required_skills,
+          nice_to_have_skills
+        `)
+        .eq('id', employeeData.current_position_id)
+        .single();
+
+      console.log('Position data:', positionData);
+
+      if (positionError || !positionData) {
+        console.error('Error fetching position:', positionError);
+        return [];
+      }
+
       const allRequiredSkills = [
-        ...(position.required_skills || []),
-        ...(position.nice_to_have_skills || [])
+        ...(positionData.required_skills || []),
+        ...(positionData.nice_to_have_skills || [])
       ];
 
       console.log('Required skills:', allRequiredSkills);
@@ -123,8 +137,8 @@ export class SkillGapMissionService {
             gap_severity: this.calculateGapSeverity(gapSize, reqSkill.is_mandatory),
             skill_category: currentSkill?.skill_type || reqSkill.skill_type || 'general',
             is_mandatory: reqSkill.is_mandatory || false,
-            position_title: position.position_title,
-            department: position.department || 'General'
+            position_title: positionData.position_title,
+            department: positionData.department || 'General'
           });
         }
       }
