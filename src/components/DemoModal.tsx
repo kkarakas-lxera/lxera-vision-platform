@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle, Calendar } from "lucide-react";
+import { Loader2, CheckCircle, Calendar, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { ticketService } from "@/services/ticketService";
 import { useToast } from "@/hooks/use-toast";
 import CalendlyEmbed from "./CalendlyEmbed";
@@ -31,14 +31,16 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
   const { toast } = useToast();
 
   const companySizeOptions = [
-    "1-10",
-    "11-50",
     "51-200",
     "201-500",
+    "11-50",
     "501-1000",
+    "1-10",
     "1001-5000",
     "5000+"
   ];
@@ -317,6 +319,8 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
       message: ""
     });
     setIsSubmitted(false);
+    setShowOptionalFields(false);
+    setCountrySearch("");
     onClose();
   };
 
@@ -330,7 +334,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
             {isSubmitted ? "Thank You!" : "Request a Demo"}
           </DialogTitle>
           <DialogDescription>
-            {isSubmitted ? "Schedule your demo meeting" : "Fill out the form to request a demo"}
+            {isSubmitted ? "Schedule your demo meeting" : "See LXERA in action with a personalized demonstration"}
           </DialogDescription>
         </DialogHeader>
 
@@ -340,11 +344,11 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle className="w-6 h-6 text-future-green" />
                 <h3 className="text-lg font-semibold text-business-black">
-                  Great! Now let's schedule your demo
+                  Schedule Your Demo
                 </h3>
               </div>
               <p className="text-sm text-business-black/70">
-                Choose a time that works best for you
+                Now, pick a time that works best for you:
               </p>
             </div>
             
@@ -383,7 +387,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                 variant="outline"
                 className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
               >
-                Skip Scheduling
+                I'll schedule later
               </Button>
             </div>
           </div>
@@ -393,7 +397,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-sm font-medium text-business-black">
-                    First name *
+                    First name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="firstName"
@@ -408,7 +412,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-sm font-medium text-business-black">
-                    Last name *
+                    Last name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="lastName"
@@ -424,7 +428,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-business-black">
-                  Work email *
+                  Work email <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -439,7 +443,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-sm font-medium text-business-black">
-                  Company name *
+                  Company name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="company"
@@ -452,38 +456,11 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="jobTitle" className="text-sm font-medium text-business-black">
-                  Job title
-                </Label>
-                <Input
-                  id="jobTitle"
-                  type="text"
-                  placeholder="Your role"
-                  value={formData.jobTitle}
-                  onChange={handleInputChange("jobTitle")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium text-business-black">
-                  Phone number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Phone number"
-                  value={formData.phone}
-                  onChange={handleInputChange("phone")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
-                />
-              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="companySize" className="text-sm font-medium text-business-black">
-                    # of employees *
+                    # of employees <span className="text-red-500">*</span>
                   </Label>
                   <Select value={formData.companySize} onValueChange={handleSelectChange("companySize")} required>
                     <SelectTrigger className="w-full h-11 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green bg-white hover:bg-gray-50 transition-colors">
@@ -505,44 +482,114 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="country" className="text-sm font-medium text-business-black">
-                    Country *
+                    Country <span className="text-red-500">*</span>
                   </Label>
                   <Select value={formData.country} onValueChange={handleSelectChange("country")} required>
                     <SelectTrigger className="w-full h-11 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green bg-white hover:bg-gray-50 transition-colors">
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-xl z-[100] max-h-64">
-                      {countryOptions.map((country) => (
-                        <SelectItem 
-                          key={country} 
-                          value={country}
-                          className="px-3 py-2 hover:bg-future-green/10 cursor-pointer text-gray-700 focus:bg-future-green/10 focus:text-business-black"
-                        >
-                          {country}
-                        </SelectItem>
-                      ))}
+                      <div className="sticky top-0 bg-white p-2 border-b">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                          <Input
+                            placeholder="Search countries..."
+                            value={countrySearch}
+                            onChange={(e) => setCountrySearch(e.target.value)}
+                            className="pl-8 h-9"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-56 overflow-y-auto">
+                        {countryOptions
+                          .filter(country => 
+                            country.toLowerCase().includes(countrySearch.toLowerCase())
+                          )
+                          .map((country) => (
+                            <SelectItem 
+                              key={country} 
+                              value={country}
+                              className="px-3 py-2 hover:bg-future-green/10 cursor-pointer text-gray-700 focus:bg-future-green/10 focus:text-business-black"
+                            >
+                              {country}
+                            </SelectItem>
+                          ))}
+                      </div>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="message" className="text-sm font-medium text-business-black">
-                  How can we help you?
-                </Label>
-                <Textarea
-                  id="message"
-                  placeholder="Tell us about your learning and development needs..."
-                  value={formData.message}
-                  onChange={handleInputChange("message")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
-                  rows={3}
-                />
+              {/* Optional Fields Toggle */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="flex items-center gap-2 text-sm text-business-black/70 hover:text-business-black transition-colors"
+                >
+                  {showOptionalFields ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  Add optional details
+                </button>
               </div>
+
+              {/* Optional Fields */}
+              {showOptionalFields && (
+                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="jobTitle" className="text-sm font-medium text-business-black">
+                        Job title
+                      </Label>
+                      <Input
+                        id="jobTitle"
+                        type="text"
+                        placeholder="Your role"
+                        value={formData.jobTitle}
+                        onChange={handleInputChange("jobTitle")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm font-medium text-business-black">
+                        Phone number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="Phone number"
+                        value={formData.phone}
+                        onChange={handleInputChange("phone")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-sm font-medium text-business-black">
+                      How can we help you?
+                    </Label>
+                    <Textarea
+                      id="message"
+                      placeholder="Tell us about your learning and development needs..."
+                      value={formData.message}
+                      onChange={handleInputChange("message")}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-future-green/50 focus:border-future-green min-h-[80px] resize-none"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="text-xs text-business-black/60 px-2">
-              By completing and submitting this form, you agree that LXERA may email or call you with product updates, educational resources, and other promotional information. To learn more about how LXERA uses your information, see our <a href="/privacy" className="text-future-green hover:underline">Privacy Policy</a>.
+            <div className="space-y-2">
+              <p className="text-xs text-business-black/60">
+                Required fields are marked with <span className="text-red-500">*</span>
+              </p>
+              <p className="text-xs text-business-black/60">
+                By submitting this form, you agree to our <a href="/privacy" className="text-future-green hover:underline">Privacy Policy</a>.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -565,7 +612,7 @@ const DemoModal = ({ isOpen, onClose, source = "Website" }: DemoModalProps) => {
                     Submitting...
                   </>
                 ) : (
-                  "Request Demo"
+                  "Continue to Schedule →"
                 )}
               </Button>
             </div>
