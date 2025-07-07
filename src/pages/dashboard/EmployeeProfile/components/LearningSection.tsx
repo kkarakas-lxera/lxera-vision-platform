@@ -98,48 +98,30 @@ export function LearningSection({ employee }: LearningSectionProps) {
     return (
       <div
         key={course.id}
-        className={`p-4 border rounded-lg space-y-3 ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}
+        className={`p-3 border rounded-lg ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}
       >
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h4 className="font-medium flex items-center gap-2">
-              {getStatusIcon(isOverdue ? 'overdue' : course.status)}
-              {course.course_title}
-            </h4>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {getStatusIcon(isOverdue ? 'overdue' : course.status)}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm truncate">{course.course_title}</h4>
+              <p className="text-xs text-muted-foreground">
                 Assigned: {formatDate(course.assigned_at)}
-              </span>
-              {course.due_date && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Due: {formatDate(course.due_date)}
-                </span>
-              )}
+              </p>
             </div>
           </div>
-          {getStatusBadge(course.status, course.due_date)}
+          <div className="flex flex-col items-end gap-1">
+            {getStatusBadge(course.status, course.due_date)}
+            {course.status !== 'completed' && (
+              <span className="text-xs font-medium">{course.progress_percentage}%</span>
+            )}
+            {course.status === 'completed' && course.quiz_score !== undefined && (
+              <span className="text-xs font-medium">{course.quiz_score}%</span>
+            )}
+          </div>
         </div>
-
         {course.status !== 'completed' && (
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span>Progress</span>
-              <span className="font-medium">{course.progress_percentage}%</span>
-            </div>
-            <Progress value={course.progress_percentage} className="h-2" />
-          </div>
-        )}
-
-        {course.status === 'completed' && course.quiz_score !== undefined && (
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-sm text-muted-foreground">Quiz Score</span>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-yellow-600" />
-              <span className="font-medium">{course.quiz_score}%</span>
-            </div>
-          </div>
+          <Progress value={course.progress_percentage} className="h-1 mt-2" />
         )}
       </div>
     );
@@ -149,63 +131,72 @@ export function LearningSection({ employee }: LearningSectionProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
             Learning & Development
           </CardTitle>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="h-7 text-xs">
             Assign Course
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="active">
-              Active Courses ({activeCourses.length})
+          <TabsList className="grid w-full grid-cols-2 h-8">
+            <TabsTrigger value="active" className="text-xs">
+              Active ({activeCourses.length})
             </TabsTrigger>
-            <TabsTrigger value="completed">
+            <TabsTrigger value="completed" className="text-xs">
               Completed ({completedCourses.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4 mt-4">
+          <TabsContent value="active" className="space-y-2 mt-3">
             {activeCourses.length > 0 ? (
-              activeCourses.map(renderCourseCard)
+              <div className="space-y-2">
+                {activeCourses.slice(0, 3).map(renderCourseCard)}
+                {activeCourses.length > 3 && (
+                  <p className="text-xs text-muted-foreground text-center pt-1">
+                    +{activeCourses.length - 3} more courses
+                  </p>
+                )}
+              </div>
             ) : (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No active courses</p>
-                <Button className="mt-4" variant="outline" size="sm">
-                  Browse Course Catalog
-                </Button>
+              <div className="text-center py-6">
+                <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No active courses</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="completed" className="space-y-4 mt-4">
+          <TabsContent value="completed" className="space-y-2 mt-3">
             {completedCourses.length > 0 ? (
-              <>
-                <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.completedCount}</p>
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded text-center">
+                  <div>
+                    <p className="text-lg font-semibold">{stats.completedCount}</p>
                     <p className="text-xs text-muted-foreground">Completed</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{Math.round(stats.avgScore)}%</p>
+                  <div>
+                    <p className="text-lg font-semibold">{Math.round(stats.avgScore)}%</p>
                     <p className="text-xs text-muted-foreground">Avg Score</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.totalHours}</p>
-                    <p className="text-xs text-muted-foreground">Total Hours</p>
+                  <div>
+                    <p className="text-lg font-semibold">{stats.totalHours}h</p>
+                    <p className="text-xs text-muted-foreground">Total</p>
                   </div>
                 </div>
-                {completedCourses.map(renderCourseCard)}
-              </>
+                {completedCourses.slice(0, 3).map(renderCourseCard)}
+                {completedCourses.length > 3 && (
+                  <p className="text-xs text-muted-foreground text-center pt-1">
+                    +{completedCourses.length - 3} more courses
+                  </p>
+                )}
+              </div>
             ) : (
-              <div className="text-center py-8">
-                <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No completed courses yet</p>
+              <div className="text-center py-6">
+                <Trophy className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No completed courses yet</p>
               </div>
             )}
           </TabsContent>

@@ -143,10 +143,9 @@ export function CareerPathSection({ employee }: CareerPathSectionProps) {
                 <div className="flex items-start gap-2 flex-1">
                   <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-medium text-blue-900">Career Progress</p>
-                    <p className="text-blue-700 mt-1">
+                    <p className="text-blue-700">
                       {!hasCareerPath 
-                        ? "Set a target position to track career progression."
+                        ? "No target position set yet."
                         : matchScore >= 80 
                         ? "Excellent progress! You're well-positioned for advancement."
                         : matchScore >= 60

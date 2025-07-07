@@ -98,128 +98,102 @@ export const OverviewDashboard = () => {
         </Card>
       </div>
 
-      {/* Category Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Category Performance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {missionData?.categoryStats.map((category) => (
-              <div key={category.name} className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className={`p-2 rounded-lg ${category.color}`}>
-                    <span className="text-lg">{category.emoji}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {category.mission_count} missions
-                    </p>
+      {/* Category Performance & Player Segments Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Category Performance - Minimalistic */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Category Performance</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {missionData?.categoryStats.slice(0, 4).map((category) => (
+                <div key={category.name} className="flex items-center gap-3">
+                  <span className="text-base w-6 text-center">{category.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium truncate">{category.name}</span>
+                      <span className="text-sm text-muted-foreground ml-2">{category.completion_rate}%</span>
+                    </div>
+                    <Progress value={category.completion_rate} className="h-1.5" />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Completion Rate</span>
-                    <span className="font-medium">{category.completion_rate}%</span>
-                  </div>
-                  <Progress value={category.completion_rate} className="h-2" />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Avg Accuracy: {category.avg_accuracy}%</span>
-                    <span>Avg Time: {category.avg_time}m</span>
-                  </div>
-                </div>
-              </div>
-            )) || (
-              <p className="text-sm text-muted-foreground col-span-4 text-center py-4">
-                No mission data available yet
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )) || (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No mission data available
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Player Segments Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5" />
-            Player Engagement Segments
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg border-2 border-green-200 bg-green-50/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <Star className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800">High Performers</h3>
-                  <p className="text-sm text-green-600">
-                    &gt;80% accuracy, &gt;10 missions/week
-                  </p>
+        {/* Player Engagement Segments - Minimalistic */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Player Segments</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {/* High Performers */}
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">High Performers</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-semibold">{playerData?.segments.high.count || 0}</span>
+                      <span className="text-xs text-muted-foreground">({playerData?.segments.high.percentage || 0}%)</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">&gt;80% accuracy</p>
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="text-2xl font-bold text-green-800">
-                  {playerData?.segments.high.count || 0}
+
+              {/* Regular Players */}
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Regular Players</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-semibold">{playerData?.segments.regular.count || 0}</span>
+                      <span className="text-xs text-muted-foreground">({playerData?.segments.regular.percentage || 0}%)</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">50-80% accuracy</p>
                 </div>
-                <div className="text-sm text-green-600">
-                  {playerData?.segments.high.percentage || 0}% of all players
+              </div>
+
+              {/* Beginners */}
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Beginners</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-semibold">{playerData?.segments.beginner.count || 0}</span>
+                      <span className="text-xs text-muted-foreground">({playerData?.segments.beginner.percentage || 0}%)</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">&lt;50% accuracy</p>
+                </div>
+              </div>
+
+              {/* Total Players Summary */}
+              <div className="pt-2 mt-2 border-t">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Total Active Players</span>
+                  <span className="font-semibold">
+                    {(playerData?.segments.high.count || 0) + 
+                     (playerData?.segments.regular.count || 0) + 
+                     (playerData?.segments.beginner.count || 0)}
+                  </span>
                 </div>
               </div>
             </div>
-
-            <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-blue-800">Regular Players</h3>
-                  <p className="text-sm text-blue-600">
-                    50-80% accuracy, 5-10 missions/week
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-2xl font-bold text-blue-800">
-                  {playerData?.segments.regular.count || 0}
-                </div>
-                <div className="text-sm text-blue-600">
-                  {playerData?.segments.regular.percentage || 0}% of all players
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-lg border-2 border-orange-200 bg-orange-50/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-orange-100 rounded-full">
-                  <Target className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-orange-800">Beginners</h3>
-                  <p className="text-sm text-orange-600">
-                    &lt;50% accuracy, &lt;5 missions/week
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-2xl font-bold text-orange-800">
-                  {playerData?.segments.beginner.count || 0}
-                </div>
-                <div className="text-sm text-orange-600">
-                  {playerData?.segments.beginner.percentage || 0}% of all players
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

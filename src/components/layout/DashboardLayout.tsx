@@ -67,7 +67,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-          { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
       case 'learner':

@@ -69,9 +69,11 @@ export default function AnalyzedEmployees() {
           extracted_skills,
           employees!inner(
             id,
-            full_name,
             current_position_id,
-            company_id
+            company_id,
+            users!inner(
+              full_name
+            )
           )
         `)
         .eq('employees.company_id', userProfile.company_id)
@@ -94,7 +96,7 @@ export default function AnalyzedEmployees() {
 
           return {
             employee_id: profile.employee_id,
-            employee_name: (profile.employees as any).full_name,
+            employee_name: (profile.employees as any).users.full_name,
             position_id: (profile.employees as any).current_position_id || '',
             position_title: position?.position_title || 'Not Assigned',
             skills_match_score: profile.skills_match_score || 0,

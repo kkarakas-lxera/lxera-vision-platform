@@ -41,37 +41,37 @@ export const MissionAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      {/* Category Performance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {missions.categoryStats.map((category) => (
-          <Card key={category.name} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className={`p-2 rounded-lg ${category.color}`}>
-                  <span className="text-lg">{category.emoji}</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground">
+      {/* Category Performance Cards - Minimalistic Grid */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium">Category Performance Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 gap-4">
+            {missions.categoryStats.map((category) => (
+              <div key={category.name} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{category.emoji}</span>
+                  <span className="text-sm font-medium">{category.name}</span>
+                  <span className="text-xs text-muted-foreground ml-auto">
                     {category.mission_count} missions
-                  </p>
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Progress value={category.completion_rate} className="h-1.5 flex-1 mr-2" />
+                    <span className="text-xs font-medium w-10 text-right">{category.completion_rate}%</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Accuracy: {category.avg_accuracy}%</span>
+                    <span>Avg: {category.avg_time}m</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Completion Rate</span>
-                  <span className="font-medium">{category.completion_rate}%</span>
-                </div>
-                <Progress value={category.completion_rate} className="h-2" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Avg Accuracy: {category.avg_accuracy}%</span>
-                  <span>Avg Time: {category.avg_time}m</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Mission Performance Table */}
       <Card>

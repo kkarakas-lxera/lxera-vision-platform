@@ -298,7 +298,7 @@ export default function SkillsOverview() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/dashboard/skills/gaps')}
+              onClick={() => navigate('/dashboard/skills/positions')}
               className="text-xs"
             >
               View All <ArrowRight className="h-3 w-3 ml-1" />
