@@ -1172,45 +1172,45 @@ export default function CourseViewer() {
                   />
                 )}
 
-                {/* Tabs */}
-                <div className="flex space-x-1 mb-4">
-                  <button
-                    onClick={() => setActiveTab('content')}
-                    className={cn(
-                      "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-                      activeTab === 'content'
-                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
-                        : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                  >
-                    Content
-                  </button>
-                  {researchResults && (
-                    <button
-                      onClick={() => setActiveTab('research')}
-                      className={cn(
-                        "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-                        activeTab === 'research'
-                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
-                          : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      )}
-                    >
-                      Research
-                    </button>
-                  )}
-                </div>
-
-                {/* Content Tab */}
-                {activeTab === 'content' && (
+                {/* Special handling for assessments section - no tabs needed */}
+                {currentSection === 'assessments' ? (
+                  <AssessmentSection 
+                    moduleId={moduleId || courseId || ''}
+                    employeeId={employeeId || ''}
+                    courseContent={courseContent}
+                  />
+                ) : (
                   <>
-                    {/* Special handling for assessments section */}
-                    {currentSection === 'assessments' ? (
-                      <AssessmentSection 
-                        moduleId={moduleId || courseId || ''}
-                        employeeId={employeeId || ''}
-                        courseContent={courseContent}
-                      />
-                    ) : (
+                    {/* Tabs - Only show for non-assessment sections */}
+                    <div className="flex space-x-1 mb-4">
+                      <button
+                        onClick={() => setActiveTab('content')}
+                        className={cn(
+                          "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                          activeTab === 'content'
+                            ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
+                            : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        )}
+                      >
+                        Content
+                      </button>
+                      {researchResults && (
+                        <button
+                          onClick={() => setActiveTab('research')}
+                          className={cn(
+                            "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                            activeTab === 'research'
+                              ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-b-2 border-blue-500"
+                              : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                          )}
+                        >
+                          Research
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Content Tab */}
+                    {activeTab === 'content' && (
                       <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <div 
                           className="p-6 cursor-pointer"
@@ -1346,6 +1346,8 @@ export default function CourseViewer() {
                       </div>
                     </div>
                   </Card>
+                )}
+                  </>
                 )}
 
                 {/* Action Buttons */}
