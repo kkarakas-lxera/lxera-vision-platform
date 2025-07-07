@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, Shield, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,6 +44,8 @@ interface PositionData {
   description: string;
   required_skills: SkillSelection[];
   ai_suggestions?: any[];
+  admin_approved?: boolean;
+  description_fully_read?: boolean;
 }
 
 interface PositionCreateWizardProps {
@@ -62,8 +66,12 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     department: '',
     description: '',
     required_skills: [],
-    ai_suggestions: []
+    ai_suggestions: [],
+    admin_approved: false,
+    description_fully_read: false
   });
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const descriptionScrollRef = useRef<HTMLDivElement>(null);
 
 
   const generatePositionCode = (title: string) => {
@@ -196,12 +204,34 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const canProceedToStep = (step: number) => {
     switch (step) {
       case 2:
-        return positionData.position_title && positionData.position_code;
+        return positionData.position_title && positionData.position_code && positionData.admin_approved && hasScrolledToBottom;
       case 3:
         return positionData.required_skills.length > 0;
       default:
         return true;
     }
+  };
+
+  const handleDescriptionScroll = () => {
+    if (descriptionScrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = descriptionScrollRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px tolerance
+      if (isAtBottom && !hasScrolledToBottom) {
+        setHasScrolledToBottom(true);
+      }
+    }
+  };
+
+  const handleAdminApproval = (checked: boolean) => {
+    if (checked && !hasScrolledToBottom) {
+      toast({
+        title: 'Please read the entire description',
+        description: 'You must scroll through the complete position description before approving.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setPositionData(prev => ({ ...prev, admin_approved: checked }));
   };
 
   // Auto-generate description when title, level, and department are filled
@@ -219,43 +249,41 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   }, [positionData.position_title, positionData.position_level, positionData.department]);
 
   return (
-    <div className="space-y-6">
-      {/* Progress Indicator */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-6">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                    currentStep === step.number
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : currentStep > step.number
-                      ? 'bg-green-600 border-green-600 text-white'
-                      : 'border-gray-300 text-gray-500'
-                  }`}
-                >
-                  {currentStep > step.number ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : (
-                    step.number
-                  )}
-                </div>
-                {index < steps.length - 1 && (
-                  <div className="flex-1 mx-4">
-                    <div className={`h-0.5 ${currentStep > step.number ? 'bg-green-600' : 'bg-gray-200'}`} />
-                  </div>
+    <div className="space-y-4">
+      {/* Compact Progress Indicator */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border">
+        <div className="flex items-center justify-between mb-3">
+          {steps.map((step, index) => (
+            <div key={step.number} className="flex items-center">
+              <div
+                className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
+                  currentStep === step.number
+                    ? 'bg-blue-600 text-white ring-2 ring-blue-200'
+                    : currentStep > step.number
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {currentStep > step.number ? (
+                  <CheckCircle className="h-3 w-3" />
+                ) : (
+                  step.number
                 )}
               </div>
-            ))}
-          </div>
-          <Progress value={(currentStep / steps.length) * 100} className="mb-4" />
-          <div className="text-center">
-            <h3 className="font-medium">{steps[currentStep - 1].title}</h3>
-            <p className="text-sm text-muted-foreground">{steps[currentStep - 1].description}</p>
-          </div>
-        </CardContent>
-      </Card>
+              {index < steps.length - 1 && (
+                <div className="flex-1 mx-2">
+                  <div className={`h-0.5 ${currentStep > step.number ? 'bg-green-600' : 'bg-gray-300'}`} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <Progress value={(currentStep / steps.length) * 100} className="h-2 mb-2" />
+        <div className="text-center">
+          <h3 className="font-semibold text-sm">{steps[currentStep - 1].title}</h3>
+          <p className="text-xs text-muted-foreground">{steps[currentStep - 1].description}</p>
+        </div>
+      </div>
 
       {/* Step Content */}
       <Card>
@@ -352,6 +380,62 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                   </p>
                 )}
               </div>
+
+              {/* Admin Approval Section - Only show if description exists */}
+              {positionData.description && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-medium">Admin Approval Required</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Please review the complete position description below. You must scroll through the entire description to approve.
+                  </p>
+                  
+                  <div className="mb-3">
+                    <div className="text-sm text-yellow-600 mb-2 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>Please scroll through the entire description below to enable approval</span>
+                    </div>
+                    <ScrollArea className="h-32 border rounded bg-white">
+                      <div 
+                        className="p-3"
+                        ref={descriptionScrollRef}
+                        onScroll={handleDescriptionScroll}
+                      >
+                        <div className="text-sm leading-relaxed">
+                          {positionData.description}
+                        </div>
+                        <div className="mt-4 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                          ✓ You have reached the end of the description
+                        </div>
+                      </div>
+                    </ScrollArea>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 bg-white rounded border">
+                    <Checkbox 
+                      id="admin-approval" 
+                      checked={positionData.admin_approved}
+                      onCheckedChange={handleAdminApproval}
+                      disabled={!hasScrolledToBottom}
+                    />
+                    <Label 
+                      htmlFor="admin-approval" 
+                      className={`text-sm font-medium ${
+                        !hasScrolledToBottom ? 'text-muted-foreground' : 'text-foreground'
+                      }`}
+                    >
+                      I have read and approve this position description
+                    </Label>
+                  </div>
+                  {!hasScrolledToBottom && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Please scroll through the complete description above to enable approval
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -470,7 +554,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
           className="flex items-center gap-2"
         >
           {currentStep === 3 ? (
-            isLoading ? 'Creating...' : 'Create Position'
+            isLoading ? 'Creating Position...' : 'Create Position'
           ) : (
             <>
               Next
