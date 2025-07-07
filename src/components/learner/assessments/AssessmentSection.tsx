@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
   FileText, 
@@ -11,12 +9,12 @@ import {
   Users, 
   CheckCircle, 
   Clock, 
-  TrendingUp,
-  Upload,
-  MessageSquare 
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 // Import individual assessment components
 import KnowledgeCheckQuiz from './KnowledgeCheckQuiz';
@@ -50,33 +48,33 @@ export default function AssessmentSection({ moduleId, employeeId, courseContent 
   const assessmentTypes = [
     {
       id: 'knowledge_quiz',
-      name: 'Knowledge Check Quiz',
+      name: 'Quiz',
       icon: Brain,
-      description: '5 multiple choice questions to test understanding',
+      description: '5 questions',
       weight: 25,
       color: 'text-blue-500'
     },
     {
       id: 'practical_exercise',
-      name: 'Practical Exercise',
+      name: 'Exercise',
       icon: FileText,
-      description: 'Hands-on tasks with spreadsheet work',
+      description: 'Hands-on task',
       weight: 25,
       color: 'text-green-500'
     },
     {
       id: 'self_assessment',
-      name: 'Self-Assessment',
+      name: 'Self-Check',
       icon: Target,
-      description: 'Rate your confidence in key skills',
+      description: 'Skills review',
       weight: 15,
-      color: 'text-yellow-500'
+      color: 'text-orange-500'
     },
     {
       id: 'application_challenge',
-      name: 'Application Challenge',
-      icon: TrendingUp,
-      description: 'CEO performance report scenario',
+      name: 'Challenge',
+      icon: Users,
+      description: 'Final project',
       weight: 35,
       color: 'text-purple-500'
     }
@@ -133,196 +131,159 @@ export default function AssessmentSection({ moduleId, employeeId, courseContent 
     }
   };
 
-  const renderOverviewTab = () => (
-    <div className="space-y-6">
-      {/* Overall Progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Assessment Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Overall Score</span>
-              <span className="text-2xl font-bold text-primary">{overallScore}%</span>
-            </div>
-            <Progress value={overallScore} className="h-3" />
-            <div className="text-sm text-muted-foreground">
-              {assessmentTypes.filter(type => assessmentProgress[type.id]?.completed).length} of {assessmentTypes.length} assessments completed
-            </div>
+  const renderCompactOverview = () => {
+    const completedCount = assessmentTypes.filter(type => assessmentProgress[type.id]?.completed).length;
+    
+    return (
+      <div className="space-y-3">
+        {/* Progress Summary */}
+        <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Progress</span>
+            <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{overallScore}%</span>
           </div>
-        </CardContent>
-      </Card>
+          <Progress value={overallScore} className="h-2" />
+          <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            {completedCount} of {assessmentTypes.length} completed
+          </div>
+        </div>
 
-      {/* Assessment Types Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {assessmentTypes.map((type) => {
-          const progress = assessmentProgress[type.id];
-          const IconComponent = type.icon;
-          
-          return (
-            <Card key={type.id} className="hover:shadow-md transition-shadow cursor-pointer" 
-                  onClick={() => setActiveTab(type.id)}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-secondary ${type.color}`}>
-                      <IconComponent className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{type.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{type.description}</p>
-                    </div>
+        {/* Assessment List */}
+        <div className="space-y-2">
+          {assessmentTypes.map((type) => {
+            const progress = assessmentProgress[type.id];
+            const IconComponent = type.icon;
+            
+            return (
+              <button
+                key={type.id}
+                onClick={() => setActiveTab(type.id)}
+                className={cn(
+                  "w-full flex items-center justify-between p-3 rounded-lg transition-all text-left",
+                  progress?.completed 
+                    ? "bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-950/50"
+                    : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-1.5 rounded-md bg-white dark:bg-gray-900 shadow-sm", type.color)}>
+                    <IconComponent className="h-4 w-4" />
                   </div>
-                  <Badge variant={progress?.completed ? 'default' : 'secondary'}>
-                    {progress?.completed ? 'Complete' : 'Pending'}
-                  </Badge>
+                  <div>
+                    <div className="text-sm font-medium">{type.name}</div>
+                    <div className="text-xs text-muted-foreground">{type.description}</div>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Weight: {type.weight}%</span>
-                    {progress?.completed && (
-                      <span className="font-medium">
-                        Score: {progress.score}/{progress.maxScore}
-                      </span>
-                    )}
-                  </div>
-                  
+                
+                <div className="flex items-center gap-2">
                   {progress?.completed ? (
-                    <div className="space-y-2">
-                      <Progress value={(progress.score || 0) / (progress.maxScore || 100) * 100} />
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Completed {progress.lastAttempt?.toLocaleDateString()}
-                      </div>
-                    </div>
+                    <>
+                      <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                        {Math.round((progress.score || 0) / (progress.maxScore || 100) * 100)}%
+                      </span>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </>
                   ) : (
-                    <Button variant="outline" className="w-full">
-                      Start Assessment
-                    </Button>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Peer Review Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Peer Review Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold">2</div>
-              <div className="text-sm text-muted-foreground">Reviews to Complete</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">1</div>
-              <div className="text-sm text-muted-foreground">Reviews Received</div>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full mt-4" onClick={() => setActiveTab('peer_review')}>
-            View Peer Reviews
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Loading assessments...</p>
-        </div>
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Assessments</h2>
-          <p className="text-muted-foreground">
-            Complete all assessments to demonstrate your understanding
-          </p>
-        </div>
-        <Badge variant="outline" className="text-lg px-3 py-1">
-          {overallScore}% Complete
-        </Badge>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="knowledge_quiz">Quiz</TabsTrigger>
-          <TabsTrigger value="practical_exercise">Exercise</TabsTrigger>
-          <TabsTrigger value="self_assessment">Self-Check</TabsTrigger>
-          <TabsTrigger value="application_challenge">Challenge</TabsTrigger>
-          <TabsTrigger value="peer_review">Peer Review</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="mt-6">
-          {renderOverviewTab()}
-        </TabsContent>
-
-        <TabsContent value="knowledge_quiz" className="mt-6">
-          <KnowledgeCheckQuiz 
+  // If a specific assessment is selected, show it
+  if (activeTab !== 'overview') {
+    const renderActiveComponent = () => {
+      switch (activeTab) {
+        case 'knowledge_quiz':
+          return <KnowledgeCheckQuiz 
             moduleId={moduleId}
             employeeId={employeeId}
             onComplete={fetchAssessmentProgress}
             currentProgress={assessmentProgress.knowledge_quiz}
-          />
-        </TabsContent>
-
-        <TabsContent value="practical_exercise" className="mt-6">
-          <PracticalExercise 
+            onBack={() => setActiveTab('overview')}
+          />;
+        case 'practical_exercise':
+          return <PracticalExercise 
             moduleId={moduleId}
             employeeId={employeeId}
             onComplete={fetchAssessmentProgress}
             currentProgress={assessmentProgress.practical_exercise}
-          />
-        </TabsContent>
-
-        <TabsContent value="self_assessment" className="mt-6">
-          <SelfAssessmentChecklist 
+            onBack={() => setActiveTab('overview')}
+          />;
+        case 'self_assessment':
+          return <SelfAssessmentChecklist 
             moduleId={moduleId}
             employeeId={employeeId}
             onComplete={fetchAssessmentProgress}
             currentProgress={assessmentProgress.self_assessment}
-          />
-        </TabsContent>
-
-        <TabsContent value="application_challenge" className="mt-6">
-          <ApplicationChallenge 
+            onBack={() => setActiveTab('overview')}
+          />;
+        case 'application_challenge':
+          return <ApplicationChallenge 
             moduleId={moduleId}
             employeeId={employeeId}
             onComplete={fetchAssessmentProgress}
             currentProgress={assessmentProgress.application_challenge}
-          />
-        </TabsContent>
-
-        <TabsContent value="peer_review" className="mt-6">
-          <PeerReviewPanel 
+            onBack={() => setActiveTab('overview')}
+          />;
+        case 'peer_review':
+          return <PeerReviewPanel 
             moduleId={moduleId}
             employeeId={employeeId}
             onUpdate={fetchAssessmentProgress}
-          />
-        </TabsContent>
-      </Tabs>
+            onBack={() => setActiveTab('overview')}
+          />;
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setActiveTab('overview')}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Back to assessments
+          </button>
+        </div>
+        {renderActiveComponent()}
+      </div>
+    );
+  }
+
+  // Overview with compact design
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Assessments</h3>
+          <p className="text-sm text-muted-foreground">
+            Test your knowledge and skills
+          </p>
+        </div>
+        {overallScore > 0 && (
+          <Badge variant="outline" className="text-sm">
+            {overallScore}%
+          </Badge>
+        )}
+      </div>
+
+      {renderCompactOverview()}
     </div>
   );
 }

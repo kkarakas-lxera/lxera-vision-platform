@@ -354,24 +354,25 @@ export default function CourseViewer() {
     try {
       setVideoLoading(true);
       
-      // First, try to get the employee's name for the video path
+      // First, try to get the employee's name and company_id for the video path
       const { data: employeeData } = await supabase
         .from('employees')
-        .select('users!employees_user_id_fkey(full_name)')
+        .select('company_id, users!employees_user_id_fkey(full_name)')
         .eq('id', employeeId)
         .single();
 
       const employeeName = employeeData?.users?.full_name;
+      const employeeCompanyId = employeeData?.company_id;
       
-      if (!employeeName) {
-        console.log('Employee name not found, cannot fetch personalized video');
+      if (!employeeName || !employeeCompanyId) {
+        console.log('Employee name or company_id not found, cannot fetch personalized video');
         return;
       }
 
       // Query multimedia assets for videos matching this employee, module, and section
       // Use courseContent.content_id since that's what's stored in mm_multimedia_assets
       const contentIdToQuery = courseContent?.content_id || moduleId || courseId;
-      console.log(`Searching for videos with content_id: ${contentIdToQuery}, section: ${currentSection}`);
+      console.log(`Searching for videos with content_id: ${contentIdToQuery}, section: ${currentSection}, company_id: ${employeeCompanyId}`);
       
       const { data: videoAssets, error: videoError } = await supabase
         .from('mm_multimedia_assets')
@@ -379,6 +380,7 @@ export default function CourseViewer() {
         .eq('content_id', contentIdToQuery)
         .eq('asset_type', 'video')
         .eq('section_name', currentSection)
+        .eq('company_id', employeeCompanyId)
         .order('created_at', { ascending: false })
         .limit(1);
 

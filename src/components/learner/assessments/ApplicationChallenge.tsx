@@ -1,127 +1,180 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Upload, Clock, Trophy } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { TrendingUp, Upload, Clock, Trophy, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 
 interface ApplicationChallengeProps {
   moduleId: string;
   employeeId: string;
   onComplete: () => void;
   currentProgress?: any;
+  onBack?: () => void;
 }
 
-export default function ApplicationChallenge({ moduleId, employeeId, onComplete, currentProgress }: ApplicationChallengeProps) {
+export default function ApplicationChallenge({ moduleId, employeeId, onComplete, currentProgress, onBack }: ApplicationChallengeProps) {
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [uploadedTasks, setUploadedTasks] = useState<Record<number, boolean>>({});
+
+  const tasks = [
+    {
+      id: 1,
+      name: 'Data Collection',
+      weight: 30,
+      description: 'Gather sales figures, production costs, customer feedback',
+      uploadText: 'Raw data files (Excel/CSV)'
+    },
+    {
+      id: 2,
+      name: 'Analysis',
+      weight: 30,
+      description: 'Calculate profitability metrics and analyze customer sentiment',
+      uploadText: 'Analysis spreadsheet'
+    },
+    {
+      id: 3,
+      name: 'Report Creation',
+      weight: 20,
+      description: 'Comprehensive report with charts and graphs',
+      uploadText: 'Written report (PDF/Word)'
+    },
+    {
+      id: 4,
+      name: 'Presentation',
+      weight: 20,
+      description: 'PowerPoint summarizing key findings',
+      uploadText: 'Presentation file'
+    }
+  ];
+
+  const completedTasks = Object.values(uploadedTasks).filter(Boolean).length;
+  const progressPercentage = Math.round((completedTasks / tasks.length) * 100);
+
+  const toggleUpload = (taskId: number) => {
+    setUploadedTasks(prev => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Application Challenge: CEO Performance Report
-          </CardTitle>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Final Challenge</h3>
+        <div className="flex items-center gap-2 text-xs">
+          <Clock className="h-3 w-3 text-muted-foreground" />
+          <span className="text-muted-foreground">3 days left</span>
+        </div>
+      </div>
+
+      {/* Compact Badges */}
+      <div className="flex gap-2">
+        <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-xs">
+          <Trophy className="h-3 w-3 mr-1" />
+          40% weight
+        </Badge>
+        <Badge variant="outline" className="text-xs">
+          Attempt 1/2
+        </Badge>
+      </div>
+
+      <Progress value={progressPercentage} className="h-2" />
+
+      {/* Compact Scenario */}
+      <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-3">
+        <div className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">Scenario</div>
+        <div className="text-sm text-purple-600 dark:text-purple-400">
+          Analyze newly launched product performance and create a CEO presentation
+        </div>
+      </div>
+
+      {/* Progressive Disclosure - Tasks */}
+      <div className="space-y-2">
+        {tasks.map((task) => (
+          <div key={task.id} className="border rounded-lg">
+            <button
+              onClick={() => setExpandedSections(prev => ({ ...prev, [`task-${task.id}`]: !prev[`task-${task.id}`] }))}
+              className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            >
+              <div className="flex items-center gap-3">
+                {uploadedTasks[task.id] ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <div className="h-4 w-4 rounded-full border-2 border-gray-300"></div>
+                )}
+                <span className="text-sm font-medium">{task.id}. {task.name}</span>
+                <Badge variant="outline" className="text-xs px-1 py-0">
+                  {task.weight}%
+                </Badge>
+              </div>
+              {expandedSections[`task-${task.id}`] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            
+            {expandedSections[`task-${task.id}`] && (
+              <div className="px-3 pb-3 space-y-3 border-t">
+                <div className="text-sm text-muted-foreground">
+                  {task.description}
+                </div>
+                
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center">
+                  <button
+                    onClick={() => toggleUpload(task.id)}
+                    className="w-full"
+                  >
+                    {uploadedTasks[task.id] ? (
+                      <div className="text-green-600">
+                        <CheckCircle className="h-5 w-5 mx-auto mb-1" />
+                        <div className="text-xs">Uploaded</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+                        <div className="text-xs text-muted-foreground">{task.uploadText}</div>
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Progressive Disclosure - Rubric */}
+      <div className="border rounded-lg">
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, rubric: !prev.rubric }))}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        >
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm">Due in 3 days</span>
+            <TrendingUp className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-medium">Scoring Rubric</span>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Badge className="bg-purple-100 text-purple-700">
-            <Trophy className="h-3 w-3 mr-1" />
-            40% of Final Grade
-          </Badge>
-          <Badge variant="outline">1 of 2 attempts</Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg">
-          <h3 className="font-medium text-purple-700 dark:text-purple-300 mb-2">📋 Scenario:</h3>
-          <p className="text-sm text-purple-600 dark:text-purple-400">
-            You are an analyst at a mid-sized company. The CEO wants a report on the performance 
-            of a newly launched product. Your task is to analyze sales, costs, and market reception 
-            over the first quarter and prepare a presentation for the next board meeting.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <h4 className="font-medium">📝 Required Tasks:</h4>
-          
-          <div className="space-y-3">
-            <div className="border rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">1️⃣ Data Collection (30%)</span>
-                <Badge variant="outline">Pending</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Gather sales figures, production costs, customer feedback
-              </p>
-              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Upload: Raw data files (Excel/CSV)</p>
-              </div>
-            </div>
-
-            <div className="border rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">2️⃣ Analysis (30%)</span>
-                <Badge variant="outline">Pending</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Calculate profitability metrics and analyze customer sentiment
-              </p>
-              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Upload: Analysis spreadsheet</p>
-              </div>
-            </div>
-
-            <div className="border rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">3️⃣ Report Creation (20%)</span>
-                <Badge variant="outline">Pending</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Comprehensive report with charts and graphs
-              </p>
-              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Upload: Written report (PDF/Word)</p>
-              </div>
-            </div>
-
-            <div className="border rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">4️⃣ Presentation (20%)</span>
-                <Badge variant="outline">Pending</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                PowerPoint summarizing key findings
-              </p>
-              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Upload: Presentation file</p>
-              </div>
+          {expandedSections.rubric ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        
+        {expandedSections.rubric && (
+          <div className="px-3 pb-3 border-t">
+            <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div>Data Accuracy: 30%</div>
+              <div>Analytical Depth: 30%</div>
+              <div>Report Clarity: 20%</div>
+              <div>Presentation: 20%</div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="bg-amber-50 dark:bg-amber-950 p-4 rounded-lg">
-          <h4 className="font-medium text-amber-700 dark:text-amber-300 mb-2">📊 Scoring Rubric:</h4>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>Data Accuracy: 30%</div>
-            <div>Analytical Depth: 30%</div>
-            <div>Clarity of Report: 20%</div>
-            <div>Effectiveness of Presentation: 20%</div>
-          </div>
-        </div>
-
-        <div className="flex gap-3 justify-center">
-          <Button variant="outline">Save Draft</Button>
-          <Button variant="outline">Request Extension</Button>
-          <Button>Submit for Review</Button>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Compact Actions */}
+      <div className="flex gap-2 pt-2">
+        <Button onClick={onBack} variant="outline" size="sm">
+          Back
+        </Button>
+        <Button variant="outline" size="sm">
+          Save Draft
+        </Button>
+        <Button size="sm" className="flex-1" disabled={progressPercentage < 100}>
+          Submit for Review
+        </Button>
+      </div>
+    </div>
   );
 }

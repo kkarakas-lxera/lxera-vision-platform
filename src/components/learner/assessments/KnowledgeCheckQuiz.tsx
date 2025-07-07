@@ -13,7 +13,8 @@ import {
   Lightbulb,
   ArrowLeft,
   ArrowRight,
-  RotateCcw 
+  RotateCcw,
+  ChevronDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ interface KnowledgeCheckQuizProps {
   employeeId: string;
   onComplete: () => void;
   currentProgress?: any;
+  onBack?: () => void;
 }
 
 // Sample quiz data - in production this would come from database
@@ -97,7 +99,7 @@ const quizQuestions: QuizQuestion[] = [
   }
 ];
 
-export default function KnowledgeCheckQuiz({ moduleId, employeeId, onComplete, currentProgress }: KnowledgeCheckQuizProps) {
+export default function KnowledgeCheckQuiz({ moduleId, employeeId, onComplete, currentProgress, onBack }: KnowledgeCheckQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [confidenceLevels, setConfidenceLevels] = useState<Record<number, number>>({});
@@ -213,194 +215,193 @@ export default function KnowledgeCheckQuiz({ moduleId, employeeId, onComplete, c
 
   if (showResults) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Quiz Results
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center space-y-4">
-            <div className="text-4xl font-bold text-primary">{score}%</div>
-            <Badge variant={score >= 80 ? 'default' : score >= 60 ? 'secondary' : 'destructive'}>
-              {score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : 'Needs Improvement'}
-            </Badge>
-            <Progress value={score} className="h-3" />
+      <div className="space-y-4">
+        {/* Compact Results Header */}
+        <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Quiz Complete</h3>
+            <div className="text-2xl font-bold text-green-700 dark:text-green-300">{score}%</div>
           </div>
+          <Progress value={score} className="h-2" />
+          <div className="text-sm text-green-600 dark:text-green-400 mt-2">
+            {Math.round(score/20)} of 5 questions correct
+          </div>
+        </div>
 
-          <div className="space-y-4">
-            {quizQuestions.map((question, index) => {
-              const userAnswer = answers[question.id];
-              const isCorrect = userAnswer === question.correctAnswer;
-              const confidence = confidenceLevels[question.id] || 50;
-              
-              return (
-                <Card key={question.id} className="border-l-4 border-l-primary">
-                  <CardContent className="pt-4">
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        {isCorrect ? (
-                          <CheckCircle className="h-5 w-5 text-green-500 mt-1" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-500 mt-1" />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-medium">Question {index + 1}</p>
-                          <p className="text-sm">{question.question}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-8 space-y-2">
-                        <p className="text-sm">
-                          <span className="font-medium">Your answer:</span> {userAnswer}) {question.options.find(o => o.id === userAnswer)?.text}
-                        </p>
-                        {!isCorrect && (
-                          <p className="text-sm text-green-600">
-                            <span className="font-medium">Correct answer:</span> {question.correctAnswer}) {question.options.find(o => o.id === question.correctAnswer)?.text}
-                          </p>
-                        )}
-                        <p className="text-sm text-muted-foreground">
-                          <span className="font-medium">Your confidence:</span> {confidence}%
-                          {Math.abs(confidence - (isCorrect ? 100 : 0)) < 30 && (
-                            <Badge variant="outline" className="ml-2">Good calibration</Badge>
-                          )}
-                        </p>
-                        <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                          <div className="flex items-start gap-2">
-                            <Lightbulb className="h-4 w-4 text-blue-500 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Explanation:</p>
-                              <p className="text-sm text-blue-600 dark:text-blue-400">{question.explanation}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+        {/* Progressive Disclosure of Results */}
+        <div className="space-y-2">
+          {quizQuestions.map((question, index) => {
+            const userAnswer = answers[question.id];
+            const isCorrect = userAnswer === question.correctAnswer;
+            const [expanded, setExpanded] = useState(false);
+            
+            return (
+              <div key={question.id} className="border rounded-lg">
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                >
+                  <div className="flex items-center gap-3">
+                    {isCorrect ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className="text-sm font-medium">Question {index + 1}</span>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {expanded && (
+                  <div className="px-3 pb-3 space-y-3 border-t">
+                    <p className="text-sm text-muted-foreground">{question.question}</p>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="font-medium">Your answer:</span> {userAnswer}) {question.options.find(o => o.id === userAnswer)?.text}</p>
+                      {!isCorrect && (
+                        <p className="text-green-600"><span className="font-medium">Correct:</span> {question.correctAnswer}) {question.options.find(o => o.id === question.correctAnswer)?.text}</p>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    <div className="bg-blue-50 dark:bg-blue-950/50 p-2 rounded text-sm">
+                      <p className="text-blue-700 dark:text-blue-300">{question.explanation}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-          <div className="flex gap-3 justify-center">
-            <Button onClick={resetQuiz} variant="outline">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Retake Quiz
-            </Button>
-            <Button onClick={onComplete}>
-              Continue to Next Assessment
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex gap-2 pt-2">
+          <Button onClick={resetQuiz} variant="outline" size="sm">
+            Retake
+          </Button>
+          <Button onClick={onBack} variant="outline" size="sm">
+            Back
+          </Button>
+          <Button onClick={onComplete} size="sm" className="flex-1">
+            Continue
+          </Button>
+        </div>
+      </div>
     );
   }
 
   const question = quizQuestions[currentQuestion];
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Knowledge Check Quiz
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm">Question {currentQuestion + 1} of {quizQuestions.length}</span>
-          </div>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Knowledge Quiz</h3>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{currentQuestion + 1}/{quizQuestions.length}</span>
         </div>
-        <Progress value={(currentQuestion + 1) / quizQuestions.length * 100} className="h-2" />
-      </CardHeader>
+      </div>
       
-      <CardContent className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium mb-4">{question.question}</h3>
-          
-          <div className="space-y-3">
-            {question.options.map((option) => (
-              <label
-                key={option.id}
-                className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  answers[question.id] === option.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-accent'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  value={option.id}
-                  checked={answers[question.id] === option.id}
-                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                  className="text-primary"
-                />
-                <span className="font-medium">{option.id})</span>
-                <span>{option.text}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+      <Progress value={(currentQuestion + 1) / quizQuestions.length * 100} className="h-2" />
 
-        {/* Confidence Level */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">
-            Confidence Level: {confidenceLevels[question.id] || 50}%
-          </label>
-          <Slider
-            value={[confidenceLevels[question.id] || 50]}
-            onValueChange={(value) => handleConfidenceChange(question.id, value[0])}
-            max={100}
-            step={10}
-            className="w-full"
-          />
-        </div>
-
-        {/* Notes */}
+      {/* Question */}
+      <div className="space-y-3">
+        <p className="text-sm font-medium">{question.question}</p>
+        
         <div className="space-y-2">
-          <label className="text-sm font-medium">Notes (Optional)</label>
-          <Textarea
-            placeholder="Add your thoughts or reasoning..."
-            value={notes[question.id] || ''}
-            onChange={(e) => handleNoteChange(question.id, e.target.value)}
-            rows={3}
-          />
+          {question.options.map((option) => (
+            <label
+              key={option.id}
+              className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors text-sm ${
+                answers[question.id] === option.id
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                  : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+              }`}
+            >
+              <input
+                type="radio"
+                name={`question-${question.id}`}
+                value={option.id}
+                checked={answers[question.id] === option.id}
+                onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                className="mt-0.5"
+              />
+              <span className="font-medium text-xs">{option.id})</span>
+              <span className="flex-1">{option.text}</span>
+            </label>
+          ))}
         </div>
+      </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={previousQuestion}
-            disabled={currentQuestion === 0}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Previous
-          </Button>
+      {/* Progressive Disclosure for Advanced Features */}
+      {answers[question.id] && (
+        <div className="space-y-3 pt-2 border-t">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Confidence: {confidenceLevels[question.id] || 50}%
+            </label>
+            <Slider
+              value={[confidenceLevels[question.id] || 50]}
+              onValueChange={(value) => handleConfidenceChange(question.id, value[0])}
+              max={100}
+              step={10}
+              className="w-full"
+            />
+          </div>
 
-          <div className="flex gap-2">
-            {currentQuestion === quizQuestions.length - 1 ? (
-              <Button
-                onClick={submitQuiz}
-                disabled={!allQuestionsAnswered() || loading}
-                className="min-w-[120px]"
-              >
-                {loading ? 'Submitting...' : 'Submit Quiz'}
-              </Button>
-            ) : (
-              <Button
-                onClick={nextQuestion}
-                disabled={currentQuestion === quizQuestions.length - 1}
-              >
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            )}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Notes (optional)</label>
+            <Textarea
+              placeholder="Quick thoughts..."
+              value={notes[question.id] || ''}
+              onChange={(e) => handleNoteChange(question.id, e.target.value)}
+              rows={2}
+              className="text-sm"
+            />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Compact Navigation */}
+      <div className="flex items-center justify-between pt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={previousQuestion}
+          disabled={currentQuestion === 0}
+        >
+          ← Prev
+        </Button>
+
+        <div className="flex gap-1">
+          {quizQuestions.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full ${
+                index === currentQuestion
+                  ? 'bg-blue-500'
+                  : answers[quizQuestions[index].id]
+                  ? 'bg-green-500'
+                  : 'bg-gray-300'
+              }`}
+            />
+          ))}
+        </div>
+
+        {currentQuestion === quizQuestions.length - 1 ? (
+          <Button
+            size="sm"
+            onClick={submitQuiz}
+            disabled={!allQuestionsAnswered() || loading}
+          >
+            {loading ? 'Submitting...' : 'Submit'}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            onClick={nextQuestion}
+            disabled={!answers[question.id]}
+          >
+            Next →
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

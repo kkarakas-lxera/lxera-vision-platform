@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +13,9 @@ import {
   AlertCircle,
   Lightbulb,
   BookOpen,
-  Users 
+  Users,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ interface SelfAssessmentChecklistProps {
   employeeId: string;
   onComplete: () => void;
   currentProgress?: any;
+  onBack?: () => void;
 }
 
 // Self-assessment checklist items
@@ -74,12 +76,13 @@ const categories = [
   { id: 'Communication', icon: Users, color: 'text-orange-500' }
 ];
 
-export default function SelfAssessmentChecklist({ moduleId, employeeId, onComplete, currentProgress }: SelfAssessmentChecklistProps) {
+export default function SelfAssessmentChecklist({ moduleId, employeeId, onComplete, currentProgress, onBack }: SelfAssessmentChecklistProps) {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [confidenceLevels, setConfidenceLevels] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // Load existing progress if available
@@ -190,85 +193,89 @@ export default function SelfAssessmentChecklist({ moduleId, employeeId, onComple
     const improvements = getAreasForImprovement();
 
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Self-Assessment Complete
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="text-3xl font-bold text-primary">{overallConfidence}%</div>
-                <div className="text-sm text-muted-foreground">Overall Confidence</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-green-600">{getCompletionPercentage()}%</div>
-                <div className="text-sm text-muted-foreground">Skills Mastered</div>
-              </div>
+      <div className="space-y-3">
+        {/* Compact Results */}
+        <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-sm font-semibold text-green-900 dark:text-green-100">Complete</span>
             </div>
-            <Progress value={overallConfidence} className="h-3" />
-          </CardContent>
-        </Card>
+            <span className="text-lg font-bold text-green-700 dark:text-green-300">{overallConfidence}%</span>
+          </div>
+          <Progress value={overallConfidence} className="h-2" />
+          <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+            {getCompletionPercentage()}% of skills assessed
+          </div>
+        </div>
 
+        {/* Progressive Disclosure - Strengths */}
         {strengths.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-500" />
-                Your Strengths
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+          <div className="border rounded-lg">
+            <button
+              onClick={() => setExpandedCategories(prev => ({ ...prev, strengths: !prev.strengths }))}
+              className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            >
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium">Strengths ({strengths.length})</span>
+              </div>
+              {expandedCategories.strengths ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {expandedCategories.strengths && (
+              <div className="px-3 pb-3 space-y-2 border-t">
                 {strengths.map(item => (
-                  <div key={item.id} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">{item.statement}</span>
-                    <Badge variant="outline">{confidenceLevels[item.id]}% confidence</Badge>
+                  <div key={item.id} className="flex items-center gap-2 text-xs">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span className="flex-1">{item.statement}</span>
+                    <Badge variant="outline" className="text-xs px-1 py-0">{confidenceLevels[item.id]}%</Badge>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         )}
 
+        {/* Progressive Disclosure - Improvements */}
         {improvements.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-orange-500" />
-                Areas for Improvement
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+          <div className="border rounded-lg">
+            <button
+              onClick={() => setExpandedCategories(prev => ({ ...prev, improvements: !prev.improvements }))}
+              className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            >
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium">Areas to improve ({improvements.length})</span>
+              </div>
+              {expandedCategories.improvements ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {expandedCategories.improvements && (
+              <div className="px-3 pb-3 space-y-2 border-t">
                 {improvements.map(item => (
-                  <div key={item.id} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm">{item.statement}</span>
+                  <div key={item.id} className="text-xs">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle className="h-3 w-3 text-orange-500" />
+                      <span>{item.statement}</span>
                     </div>
-                    <div className="ml-6 p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
-                        <strong>Recommendation:</strong> {getRecommendation(item.category)}
-                      </p>
+                    <div className="ml-5 p-2 bg-orange-50 dark:bg-orange-950/50 rounded text-orange-700 dark:text-orange-300">
+                      {getRecommendation(item.category)}
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         )}
 
-        <div className="flex gap-3 justify-center">
-          <Button onClick={resetAssessment} variant="outline">
-            Retake Assessment
+        <div className="flex gap-2 pt-2">
+          <Button onClick={resetAssessment} variant="outline" size="sm">
+            Retake
           </Button>
-          <Button onClick={onComplete}>
-            Continue to Next Assessment
+          <Button onClick={onBack} variant="outline" size="sm">
+            Back
+          </Button>
+          <Button onClick={onComplete} size="sm" className="flex-1">
+            Continue
           </Button>
         </div>
       </div>
@@ -290,113 +297,126 @@ export default function SelfAssessmentChecklist({ moduleId, employeeId, onComple
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Self-Assessment Checklist
-        </CardTitle>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Rate your confidence and competency in each area</span>
-          <span>{Object.values(checkedItems).filter(Boolean).length} of {assessmentItems.length} completed</span>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Self-Assessment</h3>
+        <div className="text-xs text-muted-foreground">
+          {Object.values(checkedItems).filter(Boolean).length}/{assessmentItems.length}
         </div>
-        <Progress value={getCompletionPercentage()} className="h-2" />
-      </CardHeader>
+      </div>
       
-      <CardContent className="space-y-6">
+      <Progress value={getCompletionPercentage()} className="h-2" />
+
+      {/* Compact Categories with Progressive Disclosure */}
+      <div className="space-y-2">
         {categories.map(category => {
           const categoryItems = assessmentItems.filter(item => item.category === category.id);
           const IconComponent = category.icon;
+          const isExpanded = expandedCategories[category.id];
+          const categoryProgress = categoryItems.filter(item => checkedItems[item.id]).length;
           
           return (
-            <div key={category.id} className="space-y-4">
-              <div className="flex items-center gap-2">
-                <IconComponent className={`h-5 w-5 ${category.color}`} />
-                <h3 className="font-medium">{category.id}</h3>
-              </div>
+            <div key={category.id} className="border rounded-lg">
+              <button
+                onClick={() => setExpandedCategories(prev => ({ ...prev, [category.id]: !prev[category.id] }))}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              >
+                <div className="flex items-center gap-3">
+                  <IconComponent className={`h-4 w-4 ${category.color}`} />
+                  <span className="text-sm font-medium">{category.id}</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {categoryProgress}/{categoryItems.length}
+                  </Badge>
+                </div>
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
               
-              <div className="space-y-4 ml-7">
-                {categoryItems.map(item => (
-                  <div key={item.id} className="space-y-3 p-4 border rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        id={item.id}
-                        checked={checkedItems[item.id] || false}
-                        onCheckedChange={(checked) => handleItemCheck(item.id, !!checked)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 space-y-2">
-                        <label htmlFor={item.id} className="text-sm font-medium cursor-pointer">
-                          {item.statement}
-                        </label>
-                        {item.importance === 'high' && (
-                          <Badge variant="destructive" className="text-xs">High Priority</Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {checkedItems[item.id] && (
-                      <div className="ml-6 space-y-3">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Confidence Level: {confidenceLevels[item.id] || 50}%
+              {isExpanded && (
+                <div className="px-3 pb-3 space-y-3 border-t">
+                  {categoryItems.map(item => (
+                    <div key={item.id} className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id={item.id}
+                          checked={checkedItems[item.id] || false}
+                          onCheckedChange={(checked) => handleItemCheck(item.id, !!checked)}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor={item.id} className="text-sm cursor-pointer block">
+                            {item.statement}
                           </label>
-                          <Slider
-                            value={[confidenceLevels[item.id] || 50]}
-                            onValueChange={(value) => handleConfidenceChange(item.id, value[0])}
-                            max={100}
-                            step={10}
-                            className="w-full"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Personal Notes</label>
-                          <Textarea
-                            placeholder="Add your thoughts, examples, or areas you want to improve..."
-                            value={notes[item.id] || ''}
-                            onChange={(e) => handleNoteChange(item.id, e.target.value)}
-                            rows={2}
-                          />
+                          {item.importance === 'high' && (
+                            <Badge variant="destructive" className="text-xs mt-1">Key Skill</Badge>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      
+                      {checkedItems[item.id] && (
+                        <div className="ml-6 space-y-2 pt-2 border-t">
+                          <div>
+                            <label className="text-xs text-muted-foreground">
+                              Confidence: {confidenceLevels[item.id] || 50}%
+                            </label>
+                            <Slider
+                              value={[confidenceLevels[item.id] || 50]}
+                              onValueChange={(value) => handleConfidenceChange(item.id, value[0])}
+                              max={100}
+                              step={10}
+                              className="w-full mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Textarea
+                              placeholder="Quick notes..."
+                              value={notes[item.id] || ''}
+                              onChange={(e) => handleNoteChange(item.id, e.target.value)}
+                              rows={2}
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
+      </div>
 
-        {getCompletionPercentage() > 0 && (
-          <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-4">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="h-5 w-5 text-blue-500 mt-1" />
-                <div>
-                  <h4 className="font-medium text-blue-700 dark:text-blue-300">Progress Summary</h4>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                    Overall Confidence: {calculateOverallConfidence()}%
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    {getCompletionPercentage() === 100 ? 'Ready to submit!' : `${getCompletionPercentage()}% of skills assessed`}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex justify-center">
-          <Button
-            onClick={submitAssessment}
-            disabled={getCompletionPercentage() === 0 || loading}
-            className="min-w-[200px]"
-          >
-            {loading ? 'Submitting...' : 'Submit Self-Assessment'}
-          </Button>
+      {/* Compact Progress Summary */}
+      {getCompletionPercentage() > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Lightbulb className="h-4 w-4 text-blue-500" />
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Progress: {calculateOverallConfidence()}% confidence
+            </span>
+          </div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">
+            {getCompletionPercentage() === 100 ? 'Ready to submit!' : `${getCompletionPercentage()}% complete`}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Compact Actions */}
+      <div className="flex gap-2 pt-2">
+        <Button onClick={onBack} variant="outline" size="sm">
+          Back
+        </Button>
+        <Button
+          onClick={submitAssessment}
+          disabled={getCompletionPercentage() === 0 || loading}
+          size="sm"
+          className="flex-1"
+        >
+          {loading ? 'Saving...' : 'Submit'}
+        </Button>
+      </div>
+    </div>
   );
 }

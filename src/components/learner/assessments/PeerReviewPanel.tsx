@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   Users, 
   Eye, 
@@ -10,17 +9,20 @@ import {
   Clock, 
   CheckCircle, 
   Star,
-  Download 
+  Download,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface PeerReviewPanelProps {
   moduleId: string;
   employeeId: string;
   onUpdate: () => void;
+  onBack?: () => void;
 }
 
-export default function PeerReviewPanel({ moduleId, employeeId, onUpdate }: PeerReviewPanelProps) {
-  const [activeTab, setActiveTab] = useState('to_review');
+export default function PeerReviewPanel({ moduleId, employeeId, onUpdate, onBack }: PeerReviewPanelProps) {
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const mockReviewsToComplete = [
     {
@@ -51,162 +53,155 @@ export default function PeerReviewPanel({ moduleId, employeeId, onUpdate }: Peer
     }
   ];
 
-  const renderToReviewTab = () => (
-    <div className="space-y-4">
-      {mockReviewsToComplete.length === 0 ? (
-        <div className="text-center py-8">
-          <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No peer reviews assigned at this time.</p>
-        </div>
-      ) : (
-        mockReviewsToComplete.map((review) => (
-          <Card key={review.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="pt-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">{review.studentName}</span>
-                    <Badge variant="outline">{review.type}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{review.assignment}</p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-orange-500" />
-                    <span className="text-orange-600">Due: {review.dueDate}</span>
-                  </div>
-                </div>
-                <Button size="sm">Start Review</Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
-  );
-
-  const renderReceivedTab = () => (
-    <div className="space-y-4">
-      {mockReceivedReviews.length === 0 ? (
-        <div className="text-center py-8">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No reviews received yet.</p>
-        </div>
-      ) : (
-        mockReceivedReviews.map((review) => (
-          <Card key={review.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Review from {review.reviewerName}</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="font-medium">{review.score}/{review.maxScore}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{review.assignment}</span>
-                <span>•</span>
-                <span>{review.completedAt}</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-medium mb-2">Feedback:</h4>
-                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-                    {review.feedback}
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  View Full Review
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
-  );
-
-  const renderPendingTab = () => (
-    <div className="space-y-4">
-      <div className="text-center py-8">
-        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <p className="text-muted-foreground mb-2">2 reviews pending</p>
-        <p className="text-sm text-muted-foreground">
-          Your submitted assessments are being reviewed by peers
-        </p>
-      </div>
-      
-      <div className="space-y-2">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Application Challenge</p>
-                <p className="text-sm text-muted-foreground">Submitted 3 days ago</p>
-              </div>
-              <Badge variant="secondary">Under Review</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Self-Assessment</p>
-                <p className="text-sm text-muted-foreground">Submitted 1 day ago</p>
-              </div>
-              <Badge variant="secondary">Under Review</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Peer Review Center
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Collaborate with peers to provide and receive feedback on assessments
-        </p>
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="to_review" className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              To Review ({mockReviewsToComplete.length})
-            </TabsTrigger>
-            <TabsTrigger value="received" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Received ({mockReceivedReviews.length})
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Pending (2)
-            </TabsTrigger>
-          </TabsList>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Peer Reviews</h3>
+        <div className="flex items-center gap-1 text-xs">
+          <Badge variant="outline" className="text-xs px-1 py-0">2 to do</Badge>
+          <Badge variant="outline" className="text-xs px-1 py-0">1 received</Badge>
+        </div>
+      </div>
 
-          <TabsContent value="to_review" className="mt-4">
-            {renderToReviewTab()}
-          </TabsContent>
+      {/* To Review Section */}
+      <div className="border rounded-lg">
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, toReview: !prev.toReview }))}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-blue-500" />
+            <span className="text-sm font-medium">To Review ({mockReviewsToComplete.length})</span>
+          </div>
+          {expandedSections.toReview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        
+        {expandedSections.toReview && (
+          <div className="px-3 pb-3 space-y-2 border-t">
+            {mockReviewsToComplete.length === 0 ? (
+              <div className="text-center py-4">
+                <Users className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">No reviews assigned</p>
+              </div>
+            ) : (
+              mockReviewsToComplete.map((review) => (
+                <div key={review.id} className="border rounded-lg p-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium">{review.studentName}</span>
+                        <Badge variant="outline" className="text-xs px-1 py-0">{review.type}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-1">{review.assignment}</p>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Clock className="h-3 w-3 text-orange-500" />
+                        <span className="text-orange-600">Due: {review.dueDate}</span>
+                      </div>
+                    </div>
+                    <Button size="sm" className="text-xs px-2 py-1 h-auto">Start</Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
-          <TabsContent value="received" className="mt-4">
-            {renderReceivedTab()}
-          </TabsContent>
+      {/* Received Reviews Section */}
+      <div className="border rounded-lg">
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, received: !prev.received }))}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-medium">Received ({mockReceivedReviews.length})</span>
+          </div>
+          {expandedSections.received ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        
+        {expandedSections.received && (
+          <div className="px-3 pb-3 space-y-2 border-t">
+            {mockReceivedReviews.length === 0 ? (
+              <div className="text-center py-4">
+                <MessageSquare className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">No reviews received yet</p>
+              </div>
+            ) : (
+              mockReceivedReviews.map((review) => (
+                <div key={review.id} className="border rounded-lg p-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{review.reviewerName}</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 text-yellow-500" />
+                        <span className="text-xs font-medium">{review.score}/{review.maxScore}</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{review.completedAt}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{review.assignment}</p>
+                  <div className="bg-muted p-2 rounded text-xs mb-2">
+                    {review.feedback.length > 100 ? `${review.feedback.substring(0, 100)}...` : review.feedback}
+                  </div>
+                  <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                    View Full
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
-          <TabsContent value="pending" className="mt-4">
-            {renderPendingTab()}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+      {/* Pending Reviews Section */}
+      <div className="border rounded-lg">
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, pending: !prev.pending }))}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-medium">Pending (2)</span>
+          </div>
+          {expandedSections.pending ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        
+        {expandedSections.pending && (
+          <div className="px-3 pb-3 space-y-2 border-t">
+            <div className="border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Application Challenge</p>
+                  <p className="text-xs text-muted-foreground">Submitted 3 days ago</p>
+                </div>
+                <Badge variant="secondary" className="text-xs">Under Review</Badge>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Self-Assessment</p>
+                  <p className="text-xs text-muted-foreground">Submitted 1 day ago</p>
+                </div>
+                <Badge variant="secondary" className="text-xs">Under Review</Badge>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Compact Actions */}
+      <div className="flex gap-2 pt-2">
+        <Button onClick={onBack} variant="outline" size="sm">
+          Back
+        </Button>
+        <Button size="sm" className="flex-1" disabled>
+          All Reviews Complete
+        </Button>
+      </div>
+    </div>
   );
 }
