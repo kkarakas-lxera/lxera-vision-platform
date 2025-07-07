@@ -23,16 +23,93 @@ except ImportError as e:
     logger.warning(f"ContentEssenceExtractor not available: {e}")
     ESSENCE_EXTRACTOR_AVAILABLE = False
 
+# HumanNarrationGenerator completely removed - it was creating gibberish transitions
+
+# Import fix modules
 try:
-    from .human_narration_generator import HumanNarrationGenerator
-    HUMAN_NARRATION_AVAILABLE = True
+    import sys
+    import os
+    # Add parent directory to path for imports
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    
+    from fix_learning_objectives import LearningObjectiveGenerator
+    LEARNING_OBJECTIVE_FIX_AVAILABLE = True
 except ImportError as e:
-    logger.warning(f"HumanNarrationGenerator not available: {e}")
-    HUMAN_NARRATION_AVAILABLE = False
+    logger.warning(f"LearningObjectiveGenerator not available: {e}")
+    LEARNING_OBJECTIVE_FIX_AVAILABLE = False
+
+try:
+    from fix_slide6_enhancement import Slide6EnhancementFix
+    SLIDE6_FIX_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Slide6EnhancementFix not available: {e}")
+    SLIDE6_FIX_AVAILABLE = False
+
+try:
+    from fix_gpt4_trust import GPT4TrustEnhancement
+    GPT4_TRUST_FIX_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"GPT4TrustEnhancement not available: {e}")
+    GPT4_TRUST_FIX_AVAILABLE = False
+
+@dataclass
+class SlideContentPlan:
+    """Enhanced planning structure for slide content"""
+    slide_title: str
+    main_content: str
+    bullet_points: List[str]
+    speaker_notes: str
+    visual_context: str
+    duration_estimate: float
+    
+    def to_slide_content(self, slide_number: int) -> 'SlideContent':
+        """Convert plan to SlideContent"""
+        return SlideContent(
+            slide_number=slide_number,
+            title=self.slide_title,
+            bullet_points=self.bullet_points,
+            speaker_notes=self.speaker_notes,
+            duration_estimate=self.duration_estimate,
+            visual_cues=[self.visual_context] if self.visual_context else [],
+            main_content=self.main_content  # Store main content
+        )
+
+@dataclass
+class ContentDistributionResult:
+    """Result of content distribution across slides"""
+    slides: List[SlideContentPlan]
+    total_duration: float
+    content_coverage: float  # Percentage of original content covered
+    distribution_quality: str  # 'optimal', 'good', 'acceptable'
+    warnings: List[str] = field(default_factory=list)
+    
+    def validate(self) -> bool:
+        """Validate the content distribution"""
+        if not self.slides:
+            self.warnings.append("No slides generated")
+            return False
+        
+        # Check for duplicate content
+        seen_titles = set()
+        for slide in self.slides:
+            if slide.slide_title in seen_titles:
+                self.warnings.append(f"Duplicate slide title: {slide.slide_title}")
+                return False
+            seen_titles.add(slide.slide_title)
+            
+        # Check for empty content
+        for i, slide in enumerate(self.slides):
+            if not slide.main_content or not slide.speaker_notes:
+                self.warnings.append(f"Slide {i+1} has empty content")
+                return False
+                
+        return True
 
 @dataclass
 class SlideContent:
-    """Content for a single slide"""
+    """Enhanced content for a single slide with richer content"""
     slide_number: int
     title: str
     bullet_points: List[str]
@@ -42,6 +119,8 @@ class SlideContent:
     emphasis_points: List[str] = field(default_factory=list)
     slide_id: str = field(default_factory=lambda: f"slide_{int(datetime.now().timestamp())}")
     timing_cues: List[str] = field(default_factory=list)
+    main_content: str = ""  # New field for preserving main content
+    visual_context: str = ""  # New field for visual context preservation
 
 @dataclass
 class EducationalScript:
@@ -86,7 +165,260 @@ class EducationalScriptGenerator:
         
         # Initialize enhanced components (if available)
         self.essence_extractor = ContentEssenceExtractor() if ESSENCE_EXTRACTOR_AVAILABLE else None
-        self.narration_generator = HumanNarrationGenerator() if HUMAN_NARRATION_AVAILABLE else None
+        
+        # Initialize fix components
+        self.learning_objective_generator = None
+        if LEARNING_OBJECTIVE_FIX_AVAILABLE:
+            self.learning_objective_generator = LearningObjectiveGenerator()
+            logger.info("LearningObjectiveGenerator initialized")
+        
+        self.slide6_enhancer = None
+        if SLIDE6_FIX_AVAILABLE:
+            self.slide6_enhancer = Slide6EnhancementFix()
+            logger.info("Slide6EnhancementFix initialized")
+        
+        self.gpt4_trust_enhancer = None
+        if GPT4_TRUST_FIX_AVAILABLE:
+            self.gpt4_trust_enhancer = GPT4TrustEnhancement()
+            # Patch validation methods
+            self.gpt4_trust_enhancer.patch_validation_methods(self)
+            logger.info("GPT4TrustEnhancement initialized and patched")
+        
+        # Track generated content for validation
+        self._generated_content_cache = set()
+        self._slide_title_cache = set()
+        self._is_processing_gpt4 = False  # Flag for GPT-4 trust enhancement
+        
+        # Store module name and slides for enhancements
+        self.module_name = None
+        self.slides = []
+        
+    def _validate_content_uniqueness_v2(self, content: str, content_type: str = "general") -> bool:
+        """
+        Validate that content is unique and not duplicate
+        
+        Args:
+            content: Content to validate
+            content_type: Type of content (slide_title, narration, etc.)
+            
+        Returns:
+            bool: True if content is unique, False if duplicate
+        """
+        # Normalize content for comparison
+        normalized_content = content.strip().lower()
+        
+        # Check for empty content
+        if not normalized_content:
+            logger.warning(f"Empty {content_type} content detected")
+            return False
+            
+        # Check for placeholder content
+        placeholder_patterns = [
+            "insert content here",
+            "add details",
+            "to be determined",
+            "placeholder",
+            "[content]",
+            "..."
+        ]
+        
+        for pattern in placeholder_patterns:
+            if pattern in normalized_content:
+                logger.warning(f"Placeholder content detected in {content_type}: {pattern}")
+                return False
+        
+        # Check uniqueness
+        content_hash = f"{content_type}:{normalized_content}"
+        if content_hash in self._generated_content_cache:
+            logger.warning(f"Duplicate {content_type} content detected: {content[:50]}...")
+            return False
+            
+        # Add to cache if unique
+        self._generated_content_cache.add(content_hash)
+        return True
+        
+    def _validate_slide_content_match(self, slide: SlideContent) -> bool:
+        """
+        Validate that slide content matches its title and is coherent
+        
+        Args:
+            slide: SlideContent object to validate
+            
+        Returns:
+            bool: True if content is valid and matches title
+        """
+        # Check basic requirements
+        if not slide.title or not slide.speaker_notes:
+            logger.warning(f"Slide {slide.slide_number} missing title or speaker notes")
+            return False
+            
+        # Check title uniqueness
+        if slide.title in self._slide_title_cache:
+            logger.warning(f"Duplicate slide title detected: {slide.title}")
+            return False
+        self._slide_title_cache.add(slide.title)
+        
+        # Check content length
+        if len(slide.speaker_notes.split()) < 20:
+            logger.warning(f"Slide {slide.slide_number} speaker notes too short: {len(slide.speaker_notes.split())} words")
+            return False
+            
+        # Check bullet points
+        if not slide.bullet_points or len(slide.bullet_points) == 0:
+            logger.warning(f"Slide {slide.slide_number} has no bullet points")
+            return False
+            
+        # Validate each bullet point
+        for i, bullet in enumerate(slide.bullet_points):
+            if len(bullet.strip()) < 5:
+                logger.warning(f"Slide {slide.slide_number} bullet {i+1} too short")
+                return False
+                
+        # Check title relevance to content
+        title_words = set(slide.title.lower().split())
+        content_words = set(slide.speaker_notes.lower().split())
+        
+        # Remove common words
+        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were'}
+        title_words = title_words - common_words
+        
+        # Check if at least some title words appear in content
+        matching_words = title_words.intersection(content_words)
+        if len(matching_words) < min(2, len(title_words) * 0.3):
+            logger.warning(f"Slide {slide.slide_number} content doesn't match title well. Title: {slide.title}")
+            
+        return True
+        
+    def _validate_narration_quality(self, narration: str, expected_duration: float) -> Dict[str, Any]:
+        """
+        Validate narration quality and completeness
+        
+        Args:
+            narration: Narration text to validate
+            expected_duration: Expected duration in seconds
+            
+        Returns:
+            Dict with validation results and metrics
+        """
+        validation_result = {
+            'is_valid': True,
+            'warnings': [],
+            'metrics': {}
+        }
+        
+        # Check basic requirements
+        if not narration:
+            validation_result['is_valid'] = False
+            validation_result['warnings'].append("Empty narration")
+            return validation_result
+            
+        # Calculate metrics
+        word_count = len(narration.split())
+        sentence_count = len([s for s in narration.split('.') if s.strip()])
+        estimated_duration = word_count / (self.words_per_minute / 60)
+        
+        validation_result['metrics'] = {
+            'word_count': word_count,
+            'sentence_count': sentence_count,
+            'estimated_duration': estimated_duration,
+            'expected_duration': expected_duration
+        }
+        
+        # Check word count
+        if word_count < 50:
+            validation_result['is_valid'] = False
+            validation_result['warnings'].append(f"Narration too short: {word_count} words")
+            
+        # Check duration match
+        duration_difference = abs(estimated_duration - expected_duration)
+        if duration_difference > expected_duration * 0.3:  # More than 30% off
+            validation_result['warnings'].append(
+                f"Duration mismatch: estimated {estimated_duration:.1f}s vs expected {expected_duration:.1f}s"
+            )
+            
+        # Check for repetitive content
+        sentences = [s.strip() for s in narration.split('.') if s.strip()]
+        unique_sentences = set(sentences)
+        if len(unique_sentences) < len(sentences) * 0.8:
+            validation_result['warnings'].append("Repetitive content detected in narration")
+            
+        # Check for incomplete sentences
+        incomplete_patterns = [
+            "...",
+            "[",
+            "]",
+            "TODO",
+            "FIXME",
+            "INSERT",
+            "ADD"
+        ]
+        
+        for pattern in incomplete_patterns:
+            if pattern in narration:
+                validation_result['warnings'].append(f"Incomplete content marker found: {pattern}")
+                validation_result['is_valid'] = False
+                
+        # Check for natural flow
+        if sentence_count > 0:
+            avg_sentence_length = word_count / sentence_count
+            if avg_sentence_length > 30:
+                validation_result['warnings'].append("Sentences may be too long for natural narration")
+            elif avg_sentence_length < 8:
+                validation_result['warnings'].append("Sentences may be too short")
+                
+        return validation_result
+        
+    def _log_validation_failure(self, validation_type: str, details: Dict[str, Any]) -> None:
+        """
+        Log validation failures for monitoring and debugging
+        
+        Args:
+            validation_type: Type of validation that failed
+            details: Details about the failure
+        """
+        logger.error(f"Validation failure - {validation_type}: {json.dumps(details, indent=2)}")
+        
+        # Also store in metadata for tracking
+        if not hasattr(self, '_validation_failures'):
+            self._validation_failures = []
+            
+        self._validation_failures.append({
+            'type': validation_type,
+            'timestamp': datetime.now().isoformat(),
+            'details': details
+        })
+        
+    def _create_validation_fallback(self, content_type: str, original_content: Any) -> Any:
+        """
+        Create fallback content when validation fails
+        
+        Args:
+            content_type: Type of content that failed validation
+            original_content: Original content that failed
+            
+        Returns:
+            Fallback content of appropriate type
+        """
+        logger.info(f"Creating fallback content for {content_type}")
+        
+        if content_type == "slide_title":
+            return f"Section {datetime.now().timestamp()}"
+            
+        elif content_type == "speaker_notes":
+            return "This section covers important concepts that will help you understand the material better."
+            
+        elif content_type == "bullet_points":
+            return [
+                "Key concept overview",
+                "Important details to remember",
+                "Practical applications"
+            ]
+            
+        elif content_type == "narration":
+            return "Let's explore this important topic together. Pay attention to the key concepts presented here."
+            
+        else:
+            return original_content
         
     def generate_educational_script(
         self,
@@ -106,6 +438,9 @@ class EducationalScriptGenerator:
             EducationalScript with slides and narration
         """
         logger.info(f"Generating educational script for module: {content.get('module_name', 'Unknown')}")
+        
+        # Store module name for enhancements
+        self.module_name = content.get('module_name', 'Training Module')
         
         # Extract content sections
         sections = self._extract_content_sections(content)
@@ -149,6 +484,9 @@ class EducationalScriptGenerator:
             employee_context
         )
         slides.append(summary_slide)
+        
+        # Store slides for enhancements (must be before any method that uses self.slides)
+        self.slides = slides
         
         # Generate full narration
         full_narration = self._combine_narration(slides, employee_context)
@@ -204,6 +542,9 @@ class EducationalScriptGenerator:
             EducationalScript with contextual intelligence and real learning value
         """
         logger.info(f"Generating contextually intelligent script for: {section_name} in {module_name}")
+        
+        # Store module name for enhancements
+        self.module_name = module_name
         
         # STEP 1: Use AI to analyze section purpose and determine optimal parameters
         section_intelligence = self._ai_analyze_section_purpose(
@@ -263,6 +604,9 @@ class EducationalScriptGenerator:
             max_slides=max_slides - 1  # Subtract title slide
         )
         slides.extend(content_slides)
+        
+        # Store slides for enhancements (must be before any method that uses self.slides)
+        self.slides = slides
         
         # Generate section-specific narration
         full_narration = self._create_section_narration(slides, section_summary, employee_context)
@@ -362,20 +706,12 @@ class EducationalScriptGenerator:
         employee_name = employee_context.get('name', 'Learner')
         role = employee_context.get('role', 'Professional')
         
-        # Create personalized greeting
-        speaker_notes = f"""
-Welcome {employee_name}! I'm excited to guide you through this module on {module_name}.
-
-As a {role}, this training has been specially designed to enhance your skills and knowledge 
-in this important area. Over the next few minutes, we'll explore key concepts, practical 
-applications, and real-world examples that will help you excel in your role.
-
-Let's begin by looking at what you'll learn today.
-"""
+        # Create simple, direct speaker notes
+        speaker_notes = f"{module_name}. Training module for {role}."
         
-        bullet_points = ["Welcome to Your Training"] + learning_objectives[:3]
+        bullet_points = learning_objectives[:4]  # Just the objectives, no welcome message
         
-        return SlideContent(
+        slide = SlideContent(
             slide_number=slide_number,
             title=module_name,
             bullet_points=bullet_points,
@@ -384,6 +720,19 @@ Let's begin by looking at what you'll learn today.
             visual_cues=["Professional setting", "Welcoming atmosphere"],
             emphasis_points=["specially designed", "excel in your role"]
         )
+        
+        # Validate slide content
+        if not self._validate_slide_content_match(slide):
+            self._log_validation_failure("slide_content", {
+                "slide_number": slide_number,
+                "title": module_name,
+                "reason": "Title slide validation failed"
+            })
+            # Apply fallback if needed
+            slide.speaker_notes = self._create_validation_fallback("speaker_notes", slide.speaker_notes)
+            slide.bullet_points = self._create_validation_fallback("bullet_points", slide.bullet_points)
+        
+        return slide
     
     def _create_section_slides(
         self,
@@ -428,7 +777,20 @@ Let's begin by looking at what you'll learn today.
                 emphasis_points=self._identify_emphasis_points(speaker_notes)
             )
             
-            slides.append(slide)
+            # Validate slide content before appending
+            if self._validate_slide_content_match(slide):
+                slides.append(slide)
+            else:
+                self._log_validation_failure("slide_content", {
+                    "slide_number": slide.slide_number,
+                    "title": slide.title,
+                    "section": section_name,
+                    "chunk_index": i
+                })
+                # Create fallback slide with validated content
+                slide.speaker_notes = self._create_validation_fallback("speaker_notes", slide.speaker_notes)
+                slide.bullet_points = self._create_validation_fallback("bullet_points", slide.bullet_points) if not slide.bullet_points else slide.bullet_points
+                slides.append(slide)
         
         return slides
     
@@ -452,18 +814,60 @@ Let's begin by looking at what you'll learn today.
         
         return chunks
     
+    def _extract_bullet_points_from_notes(self, speaker_notes: str) -> List[str]:
+        """Extract bullet points from speaker notes when not provided separately"""
+        if not speaker_notes:
+            return []
+        
+        # Split into sentences and find key points
+        sentences = self._smart_sentence_split(speaker_notes)
+        bullet_points = []
+        
+        for sentence in sentences[:6]:  # Look at first 6 sentences
+            # Skip very short sentences
+            if len(sentence.split()) < 5:
+                continue
+            
+            # Format as bullet point
+            formatted = self._format_as_bullet_point(sentence)
+            if self._validate_bullet_point(formatted):
+                bullet_points.append(formatted)
+                if len(bullet_points) >= 4:
+                    break
+        
+        return bullet_points
+    
     def _extract_key_points(self, content: str) -> List[str]:
-        """Extract meaningful bullet points from GPT-4 enhanced content with improved parsing"""
+        """Extract meaningful bullet points - now primarily used as fallback"""
+        # Check if we have parsed slide content with bullet points
+        if hasattr(self, '_parsed_slide_content') and self._parsed_slide_content:
+            # Collect all bullet points from parsed slides
+            all_bullets = []
+            for slide in self._parsed_slide_content:
+                all_bullets.extend(slide.get('bullet_points', []))
+            
+            if all_bullets:
+                return all_bullets[:4]  # Return first 4 bullet points
+        
+        # Original logic as fallback
         if not self.openai_api_key:
             return self._fallback_key_points_extraction(content)
         
         try:
-            # First, check if API key is actually set
             if not openai.api_key:
                 logger.warning("OpenAI API key not set, using fallback")
                 return self._fallback_key_points_extraction(content)
             
-            # Use GPT-4 to extract meaningful bullet points from enhanced content
+            # Skip redundant GPT-4 call if we already have slide content
+            if hasattr(self, '_current_slide_titles') and self._current_slide_titles:
+                # We already have enhanced content, extract from it directly
+                return self._enhanced_markdown_extraction(content)
+            
+            # Set GPT-4 processing flag
+            if hasattr(self, 'set_gpt4_processing'):
+                self.set_gpt4_processing(True)
+            
+            # Original GPT-4 extraction logic (now rarely used)
             extraction_prompt = f"""
 Extract 3-4 clear, actionable bullet points from this educational content. Each bullet point MUST:
 1. Be a complete, grammatically correct sentence ending with a period
@@ -494,35 +898,34 @@ COMPLETE SENTENCE BULLET POINTS:
                 ],
                 max_tokens=300,
                 temperature=0.3,
-                timeout=30  # Add timeout for reliability
+                timeout=30
             )
             
             bullet_text = response.choices[0].message.content.strip()
             
-            # Parse bullet points with improved validation
             bullet_points = []
             for line in bullet_text.split('\n'):
                 line = line.strip()
                 if not line:
                     continue
                     
-                # Remove any formatting that might have been added
                 cleaned = self._clean_bullet_point(line)
                 
-                # Validate the bullet point
                 if self._validate_bullet_point(cleaned):
                     bullet_points.append(cleaned)
             
-            # If we got good bullet points, return them
             if len(bullet_points) >= 2:
                 return bullet_points[:4]
             
-            # Otherwise, try enhanced markdown parsing
             return self._enhanced_markdown_extraction(content)
             
         except Exception as e:
             logger.error(f"Failed to extract key points with GPT-4: {e}")
             return self._enhanced_markdown_extraction(content)
+        finally:
+            # Reset GPT-4 processing flag
+            if hasattr(self, 'set_gpt4_processing'):
+                self.set_gpt4_processing(False)
     
     def _clean_bullet_point(self, text: str) -> str:
         """Clean a bullet point of unwanted formatting"""
@@ -549,11 +952,11 @@ COMPLETE SENTENCE BULLET POINTS:
         """Validate if a text is a grammatically complete bullet point"""
         # Check length
         word_count = len(text.split())
-        if word_count < 5 or word_count > 20:  # Increased minimum for complete sentences
+        if word_count < 5 or word_count > 35:  # Increased to 35 words for educational content
             return False
         
         # Check character count
-        if len(text) < 20 or len(text) > 120:  # Increased minimum for complete sentences
+        if len(text) < 20 or len(text) > 250:  # Increased to 250 chars for complete educational points
             return False
         
         # Ensure it's not just a single word or phrase
@@ -561,11 +964,15 @@ COMPLETE SENTENCE BULLET POINTS:
             return False
         
         # CRITICAL: Check for grammatical completeness
-        # Reject fragments with colons - they should be complete sentences, not fragments
+        # Allow colons if they're part of a complete sentence
         if ':' in text:
-            # Any bullet point with a colon is likely a fragment like "performance reporting: crucial for..."
-            # Complete sentences should not need colons for bullet points
-            return False  # Reject all colon-based fragments
+            # Check if there's substantial content after the colon
+            parts = text.split(':', 1)
+            if len(parts) == 2:
+                after_colon = parts[1].strip()
+                # Reject if content after colon is too short (likely a fragment)
+                if len(after_colon.split()) < 3:
+                    return False
         
         # Must end with proper punctuation
         if not text.strip().endswith(('.', '!', '?')):
@@ -582,11 +989,20 @@ COMPLETE SENTENCE BULLET POINTS:
         
         # Additional check: must form a complete grammatical sentence
         # Simple heuristic: should have subject-verb structure
+        # Check for problematic fragments more intelligently
+        is_fragment = False
+        if ':' in text:
+            # Only consider it a fragment if there's very little content after the colon
+            before_colon, after_colon = text.split(':', 1)
+            # It's a fragment if: short before colon AND short/missing after colon
+            if len(before_colon.split()) <= 2 and len(after_colon.strip().split()) < 5:
+                is_fragment = True
+        
         has_complete_structure = (
             has_action and 
             len(text.split()) >= 5 and  # Minimum words for complete sentence
             not text.lower().startswith(('that', 'which', 'who', 'when', 'where', 'why')) and  # Avoid sentence fragments
-            not re.match(r'^[a-z\s]+:', text.lower())  # Avoid "performance reporting:" type fragments
+            not is_fragment  # Avoid fragments like "reporting: crucial"
         )
         
         return has_complete_structure
@@ -899,16 +1315,29 @@ COMPLETE SENTENCE BULLET POINTS:
     
     def _extract_teaching_objectives(self, content: str) -> List[str]:
         """Extract teaching objectives from content"""
+        # Use enhanced learning objective generator if available
+        if self.learning_objective_generator and self.module_name:
+            objectives = self.learning_objective_generator.generate_objectives_from_content(
+                content, self.module_name, max_objectives=3
+            )
+            # Check if they're fragments and enhance if needed
+            if any(self.learning_objective_generator._is_fragment(obj) for obj in objectives):
+                objectives = self.learning_objective_generator.enhance_existing_objectives(
+                    objectives, self.module_name
+                )
+            return objectives
+        
+        # Fallback to original implementation
         objectives = []
         
-        # Look for action-oriented content
+        # Look for action-oriented content - use greedy matching to get complete phrases
         action_patterns = [
-            r'learn\s+(?:how\s+to\s+)?(.+?)(?:\.|,|$)',
-            r'understand\s+(.+?)(?:\.|,|$)',
-            r'master\s+(.+?)(?:\.|,|$)',
-            r'develop\s+(.+?)(?:\.|,|$)',
-            r'improve\s+(.+?)(?:\.|,|$)',
-            r'apply\s+(.+?)(?:\.|,|$)'
+            r'learn\s+(?:how\s+to\s+)?([^.,]+)',
+            r'understand\s+([^.,]+)',
+            r'master\s+([^.,]+)',
+            r'develop\s+([^.,]+)',
+            r'improve\s+([^.,]+)',
+            r'apply\s+([^.,]+)'
         ]
         
         for pattern in action_patterns:
@@ -954,11 +1383,11 @@ COMPLETE SENTENCE BULLET POINTS:
         """Extract practical applications from content"""
         applications = []
         
-        # Look for practical application indicators
+        # Look for practical application indicators - use greedy matching
         app_patterns = [
-            r'(?:can be used|apply|implement|practice|use)\s+(.+?)(?:\.|,|$)',
-            r'(?:example|for instance|such as)\s+(.+?)(?:\.|,|$)',
-            r'(?:in practice|in real|in your)\s+(.+?)(?:\.|,|$)'
+            r'(?:can be used|apply|implement|practice|use)\s+([^.,]+)',
+            r'(?:example|for instance|such as)\s+([^.,]+)',
+            r'(?:in practice|in real|in your)\s+([^.,]+)'
         ]
         
         for pattern in app_patterns:
@@ -970,52 +1399,71 @@ COMPLETE SENTENCE BULLET POINTS:
         return applications[:3]  # Max 3 applications
     
     def _extract_key_topics(self, content: str) -> List[str]:
-        """Extract key topics from content"""
-        # Find capitalized words and phrases (likely topics)
-        words = content.split()
+        """Extract key topics from content - improved to avoid overlapping fragments"""
+        # Split content into sentences first to maintain context
+        sentences = re.split(r'[.!?]+', content)
         topics = []
+        used_words = set()  # Track words already used in topics
         
-        for i, word in enumerate(words):
-            if word[0].isupper() and len(word) > 3:
-                # Check if it's part of a phrase
-                phrase = word
-                j = i + 1
-                while j < len(words) and j < i + 3:  # Max 3-word phrases
-                    if words[j][0].isupper() or words[j].lower() in ['and', 'of', 'for']:
-                        phrase += f" {words[j]}"
-                        j += 1
-                    else:
-                        break
-                
-                if len(phrase.split()) >= 1:
-                    topics.append(phrase)
+        for sentence in sentences:
+            words = sentence.strip().split()
+            i = 0
+            while i < len(words):
+                word = words[i]
+                # Skip if word already used in a topic
+                if i in used_words or not word or len(word) <= 3:
+                    i += 1
+                    continue
+                    
+                if word[0].isupper():
+                    # Build a meaningful phrase
+                    phrase_words = [word]
+                    j = i + 1
+                    
+                    # Continue phrase while it makes sense
+                    while j < len(words) and j < i + 4:  # Max 4-word phrases
+                        next_word = words[j]
+                        # Include if capitalized, connector word, or continues the thought
+                        if (next_word[0].isupper() or 
+                            next_word.lower() in ['and', 'of', 'for', 'the', 'to', 'in', 'with'] or
+                            (j == i + 1 and len(next_word) > 2)):  # Include immediate next word
+                            phrase_words.append(next_word)
+                            j += 1
+                        else:
+                            break
+                    
+                    phrase = ' '.join(phrase_words)
+                    # Only add complete, meaningful phrases
+                    if len(phrase_words) >= 2 and len(phrase) > 10:
+                        topics.append(phrase)
+                        # Mark all words in this phrase as used
+                        for k in range(i, j):
+                            used_words.add(k)
+                    
+                    i = j  # Skip to after the phrase
+                else:
+                    i += 1
         
-        # Remove duplicates and return top topics
-        unique_topics = list(dict.fromkeys(topics))
+        # Remove duplicates and filter out fragments
+        unique_topics = []
+        for topic in topics:
+            # Skip if it's a subset of an already added topic
+            if not any(topic in existing for existing in unique_topics):
+                unique_topics.append(topic)
+        
         return unique_topics[:5]
     
     def _create_educational_narration(self, content: str, employee_context: Dict[str, Any]) -> str:
         """Create educational narration from content"""
-        employee_name = employee_context.get('name', 'learner')
-        
-        # Create engaging introduction
-        intro = f"Hello {employee_name}, let's explore this important topic together."
-        
         # Extract key points for narration
         key_points = self._extract_key_points(content)
         
-        # Create educational flow
-        narration_parts = [intro]
+        # Create direct educational flow without conversational transitions
+        narration_parts = []
         
-        for i, point in enumerate(key_points[:3]):
-            if i == 0:
-                narration_parts.append(f"First, we'll {point[0].lower()}{point[1:]}")
-            elif i == 1:
-                narration_parts.append(f"Next, we'll focus on {point[0].lower()}{point[1:]}")
-            else:
-                narration_parts.append(f"Finally, we'll {point[0].lower()}{point[1:]}")
-        
-        narration_parts.append("This knowledge will help you excel in your role and contribute to your organization's success.")
+        for point in key_points[:3]:
+            # Just present the point directly without transitions
+            narration_parts.append(point)
         
         return " ".join(narration_parts)
     
@@ -1198,20 +1646,20 @@ COMPLETE SENTENCE BULLET POINTS:
         section_display = section_name.replace('_', ' ').title()
         section_type = self._classify_section_type(section_name)
         
-        # Section-specific introductions
+        # Section-specific introductions - direct and professional
         intro_text = {
-            'introduction': f"Welcome to {module_name}. Let's begin your learning journey.",
-            'core_content': f"Now let's dive into the core concepts and principles.",
-            'practical': f"Time to put your knowledge into practice with real examples.",
-            'case_study': f"Let's analyze real-world scenarios and learn from them.",
-            'assessment': f"Ready to test your understanding? Let's validate your learning."
-        }.get(section_type, f"Let's explore {section_display.lower()}.")
+            'introduction': f"Welcome to {module_name}.",
+            'core_content': f"Core concepts and principles.",
+            'practical': f"Practical applications and examples.",
+            'case_study': f"Real-world scenarios and analysis.",
+            'assessment': f"Knowledge assessment."
+        }.get(section_type, f"{section_display}.")
         
         return SlideContent(
             slide_number=slide_number,
             title=f"{section_display}",
             bullet_points=learning_objectives,
-            speaker_notes=f"{intro_text} In this section, we'll focus on specific objectives that will help you excel in your role.",
+            speaker_notes=f"{intro_text} This section covers specific objectives relevant to your role.",
             duration_estimate=20,  # 20 seconds for title slide
             visual_cues=[f"{section_type}_intro"],
             emphasis_points=learning_objectives[:2]
@@ -1301,49 +1749,88 @@ COMPLETE SENTENCE BULLET POINTS:
         slide_plan: List[Dict[str, str]] = None,
         max_slides: int = 3
     ) -> List[SlideContent]:
-        """Create content slides using source-based slide plan"""
+        """Create content slides using GPT-4 generated slide-specific content"""
         
         slides = []
-        learning_points = section_summary['learning_points']
-        key_concepts = section_summary['key_concepts']
         section_type = section_summary['section_type']
         
-        # Use slide plan if available, otherwise fall back to chunking
-        if slide_plan and len(slide_plan) > 1:  # Skip first slide (already created as title)
-            content_plan = slide_plan[1:]  # Skip title slide
+        # Check if we have parsed slide content from GPT-4
+        if hasattr(self, '_parsed_slide_content') and self._parsed_slide_content:
+            # Use the enhanced slide-specific content
+            for i, slide_data in enumerate(self._parsed_slide_content[1:]):  # Skip title slide
+                if i >= max_slides:
+                    break
+                    
+                slide_number = start_slide_number + i
+                
+                # Use GPT-4 generated content
+                slide_title = slide_data.get('title', f"Key Concept {i+1}")
+                bullet_points = slide_data.get('bullet_points', [])
+                speaker_notes = slide_data.get('speaker_notes', '')
+                
+                # Validate and clean bullet points
+                if not bullet_points:
+                    # Fallback to extracting from speaker notes
+                    bullet_points = self._extract_bullet_points_from_notes(speaker_notes)
+                
+                # Ensure we have at least 2 bullet points
+                while len(bullet_points) < 2:
+                    bullet_points.append(f"Key insight about {slide_title}")
+                
+                # Estimate duration based on content
+                duration = self._estimate_slide_duration(bullet_points, section_type)
+                
+                slide = SlideContent(
+                    slide_number=slide_number,
+                    title=slide_title,
+                    bullet_points=bullet_points[:4],  # Max 4 points
+                    speaker_notes=speaker_notes or self._create_slide_specific_narration(
+                        bullet_points, section_type, employee_context
+                    ),
+                    duration_estimate=duration,
+                    visual_cues=[f"{section_type}_content"],
+                    emphasis_points=bullet_points[:2]
+                )
+                
+                slides.append(slide)
+            
+            # Clear the parsed content after use
+            self._parsed_slide_content = None
+            
         else:
-            # Fallback to generic chunking
-            content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
-            content_plan = [{"title": f"Key Concept {i+1}", "source": "content"} for i, _ in enumerate(content_chunks)]
-        
-        # Split content into focused chunks based on plan
-        if slide_plan:
-            content_chunks = self._chunk_content_by_plan(learning_points, key_concepts, content_plan)
-        else:
-            content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
-        
-        for i, (chunk, plan_item) in enumerate(zip(content_chunks, content_plan)):
-            slide_number = start_slide_number + i
+            # Fallback to original logic
+            learning_points = section_summary['learning_points']
+            key_concepts = section_summary['key_concepts']
             
-            # Use source-based slide title
-            slide_title = plan_item["title"]
+            if slide_plan and len(slide_plan) > 1:
+                content_plan = slide_plan[1:]
+            else:
+                content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
+                content_plan = [{"title": f"Key Concept {i+1}", "source": "content"} for i, _ in enumerate(content_chunks)]
             
-            # Estimate duration based on content complexity
-            duration = self._estimate_slide_duration(chunk, section_type)
+            if slide_plan:
+                content_chunks = self._chunk_content_by_plan(learning_points, key_concepts, content_plan)
+            else:
+                content_chunks = self._chunk_section_content(learning_points, key_concepts, max_slides)
             
-            slide = SlideContent(
-                slide_number=slide_number,
-                title=slide_title,
-                bullet_points=chunk,
-                speaker_notes=self._create_slide_specific_narration(
-                    chunk, section_type, employee_context
-                ),
-                duration_estimate=duration,
-                visual_cues=[f"{section_type}_content"],
-                emphasis_points=chunk[:2]  # Emphasize first 2 points
-            )
-            
-            slides.append(slide)
+            for i, (chunk, plan_item) in enumerate(zip(content_chunks, content_plan)):
+                slide_number = start_slide_number + i
+                slide_title = plan_item["title"]
+                duration = self._estimate_slide_duration(chunk, section_type)
+                
+                slide = SlideContent(
+                    slide_number=slide_number,
+                    title=slide_title,
+                    bullet_points=chunk,
+                    speaker_notes=self._create_slide_specific_narration(
+                        chunk, section_type, employee_context
+                    ),
+                    duration_estimate=duration,
+                    visual_cues=[f"{section_type}_content"],
+                    emphasis_points=chunk[:2]
+                )
+                
+                slides.append(slide)
         
         return slides
     
@@ -1353,27 +1840,125 @@ COMPLETE SENTENCE BULLET POINTS:
         key_concepts: List[str],
         content_plan: List[Dict[str, str]]
     ) -> List[List[str]]:
-        """Chunk content based on source-derived slide plan"""
+        """Chunk content based on source-derived slide plan with intelligent distribution"""
+        
+        # Ensure we have valid inputs
+        if not content_plan:
+            logger.warning("No content plan provided, returning empty list")
+            return []
         
         all_points = learning_points + key_concepts
         if not all_points:
             return [["This section provides important insights for your learning journey."] for _ in content_plan]
         
-        # Distribute content across planned slides
-        points_per_slide = max(1, len(all_points) // len(content_plan))
+        logger.debug(f"Distributing {len(all_points)} points across {len(content_plan)} slides")
+        
+        # Track which points have been assigned to avoid duplication
+        assigned_points = set()
         chunks = []
         
-        for i, plan_item in enumerate(content_plan):
-            start_idx = i * points_per_slide
-            end_idx = start_idx + points_per_slide if i < len(content_plan) - 1 else len(all_points)
+        # First pass: Try to match content semantically to slide titles
+        for plan_item in content_plan:
+            slide_title = plan_item.get("title", "")
+            matched_points = []
+            best_matches = []
             
-            chunk = all_points[start_idx:end_idx]
-            if not chunk and all_points:  # Ensure we have some content
-                chunk = [all_points[0]]
+            # Calculate similarity scores for all unassigned points
+            for i, point in enumerate(all_points):
+                if i in assigned_points:
+                    continue
                 
-            chunks.append(chunk[:4])  # Max 4 points per slide
+                similarity = self._calculate_semantic_similarity(slide_title, point)
+                if similarity > 0:
+                    best_matches.append((similarity, i, point))
+            
+            # Sort by similarity and take the best matches
+            best_matches.sort(key=lambda x: x[0], reverse=True)
+            
+            # Assign the most relevant points to this slide
+            for similarity, idx, point in best_matches[:4]:  # Max 4 points per slide
+                if similarity > 0.1:  # Minimum similarity threshold
+                    matched_points.append(point)
+                    assigned_points.add(idx)
+            
+            chunks.append(matched_points)
+        
+        # Second pass: Distribute remaining unassigned points
+        unassigned = [point for i, point in enumerate(all_points) if i not in assigned_points]
+        
+        if unassigned:
+            # Find slides with fewer points and distribute remaining content
+            for i, chunk in enumerate(chunks):
+                if len(chunk) < 2 and unassigned:  # Slides should have at least 2 points
+                    points_needed = min(4 - len(chunk), len(unassigned))
+                    chunk.extend(unassigned[:points_needed])
+                    unassigned = unassigned[points_needed:]
+            
+            # If still have unassigned points, distribute evenly to slides with capacity
+            slide_idx = 0
+            while unassigned and slide_idx < len(chunks):
+                if len(chunks[slide_idx]) < 4:  # Max 4 points per slide
+                    chunks[slide_idx].append(unassigned.pop(0))
+                slide_idx = (slide_idx + 1) % len(chunks)
+        
+        # Third pass: Ensure every slide has content (generate if needed)
+        for i, chunk in enumerate(chunks):
+            if not chunk:
+                # Generate contextual placeholder content based on slide title
+                slide_title = content_plan[i].get("title", f"Key Concept {i+1}")
+                if "introduction" in slide_title.lower():
+                    chunk.append(f"Welcome to this important section on {slide_title}")
+                    chunk.append("Let's explore the key concepts together")
+                elif "summary" in slide_title.lower() or "conclusion" in slide_title.lower():
+                    chunk.append(f"Let's review what we've learned about {slide_title}")
+                    chunk.append("These concepts will be valuable in your work")
+                elif "practical" in slide_title.lower() or "application" in slide_title.lower():
+                    chunk.append(f"Here's how to apply {slide_title} in real situations")
+                    chunk.append("Consider how this relates to your daily tasks")
+                else:
+                    chunk.append(f"Understanding {slide_title} is crucial for your development")
+                    chunk.append("This knowledge will enhance your capabilities")
+            
+            # Ensure we don't exceed max points per slide
+            chunks[i] = chunk[:4]
+        
+        # Validate uniqueness before returning
+        self._validate_content_uniqueness(chunks)
         
         return chunks
+    
+    def _validate_content_uniqueness(self, chunks: List[List[str]]) -> None:
+        """Validate that no content is duplicated across slides"""
+        seen_content = set()
+        duplicates = []
+        
+        for i, chunk in enumerate(chunks):
+            for point in chunk:
+                if point in seen_content:
+                    duplicates.append((i, point))
+                    logger.warning(f"Duplicate content found in slide {i}: {point[:50]}...")
+                seen_content.add(point)
+        
+        if duplicates:
+            logger.error(f"Content duplication detected in {len(duplicates)} instances")
+            # Log details for debugging
+            for slide_idx, content in duplicates[:3]:  # Show first 3 duplicates
+                logger.debug(f"  - Slide {slide_idx}: {content[:80]}...")
+    
+    def _calculate_semantic_similarity(self, text1: str, text2: str) -> float:
+        """Calculate simple semantic similarity between two texts"""
+        # Convert to lowercase and split into words
+        words1 = set(word.lower() for word in text1.split() if len(word) > 3)
+        words2 = set(word.lower() for word in text2.split() if len(word) > 3)
+        
+        # Calculate Jaccard similarity
+        if not words1 or not words2:
+            return 0.0
+        
+        intersection = words1 & words2
+        union = words1 | words2
+        
+        return len(intersection) / len(union) if union else 0.0
     
     def _create_section_specific_narration(
         self,
@@ -1383,45 +1968,13 @@ COMPLETE SENTENCE BULLET POINTS:
     ) -> str:
         """Create narration tailored to section type"""
         
-        employee_name = employee_context.get('name', 'learner')
-        
-        # Section-specific narration approaches
-        if section_type == 'introduction':
-            intro = f"Hello {employee_name}, welcome to this important learning module."
-            body = "Let's start by understanding why this knowledge is crucial for your professional growth."
-        elif section_type == 'core_content':
-            intro = f"Now {employee_name}, let's dive deep into the fundamental concepts."
-            body = "Pay close attention to these core principles - they form the foundation of everything else."
-        elif section_type == 'practical':
-            intro = f"Great work so far, {employee_name}! Now let's see how to apply this knowledge."
-            body = "These practical examples will help you implement what you've learned in real situations."
-        elif section_type == 'case_study':
-            intro = f"Let's analyze some real-world scenarios together, {employee_name}."
-            body = "These case studies show how others have successfully applied these concepts."
-        elif section_type == 'assessment':
-            intro = f"Time to test your understanding, {employee_name}."
-            body = "These questions will help validate your learning and identify areas to review."
-        else:
-            intro = f"Let's continue learning, {employee_name}."
-            body = "This section contains valuable insights for your development."
-        
         # Extract key narration points
         key_points = self._extract_key_points(section_content)
         narration_flow = []
         
-        narration_flow.append(intro)
-        narration_flow.append(body)
-        
-        # Add content-specific narration
-        for i, point in enumerate(key_points[:3]):
-            if i == 0:
-                narration_flow.append(f"First, we'll focus on {point[0].lower()}{point[1:]}")
-            elif i == 1:
-                narration_flow.append(f"Next, we'll explore {point[0].lower()}{point[1:]}")
-            else:
-                narration_flow.append(f"Finally, we'll examine {point[0].lower()}{point[1:]}")
-        
-        narration_flow.append("This knowledge will directly benefit your work and career advancement.")
+        # Add key points directly without conversational transitions
+        for point in key_points[:3]:
+            narration_flow.append(point)
         
         return " ".join(narration_flow)
     
@@ -1431,9 +1984,9 @@ COMPLETE SENTENCE BULLET POINTS:
         section_summary: Dict[str, Any],
         employee_context: Dict[str, Any]
     ) -> str:
-        """Create complete narration for section using HumanNarrationGenerator for natural flow"""
+        """Create complete narration for section"""
         
-        # Use the same logic as _combine_narration to ensure consistent conversational flow
+        # Use simple, direct narration without conversational elements
         return self._combine_narration(slides, employee_context)
     
     def _extract_main_topic(self, content: str) -> str:
@@ -1527,17 +2080,10 @@ COMPLETE SENTENCE BULLET POINTS:
         """Create narration for specific slide content"""
         
         if not content_points:
-            return "This slide contains important information for your learning."
+            return ""
         
-        # Section-specific narration style - neutral content for conversational combination
-        if section_type == 'practical':
-            intro = "In practical terms"
-        elif section_type == 'case_study':
-            intro = "This real situation shows us"
-        elif section_type == 'assessment':
-            intro = "Key considerations include"
-        else:
-            intro = ""  # No repetitive intro - let HumanNarrationGenerator handle flow
+        # No section-specific intros - keep content direct
+        intro = ""
         
         # Combine points into flowing narration
         narration_parts = []
@@ -1568,7 +2114,7 @@ COMPLETE SENTENCE BULLET POINTS:
         # Fallback: extract from key points
         if not takeaways:
             key_points = self._extract_key_points(section_content)
-            takeaways = [f"Remember: {point}" for point in key_points[:3]]
+            takeaways = key_points[:3]  # Just use the points directly without "Remember:"
         
         return takeaways[:3]  # Max 3 takeaways
     
@@ -1626,11 +2172,8 @@ COMPLETE SENTENCE BULLET POINTS:
                     notes_parts.append(opening)
                     notes_parts.append(f"{slide_essence.headline}.")
                 
-                # Add core insight with pacing markers
-                if complexity == 'high':
-                    notes_parts.append(f"[PAUSE] Let me break this down for you. {slide_essence.insight}")
-                else:
-                    notes_parts.append(slide_essence.insight)
+                # Add core insight without conversational markers
+                notes_parts.append(slide_essence.insight)
                 
                 # Add personal impact with role context
                 impact_statement = self._create_impact_statement(
@@ -1702,28 +2245,8 @@ COMPLETE SENTENCE BULLET POINTS:
         complexity: str
     ) -> str:
         """Create personalized opening based on context"""
-        section_type = self._classify_section_type(section_name)
-        
-        openings = {
-            'introduction': {
-                'low': f"Welcome, {employee_name}! Let's start with the fundamentals that will transform how you work as a {role}.",
-                'medium': f"Hello {employee_name}, as a {role}, you'll find these concepts particularly valuable for your daily challenges.",
-                'high': f"Alright {employee_name}, we're going to tackle some advanced concepts that will elevate your expertise as a {role}."
-            },
-            'core_content': {
-                'low': f"Great progress, {employee_name}! Now let's build on what we've learned.",
-                'medium': f"Excellent, {employee_name}. Let's dive deeper into the core principles that drive success in your {role} position.",
-                'high': f"Now {employee_name}, let's explore the sophisticated techniques that distinguish exceptional {role}s."
-            },
-            'practical': {
-                'low': f"Time to put theory into practice, {employee_name}!",
-                'medium': f"Let's see how this applies to your work as a {role}, {employee_name}.",
-                'high': f"Ready for advanced implementation strategies, {employee_name}? These will set you apart as a {role}."
-            }
-        }
-        
-        default = f"Let's continue your learning journey, {employee_name}."
-        return openings.get(section_type, {}).get(complexity, default)
+        # Return empty string - no conversational openings
+        return ""
     
     def _create_impact_statement(self, impact: str, role: str, experience_level: str) -> str:
         """Create personalized impact statement"""
@@ -1787,18 +2310,8 @@ COMPLETE SENTENCE BULLET POINTS:
         # Clean content first
         cleaned = re.sub(r'\s+', ' ', content).strip()
         
-        # Add narrative elements based on complexity
-        if complexity == 'high':
-            # Break down complex content
-            sentences = self._smart_sentence_split(cleaned)
-            if len(sentences) > 2:
-                narrative = sentences[0]
-                narrative += " [PAUSE] Let me explain this further. "
-                narrative += " ".join(sentences[1:3])
-            else:
-                narrative = cleaned
-        else:
-            narrative = cleaned
+        # Return cleaned content directly without conversational additions
+        narrative = cleaned
         
         return narrative
     
@@ -1820,36 +2333,16 @@ COMPLETE SENTENCE BULLET POINTS:
             return f"In practice, this allows you to {first_point}."
     
     def _add_natural_flow(self, notes: str, key_points: List[str], employee_name: str) -> str:
-        """Add natural transitions and emphasis to notes"""
+        """Add emphasis to notes without conversational transitions"""
         if not notes.endswith('.'):
             notes += '.'
         
-        # Add key points emphasis with variety
-        if key_points:
-            transition = self._get_transition_phrase(len(notes.split()))
-            emphasis = f" {transition}, {employee_name}, "
-            
-            if len(key_points) == 1:
-                emphasis += f"the key takeaway here is to {key_points[0].lower()}."
-            elif len(key_points) == 2:
-                emphasis += f"remember these two critical points: {key_points[0].lower()}, and {key_points[1].lower()}."
-            else:
-                emphasis += "let me highlight the essential points you'll want to remember."
-            
-            notes += emphasis
-        
+        # Simply return the notes without adding transitions or conversational elements
         return notes
     
     def _get_transition_phrase(self, word_count: int) -> str:
-        """Get varied transition phrases based on position in narration"""
-        if word_count < 50:
-            return "Now"
-        elif word_count < 100:
-            return "Moving forward"
-        elif word_count < 150:
-            return "Most importantly"
-        else:
-            return "To summarize"
+        """DEPRECATED - No longer using transition phrases"""
+        return ""
     
     def _add_timing_cues(self, notes: str) -> str:
         """Add timing cues for complex content"""
@@ -1918,19 +2411,28 @@ COMPLETE SENTENCE BULLET POINTS:
     ) -> SlideContent:
         """Create summary slide"""
         
-        employee_name = employee_context.get('name', 'there')
+        # Use enhanced slide 6 generator if available
+        if self.slide6_enhancer and hasattr(self, 'slides') and self.module_name:
+            enhanced_slide_data = self.slide6_enhancer.create_enhanced_summary_slide(
+                self.module_name,
+                self.slides,  # Previous slides for context
+                key_takeaways,
+                employee_context
+            )
+            
+            return SlideContent(
+                slide_number=slide_number,
+                title=enhanced_slide_data['title'],
+                bullet_points=enhanced_slide_data['bullet_points'],
+                speaker_notes=enhanced_slide_data['speaker_notes'],
+                duration_estimate=enhanced_slide_data['duration_estimate'],
+                visual_cues=enhanced_slide_data['visual_cues'],
+                emphasis_points=enhanced_slide_data['emphasis_points']
+            )
         
-        speaker_notes = f"""
-Excellent work, {employee_name}! Let's recap the key takeaways from this module.
-
-These are the essential points to remember as you apply this knowledge in your role. 
-Each of these concepts will help you perform more effectively and confidently.
-
-Remember, learning is a continuous journey, and you've taken an important step today. 
-Feel free to revisit this material whenever you need a refresher.
-
-Thank you for your attention and commitment to professional development!
-"""
+        # Fallback to original implementation
+        # Simple, direct summary without conversational elements
+        speaker_notes = "Key takeaways from this module."
         
         return SlideContent(
             slide_number=slide_number,
@@ -1980,77 +2482,43 @@ Thank you for your attention and commitment to professional development!
     def _combine_narration(self, slides: List[SlideContent], employee_context: Dict[str, Any]) -> str:
         """Combine all speaker notes into full narration with natural flow"""
         
-        # DISABLE broken human narration generator - it creates gibberish
-        # Use simple, clean narration instead
-        if False:  # hasattr(self, 'narration_generator') and self.narration_generator is not None:
-            # Convert slides to format expected by narration generator
-            script_data = {
-                'slides': [
-                    {
-                        'speaker_notes': slide.speaker_notes,
-                        'bullet_points': slide.bullet_points,
-                        'title': slide.title
-                    }
-                    for slide in slides
-                ]
-            }
-            
-            # Generate conversational script
-            conversational_script = self.narration_generator.generate_conversational_script(
-                {'module_name': slides[0].title if slides else 'Training'},
-                employee_context,
-                script_data
-            )
-            
-            # Create natural flowing narration without broken transitions
-            narration_parts = []
-            
-            # Add greeting and introduction naturally
-            if conversational_script.greeting:
-                narration_parts.append(conversational_script.greeting)
-            if conversational_script.introduction:
-                narration_parts.append(conversational_script.introduction)
-            
-            # Add main content with minimal transitions
-            for i, segment in enumerate(conversational_script.main_content):
-                # Only add transition if it's meaningful (not empty)
-                if (i < len(conversational_script.transitions) and 
-                    conversational_script.transitions[i].strip()):
-                    narration_parts.append(conversational_script.transitions[i])
-                
-                # Add the actual content
-                narration_parts.append(segment.text)
-            
-            # Add conclusion
-            if conversational_script.conclusion:
-                narration_parts.append(conversational_script.conclusion)
-            
-            # Join with natural spacing
-            return ' '.join(part.strip() for part in narration_parts if part.strip())
+        # HumanNarrationGenerator completely removed - it creates gibberish
+        # Use simple, clean narration only
+        narration_parts = []
+        name = employee_context.get('name', '')
         
-        else:
-            # Fallback to simple, clean approach
-            narration_parts = []
-            name = employee_context.get('name', '')
+        # No greeting - just start with the content
+        
+        # Add slide content naturally without duplication
+        seen_content = set()
+        for i, slide in enumerate(slides):
+            # Add speaker notes cleanly, avoiding duplicates
+            if slide.speaker_notes:
+                clean_notes = self._clean_narration_text(slide.speaker_notes)
+                # Skip if we've already seen this exact content
+                if clean_notes not in seen_content and len(clean_notes.strip()) > 10:
+                    seen_content.add(clean_notes)
+                    narration_parts.append(clean_notes)
+        
+        full_narration = " ".join(narration_parts)
+        
+        # Validate the complete narration
+        total_duration = sum(slide.duration_estimate for slide in slides)
+        validation_result = self._validate_narration_quality(full_narration, total_duration)
+        
+        if not validation_result['is_valid']:
+            self._log_validation_failure("narration", {
+                "slide_count": len(slides),
+                "expected_duration": total_duration,
+                "validation_warnings": validation_result['warnings'],
+                "metrics": validation_result['metrics']
+            })
+            # If narration is invalid, create a fallback
+            full_narration = self._create_validation_fallback("narration", full_narration)
+        elif validation_result['warnings']:
+            logger.warning(f"Narration validation warnings: {validation_result['warnings']}")
             
-            # Simple greeting
-            if name:
-                narration_parts.append(f"Welcome to this training, {name}. Let's begin your learning journey.")
-            else:
-                narration_parts.append("Welcome to this training. Let's begin your learning journey.")
-            
-            # Add slide content naturally without duplication
-            seen_content = set()
-            for i, slide in enumerate(slides):
-                # Add speaker notes cleanly, avoiding duplicates
-                if slide.speaker_notes:
-                    clean_notes = self._clean_narration_text(slide.speaker_notes)
-                    # Skip if we've already seen this exact content
-                    if clean_notes not in seen_content and len(clean_notes.strip()) > 10:
-                        seen_content.add(clean_notes)
-                        narration_parts.append(clean_notes)
-            
-            return " ".join(narration_parts)
+        return full_narration
     
     def _clean_narration_text(self, text: str) -> str:
         """Clean narration text to remove artifacts"""
@@ -2495,6 +2963,10 @@ Thank you for your attention and commitment to professional development!
             return self._fallback_objectives_generation(section_name, section_role, employee_insights)
         
         try:
+            # Set GPT-4 processing flag
+            if hasattr(self, 'set_gpt4_processing'):
+                self.set_gpt4_processing(True)
+            
             objectives_prompt = f"""
 Create 3 specific, actionable learning objectives for this section. Each objective should:
 1. Be specific to what the learner will achieve
@@ -2543,6 +3015,10 @@ Return exactly 3 learning objectives, one per line:
         except Exception as e:
             logger.error(f"Failed to generate contextual objectives with GPT-4: {e}")
             return self._fallback_objectives_generation(section_name, section_role, employee_insights)
+        finally:
+            # Reset GPT-4 processing flag
+            if hasattr(self, 'set_gpt4_processing'):
+                self.set_gpt4_processing(False)
     
     def _fallback_objectives_generation(self, section_name: str, section_role: Dict[str, Any], employee_insights: Dict[str, Any]) -> List[str]:
         """Fallback method for generating objectives without GPT-4"""
@@ -2849,7 +3325,28 @@ ENHANCED VERSION:"""
             # Store slide titles in a format accessible later
             self._current_slide_titles = slide_titles
             
-            return enhanced_content, learning_objectives
+            # Store parsed slide content if available from enhanced format
+            if hasattr(self, '_parsed_slide_content') and self._parsed_slide_content:
+                logger.info(f"Storing {len(self._parsed_slide_content)} parsed slides for content generation")
+            
+            # Validate enhanced content uniqueness
+            if not self._validate_content_uniqueness_v2(enhanced_content, f"enhanced_{section_name}"):
+                self._log_validation_failure("content_uniqueness", {
+                    "section": section_name,
+                    "content_length": len(enhanced_content),
+                    "reason": "Duplicate or placeholder content detected"
+                })
+                # Don't replace with fallback here, just log the issue
+            
+            # Validate learning objectives
+            valid_objectives = []
+            for obj in learning_objectives:
+                if self._validate_content_uniqueness_v2(obj, "learning_objective"):
+                    valid_objectives.append(obj)
+                else:
+                    logger.warning(f"Skipping duplicate/invalid objective: {obj[:50]}...")
+            
+            return enhanced_content, valid_objectives
             
         except Exception as e:
             logger.error(f"Batch enhancement failed, falling back to individual processing: {e}")
@@ -3068,15 +3565,14 @@ ENHANCED VERSION:"""
         employee_insights: Dict[str, Any], 
         course_context: Dict[str, Any]
     ) -> str:
-        """Create concise batch prompt for better GPT-4 performance"""
+        """Create enhanced prompt for slide-specific content generation"""
         
         role = employee_insights['role']
         exp_level = employee_insights['experience_level']
         themes = ', '.join(course_context.get('key_themes', [])[:3])
         
         # Enhanced content preservation for comprehensive slide generation
-        # Allow larger content to preserve all source headings for complete coverage
-        max_content_length = 5000  # Increased to accommodate content with 6+ headings
+        max_content_length = 5000
         if len(section_content) > max_content_length:
             section_content = self._preserve_markdown_structure(section_content, max_content_length)
             logger.info(f"Content preserved with {len(section_content)} chars after structure preservation")
@@ -3097,218 +3593,109 @@ Please provide more detailed source content with:
 - Explicit learning objectives
 - Structured educational content""", []
         
-        # CRITICAL: Extract headings from ORIGINAL content before any processing
-        # This ensures we preserve all source structure regardless of GPT modifications
+        # Extract headings from content
         original_headings = self._extract_markdown_headings(section_content)
-        logger.info(f"DEBUG: Section content length: {len(section_content)} chars")
-        logger.info(f"DEBUG: First 200 chars: {section_content[:200]}...")
         logger.info(f"ORIGINAL content headings found: {original_headings}")
         
-        # Use original headings for slide planning to ensure all content is preserved
-        source_headings = original_headings
-        logger.info(f"Using {len(source_headings)} original headings for slide planning")
-        
         # Create slide plan based on source structure
-        self._current_slide_plan = self._create_slide_plan_from_source(source_headings, section_content)
+        self._current_slide_plan = self._create_slide_plan_from_source(original_headings, section_content)
         logger.info(f"Generated slide plan: {self._current_slide_plan}")
         
-        # Section-specific batch prompt (content-faithful approach)
-        if section_role['teaching_approach'] == 'engaging_introduction':
-            batch_prompt = f"""CRITICAL: You must ONLY use content from the source material provided. 
-Do NOT create new interpretive content or generic business analysis terms.
+        # Enhanced prompt that requests content for EACH specific slide
+        batch_prompt = f"""You are creating educational content for a {exp_level} {role} on the topic: {section_name.replace('_', ' ').title()}
 
-Your task is to EXTRACT and STRUCTURE the existing content, not interpret or expand it.
+IMPORTANT: Generate SPECIFIC content for EACH slide listed below. Do NOT create generic learning objectives.
 
-Role: {exp_level} {role}
-Module: {section_name.replace('_', ' ').title()}
-
-SOURCE STRUCTURE ANALYSIS:
-Found {len(source_headings)} headings: {', '.join(source_headings)}
-
-SLIDE PLANNING (create exactly {len(self._current_slide_plan)} slides):
-{chr(10).join([f'{i+1}. {slide["title"]} (Source: {slide["source"]})' for i, slide in enumerate(self._current_slide_plan)])}
-
-EXTRACTION REQUIREMENTS:
-1. FIND actual learning objectives in source (look for "By the end", "You will", "Learning Objectives", numbered lists)
-2. USE the exact ## headings found in source as slide titles
-3. PRESERVE exact terminology and concepts mentioned in source
-4. CREATE slides that match the source content structure
-
-FORBIDDEN:
-- Generic titles like "Key Concept 1", "Overview", "Introduction" 
-- Creating new interpretive content
-- Using business jargon not in source
-- Using "Slide X:" format in content (causes parsing errors)
-
-REQUIRED: Use the exact ## headings as slide titles: {', '.join(source_headings)}
+SLIDE REQUIREMENTS:
+{self._create_slide_specific_requirements()}
 
 SOURCE CONTENT:
 {section_content}
 
 FORMAT YOUR RESPONSE EXACTLY AS:
-===ENHANCED_CONTENT===
-[Restructured source content for narration - NEVER use "Slide X:" format]
+===SLIDE_CONTENT===
+{self._create_slide_content_template()}
 
 ===LEARNING_OBJECTIVES===
-1. [Actual objective from source, or "None explicitly stated"]
-2. [Actual objective from source, or "None explicitly stated"] 
-3. [Actual objective from source, or "None explicitly stated"]
+1. [Specific objective based on slide content]
+2. [Specific objective based on slide content]
+3. [Specific objective based on slide content]
 
-===SLIDE_TITLES===
-{chr(10).join([f'{i+1}. {slide["title"]}' for i, slide in enumerate(self._current_slide_plan)])}"""
-        
-        elif section_role['teaching_approach'] == 'progressive_development':
-            batch_prompt = f"""Role: {exp_level} {role}
-Section: Core Content
-
-Transform into progressive learning:
-1. ENHANCED CONTENT:
-   - Structure: Concept → Explanation → {role} Example → Application
-   - Each idea builds on previous
-   - Transitions: "Now that you understand X..."
-   - Active voice: "You'll discover", "Let's explore"
-
-2. OBJECTIVES (3 total, action-focused):
-   - Master core concepts
-   - Apply to {role} scenarios
-   - Build progressive skills
-
-3. SLIDE TITLES (3-4 specific titles):
-   - Based on actual concepts covered
-   - Progressive difficulty
-   - Clear and professional
-
-CONTENT:
-{section_content}
-
-FORMAT YOUR RESPONSE EXACTLY AS:
-===ENHANCED_CONTENT===
-[Your enhanced content here]
-
-===LEARNING_OBJECTIVES===
-1. [Objective]
-2. [Objective]
-3. [Objective]
-
-===SLIDE_TITLES===
-1. [Title 1]
-2. [Title 2]
-3. [Title 3]
-4. [Title 4 if needed]"""
-        
-        else:
-            # Practical/case study sections
-            batch_prompt = f"""Role: {exp_level} {role}
-Section: Practical Application
-
-Create immediately applicable content:
-1. ENHANCED CONTENT:
-   - Real {role} scenario framework
-   - Step-by-step implementation
-   - Common pitfalls + solutions
-   - 3 immediate takeaways
-
-2. OBJECTIVES (3 action-oriented):
-   - Implement specific techniques
-   - Solve {role} challenges
-   - Achieve measurable results
-
-3. SLIDE TITLES (3-4 practical titles):
-   - Action-oriented
-   - Specific to techniques covered
-   - Results-focused
-
-CONTENT:
-{section_content}
-
-FORMAT YOUR RESPONSE EXACTLY AS:
-===ENHANCED_CONTENT===
-[Your enhanced content here]
-
-===LEARNING_OBJECTIVES===
-1. [Objective]
-2. [Objective]
-3. [Objective]
-
-===SLIDE_TITLES===
-1. [Title 1]
-2. [Title 2]
-3. [Title 3]
-4. [Title 4 if needed]"""
+===ENHANCED_NARRATION===
+[Professional narration that ties all slides together - NO conversational transitions]"""
         
         return batch_prompt
     
     def _parse_batch_response(self, response_text: str) -> Tuple[str, List[str], List[str]]:
-        """Parse the structured batch response from GPT-4 with validation"""
+        """Parse enhanced batch response with slide-specific content"""
         
-        # Split by sections
-        content_marker = "===ENHANCED_CONTENT==="
+        # New markers for enhanced format
+        slide_content_marker = "===SLIDE_CONTENT==="
         objectives_marker = "===LEARNING_OBJECTIVES==="
-        titles_marker = "===SLIDE_TITLES==="
+        narration_marker = "===ENHANCED_NARRATION==="
+        
+        # Fallback to old format if needed
+        old_content_marker = "===ENHANCED_CONTENT==="
+        old_titles_marker = "===SLIDE_TITLES==="
         
         try:
-            # Extract enhanced content
-            content_start = response_text.find(content_marker)
-            objectives_start = response_text.find(objectives_marker)
-            titles_start = response_text.find(titles_marker)
-            
-            if content_start == -1 or objectives_start == -1:
-                logger.warning("Response markers not found, attempting flexible parsing")
-                # Try case-insensitive search
-                content_start = response_text.lower().find(content_marker.lower())
-                objectives_start = response_text.lower().find(objectives_marker.lower())
-                titles_start = response_text.lower().find(titles_marker.lower())
+            # Check which format we received
+            if slide_content_marker in response_text:
+                # New enhanced format with slide-specific content
+                return self._parse_enhanced_slide_response(response_text)
+            else:
+                # Old format - use existing parsing
+                content_start = response_text.find(old_content_marker)
+                objectives_start = response_text.find(objectives_marker)
+                titles_start = response_text.find(old_titles_marker)
                 
                 if content_start == -1 or objectives_start == -1:
-                    raise ValueError("Response markers not found even with flexible parsing")
-            
-            # Get enhanced content
-            enhanced_content = response_text[
-                content_start + len(content_marker):objectives_start
-            ].strip()
-            
-            # Clean enhanced content to remove "Slide X:" patterns and other artifacts
-            enhanced_content = self._clean_slide_format_from_content(enhanced_content)
-            enhanced_content = self._clean_colon_fragments_from_content(enhanced_content)
-            
-            # Validate enhanced content
-            enhanced_content = self._validate_enhanced_content(enhanced_content)
-            
-            # Get learning objectives
-            if titles_start == -1:
-                # Old format without slide titles
-                objectives_text = response_text[
-                    objectives_start + len(objectives_marker):
+                    logger.warning("Response markers not found, attempting flexible parsing")
+                    content_start = response_text.lower().find(old_content_marker.lower())
+                    objectives_start = response_text.lower().find(objectives_marker.lower())
+                    titles_start = response_text.lower().find(old_titles_marker.lower())
+                    
+                    if content_start == -1 or objectives_start == -1:
+                        raise ValueError("Response markers not found even with flexible parsing")
+                
+                # Get enhanced content
+                enhanced_content = response_text[
+                    content_start + len(old_content_marker):objectives_start
                 ].strip()
-            else:
-                # New format with slide titles
-                objectives_text = response_text[
-                    objectives_start + len(objectives_marker):titles_start
-                ].strip()
-            
-            # Parse objectives with improved extraction
-            learning_objectives = self._extract_learning_objectives(objectives_text)
-            
-            # Get slide titles if available
-            slide_titles = []
-            if titles_start != -1:
-                titles_text = response_text[titles_start + len(titles_marker):].strip()
-                slide_titles = self._extract_slide_titles(titles_text)
-            
-            # Final validation
-            if not enhanced_content or len(learning_objectives) == 0:
-                raise ValueError("Parsed content is empty or invalid")
-            
-            # Log success metrics
-            logger.info(f"Successfully parsed batch response: {len(enhanced_content)} chars, {len(learning_objectives)} objectives, {len(slide_titles)} titles")
-            
-            return enhanced_content, learning_objectives[:3], slide_titles  # Return with slide titles
+                
+                # Clean enhanced content
+                enhanced_content = self._clean_slide_format_from_content(enhanced_content)
+                enhanced_content = self._clean_colon_fragments_from_content(enhanced_content)
+                enhanced_content = self._validate_enhanced_content(enhanced_content)
+                
+                # Get learning objectives
+                if titles_start == -1:
+                    objectives_text = response_text[
+                        objectives_start + len(objectives_marker):
+                    ].strip()
+                else:
+                    objectives_text = response_text[
+                        objectives_start + len(objectives_marker):titles_start
+                    ].strip()
+                
+                learning_objectives = self._extract_learning_objectives(objectives_text)
+                
+                # Get slide titles if available
+                slide_titles = []
+                if titles_start != -1:
+                    titles_text = response_text[titles_start + len(old_titles_marker):].strip()
+                    slide_titles = self._extract_slide_titles(titles_text)
+                
+                if not enhanced_content or len(learning_objectives) == 0:
+                    raise ValueError("Parsed content is empty or invalid")
+                
+                logger.info(f"Successfully parsed batch response (old format): {len(enhanced_content)} chars, {len(learning_objectives)} objectives, {len(slide_titles)} titles")
+                
+                return enhanced_content, learning_objectives[:3], slide_titles
             
         except Exception as e:
             logger.error(f"Failed to parse batch response: {e}")
             logger.debug(f"Response preview: {response_text[:200]}...")
-            
-            # Intelligent fallback - try to extract something useful
             return self._intelligent_fallback_parsing(response_text)
     
     def _validate_enhanced_content(self, content: str) -> str:
@@ -3486,6 +3873,228 @@ FORMAT YOUR RESPONSE EXACTLY AS:
         is_placeholder = any(ph in objective_lower for ph in placeholders)
         
         return has_action and not is_placeholder and len(objective) > 15
+    
+    def _create_slide_specific_requirements(self) -> str:
+        """Create specific requirements for each slide based on the plan"""
+        requirements = []
+        for i, slide in enumerate(self._current_slide_plan):
+            slide_num = i + 1
+            slide_title = slide['title']
+            
+            # Create specific requirements based on slide title
+            if 'introduction' in slide_title.lower() or i == 0:
+                req = f"""Slide {slide_num} - {slide_title}:
+- Welcome the learner to this specific topic
+- State what they will learn in THIS section
+- Create excitement about the practical value
+- 3-4 bullet points that preview key concepts
+- Speaker notes: 30-45 seconds of welcoming, professional narration"""
+            elif 'personal relevance' in slide_title.lower():
+                req = f"""Slide {slide_num} - {slide_title}:
+- Connect this topic to the learner's daily work
+- Show how it impacts their role directly
+- Include specific examples relevant to their industry
+- 3-4 bullet points about personal benefits
+- Speaker notes: 30-45 seconds explaining "why this matters to YOU" """
+            elif 'real-world applications' in slide_title.lower():
+                req = f"""Slide {slide_num} - {slide_title}:
+- Provide concrete examples from actual workplace scenarios
+- Show before/after or problem/solution comparisons
+- Include metrics or outcomes when possible
+- 3-4 bullet points with specific applications
+- Speaker notes: 45-60 seconds with detailed examples"""
+            elif 'summary' in slide_title.lower() or 'conclusion' in slide_title.lower():
+                req = f"""Slide {slide_num} - {slide_title}:
+- Recap the main points covered
+- Emphasize key takeaways
+- Call to action for applying the knowledge
+- 3-4 bullet points summarizing core concepts
+- Speaker notes: 30-45 seconds reinforcing learning"""
+            else:
+                # Content slides based on source headings
+                req = f"""Slide {slide_num} - {slide_title}:
+- Extract and present content SPECIFICALLY about "{slide_title}"
+- Use only information from the source related to this topic
+- Make it practical and applicable
+- 3-4 bullet points with key information
+- Speaker notes: 45-60 seconds explaining this specific concept"""
+            
+            requirements.append(req)
+        
+        return "\n\n".join(requirements)
+    
+    def _create_slide_content_template(self) -> str:
+        """Create template for slide-specific content in GPT-4 response"""
+        templates = []
+        for i, slide in enumerate(self._current_slide_plan):
+            slide_num = i + 1
+            template = f"""[SLIDE_{slide_num}]
+Title: {slide['title']}
+Bullet Points:
+- [Specific point about {slide['title']}]
+- [Another specific point]
+- [Key insight or application]
+- [Final point or example]
+Speaker Notes: [45-60 second narration specifically about {slide['title']}]"""
+            templates.append(template)
+        
+        return "\n\n".join(templates)
+    
+    def _parse_enhanced_slide_response(self, response_text: str) -> Tuple[str, List[str], List[str]]:
+        """Parse the enhanced response format with slide-specific content"""
+        try:
+            # Extract slide content section
+            slide_content_start = response_text.find("===SLIDE_CONTENT===")
+            objectives_start = response_text.find("===LEARNING_OBJECTIVES===")
+            narration_start = response_text.find("===ENHANCED_NARRATION===")
+            
+            if slide_content_start == -1 or objectives_start == -1:
+                raise ValueError("Enhanced format markers not found")
+            
+            # Extract slide content
+            slide_content_text = response_text[
+                slide_content_start + len("===SLIDE_CONTENT==="):objectives_start
+            ].strip()
+            
+            # Parse individual slides
+            self._parsed_slide_content = self._parse_individual_slides(slide_content_text)
+            
+            # Extract learning objectives
+            if narration_start == -1:
+                objectives_text = response_text[objectives_start + len("===LEARNING_OBJECTIVES==="):].strip()
+            else:
+                objectives_text = response_text[
+                    objectives_start + len("===LEARNING_OBJECTIVES==="):narration_start
+                ].strip()
+            
+            learning_objectives = self._extract_learning_objectives(objectives_text)
+            
+            # Extract enhanced narration if available
+            enhanced_narration = ""
+            if narration_start != -1:
+                enhanced_narration = response_text[narration_start + len("===ENHANCED_NARRATION==="):].strip()
+            
+            # Extract slide titles from parsed content
+            slide_titles = [slide['title'] for slide in self._parsed_slide_content]
+            
+            # Use enhanced narration as the main content, or combine from slides
+            if enhanced_narration:
+                enhanced_content = enhanced_narration
+            else:
+                # Combine speaker notes from all slides
+                enhanced_content = " ".join([
+                    slide.get('speaker_notes', '') 
+                    for slide in self._parsed_slide_content
+                ])
+            
+            logger.info(f"Successfully parsed enhanced response: {len(self._parsed_slide_content)} slides, {len(learning_objectives)} objectives")
+            
+            return enhanced_content, learning_objectives[:3], slide_titles
+            
+        except Exception as e:
+            logger.error(f"Failed to parse enhanced response: {e}")
+            # Fall back to parsing as old format
+            return self._parse_batch_response_old_format(response_text)
+    
+    def _parse_individual_slides(self, slide_content_text: str) -> List[Dict[str, Any]]:
+        """Parse individual slide content from the response"""
+        slides = []
+        
+        # Split by slide markers
+        slide_pattern = r'\[SLIDE_(\d+)\]'
+        slide_sections = re.split(slide_pattern, slide_content_text)
+        
+        # Process each slide section
+        i = 1
+        while i < len(slide_sections):
+            slide_num = int(slide_sections[i])
+            slide_content = slide_sections[i + 1] if i + 1 < len(slide_sections) else ""
+            
+            # Parse slide content
+            slide_data = self._parse_single_slide_content(slide_content, slide_num)
+            slides.append(slide_data)
+            
+            i += 2
+        
+        return slides
+    
+    def _parse_single_slide_content(self, content: str, slide_num: int) -> Dict[str, Any]:
+        """Parse content for a single slide"""
+        slide_data = {
+            'slide_number': slide_num,
+            'title': '',
+            'bullet_points': [],
+            'speaker_notes': ''
+        }
+        
+        # Extract title
+        title_match = re.search(r'Title:\s*(.+?)\n', content)
+        if title_match:
+            slide_data['title'] = title_match.group(1).strip()
+        
+        # Extract bullet points
+        bullet_section = re.search(r'Bullet Points?:\s*\n((?:[-•*]\s*.+\n?)+)', content, re.MULTILINE)
+        if bullet_section:
+            bullet_text = bullet_section.group(1)
+            bullets = re.findall(r'[-•*]\s*(.+)', bullet_text)
+            slide_data['bullet_points'] = [b.strip() for b in bullets if b.strip()]
+        
+        # Extract speaker notes
+        speaker_match = re.search(r'Speaker Notes?:\s*(.+?)(?=\n\[SLIDE_|\Z)', content, re.DOTALL)
+        if speaker_match:
+            slide_data['speaker_notes'] = speaker_match.group(1).strip()
+        
+        return slide_data
+    
+    def _parse_batch_response_old_format(self, response_text: str) -> Tuple[str, List[str], List[str]]:
+        """Fallback parsing for old format responses"""
+        # This is the same as the old _parse_batch_response logic
+        content_marker = "===ENHANCED_CONTENT==="
+        objectives_marker = "===LEARNING_OBJECTIVES==="
+        titles_marker = "===SLIDE_TITLES==="
+        
+        try:
+            content_start = response_text.find(content_marker)
+            objectives_start = response_text.find(objectives_marker)
+            titles_start = response_text.find(titles_marker)
+            
+            if content_start == -1 or objectives_start == -1:
+                content_start = response_text.lower().find(content_marker.lower())
+                objectives_start = response_text.lower().find(objectives_marker.lower())
+                titles_start = response_text.lower().find(titles_marker.lower())
+                
+                if content_start == -1 or objectives_start == -1:
+                    raise ValueError("Response markers not found")
+            
+            enhanced_content = response_text[
+                content_start + len(content_marker):objectives_start
+            ].strip()
+            
+            enhanced_content = self._clean_slide_format_from_content(enhanced_content)
+            enhanced_content = self._clean_colon_fragments_from_content(enhanced_content)
+            enhanced_content = self._validate_enhanced_content(enhanced_content)
+            
+            if titles_start == -1:
+                objectives_text = response_text[
+                    objectives_start + len(objectives_marker):
+                ].strip()
+            else:
+                objectives_text = response_text[
+                    objectives_start + len(objectives_marker):titles_start
+                ].strip()
+            
+            learning_objectives = self._extract_learning_objectives(objectives_text)
+            
+            slide_titles = []
+            if titles_start != -1:
+                titles_text = response_text[titles_start + len(titles_marker):].strip()
+                slide_titles = self._extract_slide_titles(titles_text)
+            
+            return enhanced_content, learning_objectives[:3], slide_titles
+            
+        except Exception as e:
+            logger.error(f"Failed to parse old format: {e}")
+            return self._intelligent_fallback_parsing(response_text)
     
     def _intelligent_fallback_parsing(self, response_text: str) -> Tuple[str, List[str], List[str]]:
         """Intelligent fallback when structured parsing fails"""

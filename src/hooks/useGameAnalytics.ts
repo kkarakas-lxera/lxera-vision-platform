@@ -45,6 +45,7 @@ export interface PlayerSegment {
 
 export interface PlayerData {
   employee_id: string;
+  employee_name: string;
   current_level: number;
   total_points: number;
   current_streak: number;
@@ -322,7 +323,15 @@ export const usePlayerAnalytics = () => {
 
       const { data: players, error } = await supabase
         .from('employee_game_progress')
-        .select('*')
+        .select(`
+          *,
+          employees!inner (
+            user_id,
+            users (
+              full_name
+            )
+          )
+        `)
         .in('employee_id', employeeIds)
         .order('total_points', { ascending: false });
       
@@ -390,8 +399,12 @@ export const usePlayerAnalytics = () => {
           ? playerSessions.reduce((sum, s) => sum + s.accuracy, 0) / playerSessions.length
           : 0;
         
+        // Get employee name from the joined data
+        const employeeName = player.employees?.users?.full_name || `Employee ${player.employee_id.slice(0, 8)}`;
+        
         return {
           employee_id: player.employee_id,
+          employee_name: employeeName,
           current_level: player.current_level || 1,
           total_points: player.total_points || 0,
           current_streak: player.current_streak || 0,

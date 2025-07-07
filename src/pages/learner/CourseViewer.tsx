@@ -36,7 +36,7 @@ import {
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import VideoPlayer from '@/components/learner/VideoPlayer';
+import VideoPlayer from '@/pages/learner/components/VideoPlayer';
 import { cn } from '@/lib/utils';
 import MissionBriefing from '@/components/learner/game/MissionBriefing';
 import GameScreen from '@/components/learner/game/GameScreen';
@@ -142,12 +142,23 @@ export default function CourseViewer() {
   const [currentMissionId, setCurrentMissionId] = useState<string | null>(null);
   const [gameResults, setGameResults] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  
+  // Video state
+  const [sectionVideoUrl, setSectionVideoUrl] = useState<string>('');
+  const [videoLoading, setVideoLoading] = useState(false);
 
   useEffect(() => {
     if (userProfile && courseId) {
       fetchCourseData();
     }
   }, [userProfile, courseId]);
+
+  // Fetch video when section or employee changes
+  useEffect(() => {
+    if (employeeId && moduleId && currentSection) {
+      fetchSectionVideo();
+    }
+  }, [employeeId, moduleId, currentSection]);
 
   const fetchCourseData = async () => {
     try {
@@ -332,6 +343,53 @@ export default function CourseViewer() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch video for current section and employee
+  const fetchSectionVideo = async () => {
+    if (!employeeId || !moduleId || !currentSection) return;
+
+    try {
+      setVideoLoading(true);
+      
+      // First, try to get the employee's name for the video path
+      const { data: employeeData } = await supabase
+        .from('employees')
+        .select('users!employees_user_id_fkey(full_name)')
+        .eq('id', employeeId)
+        .single();
+
+      const employeeName = employeeData?.users?.full_name;
+      
+      if (!employeeName) {
+        console.log('Employee name not found, cannot fetch personalized video');
+        return;
+      }
+
+      // Query multimedia assets for videos matching this employee, module, and section
+      const { data: videoAssets } = await supabase
+        .from('mm_multimedia_assets')
+        .select('public_url, asset_name, duration_seconds, file_size_bytes')
+        .eq('content_id', moduleId)
+        .eq('asset_type', 'video')
+        .eq('section_name', currentSection)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (videoAssets && videoAssets.length > 0) {
+        const videoAsset = videoAssets[0];
+        console.log(`Found personalized video for ${employeeName}:`, videoAsset);
+        setSectionVideoUrl(videoAsset.public_url);
+      } else {
+        console.log(`No video found for section ${currentSection}, employee ${employeeName}`);
+        setSectionVideoUrl('');
+      }
+    } catch (error) {
+      console.error('Error fetching section video:', error);
+      setSectionVideoUrl('');
+    } finally {
+      setVideoLoading(false);
     }
   };
 
@@ -1090,7 +1148,14 @@ export default function CourseViewer() {
             {gameMode === 'none' && (
               <>
                 {/* Video Player */}
-                <VideoPlayer sectionName={currentSection} />
+                <VideoPlayer 
+                  videoUrl={sectionVideoUrl}
+                  title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                  onFeedback={(isPositive) => {
+                    console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
+                    // You can add feedback tracking here if needed
+                  }}
+                />
 
                 {/* Tabs */}
                 <div className="flex space-x-1 mb-4">

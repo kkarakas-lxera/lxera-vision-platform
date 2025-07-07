@@ -153,7 +153,7 @@ export const PlayerAnalytics = () => {
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium">Player {player.employee_id.slice(0, 8)}</div>
+                    <div className="font-medium text-base">{player.employee_name}</div>
                     <div className="text-sm text-muted-foreground flex items-center gap-2">
                       <span>Level {player.current_level}</span>
                       {player.current_streak > 0 && (

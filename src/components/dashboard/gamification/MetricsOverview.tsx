@@ -36,17 +36,17 @@ const MetricCard = ({ title, value, change, trend, icon: Icon, color = 'blue' }:
 
   return (
     <Card className={`${colorClasses[color]} border-2 hover:shadow-lg transition-all duration-200`}>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-2">
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <Icon className={`h-5 w-5 ${iconColors[color]}`} />
+          <Icon className={`h-6 w-6 ${iconColors[color]}`} />
         </div>
-        <div className="space-y-1">
-          <p className="text-2xl font-bold">{value}</p>
+        <div className="space-y-2">
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
           {change && (
             <div className="flex items-center gap-1">
               {trend && trendIcons[trend]}
-              <span className="text-xs text-muted-foreground">{change}</span>
+              <span className="text-sm text-muted-foreground font-medium">{change}</span>
             </div>
           )}
         </div>
@@ -83,7 +83,7 @@ export const MetricsOverview = () => {
 
   if (!metrics) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground text-center">
@@ -96,7 +96,7 @@ export const MetricsOverview = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricCard
         title="Active Players"
         value={metrics.activePlayers}

@@ -76,7 +76,7 @@ export const OverviewDashboard = () => {
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium">Player {player.employee_id.slice(0, 8)}</div>
+                    <div className="font-medium text-base">{player.employee_name}</div>
                     <div className="text-sm text-muted-foreground">
                       Level {player.current_level} • {player.current_streak} day streak
                     </div>

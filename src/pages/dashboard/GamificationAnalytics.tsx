@@ -11,18 +11,18 @@ import { ActivityAnalytics } from '@/components/dashboard/gamification/ActivityA
 
 export default function GamificationAnalytics() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-8 p-6">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div>
-          <h1 className="text-3xl font-bold">🎮 Gamification Analytics</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">🎮 Gamification Analytics</h1>
+          <p className="text-lg text-muted-foreground">
             Track engagement, performance, and achievements
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Select defaultValue="7d">
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-36 h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -31,7 +31,7 @@ export default function GamificationAnalytics() {
               <SelectItem value="90d">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="default" className="h-10">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -42,24 +42,24 @@ export default function GamificationAnalytics() {
       <MetricsOverview />
       
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="missions">Missions</TabsTrigger>
-          <TabsTrigger value="players">Players</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 h-12">
+          <TabsTrigger value="overview" className="text-base">Overview</TabsTrigger>
+          <TabsTrigger value="missions" className="text-base">Missions</TabsTrigger>
+          <TabsTrigger value="players" className="text-base">Players</TabsTrigger>
+          <TabsTrigger value="activity" className="text-base">Activity</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview">
+        <TabsContent value="overview" className="space-y-6">
           <OverviewDashboard />
         </TabsContent>
-        <TabsContent value="missions">
+        <TabsContent value="missions" className="space-y-6">
           <MissionAnalytics />
         </TabsContent>
-        <TabsContent value="players">
+        <TabsContent value="players" className="space-y-6">
           <PlayerAnalytics />
         </TabsContent>
-        <TabsContent value="activity">
+        <TabsContent value="activity" className="space-y-6">
           <ActivityAnalytics />
         </TabsContent>
       </Tabs>
