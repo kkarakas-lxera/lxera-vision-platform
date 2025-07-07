@@ -28,7 +28,7 @@ const Contact = () => {
       title: "Sales Inquiries",
       description: "Learn how LXERA can transform your organization's learning strategy",
       action: "Contact Sales",
-      email: "sales@lxera.com",
+      email: "sales@lxera.ai",
       ticketType: 'contact_sales' as const
     },
     {
@@ -36,7 +36,7 @@ const Contact = () => {
       title: "Customer Support",
       description: "Get help with your LXERA platform and account questions",
       action: "Get Support",
-      email: "support@lxera.com",
+      email: "support@lxera.ai",
       ticketType: 'contact_sales' as const
     },
     {
@@ -44,7 +44,7 @@ const Contact = () => {
       title: "Partnerships",
       description: "Explore partnership opportunities and integration possibilities",
       action: "Partner With Us",
-      email: "partnerships@lxera.com",
+      email: "partnerships@lxera.ai",
       ticketType: 'contact_sales' as const
     },
     {
@@ -52,7 +52,7 @@ const Contact = () => {
       title: "General Inquiries",
       description: "For press, media, or other general questions about LXERA",
       action: "Send Message",
-      email: "hello@lxera.com",
+      email: "hello@lxera.ai",
       ticketType: 'contact_sales' as const
     }
   ];

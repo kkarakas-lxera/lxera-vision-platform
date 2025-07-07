@@ -55,7 +55,7 @@ async def require_super_admin():
     return {
         "id": "super-admin-id",
         "role": UserRoles.SUPER_ADMIN,
-        "email": "admin@lxera.com"
+        "email": "admin@lxera.ai"
     }
 
 

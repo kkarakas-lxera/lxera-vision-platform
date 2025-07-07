@@ -61,7 +61,7 @@ const Settings = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="support-email">Support Email</Label>
-                <Input id="support-email" type="email" defaultValue="support@lxera.com" />
+                <Input id="support-email" type="email" defaultValue="support@lxera.ai" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="timezone">Default Timezone</Label>
