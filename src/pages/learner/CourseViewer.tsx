@@ -1395,23 +1395,23 @@ export default function CourseViewer() {
                   >
                     Next Section
                     <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                    </Button>
                   </div>
                 </>
               )}
           </div>
         </ScrollArea>
-      </div>
 
-      {/* Task Decision Modal - overlay */}
-      {gameMode === 'decision' && selectedTask && employeeId && (
-        <TaskDecisionModal
-          task={selectedTask}
-          onProceed={handleTaskDecisionProceed}
-          onCancel={handleTaskDecisionCancel}
-          employeeId={employeeId}
-        />
-      )}
+        {/* Task Decision Modal - overlay */}
+        {gameMode === 'decision' && selectedTask && employeeId && (
+          <TaskDecisionModal
+            task={selectedTask}
+            onProceed={handleTaskDecisionProceed}
+            onCancel={handleTaskDecisionCancel}
+            employeeId={employeeId}
+          />
+        )}
+      </div>
     </div>
   );
 }
