@@ -90,13 +90,9 @@ export const useGameMetrics = () => {
   return useQuery({
     queryKey: ['game-metrics', userProfile?.company_id],
     queryFn: async (): Promise<GameMetrics> => {
-      console.log('🎮 useGameMetrics - userProfile:', userProfile);
-      
       if (!userProfile?.company_id) {
         throw new Error('No company ID available');
       }
-
-      console.log('🎮 useGameMetrics - company_id:', userProfile.company_id);
 
       // Get employees for this company first
       const { data: employees, error: employeesError } = await supabase
@@ -104,16 +100,11 @@ export const useGameMetrics = () => {
         .select('id')
         .eq('company_id', userProfile.company_id);
 
-      console.log('🎮 useGameMetrics - employees query result:', { employees, error: employeesError });
-
       if (employeesError) throw employeesError;
       
       const employeeIds = employees?.map(e => e.id) || [];
       
-      console.log('🎮 useGameMetrics - employeeIds:', employeeIds);
-      
       if (employeeIds.length === 0) {
-        console.log('🎮 useGameMetrics - No employees found, returning zeros');
         return {
           activePlayers: 0,
           averageLevel: 0,
@@ -130,8 +121,6 @@ export const useGameMetrics = () => {
         .from('employee_game_progress')
         .select('*')
         .in('employee_id', employeeIds);
-      
-      console.log('🎮 useGameMetrics - progressData query result:', { progressData, error });
       
       if (error) throw error;
       
