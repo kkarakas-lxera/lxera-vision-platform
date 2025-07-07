@@ -30,74 +30,74 @@ export const PlayerAnalytics = () => {
   return (
     <div className="space-y-6">
       {/* Player Segments */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-2 border-green-200 bg-green-50/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-green-100 rounded-full">
-                <Star className="h-6 w-6 text-green-600" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Card className="border border-green-200 bg-green-50/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-green-100 rounded-full">
+                <Star className="h-4 w-4 text-green-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-green-800">High Performers</h3>
-                <p className="text-sm text-green-600">
-                  &gt;80% accuracy, &gt;10 missions/week
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-green-800">High Performers</h3>
+                <p className="text-xs text-green-600">
+                  &gt;80% accuracy
                 </p>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-green-800">
+            <div className="flex items-baseline justify-between">
+              <div className="text-2xl font-bold text-green-800">
                 {players.segments.high.count}
               </div>
-              <div className="text-sm text-green-600">
-                {players.segments.high.percentage}% of all players
+              <div className="text-xs text-green-600">
+                {players.segments.high.percentage}%
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-blue-200 bg-blue-50/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
+        <Card className="border border-blue-200 bg-blue-50/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <TrendingUp className="h-4 w-4 text-blue-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-blue-800">Regular Players</h3>
-                <p className="text-sm text-blue-600">
-                  50-80% accuracy, 5-10 missions/week
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-blue-800">Regular Players</h3>
+                <p className="text-xs text-blue-600">
+                  50-80% accuracy
                 </p>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-blue-800">
+            <div className="flex items-baseline justify-between">
+              <div className="text-2xl font-bold text-blue-800">
                 {players.segments.regular.count}
               </div>
-              <div className="text-sm text-blue-600">
-                {players.segments.regular.percentage}% of all players
+              <div className="text-xs text-blue-600">
+                {players.segments.regular.percentage}%
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-orange-200 bg-orange-50/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-orange-100 rounded-full">
-                <Users className="h-6 w-6 text-orange-600" />
+        <Card className="border border-orange-200 bg-orange-50/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-orange-100 rounded-full">
+                <Users className="h-4 w-4 text-orange-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-orange-800">Beginners</h3>
-                <p className="text-sm text-orange-600">
-                  &lt;50% accuracy, &lt;5 missions/week
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-orange-800">Beginners</h3>
+                <p className="text-xs text-orange-600">
+                  &lt;50% accuracy
                 </p>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-orange-800">
+            <div className="flex items-baseline justify-between">
+              <div className="text-2xl font-bold text-orange-800">
                 {players.segments.beginner.count}
               </div>
-              <div className="text-sm text-orange-600">
-                {players.segments.beginner.percentage}% of all players
+              <div className="text-xs text-orange-600">
+                {players.segments.beginner.percentage}%
               </div>
             </div>
           </CardContent>
@@ -106,26 +106,26 @@ export const PlayerAnalytics = () => {
 
       {/* Level Distribution Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
             Level Distribution
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {players.levelDistribution.some(level => level.player_count > 0) ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={players.levelDistribution}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="level_range" />
-                <YAxis />
+                <XAxis dataKey="level_range" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Bar dataKey="player_count" fill="#89baef" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-muted-foreground">No level progression data available yet</p>
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">No level progression data available yet</p>
             </div>
           )}
         </CardContent>
@@ -134,17 +134,17 @@ export const PlayerAnalytics = () => {
       {/* Top Performers Leaderboard */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
-            Top Performers Leaderboard
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Trophy className="h-4 w-4" />
+            Top Performers
           </CardTitle>
         </CardHeader>
         <CardContent>
           {players.topPerformers.length > 0 ? (
             <div className="space-y-3">
               {players.topPerformers.map((player, index) => (
-                <div key={player.employee_id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                <div key={player.employee_id} className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/50 transition-colors">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     index === 0 ? 'bg-yellow-100 text-yellow-800' :
                     index === 1 ? 'bg-gray-100 text-gray-800' :
                     index === 2 ? 'bg-orange-100 text-orange-800' :
@@ -152,28 +152,25 @@ export const PlayerAnalytics = () => {
                   }`}>
                     {index + 1}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-base">{player.employee_name}</div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
-                      <span>Level {player.current_level}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{player.employee_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Lvl {player.current_level}
                       {player.current_streak > 0 && (
-                        <>
-                          <span>•</span>
-                          <span>{player.current_streak} day streak 🔥</span>
-                        </>
+                        <span className="ml-1">• {player.current_streak}d 🔥</span>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold">{player.total_points.toLocaleString()} pts</div>
-                    <div className="text-sm text-muted-foreground">
-                      {player.accuracy}% accuracy
+                    <div className="text-sm font-semibold">{player.total_points.toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {player.accuracy}%
                     </div>
                   </div>
                   {index < 3 && (
-                    <Badge variant="outline" className="ml-2">
+                    <span className="text-sm">
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                    </Badge>
+                    </span>
                   )}
                 </div>
               ))}

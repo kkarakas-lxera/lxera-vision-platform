@@ -16,7 +16,7 @@ const PrivacyPolicy = () => {
         <div className="pt-32 pb-24 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="lxera-headline mb-6">Privacy Policy</h1>
+              <h1 className="text-4xl md:text-5xl font-medium text-business-black mb-6">Privacy Policy</h1>
               <p className="lxera-subheadline">
                 Your privacy is important to us. This policy explains how we collect, use, and protect your information.
               </p>
@@ -90,7 +90,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="lxera-section-title mb-4">Contact Us</h2>
                 <p className="lxera-body-text">
-                  If you have any questions about this Privacy Policy, please contact us at privacy@lxera.com 
+                  If you have any questions about this Privacy Policy, please contact us at privacy@lxera.ai 
                   or through our contact page.
                 </p>
               </section>

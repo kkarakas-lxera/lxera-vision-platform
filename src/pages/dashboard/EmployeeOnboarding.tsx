@@ -270,6 +270,14 @@ export default function EmployeeOnboarding() {
       [stepNumber]: !prev[stepNumber]
     }));
   };
+  
+  // Automatically expand the active step on mount
+  React.useEffect(() => {
+    setExpandedSteps(prev => ({
+      ...prev,
+      [currentStep]: true
+    }));
+  }, [currentStep]);
 
   if (loading) {
     return (
@@ -393,7 +401,7 @@ export default function EmployeeOnboarding() {
 
   return (
     <TooltipProvider>
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
@@ -410,8 +418,8 @@ export default function EmployeeOnboarding() {
               Back
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Onboard New Team Members</h1>
-              <p className="text-muted-foreground mt-1">
+              <h1 className="text-xl font-bold text-foreground">Onboard New Team Members</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Add employees, analyze their skills, and create personalized learning paths
               </p>
             </div>
@@ -450,11 +458,8 @@ export default function EmployeeOnboarding() {
 
       {/* Step Progress */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Onboarding Progress</CardTitle>
-          <CardDescription>
-            Complete these steps to get your team members up and running
-          </CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium">Onboarding Progress</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -468,14 +473,14 @@ export default function EmployeeOnboarding() {
               return (
                 <div key={step.number} className="border rounded-lg">
                   <div 
-                    className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
                       isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
                     }`}
                     onClick={() => toggleStepExpansion(step.number)}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                        className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
                           isCompleted
                             ? 'bg-green-600 border-green-600'
                             : isActive
@@ -490,12 +495,12 @@ export default function EmployeeOnboarding() {
                         }}
                       >
                         {isCompleted ? (
-                          <CheckCircle className="h-5 w-5 text-white" />
+                          <CheckCircle className="h-4 w-4 text-white" />
                         ) : (
-                          <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                          <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                         )}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {step.title}
                         </p>
@@ -505,8 +510,8 @@ export default function EmployeeOnboarding() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isCompleted && <Badge variant="secondary" className="bg-green-100 text-green-800">Completed</Badge>}
-                      {isActive && <Badge className="bg-blue-100 text-blue-800">Active</Badge>}
+                      {isCompleted && <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">Done</Badge>}
+                      {isActive && !isCompleted && <Badge className="bg-blue-100 text-blue-800 text-xs">Active</Badge>}
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
                       ) : (
@@ -530,10 +535,7 @@ export default function EmployeeOnboarding() {
                           />
                         )}
                         {step.number === 2 && (
-                          <div className="space-y-4">
-                            <BulkCVUpload
-                              onUploadComplete={fetchEmployeeStatuses}
-                            />
+                          <div className="space-y-3">
                             <OnboardingProgress
                               employees={employeeStatuses}
                               onRefresh={fetchEmployeeStatuses}
@@ -553,21 +555,6 @@ export default function EmployeeOnboarding() {
             })}
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-              <div className="text-xs text-muted-foreground">Team Members</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{stats.withCV}</div>
-              <div className="text-xs text-muted-foreground">CVs Uploaded</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{stats.analyzed}</div>
-              <div className="text-xs text-muted-foreground">Skills Analyzed</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

@@ -86,6 +86,7 @@ const categories = {
 export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_feedback' }: FeedbackModalProps) {
   const { userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [formData, setFormData] = useState<FeedbackFormData>({
     type: defaultType,
     title: '',
@@ -178,6 +179,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
         actual_behavior: '',
         browser_info: typeof window !== 'undefined' ? navigator.userAgent : '',
       });
+      setShowAdvanced(false);
 
       onClose();
     } catch (error) {
@@ -194,7 +196,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <selectedTypeIcon className="h-5 w-5" />
@@ -202,11 +204,11 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Feedback Type Selection */}
-          <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Feedback Type Selection - Compact */}
+          <div className="space-y-2">
             <Label className="text-sm font-medium">Feedback Type</Label>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="flex gap-2">
               {feedbackTypes.map((type) => {
                 const Icon = type.icon;
                 return (
@@ -214,63 +216,18 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
                     key={type.value}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, type: type.value, category: '' }))}
-                    className={`p-3 rounded-lg border text-left transition-colors ${
+                    className={`flex-1 p-2 rounded-lg border text-center transition-colors ${
                       formData.type === type.value
                         ? type.color
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon className="h-5 w-5" />
-                      <div>
-                        <div className="font-medium">{type.label}</div>
-                        <div className="text-sm text-muted-foreground">{type.description}</div>
-                      </div>
-                    </div>
+                    <Icon className="h-4 w-4 mx-auto mb-1" />
+                    <div className="text-xs font-medium">{type.label}</div>
                   </button>
                 );
               })}
             </div>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories[formData.type].map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Priority */}
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
-            <Select
-              value={formData.priority}
-              onValueChange={(value: 'low' | 'medium' | 'high') => 
-                setFormData(prev => ({ ...prev, priority: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Title */}
@@ -293,46 +250,105 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Detailed description of your feedback"
-              rows={4}
+              rows={3}
               required
             />
           </div>
 
+          {/* Show More Options Button */}
+          {!showAdvanced && (
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(true)}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              + More options (category, priority)
+            </button>
+          )}
+
+          {/* Advanced Options */}
+          {showAdvanced && (
+            <div className="space-y-4 p-3 bg-gray-50 rounded-lg border">
+              {/* Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-sm">Category</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories[formData.type].map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Priority */}
+              <div className="space-y-2">
+                <Label htmlFor="priority" className="text-sm">Priority</Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value: 'low' | 'medium' | 'high') => 
+                    setFormData(prev => ({ ...prev, priority: value }))
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
           {/* Bug Report Specific Fields */}
-          {formData.type === 'bug_report' && (
-            <div className="space-y-4 p-4 bg-red-50 rounded-lg border border-red-200">
-              <h4 className="font-medium text-red-800">Bug Report Details</h4>
+          {formData.type === 'bug_report' && showAdvanced && (
+            <div className="space-y-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <h4 className="text-sm font-medium text-red-800">Bug Report Details (Optional)</h4>
               
               <div className="space-y-2">
-                <Label htmlFor="steps">Steps to Reproduce</Label>
+                <Label htmlFor="steps" className="text-sm">Steps to Reproduce</Label>
                 <Textarea
                   id="steps"
                   value={formData.steps_to_reproduce}
                   onChange={(e) => setFormData(prev => ({ ...prev, steps_to_reproduce: e.target.value }))}
                   placeholder="1. Go to...\n2. Click on...\n3. Expected result..."
-                  rows={3}
+                  rows={2}
+                  className="text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="expected">Expected Behavior</Label>
+                <Label htmlFor="expected" className="text-sm">Expected Behavior</Label>
                 <Textarea
                   id="expected"
                   value={formData.expected_behavior}
                   onChange={(e) => setFormData(prev => ({ ...prev, expected_behavior: e.target.value }))}
                   placeholder="What should have happened?"
                   rows={2}
+                  className="text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="actual">Actual Behavior</Label>
+                <Label htmlFor="actual" className="text-sm">Actual Behavior</Label>
                 <Textarea
                   id="actual"
                   value={formData.actual_behavior}
                   onChange={(e) => setFormData(prev => ({ ...prev, actual_behavior: e.target.value }))}
                   placeholder="What actually happened?"
                   rows={2}
+                  className="text-sm"
                 />
               </div>
             </div>

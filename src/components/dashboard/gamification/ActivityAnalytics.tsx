@@ -102,36 +102,38 @@ export const ActivityAnalytics = () => {
 
       {/* Puzzle Progress */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Trophy className="h-4 w-4" />
             Puzzle Progress
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {activity.puzzleProgress.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {activity.puzzleProgress.map((puzzle) => (
-                <div key={puzzle.category} className="space-y-3">
+                <div key={puzzle.category} className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{puzzle.emoji}</span>
-                    <div>
-                      <h4 className="font-semibold">{puzzle.category}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {puzzle.pieces_unlocked}/{puzzle.total_pieces} pieces
+                    <span className="text-base">{puzzle.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium truncate">{puzzle.category}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {puzzle.pieces_unlocked}/{puzzle.total_pieces}
                       </p>
                     </div>
                   </div>
-                  <Progress value={puzzle.completion_percentage} className="h-2" />
-                  <div className="text-xs text-muted-foreground">
-                    {puzzle.completion_percentage}% complete
+                  <div className="space-y-1">
+                    <Progress value={puzzle.completion_percentage} className="h-1.5" />
+                    <div className="text-xs text-muted-foreground text-right">
+                      {puzzle.completion_percentage}%
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No puzzle progress data available yet</p>
+            <div className="text-center py-6">
+              <p className="text-sm text-muted-foreground">No puzzle progress data available yet</p>
             </div>
           )}
         </CardContent>

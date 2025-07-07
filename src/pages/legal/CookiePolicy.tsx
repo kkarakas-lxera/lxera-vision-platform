@@ -16,7 +16,7 @@ const CookiePolicy = () => {
         <div className="pt-32 pb-24 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="lxera-headline mb-6">Cookie Policy</h1>
+              <h1 className="text-4xl md:text-5xl font-medium text-business-black mb-6">Cookie Policy</h1>
               <p className="lxera-subheadline">
                 This policy explains how we use cookies and similar technologies on our platform.
               </p>
@@ -108,7 +108,7 @@ const CookiePolicy = () => {
                 <h2 className="lxera-section-title mb-4">Contact Us</h2>
                 <p className="lxera-body-text">
                   If you have any questions about our use of cookies, please contact us at 
-                  cookies@lxera.com or through our contact page.
+                  cookies@lxera.ai or through our contact page.
                 </p>
               </section>
             </div>

@@ -47,18 +47,18 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Ready</Badge>;
+        return <Badge className="bg-green-100 text-green-800 text-xs h-5">Ready</Badge>;
       case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Needs Attention</Badge>;
+        return <Badge className="bg-red-100 text-red-800 text-xs h-5">Needs Attention</Badge>;
       case 'in_progress':
       case 'processing':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 text-xs h-5">In Progress</Badge>;
       case 'uploaded':
-        return <Badge className="bg-orange-100 text-orange-800">Uploaded</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800 text-xs h-5">Uploaded</Badge>;
       case 'analyzed':
-        return <Badge className="bg-purple-100 text-purple-800">Analyzed</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800 text-xs h-5">Analyzed</Badge>;
       default:
-        return <Badge variant="outline">Pending</Badge>;
+        return <Badge variant="outline" className="text-xs h-5">Pending</Badge>;
     }
   };
 
@@ -91,15 +91,15 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Controls */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-foreground">Skills Analysis & CV Upload</CardTitle>
-              <CardDescription>
-                Track CV uploads and review skill assessments for your team
+              <CardTitle className="text-base font-medium">Skills Analysis & CV Upload</CardTitle>
+              <CardDescription className="text-xs">
+                Track CV uploads and skill assessments
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -108,31 +108,32 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                   .filter(emp => emp.cv_status === 'uploaded' && emp.skills_analysis === 'pending')
                   .map(emp => emp.id)}
                 onAnalysisComplete={onRefresh}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-sm"
               />
               <Button
                 variant="outline"
+                size="sm"
                 onClick={onRefresh}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1"
               >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
+                <RefreshCw className="h-3 w-3" />
+                <span className="text-xs">Refresh</span>
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-6">
+        <CardContent className="pt-0">
+          <div className="flex gap-3 mb-4">
             <div className="flex-1">
               <Input
                 placeholder="Search employees..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="text-foreground"
+                className="text-foreground h-8 text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-40 h-8 text-sm">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -152,31 +153,31 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
               </div>
             ) : (
               filteredEmployees.map((employee) => (
-                <div key={employee.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <div className="font-medium text-foreground">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">{employee.email}</div>
+                <div key={employee.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm text-foreground truncate">{employee.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{employee.email}</div>
                       </div>
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Target className="h-3 w-3" />
+                      <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                        <Target className="h-2.5 w-2.5" />
                         {employee.position}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       {employee.gap_score && (
                         <div className="text-right">
-                          <div className="text-sm text-muted-foreground">Readiness Level</div>
-                          <div className={`font-bold ${getReadinessLevel(employee.gap_score).color}`}>
+                          <div className="text-xs text-muted-foreground">Readiness</div>
+                          <div className={`text-sm font-semibold ${getReadinessLevel(employee.gap_score).color}`}>
                             {getReadinessLevel(employee.gap_score).text}
                           </div>
                         </div>
                       )}
                       <div className="text-right">
-                        <div className="text-sm text-muted-foreground">Progress</div>
-                        <div className="font-bold text-foreground">
+                        <div className="text-xs text-muted-foreground">Progress</div>
+                        <div className="text-sm font-semibold text-foreground">
                           {getOverallProgress(employee)}%
                         </div>
                       </div>
@@ -184,46 +185,50 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
                   </div>
 
                   {/* Progress Bar */}
-                  <Progress value={getOverallProgress(employee)} className="mb-3" />
+                  <Progress value={getOverallProgress(employee)} className="mb-2 h-1.5" />
 
                   {/* Status Steps */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-3 border rounded-lg">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 p-2 border rounded-lg">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">CV Upload</span>
+                          <span className="text-xs font-medium">CV Upload</span>
                           {getStatusIcon(employee.cv_status)}
                         </div>
-                        {getStatusBadge(employee.cv_status)}
+                        <div className="mt-1">
+                          {getStatusBadge(employee.cv_status)}
+                        </div>
                         {employee.cv_status === 'missing' && (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="mt-2 text-xs"
+                            className="mt-1 h-6 text-xs px-2"
                             onClick={() => {
                               setSelectedEmployee(employee);
                               setShowCVUpload(true);
                             }}
                           >
-                            <Upload className="h-3 w-3 mr-1" />
-                            Upload CV
+                            <Upload className="h-2.5 w-2.5 mr-1" />
+                            Upload
                           </Button>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 border rounded-lg">
-                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex items-center gap-2 p-2 border rounded-lg">
+                      <BarChart3 className="h-4 w-4 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Skills Assessment</span>
+                          <span className="text-xs font-medium">Skills Assessment</span>
                           {getStatusIcon(employee.skills_analysis)}
                         </div>
-                        {getStatusBadge(employee.skills_analysis)}
+                        <div className="mt-1">
+                          {getStatusBadge(employee.skills_analysis)}
+                        </div>
                         {employee.skills_analysis === 'completed' && employee.gap_score && (
-                          <div className="mt-2 text-xs text-muted-foreground">
-                            Match Score: {employee.gap_score}%
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            Match: {employee.gap_score}%
                           </div>
                         )}
                       </div>
@@ -237,31 +242,31 @@ export function OnboardingProgress({ employees, onRefresh }: OnboardingProgressP
       </Card>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-foreground">
+          <CardContent className="p-3">
+            <div className="text-xl font-bold text-foreground">
               {employees.filter(e => e.cv_status === 'missing').length}
             </div>
-            <div className="text-sm text-muted-foreground">Missing CVs</div>
+            <div className="text-xs text-muted-foreground">Missing CVs</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">
+          <CardContent className="p-3">
+            <div className="text-xl font-bold text-orange-600">
               {employees.filter(e => e.cv_status === 'uploaded' && e.skills_analysis === 'pending').length}
             </div>
-            <div className="text-sm text-muted-foreground">Ready for Assessment</div>
+            <div className="text-xs text-muted-foreground">Ready for Assessment</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="p-3">
+            <div className="text-xl font-bold text-green-600">
               {employees.filter(e => e.skills_analysis === 'completed').length}
             </div>
-            <div className="text-sm text-muted-foreground">Skills Analyzed</div>
+            <div className="text-xs text-muted-foreground">Skills Analyzed</div>
           </CardContent>
         </Card>
       </div>

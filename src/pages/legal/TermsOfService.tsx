@@ -16,7 +16,7 @@ const TermsOfService = () => {
         <div className="pt-32 pb-24 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h1 className="lxera-headline mb-6">Terms of Service</h1>
+              <h1 className="text-4xl md:text-5xl font-medium text-business-black mb-6">Terms of Service</h1>
               <p className="lxera-subheadline">
                 These terms govern your use of LXERA's learning platform and services.
               </p>
@@ -104,7 +104,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="lxera-section-title mb-4">Contact Information</h2>
                 <p className="lxera-body-text">
-                  For questions about these Terms of Service, please contact us at legal@lxera.com 
+                  For questions about these Terms of Service, please contact us at legal@lxera.ai 
                   or through our contact page.
                 </p>
               </section>
