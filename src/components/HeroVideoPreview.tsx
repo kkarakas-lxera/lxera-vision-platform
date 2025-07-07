@@ -7,9 +7,11 @@ const HeroVideoPreview = () => {
     <div className="relative w-full max-w-xl mx-auto rounded-2xl shadow-xl border border-future-green/30 overflow-hidden hover:scale-105 hover:shadow-2xl transition-all duration-300 group">
       {/* HeyGen iframe preview */}
       <iframe
+        width="560"
+        height="315"
         className="w-full aspect-video"
         src={videoUrl}
-        title="LXERA Demo Video"
+        title="HeyGen video player"
         frameBorder="0"
         allow="encrypted-media; fullscreen;"
         allowFullScreen
