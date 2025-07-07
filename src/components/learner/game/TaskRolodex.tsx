@@ -287,12 +287,15 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     startXRef.current = e.touches[0].clientX;
+    currentXRef.current = e.touches[0].clientX;
     setSwiping(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!swiping) return;
+    e.preventDefault();
     
     currentXRef.current = e.touches[0].clientX;
     const diff = currentXRef.current - startXRef.current;
@@ -309,6 +312,55 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   };
 
   const handleTouchEnd = () => {
+    if (!swiping) return;
+    
+    const diff = currentXRef.current - startXRef.current;
+    
+    if (Math.abs(diff) > 100) {
+      // Complete the swipe
+      if (diff > 0) {
+        handleSwipeRight();
+      } else {
+        handleSwipeLeft();
+      }
+    } else {
+      // Snap back
+      if (cardRef.current) {
+        cardRef.current.style.transform = 'translate(-50%, -50%) translateX(0px) rotate(0deg)';
+      }
+    }
+    
+    setSwiping(false);
+    setSwipeDirection(null);
+  };
+
+  // Mouse event handlers for desktop support
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startXRef.current = e.clientX;
+    currentXRef.current = e.clientX;
+    setSwiping(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!swiping) return;
+    e.preventDefault();
+    
+    currentXRef.current = e.clientX;
+    const diff = currentXRef.current - startXRef.current;
+    
+    if (cardRef.current) {
+      cardRef.current.style.transform = `translate(-50%, -50%) translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+      
+      if (Math.abs(diff) > 50) {
+        setSwipeDirection(diff > 0 ? 'right' : 'left');
+      } else {
+        setSwipeDirection(null);
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
     if (!swiping) return;
     
     const diff = currentXRef.current - startXRef.current;
@@ -380,14 +432,26 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
 
   const nextTask = () => {
     if (cardRef.current) {
-      cardRef.current.style.transform = 'translateX(0px) rotate(0deg)';
+      cardRef.current.style.transition = 'transform 0.3s ease-out';
+      cardRef.current.style.transform = 'translate(-50%, -50%) translateX(0px) rotate(0deg)';
+      setTimeout(() => {
+        if (cardRef.current) {
+          cardRef.current.style.transition = '';
+        }
+      }, 300);
     }
     setCurrentIndex((prev) => (prev + 1) % tasks.length);
   };
 
   const previousTask = () => {
     if (cardRef.current) {
-      cardRef.current.style.transform = 'translateX(0px) rotate(0deg)';
+      cardRef.current.style.transition = 'transform 0.3s ease-out';
+      cardRef.current.style.transform = 'translate(-50%, -50%) translateX(0px) rotate(0deg)';
+      setTimeout(() => {
+        if (cardRef.current) {
+          cardRef.current.style.transition = '';
+        }
+      }, 300);
     }
     setCurrentIndex((prev) => (prev - 1 + tasks.length) % tasks.length);
   };
@@ -490,7 +554,7 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         {/* Current task card - Wheel-like design */}
         <Card 
           ref={cardRef}
-          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full cursor-grab active:cursor-grabbing transition-all duration-200 overflow-hidden ${
+          className={`absolute top-1/2 left-1/2 w-72 h-72 rounded-full cursor-grab active:cursor-grabbing transition-all duration-200 overflow-hidden ${
             swipeDirection === 'right' ? 'border-green-500 shadow-green-200 shadow-2xl scale-105' : 
             swipeDirection === 'left' ? 'border-red-500 shadow-red-200 shadow-2xl scale-105' : 
             'border-primary shadow-xl hover:shadow-2xl'
@@ -498,7 +562,14 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ zIndex: 10 }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ 
+            zIndex: 10,
+            transform: 'translate(-50%, -50%)'
+          }}
         >
           {/* Circular Card Content */}
           <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center">
@@ -563,9 +634,10 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
 
         {/* Swipe overlay indicators */}
         {swipeDirection && (
-          <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full flex items-center justify-center pointer-events-none z-20 ${
+          <div className={`absolute top-1/2 left-1/2 w-72 h-72 rounded-full flex items-center justify-center pointer-events-none z-20 ${
             swipeDirection === 'right' ? 'bg-green-500/20' : 'bg-red-500/20'
-          }`}>
+          }`}
+          style={{ transform: 'translate(-50%, -50%)' }}>
             <div className={`text-6xl font-bold ${
               swipeDirection === 'right' ? 'text-green-600' : 'text-red-600'
             }`}>
