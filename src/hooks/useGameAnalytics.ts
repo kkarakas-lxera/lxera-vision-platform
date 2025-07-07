@@ -186,7 +186,7 @@ export const useMissionAnalytics = () => {
         .from('game_missions')
         .select(`
           *,
-          game_sessions!inner (
+          game_sessions (
             id,
             points_earned,
             accuracy_percentage,
@@ -492,7 +492,7 @@ export const useActivityAnalytics = () => {
       };
       
       puzzleData?.forEach(puzzle => {
-        const category = puzzle.category;
+        const category = puzzle.category.toLowerCase(); // Normalize category case
         if (!categoryPuzzleMap.has(category)) {
           categoryPuzzleMap.set(category, { unlocked: 0, total: 0 });
         }
@@ -503,7 +503,7 @@ export const useActivityAnalytics = () => {
       
       const puzzleProgress = Array.from(categoryPuzzleMap.entries()).map(([category, data]) => ({
         category: category.charAt(0).toUpperCase() + category.slice(1),
-        emoji: categoryEmojis[category] || '🧩',
+        emoji: categoryEmojis[category.toLowerCase()] || '🧩',
         pieces_unlocked: data.unlocked,
         total_pieces: data.total,
         completion_percentage: data.total > 0 ? Math.round((data.unlocked / data.total) * 100) : 0
