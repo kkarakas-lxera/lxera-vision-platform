@@ -1,18 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import VideoModal from "@/components/VideoModal";
 import DemoModal from "@/components/DemoModal";
 import React, { useState } from "react";
 import { stepsData } from "@/data/howItWorksSteps";
-import { Play } from "lucide-react";
 
 const HowItWorksSection = () => {
-  const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-
-  const handleVideoClick = (videoUrl: string, videoCaption: string) => {
-    setSelectedVideo({ url: videoUrl, caption: videoCaption });
-  };
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
@@ -50,30 +43,6 @@ const HowItWorksSection = () => {
                   <h3 className="text-business-black font-bold text-lg mb-1">{step.title}</h3>
                   <p className="text-business-black/80 mb-4 text-sm">{step.subtitle}</p>
                   
-                  {/* Video Thumbnail */}
-                  <div className="relative rounded-xl overflow-hidden shadow-lg group/video mb-4">
-                    <img
-                      src={step.videoThumb}
-                      alt={`${step.title} preview`}
-                      className="w-full h-32 object-cover rounded-xl border-2 border-future-green/30 group-hover/video:scale-102 transition-transform duration-300 bg-[#e6faf3]"
-                      draggable={false}
-                      loading="lazy"
-                    />
-                    <button
-                      onClick={() => handleVideoClick(step.videoUrl, step.videoCaption)}
-                      aria-label={`Play video: ${step.title}`}
-                      className="absolute inset-0 flex items-center justify-center bg-black/15 hover:bg-black/25 transition group/video outline-none focus-visible:ring-2 focus-visible:ring-future-green"
-                    >
-                      <div className="w-12 h-12 flex items-center justify-center rounded-full bg-future-green/90 shadow-lg border-4 border-white hover:scale-110 transition relative">
-                        <Play className="w-6 h-6 text-business-black drop-shadow" />
-                      </div>
-                    </button>
-                  </div>
-                  
-                  <div className="text-xs text-business-black/70 text-center mb-3">
-                    {step.videoCaption}
-                  </div>
-                  
                   <div className="text-sm text-business-black/60 italic text-center">
                     {step.metrics}
                   </div>
@@ -95,16 +64,6 @@ const HowItWorksSection = () => {
             Request a Demo
           </Button>
         </div>
-        
-        {/* Video Modal */}
-        {selectedVideo && (
-          <VideoModal
-            isOpen={!!selectedVideo}
-            setIsOpen={(open) => !open && setSelectedVideo(null)}
-            videoUrl={selectedVideo.url}
-            videoCaption={selectedVideo.caption}
-          />
-        )}
 
         {/* Demo Modal */}
         <DemoModal 

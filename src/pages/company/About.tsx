@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, Target, Quote, Coffee, Lightbulb, Smile } from "lucide-react";
+import { Heart, Users, Target, Coffee, Lightbulb, Smile } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ContactSalesModal from "@/components/ContactSalesModal";
 
 const About = () => {
+  const [showContactSales, setShowContactSales] = useState(false);
+
+  const handleContactSales = () => {
+    setShowContactSales(true);
+  };
+
   const values = [
     {
       icon: Heart,
@@ -26,28 +33,6 @@ const About = () => {
     }
   ];
 
-  const team = [
-    {
-      name: "Sarah Chen",
-      role: "CEO & Co-Founder",
-      background: "Former Chief Learning Officer at Fortune 500 companies",
-      quote: "I've seen too many brilliant people held back by training that just doesn't click. My mission? Making learning feel less like homework and more like discovery. Also, I make terrible coffee but amazing learning experiences.",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b812b3c4?w=400&h=400&fit=crop&crop=face",
-      accent: "bg-gradient-to-br from-emerald-400 to-teal-500",
-      funFact: "🎸 Plays guitar (badly) to destress",
-      hobby: "Weekend hiker & terrible cook"
-    },
-    {
-      name: "Marcus Rodriguez",
-      role: "CTO & Co-Founder", 
-      background: "AI Research Scientist, MIT graduate",
-      quote: "I believe AI should be like a really good teacher—patient, encouraging, and never makes you feel dumb for asking questions. When my grandma can use our AI and love it, I know we've built something special.",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      accent: "bg-gradient-to-br from-violet-400 to-purple-500",
-      funFact: "☕ 6-cup-a-day coffee addict",
-      hobby: "Weekend rock climber & board game enthusiast"
-    }
-  ];
 
   const quirks = [
     {
@@ -181,54 +166,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section - More personal with fun facts */}
-      <section className="py-20 px-6 lg:px-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-light text-business-black mb-4">
-              Meet the <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Humans</span>
-            </h2>
-            <p className="text-lg text-business-black/60 font-light">
-              Two people with <span className="text-purple-600 font-medium">wildly different backgrounds</span> but the same obsession with making learning not suck.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-12">
-            {team.map((member, index) => (
-              <div key={index} className="text-center group">
-                <div className="relative mb-6">
-                  <div className={`absolute inset-0 ${member.accent} rounded-full blur-lg opacity-30 scale-110 group-hover:opacity-50 transition-opacity duration-500`}></div>
-                  <img 
-                    src={member.image} 
-                    alt={member.name}
-                    className="w-40 h-40 rounded-full object-cover mx-auto shadow-xl group-hover:scale-105 transition-transform duration-300 relative z-10 border-4 border-white"
-                  />
-                </div>
-                <h3 className="text-2xl font-medium text-business-black mb-2">{member.name}</h3>
-                <p className="bg-gradient-to-r from-future-green to-emerald-600 bg-clip-text text-transparent font-medium mb-2">{member.role}</p>
-                <p className="text-sm text-business-black/50 mb-4">{member.background}</p>
-                
-                {/* Fun facts */}
-                <div className="flex justify-center space-x-4 mb-6 text-sm">
-                  <span className="bg-future-green/10 px-3 py-1 rounded-full text-business-black/60">
-                    {member.funFact}
-                  </span>
-                  <span className="bg-blue-100/50 px-3 py-1 rounded-full text-business-black/60">
-                    {member.hobby}
-                  </span>
-                </div>
-                
-                <div className="bg-gradient-to-br from-smart-beige/50 via-white/50 to-blue-50/50 rounded-2xl p-6 backdrop-blur-sm border border-white/50">
-                  <Quote className="w-6 h-6 text-future-green/60 mx-auto mb-4" />
-                  <blockquote className="text-business-black/70 italic leading-relaxed">
-                    "{member.quote}"
-                  </blockquote>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section - More personal invitation */}
       <section className="py-20 px-6 lg:px-12 bg-gradient-to-br from-business-black via-gray-900 to-purple-900">
@@ -242,6 +179,7 @@ const About = () => {
           </p>
           <Button 
             size="lg"
+            onClick={handleContactSales}
             className="bg-gradient-to-r from-future-green to-emerald-500 hover:from-emerald-500 hover:to-future-green text-business-black font-medium px-8 py-4 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
             Let's Talk
@@ -250,6 +188,11 @@ const About = () => {
       </section>
 
       <Footer />
+      
+      <ContactSalesModal 
+        isOpen={showContactSales} 
+        onClose={() => setShowContactSales(false)} 
+      />
     </div>
   );
 };
