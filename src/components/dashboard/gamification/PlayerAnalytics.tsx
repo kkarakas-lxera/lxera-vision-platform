@@ -40,7 +40,7 @@ export const PlayerAnalytics = () => {
               <div>
                 <h3 className="font-semibold text-green-800">High Performers</h3>
                 <p className="text-sm text-green-600">
-                  >80% accuracy, >10 missions/week
+                  &gt;80% accuracy, &gt;10 missions/week
                 </p>
               </div>
             </div>
@@ -88,7 +88,7 @@ export const PlayerAnalytics = () => {
               <div>
                 <h3 className="font-semibold text-orange-800">Beginners</h3>
                 <p className="text-sm text-orange-600">
-                  <50% accuracy, <5 missions/week
+                  &lt;50% accuracy, &lt;5 missions/week
                 </p>
               </div>
             </div>
