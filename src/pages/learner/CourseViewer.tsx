@@ -1160,15 +1160,17 @@ export default function CourseViewer() {
             {/* Normal Course Content (when not in game mode) */}
             {gameMode === 'none' && (
               <>
-                {/* Video Player */}
-                <VideoPlayer 
-                  videoUrl={sectionVideoUrl}
-                  title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
-                  onFeedback={(isPositive) => {
-                    console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
-                    // You can add feedback tracking here if needed
-                  }}
-                />
+                {/* Video Player - Only show for non-assessment sections */}
+                {currentSection !== 'assessments' && (
+                  <VideoPlayer 
+                    videoUrl={sectionVideoUrl}
+                    title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                    onFeedback={(isPositive) => {
+                      console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
+                      // You can add feedback tracking here if needed
+                    }}
+                  />
+                )}
 
                 {/* Tabs */}
                 <div className="flex space-x-1 mb-4">
