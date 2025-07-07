@@ -155,10 +155,10 @@ export default function CourseViewer() {
 
   // Fetch video when section or employee changes
   useEffect(() => {
-    if (employeeId && moduleId && currentSection) {
+    if (employeeId && (moduleId || courseId) && currentSection && courseContent) {
       fetchSectionVideo();
     }
-  }, [employeeId, moduleId, currentSection]);
+  }, [employeeId, moduleId, courseId, currentSection, courseContent]);
 
   const fetchCourseData = async () => {
     try {
@@ -348,7 +348,7 @@ export default function CourseViewer() {
 
   // Fetch video for current section and employee
   const fetchSectionVideo = async () => {
-    if (!employeeId || !moduleId || !currentSection) return;
+    if (!employeeId || !(moduleId || courseId) || !currentSection) return;
 
     try {
       setVideoLoading(true);
@@ -369,7 +369,7 @@ export default function CourseViewer() {
 
       // Query multimedia assets for videos matching this employee, module, and section
       // Use courseContent.content_id since that's what's stored in mm_multimedia_assets
-      const contentIdToQuery = courseContent?.content_id || moduleId;
+      const contentIdToQuery = courseContent?.content_id || moduleId || courseId;
       console.log(`Searching for videos with content_id: ${contentIdToQuery}, section: ${currentSection}`);
       
       const { data: videoAssets, error: videoError } = await supabase
