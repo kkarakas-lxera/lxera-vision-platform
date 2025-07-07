@@ -9,6 +9,8 @@ interface FeedbackButtonProps {
   defaultType?: FeedbackType;
   children?: React.ReactNode;
   className?: string;
+  showIcon?: boolean;
+  title?: string;
 }
 
 export default function FeedbackButton({ 
@@ -16,7 +18,9 @@ export default function FeedbackButton({
   size = 'sm', 
   defaultType = 'general_feedback',
   children,
-  className = ''
+  className = '',
+  showIcon = true,
+  title
 }: FeedbackButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -27,8 +31,9 @@ export default function FeedbackButton({
         size={size}
         onClick={() => setIsModalOpen(true)}
         className={className}
+        title={title}
       >
-        <MessageSquare className="h-4 w-4 mr-2" />
+        {showIcon && !children && <MessageSquare className="h-4 w-4 mr-2" />}
         {children || 'Feedback'}
       </Button>
       
