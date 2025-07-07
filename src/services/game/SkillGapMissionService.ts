@@ -41,7 +41,7 @@ export class SkillGapMissionService {
         .from('employees')
         .select(`
           id,
-          position_id,
+          current_position_id,
           st_company_positions (
             position_title,
             department,
@@ -51,6 +51,8 @@ export class SkillGapMissionService {
         `)
         .eq('id', employeeId)
         .single();
+
+      console.log('Employee data:', employeeData);
 
       if (!employeeData?.st_company_positions) {
         console.warn('Employee has no position assigned');
@@ -63,58 +65,72 @@ export class SkillGapMissionService {
         ...(position.nice_to_have_skills || [])
       ];
 
-      // Get employee's current skill levels
-      const { data: currentSkills } = await supabase
-        .from('st_employee_skills_profile')
-        .select(`
-          skill_id,
-          current_level,
-          st_skills_taxonomy (
-            skill_name,
-            skill_type,
-            metadata
-          )
-        `)
-        .eq('employee_id', employeeId);
+      console.log('Required skills:', allRequiredSkills);
 
-      const skillsMap = new Map(
-        currentSkills?.map(skill => [
-          skill.skill_id, 
-          {
-            current_level: skill.current_level || 1,
-            skill_name: skill.st_skills_taxonomy?.skill_name || '',
-            skill_type: skill.st_skills_taxonomy?.skill_type || ''
-          }
-        ]) || []
-      );
+      // Get employee's current skill levels from extracted skills
+      const { data: skillProfile } = await supabase
+        .from('st_employee_skills_profile')
+        .select('extracted_skills')
+        .eq('employee_id', employeeId)
+        .single();
+
+      const extractedSkills = skillProfile?.extracted_skills || [];
+      console.log('Extracted skills count:', extractedSkills.length);
+      
+      // Create a map of current skills by name (since skill_id might not be populated)
+      const skillsMap = new Map();
+      
+      for (const skill of extractedSkills) {
+        const skillName = skill.skill_name?.toLowerCase().trim();
+        if (skillName) {
+          skillsMap.set(skillName, {
+            current_level: skill.proficiency_level || 1,
+            skill_name: skill.skill_name,
+            skill_type: skill.category || 'general'
+          });
+        }
+      }
+      
+      console.log('Skills map size:', skillsMap.size);
 
       // Calculate gaps for required skills
       const skillGaps: EmployeeSkillGap[] = [];
 
       for (const reqSkill of allRequiredSkills) {
         const skillId = reqSkill.skill_id;
-        const requiredLevel = this.mapProficiencyToLevel(reqSkill.proficiency_level);
-        const currentSkill = skillsMap.get(skillId);
+        const skillName = reqSkill.skill_name?.toLowerCase().trim();
+        const requiredLevel = typeof reqSkill.proficiency_level === 'number' ? 
+          reqSkill.proficiency_level : 
+          this.mapProficiencyToLevel(reqSkill.proficiency_level);
+        
+        console.log(`Checking skill: ${reqSkill.skill_name} (required: ${requiredLevel})`);
+        
+        // Try to find current skill by name
+        const currentSkill = skillsMap.get(skillName);
         const currentLevel = currentSkill?.current_level || 1;
+        
+        console.log(`  Current level: ${currentLevel}, Has gap: ${currentLevel < requiredLevel}`);
         
         if (currentLevel < requiredLevel) {
           const gapSize = requiredLevel - currentLevel;
           
           skillGaps.push({
             skill_id: skillId,
-            skill_name: currentSkill?.skill_name || reqSkill.skill_name,
+            skill_name: reqSkill.skill_name,
             current_level: currentLevel,
             required_level: requiredLevel,
             gap_size: gapSize,
             gap_severity: this.calculateGapSeverity(gapSize, reqSkill.is_mandatory),
-            skill_category: currentSkill?.skill_type || 'general',
+            skill_category: currentSkill?.skill_type || reqSkill.skill_type || 'general',
             is_mandatory: reqSkill.is_mandatory || false,
             position_title: position.position_title,
-            department: position.department
+            department: position.department || 'General'
           });
         }
       }
 
+      console.log(`Found ${skillGaps.length} skill gaps`);
+      
       // Sort by severity and gap size
       return skillGaps.sort((a, b) => {
         const severityOrder = { critical: 3, moderate: 2, minor: 1 };
