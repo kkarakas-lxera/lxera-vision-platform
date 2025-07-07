@@ -10,8 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, Shield, AlertCircle } from 'lucide-react';
+import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,8 +69,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     admin_approved: false,
     description_fully_read: false
   });
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
-  const descriptionScrollRef = useRef<HTMLDivElement>(null);
 
 
   const generatePositionCode = (title: string) => {
@@ -204,7 +201,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const canProceedToStep = (step: number) => {
     switch (step) {
       case 2:
-        return positionData.position_title && positionData.position_code && positionData.admin_approved && hasScrolledToBottom;
+        return positionData.position_title && positionData.position_code && positionData.admin_approved;
       case 3:
         return positionData.required_skills.length > 0;
       default:
@@ -212,27 +209,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
     }
   };
 
-  const handleDescriptionScroll = () => {
-    if (descriptionScrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = descriptionScrollRef.current;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px tolerance
-      if (isAtBottom && !hasScrolledToBottom) {
-        setHasScrolledToBottom(true);
-      }
-    }
-  };
-
-  const handleAdminApproval = (checked: boolean) => {
-    if (checked && !hasScrolledToBottom) {
-      toast({
-        title: 'Please read the entire description',
-        description: 'You must scroll through the complete position description before approving.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    setPositionData(prev => ({ ...prev, admin_approved: checked }));
-  };
 
   // Auto-generate description when title, level, and department are filled
   useEffect(() => {
@@ -381,59 +357,17 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                 )}
               </div>
 
-              {/* Admin Approval Section - Only show if description exists */}
+              {/* Simple Admin Approval - Only show if description exists */}
               {positionData.description && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Shield className="h-5 w-5 text-blue-600" />
-                    <h4 className="font-medium">Admin Approval Required</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Please review the complete position description below. You must scroll through the entire description to approve.
-                  </p>
-                  
-                  <div className="mb-3">
-                    <div className="text-sm text-yellow-600 mb-2 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      <span>Please scroll through the entire description below to enable approval</span>
-                    </div>
-                    <ScrollArea className="h-32 border rounded bg-white">
-                      <div 
-                        className="p-3"
-                        ref={descriptionScrollRef}
-                        onScroll={handleDescriptionScroll}
-                      >
-                        <div className="text-sm leading-relaxed">
-                          {positionData.description}
-                        </div>
-                        <div className="mt-4 p-2 bg-blue-50 rounded text-xs text-blue-700">
-                          ✓ You have reached the end of the description
-                        </div>
-                      </div>
-                    </ScrollArea>
-                  </div>
-
-                  <div className="flex items-center space-x-2 p-3 bg-white rounded border">
-                    <Checkbox 
-                      id="admin-approval" 
-                      checked={positionData.admin_approved}
-                      onCheckedChange={handleAdminApproval}
-                      disabled={!hasScrolledToBottom}
-                    />
-                    <Label 
-                      htmlFor="admin-approval" 
-                      className={`text-sm font-medium ${
-                        !hasScrolledToBottom ? 'text-muted-foreground' : 'text-foreground'
-                      }`}
-                    >
-                      I have read and approve this position description
-                    </Label>
-                  </div>
-                  {!hasScrolledToBottom && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Please scroll through the complete description above to enable approval
-                    </p>
-                  )}
+                <div className="flex items-center space-x-2 mt-3">
+                  <Checkbox 
+                    id="admin-approval" 
+                    checked={positionData.admin_approved}
+                    onCheckedChange={(checked) => setPositionData(prev => ({ ...prev, admin_approved: checked }))}
+                  />
+                  <Label htmlFor="admin-approval" className="text-sm">
+                    I approve this position description
+                  </Label>
                 </div>
               )}
             </div>
