@@ -10,6 +10,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 
 // Import existing pages
@@ -226,6 +228,8 @@ const App = () => {
             </AuthProvider>
             </ThemeProvider>
           </BrowserRouter>
+          <Analytics />
+          <SpeedInsights />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
