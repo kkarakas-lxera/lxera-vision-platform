@@ -525,14 +525,45 @@ export default function EmployeeOnboarding() {
                     <div className="px-4 pb-4 border-t">
                       <div className="mt-4">
                         {step.number === 1 && (
-                          <AddEmployees
-                            onImportComplete={() => {
-                              fetchImportSessions();
-                              fetchEmployeeStatuses();
-                            }}
-                            importSessions={importSessions}
-                            onNextStep={nextStep}
-                          />
+                          <div className="space-y-4">
+                            {stats.total > 0 ? (
+                              <div className="text-center py-8">
+                                <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                                <p className="text-lg font-medium text-foreground mb-2">
+                                  {stats.total} employees already imported
+                                </p>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                  Your team members have been successfully imported. You can proceed to the next step.
+                                </p>
+                                <Button
+                                  onClick={() => setCurrentStep(2)}
+                                  className="mt-2"
+                                >
+                                  Continue to CV Upload
+                                  <ArrowRight className="h-4 w-4 ml-2" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8">
+                                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-lg font-medium text-foreground mb-2">
+                                  No employees imported yet
+                                </p>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                  Import your team members to get started with skills analysis.
+                                </p>
+                                <Button
+                                  onClick={() => {
+                                    // In the future, this would open the import dialog
+                                    toast.info('Import functionality coming soon!');
+                                  }}
+                                >
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Import Employees
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         )}
                         {step.number === 2 && (
                           <div className="space-y-3">

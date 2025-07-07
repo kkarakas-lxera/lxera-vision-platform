@@ -27,7 +27,7 @@ const TermsOfService = () => {
 
             <div className="lxera-card p-8 space-y-8">
               <section>
-                <h2 className="lxera-section-title mb-4">Acceptance of Terms</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Acceptance of Terms</h2>
                 <p className="lxera-body-text">
                   By accessing and using LXERA's platform, you accept and agree to be bound by the terms 
                   and provision of this agreement. If you do not agree to these terms, you should not 
@@ -36,17 +36,17 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Use of Services</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Use of Services</h2>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="lxera-card-title mb-2">Permitted Use</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Permitted Use</h3>
                     <p className="lxera-body-text">
                       You may use our platform for legitimate learning and business purposes in accordance 
                       with these terms and applicable laws.
                     </p>
                   </div>
                   <div>
-                    <h3 className="lxera-card-title mb-2">Prohibited Activities</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Prohibited Activities</h3>
                     <ul className="space-y-2 mt-2">
                       <li className="lxera-body-text flex items-start">
                         <span className="w-2 h-2 bg-lxera-red rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -70,7 +70,7 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">User Accounts</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">User Accounts</h2>
                 <p className="lxera-body-text mb-4">
                   You are responsible for maintaining the confidentiality of your account and password. 
                   You agree to accept responsibility for all activities that occur under your account.
@@ -78,7 +78,7 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Intellectual Property</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Intellectual Property</h2>
                 <p className="lxera-body-text mb-4">
                   The platform and its original content, features, and functionality are owned by LXERA 
                   and are protected by international copyright, trademark, and other intellectual property laws.
@@ -86,7 +86,7 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Limitation of Liability</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Limitation of Liability</h2>
                 <p className="lxera-body-text mb-4">
                   LXERA shall not be liable for any indirect, incidental, special, consequential, or 
                   punitive damages resulting from your use of the platform.
@@ -94,7 +94,7 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Changes to Terms</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Changes to Terms</h2>
                 <p className="lxera-body-text mb-4">
                   We reserve the right to modify these terms at any time. We will notify users of any 
                   material changes via email or through our platform.
@@ -102,7 +102,7 @@ const TermsOfService = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Contact Information</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Contact Information</h2>
                 <p className="lxera-body-text">
                   For questions about these Terms of Service, please contact us at legal@lxera.ai 
                   or through our contact page.

@@ -27,7 +27,7 @@ const CookiePolicy = () => {
 
             <div className="lxera-card p-8 space-y-8">
               <section>
-                <h2 className="lxera-section-title mb-4">What Are Cookies</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">What Are Cookies</h2>
                 <p className="lxera-body-text">
                   Cookies are small text files that are stored on your device when you visit our website. 
                   They help us provide you with a better experience by remembering your preferences and 
@@ -36,10 +36,10 @@ const CookiePolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Types of Cookies We Use</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Types of Cookies We Use</h2>
                 <div className="space-y-6">
                   <div className="bg-white/50 rounded-2xl p-6">
-                    <h3 className="lxera-card-title mb-2">Essential Cookies</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Essential Cookies</h3>
                     <p className="lxera-body-text">
                       These cookies are necessary for the platform to function properly. They enable basic 
                       features like page navigation and access to secure areas.
@@ -47,7 +47,7 @@ const CookiePolicy = () => {
                   </div>
                   
                   <div className="bg-white/50 rounded-2xl p-6">
-                    <h3 className="lxera-card-title mb-2">Performance Cookies</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Performance Cookies</h3>
                     <p className="lxera-body-text">
                       These cookies help us understand how visitors interact with our platform by collecting 
                       and reporting information anonymously.
@@ -55,7 +55,7 @@ const CookiePolicy = () => {
                   </div>
                   
                   <div className="bg-white/50 rounded-2xl p-6">
-                    <h3 className="lxera-card-title mb-2">Functionality Cookies</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Functionality Cookies</h3>
                     <p className="lxera-body-text">
                       These cookies allow the platform to remember choices you make and provide enhanced, 
                       personalized features.
@@ -63,7 +63,7 @@ const CookiePolicy = () => {
                   </div>
                   
                   <div className="bg-white/50 rounded-2xl p-6">
-                    <h3 className="lxera-card-title mb-2">Analytics Cookies</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Analytics Cookies</h3>
                     <p className="lxera-body-text">
                       We use analytics cookies to understand how our platform is being used and to improve 
                       our services based on user behavior patterns.
@@ -73,14 +73,14 @@ const CookiePolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Managing Cookies</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Managing Cookies</h2>
                 <p className="lxera-body-text mb-4">
                   You can control and manage cookies in your browser settings. However, please note that 
                   disabling certain cookies may affect the functionality of our platform.
                 </p>
                 
                 <div className="bg-blue-50/50 rounded-2xl p-6">
-                  <h3 className="lxera-card-title mb-2">Browser Settings</h3>
+                  <h3 className="text-lg font-medium text-business-black mb-2">Browser Settings</h3>
                   <p className="lxera-body-text">
                     Most web browsers allow you to control cookies through their settings preferences. 
                     You can usually find these options in the "Tools" or "Preferences" menu of your browser.
@@ -89,7 +89,7 @@ const CookiePolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Third-Party Cookies</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Third-Party Cookies</h2>
                 <p className="lxera-body-text mb-4">
                   We may use third-party services that set their own cookies. These services help us 
                   provide better functionality and understand how our platform is used.
@@ -97,7 +97,7 @@ const CookiePolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Updates to This Policy</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Updates to This Policy</h2>
                 <p className="lxera-body-text mb-4">
                   We may update this Cookie Policy from time to time to reflect changes in our practices 
                   or for other operational, legal, or regulatory reasons.
@@ -105,7 +105,7 @@ const CookiePolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Contact Us</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Contact Us</h2>
                 <p className="lxera-body-text">
                   If you have any questions about our use of cookies, please contact us at 
                   cookies@lxera.ai or through our contact page.

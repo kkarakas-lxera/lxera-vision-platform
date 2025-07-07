@@ -27,10 +27,10 @@ const PrivacyPolicy = () => {
 
             <div className="lxera-card p-8 space-y-8">
               <section>
-                <h2 className="lxera-section-title mb-4">Information We Collect</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Information We Collect</h2>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="lxera-card-title mb-2">Personal Information</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Personal Information</h3>
                     <p className="lxera-body-text">
                       We collect information you provide directly to us, such as when you create an account, 
                       use our services, or contact us for support. This may include your name, email address, 
@@ -38,7 +38,7 @@ const PrivacyPolicy = () => {
                     </p>
                   </div>
                   <div>
-                    <h3 className="lxera-card-title mb-2">Usage Data</h3>
+                    <h3 className="text-lg font-medium text-business-black mb-2">Usage Data</h3>
                     <p className="lxera-body-text">
                       We automatically collect certain information about your device and how you use our platform, 
                       including your IP address, browser type, and usage patterns to improve our services.
@@ -48,7 +48,7 @@ const PrivacyPolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">How We Use Your Information</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">How We Use Your Information</h2>
                 <ul className="space-y-2">
                   <li className="lxera-body-text flex items-start">
                     <span className="w-2 h-2 bg-future-green rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -70,7 +70,7 @@ const PrivacyPolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Data Security</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Data Security</h2>
                 <p className="lxera-body-text mb-4">
                   We implement appropriate security measures to protect your personal information against 
                   unauthorized access, alteration, disclosure, or destruction. This includes encryption, 
@@ -79,7 +79,7 @@ const PrivacyPolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Your Rights</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Your Rights</h2>
                 <p className="lxera-body-text mb-4">
                   You have the right to access, update, or delete your personal information. You may also 
                   opt out of certain communications from us. To exercise these rights, please contact us 
@@ -88,7 +88,7 @@ const PrivacyPolicy = () => {
               </section>
 
               <section>
-                <h2 className="lxera-section-title mb-4">Contact Us</h2>
+                <h2 className="text-2xl font-semibold text-business-black mb-4">Contact Us</h2>
                 <p className="lxera-body-text">
                   If you have any questions about this Privacy Policy, please contact us at privacy@lxera.ai 
                   or through our contact page.
