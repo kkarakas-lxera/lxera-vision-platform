@@ -88,6 +88,9 @@ import AnalyzedEmployees from "./pages/dashboard/skills/AnalyzedEmployees";
 import PositionRequirements from "./pages/dashboard/skills/PositionRequirements";
 import DepartmentSkillsDetail from "./pages/dashboard/skills/DepartmentSkillsDetail";
 
+// Import gamification analytics
+import GamificationAnalytics from "./pages/dashboard/GamificationAnalytics";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -185,7 +188,7 @@ const App = () => {
                       <Route path="/skills/employees" element={<AnalyzedEmployees />} />
                       <Route path="/skills/positions" element={<PositionRequirements />} />
                       <Route path="/skills/department/:department" element={<DepartmentSkillsDetail />} />
-                      <Route path="/analytics" element={<div>Analytics - Coming Soon</div>} />
+                      <Route path="/analytics" element={<GamificationAnalytics />} />
                       <Route path="/settings" element={<div>Company Settings</div>} />
                     </Routes>
                   </DashboardLayout>
