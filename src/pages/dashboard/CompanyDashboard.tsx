@@ -202,10 +202,10 @@ export default function CompanyDashboard() {
 
       if (gapAnalysis && !gapError) {
         // Count positions with gaps (less than 80% average match)
-        positionsWithGaps = gapAnalysis.filter(g => g.avg_match_percentage < 80).length;
+        positionsWithGaps = gapAnalysis.filter(g => Number(g.avg_match_percentage) < 80).length;
         
         // Sum up critical gaps count across all positions
-        criticalGaps = gapAnalysis.reduce((total, g) => total + g.critical_gaps_count, 0);
+        criticalGaps = gapAnalysis.reduce((total, g) => total + Number(g.critical_gaps_count || 0), 0);
       } else if (gapError) {
         console.error('Error calculating skills gap:', gapError);
         // Fallback to manual calculation if database function fails

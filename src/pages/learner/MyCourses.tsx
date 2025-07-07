@@ -61,10 +61,17 @@ export default function MyCourses() {
         throw new Error('Employee profile not found');
       }
 
-      // Fetch course assignments
+      // Fetch course assignments with course plan data
       const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select('*')
+        .select(`
+          *,
+          cm_course_plans (
+            plan_id,
+            course_title,
+            course_structure
+          )
+        `)
         .eq('employee_id', employee.id)
         .order('started_at', { ascending: false });
 
@@ -75,49 +82,61 @@ export default function MyCourses() {
 
       for (const assignment of assignments || []) {
         try {
-          // Get the course content
-          const { data: moduleContent } = await supabase
-            .from('cm_module_content')
-            .select('*')
-            .eq('content_id', assignment.course_id)
-            .single();
-
-          if (!moduleContent) continue;
-
-          // Create course structure from module content with proper type checking
-          const moduleSpec = moduleContent.module_spec;
+          let courseTitle = '';
           let courseStructure;
-          
-          if (moduleSpec && typeof moduleSpec === 'object' && moduleSpec !== null) {
-            const spec = moduleSpec as any;
-            courseStructure = {
-              title: moduleContent.module_name,
-              modules: spec.learning_objectives && Array.isArray(spec.learning_objectives) ? 
-                spec.learning_objectives.map((obj: any, index: number) => ({
-                  week: index + 1,
-                  title: obj.skill || `Module ${index + 1}`,
-                  topics: [obj.skill],
-                  duration: '2 hours',
-                  priority: obj.importance || 'medium'
-                })) : [{
+
+          // First, check if we have course plan data
+          if (assignment.cm_course_plans && assignment.cm_course_plans.course_title) {
+            // Use the actual course title from cm_course_plans
+            courseTitle = assignment.cm_course_plans.course_title;
+            courseStructure = assignment.cm_course_plans.course_structure;
+          } else {
+            // Fallback to module content if no course plan
+            const { data: moduleContent } = await supabase
+              .from('cm_module_content')
+              .select('*')
+              .eq('content_id', assignment.course_id)
+              .single();
+
+            if (!moduleContent) continue;
+
+            // For modules without a course plan, use module name as title
+            courseTitle = moduleContent.module_name;
+            
+            // Create course structure from module content
+            const moduleSpec = moduleContent.module_spec;
+            
+            if (moduleSpec && typeof moduleSpec === 'object' && moduleSpec !== null) {
+              const spec = moduleSpec as any;
+              courseStructure = {
+                title: courseTitle,
+                modules: spec.learning_objectives && Array.isArray(spec.learning_objectives) ? 
+                  spec.learning_objectives.map((obj: any, index: number) => ({
+                    week: index + 1,
+                    title: obj.skill || `Module ${index + 1}`,
+                    topics: [obj.skill],
+                    duration: '2 hours',
+                    priority: obj.importance || 'medium'
+                  })) : [{
+                    week: 1,
+                    title: moduleContent.module_name,
+                    topics: ['Course Content'],
+                    duration: '2 hours',
+                    priority: 'high'
+                  }]
+              };
+            } else {
+              courseStructure = {
+                title: courseTitle,
+                modules: [{
                   week: 1,
                   title: moduleContent.module_name,
                   topics: ['Course Content'],
                   duration: '2 hours',
                   priority: 'high'
                 }]
-            };
-          } else {
-            courseStructure = {
-              title: moduleContent.module_name,
-              modules: [{
-                week: 1,
-                title: moduleContent.module_name,
-                topics: ['Course Content'],
-                duration: '2 hours',
-                priority: 'high'
-              }]
-            };
+              };
+            }
           }
           
           formattedCourses.push({
@@ -129,7 +148,7 @@ export default function MyCourses() {
             started_at: assignment.started_at || assignment.assigned_at,
             completed_at: assignment.completed_at,
             course_plan: {
-              course_structure: courseStructure
+              course_structure: courseStructure || { title: courseTitle, modules: [] }
             }
           });
         } catch (error) {

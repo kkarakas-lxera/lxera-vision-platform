@@ -24,7 +24,7 @@ interface DepartmentSummary {
   department: string;
   total_employees: number;
   analyzed_employees: number;
-  avg_skills_match: number;
+  avg_skills_match: number | null;
   critical_gaps: number;
   moderate_gaps: number;
   exceeding_targets: number;
@@ -66,7 +66,7 @@ export default function SkillsOverview() {
           department: dept.department || 'Unassigned',
           total_employees: Number(dept.total_employees) || 0,
           analyzed_employees: Number(dept.analyzed_employees) || 0,
-          avg_skills_match: Number(dept.avg_skills_match) || 0,
+          avg_skills_match: dept.avg_skills_match !== null ? Number(dept.avg_skills_match) : null,
           critical_gaps: Number(dept.critical_gaps) || 0,
           moderate_gaps: Number(dept.moderate_gaps) || 0,
           exceeding_targets: Number(dept.exceeding_targets) || 0
@@ -98,8 +98,20 @@ export default function SkillsOverview() {
       // Calculate overall stats
       const totalEmployees = deptData?.reduce((sum, dept) => sum + (Number(dept.total_employees) || 0), 0) || 0;
       const analyzedEmployees = deptData?.reduce((sum, dept) => sum + (Number(dept.analyzed_employees) || 0), 0) || 0;
-      const avgMatch = analyzedEmployees > 0 
-        ? deptData?.reduce((sum, dept) => sum + ((Number(dept.avg_skills_match) || 0) * (Number(dept.analyzed_employees) || 0)), 0) / analyzedEmployees
+      
+      // Calculate weighted average, only including departments with analyzed employees
+      let totalWeightedMatch = 0;
+      let totalAnalyzedForAverage = 0;
+      
+      deptData?.forEach(dept => {
+        if (dept.avg_skills_match !== null && dept.analyzed_employees > 0) {
+          totalWeightedMatch += Number(dept.avg_skills_match) * Number(dept.analyzed_employees);
+          totalAnalyzedForAverage += Number(dept.analyzed_employees);
+        }
+      });
+      
+      const avgMatch = totalAnalyzedForAverage > 0 
+        ? totalWeightedMatch / totalAnalyzedForAverage
         : 0;
       
       // Sum up all skill gaps from department data
@@ -269,16 +281,22 @@ export default function SkillsOverview() {
                     <span className="text-xs text-gray-500">{dept.analyzed_employees}/{dept.total_employees}</span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600">
-                    <span>Match: {Math.round(dept.avg_skills_match)}%</span>
+                    {dept.avg_skills_match !== null ? (
+                      <span>Match: {Math.round(dept.avg_skills_match)}%</span>
+                    ) : (
+                      <span className="text-gray-400">No data</span>
+                    )}
                     <span className="text-red-600">Critical: {dept.critical_gaps}</span>
                     <span className="text-orange-600">Moderate: {dept.moderate_gaps}</span>
                   </div>
                   <div className="mt-2">
                     <div className="w-full bg-gray-200 rounded-full h-1">
-                      <div 
-                        className={`h-1 rounded-full transition-all duration-300 ${getProgressColor(dept.avg_skills_match)}`}
-                        style={{ width: `${Math.min(dept.avg_skills_match, 100)}%` }}
-                      ></div>
+                      {dept.avg_skills_match !== null && (
+                        <div 
+                          className={`h-1 rounded-full transition-all duration-300 ${getProgressColor(dept.avg_skills_match)}`}
+                          style={{ width: `${Math.min(dept.avg_skills_match, 100)}%` }}
+                        ></div>
+                      )}
                     </div>
                   </div>
                 </div>
