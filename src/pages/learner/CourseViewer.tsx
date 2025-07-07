@@ -1347,58 +1347,58 @@ export default function CourseViewer() {
                     </div>
                   </Card>
                 )}
-                  </>
-                )}
+                    </>
+                  )}
 
-                {/* Action Buttons */}
-                <div className="flex justify-between items-center pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={navigateToPreviousSection}
-                    disabled={currentIndex === 0}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Previous Section
-                  </Button>
-
-                  <div className="flex items-center gap-2">
-                    {/* Single Game Entry Point - Rolodex */}
+                  {/* Action Buttons */}
+                  <div className="flex justify-between items-center pt-4">
                     <Button
                       variant="outline"
-                      onClick={() => setGameMode('rolodex')}
-                      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0"
+                      onClick={navigateToPreviousSection}
+                      disabled={currentIndex === 0}
                     >
-                      <Target className="h-4 w-4 mr-2" />
-                      Start Learning Game
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Previous Section
                     </Button>
 
-                    {!sectionProgress[currentSection] ? (
+                    <div className="flex items-center gap-2">
+                      {/* Single Game Entry Point - Rolodex */}
                       <Button
-                        onClick={markSectionComplete}
-                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                        variant="outline"
+                        onClick={() => setGameMode('rolodex')}
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Mark as Complete
+                        <Target className="h-4 w-4 mr-2" />
+                        Start Learning Game
                       </Button>
-                    ) : (
-                      <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Completed
-                      </Badge>
-                    )}
-                  </div>
 
-                  <Button
-                    variant="outline"
-                    onClick={navigateToNextSection}
-                    disabled={currentIndex === availableSections.length - 1}
+                      {!sectionProgress[currentSection] ? (
+                        <Button
+                          onClick={markSectionComplete}
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Mark as Complete
+                        </Button>
+                      ) : (
+                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1">
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Completed
+                        </Badge>
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={navigateToNextSection}
+                      disabled={currentIndex === availableSections.length - 1}
                   >
                     Next Section
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
-                </div>
-              </>
-            )}
+                  </div>
+                </>
+              )}
           </div>
         </ScrollArea>
       </div>
