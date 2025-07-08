@@ -100,7 +100,7 @@ const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/Depar
 const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
 
 // Lazy load course generation
-const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationCompact"));
+const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationTwoColumn"));
 
 const queryClient = new QueryClient();
 
