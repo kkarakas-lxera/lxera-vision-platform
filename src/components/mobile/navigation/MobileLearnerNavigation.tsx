@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, 
   BookOpen, 
@@ -113,28 +112,23 @@ export function MobileLearnerNavigation() {
   return (
     <>
       {/* Course Progress Indicator */}
-      <AnimatePresence>
-        {isEnrolled && currentCourseProgress && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 lg:hidden"
-          >
-            <div className="flex items-center gap-3">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Current Course</p>
-                <p className="text-xs text-gray-500">{currentCourseProgress.courseName}</p>
-              </div>
-              <div className="w-20">
-                <Progress value={currentCourseProgress.progress} className="h-2" />
-                <p className="text-xs text-gray-500 mt-1">{currentCourseProgress.progress}%</p>
-              </div>
+      {isEnrolled && currentCourseProgress && (
+        <div
+          className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 lg:hidden transition-all duration-300 ease-out"
+        >
+          <div className="flex items-center gap-3">
+            <GraduationCap className="h-5 w-5 text-primary" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Current Course</p>
+              <p className="text-xs text-gray-500">{currentCourseProgress.courseName}</p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="w-20">
+              <Progress value={currentCourseProgress.progress} className="h-2" />
+              <p className="text-xs text-gray-500 mt-1">{currentCourseProgress.progress}%</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className={cn(
@@ -155,9 +149,8 @@ export function MobileLearnerNavigation() {
                   "transition-all duration-200 relative group"
                 )}
               >
-                <motion.div
-                  whileTap={{ scale: 0.95 }}
-                  className="relative"
+                <div
+                  className="relative active:scale-95 transition-transform duration-100"
                 >
                   <Icon 
                     className={cn(
@@ -166,13 +159,11 @@ export function MobileLearnerNavigation() {
                     )}
                   />
                   {item.badge && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"
+                    <span
+                      className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-scale-in"
                     />
                   )}
-                </motion.div>
+                </div>
                 <span 
                   className={cn(
                     "text-xs mt-1 transition-colors",
@@ -182,10 +173,8 @@ export function MobileLearnerNavigation() {
                   {item.label}
                 </span>
                 {active && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", bounce: 0.25 }}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-all duration-300"
                   />
                 )}
               </button>
@@ -197,14 +186,14 @@ export function MobileLearnerNavigation() {
             onClick={() => setIsMoreMenuOpen(true)}
             className="flex flex-col items-center justify-center py-2 px-3 min-h-[48px] min-w-[48px] flex-1 transition-all duration-200 relative group"
           >
-            <motion.div whileTap={{ scale: 0.95 }}>
+            <div className="active:scale-95 transition-transform duration-100">
               <MoreHorizontal 
                 className={cn(
                   "h-5 w-5 transition-colors",
                   isMoreMenuOpen ? "text-primary" : "text-gray-500 group-hover:text-gray-700"
                 )}
               />
-            </motion.div>
+            </div>
             <span 
               className={cn(
                 "text-xs mt-1 transition-colors",
