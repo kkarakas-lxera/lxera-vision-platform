@@ -56,6 +56,7 @@ const HeroVideoPlayer = ({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   
   // Auto-hide controls
   useEffect(() => {
@@ -89,6 +90,7 @@ const HeroVideoPlayer = ({
     const handlePlay = () => {
       setIsPlaying(true);
       setHasEnded(false);
+      setHasStarted(true);
     };
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => {
@@ -291,11 +293,12 @@ const HeroVideoPlayer = ({
         </div>
       )}
 
-      {/* Custom Controls */}
-      <div className={cn(
-        "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300",
-        showControls ? "opacity-100" : "opacity-0"
-      )}>
+      {/* Custom Controls - Only show if video has started */}
+      {hasStarted && (
+        <div className={cn(
+          "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300",
+          showControls ? "opacity-100" : "opacity-0"
+        )}>
         {/* Progress Bar */}
         <div className="mb-4">
           <Slider
@@ -450,14 +453,17 @@ const HeroVideoPlayer = ({
           </div>
         </div>
       </div>
+      )}
 
-      {/* Top Gradient for Title */}
-      <div className={cn(
-        "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-4 transition-opacity duration-300",
-        showControls ? "opacity-100" : "opacity-0"
-      )}>
-        <h3 className="text-white font-semibold text-lg">LXERA Platform Demo</h3>
-      </div>
+      {/* Top Gradient for Title - Only show if video has started */}
+      {hasStarted && (
+        <div className={cn(
+          "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-4 transition-opacity duration-300",
+          showControls ? "opacity-100" : "opacity-0"
+        )}>
+          <h3 className="text-white font-semibold text-lg">LXERA Platform Demo</h3>
+        </div>
+      )}
     </div>
   );
 };
