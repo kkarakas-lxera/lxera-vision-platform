@@ -12,6 +12,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { ClarityProvider } from "@/components/ClarityProvider";
 
 
 // Import existing pages
@@ -228,8 +229,10 @@ const App = () => {
             </AuthProvider>
             </ThemeProvider>
           </BrowserRouter>
-          <Analytics />
-          <SpeedInsights />
+          <ClarityProvider projectId="sbjtfdiclk">
+            <Analytics />
+            <SpeedInsights />
+          </ClarityProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
