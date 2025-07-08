@@ -4,7 +4,7 @@ import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import HeroStats from "./HeroStats";
-import DemoModal from "./DemoModal";
+import DemoModalWrapper from "./DemoModalWrapper";
 import WaitlistModal from "./WaitlistModal";
 import { useState } from "react";
 
@@ -130,7 +130,7 @@ const HeroSection = () => {
           </div>
         </div>
 
-        <DemoModal 
+        <DemoModalWrapper 
           isOpen={isDemoModalOpen} 
           onClose={() => setIsDemoModalOpen(false)}
           source="Hero Section"
