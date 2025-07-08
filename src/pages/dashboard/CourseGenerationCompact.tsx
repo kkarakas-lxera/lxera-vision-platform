@@ -508,10 +508,15 @@ export default function CourseGenerationCompact() {
             <div className="border-t p-4 bg-background">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <phaseStates[currentPhaseIndex].icon className={cn(
-                    "h-5 w-5",
-                    phaseStates[currentPhaseIndex].color
-                  )} />
+                  {(() => {
+                    const PhaseIcon = phaseStates[currentPhaseIndex].icon;
+                    return (
+                      <PhaseIcon className={cn(
+                        "h-5 w-5",
+                        phaseStates[currentPhaseIndex].color
+                      )} />
+                    );
+                  })()}
                   <span className="font-medium">
                     Active: {phaseStates[currentPhaseIndex].name}
                   </span>
