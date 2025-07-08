@@ -6,9 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Flame, BookOpen, Clock, Award, TrendingUp, Target, PlayCircle, Settings } from 'lucide-react';
+import { ArrowRight, Flame, BookOpen, Clock, Award, TrendingUp, Target, PlayCircle, Settings, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import WelcomeOnboarding from '@/components/learner/WelcomeOnboarding';
+import MobileLearningProgress from '@/components/mobile/learner/MobileLearningProgress';
+import MobileCourseCards from '@/components/mobile/learner/MobileCourseCards';
+import MobileLearnerStatsCarousel from '@/components/mobile/learner/MobileLearnerStatsCarousel';
+import MobileRecentActivity from '@/components/mobile/learner/MobileRecentActivity';
+import MobileQuickActions from '@/components/mobile/learner/MobileQuickActions';
+import PullToRefreshIndicator from '@/components/mobile/shared/PullToRefreshIndicator';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { 
+  injectTouchOptimizationStyles,
+  createTouchOptimizedClass,
+  triggerHapticFeedback
+} from '@/utils/touchOptimization';
+import { cn } from '@/lib/utils';
 
 interface CourseAssignment {
   id: string;
@@ -28,6 +41,20 @@ interface LearningStreak {
   last_learning_date: string | null;
 }
 
+interface ActivityItem {
+  id: string;
+  type: 'course_started' | 'module_completed' | 'achievement_earned' | 'progress_milestone';
+  title: string;
+  description: string;
+  timestamp: string;
+  metadata?: {
+    course_name?: string;
+    module_name?: string;
+    achievement_type?: string;
+    progress_percentage?: number;
+  };
+}
+
 export default function LearnerDashboard() {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +64,18 @@ export default function LearnerDashboard() {
   const [currentCourse, setCurrentCourse] = useState<CourseAssignment | null>(null);
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Pull-to-refresh functionality
+  const pullToRefresh = usePullToRefresh({
+    onRefresh: async () => {
+      await fetchLearnerData(true);
+    },
+    threshold: 80,
+    disabled: !isMobile || loading
+  });
 
   useEffect(() => {
     if (userProfile) {
@@ -44,8 +83,25 @@ export default function LearnerDashboard() {
     }
   }, [userProfile]);
 
-  const fetchLearnerData = async () => {
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Inject touch optimization styles
+    injectTouchOptimizationStyles();
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const fetchLearnerData = async (showRefreshIndicator = false) => {
     try {
+      if (showRefreshIndicator) {
+        setIsRefreshing(true);
+      }
       // Get employee record linked to this user
       const { data: employees } = await supabase
         .from('employees')
@@ -126,11 +182,41 @@ export default function LearnerDashboard() {
       if (inProgressCourses.length > 0) {
         setCurrentCourse(inProgressCourses[0]);
       }
+
+      // Mock recent activity data (in real app, this would be fetched from API)
+      const mockActivity: ActivityItem[] = [
+        {
+          id: '1',
+          type: 'course_started',
+          title: 'Started new course',
+          description: 'Began learning about advanced concepts',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          metadata: { course_name: 'Advanced Learning' }
+        },
+        {
+          id: '2',
+          type: 'module_completed',
+          title: 'Module completed',
+          description: 'Finished Introduction to Basics',
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          metadata: { module_name: 'Introduction', progress_percentage: 25 }
+        },
+        {
+          id: '3',
+          type: 'achievement_earned',
+          title: 'Achievement unlocked',
+          description: 'Earned "Quick Learner" badge',
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          metadata: { achievement_type: 'Quick Learner' }
+        }
+      ];
+      setRecentActivity(mockActivity);
     } catch (error) {
       console.error('Error fetching learner data:', error);
       toast.error('Failed to load your courses');
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -160,6 +246,46 @@ export default function LearnerDashboard() {
     setShowWelcome(false);
   };
 
+  const handleRefresh = async () => {
+    await fetchLearnerData(true);
+  };
+
+  const handlePullToRefresh = async () => {
+    await fetchLearnerData(true);
+  };
+  
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchLearnerData(true);
+    setIsRefreshing(false);
+  };
+
+  const handleQuickAction = (actionId: string) => {
+    // Add haptic feedback for better mobile UX
+    if (isMobile) {
+      triggerHapticFeedback('light');
+    }
+    
+    switch (actionId) {
+      case 'continue':
+        if (currentCourse) {
+          continueLearning(currentCourse);
+        }
+        break;
+      case 'browse':
+        navigate('/learner/courses');
+        break;
+      case 'search':
+        navigate('/learner/courses?search=true');
+        break;
+      case 'settings':
+        navigate('/learner/settings');
+        break;
+      default:
+        console.log('Quick action:', actionId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -181,6 +307,166 @@ export default function LearnerDashboard() {
 
   const { completed, total } = getProgressPath();
 
+  // Mobile view
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background relative">
+        {/* Pull-to-refresh indicator */}
+        <PullToRefreshIndicator
+          isRefreshing={pullToRefresh.isRefreshing || isRefreshing}
+          pullDistance={pullToRefresh.pullDistance}
+          progress={pullToRefresh.getRefreshProgress()}
+        />
+        
+        {/* Mobile Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-foreground truncate">
+                {getGreeting()}, {userProfile?.full_name?.split(' ')[0]}!
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {pullToRefresh.shouldShowRefreshIndicator() 
+                  ? "Pull down to refresh" 
+                  : "Ready to continue learning?"
+                }
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (isMobile) triggerHapticFeedback('light');
+                  handleManualRefresh();
+                }}
+                disabled={isRefreshing || pullToRefresh.isRefreshing}
+                className={cn(
+                  "h-8 w-8 p-0",
+                  createTouchOptimizedClass('minimal', 'subtle')
+                )}
+              >
+                <RefreshCw className={cn(
+                  "h-4 w-4 transition-transform", 
+                  (isRefreshing || pullToRefresh.isRefreshing) && "animate-spin"
+                )} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn(
+                  "h-8 w-8 p-0",
+                  createTouchOptimizedClass('minimal', 'subtle')
+                )}
+                onClick={() => {
+                  if (isMobile) triggerHapticFeedback('light');
+                  navigate('/learner/settings');
+                }}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main content with pull-to-refresh */}
+        <div 
+          className="overflow-y-auto touch-pan-y"
+          ref={pullToRefresh.setScrollElement}
+          style={{
+            transform: pullToRefresh.pullDistance > 0 
+              ? `translateY(${Math.min(pullToRefresh.pullDistance * 0.5, 40)}px)` 
+              : 'translateY(0)',
+            transition: pullToRefresh.pullDistance === 0 ? 'transform 0.3s ease-out' : 'none'
+          }}
+        >
+          {/* Enhanced Streak Banner */}
+          {streak.current_streak > 0 && (
+            <div className="px-4 py-3">
+              <Card className={cn(
+                "p-3 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200",
+                "active:scale-99 transition-transform cursor-pointer",
+                createTouchOptimizedClass('comfortable', 'gentle')
+              )}
+              onClick={() => {
+                if (isMobile) triggerHapticFeedback('medium');
+                // Could navigate to streak details
+              }}
+              >
+                <div className="flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium text-orange-900">
+                    {streak.current_streak}-day streak! Keep it up!
+                  </span>
+                  <div className="ml-auto text-xs text-orange-600 flex items-center gap-1">
+                    <span>Tap for details</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Stats Carousel */}
+          <MobileLearnerStatsCarousel
+            stats={{
+              totalCourses: total,
+              completedCourses: completed,
+              progressPercentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+              estimatedHours: getTotalEstimatedHours(),
+              currentStreak: streak.current_streak,
+              nextGoal: completed === total ? '🎉' : `${completed + 1}${completed === 0 ? 'st' : completed === 1 ? 'nd' : completed === 2 ? 'rd' : 'th'}`
+            }}
+            onCardClick={handleQuickAction}
+          />
+
+          {/* Current Course Progress */}
+          <MobileLearningProgress
+            currentCourse={currentCourse}
+            onContinueLearning={continueLearning}
+          />
+
+          {/* Quick Actions */}
+          <MobileQuickActions
+            currentCourseId={currentCourse?.course_id}
+            onContinueCourse={() => currentCourse && continueLearning(currentCourse)}
+            onBrowseCatalog={() => navigate('/learner/courses')}
+            onSearch={() => navigate('/learner/courses?search=true')}
+            onSettings={() => navigate('/learner/settings')}
+          />
+
+          {/* Course Cards */}
+          <MobileCourseCards
+            assignments={assignments}
+            onContinueLearning={continueLearning}
+            onViewAll={() => navigate('/learner/courses')}
+            estimatedHours={getTotalEstimatedHours()}
+          />
+
+          {/* Recent Activity */}
+          <MobileRecentActivity
+            activities={recentActivity}
+            onViewAll={() => navigate('/learner/activity')}
+          />
+
+          {/* Bottom spacing for mobile navigation */}
+          <div className="pb-20" />
+        </div>
+        
+        {/* Loading overlay for refresh */}
+        {(pullToRefresh.isRefreshing || isRefreshing) && (
+          <div className="fixed inset-0 bg-background/50 backdrop-blur-sm z-30 flex items-center justify-center">
+            <div className="bg-background p-4 rounded-lg shadow-lg flex items-center gap-3">
+              <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm font-medium">Refreshing your courses...</span>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Welcome Section */}
@@ -422,3 +708,6 @@ export default function LearnerDashboard() {
     </div>
   );
 }
+
+// Global touch optimization is now handled by the touchOptimization utility
+// This ensures consistent touch behavior across all mobile components

@@ -32,3 +32,21 @@ export {
 // Indicators
 export { OfflineIndicator } from './indicators/OfflineIndicator';
 export { SyncIndicator } from './indicators/SyncIndicator';
+
+// Company Components
+export {
+  MobileQuickActions,
+  MobileEmployeeCard,
+  MobileEmployeeList,
+  MobileCompanyHeader,
+  MobileOnboardingFlow,
+  createEmployeeOnboardingSteps,
+  MobileSearchAndFilter,
+  createEmployeeFilterCategories,
+  MobileSessionStatus,
+  SessionStatusSummary,
+  MobileSwipeActions,
+  SwipeableEmployeeCard,
+  SwipeHintCard,
+  createEmployeeSwipeActions
+} from './company';

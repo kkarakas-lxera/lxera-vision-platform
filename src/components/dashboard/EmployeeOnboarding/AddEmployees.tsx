@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/mobile/modals/ResponsiveModal';
 import { CSVImportWizard } from './CSVImportWizard';
 import { EmployeeImportSession } from '@/types/database';
 
@@ -28,17 +28,18 @@ export const AddEmployees: React.FC<AddEmployeesProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add Employees</DialogTitle>
-        </DialogHeader>
-        <CSVImportWizard 
-          onImportComplete={handleImportComplete}
-          importSessions={importSessions}
-        />
-      </DialogContent>
-    </Dialog>
+    <ResponsiveModal
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose?.()}
+      title="Add Employees"
+      mobileMode="fullscreen"
+      className="max-w-4xl"
+    >
+      <CSVImportWizard 
+        onImportComplete={handleImportComplete}
+        importSessions={importSessions}
+      />
+    </ResponsiveModal>
   );
 };
 

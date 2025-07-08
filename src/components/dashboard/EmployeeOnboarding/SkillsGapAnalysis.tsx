@@ -8,6 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { MobileSkillsGapCard } from '@/components/mobile/company/MobileSkillsGapCard';
+import { MobilePositionSkillsCarousel } from '@/components/mobile/company/MobilePositionSkillsCarousel';
+import { MobileEmptyState } from '@/components/mobile/company/MobileEmptyState';
+import { cn } from '@/lib/utils';
 
 interface RequiredSkill {
   skill_name: string;
@@ -58,6 +62,20 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
   const [positionAnalyses, setPositionAnalyses] = useState<PositionAnalysis[]>([]);
   const [topSkillGaps, setTopSkillGaps] = useState<SkillGap[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGap, setExpandedGap] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (userProfile?.company_id && employees.length > 0) {
@@ -341,6 +359,18 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
   };
 
   if (loading) {
+    if (isMobile) {
+      return (
+        <div className="space-y-4">
+          <MobileEmptyState 
+            type="loading" 
+            title="Analyzing Skills Data"
+            description="Please wait while we process employee skills and identify gaps."
+          />
+        </div>
+      );
+    }
+    
     return (
       <div className="space-y-3">
         <div className="animate-pulse">
@@ -355,6 +385,124 @@ export function SkillsGapAnalysis({ employees }: SkillsGapAnalysisProps) {
     );
   }
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {/* Mobile Header */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Skills Gap Analysis
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Skills gaps by position and employee
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* Mobile Stats Overview */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Analyzed</p>
+                  <p className="text-lg font-semibold">
+                    {employees.filter(e => e.skills_analysis === 'completed').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Critical</p>
+                  <p className="text-lg font-semibold text-red-600">
+                    {positionAnalyses.reduce((sum, a) => sum + a.critical_gaps, 0)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mobile Position Carousel */}
+        {filteredAnalyses.length > 0 ? (
+          <MobilePositionSkillsCarousel
+            positions={filteredAnalyses}
+            onPositionSelect={(position) => {
+              // Handle position selection
+            }}
+          />
+        ) : (
+          <MobileEmptyState
+            type="no-analysis"
+            title="No Position Analysis"
+            description="Import employees and analyze their CVs to see skills gaps."
+          />
+        )}
+
+        {/* Mobile Top Skill Gaps */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Top Skill Gaps</CardTitle>
+            <CardDescription className="text-xs">
+              Most critical gaps affecting your organization
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {topSkillGaps.length > 0 ? (
+              <div className="space-y-3">
+                {topSkillGaps.slice(0, 5).map((gap, index) => (
+                  <MobileSkillsGapCard
+                    key={`${gap.skill_name}-${index}`}
+                    gap={gap}
+                    totalEmployees={employees.length}
+                    rank={index + 1}
+                    isExpanded={expandedGap === `${gap.skill_name}-${index}`}
+                    onToggleExpand={() => {
+                      setExpandedGap(
+                        expandedGap === `${gap.skill_name}-${index}` 
+                          ? null 
+                          : `${gap.skill_name}-${index}`
+                      );
+                    }}
+                  />
+                ))}
+                {topSkillGaps.length > 5 && (
+                  <div className="text-center py-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportToCSV}
+                      className="text-xs"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Export Full Report
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <MobileEmptyState
+                type="no-skills"
+                title="No Skill Gaps Found"
+                description="All employees meet position requirements or analysis is pending."
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="space-y-4">
       {/* Analysis Overview - Compact Header */}

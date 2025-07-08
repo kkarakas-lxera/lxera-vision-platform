@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/mobile/modals/ResponsiveModal';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,12 +76,14 @@ export const BulkCVUpload: React.FC<BulkCVUploadProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Bulk CV Upload</DialogTitle>
-        </DialogHeader>
-        
+    <>
+      <ResponsiveModal
+        open={isOpen}
+        onOpenChange={(open) => !open && onClose?.()}
+        title="Bulk CV Upload"
+        mobileMode="fullscreen"
+        className="max-w-4xl"
+      >
         <div className="space-y-4">
           {loading ? (
             <div className="flex justify-center p-8">
@@ -140,7 +142,7 @@ export const BulkCVUpload: React.FC<BulkCVUploadProps> = ({
             </>
           )}
         </div>
-      </DialogContent>
+      </ResponsiveModal>
 
       {selectedEmployee && (
         <CVUploadDialog
@@ -154,7 +156,7 @@ export const BulkCVUpload: React.FC<BulkCVUploadProps> = ({
           onUploadComplete={handleComplete}
         />
       )}
-    </Dialog>
+    </>
   );
 };
 

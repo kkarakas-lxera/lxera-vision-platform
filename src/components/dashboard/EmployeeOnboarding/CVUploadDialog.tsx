@@ -1,13 +1,7 @@
 
 import React, { useState } from 'react';
 import { Upload, FileText, X, Loader2, CheckCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveModal } from '@/components/mobile/modals/ResponsiveModal';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -324,16 +318,17 @@ export function CVUploadDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Upload CV for {employee.name}</DialogTitle>
-          <DialogDescription>
-            Upload a CV document to analyze skills and calculate gaps
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
+    <ResponsiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Upload CV for ${employee.name}`}
+      mobileMode="sheet"
+      className="sm:max-w-md"
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600 mb-4">
+          Upload a CV document to analyze skills and calculate gaps
+        </p>
           {!file && (
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
@@ -431,7 +426,7 @@ export function CVUploadDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ResponsiveModal>
   );
 }

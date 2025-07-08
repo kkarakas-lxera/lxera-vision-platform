@@ -37,6 +37,10 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import VideoPlayer from '@/pages/learner/components/VideoPlayer';
+import MobileCourseHeader from '@/components/mobile/learner/MobileCourseHeader';
+import MobileVideoPlayer from '@/components/mobile/learner/MobileVideoPlayer';
+import MobileCourseProgress from '@/components/mobile/learner/MobileCourseProgress';
+import { useSwipeable } from 'react-swipeable';
 import { cn } from '@/lib/utils';
 import MissionBriefing from '@/components/learner/game/MissionBriefing';
 import GameScreen from '@/components/learner/game/GameScreen';
@@ -136,6 +140,9 @@ export default function CourseViewer() {
   const [contentExpanded, setContentExpanded] = useState(true);
   const [researchExpanded, setResearchExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'research'>('content');
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [showMobileProgress, setShowMobileProgress] = useState(false);
   
   // Game state
   const [showMissionBriefing, setShowMissionBriefing] = useState(false);
@@ -153,6 +160,23 @@ export default function CourseViewer() {
       fetchCourseData();
     }
   }, [userProfile, courseId]);
+
+  // Check if mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
 
   // Fetch video when section or employee changes
   useEffect(() => {
@@ -477,6 +501,7 @@ export default function CourseViewer() {
     if (currentIndex < availableSections.length - 1) {
       setCurrentSection(availableSections[currentIndex + 1].id);
       setMobileMenuOpen(false);
+      setShowMobileProgress(false);
     }
   };
 
@@ -485,6 +510,7 @@ export default function CourseViewer() {
     if (currentIndex > 0) {
       setCurrentSection(availableSections[currentIndex - 1].id);
       setMobileMenuOpen(false);
+      setShowMobileProgress(false);
     }
   };
 
@@ -762,6 +788,23 @@ export default function CourseViewer() {
     }
   };
 
+  // Swipe handlers for mobile navigation
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (isMobile && gameMode === 'none') {
+        navigateToNextSection();
+      }
+    },
+    onSwipedRight: () => {
+      if (isMobile && gameMode === 'none') {
+        navigateToPreviousSection();
+      }
+    },
+    trackMouse: false,
+    delta: 100,
+    preventScrollOnSwipe: true
+  });
+
 
   if (loading) {
     return (
@@ -996,7 +1039,10 @@ export default function CourseViewer() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className={cn(
+      "min-h-screen bg-gray-50 dark:bg-gray-900",
+      isMobile ? "flex flex-col" : "flex"
+    )} {...swipeHandlers}>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block w-80">
         <Sidebar />
@@ -1011,8 +1057,28 @@ export default function CourseViewer() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        {/* Mobile Header */}
+        {isMobile && (
+          <MobileCourseHeader
+            courseTitle={coursePlan?.course_title || courseContent?.module_name || 'Course'}
+            moduleName={courseContent?.module_name || 'Module'}
+            currentSection={currentSectionData?.name || ''}
+            progress={assignment?.progress_percentage || 0}
+            isGameMode={gameMode !== 'none'}
+            theme={theme}
+            onBackClick={() => navigate('/learner/courses')}
+            onMenuClick={() => setMobileMenuOpen(true)}
+            onThemeToggle={toggleTheme}
+            onGameExit={handleGameExit}
+            currentIndex={currentIndex}
+            totalSections={availableSections.length}
+            onPreviousSection={navigateToPreviousSection}
+            onNextSection={navigateToNextSection}
+          />
+        )}
+        {/* Desktop Header */}
+        {!isMobile && (
+          <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-4">
               <Button
@@ -1102,6 +1168,7 @@ export default function CourseViewer() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Content Area */}
         <ScrollArea className="flex-1">
@@ -1160,16 +1227,28 @@ export default function CourseViewer() {
             {/* Normal Course Content (when not in game mode) */}
             {gameMode === 'none' && (
               <>
-                {/* Video Player - Only show for non-assessment sections */}
+                {/* Video Player - Mobile vs Desktop */}
                 {currentSection !== 'assessments' && (
-                  <VideoPlayer 
-                    videoUrl={sectionVideoUrl}
-                    title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
-                    onFeedback={(isPositive) => {
-                      console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
-                      // You can add feedback tracking here if needed
-                    }}
-                  />
+                  isMobile ? (
+                    <MobileVideoPlayer 
+                      videoUrl={sectionVideoUrl}
+                      title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      onFeedback={(isPositive) => {
+                        console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
+                      }}
+                      onFullscreenChange={(isFullscreen) => {
+                        // Handle mobile fullscreen state if needed
+                      }}
+                    />
+                  ) : (
+                    <VideoPlayer 
+                      videoUrl={sectionVideoUrl}
+                      title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      onFeedback={(isPositive) => {
+                        console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
+                      }}
+                    />
+                  )
                 )}
 
                 {/* Special handling for assessments section - no tabs needed */}
@@ -1349,22 +1428,48 @@ export default function CourseViewer() {
                 )}
 
                 {/* Action Buttons */}
-                  <div className="flex justify-between items-center pt-4">
+                <div className={cn(
+                  "pt-4",
+                  isMobile ? "flex flex-col gap-4" : "flex justify-between items-center"
+                )}>
+                  {/* Mobile Progress Button */}
+                  {isMobile && (
                     <Button
                       variant="outline"
-                      onClick={navigateToPreviousSection}
-                      disabled={currentIndex === 0}
+                      onClick={() => setShowMobileProgress(true)}
+                      className="w-full justify-center"
                     >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Previous Section
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      View Course Progress
                     </Button>
+                  )}
+                  
+                  <div className={cn(
+                    isMobile ? "flex flex-col gap-3" : "flex justify-between items-center w-full"
+                  )}>
+                    {!isMobile && (
+                      <Button
+                        variant="outline"
+                        onClick={navigateToPreviousSection}
+                        disabled={currentIndex === 0}
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Previous Section
+                      </Button>
+                    )}
 
-                    <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "flex items-center gap-2",
+                      isMobile ? "flex-col w-full" : ""
+                    )}>
                       {/* Single Game Entry Point - Rolodex */}
                       <Button
                         variant="outline"
                         onClick={() => setGameMode('rolodex')}
-                        className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0"
+                        className={cn(
+                          "bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 border-0",
+                          isMobile ? "w-full" : ""
+                        )}
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Start Learning Game
@@ -1373,7 +1478,10 @@ export default function CourseViewer() {
                       {!sectionProgress[currentSection] ? (
                         <Button
                           onClick={markSectionComplete}
-                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                          className={cn(
+                            "bg-blue-500 hover:bg-blue-600 text-white",
+                            isMobile ? "w-full" : ""
+                          )}
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Mark as Complete
@@ -1386,15 +1494,42 @@ export default function CourseViewer() {
                       )}
                     </div>
 
-                    <Button
-                      variant="outline"
-                      onClick={navigateToNextSection}
-                      disabled={currentIndex === availableSections.length - 1}
-                    >
-                      Next Section
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
+                    {!isMobile && (
+                      <Button
+                        variant="outline"
+                        onClick={navigateToNextSection}
+                        disabled={currentIndex === availableSections.length - 1}
+                      >
+                        Next Section
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
                   </div>
+                  
+                  {/* Mobile Navigation Buttons */}
+                  {isMobile && (
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={navigateToPreviousSection}
+                        disabled={currentIndex === 0}
+                        className="flex-1"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={navigateToNextSection}
+                        disabled={currentIndex === availableSections.length - 1}
+                        className="flex-1"
+                      >
+                        Next
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 </>
               )}
           </div>
@@ -1410,6 +1545,30 @@ export default function CourseViewer() {
           />
         )}
       </div>
+      
+      {/* Mobile Progress Sheet */}
+      {isMobile && (
+        <Sheet open={showMobileProgress} onOpenChange={setShowMobileProgress}>
+          <SheetContent side="bottom" className="h-[80vh] p-0">
+            <MobileCourseProgress
+              courseTitle={coursePlan?.course_title || courseContent?.module_name || 'Course'}
+              currentModule={courseContent?.module_name || 'Module'}
+              currentSection={currentSection}
+              sections={availableSections}
+              modules={coursePlan?.course_structure?.modules || []}
+              sectionProgress={sectionProgress}
+              overallProgress={assignment?.progress_percentage || 0}
+              onSectionSelect={(sectionId) => {
+                setCurrentSection(sectionId);
+                setShowMobileProgress(false);
+              }}
+              onModuleSelect={(moduleId) => {
+                // Handle module selection if needed
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }

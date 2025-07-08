@@ -33,7 +33,7 @@ import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
-import MobileAdminNavigation from '@/components/mobile/navigation/MobileAdminNavigation';
+import { MobileAdminNavigation, MobileCompanyNavigation, MobileLearnerNavigation } from '@/components/mobile/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
@@ -254,11 +254,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </div>
 
       {/* Mobile navigation */}
-      {isMobile && (
-        <MobileAdminNavigation 
-          navigationItems={navigationItems}
-          userRole={userProfile?.role}
-        />
+      {isMobile && userProfile && (
+        <>
+          {userProfile.role === 'company_admin' ? (
+            <MobileCompanyNavigation />
+          ) : userProfile.role === 'learner' ? (
+            <MobileLearnerNavigation />
+          ) : (
+            <MobileAdminNavigation 
+              navigationItems={navigationItems}
+              userRole={userProfile.role}
+            />
+          )}
+        </>
       )}
     </div>
   );

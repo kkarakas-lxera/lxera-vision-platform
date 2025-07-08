@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CheckCircle, 
   Circle, 
@@ -19,7 +20,10 @@ import {
   Book,
   Lightbulb,
   Users,
-  ClipboardCheck
+  ClipboardCheck,
+  ExternalLink,
+  Download,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +41,14 @@ interface Module {
   status?: string;
 }
 
+interface Resource {
+  id: string;
+  title: string;
+  type: 'pdf' | 'video' | 'link' | 'article';
+  url: string;
+  description?: string;
+}
+
 interface MobileCourseProgressProps {
   courseTitle: string;
   currentModule: string;
@@ -47,6 +59,10 @@ interface MobileCourseProgressProps {
   overallProgress: number;
   onSectionSelect: (sectionId: string) => void;
   onModuleSelect?: (moduleId: string) => void;
+  resources?: Resource[];
+  bookmarks?: string[];
+  onBookmark?: (resourceId: string) => void;
+  onRemoveBookmark?: (resourceId: string) => void;
   className?: string;
 }
 
@@ -60,6 +76,10 @@ export default function MobileCourseProgress({
   overallProgress,
   onSectionSelect,
   onModuleSelect,
+  resources = [],
+  bookmarks = [],
+  onBookmark,
+  onRemoveBookmark,
   className
 }: MobileCourseProgressProps) {
   const [expandedModule, setExpandedModule] = useState<number | null>(null);
@@ -89,12 +109,22 @@ export default function MobileCourseProgress({
     return moduleIndex < currentModuleIndex;
   };
 
+  const getResourceIcon = (type: string) => {
+    switch (type) {
+      case 'pdf': return FileText;
+      case 'video': return Play;
+      case 'link': return ExternalLink;
+      case 'article': return Book;
+      default: return FileText;
+    }
+  };
+
   return (
     <Card className={cn("overflow-hidden", className)}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Course Progress
+            Course Navigation
           </h3>
           <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
             {overallProgress}%
@@ -113,6 +143,24 @@ export default function MobileCourseProgress({
           </div>
         </div>
       </div>
+
+      <Tabs defaultValue="progress" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
+          <TabsTrigger value="progress" className="text-xs">
+            <BookOpen className="h-4 w-4 mr-1" />
+            Progress
+          </TabsTrigger>
+          <TabsTrigger value="resources" className="text-xs">
+            <FileText className="h-4 w-4 mr-1" />
+            Resources
+          </TabsTrigger>
+          <TabsTrigger value="bookmarks" className="text-xs">
+            <Star className="h-4 w-4 mr-1" />
+            Saved
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="progress" className="mt-0">
 
       <ScrollArea className="max-h-96">
         <div className="p-4 space-y-4">
@@ -333,6 +381,141 @@ export default function MobileCourseProgress({
           </div>
         </div>
       </ScrollArea>
+      </TabsContent>
+
+      <TabsContent value="resources" className="mt-0">
+        <ScrollArea className="max-h-96">
+          <div className="p-4 space-y-3">
+            {resources.length > 0 ? (
+              resources.map((resource) => {
+                const Icon = getResourceIcon(resource.type);
+                const isBookmarked = bookmarks.includes(resource.id);
+                
+                return (
+                  <div key={resource.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                        <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1 truncate">
+                          {resource.title}
+                        </h4>
+                        {resource.description && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                            {resource.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={resource.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            Open Resource
+                          </a>
+                          {onBookmark && (
+                            <button
+                              onClick={() => {
+                                if (isBookmarked && onRemoveBookmark) {
+                                  onRemoveBookmark(resource.id);
+                                } else {
+                                  onBookmark(resource.id);
+                                }
+                              }}
+                              className={cn(
+                                "text-xs px-2 py-1 rounded transition-colors",
+                                isBookmarked
+                                  ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                                  : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                              )}
+                            >
+                              {isBookmarked ? 'Saved' : 'Save'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  No resources available for this course yet.
+                </p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </TabsContent>
+
+      <TabsContent value="bookmarks" className="mt-0">
+        <ScrollArea className="max-h-96">
+          <div className="p-4 space-y-3">
+            {bookmarks.length > 0 ? (
+              resources
+                .filter(resource => bookmarks.includes(resource.id))
+                .map((resource) => {
+                  const Icon = getResourceIcon(resource.type);
+                  
+                  return (
+                    <div key={resource.id} className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1 truncate">
+                            {resource.title}
+                          </h4>
+                          {resource.description && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                              {resource.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Open Resource
+                            </a>
+                            {onRemoveBookmark && (
+                              <button
+                                onClick={() => onRemoveBookmark(resource.id)}
+                                className="text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+            ) : (
+              <div className="text-center py-8">
+                <Star className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  No saved resources yet.
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  Save resources from the Resources tab to access them quickly here.
+                </p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </TabsContent>
+      </Tabs>
     </Card>
   );
 }

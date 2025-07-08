@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,18 @@ import {
   CheckCircle2,
   AlertTriangle,
   BrainCircuit,
-  ArrowRight
+  ArrowRight,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import MobileMetricsCarousel from '@/components/mobile/company/MobileMetricsCarousel';
+import MobileSkillsHealthCard from '@/components/mobile/company/MobileSkillsHealthCard';
+import { cn } from '@/lib/utils';
 
 interface DashboardMetrics {
   totalEmployees: number;
@@ -66,6 +72,7 @@ export default function CompanyDashboard() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalEmployees: 0,
     activeLearningPaths: 0,
@@ -79,6 +86,16 @@ export default function CompanyDashboard() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [skillsGapData, setSkillsGapData] = useState<SkillGapOverview[]>([]);
   const [skillsHealth, setSkillsHealth] = useState<SkillsHealthData | null>(null);
+  
+  // Mobile pull-to-refresh state
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  
+  // Mobile carousel state for skills gap section
+  const [skillsGapActiveIndex, setSkillsGapActiveIndex] = useState(0);
+  const skillsGapCarouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -143,11 +160,13 @@ export default function CompanyDashboard() {
     }
   }, [userProfile]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isRefresh: boolean = false) => {
     if (!userProfile?.company_id) return;
 
     try {
-      setLoading(true);
+      if (!isRefresh) {
+        setLoading(true);
+      }
 
       // Fetch employees first
       const { data: employees, count: employeeCount } = await supabase
@@ -290,6 +309,11 @@ export default function CompanyDashboard() {
       });
     } finally {
       setLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+        setIsPulling(false);
+        setPullDistance(0);
+      }
     }
   };
 
@@ -469,36 +493,153 @@ export default function CompanyDashboard() {
     return `${diffDays}d ago`;
   };
 
+  // Mobile pull-to-refresh handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (window.scrollY === 0 && touchStartY.current > 0) {
+      touchEndY.current = e.touches[0].clientY;
+      const distance = touchEndY.current - touchStartY.current;
+      
+      if (distance > 0 && distance < 120) {
+        setIsPulling(true);
+        setPullDistance(distance);
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isPulling && pullDistance > 80 && !isRefreshing) {
+      setIsRefreshing(true);
+      fetchDashboardData(true);
+    } else {
+      setIsPulling(false);
+      setPullDistance(0);
+    }
+    touchStartY.current = 0;
+    touchEndY.current = 0;
+  };
+
+  // Mobile carousel handlers for skills gap section
+  const handleSkillsGapNext = () => {
+    if (skillsGapActiveIndex < skillsGapData.length - 1) {
+      setSkillsGapActiveIndex(skillsGapActiveIndex + 1);
+    }
+  };
+
+  const handleSkillsGapPrev = () => {
+    if (skillsGapActiveIndex > 0) {
+      setSkillsGapActiveIndex(skillsGapActiveIndex - 1);
+    }
+  };
+
+  // Mobile metrics card click handler
+  const handleMetricCardClick = (cardId: string) => {
+    const routes: Record<string, string> = {
+      employees: '/dashboard/employees',
+      'cv-analysis': '/dashboard/onboarding',
+      'skills-match': '/dashboard/skills',
+      readiness: '/dashboard/skills',
+      'positions-gaps': '/dashboard/employees',
+      'critical-gaps': '/dashboard/employees',
+      'active-learning': '/dashboard/courses'
+    };
+    
+    if (routes[cardId]) {
+      navigate(routes[cardId]);
+    }
+  };
+
+  // Mobile skills health card handler
+  const handleSkillsHealthClick = () => {
+    navigate('/dashboard/skills');
+  };
+
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-32" />
-          ))}
+      <div className="space-y-4 p-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-48" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-64" />
+        
+        {/* Mobile loading skeleton */}
+        <div className="block md:hidden">
+          <div className="space-y-2 mb-4">
+            <Skeleton className="h-4 w-32" />
+            <div className="grid grid-cols-2 gap-2">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          </div>
+          <Skeleton className="h-48 w-full mb-4" />
+          <Skeleton className="h-64 w-full mb-4" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+        
+        {/* Desktop loading skeleton */}
+        <div className="hidden md:block space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+          <Skeleton className="h-48 w-full" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div 
+      className="space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(isRefreshing || isPulling) && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-50 flex justify-center py-3 bg-primary text-primary-foreground transition-transform duration-300"
+          style={{ 
+            transform: `translateY(${isPulling ? Math.max(0, pullDistance - 80) : 0}px)`,
+            opacity: isPulling ? Math.min(1, pullDistance / 80) : 1
+          }}
+        >
+          <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+          <span className="text-sm">
+            {isRefreshing ? 'Refreshing...' : 'Pull to refresh'}
+          </span>
+        </div>
+      )}
+
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Welcome back, {userProfile?.full_name}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-sm md:text-base text-muted-foreground">
             Here's what's happening with your team's skills development
           </p>
         </div>
-        <Badge variant="outline" className="gap-1">
+        <Badge variant="outline" className="gap-1 self-start sm:self-center">
           <Building2 className="h-3 w-3" />
           Company Admin
         </Badge>
@@ -511,330 +652,531 @@ export default function CompanyDashboard() {
           <FeedbackButton 
             variant="outline" 
             size="sm" 
-            className="h-9"
+            className="h-9 hidden sm:flex"
             defaultType="general_feedback"
           >
             Share Feedback
           </FeedbackButton>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           <Button 
             variant="outline"
             size="sm"
-            className="h-9 justify-start font-normal"
+            className="h-10 sm:h-9 justify-start font-normal"
             onClick={() => navigate('/dashboard/positions')}
           >
             <Target className="h-4 w-4 mr-2 text-muted-foreground" />
-            Define Position Requirements
+            <span className="sm:hidden">Define Positions</span>
+            <span className="hidden sm:inline">Define Position Requirements</span>
           </Button>
 
           <Button 
             variant="outline"
             size="sm"
-            className="h-9 justify-start font-normal"
+            className="h-10 sm:h-9 justify-start font-normal"
             onClick={() => navigate('/dashboard/onboarding')}
           >
             <Upload className="h-4 w-4 mr-2 text-muted-foreground" />
-            Onboard Employees
+            <span className="sm:hidden">Onboard Team</span>
+            <span className="hidden sm:inline">Onboard Employees</span>
           </Button>
 
           <Button 
             variant="outline"
             size="sm"
-            className="h-9 justify-start font-normal"
+            className="h-10 sm:h-9 justify-start font-normal"
             onClick={() => navigate('/dashboard/employees')}
           >
             <BarChart3 className="h-4 w-4 mr-2 text-muted-foreground" />
-            View Skills Gap Analysis
+            <span className="sm:hidden">Skills Analysis</span>
+            <span className="hidden sm:inline">View Skills Gap Analysis</span>
           </Button>
 
           <Button 
             variant="outline"
             size="sm"
-            className="h-9 justify-start font-normal"
+            className="h-10 sm:h-9 justify-start font-normal"
             onClick={() => navigate('/dashboard/courses')}
           >
             <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
-            Assign Courses
+            <span className="sm:hidden">Assign Courses</span>
+            <span className="hidden sm:inline">Assign Courses</span>
           </Button>
+        </div>
+        
+        {/* Mobile feedback button */}
+        <div className="flex sm:hidden">
+          <FeedbackButton 
+            variant="outline" 
+            size="sm" 
+            className="h-9 w-full"
+            defaultType="general_feedback"
+          >
+            Share Feedback
+          </FeedbackButton>
         </div>
       </div>
 
-      {/* Key Metrics - Two Rows */}
+      {/* Key Metrics */}
       <div className="space-y-4">
-        {/* First Row - Main Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Employees
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {metrics.employeesWithCVs} with CVs uploaded
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  CV Analysis
-                </CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.analyzedCVs}</div>
-              <Progress 
-                value={metrics.totalEmployees > 0 ? (metrics.analyzedCVs / metrics.totalEmployees) * 100 : 0} 
-                className="mt-2" 
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Skills Match
-                </CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.skillsCoverage}%</div>
-              <Progress value={metrics.skillsCoverage} className="mt-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Career Readiness
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.avgReadinessScore}%</div>
-              <Progress value={metrics.avgReadinessScore} className="mt-2" />
-            </CardContent>
-          </Card>
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-medium text-foreground">Key Metrics</h2>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate('/dashboard/analytics')}
+            className="hidden sm:flex"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Analytics
+          </Button>
         </div>
+        
+        {/* Mobile Carousel */}
+        <div className="block md:hidden">
+          <MobileMetricsCarousel metrics={metrics} onCardClick={handleMetricCardClick} />
+        </div>
+        
+        {/* Desktop Grid */}
+        <div className="hidden md:block space-y-4">
+          {/* First Row - Main Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/employees')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Total Employees
+                  </CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {metrics.employeesWithCVs} with CVs uploaded
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Second Row - Gap Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className={metrics.positionsWithGaps > 0 ? "border-orange-200" : ""}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Positions with Gaps
-                </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-orange-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{metrics.positionsWithGaps}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Need skill development
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/onboarding')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    CV Analysis
+                  </CardTitle>
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.analyzedCVs}</div>
+                <Progress 
+                  value={metrics.totalEmployees > 0 ? (metrics.analyzedCVs / metrics.totalEmployees) * 100 : 0} 
+                  className="mt-2" 
+                />
+              </CardContent>
+            </Card>
 
-          <Card className={metrics.criticalGaps > 0 ? "border-red-200" : ""}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Critical Gaps
-                </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{metrics.criticalGaps}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Below 50% match
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/skills')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Skills Match
+                  </CardTitle>
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.skillsCoverage}%</div>
+                <Progress value={metrics.skillsCoverage} className="mt-2" />
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active Learning
-                </CardTitle>
-                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.activeLearningPaths}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Courses in progress
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/skills')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Career Readiness
+                  </CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.avgReadinessScore}%</div>
+                <Progress value={metrics.avgReadinessScore} className="mt-2" />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Second Row - Gap Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              metrics.positionsWithGaps > 0 && "border-orange-200"
+            )} onClick={() => navigate('/dashboard/employees')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Positions with Gaps
+                  </CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{metrics.positionsWithGaps}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Need skill development
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              metrics.criticalGaps > 0 && "border-red-200"
+            )} onClick={() => navigate('/dashboard/employees')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Critical Gaps
+                  </CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">{metrics.criticalGaps}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Below 50% match
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/courses')}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Learning
+                  </CardTitle>
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{metrics.activeLearningPaths}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Courses in progress
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
       {/* Skills Health Score Card */}
       {skillsHealth && (
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <BrainCircuit className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg">Skills Health Score</CardTitle>
-              </div>
-              <Badge variant="outline" className="text-lg font-semibold">
-                Grade: {skillsHealth.grade}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Overall Match</p>
-                <p className="text-2xl font-bold">
-                  {skillsHealth.overallScore}%
-                  {skillsHealth.trend > 0 && (
-                    <span className="text-sm text-green-600 ml-2">
-                      ↑{skillsHealth.trend}%
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Gap Reduction</p>
-                <p className="text-2xl font-bold">+18%</p>
-                <p className="text-xs text-muted-foreground">(90 days)</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Critical Skills</p>
-                <p className="text-2xl font-bold">
-                  {skillsHealth.criticalGaps} urgent
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-blue-200">
-              <p className="text-sm text-muted-foreground mb-2">
-                Analysis Coverage: {skillsHealth.analyzedCount} of {skillsHealth.totalCount} employees
-              </p>
+        <div>
+          {/* Mobile Skills Health Card */}
+          <div className="block md:hidden">
+            <MobileSkillsHealthCard 
+              skillsHealth={skillsHealth} 
+              onViewDetails={handleSkillsHealthClick}
+            />
+          </div>
+          
+          {/* Desktop Skills Health Card */}
+          <Card className="hidden md:block bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader>
               <div className="flex items-center justify-between">
-                <p className="text-sm">
-                  Top gaps: Review skills analysis for targeted training
-                </p>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  onClick={() => navigate('/dashboard/skills')}
-                >
-                  View Detailed Analytics
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                <div className="flex items-center gap-3">
+                  <BrainCircuit className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg">Skills Health Score</CardTitle>
+                </div>
+                <Badge variant="outline" className="text-lg font-semibold">
+                  Grade: {skillsHealth.grade}
+                </Badge>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Overall Match</p>
+                  <p className="text-2xl font-bold">
+                    {skillsHealth.overallScore}%
+                    {skillsHealth.trend > 0 && (
+                      <span className="text-sm text-green-600 ml-2">
+                        ↑{skillsHealth.trend}%
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Gap Reduction</p>
+                  <p className="text-2xl font-bold">+18%</p>
+                  <p className="text-xs text-muted-foreground">(90 days)</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Critical Skills</p>
+                  <p className="text-2xl font-bold">
+                    {skillsHealth.criticalGaps} urgent
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-blue-200">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Analysis Coverage: {skillsHealth.analyzedCount} of {skillsHealth.totalCount} employees
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm">
+                    Top gaps: Review skills analysis for targeted training
+                  </p>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => navigate('/dashboard/skills')}
+                  >
+                    View Detailed Analytics
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentActivities.length > 0 ? (
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className="bg-muted p-2 rounded-full">
-                      {activity.icon}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTimeAgo(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+      {/* Bottom Section - Mobile Optimized */}
+      <div className="space-y-4 md:space-y-6">
+        {/* Mobile Layout */}
+        <div className="block lg:hidden space-y-4">
+          {/* Recent Activity - Mobile */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Recent Activity
+                </CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => navigate('/dashboard/analytics')}
+                  className="text-xs"
+                >
+                  View All
+                </Button>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No recent activity. Start by adding team members!
-              </p>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              {recentActivities.length > 0 ? (
+                <div className="space-y-3">
+                  {recentActivities.slice(0, 3).map((activity) => (
+                    <Card key={activity.id} className="p-3 bg-muted/30 border-0">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-background p-2 rounded-full shadow-sm">
+                          {activity.icon}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium leading-snug">{activity.message}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatTimeAgo(activity.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    No recent activity. Start by adding team members!
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Skills Gap Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
-              <Button 
-                size="sm" 
-                variant="ghost"
-                onClick={() => navigate('/dashboard/employees')}
-              >
-                View Details
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {skillsGapData.length > 0 ? (
-              <div className="space-y-4">
-                {skillsGapData.map((item, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <div>
-                        <span className="font-medium">{item.position}</span>
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({item.employeesInPosition} employees)
+          {/* Skills Gap Overview - Mobile */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => navigate('/dashboard/employees')}
+                  className="text-xs"
+                >
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {skillsGapData.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Mobile carousel for skills gap */}
+                  <div className="relative">
+                    <div 
+                      ref={skillsGapCarouselRef}
+                      className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                      <div className="flex gap-3 pb-2">
+                        {skillsGapData.slice(0, 3).map((item, index) => (
+                          <Card key={index} className="flex-shrink-0 w-64 snap-center p-4 bg-muted/30 border-0">
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-sm truncate mr-2">{item.position}</span>
+                                <span className={cn(
+                                  "font-bold text-lg",
+                                  item.coverage >= 80 ? 'text-green-600' : 
+                                  item.coverage >= 60 ? 'text-orange-600' : 
+                                  'text-red-600'
+                                )}>
+                                  {item.coverage}%
+                                </span>
+                              </div>
+                              <Progress 
+                                value={item.coverage} 
+                                className={cn(
+                                  "h-2",
+                                  item.coverage < 60 && "[&>div]:bg-red-500",
+                                  item.coverage >= 60 && item.coverage < 80 && "[&>div]:bg-orange-500"
+                                )}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                {item.employeesInPosition} employees • {item.requiredSkills} skills required
+                              </p>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Navigation buttons for mobile carousel */}
+                    {skillsGapData.length > 3 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleSkillsGapPrev}
+                          disabled={skillsGapActiveIndex === 0}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleSkillsGapNext}
+                          disabled={skillsGapActiveIndex >= skillsGapData.length - 3}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    No skills data available yet. Upload CVs and analyze skills to see coverage.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+          {/* Recent Activity - Desktop */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {recentActivities.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="bg-muted p-2 rounded-full">
+                        {activity.icon}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm">{activity.message}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatTimeAgo(activity.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No recent activity. Start by adding team members!
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Skills Gap Overview - Desktop */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => navigate('/dashboard/employees')}
+                >
+                  View Details
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {skillsGapData.length > 0 ? (
+                <div className="space-y-4">
+                  {skillsGapData.map((item, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div>
+                          <span className="font-medium">{item.position}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({item.employeesInPosition} employees)
+                          </span>
+                        </div>
+                        <span className={cn(
+                          "font-medium",
+                          item.coverage >= 80 ? 'text-green-600' : 
+                          item.coverage >= 60 ? 'text-orange-600' : 
+                          'text-red-600'
+                        )}>
+                          {item.coverage}%
                         </span>
                       </div>
-                      <span className={`font-medium ${
-                        item.coverage >= 80 ? 'text-green-600' : 
-                        item.coverage >= 60 ? 'text-orange-600' : 
-                        'text-red-600'
-                      }`}>
-                        {item.coverage}%
-                      </span>
+                      <Progress 
+                        value={item.coverage} 
+                        className={cn(
+                          "h-2",
+                          item.coverage < 60 && "[&>div]:bg-red-500",
+                          item.coverage >= 60 && item.coverage < 80 && "[&>div]:bg-orange-500"
+                        )}
+                      />
                     </div>
-                    <Progress 
-                      value={item.coverage} 
-                      className={`h-2 ${
-                        item.coverage < 60 ? '[&>div]:bg-red-500' : 
-                        item.coverage < 80 ? '[&>div]:bg-orange-500' : ''
-                      }`}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Alert>
-                <AlertDescription>
-                  No skills data available yet. Upload CVs and analyze skills to see coverage.
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-
+                  ))}
+                </div>
+              ) : (
+                <Alert>
+                  <AlertDescription>
+                    No skills data available yet. Upload CVs and analyze skills to see coverage.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
