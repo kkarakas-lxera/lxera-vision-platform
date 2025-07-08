@@ -8,9 +8,9 @@ const HeroVideoPreview = () => {
   // 3. Upload to Bunny.net and use their streaming URL
   // 4. Upload to Vercel Blob and use the blob URL
   
-  // For now, using a placeholder URL - replace with your actual video URL
-  const videoUrl = "YOUR_VIDEO_URL_HERE"; // Replace with actual URL after uploading
-  const posterUrl = "/images/video-poster.jpg"; // Optional: Add a poster image
+  // Vercel Blob hosted video
+  const videoUrl = "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4";
+  const posterUrl = ""; // Optional: Add a poster image if you have one
   
   // Define video chapters for navigation
   const chapters = [
