@@ -425,7 +425,6 @@ export function CVUploadDialog({
               )}
             </Button>
           </div>
-        </div>
       </div>
     </ResponsiveModal>
   );
