@@ -27,7 +27,8 @@ import {
   MessageSquare,
   Ticket,
   HelpCircle,
-  FileText
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -69,6 +70,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
+          { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];

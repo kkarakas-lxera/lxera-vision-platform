@@ -668,21 +668,22 @@ export default function CourseViewer() {
     if (!employeeId) return null;
 
     try {
-      const { data: gameState, error } = await supabase
+      const { data: gameStates, error } = await supabase
         .from('game_progress_state')
         .select('*')
         .eq('employee_id', employeeId)
         .is('completed_at', null) // Only get incomplete games
         .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading game state:', error);
+      if (error) {
+        if (error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+          console.error('Error loading game state:', error);
+        }
         return null;
       }
 
-      return gameState;
+      return gameStates && gameStates.length > 0 ? gameStates[0] : null;
     } catch (error) {
       console.error('Error loading game state:', error);
       return null;
@@ -1232,7 +1233,7 @@ export default function CourseViewer() {
                   isMobile ? (
                     <MobileVideoPlayer 
                       videoUrl={sectionVideoUrl}
-                      title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      title={`${courseContent?.module_name || 'Course'} - ${(currentSection || 'introduction').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
                         console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}
@@ -1243,7 +1244,7 @@ export default function CourseViewer() {
                   ) : (
                     <VideoPlayer 
                       videoUrl={sectionVideoUrl}
-                      title={`${courseContent?.module_name || 'Course'} - ${currentSection.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      title={`${courseContent?.module_name || 'Course'} - ${(currentSection || 'introduction').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
                         console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}

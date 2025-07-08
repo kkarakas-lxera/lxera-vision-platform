@@ -99,6 +99,9 @@ const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/Depar
 // Lazy load gamification analytics
 const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
 
+// Lazy load course generation
+const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationCompact"));
+
 const queryClient = new QueryClient();
 
 // Page loading wrapper
@@ -210,6 +213,7 @@ const App = () => {
                       <Route path="/skills/positions" element={<PageSuspense><PositionRequirements /></PageSuspense>} />
                       <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
+                      <Route path="/course-generation" element={<PageSuspense><CourseGeneration /></PageSuspense>} />
                       <Route path="/settings" element={<PageSuspense><div>Company Settings</div></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
