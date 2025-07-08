@@ -16,13 +16,13 @@ import { ClarityProvider } from "@/components/ClarityProvider";
 import { lazy, Suspense } from "react";
 import Loading from "@/components/Loading";
 
-// Auth pages - loaded synchronously
+// Critical pages - loaded synchronously
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
 
 // Lazy load public/marketing pages
-const Index = lazy(() => import("./pages/Index"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Solutions = lazy(() => import("./pages/Solutions"));
 const Resources = lazy(() => import("./pages/Resources"));
@@ -127,7 +127,7 @@ const App = () => {
                 <CourseGenerationProvider>
                   <Routes>
             {/* Public routes */}
-            <Route path="/" element={<PageSuspense><Index /></PageSuspense>} />
+            <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<PageSuspense><Pricing /></PageSuspense>} />
             <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
             <Route path="/platform" element={<PageSuspense><Platform /></PageSuspense>} />
@@ -241,7 +241,7 @@ const App = () => {
             />
 
             {/* 404 route */}
-            <Route path="*" element={<PageSuspense><NotFound /></PageSuspense>} />
+            <Route path="*" element={<NotFound />} />
                 </Routes>
               </CourseGenerationProvider>
             </AuthProvider>

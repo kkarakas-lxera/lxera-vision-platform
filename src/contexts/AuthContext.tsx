@@ -19,6 +19,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
+  initialCheckComplete: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -40,7 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false to avoid initial loading state
+  const [initialCheckComplete, setInitialCheckComplete] = useState(false);
   const [contentManagerReady, setContentManagerReady] = useState(false);
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
@@ -94,12 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profile = await fetchUserProfile(session.user.id);
             if (mounted) {
               setUserProfile(profile);
-              setLoading(false);
+              setInitialCheckComplete(true);
+              // Don't set loading to false here, keep it as is
             }
           }, 100);
         } else {
           setUserProfile(null);
-          setLoading(false);
+          // Don't set loading to false here, keep it as is
         }
       }
     );
@@ -108,14 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
-        setLoading(false);
+        setInitialCheckComplete(true);
         return;
       }
       
-      if (!session) {
-        setLoading(false);
-      }
       // If there is a session, the auth state change listener will handle it
+      // If no session, mark initial check as complete
+      if (!session) {
+        setInitialCheckComplete(true);
+      }
     });
 
     return () => {
@@ -135,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
+      // Don't set loading to true here to avoid loading state during login
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -144,13 +148,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Sign in error:', error);
-        setLoading(false);
       }
       
       return { error };
     } catch (error) {
       console.error('Sign in exception:', error);
-      setLoading(false);
       return { error };
     }
   };
@@ -176,13 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    setLoading(true);
     await supabase.auth.signOut();
     setUser(null);
     setUserProfile(null);
     setSession(null);
     setContentManagerReady(false);
-    setLoading(false);
   };
 
   const value = {
@@ -190,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userProfile,
     session,
     loading,
+    initialCheckComplete,
     signIn,
     signUp,
     signOut,

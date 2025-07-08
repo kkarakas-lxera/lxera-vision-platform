@@ -15,10 +15,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   redirectTo = '/login'
 }) => {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, initialCheckComplete } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Only show loading if initial check is not complete
+  // This prevents loading state during route transitions
+  if (!initialCheckComplete) {
     return <Loading />;
   }
 

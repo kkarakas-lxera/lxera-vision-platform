@@ -12,7 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 
 const Login = () => {
-  const { user, userProfile, signIn, signUp, loading } = useAuth();
+  const { user, userProfile, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -25,7 +25,7 @@ const Login = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && userProfile && !loading) {
+    if (user && userProfile) {
       const from = (location.state as any)?.from?.pathname;
       if (from) {
         navigate(from);
@@ -46,7 +46,7 @@ const Login = () => {
         }
       }
     }
-  }, [user, userProfile, loading, navigate, location]);
+  }, [user, userProfile, navigate, location]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,13 +79,7 @@ const Login = () => {
     setIsLoading(false);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  // Remove the loading check to avoid showing loading state during auth initialization
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
