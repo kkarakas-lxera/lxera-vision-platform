@@ -148,7 +148,7 @@ export default function TaskDecisionModal({ task, onProceed, onCancel, employeeI
               </div>
               <div>
                 <Badge variant="outline" className="mb-1">
-                  {task.category.toUpperCase()}
+                  {(task.category || 'general').toUpperCase()}
                 </Badge>
                 <CardTitle className="text-xl">{task.title}</CardTitle>
               </div>

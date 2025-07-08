@@ -132,7 +132,8 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         points_value: mission.points_value,
         content_section_id: mission.content_section_id || '',
         module_content_id: mission.module_content_id,
-        section_name: section
+        section_name: section,
+        category: 'skill_gap' // Add category for skill gap missions
       }));
 
       setTasks(tasks.slice(0, 10)); // Show top 10 skill gaps
@@ -424,8 +425,20 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   }
 
   const currentTask = tasks[currentIndex];
+  
+  // Safety check for undefined currentTask
+  if (!currentTask) {
+    return (
+      <Card className="bg-white/95 backdrop-blur-sm">
+        <CardContent className="p-6 text-center space-y-4">
+          <p className="text-muted-foreground">Loading tasks...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const departmentTheme = DEPARTMENT_THEMES[currentTask.department?.toLowerCase() as keyof typeof DEPARTMENT_THEMES] || DEPARTMENT_THEMES.general;
-  const severityTheme = SEVERITY_THEMES[currentTask.gap_severity];
+  const severityTheme = SEVERITY_THEMES[currentTask.gap_severity || 'low'];
   const DepartmentIcon = departmentTheme.icon;
 
   return (
