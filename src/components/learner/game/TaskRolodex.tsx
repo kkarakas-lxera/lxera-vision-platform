@@ -429,34 +429,34 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
   const DepartmentIcon = departmentTheme.icon;
 
   return (
-    <div className="w-full max-w-lg mx-auto space-y-6">
-      {/* Header */}
+    <div className="w-full max-w-lg mx-auto space-y-4 px-4">
+      {/* Header - More compact for mobile */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">🎡 Wheel of Learning</h2>
-        <p className="text-muted-foreground">Swipe right to select, left to skip</p>
-        <div className="flex justify-center gap-4 text-sm">
+        <h2 className="text-xl sm:text-2xl font-bold">🎡 Wheel of Learning</h2>
+        <p className="text-sm text-muted-foreground">Swipe right to select, left to skip</p>
+        <div className="flex justify-center gap-3 text-sm">
           <div className="flex items-center gap-1">
-            <span className="text-lg">{severityTheme.emoji}</span>
-            <span className={severityTheme.color}>{currentTask.gap_severity} gap</span>
+            <span className="text-base">{severityTheme.emoji}</span>
+            <span className={`${severityTheme.color} text-xs`}>{currentTask.gap_severity} gap</span>
           </div>
           <div className="flex items-center gap-1">
-            <Target className="h-4 w-4 text-blue-500" />
-            <span>{currentIndex + 1}/{tasks.length}</span>
+            <Target className="h-3 w-3 text-blue-500" />
+            <span className="text-xs">{currentIndex + 1}/{tasks.length}</span>
           </div>
         </div>
       </div>
 
-      {/* Wheel Container */}
-      <div className="relative h-96">
-        {/* Wheel Background */}
+      {/* Wheel Container - Smaller for mobile */}
+      <div className="relative h-80 sm:h-96">
+        {/* Wheel Background - Scaled down */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-80 h-80 rounded-full border-4 border-dashed border-gray-300 opacity-30"></div>
+          <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-4 border-dashed border-gray-300 opacity-30"></div>
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-64 h-64 rounded-full border-2 border-gray-200 opacity-50"></div>
+          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-2 border-gray-200 opacity-50"></div>
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-48 h-48 rounded-full border border-gray-100 opacity-30"></div>
+          <div className="w-32 h-32 sm:w-48 sm:h-48 rounded-full border border-gray-100 opacity-30"></div>
         </div>
 
         {/* Task Card Stack */}
@@ -471,20 +471,20 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
               transform: `scale(${0.95 - index * 0.05}) translateY(${index * 8}px)`
             }}
           >
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="h-full flex items-center justify-center">
                 <div className="text-center opacity-50">
-                  <h3 className="font-semibold">{task.title}</h3>
+                  <h3 className="font-semibold text-sm sm:text-base">{task.title}</h3>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
 
-        {/* Current task card - Wheel-like design */}
+        {/* Current task card - Mobile optimized */}
         <Card 
           ref={cardRef}
-          className={`absolute top-1/2 left-1/2 w-72 h-72 rounded-full cursor-grab active:cursor-grabbing transition-all duration-200 overflow-hidden ${
+          className={`absolute top-1/2 left-1/2 w-56 h-56 sm:w-72 sm:h-72 rounded-full cursor-grab active:cursor-grabbing transition-all duration-200 overflow-hidden ${
             swipeDirection === 'right' ? 'border-green-500 shadow-green-200 shadow-2xl scale-105' : 
             swipeDirection === 'left' ? 'border-red-500 shadow-red-200 shadow-2xl scale-105' : 
             'border-primary shadow-xl hover:shadow-2xl'
@@ -501,28 +501,28 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
             transform: 'translate(-50%, -50%)'
           }}
         >
-          {/* Circular Card Content */}
-          <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center">
-            {/* Department Icon - Top */}
-            <div className={`${departmentTheme.bg} rounded-full p-4 mb-4 shadow-md`}>
-              <DepartmentIcon className={`h-8 w-8 ${departmentTheme.color}`} />
+          {/* Circular Card Content - Mobile optimized */}
+          <div className="relative w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+            {/* Department Icon - Smaller for mobile */}
+            <div className={`${departmentTheme.bg} rounded-full p-2 sm:p-3 mb-2 sm:mb-3 shadow-md`}>
+              <DepartmentIcon className={`h-5 w-5 sm:h-6 sm:w-6 ${departmentTheme.color}`} />
             </div>
             
             {/* Skill & Difficulty */}
-            <div className="mb-3">
-              <h3 className="font-bold text-lg text-gray-800">{currentTask.target_skill_name}</h3>
-              <div className="flex gap-2 justify-center">
-                <Badge className={`${getDifficultyColor(currentTask.difficulty_level)} text-xs`}>
+            <div className="mb-2 sm:mb-3">
+              <h3 className="font-bold text-sm sm:text-base text-gray-800 leading-tight">{currentTask.target_skill_name}</h3>
+              <div className="flex gap-1 sm:gap-2 justify-center mt-1">
+                <Badge className={`${getDifficultyColor(currentTask.difficulty_level)} text-xs px-2 py-1`}>
                   {currentTask.difficulty_level}
                 </Badge>
-                <Badge className={`${severityTheme.bg} ${severityTheme.color} text-xs`}>
+                <Badge className={`${severityTheme.bg} ${severityTheme.color} text-xs px-2 py-1`}>
                   {currentTask.gap_severity}
                 </Badge>
               </div>
             </div>
             
-            {/* Task Title - Center */}
-            <CardTitle className="text-base font-semibold mb-3 px-2 leading-tight" style={{ 
+            {/* Task Title - Smaller for mobile */}
+            <CardTitle className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 px-2 leading-tight" style={{ 
               display: '-webkit-box', 
               WebkitLineClamp: 2, 
               WebkitBoxOrient: 'vertical', 
@@ -531,51 +531,51 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
               {currentTask.title}
             </CardTitle>
             
-            {/* Points Badge */}
-            <div className="mb-4">
-              <Badge variant="outline" className="gap-1 bg-yellow-50 border-yellow-300">
+            {/* Points Badge - Smaller */}
+            <div className="mb-2 sm:mb-3">
+              <Badge variant="outline" className="gap-1 bg-yellow-50 border-yellow-300 text-xs">
                 <Trophy className="h-3 w-3 text-yellow-600" />
                 <span className="text-yellow-700 font-semibold">{currentTask.points_value} pts</span>
               </Badge>
             </div>
 
-            {/* Skill Level Progress */}
-            <div className="mb-4 w-full max-w-32">
+            {/* Skill Level Progress - Smaller */}
+            <div className="mb-2 sm:mb-3 w-full max-w-24 sm:max-w-32">
               <div className="text-xs text-muted-foreground mb-1">Skill Level</div>
               <Progress 
                 value={(currentTask.current_skill_level / currentTask.required_skill_level) * 100} 
-                className="h-2" 
+                className="h-1.5 sm:h-2" 
               />
               <div className="text-xs text-center mt-1">
                 {currentTask.current_skill_level}/{currentTask.required_skill_level}
               </div>
             </div>
 
-            {/* Swipe Instructions - Bottom */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-between items-center px-8">
-              <div className="text-red-500 text-xs">
-                <ChevronLeft className="h-4 w-4 mx-auto" />
-                <div>Skip</div>
+            {/* Swipe Instructions - Mobile optimized */}
+            <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex justify-between items-center px-4 sm:px-8">
+              <div className="text-red-500 text-xs flex flex-col items-center">
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mx-auto" />
+                <div className="text-xs">Skip</div>
               </div>
-              <div className="text-muted-foreground text-xs">
-                <Clock className="h-4 w-4 mx-auto" />
-                <div>2-5m</div>
+              <div className="text-muted-foreground text-xs flex flex-col items-center">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mx-auto" />
+                <div className="text-xs">2-5m</div>
               </div>
-              <div className="text-green-500 text-xs">
-                <ChevronRight className="h-4 w-4 mx-auto" />
-                <div>Select</div>
+              <div className="text-green-500 text-xs flex flex-col items-center">
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 mx-auto" />
+                <div className="text-xs">Select</div>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Swipe overlay indicators */}
+        {/* Swipe overlay indicators - Mobile sized */}
         {swipeDirection && (
-          <div className={`absolute top-1/2 left-1/2 w-72 h-72 rounded-full flex items-center justify-center pointer-events-none z-20 ${
+          <div className={`absolute top-1/2 left-1/2 w-56 h-56 sm:w-72 sm:h-72 rounded-full flex items-center justify-center pointer-events-none z-20 ${
             swipeDirection === 'right' ? 'bg-green-500/20' : 'bg-red-500/20'
           }`}
           style={{ transform: 'translate(-50%, -50%)' }}>
-            <div className={`text-6xl font-bold ${
+            <div className={`text-4xl sm:text-6xl font-bold ${
               swipeDirection === 'right' ? 'text-green-600' : 'text-red-600'
             }`}>
               {swipeDirection === 'right' ? '✓' : '✗'}
@@ -585,25 +585,25 @@ export default function TaskRolodex({ onTaskSelect, onBackToCourse, courseConten
         </div>
       </div>
 
-      {/* Manual controls */}
-      <div className="flex justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={previousTask}>
+      {/* Manual controls - Mobile optimized */}
+      <div className="flex justify-center gap-2 sm:gap-4">
+        <Button variant="outline" size="icon" onClick={previousTask} className="h-8 w-8 sm:h-10 sm:w-10">
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <Button variant="outline" onClick={handleSwipeLeft} className="text-red-600">
+        <Button variant="outline" onClick={handleSwipeLeft} className="text-red-600 text-xs sm:text-sm px-2 sm:px-3">
           ✗ Skip
         </Button>
-        <Button onClick={handleSwipeRight} className="bg-green-600 hover:bg-green-700">
+        <Button onClick={handleSwipeRight} className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm px-2 sm:px-3">
           ✓ Select
         </Button>
-        <Button variant="outline" size="icon" onClick={nextTask}>
+        <Button variant="outline" size="icon" onClick={nextTask} className="h-8 w-8 sm:h-10 sm:w-10">
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Back button */}
-      <div className="text-center">
-        <Button variant="ghost" onClick={onBackToCourse}>
+      <div className="text-center pt-2">
+        <Button variant="ghost" onClick={onBackToCourse} className="text-sm">
           ← Back to Course
         </Button>
       </div>
