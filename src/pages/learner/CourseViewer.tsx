@@ -344,6 +344,9 @@ export default function CourseViewer() {
         } else if (sectionsWithContent.length > 0) {
           // Default to first available section
           setCurrentSection(sectionsWithContent[0].id);
+        } else {
+          // Fallback to introduction if no sections available
+          setCurrentSection('introduction');
         }
       }
 
@@ -725,7 +728,10 @@ export default function CourseViewer() {
       
       // If there was a current section, navigate to it
       if (gameState.section_name && gameState.section_name !== currentSection) {
-        setCurrentSection(gameState.section_name);
+        // Ensure section_name is valid before setting
+        if (availableSections.some(s => s.id === gameState.section_name)) {
+          setCurrentSection(gameState.section_name);
+        }
       }
       
       toast.success('🎮 Resumed your previous game session!');
@@ -1233,7 +1239,7 @@ export default function CourseViewer() {
                   isMobile ? (
                     <MobileVideoPlayer 
                       videoUrl={sectionVideoUrl}
-                      title={`${courseContent?.module_name || 'Course'} - ${(currentSection || 'introduction').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      title={`${courseContent?.module_name || 'Course'} - ${((currentSection || 'introduction').replace('_', ' ') || '').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
                         console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}
@@ -1244,7 +1250,7 @@ export default function CourseViewer() {
                   ) : (
                     <VideoPlayer 
                       videoUrl={sectionVideoUrl}
-                      title={`${courseContent?.module_name || 'Course'} - ${(currentSection || 'introduction').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                      title={`${courseContent?.module_name || 'Course'} - ${((currentSection || 'introduction').replace('_', ' ') || '').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
                         console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}
