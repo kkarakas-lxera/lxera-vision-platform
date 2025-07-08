@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,8 @@ import {
   Target,
   Zap,
   MessageSquare,
-  Star
+  Star,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import TicketDetailModal from '@/components/admin/TicketsManagement/TicketDetailModal';
 import { ticketService, TicketRecord } from '@/services/ticketService';
+import MobileStatsCarousel from '@/components/mobile/admin/MobileStatsCarousel';
+import { cn } from '@/lib/utils';
 
 interface DashboardStats {
   totalEmployees: number;
@@ -78,6 +81,9 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   useEffect(() => {
     if (userProfile) {
@@ -85,7 +91,7 @@ const AdminDashboard: React.FC = () => {
     }
   }, [userProfile]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async (showRefreshToast = false) => {
     try {
       setLoading(true);
       
@@ -190,8 +196,12 @@ const AdminDashboard: React.FC = () => {
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
+      if (showRefreshToast) {
+        toast.success('Dashboard refreshed');
+      }
     }
-  };
+  }, []);
 
   const handleViewTicketDetails = (ticket: TicketRecord) => {
     setSelectedTicket(ticket);
@@ -229,6 +239,42 @@ const AdminDashboard: React.FC = () => {
     return `${diffDays}d ago`;
   };
 
+  // Pull-to-refresh functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isScrolledToTop = window.scrollY === 0;
+    const threshold = -100; // Pull down by 100px to trigger refresh
+    
+    if (isScrolledToTop && distance < threshold && !isRefreshing) {
+      setIsRefreshing(true);
+      fetchDashboardData(true);
+    }
+  };
+
+  const handleStatsCardClick = (cardId: string) => {
+    const routes: Record<string, string> = {
+      companies: '/admin/companies',
+      users: '/admin/users',
+      courses: '/admin/courses',
+      tickets: '/admin/tickets',
+      feedback: '/admin/feedback'
+    };
+    
+    if (routes[cardId]) {
+      navigate(routes[cardId]);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -245,21 +291,43 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back! Here's your platform overview.</p>
+    <div 
+      className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto min-h-screen"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {isRefreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center py-2 bg-primary text-primary-foreground">
+          <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+          <span className="text-sm">Refreshing...</span>
         </div>
-        <Button onClick={() => navigate('/admin/analytics')} variant="outline">
+      )}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">Welcome back! Here's your platform overview.</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/admin/analytics')} 
+          variant="outline"
+          size="sm"
+          className="self-start sm:self-auto"
+        >
           <BarChart3 className="h-4 w-4 mr-2" />
-          View Analytics
+          <span className="hidden sm:inline">View Analytics</span>
+          <span className="sm:hidden">Analytics</span>
         </Button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Stats - Mobile Carousel / Desktop Grid */}
+      <div className="block sm:hidden">
+        <MobileStatsCarousel stats={stats} onCardClick={handleStatsCardClick} />
+      </div>
+      
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/companies')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -361,29 +429,32 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recent Activity */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+        <Card className="lg:col-span-2 order-2 lg:order-1">
+          <CardHeader className="pb-3 md:pb-6">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Activity className="h-4 w-4 md:h-5 md:w-5" />
               Recent Activity
             </CardTitle>
-            <CardDescription>Latest updates across the platform</CardDescription>
+            <CardDescription className="text-sm">Latest updates across the platform</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentActivity.length > 0 ? (
                 recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                  <div 
+                    key={activity.id} 
+                    className="flex items-start gap-3 md:gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors min-h-[60px]"
+                  >
+                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       {activity.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground truncate">{activity.description}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground truncate">{activity.description}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                    <span className="text-xs text-muted-foreground flex-shrink-0 mt-0.5">
                       {formatTimeAgo(activity.timestamp)}
                     </span>
                   </div>
@@ -396,18 +467,18 @@ const AdminDashboard: React.FC = () => {
         </Card>
 
         {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
+        <Card className="order-1 lg:order-2">
+          <CardHeader className="pb-3 md:pb-6">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Zap className="h-4 w-4 md:h-5 md:w-5" />
               Quick Actions
             </CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
+            <CardDescription className="text-sm">Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/users')}
             >
               <Users className="h-4 w-4 mr-2" />
@@ -415,7 +486,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/companies')}
             >
               <Building className="h-4 w-4 mr-2" />
@@ -423,7 +494,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/courses')}
             >
               <BookOpen className="h-4 w-4 mr-2" />
@@ -431,7 +502,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/tickets')}
             >
               <Mail className="h-4 w-4 mr-2" />
@@ -439,7 +510,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/feedback')}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
@@ -447,7 +518,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm hidden md:flex"
               onClick={() => navigate('/admin/analytics')}
             >
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -455,7 +526,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start h-12 md:h-10 text-sm"
               onClick={() => navigate('/admin/settings')}
             >
               <Settings className="h-4 w-4 mr-2" />
@@ -465,20 +536,65 @@ const AdminDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Recent Tickets Table */}
+      {/* Recent Tickets */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between pb-3 md:pb-6">
           <div>
-            <CardTitle>Recent Tickets</CardTitle>
-            <CardDescription>Latest customer interactions across all types</CardDescription>
+            <CardTitle className="text-lg md:text-xl">Recent Tickets</CardTitle>
+            <CardDescription className="text-sm">Latest customer interactions</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/admin/tickets')}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/admin/tickets')}
+            className="self-end"
+          >
             View All
             <ArrowUpRight className="h-4 w-4 ml-1" />
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          {/* Mobile view - Cards */}
+          <div className="block md:hidden space-y-3">
+            {recentTickets.map((ticket) => {
+              const typeIcons = {
+                demo_request: '🎯',
+                contact_sales: '💰',
+                early_access: '🚀'
+              };
+              return (
+                <div 
+                  key={ticket.id} 
+                  className="p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer active:scale-98"
+                  onClick={() => handleViewTicketDetails(ticket)}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{typeIcons[ticket.ticket_type]}</span>
+                      <div className="font-medium text-sm">
+                        {ticket.first_name} {ticket.last_name}
+                      </div>
+                    </div>
+                    {getStatusBadge(ticket.status)}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      {ticket.company || ticket.ticket_type.replace(/_/g, ' ')}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {ticket.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatTimeAgo(ticket.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Desktop view - Table-like layout */}
+          <div className="hidden md:block space-y-2">
             {recentTickets.map((ticket) => {
               const typeIcons = {
                 demo_request: '🎯',
@@ -504,7 +620,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{ticket.email}</span>
+                    <span className="hidden lg:inline">{ticket.email}</span>
                     <span>{formatTimeAgo(ticket.submitted_at)}</span>
                   </div>
                 </div>

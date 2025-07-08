@@ -23,8 +23,10 @@ import {
 import { CompanySelector } from '@/components/admin/shared/CompanySelector';
 import { UserEditSheet } from '@/components/admin/UserManagement/UserEditSheet';
 import { UserCreateSheet } from '@/components/admin/UserManagement/UserCreateSheet';
+import { MobileUserCard } from '@/components/mobile/cards/MobileUserCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { 
   Users, 
   Search,
@@ -68,6 +70,7 @@ const UsersManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const companyIdFromUrl = searchParams.get('company');
   const { toast } = useToast();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(companyIdFromUrl);
   const [users, setUsers] = useState<User[]>([]);
@@ -382,63 +385,113 @@ const UsersManagement = () => {
           {/* Users Table */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className={`${isMobile ? 'space-y-4' : 'flex items-center justify-between'}`}>
                 <CardTitle>Users</CardTitle>
-                <div className="flex items-center space-x-2">
+                <div className={`${isMobile ? 'space-y-3' : 'flex items-center space-x-2'}`}>
                   {selectedUsers.length > 0 && (
-                    <div className="flex items-center space-x-2 mr-4">
+                    <div className={`flex items-center ${isMobile ? 'justify-between' : 'space-x-2 mr-4'}`}>
                       <span className="text-sm text-muted-foreground">
                         {selectedUsers.length} selected
                       </span>
-                      <Button size="sm" variant="outline" onClick={handleBulkActivate}>
-                        Activate
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={handleBulkDeactivate}>
-                        Deactivate
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="outline" onClick={handleBulkActivate}>
+                          Activate
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handleBulkDeactivate}>
+                          Deactivate
+                        </Button>
+                      </div>
                     </div>
                   )}
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8 w-[200px]"
-                    />
-                  </div>
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="company_admin">Admin</SelectItem>
-                      <SelectItem value="learner">Learner</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleExportCSV} variant="outline" size="sm">
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                  <Button onClick={handleCreateUser} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create User
-                  </Button>
+                  {isMobile ? (
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search users..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-8 w-full"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Select value={roleFilter} onValueChange={setRoleFilter}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="company_admin">Admin</SelectItem>
+                            <SelectItem value="learner">Learner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handleExportCSV} variant="outline" size="sm" className="flex-1">
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                        <Button onClick={handleCreateUser} size="sm" className="flex-1">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create User
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search users..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-8 w-[200px]"
+                        />
+                      </div>
+                      <Select value={roleFilter} onValueChange={setRoleFilter}>
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Roles</SelectItem>
+                          <SelectItem value="company_admin">Admin</SelectItem>
+                          <SelectItem value="learner">Learner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleExportCSV} variant="outline" size="sm">
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                      <Button onClick={handleCreateUser} size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create User
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className={isMobile ? 'px-4' : ''}>
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
@@ -448,6 +501,27 @@ const UsersManagement = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No users found matching your filters</p>
+                </div>
+              ) : isMobile ? (
+                <div className="space-y-4">
+                  {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 && (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <Checkbox
+                        checked={true}
+                        onCheckedChange={toggleAllUsers}
+                      />
+                      <span className="text-sm text-gray-600">All users selected</span>
+                    </div>
+                  )}
+                  {filteredUsers.map((user) => (
+                    <MobileUserCard
+                      key={user.id}
+                      user={user}
+                      isSelected={selectedUsers.includes(user.id)}
+                      onToggleSelection={toggleUserSelection}
+                      onViewDetails={handleEditUser}
+                    />
+                  ))}
                 </div>
               ) : (
                 <Table>

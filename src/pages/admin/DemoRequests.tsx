@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Search, Filter, Download, RefreshCw } from 'lucide-react';
 import DemoRequestDetailModal from '@/components/admin/DemoRequestsManagement/DemoRequestDetailModal';
+import { MobileDemoRequestCard } from '@/components/mobile/cards/MobileDemoRequestCard';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { format } from 'date-fns';
 
 interface LocalDemoRequestRecord {
@@ -39,6 +41,7 @@ const DemoRequests = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState<LocalDemoRequestRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchDemoRequests();
@@ -283,68 +286,86 @@ const DemoRequests = () => {
           <CardTitle>Demo Requests ({filteredRequests.length})</CardTitle>
           <CardDescription>Click on a request to view details and update status</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Company</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRequests.map((request) => (
-                  <tr key={request.id} className="border-b hover:bg-muted/50">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium">
-                          {request.first_name} {request.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{request.email}</p>
-                        {request.job_title && (
-                          <p className="text-sm text-muted-foreground">{request.job_title}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium">{request.company}</p>
-                        {request.company_size && (
-                          <p className="text-sm text-muted-foreground">{request.company_size} employees</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {getStatusBadge(request.status)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm">{format(new Date(request.created_at), 'MMM dd, yyyy')}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(request.created_at), 'HH:mm')}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(request)}
-                      >
-                        View Details
-                      </Button>
-                    </td>
+        <CardContent className={isMobile ? 'px-4' : ''}>
+          {isMobile ? (
+            <div className="space-y-4">
+              {filteredRequests.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No demo requests found matching your filters.
+                </div>
+              ) : (
+                filteredRequests.map((request) => (
+                  <MobileDemoRequestCard
+                    key={request.id}
+                    request={request}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <table className="w-full">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Company</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredRequests.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground">
-                No demo requests found matching your filters.
-              </div>
-            )}
-          </div>
+                </thead>
+                <tbody>
+                  {filteredRequests.map((request) => (
+                    <tr key={request.id} className="border-b hover:bg-muted/50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-medium">
+                            {request.first_name} {request.last_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{request.email}</p>
+                          {request.job_title && (
+                            <p className="text-sm text-muted-foreground">{request.job_title}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-medium">{request.company}</p>
+                          {request.company_size && (
+                            <p className="text-sm text-muted-foreground">{request.company_size} employees</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {getStatusBadge(request.status)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm">{format(new Date(request.created_at), 'MMM dd, yyyy')}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(request.created_at), 'HH:mm')}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(request)}
+                        >
+                          View Details
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredRequests.length === 0 && (
+                <div className="p-8 text-center text-muted-foreground">
+                  No demo requests found matching your filters.
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

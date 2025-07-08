@@ -33,6 +33,8 @@ import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import MobileAdminNavigation from '@/components/mobile/navigation/MobileAdminNavigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,6 +44,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { userProfile, signOut } = useAuth();
   const location = useLocation();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const isMobile = useIsMobile();
 
   const getNavigationItems = () => {
     if (!userProfile) return [];
@@ -100,11 +103,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out",
-        sidebarExpanded ? "w-64" : "w-16"
-      )}>
+      {/* Sidebar - Hidden on mobile */}
+      {!isMobile && (
+        <div className={cn(
+          "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out",
+          sidebarExpanded ? "w-64" : "w-16"
+        )}>
         <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
           {sidebarExpanded && (
             <div className="flex items-center">
@@ -177,20 +181,38 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
         </nav>
       </div>
+      )}
 
       {/* Main content */}
       <div className={cn(
         "transition-all duration-300 ease-in-out",
-        sidebarExpanded ? "pl-64" : "pl-16"
+        !isMobile && (sidebarExpanded ? "pl-64" : "pl-16"),
+        isMobile && "pb-16" // Add padding bottom for mobile navigation
       )}>
         {/* Header */}
-        <div className="flex h-16 items-center justify-between bg-white px-6 shadow-sm">
+        <div className="flex h-16 items-center justify-between bg-white px-4 md:px-6 shadow-sm">
           <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {userProfile?.role === 'super_admin' && 'Super Admin'}
-              {userProfile?.role === 'company_admin' && 'Company Admin'}
-              {userProfile?.role === 'learner' && 'Learner Portal'}
-            </h2>
+            {isMobile && (
+              <div className="flex items-center">
+                <img
+                  src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
+                  alt="LXERA logo"
+                  className="h-8 object-contain"
+                  draggable={false}
+                  width={100}
+                  height={32}
+                  loading="eager"
+                  decoding="sync"
+                />
+              </div>
+            )}
+            {!isMobile && (
+              <h2 className="text-lg font-semibold text-gray-900">
+                {userProfile?.role === 'super_admin' && 'Super Admin'}
+                {userProfile?.role === 'company_admin' && 'Company Admin'}
+                {userProfile?.role === 'learner' && 'Learner Portal'}
+              </h2>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -226,10 +248,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className={cn("p-6", isMobile && "p-4")}>
           {children}
         </main>
       </div>
+
+      {/* Mobile navigation */}
+      {isMobile && (
+        <MobileAdminNavigation 
+          navigationItems={navigationItems}
+          userRole={userProfile?.role}
+        />
+      )}
     </div>
   );
 };

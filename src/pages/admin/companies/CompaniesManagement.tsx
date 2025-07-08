@@ -21,8 +21,10 @@ import {
 } from '@/components/ui/select';
 import { CompanyEditSheet } from '@/components/admin/CompanyManagement/CompanyEditSheet';
 import { CompanyCreateSheet } from '@/components/admin/CompanyManagement/CompanyCreateSheet';
+import { MobileCompanyCard } from '@/components/mobile/cards/MobileCompanyCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { 
   Building2, 
   Users, 
@@ -60,6 +62,7 @@ interface Company {
 const CompaniesManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -325,48 +328,99 @@ const CompaniesManagement = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className={`${isMobile ? 'space-y-4' : 'flex items-center justify-between'}`}>
             <CardTitle>Companies</CardTitle>
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search companies..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-[200px]"
-                />
-              </div>
-              <Select value={planFilter} onValueChange={setPlanFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Plan type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Plans</SelectItem>
-                  <SelectItem value="trial">Trial</SelectItem>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className={`${isMobile ? 'space-y-3' : 'flex items-center space-x-2'}`}>
+              {isMobile ? (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search companies..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8 w-full"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={planFilter} onValueChange={setPlanFilter}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Plan type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Plans</SelectItem>
+                        <SelectItem value="trial">Trial</SelectItem>
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search companies..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8 w-[200px]"
+                    />
+                  </div>
+                  <Select value={planFilter} onValueChange={setPlanFilter}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Plan type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Plans</SelectItem>
+                      <SelectItem value="trial">Trial</SelectItem>
+                      <SelectItem value="basic">Basic</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={isMobile ? 'px-4' : ''}>
           {filteredCompanies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No companies found matching your filters</p>
+            </div>
+          ) : isMobile ? (
+            <div className="space-y-4">
+              {filteredCompanies.map((company) => (
+                <MobileCompanyCard
+                  key={company.id}
+                  company={company}
+                  onViewDetails={handleEditCompany}
+                  onNavigateToUsers={(companyId) => navigate(`/admin/users?company=${companyId}`)}
+                />
+              ))}
             </div>
           ) : (
             <Table>

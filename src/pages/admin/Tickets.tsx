@@ -10,6 +10,8 @@ import TicketsTable from '@/components/admin/TicketsManagement/TicketsTable';
 import TicketStats from '@/components/admin/TicketsManagement/TicketStats';
 import { format } from 'date-fns';
 import { ticketService, TicketRecord, TicketType, TicketStats as TicketStatsType } from '@/services/ticketService';
+import { MobileTicketCard } from '@/components/mobile/cards/MobileTicketCard';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +43,7 @@ const Tickets = () => {
       early_access: 0
     }
   });
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchTickets();
@@ -243,14 +246,59 @@ const Tickets = () => {
           <CardTitle>Tickets ({filteredTickets.length})</CardTitle>
           <CardDescription>Click on a ticket to view details and update status</CardDescription>
         </CardHeader>
-        <CardContent>
-          <TicketsTable
-            tickets={filteredTickets}
-            onViewDetails={handleViewDetails}
-            onDelete={handleDeleteClick}
-            selectedType={typeFilter}
-            onTypeChange={setTypeFilter}
-          />
+        <CardContent className={isMobile ? 'px-4' : ''}>
+          {isMobile ? (
+            <div className="space-y-4">
+              {/* Type filter for mobile */}
+              <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as TicketType | 'all')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tickets</SelectItem>
+                  <SelectItem value="demo_request">
+                    <span className="flex items-center gap-2">
+                      🎯 Demo Requests
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="contact_sales">
+                    <span className="flex items-center gap-2">
+                      💰 Sales Contacts
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="early_access">
+                    <span className="flex items-center gap-2">
+                      🚀 Early Access
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {/* Mobile cards */}
+              {filteredTickets.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No tickets found
+                </div>
+              ) : (
+                filteredTickets.map((ticket) => (
+                  <MobileTicketCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    onViewDetails={handleViewDetails}
+                    onDelete={handleDeleteClick}
+                  />
+                ))
+              )}
+            </div>
+          ) : (
+            <TicketsTable
+              tickets={filteredTickets}
+              onViewDetails={handleViewDetails}
+              onDelete={handleDeleteClick}
+              selectedType={typeFilter}
+              onTypeChange={setTypeFilter}
+            />
+          )}
         </CardContent>
       </Card>
 
