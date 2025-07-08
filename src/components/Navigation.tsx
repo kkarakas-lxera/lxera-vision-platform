@@ -24,9 +24,9 @@ const Navigation = () => {
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500 ${
           isScrolled 
-            ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100/50' 
-            : 'bg-smart-beige/95 backdrop-blur-sm'
-        }`}
+            ? 'bg-white/95 lg:backdrop-blur-md shadow-md lg:shadow-lg border-b border-gray-100/50 max-lg:bg-white' 
+            : 'bg-smart-beige/95 lg:backdrop-blur-sm max-lg:bg-smart-beige'
+        } mobile-optimize`}
         role="navigation"
         aria-label="Main navigation"
       >

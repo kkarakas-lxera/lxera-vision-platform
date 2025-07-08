@@ -30,9 +30,9 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero w-full pt-28 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter transition-all duration-1000 ease-in-out">
-        {/* Simple background gradient without animated elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
+      <section className="hero w-full pt-28 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 lg:bg-gradient-to-br max-lg:bg-smart-beige relative overflow-hidden font-inter transition-all duration-1000 ease-in-out mobile-optimize">
+        {/* Simple background gradient without animated elements - hidden on mobile */}
+        <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30 lg:block hidden"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Main content - side by side layout with much bigger video */}
@@ -85,7 +85,7 @@ const HeroSection = () => {
                 <div className="flex flex-row gap-2 sm:gap-3">
                   <Button
                     size="lg"
-                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
                     onClick={handleRequestDemo}
                     aria-label="Request a demo"
                   >
@@ -93,7 +93,7 @@ const HeroSection = () => {
                   </Button>
                   <Button
                     size="lg"
-                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[40px] sm:min-h-[48px] touch-manipulation"
+                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
                     onClick={handleGetEarlyAccess}
                     aria-label="Get Early Access"
                   >

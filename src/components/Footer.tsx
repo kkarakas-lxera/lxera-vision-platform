@@ -17,6 +17,10 @@ const Footer = () => {
                 alt="Company logo"
                 className="h-8 object-contain"
                 draggable={false}
+                width={120}
+                height={32}
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <p className="text-white/70 leading-relaxed">

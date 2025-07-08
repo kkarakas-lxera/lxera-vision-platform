@@ -1,6 +1,7 @@
 
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import OptimizedImage from "@/components/OptimizedImage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -325,6 +326,10 @@ const SuccessStories = () => {
                         src={testimonial.avatar} 
                         alt={testimonial.author}
                         className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-future-green/20"
+                        width={48}
+                        height={48}
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-future-green to-emerald rounded-full flex items-center justify-center">
                         <Rocket className="w-2 h-2 text-white" />

@@ -23,6 +23,10 @@ const Logo = () => {
         className="h-4 md:h-6 object-contain rounded-none select-none bg-transparent"
         draggable={false}
         style={{ backgroundColor: 'transparent' }}
+        width={80}
+        height={24}
+        loading="eager"
+        decoding="sync"
       />
     </button>
   );

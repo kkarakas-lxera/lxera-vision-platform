@@ -20,10 +20,48 @@
     <link rel="icon" type="image/png" sizes="180x180" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
 
-    <!-- Inter Variable Font -->
+    <!-- Resource Hints for Critical Domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    
+    <!-- Preconnect to Supabase for faster API calls -->
+    <link rel="preconnect" href="https://xwfweumeryrgbguwrocr.supabase.co">
+    <link rel="dns-prefetch" href="https://xwfweumeryrgbguwrocr.supabase.co">
+    
+    <!-- Preconnect to analytics domains (loaded after page load) -->
+    <link rel="dns-prefetch" href="https://clarity.ms">
+    <link rel="dns-prefetch" href="https://vercel.com">
+    
+    <!-- Preload critical images -->
+    <link rel="preload" href="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" as="image" type="image/png">
+    
+    <!-- Optimized Font Loading with Critical Weights -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa25L7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa2JL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Inter Variable Font with font-display: swap for better performance -->
+    <style>
+      @font-face {
+        font-family: 'Inter var';
+        font-weight: 100 900;
+        font-display: swap;
+        font-style: normal;
+        font-named-instance: 'Regular';
+        src: url("https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2") format('woff2');
+      }
+      
+      /* Preload critical CSS */
+      body {
+        font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      }
+    </style>
+    
+    <!-- Load non-critical fonts asynchronously -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"></noscript>
   </head>
 
   <body>

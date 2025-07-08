@@ -113,6 +113,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 alt="LXERA logo"
                 className="h-8 object-contain brightness-0 invert"
                 draggable={false}
+                width={100}
+                height={32}
+                loading="eager"
+                decoding="sync"
               />
             </div>
           )}

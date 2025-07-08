@@ -130,4 +130,61 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Prefers reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Touch target optimization */
+  @media (hover: none) and (pointer: coarse) {
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    [role="button"],
+    [role="link"],
+    [tabindex]:not([tabindex="-1"]) {
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    /* Ensure proper spacing for touch targets */
+    button + button,
+    a + a,
+    .btn + .btn {
+      margin-left: 0.5rem;
+    }
+  }
+
+  /* Mobile performance optimizations */
+  @media (max-width: 1023px) {
+    /* Optimize paint and layout */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeSpeed;
+    }
+
+    /* Reduce reflows */
+    img,
+    video,
+    canvas,
+    iframe,
+    embed,
+    object {
+      max-width: 100%;
+      height: auto;
+    }
+  }
 }

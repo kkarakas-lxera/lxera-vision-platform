@@ -65,6 +65,89 @@
     animation: gradient-shift 4s ease-in-out infinite;
   }
 
+  /* Add will-change for desktop only to optimize GPU usage */
+  @media (min-width: 1024px) {
+    .animate-fade-in-up,
+    .animate-fade-in-scale,
+    .animate-slide-in-left,
+    .animate-slide-in-right {
+      will-change: transform, opacity;
+    }
+    
+    .animate-bounce-slow,
+    .animate-float-gentle {
+      will-change: transform;
+    }
+    
+    .animate-pulse-slow,
+    .animate-glow {
+      will-change: opacity;
+    }
+    
+    .animate-spin-slow,
+    .animate-rotate-slow {
+      will-change: transform;
+    }
+  }
+
+  /* Mobile-specific optimizations - simplified animations */
+  @media (max-width: 1023px) {
+    .animate-fade-in-up {
+      animation: fade-in-up-mobile 0.5s ease-out forwards;
+    }
+
+    .animate-fade-in-scale {
+      animation: fade-in-mobile 0.5s ease-out forwards;
+    }
+
+    .animate-slide-in-left,
+    .animate-slide-in-right {
+      animation: fade-in-mobile 0.5s ease-out forwards;
+    }
+
+    /* Disable complex animations on mobile */
+    .animate-float-gentle,
+    .animate-bounce-slow {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .animate-glow {
+      animation: none;
+      box-shadow: 0 0 10px rgba(122, 229, 198, 0.3);
+    }
+
+    .animate-shimmer {
+      animation: none;
+      background: none;
+    }
+
+    .animate-rotate-slow,
+    .animate-spin-slow {
+      animation: none;
+      transform: none;
+    }
+
+    .animate-scale-pulse {
+      animation: pulse-slow 3s ease-in-out infinite;
+    }
+
+    .animate-gradient-shift {
+      animation: none;
+      background-position: 50% 50%;
+    }
+  }
+
+  /* Animation play state control for off-screen elements */
+  .animate-paused {
+    animation-play-state: paused !important;
+  }
+
+  .animate-running {
+    animation-play-state: running !important;
+  }
+
   /* Consistent animation delay utilities */
   .animate-delay-100 { animation-delay: 100ms; }
   .animate-delay-200 { animation-delay: 200ms; }
@@ -244,6 +327,27 @@
   }
 }
 
+/* Simplified mobile keyframes */
+@keyframes fade-in-up-mobile {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-mobile {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Responsive animation adjustments */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -252,16 +356,17 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
-}
-
-/* High performance animation optimizations */
-@media (min-width: 1024px) {
+  
+  /* Ensure animations are still visually complete */
   .animate-fade-in-up,
   .animate-fade-in-scale,
   .animate-slide-in-left,
-  .animate-slide-in-right {
-    will-change: transform, opacity;
+  .animate-slide-in-right,
+  .animate-fade-in {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

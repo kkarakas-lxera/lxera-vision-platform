@@ -13,88 +13,106 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ClarityProvider } from "@/components/ClarityProvider";
+import { lazy, Suspense } from "react";
+import Loading from "@/components/Loading";
 
-
-// Import existing pages
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Pricing from "./pages/Pricing";
-import Solutions from "./pages/Solutions";
-import Resources from "./pages/Resources";
-import Platform from "./pages/Platform";
-import About from "./pages/company/About";
-import Blog from "./pages/company/Blog";
-import Careers from "./pages/company/Careers";
-import Contact from "./pages/company/Contact";
-import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
-import TermsOfService from "./pages/legal/TermsOfService";
-import CookiePolicy from "./pages/legal/CookiePolicy";
-
-// Import solution pages
-import AIPersonalizedLearning from "./pages/solutions/AIPersonalizedLearning";
-import WorkforceReskilling from "./pages/solutions/WorkforceReskilling";
-import AIGamificationMotivation from "./pages/solutions/AIGamificationMotivation";
-import CitizenDeveloperEnablement from "./pages/solutions/CitizenDeveloperEnablement";
-import LearningAnalytics from "./pages/solutions/LearningAnalytics";
-import AILearningSupport from "./pages/solutions/AILearningSupport";
-import EnterpriseInnovation from "./pages/solutions/EnterpriseInnovation";
-import ScalableLearningSupport from "./pages/solutions/ScalableLearningSupport";
-
-// Import platform pages
-import HowItWorks from "./pages/platform/HowItWorks";
-import AIEngine from "./pages/platform/AIEngine";
-import EngagementInsights from "./pages/platform/EngagementInsights";
-import InnovationHub from "./pages/platform/InnovationHub";
-import MentorshipSupport from "./pages/platform/MentorshipSupport";
-import SecurityPrivacy from "./pages/platform/SecurityPrivacy";
-import Integrations from "./pages/platform/Integrations";
-
-// Import resource pages
-import ResourcesBlog from "./pages/resources/Blog";
-import SuccessStories from "./pages/resources/SuccessStories";
-import ProductTour from "./pages/resources/ProductTour";
-import Glossary from "./pages/resources/Glossary";
-
-// Import auth pages
+// Auth pages - loaded synchronously
 import Login from "./pages/auth/Login";
 import AuthCallback from "./pages/auth/AuthCallback";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import Tickets from "./pages/admin/Tickets";
 
-// Import learner pages
-import LearnerDashboard from "./pages/learner/LearnerDashboard";
-import CourseViewer from "./pages/learner/CourseViewer";
-import CourseOverview from "./pages/learner/CourseOverview";
-import MyCourses from "./pages/learner/MyCourses";
+// Lazy load public/marketing pages
+const Index = lazy(() => import("./pages/Index"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Solutions = lazy(() => import("./pages/Solutions"));
+const Resources = lazy(() => import("./pages/Resources"));
+const Platform = lazy(() => import("./pages/Platform"));
 
-// Import admin pages
-import CompaniesManagement from "./pages/admin/companies/CompaniesManagement";
-import UsersManagement from "./pages/admin/users/UsersManagement";
-import CoursesManagement from "./pages/admin/courses/CoursesManagement";
-import AnalyticsDashboard from "./pages/admin/analytics/AnalyticsDashboard";
-import Settings from "./pages/admin/Settings";
-import CustomerFeedback from "./pages/admin/CustomerFeedback";
-import DemoRequests from "./pages/admin/DemoRequests";
+// Lazy load company pages
+const About = lazy(() => import("./pages/company/About"));
+const Blog = lazy(() => import("./pages/company/Blog"));
+const Careers = lazy(() => import("./pages/company/Careers"));
+const Contact = lazy(() => import("./pages/company/Contact"));
 
-// Import company dashboard pages
-import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
-import PositionManagement from "./pages/dashboard/PositionManagement";
-import EmployeeOnboarding from "./pages/dashboard/EmployeeOnboarding";
-import Employees from "./pages/dashboard/Employees";
-import EmployeeProfile from "./pages/dashboard/EmployeeProfile";
-import Courses from "./pages/dashboard/Courses";
-import CourseDetails from "./pages/dashboard/CourseDetails";
+// Lazy load legal pages
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 
-// Import skills pages
-import SkillsOverview from "./pages/dashboard/skills/SkillsOverview";
-import AnalyzedEmployees from "./pages/dashboard/skills/AnalyzedEmployees";
-import PositionRequirements from "./pages/dashboard/skills/PositionRequirements";
-import DepartmentSkillsDetail from "./pages/dashboard/skills/DepartmentSkillsDetail";
+// Lazy load solution pages
+const AIPersonalizedLearning = lazy(() => import("./pages/solutions/AIPersonalizedLearning"));
+const WorkforceReskilling = lazy(() => import("./pages/solutions/WorkforceReskilling"));
+const AIGamificationMotivation = lazy(() => import("./pages/solutions/AIGamificationMotivation"));
+const CitizenDeveloperEnablement = lazy(() => import("./pages/solutions/CitizenDeveloperEnablement"));
+const LearningAnalytics = lazy(() => import("./pages/solutions/LearningAnalytics"));
+const AILearningSupport = lazy(() => import("./pages/solutions/AILearningSupport"));
+const EnterpriseInnovation = lazy(() => import("./pages/solutions/EnterpriseInnovation"));
+const ScalableLearningSupport = lazy(() => import("./pages/solutions/ScalableLearningSupport"));
 
-// Import gamification analytics
-import GamificationAnalytics from "./pages/dashboard/GamificationAnalytics";
+// Lazy load platform pages
+const HowItWorks = lazy(() => import("./pages/platform/HowItWorks"));
+const AIEngine = lazy(() => import("./pages/platform/AIEngine"));
+const EngagementInsights = lazy(() => import("./pages/platform/EngagementInsights"));
+const InnovationHub = lazy(() => import("./pages/platform/InnovationHub"));
+const MentorshipSupport = lazy(() => import("./pages/platform/MentorshipSupport"));
+const SecurityPrivacy = lazy(() => import("./pages/platform/SecurityPrivacy"));
+const Integrations = lazy(() => import("./pages/platform/Integrations"));
+
+// Lazy load resource pages
+const ResourcesBlog = lazy(() => import("./pages/resources/Blog"));
+const SuccessStories = lazy(() => import("./pages/resources/SuccessStories"));
+const ProductTour = lazy(() => import("./pages/resources/ProductTour"));
+const Glossary = lazy(() => import("./pages/resources/Glossary"));
+
+// Lazy load admin pages
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const Tickets = lazy(() => import("./pages/admin/Tickets"));
+const CompaniesManagement = lazy(() => import("./pages/admin/companies/CompaniesManagement"));
+const UsersManagement = lazy(() => import("./pages/admin/users/UsersManagement"));
+const CoursesManagement = lazy(() => import("./pages/admin/courses/CoursesManagement"));
+const AnalyticsDashboard = lazy(() => import("./pages/admin/analytics/AnalyticsDashboard"));
+const Settings = lazy(() => import("./pages/admin/Settings"));
+const CustomerFeedback = lazy(() => import("./pages/admin/CustomerFeedback"));
+const DemoRequests = lazy(() => import("./pages/admin/DemoRequests"));
+
+// Lazy load learner pages
+const LearnerDashboard = lazy(() => import("./pages/learner/LearnerDashboard"));
+const CourseViewer = lazy(() => import("./pages/learner/CourseViewer"));
+const CourseOverview = lazy(() => import("./pages/learner/CourseOverview"));
+const MyCourses = lazy(() => import("./pages/learner/MyCourses"));
+
+// Lazy load company dashboard pages
+const CompanyDashboard = lazy(() => import("./pages/dashboard/CompanyDashboard"));
+const PositionManagement = lazy(() => import("./pages/dashboard/PositionManagement"));
+const EmployeeOnboarding = lazy(() => import("./pages/dashboard/EmployeeOnboarding"));
+const Employees = lazy(() => import("./pages/dashboard/Employees"));
+const EmployeeProfile = lazy(() => import("./pages/dashboard/EmployeeProfile"));
+const Courses = lazy(() => import("./pages/dashboard/Courses"));
+const CourseDetails = lazy(() => import("./pages/dashboard/CourseDetails"));
+
+// Lazy load skills pages
+const SkillsOverview = lazy(() => import("./pages/dashboard/skills/SkillsOverview"));
+const AnalyzedEmployees = lazy(() => import("./pages/dashboard/skills/AnalyzedEmployees"));
+const PositionRequirements = lazy(() => import("./pages/dashboard/skills/PositionRequirements"));
+const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/DepartmentSkillsDetail"));
+
+// Lazy load gamification analytics
+const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
 
 const queryClient = new QueryClient();
+
+// Page loading wrapper
+const PageSuspense = ({ children }: { children: React.ReactNode }) => (
+  <Suspense 
+    fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading size="lg" text="Loading page..." />
+      </div>
+    }
+  >
+    {children}
+  </Suspense>
+);
 
 const App = () => {
   return (
@@ -109,43 +127,43 @@ const App = () => {
                 <CourseGenerationProvider>
                   <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/platform" element={<Platform />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/company/about" element={<About />} />
-            <Route path="/company/blog" element={<Blog />} />
-            <Route path="/company/careers" element={<Careers />} />
-            <Route path="/company/contact" element={<Contact />} />
-            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
-            <Route path="/legal/terms" element={<TermsOfService />} />
-            <Route path="/legal/cookies" element={<CookiePolicy />} />
+            <Route path="/" element={<PageSuspense><Index /></PageSuspense>} />
+            <Route path="/pricing" element={<PageSuspense><Pricing /></PageSuspense>} />
+            <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
+            <Route path="/platform" element={<PageSuspense><Platform /></PageSuspense>} />
+            <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
+            <Route path="/company/about" element={<PageSuspense><About /></PageSuspense>} />
+            <Route path="/company/blog" element={<PageSuspense><Blog /></PageSuspense>} />
+            <Route path="/company/careers" element={<PageSuspense><Careers /></PageSuspense>} />
+            <Route path="/company/contact" element={<PageSuspense><Contact /></PageSuspense>} />
+            <Route path="/legal/privacy" element={<PageSuspense><PrivacyPolicy /></PageSuspense>} />
+            <Route path="/legal/terms" element={<PageSuspense><TermsOfService /></PageSuspense>} />
+            <Route path="/legal/cookies" element={<PageSuspense><CookiePolicy /></PageSuspense>} />
 
             {/* Solution routes */}
-            <Route path="/solutions/ai-personalized-learning" element={<AIPersonalizedLearning />} />
-            <Route path="/solutions/workforce-reskilling-upskilling" element={<WorkforceReskilling />} />
-            <Route path="/solutions/ai-gamification-motivation" element={<AIGamificationMotivation />} />
-            <Route path="/solutions/citizen-led-innovation" element={<CitizenDeveloperEnablement />} />
-            <Route path="/solutions/learning-analytics-engagement" element={<LearningAnalytics />} />
-            <Route path="/solutions/ai-mentorship-support" element={<AILearningSupport />} />
-            <Route path="/solutions/enterprise-innovation-enablement" element={<EnterpriseInnovation />} />
-            <Route path="/solutions/scalable-learning-support" element={<ScalableLearningSupport />} />
+            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning /></PageSuspense>} />
+            <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling /></PageSuspense>} />
+            <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation /></PageSuspense>} />
+            <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement /></PageSuspense>} />
+            <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics /></PageSuspense>} />
+            <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport /></PageSuspense>} />
+            <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation /></PageSuspense>} />
+            <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport /></PageSuspense>} />
 
             {/* Platform routes */}
-            <Route path="/platform/how-it-works" element={<HowItWorks />} />
-            <Route path="/platform/ai-engine" element={<AIEngine />} />
-            <Route path="/platform/engagement-insights" element={<EngagementInsights />} />
-            <Route path="/platform/innovation-hub" element={<InnovationHub />} />
-            <Route path="/platform/mentorship-support" element={<MentorshipSupport />} />
-            <Route path="/platform/security-privacy" element={<SecurityPrivacy />} />
-            <Route path="/platform/integrations" element={<Integrations />} />
+            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks /></PageSuspense>} />
+            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine /></PageSuspense>} />
+            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights /></PageSuspense>} />
+            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub /></PageSuspense>} />
+            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport /></PageSuspense>} />
+            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy /></PageSuspense>} />
+            <Route path="/platform/integrations" element={<PageSuspense><Integrations /></PageSuspense>} />
 
             {/* Resource routes */}
-            <Route path="/resources/blog" element={<ResourcesBlog />} />
-            <Route path="/resources/success-stories" element={<SuccessStories />} />
-            <Route path="/resources/product-tour" element={<ProductTour />} />
-            <Route path="/resources/glossary" element={<Glossary />} />
+            <Route path="/resources/blog" element={<PageSuspense><ResourcesBlog /></PageSuspense>} />
+            <Route path="/resources/success-stories" element={<PageSuspense><SuccessStories /></PageSuspense>} />
+            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour /></PageSuspense>} />
+            <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
 
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
@@ -158,15 +176,15 @@ const App = () => {
                 <ProtectedRoute allowedRoles={['super_admin']}>
                   <DashboardLayout>
                     <Routes>
-                      <Route path="/" element={<AdminDashboard />} />
-                      <Route path="/tickets" element={<Tickets />} />
-                      <Route path="/companies" element={<CompaniesManagement />} />
-                      <Route path="/users" element={<UsersManagement />} />
-                      <Route path="/courses" element={<CoursesManagement />} />
-                      <Route path="/analytics" element={<AnalyticsDashboard />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/feedback" element={<CustomerFeedback />} />
-                      <Route path="/demo-requests" element={<DemoRequests />} />
+                      <Route path="/" element={<PageSuspense><AdminDashboard /></PageSuspense>} />
+                      <Route path="/tickets" element={<PageSuspense><Tickets /></PageSuspense>} />
+                      <Route path="/companies" element={<PageSuspense><CompaniesManagement /></PageSuspense>} />
+                      <Route path="/users" element={<PageSuspense><UsersManagement /></PageSuspense>} />
+                      <Route path="/courses" element={<PageSuspense><CoursesManagement /></PageSuspense>} />
+                      <Route path="/analytics" element={<PageSuspense><AnalyticsDashboard /></PageSuspense>} />
+                      <Route path="/settings" element={<PageSuspense><Settings /></PageSuspense>} />
+                      <Route path="/feedback" element={<PageSuspense><CustomerFeedback /></PageSuspense>} />
+                      <Route path="/demo-requests" element={<PageSuspense><DemoRequests /></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
@@ -180,19 +198,19 @@ const App = () => {
                 <ProtectedRoute allowedRoles={['company_admin']}>
                   <DashboardLayout>
                     <Routes>
-                      <Route path="/" element={<CompanyDashboard />} />
-                      <Route path="/onboarding" element={<EmployeeOnboarding />} />
-                      <Route path="/positions" element={<PositionManagement />} />
-                      <Route path="/employees" element={<Employees />} />
-                      <Route path="/employees/:employeeId" element={<EmployeeProfile />} />
-                      <Route path="/courses" element={<Courses />} />
-                      <Route path="/courses/:courseId" element={<CourseDetails />} />
-                      <Route path="/skills" element={<SkillsOverview />} />
-                      <Route path="/skills/employees" element={<AnalyzedEmployees />} />
-                      <Route path="/skills/positions" element={<PositionRequirements />} />
-                      <Route path="/skills/department/:department" element={<DepartmentSkillsDetail />} />
-                      <Route path="/analytics" element={<GamificationAnalytics />} />
-                      <Route path="/settings" element={<div>Company Settings</div>} />
+                      <Route path="/" element={<PageSuspense><CompanyDashboard /></PageSuspense>} />
+                      <Route path="/onboarding" element={<PageSuspense><EmployeeOnboarding /></PageSuspense>} />
+                      <Route path="/positions" element={<PageSuspense><PositionManagement /></PageSuspense>} />
+                      <Route path="/employees" element={<PageSuspense><Employees /></PageSuspense>} />
+                      <Route path="/employees/:employeeId" element={<PageSuspense><EmployeeProfile /></PageSuspense>} />
+                      <Route path="/courses" element={<PageSuspense><Courses /></PageSuspense>} />
+                      <Route path="/courses/:courseId" element={<PageSuspense><CourseDetails /></PageSuspense>} />
+                      <Route path="/skills" element={<PageSuspense><SkillsOverview /></PageSuspense>} />
+                      <Route path="/skills/employees" element={<PageSuspense><AnalyzedEmployees /></PageSuspense>} />
+                      <Route path="/skills/positions" element={<PageSuspense><PositionRequirements /></PageSuspense>} />
+                      <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
+                      <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
+                      <Route path="/settings" element={<PageSuspense><div>Company Settings</div></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
@@ -205,15 +223,15 @@ const App = () => {
               element={
                 <ProtectedRoute allowedRoles={['learner']}>
                   <Routes>
-                    <Route path="/course/:courseId" element={<CourseViewer />} />
-                    <Route path="/course/:courseId/overview" element={<CourseOverview />} />
-                    <Route path="/course/:courseId/module/:moduleId" element={<CourseViewer />} />
+                    <Route path="/course/:courseId" element={<PageSuspense><CourseViewer /></PageSuspense>} />
+                    <Route path="/course/:courseId/overview" element={<PageSuspense><CourseOverview /></PageSuspense>} />
+                    <Route path="/course/:courseId/module/:moduleId" element={<PageSuspense><CourseViewer /></PageSuspense>} />
                     <Route path="/*" element={
                       <DashboardLayout>
                         <Routes>
-                          <Route path="/" element={<LearnerDashboard />} />
-                          <Route path="/courses" element={<MyCourses />} />
-                          <Route path="/certificates" element={<div>My Certificates - Coming Soon</div>} />
+                          <Route path="/" element={<PageSuspense><LearnerDashboard /></PageSuspense>} />
+                          <Route path="/courses" element={<PageSuspense><MyCourses /></PageSuspense>} />
+                          <Route path="/certificates" element={<PageSuspense><div>My Certificates - Coming Soon</div></PageSuspense>} />
                         </Routes>
                       </DashboardLayout>
                     } />
@@ -223,7 +241,7 @@ const App = () => {
             />
 
             {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<PageSuspense><NotFound /></PageSuspense>} />
                 </Routes>
               </CourseGenerationProvider>
             </AuthProvider>

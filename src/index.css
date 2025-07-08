@@ -3,6 +3,7 @@
 @import './styles/base.css';
 @import './styles/components.css';
 @import './styles/animations.css';
+@import './styles/mobile-optimizations.css';
 
 /* Then Tailwind directives */
 @tailwind base;

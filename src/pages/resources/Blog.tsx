@@ -135,6 +135,10 @@ const Blog = () => {
                   src={featuredPost.image} 
                   alt={featuredPost.title}
                   className="w-full h-full object-cover"
+                  width={800}
+                  height={400}
+                  loading="eager"
+                  decoding="async"
                 />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-business-black text-white">
@@ -202,6 +206,10 @@ const Blog = () => {
                     src={post.image} 
                     alt={post.title}
                     className="w-full h-full object-cover"
+                    width={400}
+                    height={200}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-business-black text-white">
