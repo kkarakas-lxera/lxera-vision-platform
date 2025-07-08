@@ -32,6 +32,7 @@ interface HeroVideoPlayerProps {
   autoPlay?: boolean;
   muted?: boolean;
   className?: string;
+  onVideoEnd?: () => void;
 }
 
 const HeroVideoPlayer = ({ 
@@ -40,7 +41,8 @@ const HeroVideoPlayer = ({
   chapters = [],
   autoPlay = false,
   muted = true,
-  className
+  className,
+  onVideoEnd
 }: HeroVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,7 @@ const HeroVideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hasEnded, setHasEnded] = useState(false);
   
   // Auto-hide controls
   useEffect(() => {
@@ -83,9 +86,15 @@ const HeroVideoPlayer = ({
       setCurrentTime(video.currentTime);
     };
 
-    const handlePlay = () => setIsPlaying(true);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setHasEnded(false);
+    };
     const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setHasEnded(true);
+    };
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('timeupdate', handleTimeUpdate);
@@ -236,13 +245,48 @@ const HeroVideoPlayer = ({
       )}
 
       {/* Play Button Overlay (when paused) */}
-      {!isPlaying && !isLoading && (
+      {!isPlaying && !isLoading && !hasEnded && (
         <div 
           className="absolute inset-0 flex items-center justify-center cursor-pointer"
           onClick={togglePlay}
         >
           <div className="bg-white/90 rounded-full p-6 shadow-lg hover:bg-white transition-all transform hover:scale-110">
             <Play className="h-12 w-12 text-business-black fill-business-black ml-1" />
+          </div>
+        </div>
+      )}
+
+      {/* Get Started Button Overlay (when video ends) */}
+      {hasEnded && !isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 animate-in fade-in-0 duration-300">
+          <div className="text-center space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-2xl sm:text-3xl font-bold text-white">Ready to Transform Your Learning?</h3>
+              <p className="text-lg text-white/80">See LXERA in action with a personalized demo</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={onVideoEnd}
+                size="lg"
+                className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Get Started
+              </Button>
+              <Button
+                onClick={() => {
+                  const video = videoRef.current;
+                  if (video) {
+                    video.currentTime = 0;
+                    video.play();
+                  }
+                }}
+                size="lg"
+                variant="outline"
+                className="border-2 border-white text-white hover:bg-white hover:text-business-black font-medium px-6 py-4 text-lg rounded-xl transition-all duration-300"
+              >
+                Watch Again
+              </Button>
+            </div>
           </div>
         </div>
       )}

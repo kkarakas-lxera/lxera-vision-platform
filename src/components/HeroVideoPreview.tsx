@@ -1,7 +1,10 @@
 
+import { useState } from 'react';
 import HeroVideoPlayer from './HeroVideoPlayer';
+import DemoModalWrapper from './DemoModalWrapper';
 
 const HeroVideoPreview = () => {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   // Video hosting options:
   // 1. Upload to Cloudflare Stream and use the HLS/DASH URL
   // 2. Upload to AWS S3/CloudFront and use direct URL
@@ -22,23 +25,32 @@ const HeroVideoPreview = () => {
   ];
 
   return (
-    <div className="relative w-full">
-      <HeroVideoPlayer
-        videoUrl={videoUrl}
-        posterUrl={posterUrl}
-        chapters={chapters}
-        autoPlay={false}
-        muted={true}
-        className="w-full"
-      />
-      
-      {/* Video Overlay Label - Hidden on mobile to avoid positioning issues */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-4 py-1 bg-white/75 text-business-black/75 text-xs font-semibold rounded-full shadow-sm border border-future-green/30 transition-all group-hover:bg-white group-hover:text-business-black/90 z-20 select-none hidden sm:block">
-          Watch how LXERA works
-        </span>
+    <>
+      <div className="relative w-full">
+        <HeroVideoPlayer
+          videoUrl={videoUrl}
+          posterUrl={posterUrl}
+          chapters={chapters}
+          autoPlay={false}
+          muted={true}
+          className="w-full"
+          onVideoEnd={() => setIsDemoModalOpen(true)}
+        />
+        
+        {/* Video Overlay Label - Hidden on mobile to avoid positioning issues */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-4 py-1 bg-white/75 text-business-black/75 text-xs font-semibold rounded-full shadow-sm border border-future-green/30 transition-all group-hover:bg-white group-hover:text-business-black/90 z-20 select-none hidden sm:block">
+            Watch how LXERA works
+          </span>
+        </div>
       </div>
-    </div>
+      
+      <DemoModalWrapper 
+        isOpen={isDemoModalOpen} 
+        onClose={() => setIsDemoModalOpen(false)}
+        source="Video End CTA"
+      />
+    </>
   );
 };
 
