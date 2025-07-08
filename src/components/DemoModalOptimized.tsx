@@ -36,6 +36,7 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
   const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
   const [openCalendlyInNewTab, setOpenCalendlyInNewTab] = useState(false);
+  const [showCalendly, setShowCalendly] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -153,6 +154,9 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
       // On mobile, ask if they want to open Calendly in a new tab
       if (isMobile) {
         setOpenCalendlyInNewTab(true);
+      } else {
+        // Trigger progressive loading after a small delay
+        setTimeout(() => setShowCalendly(true), 300);
       }
     } catch (error) {
       console.error('Demo request submission failed:', error);
@@ -182,6 +186,7 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
     setShowOptionalFields(false);
     setCountrySearch("");
     setOpenCalendlyInNewTab(false);
+    setShowCalendly(false);
     onClose();
   };
 
@@ -255,47 +260,88 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
             </div>
           ) : (
             <>
-              {/* Desktop or Mobile embed */}
-              <div className={cn(
-                "relative",
-                isMobile && "mx--4" // Extend to full width on mobile
-              )}>
-                <CalendlyEmbedOptimized 
-                  url="https://calendly.com/kubilay-karakas-lxera/30min"
-                  prefill={{
-                    email: formData.email,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    customAnswers: {
-                      a1: formData.company,
-                      a2: formData.jobTitle || '',
-                      a3: formData.companySize,
-                      a4: formData.country
-                    }
-                  }}
-                  utm={{
-                    utmSource: "website",
-                    utmMedium: "demo_request",
-                    utmCampaign: source ? source.toLowerCase().replace(/\s+/g, '_') : "website"
-                  }}
-                />
-              </div>
-              
-              <div className="text-center">
-                <Button
-                  onClick={() => {
-                    toast({
-                      title: "Demo Request Received!",
-                      description: "We'll be in touch within 24 hours to schedule your personalized demo.",
-                    });
-                    handleClose();
-                  }}
-                  variant="outline"
-                  className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
-                >
-                  I'll schedule later
-                </Button>
-              </div>
+              {/* Desktop or Mobile embed with progressive loading */}
+              {!showCalendly ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 border-2 border-gray-100 rounded-xl p-6 text-center space-y-4">
+                    <div className="flex items-center justify-center">
+                      <Calendar className="h-12 w-12 text-future-green animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-lg font-medium text-business-black">Ready to schedule?</h4>
+                      <p className="text-sm text-gray-600">
+                        Click below to view available time slots
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => setShowCalendly(true)}
+                      className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Show Available Times
+                    </Button>
+                  </div>
+                  
+                  <div className="text-center">
+                    <Button
+                      onClick={() => {
+                        toast({
+                          title: "Demo Request Received!",
+                          description: "We'll be in touch within 24 hours to schedule your personalized demo.",
+                        });
+                        handleClose();
+                      }}
+                      variant="outline"
+                      className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
+                    >
+                      I'll schedule later
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={cn(
+                    "relative animate-in fade-in-0 slide-in-from-bottom-4 duration-500",
+                    isMobile && "mx--4" // Extend to full width on mobile
+                  )}>
+                    <CalendlyEmbedOptimized 
+                      url="https://calendly.com/kubilay-karakas-lxera/30min"
+                      prefill={{
+                        email: formData.email,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        customAnswers: {
+                          a1: formData.company,
+                          a2: formData.jobTitle || '',
+                          a3: formData.companySize,
+                          a4: formData.country
+                        }
+                      }}
+                      utm={{
+                        utmSource: "website",
+                        utmMedium: "demo_request",
+                        utmCampaign: source ? source.toLowerCase().replace(/\s+/g, '_') : "website"
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="text-center">
+                    <Button
+                      onClick={() => {
+                        toast({
+                          title: "Demo Request Received!",
+                          description: "We'll be in touch within 24 hours to schedule your personalized demo.",
+                        });
+                        handleClose();
+                      }}
+                      variant="outline"
+                      className="border-gray-300 text-business-black hover:bg-gray-50 font-medium px-6 py-2 rounded-xl"
+                    >
+                      I'll schedule later
+                    </Button>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -389,7 +435,10 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
                   )}>
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-xl z-[100] max-h-64">
+                  <SelectContent 
+                    className="bg-white border border-gray-200 rounded-lg shadow-xl max-h-64"
+                    style={{ zIndex: 9999 }}
+                    onOpenAutoFocus={(e) => e.preventDefault()}>
                     {companySizeOptions.map((size) => (
                       <SelectItem 
                         key={size} 
@@ -418,9 +467,11 @@ const DemoModalOptimized = ({ isOpen, onClose, source = "Website" }: DemoModalPr
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent className={cn(
-                    "bg-white border border-gray-200 rounded-lg shadow-xl z-[100]",
+                    "bg-white border border-gray-200 rounded-lg shadow-xl",
                     isMobile ? "max-h-[50vh]" : "max-h-64"
-                  )}>
+                  )}
+                  style={{ zIndex: 9999 }}
+                  onOpenAutoFocus={(e) => e.preventDefault()}>
                     {!countrySearch && (
                       <>
                         <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">
