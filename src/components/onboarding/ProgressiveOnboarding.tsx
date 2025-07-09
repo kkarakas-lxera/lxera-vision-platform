@@ -11,6 +11,12 @@ import { cn } from '@/lib/utils';
 interface ProgressiveOnboardingProps {
   email: string;
   leadId: string;
+  initialData?: {
+    name?: string;
+    company?: string;
+    role?: string;
+    use_case?: string;
+  };
   onComplete: () => void;
 }
 
@@ -154,13 +160,13 @@ const HEARD_ABOUT_OPTIONS = [
   },
 ];
 
-export default function ProgressiveOnboarding({ email, leadId, onComplete }: ProgressiveOnboardingProps) {
+export default function ProgressiveOnboarding({ email, leadId, initialData, onComplete }: ProgressiveOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    company: '',
-    role: '',
-    useCase: '',
+    name: initialData?.name || '',
+    company: initialData?.company || '',
+    role: initialData?.role || '',
+    useCase: initialData?.use_case || '',
     heardAbout: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -177,12 +183,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
       setCompletedSteps(parsed.completedSteps || []);
       setLastSaved(parsed.timestamp ? new Date(parsed.timestamp) : null);
       
-      // Find the first incomplete step
-      const firstIncomplete = STEPS.find(step => {
-        const field = step.field as keyof FormData;
-        return !formData[field];
-      });
-      setCurrentStep(firstIncomplete?.id || 1);
+      // Find the first incomplete step after formData is updated
+      setTimeout(() => {
+        const currentFormData = { ...formData, ...parsed.formData };
+        const firstIncomplete = STEPS.find(step => {
+          const field = step.field as keyof FormData;
+          return !currentFormData[field];
+        });
+        setCurrentStep(firstIncomplete?.id || 6); // If all filled, go to completion
+      }, 0);
     }
   }, [email]);
 
@@ -295,7 +304,7 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
       </div>
 
       {/* Current Step Form */}
-      <Card className="overflow-hidden border-0 shadow-none bg-transparent sm:border sm:border-slate-200 sm:shadow-lg sm:bg-white">
+      <Card className="overflow-hidden border-0 shadow-none bg-gradient-to-br from-white to-slate-50/50 sm:border sm:border-slate-200 sm:shadow-xl sm:bg-gradient-to-br sm:from-white sm:to-slate-50/30">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -307,7 +316,7 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
           >
             <div className="mb-6 text-center sm:text-left">
               <div className="mb-2">
-                <span className="inline-block bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">
+                <span className="inline-block bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 text-xs px-3 py-1.5 rounded-full font-medium border border-blue-200">
                   ⏱️ Takes less than 30 seconds
                 </span>
               </div>

@@ -42,9 +42,10 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   isEarlyAccess?: boolean;
   mockAuth?: any;
+  hideNavigation?: boolean;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAccess = false, mockAuth }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAccess = false, mockAuth, hideNavigation = false }) => {
   const authContext = useAuth();
   const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
@@ -297,7 +298,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       </div>
 
       {/* Mobile navigation */}
-      {isMobile && userProfile && (
+      {isMobile && userProfile && !hideNavigation && (
         <>
           {userProfile.role === 'company_admin' ? (
             <MobileCompanyNavigation />

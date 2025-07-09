@@ -158,7 +158,7 @@ const WaitingRoom = () => {
   };
 
   return (
-    <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext}>
+    <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext} hideNavigation={!profileCompleted}>
       <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
         {/* Compact Welcome Header */}
         <div className="mb-4">
@@ -192,6 +192,12 @@ const WaitingRoom = () => {
           <ProgressiveOnboarding
             email={leadData.email}
             leadId={leadData.id}
+            initialData={{
+              name: leadData.name,
+              company: leadData.company,
+              role: leadData.role,
+              use_case: leadData.use_case
+            }}
             onComplete={() => {
               setProfileCompleted(true);
               // Reload the lead data to get updated information
