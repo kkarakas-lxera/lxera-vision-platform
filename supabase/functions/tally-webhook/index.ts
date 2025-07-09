@@ -132,7 +132,7 @@ serve(async (req) => {
           
           try {
             await resend.emails.send({
-              from: 'LXERA <onboarding@resend.dev>',
+              from: 'LXERA <hello@lxera.ai>',
               to: email,
               subject: 'Welcome to LXERA Early Access! 🎉',
               html: `

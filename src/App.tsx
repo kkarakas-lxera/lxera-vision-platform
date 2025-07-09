@@ -65,6 +65,10 @@ const SuccessStories = lazy(() => import("./pages/resources/SuccessStories"));
 const ProductTour = lazy(() => import("./pages/resources/ProductTour"));
 const Glossary = lazy(() => import("./pages/resources/Glossary"));
 
+// Lazy load onboarding pages
+const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
+const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
+
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const Tickets = lazy(() => import("./pages/admin/Tickets"));
@@ -172,6 +176,10 @@ const App = () => {
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            
+            {/* Onboarding routes */}
+            <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />
+            <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
 
             {/* Protected admin routes */}
             <Route

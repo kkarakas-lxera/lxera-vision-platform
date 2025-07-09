@@ -95,7 +95,7 @@ serve(async (req) => {
     // Send email via Resend
     try {
       const { data: emailData, error: emailError } = await resend.emails.send({
-        from: 'LXERA <onboarding@resend.dev>',
+        from: 'LXERA <hello@lxera.ai>',
         to: email,
         subject: 'Complete your LXERA early access profile',
         html: `
