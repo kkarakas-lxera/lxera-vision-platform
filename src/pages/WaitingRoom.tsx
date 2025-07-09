@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { FileText, Slack, Mail } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProgressiveOnboarding from '@/components/onboarding/ProgressiveOnboarding';
@@ -214,68 +213,44 @@ const WaitingRoom = () => {
         )}
 
 
-        {/* Resources Grid */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card>
+
+        {/* Profile Summary */}
+        {profileCompleted && (
+          <Card className="mt-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="w-5 h-5" />
-                AI in L&D Report
-              </CardTitle>
+              <CardTitle>Your Profile</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-sm mb-4">
-                Download our 2024 research on AI's impact on learning.
-              </p>
-              <Button variant="outline" className="w-full">
-                Download PDF
-              </Button>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Name:</span>
+                  <span className="font-medium">{leadData.name || 'Not specified'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Company:</span>
+                  <span className="font-medium">{leadData.company || 'Not specified'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Role:</span>
+                  <span className="font-medium">
+                    {leadData.role ? leadData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Use Case:</span>
+                  <span className="font-medium">
+                    {leadData.use_case ? leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">How you found us:</span>
+                  <span className="font-medium">
+                    {leadData.heard_about ? leadData.heard_about.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Slack className="w-5 h-5" />
-                Join Community
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 text-sm mb-4">
-                Connect with 500+ L&D leaders in our Slack community.
-              </p>
-              <Button variant="outline" className="w-full">
-                Join Slack
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Mail className="w-5 h-5" />
-                Email Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 text-sm mb-4">
-                Manage your email notification settings.
-              </p>
-              <Button variant="outline" className="w-full">
-                Update Settings
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Company Info */}
-        {leadData.company && profileCompleted && (
-          <div className="mt-8 text-center text-gray-600">
-            <p>
-              Registered as: <strong>{leadData.name}</strong> from{' '}
-              <strong>{leadData.company}</strong>
-            </p>
-          </div>
         )}
       </div>
     </DashboardLayout>
