@@ -2,17 +2,20 @@
 .tally-embed {
   width: 100%;
   border: none;
-  overflow: hidden;
-}
-
-/* Hide any internal scrollbars in the Tally iframe */
-.tally-embed::-webkit-scrollbar {
-  display: none;
+  overflow: auto !important;
 }
 
 /* Ensure proper spacing for the form container */
 .tally-embed-container {
   width: 100%;
-  overflow: hidden;
+  position: relative;
   border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Allow scrolling on mobile */
+@media (max-width: 768px) {
+  .tally-embed-container {
+    height: 600px !important;
+  }
 }

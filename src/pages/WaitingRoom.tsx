@@ -189,20 +189,21 @@ const WaitingRoom = () => {
                 Just a few quick questions to help us personalize your experience.
               </p>
               {console.log('Prefilling email:', leadData.email)}
-              <div className="tally-embed-container">
+              <div className="tally-embed-container" style={{ height: '700px', overflow: 'hidden' }}>
                 <iframe
-                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}&Email=${encodeURIComponent(leadData.email)}`}
+                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}`}
                   width="100%"
-                  height="600"
+                  height="100%"
                   frameBorder="0"
                   title="LXERA Early Access Form"
                   style={{ 
-                    overflow: 'hidden',
                     border: 'none',
                     display: 'block',
-                    minHeight: '600px'
+                    width: '100%',
+                    height: '100%'
                   }}
-                  scrolling="no"
+                  scrolling="yes"
+                  allowFullScreen
                   className="tally-embed"
                 />
               </div>
