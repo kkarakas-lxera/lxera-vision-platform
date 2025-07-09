@@ -68,6 +68,7 @@ const Glossary = lazy(() => import("./pages/resources/Glossary"));
 
 // Lazy load onboarding pages
 const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
+const EarlyAccessSignup = lazy(() => import("./pages/EarlyAccessSignup"));
 const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
 
 // Lazy load admin pages
@@ -181,6 +182,7 @@ const App = () => {
             
             {/* Onboarding routes */}
             <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />
+            <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup /></PageSuspense>} />
             <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
 
             {/* Protected admin routes */}

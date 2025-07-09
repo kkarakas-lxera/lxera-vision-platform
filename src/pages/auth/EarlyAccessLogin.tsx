@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, ArrowRight, Clock, Shield, Users } from 'lucide-react';
+import { Loader2, Mail, ArrowRight, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,6 +86,7 @@ const EarlyAccessLogin = () => {
   const [error, setError] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [userNotFound, setUserNotFound] = useState(false);
 
   // Resend timer countdown
   useEffect(() => {
@@ -99,6 +100,7 @@ const EarlyAccessLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setUserNotFound(false);
 
     try {
       // Check if email exists in early access leads
@@ -109,9 +111,9 @@ const EarlyAccessLogin = () => {
         .single();
 
       if (leadError || !lead) {
-        setError('');
+        // User not found in early access list
+        setUserNotFound(true);
         setIsLoading(false);
-        // Show early access prompt
         return;
       }
 
@@ -265,11 +267,12 @@ const EarlyAccessLogin = () => {
                       )}
                     </Button>
 
-                    {error === '' && email && !isLoading && !otpSent && (
+                    {/* Show this only after user submits email and they're not in the database */}
+                    {userNotFound && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center space-y-3"
+                        className="text-center space-y-3 mt-4"
                       >
                         <p className="text-sm text-gray-600">
                           Not on the early access list yet?
@@ -283,16 +286,6 @@ const EarlyAccessLogin = () => {
                           <Clock className="mr-2 h-4 w-4" />
                           Get early access (30 seconds, no card required)
                         </Button>
-                        <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            Secure
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            500+ companies
-                          </span>
-                        </div>
                       </motion.div>
                     )}
                   </form>
