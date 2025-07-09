@@ -36,13 +36,12 @@ const EarlyAccess = () => {
         if (data.success && data.lead) {
           setLeadData(data.lead);
           
-          // Redirect to Tally form with email pre-filled
-          const tallyFormId = 'w2dO6L'; // Early Access form
-          const tallyUrl = `https://tally.so/r/${tallyFormId}?email=${encodeURIComponent(data.lead.email)}`;
+          // Redirect to waiting room with token
+          const waitingRoomUrl = `/waiting-room?email=${encodeURIComponent(data.lead.email)}&token=${token}`;
           
           // Small delay to show loading state
           setTimeout(() => {
-            window.location.href = tallyUrl;
+            navigate(waitingRoomUrl);
           }, 1000);
         } else {
           throw new Error('Invalid token');

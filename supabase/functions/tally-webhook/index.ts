@@ -117,6 +117,13 @@ serve(async (req) => {
         // Don't fail the whole webhook if position assignment fails
       }
 
+      // Mark any active sessions as used since profile is now complete
+      await supabase
+        .from('lead_sessions')
+        .update({ used: true })
+        .eq('lead_id', existingLead?.id || leadRecord?.id)
+        .eq('used', false);
+
       // Get the lead ID for logging
       const { data: leadRecord } = await supabase
         .from('early_access_leads')

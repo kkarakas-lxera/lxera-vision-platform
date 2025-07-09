@@ -40,11 +40,8 @@ serve(async (req) => {
       throw new Error('Invalid or expired token');
     }
 
-    // Mark token as used
-    await supabase
-      .from('lead_sessions')
-      .update({ used: true })
-      .eq('id', session.id);
+    // Don't mark token as used yet - only mark it used after profile completion
+    // This allows users to use the same link multiple times within 24 hours
 
     // Update lead status if needed
     if (session.early_access_leads.status === 'email_captured') {
