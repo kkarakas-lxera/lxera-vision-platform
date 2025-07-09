@@ -163,8 +163,8 @@ const EarlyAccessLogin = () => {
       localStorage.setItem('earlyAccessToken', data.token);
       localStorage.setItem('earlyAccessEmail', email.toLowerCase());
 
-      // Navigate to waiting room
-      navigate('/waiting-room');
+      // Navigate to waiting room with email and token
+      navigate(`/waiting-room?email=${encodeURIComponent(email.toLowerCase())}&token=${data.token}`);
     } catch (err: any) {
       setError(err.message || 'Failed to verify code');
     } finally {

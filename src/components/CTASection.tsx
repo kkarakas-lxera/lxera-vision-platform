@@ -1,18 +1,13 @@
 
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import InlineEmailCapture from "@/components/forms/InlineEmailCapture";
 import { useState } from "react";
 
 const CTASection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   const handleEmailSuccess = (email: string) => {
     setEmailCaptured(true);
@@ -55,14 +50,12 @@ const CTASection = () => {
                   No credit card required • Join 200+ teams
                 </p>
                 <div className="flex gap-3 text-sm">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRequestDemo}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    Prefer a demo?
-                  </Button>
+                  <ProgressiveDemoCapture
+                    source="cta_section_demo_link"
+                    buttonText="Prefer a demo?"
+                    variant="minimal"
+                    onSuccess={handleEmailSuccess}
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -80,14 +73,12 @@ const CTASection = () => {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
-                  onClick={handleRequestDemo}
-                  aria-label="Request a demo"
-                >
-                  Request a Demo
-                </Button>
+                <ProgressiveDemoCapture
+                  source="cta_section_main"
+                  buttonText="Request a Demo"
+                  onSuccess={handleEmailSuccess}
+                  className=""
+                />
                 <Button
                   size="lg"
                   variant="outline"
@@ -108,11 +99,6 @@ const CTASection = () => {
         </div>
       </div>
 
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="CTA Section"
-      />
     </>
   );
 };

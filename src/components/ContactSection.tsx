@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import DemoModal from "./DemoModal";
+import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 import Loading from "./Loading";
 import { ticketService } from "@/services/ticketService";
 
@@ -17,7 +17,6 @@ const ContactSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const { toast } = useToast();
 
   const validateField = (name: string, value: string) => {
@@ -110,9 +109,6 @@ const ContactSection = () => {
     }
   };
 
-  const handleBookDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   if (isSubmitted) {
     return (
@@ -155,14 +151,12 @@ const ContactSection = () => {
           </p>
           
           <div className="flex justify-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-            <Button 
-              size="lg" 
-              onClick={handleBookDemo}
+            <ProgressiveDemoCapture
+              source="contact_section_book_demo"
+              buttonText="Book a Demo"
+              variant="default"
               className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-8 py-4 rounded-xl font-normal transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
-              aria-label="Book a product demonstration"
-            >
-              Book a Demo
-            </Button>
+            />
           </div>
         </div>
         
@@ -271,11 +265,6 @@ const ContactSection = () => {
           </div>
         </form>
       </div>
-
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)} 
-      />
     </section>
   );
 };

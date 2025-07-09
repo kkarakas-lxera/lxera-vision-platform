@@ -8,10 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Building, Headphones, Users, MessageCircle, Loader2 } from "lucide-react";
 import { ticketService } from "@/services/ticketService";
 import { useToast } from "@/hooks/use-toast";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 
 const Contact = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -326,23 +325,16 @@ const Contact = () => {
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
             Schedule a personalized demo to see how LXERA can transform your organization's learning experience.
           </p>
-          <Button 
-            onClick={() => setIsDemoModalOpen(true)}
-            className="bg-future-green text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105"
-          >
-            Schedule Demo
-          </Button>
+          <ProgressiveDemoCapture
+            source="contact_page_cta"
+            buttonText="Schedule Demo"
+            onSuccess={() => {}}
+          />
         </div>
       </section>
 
       <Footer />
       
-      {/* Demo Modal */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)} 
-        source="Contact Page CTA"
-      />
     </div>
   );
 };

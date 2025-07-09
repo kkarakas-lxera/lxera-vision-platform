@@ -6,8 +6,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import DemoModal from "./DemoModal";
-import { useState } from "react";
+import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 import { Link, useNavigate } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,13 +30,8 @@ interface DesktopMenuProps {
 }
 
 const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   // Define the solutions with warmer, more human-friendly colors and design - reordered
   const solutionsItems = [
@@ -368,13 +362,12 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Button
-          onClick={handleRequestDemo}
+        <ProgressiveDemoCapture
+          source="desktop_menu"
+          buttonText="Request a Demo"
+          variant="default"
           className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
-          aria-label="Request a demo"
-        >
-          Request a Demo
-        </Button>
+        />
 
         {/* Show Go to Dashboard when authenticated, Sign In when not */}
         {user && userProfile ? (
@@ -400,11 +393,6 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           </Link>
         )}
       </div>
-
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)} 
-      />
     </>
   );
 };

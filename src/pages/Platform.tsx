@@ -5,10 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Target, Sparkles, BarChart3, Lightbulb, MessageCircle, Shield, Plug, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 
 const Platform = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   const platformFeatures = [
     {
@@ -154,12 +153,11 @@ const Platform = () => {
             and drive innovation through personalized learning.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="bg-future-green text-business-black hover:bg-future-green/90 px-8 py-6 text-lg rounded-xl"
-            >
-              Get Started Today
-            </Button>
+            <ProgressiveDemoCapture
+              source="platform_page_cta"
+              buttonText="Get Started Today"
+              onSuccess={() => {}}
+            />
             <Link to="/pricing">
               <Button
                 variant="outline"
@@ -174,10 +172,6 @@ const Platform = () => {
 
       <Footer />
       
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)} 
-      />
     </div>
   );
 };

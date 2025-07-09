@@ -3,18 +3,13 @@
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
-import DemoModalWrapper from "./DemoModalWrapper";
 import SmartEmailCapture from "./forms/SmartEmailCapture";
+import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 import { useState } from "react";
 
 const HeroSection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   const handleEmailSuccess = (email: string) => {
     setEmailCaptured(true);
@@ -93,13 +88,11 @@ const HeroSection = () => {
                         onSuccess={handleEmailSuccess}
                       />
                       <span className="text-sm text-gray-500">or</span>
-                      <Button
-                        variant="outline"
-                        onClick={handleRequestDemo}
-                        className="border-business-black/20 text-business-black hover:bg-business-black hover:text-white"
-                      >
-                        Schedule Demo
-                      </Button>
+                      <ProgressiveDemoCapture 
+                        source="hero_section"
+                        buttonText="Request Demo"
+                        className=""
+                      />
                     </div>
                     <p className="text-xs text-center text-gray-500">
                       No credit card required • Join 200+ teams
@@ -112,14 +105,11 @@ const HeroSection = () => {
                   </div>
                 ) : (
                   <div className="flex flex-row gap-2 sm:gap-3">
-                    <Button
-                      size="lg"
-                      className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
-                      onClick={handleRequestDemo}
-                      aria-label="Request a demo"
-                    >
-                      Request a Demo
-                    </Button>
+                    <ProgressiveDemoCapture 
+                      source="hero_section_cta"
+                      buttonText="Request a Demo"
+                      variant="default"
+                    />
                   </div>
                 )}
               </div>
@@ -148,11 +138,6 @@ const HeroSection = () => {
           </div>
         </div>
 
-        <DemoModalWrapper 
-          isOpen={isDemoModalOpen} 
-          onClose={() => setIsDemoModalOpen(false)}
-          source="Hero Section"
-        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}

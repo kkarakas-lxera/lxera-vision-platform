@@ -2,22 +2,17 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import DemoModalWrapper from '@/components/DemoModalWrapper';
 import VideoModal from '@/components/VideoModal';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
+import ProgressiveDemoCapture from '@/components/forms/ProgressiveDemoCapture';
 
 const MobileHeroSection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [emailCaptured, setEmailCaptured] = useState(false);
   const navigate = useNavigate();
 
   const handleVideoClick = () => {
     setIsVideoModalOpen(true);
-  };
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
   };
 
   const handleEmailSuccess = (email: string) => {
@@ -108,6 +103,14 @@ const MobileHeroSection = () => {
                 variant="mobile"
                 onSuccess={handleEmailSuccess}
               />
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-xs text-gray-500">or</span>
+                <ProgressiveDemoCapture 
+                  source="mobile_hero"
+                  buttonText="Request Demo"
+                  variant="minimal"
+                />
+              </div>
               <p className="text-xs text-center text-business-black/60">
                 No credit card required
               </p>
@@ -255,12 +258,6 @@ const MobileHeroSection = () => {
       `}</style>
 
       {/* Modals */}
-      <DemoModalWrapper 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)} 
-        source="Mobile Hero"
-      />
-
       <VideoModal
         isOpen={isVideoModalOpen}
         setIsOpen={setIsVideoModalOpen}

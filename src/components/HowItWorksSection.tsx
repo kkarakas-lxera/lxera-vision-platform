@@ -1,15 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import React, { useState } from "react";
 import { stepsData } from "@/data/howItWorksSteps";
 
 const HowItWorksSection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   return (
     <>
@@ -55,22 +50,14 @@ const HowItWorksSection = () => {
             Every LXERA innovation capability shaped by real-world feedback for maximum impact.
           </p>
           
-          <Button 
-            onClick={handleRequestDemo}
-            size="lg"
-            className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
-            aria-label="Request a demo"
-          >
-            Request a Demo
-          </Button>
+          <ProgressiveDemoCapture
+            source="how_it_works_section"
+            buttonText="Request a Demo"
+            onSuccess={() => {}}
+            className=""
+          />
         </div>
 
-        {/* Demo Modal */}
-        <DemoModal 
-          isOpen={isDemoModalOpen} 
-          onClose={() => setIsDemoModalOpen(false)}
-          source="How It Works Section"
-        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}

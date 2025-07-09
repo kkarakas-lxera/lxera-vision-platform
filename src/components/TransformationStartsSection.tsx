@@ -1,18 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import SmartEmailCapture from "@/components/forms/SmartEmailCapture";
 import { ArrowDown } from "lucide-react";
 import { useState } from "react";
 
 const TransformationStartsSection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   const handleEmailSuccess = (email: string) => {
     setEmailCaptured(true);
@@ -73,14 +68,12 @@ const TransformationStartsSection = () => {
                 <p className="text-green-600 text-sm mt-1">We sent you a magic link</p>
               </div>
             ) : (
-              <Button
-                size="lg"
-                className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
-                onClick={handleRequestDemo}
-                aria-label="Request a demo"
-              >
-                Request a Demo
-              </Button>
+              <ProgressiveDemoCapture
+                source="transformation_starts_section"
+                buttonText="Request a Demo"
+                onSuccess={handleEmailSuccess}
+                className=""
+              />
             )}
           </div>
 
@@ -97,11 +90,6 @@ const TransformationStartsSection = () => {
           </div>
         </div>
 
-        <DemoModal 
-          isOpen={isDemoModalOpen} 
-          onClose={() => setIsDemoModalOpen(false)}
-          source="Transformation Starts Section"
-        />
       </section>
 
       {/* Enhanced Section Separator - consistent height */}

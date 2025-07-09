@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import DemoModal from "@/components/DemoModal";
-import { useState } from "react";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 
 const stepMap = [
   { number: 1, label: "Get Personalized Plan" },
@@ -11,11 +10,6 @@ const stepMap = [
 ];
 
 const HowItWorksStepsCTA = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   return (
     <>
@@ -38,22 +32,15 @@ const HowItWorksStepsCTA = () => {
             <span className="text-lg text-business-black/70 font-medium mb-2 sm:mb-0">
               Ready to start your journey?
             </span>
-            <Button
-              size="lg"
-              onClick={handleRequestDemo}
+            <ProgressiveDemoCapture
+              source="how_it_works_steps_cta"
+              buttonText="Request a Demo"
+              variant="default"
               className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
-            >
-              Request a Demo
-            </Button>
+            />
           </div>
         </div>
       </div>
-
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="How It Works Steps CTA"
-      />
     </>
   );
 };

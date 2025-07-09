@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Puzzle, Users, Calendar, BarChart3, ArrowRight, CheckCircle, Zap, Link as LinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import ContactSalesModal from "@/components/ContactSalesModal";
 
 const Integrations = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const integrationCategories = [
     {
@@ -91,13 +90,11 @@ const Integrations = () => {
             create a unified learning ecosystem that works within your current workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="integrations_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -229,13 +226,11 @@ const Integrations = () => {
             Explore our integrations and discover how LXERA fits seamlessly into your existing workflow
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="integrations_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -251,9 +246,6 @@ const Integrations = () => {
       <Footer />
       
       {/* Modals */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
         source="Integrations Page"
       />
       <ContactSalesModal 

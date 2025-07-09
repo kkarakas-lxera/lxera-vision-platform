@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Shield, Lock, Eye, Globe, ArrowRight, CheckCircle, Zap, Award } from "lucide-react";
 import { Link } from "react-router-dom";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import ContactSalesModal from "@/components/ContactSalesModal";
 
 const SecurityPrivacy = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const securityFeatures = [
     {
@@ -82,13 +81,11 @@ const SecurityPrivacy = () => {
             your learners, and your organization are protected by industry-leading standards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="security_privacy_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -226,13 +223,11 @@ const SecurityPrivacy = () => {
             Learn more about our comprehensive approach to protecting your most valuable asset: data
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="security_privacy_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -248,11 +243,6 @@ const SecurityPrivacy = () => {
       <Footer />
       
       {/* Modals */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="Security & Privacy Page"
-      />
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}

@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import HeroVideoPlayer from './HeroVideoPlayer';
-import DemoModalWrapper from './DemoModalWrapper';
+import ProgressiveDemoCapture from './forms/ProgressiveDemoCapture';
 
 const HeroVideoPreview = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [showDemoCapture, setShowDemoCapture] = useState(false);
   // Video hosting options:
   // 1. Upload to Cloudflare Stream and use the HLS/DASH URL
   // 2. Upload to AWS S3/CloudFront and use direct URL
@@ -34,7 +34,7 @@ const HeroVideoPreview = () => {
           autoPlay={false}
           muted={true}
           className="w-full"
-          onVideoEnd={() => setIsDemoModalOpen(true)}
+          onVideoEnd={() => setShowDemoCapture(true)}
         />
         
         {/* Video Overlay Label - Hidden on mobile to avoid positioning issues */}
@@ -45,11 +45,15 @@ const HeroVideoPreview = () => {
         </div>
       </div>
       
-      <DemoModalWrapper 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="Video End CTA"
-      />
+      {showDemoCapture && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <ProgressiveDemoCapture
+            source="video_end_cta"
+            buttonText="Get a Demo"
+            onSuccess={() => setShowDemoCapture(false)}
+          />
+        </div>
+      )}
     </>
   );
 };

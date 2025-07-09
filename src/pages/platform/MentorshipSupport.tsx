@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle, Bot, Target, Eye, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import ContactSalesModal from "@/components/ContactSalesModal";
 
 const MentorshipSupport = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const supportFeatures = [
     {
@@ -85,7 +84,7 @@ const MentorshipSupport = () => {
             <Button 
               size="lg" 
               className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
+              REPLACE_WITH_PROGRESSIVE_DEMO
             >
               Request a Demo
             </Button>
@@ -224,7 +223,7 @@ const MentorshipSupport = () => {
             <Button 
               size="lg" 
               className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
+              REPLACE_WITH_PROGRESSIVE_DEMO
             >
               Request a Demo
             </Button>

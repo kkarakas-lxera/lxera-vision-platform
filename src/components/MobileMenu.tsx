@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 
 interface MobileMenuProps {
   menuItems: Array<{
@@ -38,9 +39,6 @@ const MobileMenu = ({
   const location = useLocation();
   const isHomepage = location.pathname === '/';
 
-  const handleRequestDemo = () => {
-    scrollToSection('#contact');
-  };
 
   const toggleDropdown = (itemName: string) => {
     setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
@@ -193,13 +191,12 @@ const MobileMenu = ({
       {/* Mobile Menu Button and Request Demo */}
       <div className="flex items-center space-x-3">
         {!isHomepage && (
-          <Button
-            onClick={handleRequestDemo}
+          <ProgressiveDemoCapture
+            source="mobile_menu"
+            buttonText="Request a Demo"
+            variant="default"
             className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
-            aria-label="Request a demo"
-          >
-            Request a Demo
-          </Button>
+          />
         )}
         <Button
           variant="ghost"
