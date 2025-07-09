@@ -161,18 +161,18 @@ const WaitingRoom = () => {
     <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext}>
       <div className="space-y-6">
         {/* Compact Welcome Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-xl font-bold text-gray-900">
               {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
             </h1>
             {profileCompleted && (
-              <Badge className="bg-future-green text-white">
+              <Badge className="bg-future-green text-white text-xs">
                 ✓ Waitlisted
               </Badge>
             )}
           </div>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             {profileCompleted 
               ? "You're officially on the LXERA early access list."
               : 'Complete your profile to join the waitlist'
@@ -193,126 +193,120 @@ const WaitingRoom = () => {
           />
         )}
 
-        {/* Compact Position Card */}
+        {/* Two-sided layout */}
         {profileCompleted && (
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-future-green mb-1">
-                    #{leadData.waitlist_position || 'TBD'}
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Left Side - Status & Profile */}
+            <div className="space-y-4">
+              {/* Position Card */}
+              <Card>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold text-slate-700">
+                        #{leadData.waitlist_position || 'TBD'}
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        of {totalLeads} applicants
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <Calendar className="w-3 h-3" />
+                      <span>March 2025</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    of {totalLeads} applicants
-                  </p>
-                  <Progress value={progressPercentage} className="h-2" />
+                  <Progress value={progressPercentage} className="h-1 mt-3" />
+                </CardContent>
+              </Card>
+              
+              {/* Profile Summary */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Your Profile</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Company:</span>
+                      <span className="font-medium">{leadData.company || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Role:</span>
+                      <span className="font-medium">
+                        {leadData.role ? leadData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Focus:</span>
+                      <span className="font-medium">
+                        {leadData.use_case ? leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Stay Tuned */}
+              <div className="p-3 bg-gradient-to-r from-slate-100 to-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="w-3 h-3 text-slate-600" />
+                  <span className="font-medium text-sm">Stay tuned</span>
                 </div>
-              </CardContent>
-            </Card>
+                <p className="text-xs text-slate-600">
+                  We'll email you when it's your turn to access the platform.
+                </p>
+              </div>
+            </div>
             
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-8 h-8 text-future-green" />
-                  <div>
-                    <p className="font-semibold">Estimated Access</p>
-                    <p className="text-sm text-gray-600">March 2025</p>
+            {/* Right Side - What Happens Next */}
+            <div>
+              <Card className="border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Zap className="w-4 h-4 text-slate-600 animate-pulse" />
+                    What happens next?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm mb-0.5">We're building something amazing</h4>
+                        <p className="text-xs text-gray-600">Our team is developing the most advanced L&D platform ever created.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm mb-0.5">You'll get early access</h4>
+                        <p className="text-xs text-gray-600">You'll receive an invitation to try LXERA before anyone else.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm mb-0.5">Shape the future of L&D</h4>
+                        <p className="text-xs text-gray-600">Your feedback will influence how we build the platform.</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
 
 
-        {/* What Happens Next - Attention Grabbing */}
-        {profileCompleted && (
-          <Card className="mb-6 border-2 border-future-green/20 bg-gradient-to-br from-future-green/5 to-future-green/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Zap className="w-6 h-6 text-future-green animate-pulse" />
-                What happens next?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
-                    1
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">We're building something amazing</h4>
-                    <p className="text-sm text-gray-600">Our team is hard at work developing the most advanced L&D platform ever created.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
-                    2
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">You'll get early access</h4>
-                    <p className="text-sm text-gray-600">Based on your position, you'll receive an invitation to try LXERA before anyone else.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
-                    3
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Shape the future of L&D</h4>
-                    <p className="text-sm text-gray-600">Your feedback will directly influence how we build the platform that transforms learning.</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-white/50 rounded-lg border border-future-green/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-future-green" />
-                    <span className="font-semibold text-sm">Stay tuned</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    We'll email you with updates on our progress and when it's your turn to access the platform.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Compact Profile Summary */}
-        {profileCompleted && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Name</span>
-                  <p className="font-medium">{leadData.name || 'Not specified'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Company</span>
-                  <p className="font-medium">{leadData.company || 'Not specified'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Role</span>
-                  <p className="font-medium">
-                    {leadData.role ? leadData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Focus</span>
-                  <p className="font-medium">
-                    {leadData.use_case ? leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </DashboardLayout>
   );

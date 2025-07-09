@@ -277,9 +277,9 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
     <div className="max-w-2xl mx-auto">
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="relative h-1 bg-gray-200 rounded-full overflow-hidden">
+        <div className="relative h-1 bg-slate-200 rounded-full overflow-hidden">
           <motion.div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-future-green to-future-green/80"
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-slate-700 to-slate-800"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -291,12 +291,12 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
           <div className="flex items-center gap-2">
             {isSaving ? (
               <>
-                <Save className="w-3 h-3 animate-pulse" />
+                <Save className="w-3 h-3 animate-pulse text-slate-600" />
                 <span>Saving...</span>
               </>
             ) : lastSaved ? (
               <>
-                <Check className="w-3 h-3 text-green-600" />
+                <Check className="w-3 h-3 text-slate-600" />
                 <span>Saved {lastSaved.toLocaleTimeString()}</span>
               </>
             ) : null}
@@ -328,8 +328,8 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
               >
                 <div className={cn(
                   'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
-                  isCompleted ? 'bg-future-green border-future-green' : 
-                  isCurrent ? 'border-future-green' : 'border-gray-300'
+                  isCompleted ? 'bg-slate-700 border-slate-700' : 
+                  isCurrent ? 'border-slate-700' : 'border-slate-300'
                 )}>
                   {isCompleted && <Check className="w-3 h-3 text-white" />}
                 </div>
@@ -353,7 +353,7 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
       </div>
 
       {/* Current Step Form */}
-      <Card className="overflow-hidden border-0 shadow-xl">
+      <Card className="overflow-hidden border border-slate-200 shadow-xl bg-white">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -385,13 +385,13 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     ...formData, 
                     [currentStepData.field]: e.target.value 
                   })}
-                  className="text-xl py-8 px-6 border-2 focus:border-future-green transition-all duration-300 bg-gray-50 focus:bg-white rounded-xl"
+                  className="text-xl py-8 px-6 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-200"
                   autoFocus
                 />
                 <Button
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
-                  className="mt-4 bg-future-green hover:bg-future-green/90 transition-all"
+                  className="mt-4 bg-slate-700 hover:bg-slate-800 transition-all text-white"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -410,10 +410,10 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('role', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
                       formData.role === option.value
-                        ? 'border-future-green bg-future-green/10 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
+                        : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
@@ -436,10 +436,10 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('useCase', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
                       formData.useCase === option.value
-                        ? 'border-future-green bg-future-green/10 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
+                        : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
@@ -462,10 +462,10 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('heardAbout', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
                       formData.heardAbout === option.value
-                        ? 'border-future-green bg-future-green/10 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
+                        : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
