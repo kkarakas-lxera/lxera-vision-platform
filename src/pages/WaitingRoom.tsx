@@ -159,12 +159,12 @@ const WaitingRoom = () => {
 
   return (
     <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext}>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
         {/* Compact Welcome Header */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-1 gap-2">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                 {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
               </h1>
               {profileCompleted && (
@@ -174,7 +174,7 @@ const WaitingRoom = () => {
               )}
             </div>
             {profileCompleted && (
-              <div className="bg-gradient-to-r from-slate-100 to-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-xs">
+              <div className="bg-gradient-to-r from-slate-100 to-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs sm:px-4">
                 <span className="text-slate-700 font-medium">🚀 We're building something amazing — you'll be first to know!</span>
               </div>
             )}
@@ -202,9 +202,9 @@ const WaitingRoom = () => {
 
         {/* Two-sided layout */}
         {profileCompleted && (
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Left Side - Status & Profile */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Position Card */}
               <Card>
                 <CardContent className="pt-4 pb-4">

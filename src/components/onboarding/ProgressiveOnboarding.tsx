@@ -274,40 +274,28 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
   const currentStepData = STEPS[currentStep - 1];
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="relative h-1 bg-slate-200 rounded-full overflow-hidden">
+    <div className="w-full max-w-sm mx-auto px-4 sm:max-w-md">
+      {/* Mobile Progress Indicator */}
+      <div className="mb-4 text-center">
+        <div className="text-xs text-gray-500 mb-2">{currentStep} of {STEPS.length}</div>
+        <div className="w-full bg-slate-200 rounded-full h-1.5">
           <motion.div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-slate-700 to-slate-800"
+            className="bg-slate-700 h-1.5 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
-        
-        {/* Auto-save indicator */}
-        <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-2">
-            {isSaving ? (
-              <>
-                <Save className="w-3 h-3 animate-pulse text-slate-600" />
-                <span>Saving...</span>
-              </>
-            ) : lastSaved ? (
-              <>
-                <Check className="w-3 h-3 text-slate-600" />
-                <span>Saved</span>
-              </>
-            ) : null}
+        {isSaving && (
+          <div className="flex items-center justify-center gap-1 mt-2 text-xs text-slate-600">
+            <Save className="w-3 h-3 animate-pulse" />
+            <span>Saving...</span>
           </div>
-          <span>Step {currentStep} of {STEPS.length}</span>
-        </div>
+        )}
       </div>
 
-
       {/* Current Step Form */}
-      <Card className="overflow-hidden border border-slate-200 shadow-lg bg-white">
+      <Card className="overflow-hidden border-0 shadow-none bg-transparent sm:border sm:border-slate-200 sm:shadow-lg sm:bg-white">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -315,10 +303,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="p-6"
+            className="p-4 sm:p-6"
           >
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2">{currentStepData.title}</h2>
+            <div className="mb-6 text-center sm:text-left">
+              <div className="mb-2">
+                <span className="inline-block bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">
+                  ⏱️ Takes less than 30 seconds
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 text-slate-800">{currentStepData.title}</h2>
               <p className="text-gray-600 text-sm leading-relaxed">{currentStepData.subtitle}</p>
             </div>
 
@@ -339,13 +332,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     ...formData, 
                     [currentStepData.field]: e.target.value 
                   })}
-                  className="text-lg py-4 px-4 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-lg focus:ring-2 focus:ring-slate-200"
+                  className="text-base sm:text-lg py-4 px-4 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-lg focus:ring-2 focus:ring-slate-200 w-full"
                   autoFocus
+                  autoComplete="off"
+                  autoCapitalize="words"
                 />
                 <Button
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
-                  className="mt-3 bg-slate-700 hover:bg-slate-800 transition-all text-white text-sm py-2"
+                  className="mt-4 w-full bg-slate-700 hover:bg-slate-800 active:bg-slate-900 transition-all text-white text-base py-3 rounded-lg touch-manipulation"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -359,19 +354,19 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                 {ROLE_OPTIONS.map((option, index) => (
                   <motion.button
                     key={option.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('role', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
                       formData.role === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 hover:border-slate-300'
+                        : 'border-slate-200 active:border-slate-400'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
                       <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
@@ -385,19 +380,19 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                 {USE_CASE_OPTIONS.map((option, index) => (
                   <motion.button
                     key={option.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('useCase', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
                       formData.useCase === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 hover:border-slate-300'
+                        : 'border-slate-200 active:border-slate-400'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
                       <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
@@ -411,19 +406,19 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                 {HEARD_ABOUT_OPTIONS.map((option, index) => (
                   <motion.button
                     key={option.value}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('heardAbout', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
                       formData.heardAbout === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 hover:border-slate-300'
+                        : 'border-slate-200 active:border-slate-400'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
                       <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
