@@ -29,14 +29,18 @@ const WaitingRoom = () => {
   const [profileCompleted, setProfileCompleted] = useState(false);
 
   const loadLeadData = async () => {
+      console.log('loadLeadData called with:', { token, email });
       // If we have a token, verify it first
       if (token) {
+        console.log('Using token path');
         try {
           const { data, error } = await supabase.functions.invoke('verify-magic-link', {
             body: { token }
           });
+          console.log('Token verification result:', { data, error });
 
           if (!error && data.success && data.lead) {
+            console.log('Setting lead data from token:', JSON.stringify(data.lead, null, 2));
             setLeadData(data.lead);
             setProfileCompleted(data.lead.status === 'profile_completed' || data.lead.status === 'waitlisted');
           }
@@ -44,6 +48,7 @@ const WaitingRoom = () => {
           console.error('Token verification error:', error);
         }
       } else if (email) {
+        console.log('Using email path for:', email);
         // If no token, just load by email
         try {
           const { data: lead, error } = await supabase
@@ -52,14 +57,19 @@ const WaitingRoom = () => {
             .eq('email', email)
             .single();
 
+          console.log('Direct email query result:', { lead, error });
           if (!error && lead) {
-            console.log('Full lead object:', JSON.stringify(lead, null, 2));
+            console.log('Full lead object from DB:', JSON.stringify(lead, null, 2));
             setLeadData(lead);
             setProfileCompleted(lead.status === 'profile_completed' || lead.status === 'waitlisted');
+          } else {
+            console.log('No lead found or error:', error);
           }
         } catch (error) {
           console.error('Error loading lead data:', error);
         }
+      } else {
+        console.log('No token or email available');
       }
 
       // Get total waitlist count
@@ -175,8 +185,8 @@ const WaitingRoom = () => {
               )}
             </div>
             {profileCompleted && (
-              <div className="flex items-center gap-2 text-xs text-slate-600">
-                <span>🚀 We're building something amazing — you'll be first to know!</span>
+              <div className="bg-gradient-to-r from-slate-100 to-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-xs">
+                <span className="text-slate-700 font-medium">🚀 We're building something amazing — you'll be first to know!</span>
               </div>
             )}
           </div>
