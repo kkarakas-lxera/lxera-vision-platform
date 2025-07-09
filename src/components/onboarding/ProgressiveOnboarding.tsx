@@ -287,9 +287,9 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
       {/* Mobile Progress Indicator */}
       <div className="mb-4 text-center">
         <div className="text-xs text-gray-500 mb-2">{currentStep} of {STEPS.length}</div>
-        <div className="w-full bg-slate-200 rounded-full h-1.5">
+        <div className="w-full bg-slate-300 rounded-full h-2">
           <motion.div
-            className="bg-slate-700 h-1.5 rounded-full"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full shadow-lg"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -304,7 +304,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
       </div>
 
       {/* Current Step Form */}
-      <Card className="overflow-hidden border-0 shadow-none bg-gradient-to-br from-white to-slate-50/50 sm:border sm:border-slate-200 sm:shadow-xl sm:bg-gradient-to-br sm:from-white sm:to-slate-50/30">
+      <Card className="overflow-hidden border-0 shadow-none bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 sm:border sm:border-indigo-200 sm:shadow-2xl sm:bg-gradient-to-br sm:from-white sm:via-blue-50/40 sm:to-indigo-100/60">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -316,12 +316,12 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
           >
             <div className="mb-6 text-center sm:text-left">
               <div className="mb-2">
-                <span className="inline-block bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 text-xs px-3 py-1.5 rounded-full font-medium border border-blue-200">
+                <span className="inline-block bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-md">
                   ⏱️ Takes less than 30 seconds
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 text-slate-800">{currentStepData.title}</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">{currentStepData.subtitle}</p>
+              <h2 className="text-lg sm:text-xl font-bold mb-3 bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent">{currentStepData.title}</h2>
+              <p className="text-slate-600 text-sm leading-relaxed font-medium">{currentStepData.subtitle}</p>
             </div>
 
             {/* Text inputs */}
@@ -341,7 +341,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     ...formData, 
                     [currentStepData.field]: e.target.value 
                   })}
-                  className="text-base sm:text-lg py-4 px-4 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-lg focus:ring-2 focus:ring-slate-200 w-full"
+                  className="text-base sm:text-lg py-4 px-4 border-2 border-slate-300 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-white to-blue-50 focus:bg-gradient-to-r focus:from-white focus:to-indigo-50 rounded-xl focus:ring-2 focus:ring-indigo-300 w-full focus:shadow-xl focus:border-indigo-600"
                   autoFocus
                   autoComplete="off"
                   autoCapitalize="words"
@@ -349,7 +349,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                 <Button
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
-                  className="mt-4 w-full bg-slate-700 hover:bg-slate-800 active:bg-slate-900 transition-all text-white text-base py-3 rounded-lg touch-manipulation"
+                  className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -368,15 +368,15 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('role', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
+                      'w-full p-4 rounded-xl border-2 text-left transition-all active:scale-95 touch-manipulation hover:shadow-lg',
                       formData.role === option.value
-                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 active:border-slate-400'
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 shadow-xl ring-2 ring-indigo-200'
+                        : 'border-slate-300 active:border-indigo-400 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.description}</span>
+                      <span className="font-bold text-base text-slate-800">{option.label}</span>
+                      <span className="text-xs text-slate-600 font-medium">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
@@ -394,15 +394,15 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('useCase', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
+                      'w-full p-4 rounded-xl border-2 text-left transition-all active:scale-95 touch-manipulation hover:shadow-lg',
                       formData.useCase === option.value
-                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 active:border-slate-400'
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 shadow-xl ring-2 ring-indigo-200'
+                        : 'border-slate-300 active:border-indigo-400 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.description}</span>
+                      <span className="font-bold text-base text-slate-800">{option.label}</span>
+                      <span className="text-xs text-slate-600 font-medium">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
@@ -420,15 +420,15 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     transition={{ delay: index * 0.03 }}
                     onClick={() => handleFieldComplete('heardAbout', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all active:scale-95 touch-manipulation',
+                      'w-full p-4 rounded-xl border-2 text-left transition-all active:scale-95 touch-manipulation hover:shadow-lg',
                       formData.heardAbout === option.value
-                        ? 'border-slate-700 bg-slate-700/10 shadow-md'
-                        : 'border-slate-200 active:border-slate-400'
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 shadow-xl ring-2 ring-indigo-200'
+                        : 'border-slate-300 active:border-indigo-400 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-base text-slate-800">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.description}</span>
+                      <span className="font-bold text-base text-slate-800">{option.label}</span>
+                      <span className="text-xs text-slate-600 font-medium">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
