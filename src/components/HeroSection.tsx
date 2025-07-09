@@ -3,7 +3,6 @@
 import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
-import HeroStats from "./HeroStats";
 import DemoModalWrapper from "./DemoModalWrapper";
 import WaitlistModal from "./WaitlistModal";
 import { useState } from "react";
@@ -111,10 +110,6 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Stats section - centered */}
-          <div className="text-center mb-4 sm:mb-6 md:mb-8 px-1 sm:px-2 lg:px-0">
-            <HeroStats />
-          </div>
           
           {/* Discover more indicator - centered and non-clickable */}
           <div className="mt-3 sm:mt-4 md:mt-6 animate-fade-in-up animate-delay-1200 text-center">

@@ -111,15 +111,8 @@ const MobileHeroSection = () => {
           </p>
         </div>
 
-        {/* CTAs */}
+        {/* CTAs - Prioritize Early Access as primary action */}
         <div className="flex flex-col gap-3 mb-8 animate-fade-in-up animate-delay-800">
-          <Button
-            size="lg"
-            className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-102 active:scale-98 w-full"
-            onClick={handleRequestDemo}
-          >
-            Request a Demo
-          </Button>
           <Button
             size="lg"
             className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-102 active:scale-98 w-full"
@@ -127,6 +120,9 @@ const MobileHeroSection = () => {
           >
             Get Early Access
           </Button>
+          <p className="text-center text-sm text-business-black/60">
+            Already interested? <button onClick={handleRequestDemo} className="text-business-black font-medium underline hover:text-future-green transition-colors">Schedule a demo</button>
+          </p>
         </div>
 
         {/* Urgency Banner */}
@@ -247,9 +243,9 @@ const MobileHeroSection = () => {
 
       <VideoModal
         isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
+        setIsOpen={setIsVideoModalOpen}
         videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4"
-        title="LXERA Platform Demo"
+        videoCaption="LXERA Platform Demo"
       />
 
       <WaitlistModal
