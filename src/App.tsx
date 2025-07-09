@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ClarityProvider } from "@/components/ClarityProvider";
+import HotjarProvider from "@/components/HotjarProvider";
 import { lazy, Suspense } from "react";
 import Loading from "@/components/Loading";
 
@@ -252,8 +253,10 @@ const App = () => {
             </ThemeProvider>
           </BrowserRouter>
           <ClarityProvider projectId="sbjtfdiclk">
-            <Analytics />
-            <SpeedInsights />
+            <HotjarProvider siteId={6458736}>
+              <Analytics />
+              <SpeedInsights />
+            </HotjarProvider>
           </ClarityProvider>
         </TooltipProvider>
       </QueryClientProvider>
