@@ -26,13 +26,22 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile-only hero section
+  // Mobile version with optimized hero
   if (isMobile) {
     return (
       <>
         <SEO />
-        <MobileHeroSection />
-        {/* Optionally add other sections for mobile if needed */}
+        <ScrollProgress />
+        <div className="min-h-screen bg-white">
+          <Navigation />
+          <MobileHeroSection />
+          <WhyLXERASection />
+          <HowItWorksSection />
+          <PlatformHighlightsSection />
+          <TransformationStartsSection />
+          <Footer />
+          <BackToTop />
+        </div>
       </>
     );
   }
