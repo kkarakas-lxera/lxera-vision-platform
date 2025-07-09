@@ -53,6 +53,7 @@ const WaitingRoom = () => {
             .single();
 
           if (!error && lead) {
+            console.log('Lead data loaded:', lead);
             setLeadData(lead);
             setProfileCompleted(lead.status === 'profile_completed' || lead.status === 'waitlisted');
           }
@@ -168,7 +169,7 @@ const WaitingRoom = () => {
                 {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
               </h1>
               {profileCompleted && (
-                <Badge className="bg-emerald-700 text-white text-xs">
+                <Badge className="bg-emerald-700 hover:bg-emerald-700 text-white text-xs">
                   ✓ Waitlisted
                 </Badge>
               )}
@@ -176,7 +177,7 @@ const WaitingRoom = () => {
             {profileCompleted && (
               <div className="flex items-center gap-2 text-xs text-slate-600">
                 <Clock className="w-3 h-3" />
-                <span>We'll email you when it's your turn</span>
+                <span>Stay tuned</span>
               </div>
             )}
           </div>
@@ -241,19 +242,23 @@ const WaitingRoom = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Role:</span>
                       <span className="font-medium">
-                        {leadData.role && leadData.role.trim() !== '' ? 
-                          leadData.role.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
-                          'Not specified'
-                        }
+                        {(() => {
+                          console.log('Role data:', leadData.role, 'Type:', typeof leadData.role);
+                          return leadData.role && leadData.role.trim() !== '' ? 
+                            leadData.role.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
+                            'Not specified';
+                        })()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Focus:</span>
                       <span className="font-medium">
-                        {leadData.use_case && leadData.use_case.trim() !== '' ? 
-                          leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
-                          'Not specified'
-                        }
+                        {(() => {
+                          console.log('Use case data:', leadData.use_case, 'Type:', typeof leadData.use_case);
+                          return leadData.use_case && leadData.use_case.trim() !== '' ? 
+                            leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
+                            'Not specified';
+                        })()}
                       </span>
                     </div>
                   </div>
