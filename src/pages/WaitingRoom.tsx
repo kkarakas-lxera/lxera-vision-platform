@@ -18,7 +18,7 @@ const WaitingRoom = () => {
   const [totalLeads, setTotalLeads] = useState(0);
   const [profileCompleted, setProfileCompleted] = useState(false);
 
-  // Listen for Tally form completion
+  // Listen for Tally form completion and try to prefill email
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Check if message is from Tally
@@ -31,8 +31,22 @@ const WaitingRoom = () => {
     };
 
     window.addEventListener('message', handleMessage);
+    
+    // Try to send email to Tally iframe after it loads
+    if (leadData?.email) {
+      const iframe = document.querySelector('.tally-embed') as HTMLIFrameElement;
+      if (iframe) {
+        setTimeout(() => {
+          iframe.contentWindow?.postMessage({
+            type: 'prefill',
+            email: leadData.email
+          }, 'https://tally.so');
+        }, 1000);
+      }
+    }
+    
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [leadData]);
 
   useEffect(() => {
     const loadLeadData = async () => {
@@ -174,9 +188,10 @@ const WaitingRoom = () => {
               <p className="text-gray-600 mb-4">
                 Just a few quick questions to help us personalize your experience.
               </p>
+              {console.log('Prefilling email:', leadData.email)}
               <div className="tally-embed-container">
                 <iframe
-                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}`}
+                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}&Email=${encodeURIComponent(leadData.email)}`}
                   width="100%"
                   height="600"
                   frameBorder="0"
