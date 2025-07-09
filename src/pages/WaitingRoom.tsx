@@ -4,52 +4,31 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Share2, Users, FileText, Slack, Mail, Loader2, Lock } from 'lucide-react';
+import { FileText, Slack, Mail } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import '@/styles/tally-embed.css';
+import ProgressiveOnboarding from '@/components/onboarding/ProgressiveOnboarding';
 
 const WaitingRoom = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email');
   const token = searchParams.get('token');
-  const [leadData, setLeadData] = useState<any>(null);
+  const [leadData, setLeadData] = useState<{
+    id: string;
+    email: string;
+    name?: string;
+    company?: string;
+    role?: string;
+    use_case?: string;
+    status: string;
+    waitlist_position?: number;
+    heard_about?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalLeads, setTotalLeads] = useState(0);
   const [profileCompleted, setProfileCompleted] = useState(false);
 
-  // Listen for Tally form completion and try to prefill email
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      // Check if message is from Tally
-      if (event.origin === 'https://tally.so' && event.data?.event === 'Tally.FormSubmitted') {
-        // Reload the page to show the completed state
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    
-    // Try to send email to Tally iframe after it loads
-    if (leadData?.email) {
-      const iframe = document.querySelector('.tally-embed') as HTMLIFrameElement;
-      if (iframe) {
-        setTimeout(() => {
-          iframe.contentWindow?.postMessage({
-            type: 'prefill',
-            email: leadData.email
-          }, 'https://tally.so');
-        }, 1000);
-      }
-    }
-    
-    return () => window.removeEventListener('message', handleMessage);
-  }, [leadData]);
-
-  useEffect(() => {
-    const loadLeadData = async () => {
+  const loadLeadData = async () => {
       // If we have a token, verify it first
       if (token) {
         try {
@@ -92,17 +71,33 @@ const WaitingRoom = () => {
       setLoading(false);
     };
 
+  useEffect(() => {
     loadLeadData();
-  }, [email, token]);
+    
+    // Poll for profile completion status if not completed
+    if (!profileCompleted && email) {
+      const interval = setInterval(async () => {
+        try {
+          const { data: lead, error } = await supabase
+            .from('early_access_leads')
+            .select('*')
+            .eq('email', email)
+            .single();
+          
+          if (!error && lead && (lead.status === 'profile_completed' || lead.status === 'waitlisted')) {
+            setLeadData(lead);
+            setProfileCompleted(true);
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 3000); // Check every 3 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [email, token, profileCompleted]);
 
-  const handleShare = () => {
-    const referralUrl = `${window.location.origin}?ref=${leadData?.referral_code}`;
-    navigator.clipboard.writeText(referralUrl);
-    toast({
-      title: 'Referral Link Copied!',
-      description: 'Share this link to move up in line.',
-    });
-  };
 
   if (loading) {
     return (
@@ -178,37 +173,17 @@ const WaitingRoom = () => {
           </p>
         </div>
 
-        {/* Show Tally form if profile not completed */}
+        {/* Show Progressive Onboarding form if profile not completed */}
         {!profileCompleted && leadData && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Complete Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Just a few quick questions to help us personalize your experience.
-              </p>
-              {console.log('Prefilling email:', leadData.email)}
-              <div className="tally-embed-container" style={{ height: '700px', overflow: 'hidden' }}>
-                <iframe
-                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}`}
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  title="LXERA Early Access Form"
-                  style={{ 
-                    border: 'none',
-                    display: 'block',
-                    width: '100%',
-                    height: '100%'
-                  }}
-                  scrolling="yes"
-                  allowFullScreen
-                  className="tally-embed"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <ProgressiveOnboarding
+            email={leadData.email}
+            leadId={leadData.id}
+            onComplete={() => {
+              setProfileCompleted(true);
+              // Reload the lead data to get updated information
+              loadLeadData();
+            }}
+          />
         )}
 
         {/* Position Card - Only show when profile completed */}
@@ -238,32 +213,6 @@ const WaitingRoom = () => {
           </Card>
         )}
 
-        {/* Referral Card - Only show when profile completed */}
-        {profileCompleted && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Jump the Line
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Invite 3 colleagues and move up 50 spots for each successful referral!
-              </p>
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-600 mb-2">Your referrals:</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {leadData.referral_count || 0} / 3
-                </p>
-              </div>
-              <Button onClick={handleShare} className="w-full">
-                <Share2 className="w-4 h-4 mr-2" />
-                Copy Referral Link
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Resources Grid */}
         <div className="grid md:grid-cols-3 gap-6">
