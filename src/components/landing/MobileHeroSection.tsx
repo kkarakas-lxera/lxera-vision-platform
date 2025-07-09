@@ -31,20 +31,20 @@ const MobileHeroSection = () => {
     }
   };
 
-  // Integration platforms with real company colors
+  // Integration platforms with real logos
   const integrationPlatforms = [
-    { name: 'Workday', bgColor: 'bg-blue-600', textColor: 'text-white' },
-    { name: 'SAP', bgColor: 'bg-blue-800', textColor: 'text-white' },
-    { name: 'BambooHR', bgColor: 'bg-green-600', textColor: 'text-white' },
-    { name: 'ADP', bgColor: 'bg-red-600', textColor: 'text-white' },
-    { name: 'Teams', bgColor: 'bg-purple-600', textColor: 'text-white' },
-    { name: 'Slack', bgColor: 'bg-purple-800', textColor: 'text-white' },
-    { name: 'Oracle', bgColor: 'bg-red-700', textColor: 'text-white' },
-    { name: 'Asana', bgColor: 'bg-orange-600', textColor: 'text-white' },
+    { name: 'Workday', logo: '/logos/workday-logo.png' },
+    { name: 'SAP', logo: '/logos/sap-logo.svg' },
+    { name: 'BambooHR', logo: '/logos/bamboohr-logo.png' },
+    { name: 'ADP', logo: '/logos/adp-logo.svg' },
+    { name: 'Teams', logo: '/logos/microsoft-teams.png' },
+    { name: 'Slack', logo: '/logos/slack.svg' },
+    { name: 'Oracle', logo: '/logos/oracle-logo.png' },
+    { name: 'Asana', logo: '/logos/asana-logo.png' },
   ];
 
   return (
-    <section className="hero w-full pt-20 pb-12 px-4 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter md:hidden">
+    <section className="hero w-full pt-20 pb-8 px-4 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter md:hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
       
@@ -62,7 +62,7 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Subheadline */}
-        <div className="animate-fade-in-up animate-delay-200 mb-6">
+        <div className="animate-fade-in-up animate-delay-200 mb-4">
           <p className="text-base text-business-black/85 font-normal leading-relaxed">
             Empower your teams to{" "}
             <b className="text-business-black font-medium">learn faster,</b>{" "}
@@ -126,7 +126,7 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Already interested section - moved below video */}
-        <div className="text-center mb-6 animate-fade-in-up animate-delay-500">
+        <div className="text-center mb-4 animate-fade-in-up animate-delay-500">
           <p className="text-sm text-business-black/70">
             Already interested? 
             <Button
@@ -141,7 +141,7 @@ const MobileHeroSection = () => {
 
 
         {/* CTA - Single primary action */}
-        <div className="mb-8 animate-fade-in-up animate-delay-700">
+        <div className="mb-6 animate-fade-in-up animate-delay-700">
           <Button
             size="lg"
             className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-102 active:scale-98 w-full"
@@ -152,54 +152,66 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Early Access Banner */}
-        <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-3 rounded-lg text-center mb-8 animate-fade-in-up animate-delay-800">
+        <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up animate-delay-800">
           <span className="font-semibold flex items-center justify-center gap-2 text-sm">
             🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
           </span>
         </div>
 
         {/* Key Benefits */}
-        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 mb-8 animate-fade-in-up animate-delay-1200">
-          <h3 className="font-medium text-business-black mb-4">Why Choose LXERA?</h3>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <span className="text-future-green text-xl mt-0.5">✓</span>
-              <span className="text-base leading-tight">
+        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 mb-6 animate-fade-in-up animate-delay-1000">
+          <h3 className="font-medium text-business-black mb-3 text-sm">Why Choose LXERA?</h3>
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <span className="text-future-green text-lg mt-0.5">✓</span>
+              <span className="text-sm leading-tight">
                 <strong>AI Agents + Human Experts</strong><br/>
-                <span className="text-sm text-gray-600">Perfect blend of automation and expertise</span>
+                <span className="text-xs text-gray-600">Perfect blend of automation and expertise</span>
               </span>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-future-green text-xl mt-0.5">✓</span>
-              <span className="text-base leading-tight">
+            <div className="flex items-start gap-2.5">
+              <span className="text-future-green text-lg mt-0.5">✓</span>
+              <span className="text-sm leading-tight">
+                <strong>Customized Skills Taxonomy</strong><br/>
+                <span className="text-xs text-gray-600">Tailored to your organization's needs</span>
+              </span>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <span className="text-future-green text-lg mt-0.5">✓</span>
+              <span className="text-sm leading-tight">
                 <strong>Proven ROI Tracking</strong><br/>
-                <span className="text-sm text-gray-600">Measure impact with real-time analytics</span>
+                <span className="text-xs text-gray-600">Measure impact with real-time analytics</span>
               </span>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-future-green text-xl mt-0.5">✓</span>
-              <span className="text-base leading-tight">
+            <div className="flex items-start gap-2.5">
+              <span className="text-future-green text-lg mt-0.5">✓</span>
+              <span className="text-sm leading-tight">
                 <strong>Gamified Learning</strong><br/>
-                <span className="text-sm text-gray-600">85% higher engagement rates</span>
+                <span className="text-xs text-gray-600">85% higher engagement rates</span>
               </span>
             </div>
           </div>
         </div>
 
         {/* Integration Section */}
-        <div className="mb-8 animate-fade-in-up animate-delay-1200">
-          <p className="text-sm text-business-black/80 mb-3 text-center font-medium">
+        <div className="mb-6 animate-fade-in-up animate-delay-1200">
+          <p className="text-xs text-business-black/80 mb-2.5 text-center font-medium">
             250+ HRIS and project management tools with one-click integration
           </p>
           <div className="relative overflow-hidden">
-            <div className="flex gap-3 animate-scroll-mobile">
+            <div className="flex gap-4 animate-scroll-mobile">
               {/* Double the platforms for seamless loop */}
               {[...integrationPlatforms, ...integrationPlatforms].map((platform, index) => (
                 <div 
                   key={`${platform.name}-${index}`}
-                  className={`flex-shrink-0 ${platform.bgColor} rounded-lg px-4 py-2 shadow-md`}
+                  className="flex-shrink-0 bg-white rounded-lg px-4 py-2 shadow-md flex items-center h-10"
                 >
-                  <span className={`text-xs font-bold ${platform.textColor}`}>{platform.name}</span>
+                  <img 
+                    src={platform.logo} 
+                    alt={platform.name}
+                    className="h-6 w-auto object-contain"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
