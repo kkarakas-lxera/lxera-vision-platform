@@ -246,8 +246,6 @@ const Integrations = () => {
       <Footer />
       
       {/* Modals */}
-        source="Integrations Page"
-      />
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}
