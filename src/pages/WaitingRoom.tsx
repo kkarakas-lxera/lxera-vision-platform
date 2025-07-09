@@ -162,14 +162,22 @@ const WaitingRoom = () => {
       <div className="space-y-6">
         {/* Compact Welcome Header */}
         <div className="mb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-gray-900">
-              {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
-            </h1>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">
+                {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
+              </h1>
+              {profileCompleted && (
+                <Badge className="bg-emerald-700 text-white text-xs">
+                  ✓ Waitlisted
+                </Badge>
+              )}
+            </div>
             {profileCompleted && (
-              <Badge className="bg-future-green text-white text-xs">
-                ✓ Waitlisted
-              </Badge>
+              <div className="flex items-center gap-2 text-xs text-slate-600">
+                <Clock className="w-3 h-3" />
+                <span>We'll email you when it's your turn</span>
+              </div>
             )}
           </div>
           <p className="text-sm text-gray-600">
@@ -233,29 +241,24 @@ const WaitingRoom = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Role:</span>
                       <span className="font-medium">
-                        {leadData.role ? leadData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                        {leadData.role && leadData.role.trim() !== '' ? 
+                          leadData.role.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
+                          'Not specified'
+                        }
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Focus:</span>
                       <span className="font-medium">
-                        {leadData.use_case ? leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
+                        {leadData.use_case && leadData.use_case.trim() !== '' ? 
+                          leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 
+                          'Not specified'
+                        }
                       </span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              {/* Stay Tuned */}
-              <div className="p-3 bg-gradient-to-r from-slate-100 to-slate-50 rounded-lg border border-slate-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-3 h-3 text-slate-600" />
-                  <span className="font-medium text-sm">Stay tuned</span>
-                </div>
-                <p className="text-xs text-slate-600">
-                  We'll email you when it's your turn to access the platform.
-                </p>
-              </div>
             </div>
             
             {/* Right Side - What Happens Next */}
