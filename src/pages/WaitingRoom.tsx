@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Share2, Users, FileText, Slack, Mail, Loader2 } from 'lucide-react';
+import { Share2, Users, FileText, Slack, Mail, Loader2, Lock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import '@/styles/tally-embed.css';
 
 const WaitingRoom = () => {
   const [searchParams] = useSearchParams();
@@ -131,18 +133,33 @@ const WaitingRoom = () => {
     ? ((totalLeads - leadData.waitlist_position + 1) / totalLeads) * 100
     : 0;
 
+  // Create a mock auth context for the layout
+  const mockAuthContext = {
+    userProfile: {
+      id: 'early-access',
+      email: leadData?.email || email || '',
+      full_name: leadData?.name || 'Early Access User',
+      role: 'early_access' as const,
+      company_id: null,
+      company_name: leadData?.company || 'Company'
+    },
+    signOut: async () => {
+      window.location.href = '/';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext}>
+      <div className="space-y-6">
         {/* Welcome Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome to LXERA Early Access! 🎉
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome to LXERA Early Access Dashboard
           </h1>
           <p className="text-lg text-gray-600">
             {profileCompleted 
               ? `Hi ${leadData.name || 'there'}, you're officially on the list!`
-              : 'Complete your profile to secure your spot'
+              : 'Complete your profile to unlock your dashboard'
             }
           </p>
         </div>
@@ -157,13 +174,21 @@ const WaitingRoom = () => {
               <p className="text-gray-600 mb-4">
                 Just a few quick questions to help us personalize your experience.
               </p>
-              <div className="w-full" style={{ height: '600px' }}>
+              <div className="tally-embed-container">
                 <iframe
-                  src={`https://tally.so/embed/w2dO6L?email=${encodeURIComponent(leadData.email)}&transparentBackground=1&hideTitle=1`}
+                  src={`https://tally.so/embed/w2dO6L?transparentBackground=1&hideTitle=1&email=${encodeURIComponent(leadData.email)}`}
                   width="100%"
-                  height="100%"
+                  height="600"
                   frameBorder="0"
                   title="LXERA Early Access Form"
+                  style={{ 
+                    overflow: 'hidden',
+                    border: 'none',
+                    display: 'block',
+                    minHeight: '600px'
+                  }}
+                  scrolling="no"
+                  className="tally-embed"
                 />
               </div>
             </CardContent>
@@ -279,7 +304,7 @@ const WaitingRoom = () => {
         </div>
 
         {/* Company Info */}
-        {leadData.company && (
+        {leadData.company && profileCompleted && (
           <div className="mt-8 text-center text-gray-600">
             <p>
               Registered as: <strong>{leadData.name}</strong> from{' '}
@@ -288,7 +313,7 @@ const WaitingRoom = () => {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

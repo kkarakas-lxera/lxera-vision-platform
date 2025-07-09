@@ -28,7 +28,8 @@ import {
   Ticket,
   HelpCircle,
   FileText,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -39,16 +40,33 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  isEarlyAccess?: boolean;
+  mockAuth?: any;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { userProfile, signOut } = useAuth();
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAccess = false, mockAuth }) => {
+  const authContext = useAuth();
+  const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const isMobile = useIsMobile();
 
   const getNavigationItems = () => {
     if (!userProfile) return [];
+
+    // Special navigation for early access users
+    if (isEarlyAccess) {
+      return [
+        { href: '/waiting-room', icon: Home, label: 'Overview', active: true },
+        { href: '#', icon: Target, label: 'Positions', locked: true },
+        { href: '#', icon: Upload, label: 'Add Team Members', locked: true },
+        { href: '#', icon: Users, label: 'Employees', locked: true },
+        { href: '#', icon: BrainCircuit, label: 'Skills', locked: true },
+        { href: '#', icon: BookOpen, label: 'Courses', locked: true },
+        { href: '#', icon: Sparkles, label: 'AI Course Generator', locked: true },
+        { href: '#', icon: BarChart3, label: 'Analytics', locked: true },
+      ];
+    }
 
     switch (userProfile.role) {
       case 'super_admin':
@@ -159,6 +177,29 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
                     {sidebarExpanded && <span>{item.label}</span>}
                   </FeedbackButton>
+                );
+              }
+              
+              // Handle locked items for early access
+              if (item.locked) {
+                return (
+                  <div
+                    key={item.href}
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
+                      "text-slate-500 bg-slate-800/30",
+                      !sidebarExpanded && "justify-center"
+                    )}
+                    title={!sidebarExpanded ? `${item.label} (Locked)` : undefined}
+                  >
+                    <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                    {sidebarExpanded && (
+                      <>
+                        <span className="flex-1">{item.label}</span>
+                        <Lock className="h-4 w-4 ml-2" />
+                      </>
+                    )}
+                  </div>
                 );
               }
               

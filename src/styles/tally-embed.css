@@ -1,0 +1,18 @@
+/* Tally Form Embed Styles */
+.tally-embed {
+  width: 100%;
+  border: none;
+  overflow: hidden;
+}
+
+/* Hide any internal scrollbars in the Tally iframe */
+.tally-embed::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure proper spacing for the form container */
+.tally-embed-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
