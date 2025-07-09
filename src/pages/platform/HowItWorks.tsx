@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Target, Users, Brain, BarChart3, MessageCircle, Lightbulb, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import ContactSalesModal from "@/components/ContactSalesModal";
 
 const HowItWorks = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const journeySteps = [
     {
@@ -86,13 +85,11 @@ const HowItWorks = () => {
             From personalized onboarding to measurable business impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="how_it_works_platform_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -201,13 +198,11 @@ const HowItWorks = () => {
             Discover how LXERA can revolutionize learning and innovation in your organization
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="how_it_works_platform_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -223,11 +218,6 @@ const HowItWorks = () => {
       <Footer />
       
       {/* Modals */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="How It Works Page"
-      />
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}

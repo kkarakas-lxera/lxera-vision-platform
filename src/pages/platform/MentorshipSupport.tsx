@@ -81,13 +81,11 @@ const MentorshipSupport = () => {
             through dedicated chatbot mentors trained on your company's knowledge base.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              REPLACE_WITH_PROGRESSIVE_DEMO
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="mentorship_support_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -220,13 +218,11 @@ const MentorshipSupport = () => {
             Discover how AI-powered mentorship transforms learning outcomes with personalized, intelligent support
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              REPLACE_WITH_PROGRESSIVE_DEMO
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="mentorship_support_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -242,11 +238,6 @@ const MentorshipSupport = () => {
       <Footer />
       
       {/* Modals */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="Mentorship Support Page"
-      />
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}

@@ -2,15 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3 } from "lucide-react";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useState } from "react";
 
 const HeroSection = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-
-  const handleRequestDemo = () => {
-    setIsDemoModalOpen(true);
-  };
 
   const handleSeeHowItWorks = () => {
     // Could navigate to how it works section
@@ -45,14 +40,11 @@ const HeroSection = () => {
           
           {/* Updated CTA buttons to match homepage design */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button
-              size="lg"
-              onClick={handleRequestDemo}
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 text-lg rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter"
-              aria-label="Request a demo of learning analytics features"
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="analytics_hero_section"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button
               size="lg"
               onClick={handleSeeHowItWorks}
@@ -65,11 +57,6 @@ const HeroSection = () => {
         </div>
       </section>
 
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="Analytics Hero Section"
-      />
     </>
   );
 };

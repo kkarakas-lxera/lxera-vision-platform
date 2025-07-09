@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,12 +82,11 @@ const Platform = () => {
             real-time analytics, and collaborative tools to transform how your organization learns and grows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="bg-business-black text-white hover:bg-business-black/90 px-8 py-6 text-lg rounded-xl"
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="platform_hero_section"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Link to="/platform/how-it-works">
               <Button
                 variant="outline"

@@ -5,11 +5,10 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Play, MousePointer, Eye, Zap, Target, Users, BarChart3, Brain } from "lucide-react";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import WaitlistModal from "@/components/WaitlistModal";
 
 const ProductTour = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const tourSteps = [
     {
@@ -86,12 +85,11 @@ const ProductTour = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button 
-                onClick={() => setIsDemoModalOpen(true)}
-                className="lxera-btn-primary px-8 py-4 text-lg"
-              >
-                Request a Demo
-              </Button>
+              <ProgressiveDemoCapture
+                source="product_tour_page"
+                buttonText="Request a Demo"
+                onSuccess={() => {}}
+              />
               <Button 
                 onClick={() => setIsWaitlistModalOpen(true)}
                 variant="outline" 
@@ -180,12 +178,11 @@ const ProductTour = () => {
               After the tour, see how LXERA can be customized for your organization's specific needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={() => setIsDemoModalOpen(true)}
-                className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[48px]"
-              >
-                Request a Demo
-              </Button>
+              <ProgressiveDemoCapture
+                source="product_tour_cta"
+                buttonText="Request a Demo"
+                onSuccess={() => {}}
+              />
               <Button 
                 onClick={() => setIsWaitlistModalOpen(true)}
                 className="bg-white text-business-black hover:bg-gray-50 border-2 border-white px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]"
@@ -199,11 +196,6 @@ const ProductTour = () => {
         <Footer />
         
         {/* Modals */}
-        <DemoModal 
-          isOpen={isDemoModalOpen} 
-          onClose={() => setIsDemoModalOpen(false)} 
-          source="Product Tour Page"
-        />
         <WaitlistModal 
           isOpen={isWaitlistModalOpen} 
           onClose={() => setIsWaitlistModalOpen(false)} 

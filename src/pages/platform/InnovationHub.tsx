@@ -5,11 +5,10 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lightbulb, Users, Target, Brain, BarChart3, MessageCircle, ArrowRight, CheckCircle, Zap } from "lucide-react";
-import DemoModal from "@/components/DemoModal";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import ContactSalesModal from "@/components/ContactSalesModal";
 
 const InnovationHub = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const hubFeatures = [
     {
@@ -82,13 +81,11 @@ const InnovationHub = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="innovation_hub_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -190,13 +187,11 @@ const InnovationHub = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-business-black text-white rounded-xl px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105 font-inter"
-              onClick={() => setIsDemoModalOpen(true)}
-            >
-              Request a Demo
-            </Button>
+            <ProgressiveDemoCapture
+              source="innovation_hub_page"
+              buttonText="Request a Demo"
+              onSuccess={() => {}}
+            />
             <Button 
               variant="outline" 
               size="lg" 
@@ -212,11 +207,6 @@ const InnovationHub = () => {
       <Footer />
       
       {/* Modals */}
-      <DemoModal 
-        isOpen={isDemoModalOpen} 
-        onClose={() => setIsDemoModalOpen(false)}
-        source="Innovation Hub Page"
-      />
       <ContactSalesModal 
         isOpen={isContactSalesModalOpen} 
         onClose={() => setIsContactSalesModalOpen(false)}
