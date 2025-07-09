@@ -71,77 +71,35 @@ const MobileHeroSection = () => {
           </p>
         </div>
 
-        {/* Video Preview with Thumbnail */}
+        {/* Video Preview with Actual Thumbnail */}
         <div 
           className="relative rounded-xl overflow-hidden mb-4 aspect-video cursor-pointer shadow-xl animate-fade-in-up animate-delay-400 group"
           onClick={handleVideoClick}
         >
-          {/* Video Thumbnail */}
-          <div className="absolute inset-0">
-            <div className="w-full h-full bg-gradient-to-br from-smart-beige via-future-green/10 to-business-black/5">
-              {/* Platform Dashboard Preview */}
-              <div className="p-3 h-full flex flex-col bg-white/90">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <img src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" className="h-5" />
-                    <span className="text-xs text-gray-600">Skills Dashboard</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                  </div>
-                </div>
-                <div className="flex-1 grid grid-cols-3 gap-2">
-                  <div className="bg-gradient-to-br from-future-green/20 to-future-green/10 rounded p-2">
-                    <div className="text-xs font-medium mb-1">AI Analysis</div>
-                    <div className="h-12 bg-white/50 rounded"></div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded col-span-2 p-2">
-                    <div className="text-xs font-medium mb-1">Skills Gap Overview</div>
-                    <div className="h-12 bg-white/50 rounded"></div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded col-span-2 p-2">
-                    <div className="text-xs font-medium mb-1">Learning Paths</div>
-                    <div className="h-8 bg-white/50 rounded"></div>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded p-2">
-                    <div className="text-xs font-medium mb-1">Progress</div>
-                    <div className="h-8 bg-white/50 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Actual Video Thumbnail */}
+          <video
+            className="w-full h-full object-cover"
+            poster=""
+            src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4"
+            muted
+            playsInline
+          />
           
           {/* Play button overlay */}
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-all duration-300">
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-all duration-300">
             <div className="text-center">
               <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-2 mx-auto shadow-xl transform transition-all group-hover:scale-110">
                 <Play className="w-7 h-7 text-business-black ml-0.5" fill="currentColor" />
               </div>
-              <p className="text-white text-sm font-medium">See LXERA in Action</p>
+              <p className="text-white text-sm font-medium drop-shadow-lg">See LXERA in Action</p>
             </div>
           </div>
         </div>
 
-        {/* Already interested section - moved below video */}
-        <div className="text-center mb-4 animate-fade-in-up animate-delay-500">
-          <p className="text-sm text-business-black/70">
-            Already interested? 
-            <Button
-              variant="link"
-              onClick={handleRequestDemo}
-              className="text-business-black font-semibold underline hover:text-future-green px-1 text-sm"
-            >
-              Schedule a Demo
-            </Button>
-          </p>
-        </div>
 
 
         {/* CTA - Single primary action */}
-        <div className="mb-6 animate-fade-in-up animate-delay-700">
+        <div className="mb-2 animate-fade-in-up animate-delay-700">
           <Button
             size="lg"
             className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-102 active:scale-98 w-full"
@@ -151,10 +109,15 @@ const MobileHeroSection = () => {
           </Button>
         </div>
 
-        {/* Early Access Banner */}
+        {/* No credit card required */}
+        <div className="text-center mb-6 animate-fade-in-up animate-delay-750">
+          <p className="text-xs text-business-black/60">No credit card required</p>
+        </div>
+
+        {/* Early Access Banner with Social Proof */}
         <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up animate-delay-800">
           <span className="font-semibold flex items-center justify-center gap-2 text-sm">
-            🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
+            🚀 Join 200+ innovative teams in early access
           </span>
         </div>
 
@@ -191,6 +154,18 @@ const MobileHeroSection = () => {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Demo Option - Moved after benefits */}
+        <div className="text-center mb-6 animate-fade-in-up animate-delay-1100">
+          <p className="text-sm text-business-black/70 mb-3">Need a personalized walkthrough?</p>
+          <Button
+            variant="outline"
+            onClick={handleRequestDemo}
+            className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white transition-all duration-300 px-6 py-2 text-sm font-medium"
+          >
+            Book a Demo
+          </Button>
         </div>
 
         {/* Integration Section */}
