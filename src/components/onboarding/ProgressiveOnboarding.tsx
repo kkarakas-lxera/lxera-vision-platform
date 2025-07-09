@@ -297,75 +297,29 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
             ) : lastSaved ? (
               <>
                 <Check className="w-3 h-3 text-slate-600" />
-                <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                <span>Saved</span>
               </>
             ) : null}
           </div>
-          <span>{completedSteps.length} of {STEPS.length} completed</span>
+          <span>Step {currentStep} of {STEPS.length}</span>
         </div>
       </div>
 
-      {/* Steps Overview */}
-      <div className="mb-8">
-        <div className="space-y-2">
-          {STEPS.map((step, index) => {
-            const isCompleted = completedSteps.includes(step.id);
-            const isCurrent = step.id === currentStep;
-            const field = step.field as keyof FormData;
-            
-            return (
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={cn(
-                  'flex items-center gap-3 text-sm transition-all cursor-pointer',
-                  isCompleted && 'opacity-50',
-                  isCurrent && 'opacity-100 scale-105'
-                )}
-                onClick={() => !isCompleted && setCurrentStep(step.id)}
-              >
-                <div className={cn(
-                  'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
-                  isCompleted ? 'bg-slate-700 border-slate-700' : 
-                  isCurrent ? 'border-slate-700' : 'border-slate-300'
-                )}>
-                  {isCompleted && <Check className="w-3 h-3 text-white" />}
-                </div>
-                <span className={cn(
-                  'transition-all',
-                  isCompleted && 'line-through text-gray-400'
-                )}>
-                  {step.title}
-                  {formData[field] && (
-                    <span className="ml-2 text-gray-500">• {
-                      typeof formData[field] === 'string' && formData[field].includes('_') 
-                        ? formData[field].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                        : formData[field]
-                    }</span>
-                  )}
-                </span>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Current Step Form */}
-      <Card className="overflow-hidden border border-slate-200 shadow-xl bg-white">
+      <Card className="overflow-hidden border border-slate-200 shadow-lg bg-white">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
-            initial={{ opacity: 0, x: 100 }}
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="p-8"
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="p-6"
           >
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-2">{currentStepData.title}</h2>
-              <p className="text-gray-600 text-lg leading-relaxed">{currentStepData.subtitle}</p>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-2">{currentStepData.title}</h2>
+              <p className="text-gray-600 text-sm leading-relaxed">{currentStepData.subtitle}</p>
             </div>
 
             {/* Text inputs */}
@@ -385,13 +339,13 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     ...formData, 
                     [currentStepData.field]: e.target.value 
                   })}
-                  className="text-xl py-8 px-6 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-200"
+                  className="text-lg py-4 px-4 border-2 border-slate-200 focus:border-slate-700 transition-all duration-300 bg-slate-50 focus:bg-white rounded-lg focus:ring-2 focus:ring-slate-200"
                   autoFocus
                 />
                 <Button
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
-                  className="mt-4 bg-slate-700 hover:bg-slate-800 transition-all text-white"
+                  className="mt-3 bg-slate-700 hover:bg-slate-800 transition-all text-white text-sm py-2"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -410,15 +364,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('role', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
                       formData.role === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
                         : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-lg">{option.label}</span>
-                      <span className="text-sm text-gray-500">{option.description}</span>
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
@@ -436,15 +390,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('useCase', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
                       formData.useCase === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
                         : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-lg">{option.label}</span>
-                      <span className="text-sm text-gray-500">{option.description}</span>
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
@@ -462,15 +416,15 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('heardAbout', option.value)}
                     className={cn(
-                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-slate-700 hover:shadow-lg hover:scale-[1.02]',
+                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-slate-700 hover:shadow-md hover:scale-[1.01]',
                       formData.heardAbout === option.value
                         ? 'border-slate-700 bg-slate-700/10 shadow-md'
                         : 'border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-lg">{option.label}</span>
-                      <span className="text-sm text-gray-500">{option.description}</span>
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </motion.button>
                 ))}
