@@ -66,7 +66,7 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey)
     
     const { error: emailError } = await resend.emails.send({
-      from: 'LXERA <onboarding@resend.dev>',
+      from: 'LXERA <hello@lxera.ai>',
       to: email,
       subject: 'Your LXERA Verification Code',
       html: `
