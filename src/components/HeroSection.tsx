@@ -4,19 +4,21 @@ import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import DemoModalWrapper from "./DemoModalWrapper";
-import WaitlistModal from "./WaitlistModal";
+import InlineEmailCapture from "./forms/InlineEmailCapture";
 import { useState } from "react";
 
 const HeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [showEmailCapture, setShowEmailCapture] = useState(true);
+  const [emailCaptured, setEmailCaptured] = useState(false);
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
   };
 
-  const handleGetEarlyAccess = () => {
-    setIsWaitlistModalOpen(true);
+  const handleEmailSuccess = (email: string) => {
+    setEmailCaptured(true);
+    setShowEmailCapture(false);
   };
 
   const handleExploreClick = () => {
@@ -81,24 +83,43 @@ const HeroSection = () => {
                 <p className="text-xs sm:text-sm md:text-base text-business-black/75 font-normal font-inter">
                   🚀 <strong className="text-business-black font-medium">Early access open</strong> for innovative teams
                 </p>
-                <div className="flex flex-row gap-2 sm:gap-3">
-                  <Button
-                    size="lg"
-                    className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
-                    onClick={handleRequestDemo}
-                    aria-label="Request a demo"
-                  >
-                    Request a Demo
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-business-black text-white hover:bg-business-black/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
-                    onClick={handleGetEarlyAccess}
-                    aria-label="Get Early Access"
-                  >
-                    Get Early Access
-                  </Button>
-                </div>
+                
+                {showEmailCapture && !emailCaptured ? (
+                  <div className="space-y-3">
+                    <InlineEmailCapture 
+                      source="hero_section"
+                      buttonText="Get Early Access"
+                      onSuccess={handleEmailSuccess}
+                    />
+                    <p className="text-xs text-center text-gray-500">
+                      No credit card required • Join 200+ teams
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRequestDemo}
+                      className="w-full text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      Prefer a demo? Schedule a call
+                    </Button>
+                  </div>
+                ) : emailCaptured ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p className="text-green-800 font-medium">✓ Check your email to continue!</p>
+                    <p className="text-green-600 text-sm mt-1">We sent you a magic link</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-row gap-2 sm:gap-3">
+                    <Button
+                      size="lg"
+                      className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-3 sm:px-6 md:px-8 py-3 sm:py-4 text-xs sm:text-sm md:text-base rounded-xl shadow-md lg:shadow-lg transition-all duration-300 lg:hover:scale-105 lg:hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px] touch-manipulation active:scale-98 active:opacity-90"
+                      onClick={handleRequestDemo}
+                      aria-label="Request a demo"
+                    >
+                      Request a Demo
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -129,11 +150,6 @@ const HeroSection = () => {
           isOpen={isDemoModalOpen} 
           onClose={() => setIsDemoModalOpen(false)}
           source="Hero Section"
-        />
-
-        <WaitlistModal 
-          isOpen={isWaitlistModalOpen} 
-          onClose={() => setIsWaitlistModalOpen(false)}
         />
       </section>
 

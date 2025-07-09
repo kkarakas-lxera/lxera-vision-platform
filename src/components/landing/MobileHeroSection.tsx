@@ -4,12 +4,12 @@ import { Play, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DemoModalWrapper from '@/components/DemoModalWrapper';
 import VideoModal from '@/components/VideoModal';
-import WaitlistModal from '@/components/WaitlistModal';
+import InlineEmailCapture from '@/components/forms/InlineEmailCapture';
 
 const MobileHeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [emailCaptured, setEmailCaptured] = useState(false);
   const navigate = useNavigate();
 
   const handleVideoClick = () => {
@@ -20,8 +20,8 @@ const MobileHeroSection = () => {
     setIsDemoModalOpen(true);
   };
 
-  const handleGetEarlyAccess = () => {
-    setIsWaitlistModalOpen(true);
+  const handleEmailSuccess = (email: string) => {
+    setEmailCaptured(true);
   };
 
   const handleExploreClick = () => {
@@ -98,20 +98,26 @@ const MobileHeroSection = () => {
 
 
 
-        {/* CTA - Single primary action */}
-        <div className="mb-2 animate-fade-in-up animate-delay-700">
-          <Button
-            size="lg"
-            className="bg-business-black text-white hover:bg-business-black/90 font-medium px-8 py-4 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-102 active:scale-98 w-full"
-            onClick={handleGetEarlyAccess}
-          >
-            Get Early Access
-          </Button>
-        </div>
-
-        {/* No credit card required */}
-        <div className="text-center mb-6 animate-fade-in-up animate-delay-750">
-          <p className="text-xs text-business-black/60">No credit card required</p>
+        {/* CTA - Email capture or success state */}
+        <div className="mb-6 animate-fade-in-up animate-delay-700">
+          {!emailCaptured ? (
+            <div className="space-y-3">
+              <InlineEmailCapture 
+                source="mobile_hero"
+                buttonText="Get Early Access"
+                variant="mobile"
+                onSuccess={handleEmailSuccess}
+              />
+              <p className="text-xs text-center text-business-black/60">
+                No credit card required
+              </p>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <p className="text-green-800 font-medium">✓ Check your email!</p>
+              <p className="text-green-600 text-sm mt-1">We sent you a magic link</p>
+            </div>
+          )}
         </div>
 
         {/* Early Access Banner with Social Proof */}
@@ -260,12 +266,6 @@ const MobileHeroSection = () => {
         setIsOpen={setIsVideoModalOpen}
         videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4"
         videoCaption="LXERA Platform Demo"
-      />
-
-      <WaitlistModal
-        isOpen={isWaitlistModalOpen}
-        onClose={() => setIsWaitlistModalOpen(false)}
-        source="Mobile Hero"
       />
     </section>
   );

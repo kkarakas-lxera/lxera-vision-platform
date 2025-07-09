@@ -1,20 +1,22 @@
 
 import { Button } from "@/components/ui/button";
 import DemoModal from "@/components/DemoModal";
-import WaitlistModal from "@/components/WaitlistModal";
+import InlineEmailCapture from "@/components/forms/InlineEmailCapture";
 import { ArrowDown } from "lucide-react";
 import { useState } from "react";
 
 const TransformationStartsSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
-
-  const handleGetEarlyAccess = () => {
-    setIsWaitlistModalOpen(true);
-  };
+  const [showEmailCapture, setShowEmailCapture] = useState(true);
+  const [emailCaptured, setEmailCaptured] = useState(false);
 
   const handleRequestDemo = () => {
     setIsDemoModalOpen(true);
+  };
+
+  const handleEmailSuccess = (email: string) => {
+    setEmailCaptured(true);
+    setShowEmailCapture(false);
   };
 
   return (
@@ -41,25 +43,42 @@ const TransformationStartsSection = () => {
             <ArrowDown size={32} className="text-future-green/70" aria-label="Scroll for more" />
           </div>
 
-          {/* CTA Buttons - Updated with consistent styling */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6 animate-fade-in-up animate-delay-700">
-            <Button
-              size="lg"
-              onClick={handleGetEarlyAccess}
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
-              aria-label="Get Early Access"
-            >
-              Get Early Access
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleRequestDemo}
-              className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 min-h-[48px]"
-              aria-label="Request Demo"
-            >
-              Request Demo
-            </Button>
+          {/* CTA - Email capture or success state */}
+          <div className="mt-6 animate-fade-in-up animate-delay-700 max-w-md mx-auto">
+            {showEmailCapture && !emailCaptured ? (
+              <div className="space-y-4">
+                <InlineEmailCapture 
+                  source="transformation_section"
+                  buttonText="Get Early Access"
+                  onSuccess={handleEmailSuccess}
+                />
+                <p className="text-xs text-gray-500">
+                  No credit card required • Join 200+ teams
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRequestDemo}
+                  className="text-sm text-gray-600 hover:text-gray-900"
+                >
+                  Prefer a demo? Schedule a call
+                </Button>
+              </div>
+            ) : emailCaptured ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <p className="text-green-800 font-medium">✓ Check your email to continue!</p>
+                <p className="text-green-600 text-sm mt-1">We sent you a magic link</p>
+              </div>
+            ) : (
+              <Button
+                size="lg"
+                className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 font-inter min-h-[48px]"
+                onClick={handleRequestDemo}
+                aria-label="Request a demo"
+              >
+                Request a Demo
+              </Button>
+            )}
           </div>
 
           <div className="flex justify-center mt-6 space-x-2 animate-fade-in animate-delay-800">
@@ -74,11 +93,6 @@ const TransformationStartsSection = () => {
             ))}
           </div>
         </div>
-
-        <WaitlistModal 
-          isOpen={isWaitlistModalOpen} 
-          onClose={() => setIsWaitlistModalOpen(false)}
-        />
 
         <DemoModal 
           isOpen={isDemoModalOpen} 
