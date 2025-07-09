@@ -23,37 +23,135 @@ interface FormData {
 }
 
 const STEPS = [
-  { id: 1, title: 'Your Name', field: 'name', placeholder: 'John Doe' },
-  { id: 2, title: 'Company', field: 'company', placeholder: 'Acme Corp' },
-  { id: 3, title: 'Your Role', field: 'role', placeholder: 'Select your role' },
-  { id: 4, title: 'Use Case', field: 'useCase', placeholder: 'How can we help?' },
-  { id: 5, title: 'Discovery', field: 'heardAbout', placeholder: 'How did you find us?' },
+  { 
+    id: 1, 
+    title: "What should we call you?", 
+    field: 'name', 
+    placeholder: 'Your full name',
+    subtitle: "Let's start with the basics — we'd love to know your name."
+  },
+  { 
+    id: 2, 
+    title: "Where do you work?", 
+    field: 'company', 
+    placeholder: 'Your company name',
+    subtitle: "Tell us about the organization you're helping to transform."
+  },
+  { 
+    id: 3, 
+    title: "What's your role?", 
+    field: 'role', 
+    placeholder: 'Your role',
+    subtitle: "Help us understand your position so we can personalize your experience."
+  },
+  { 
+    id: 4, 
+    title: "How can LXERA help you?", 
+    field: 'useCase', 
+    placeholder: 'Your main focus area',
+    subtitle: "What's the biggest challenge you're looking to solve?"
+  },
+  { 
+    id: 5, 
+    title: "How did you discover us?", 
+    field: 'heardAbout', 
+    placeholder: 'Discovery source',
+    subtitle: "We're curious — what brought you to LXERA today?"
+  },
 ];
 
 const ROLE_OPTIONS = [
-  { value: 'l_and_d_manager', label: 'L&D Manager' },
-  { value: 'hr_director', label: 'HR Director' },
-  { value: 'training_specialist', label: 'Training Specialist' },
-  { value: 'people_operations', label: 'People Operations' },
-  { value: 'other', label: 'Other' },
+  { 
+    value: 'l_and_d_manager', 
+    label: 'L&D Manager', 
+    description: 'Leading learning and development initiatives'
+  },
+  { 
+    value: 'hr_director', 
+    label: 'HR Director', 
+    description: 'Overseeing human resources strategy'
+  },
+  { 
+    value: 'training_specialist', 
+    label: 'Training Specialist', 
+    description: 'Designing and delivering training programs'
+  },
+  { 
+    value: 'people_operations', 
+    label: 'People Operations', 
+    description: 'Managing employee experience and operations'
+  },
+  { 
+    value: 'other', 
+    label: 'Other Role', 
+    description: 'Something else entirely'
+  },
 ];
 
 const USE_CASE_OPTIONS = [
-  { value: 'skills_gap_analysis', label: 'Skills Gap Analysis' },
-  { value: 'employee_training', label: 'Employee Training' },
-  { value: 'course_creation', label: 'Course Creation' },
-  { value: 'performance_tracking', label: 'Performance Tracking' },
-  { value: 'other', label: 'Other' },
+  { 
+    value: 'skills_gap_analysis', 
+    label: 'Skills Gap Analysis', 
+    description: 'Identify and bridge skill gaps in your organization'
+  },
+  { 
+    value: 'employee_training', 
+    label: 'Employee Training', 
+    description: 'Create and deliver effective training programs'
+  },
+  { 
+    value: 'course_creation', 
+    label: 'Course Creation', 
+    description: 'Build engaging learning experiences'
+  },
+  { 
+    value: 'performance_tracking', 
+    label: 'Performance Tracking', 
+    description: 'Monitor and measure learning outcomes'
+  },
+  { 
+    value: 'other', 
+    label: 'Something Else', 
+    description: 'Tell us what unique challenge you\'re facing'
+  },
 ];
 
 const HEARD_ABOUT_OPTIONS = [
-  { value: 'linkedin', label: 'LinkedIn' },
-  { value: 'google_search', label: 'Google Search' },
-  { value: 'colleague', label: 'Colleague/Friend' },
-  { value: 'conference', label: 'Conference/Event' },
-  { value: 'blog_article', label: 'Blog/Article' },
-  { value: 'social_media', label: 'Social Media' },
-  { value: 'other', label: 'Other' },
+  { 
+    value: 'linkedin', 
+    label: 'LinkedIn', 
+    description: 'Through posts, ads, or connections'
+  },
+  { 
+    value: 'google_search', 
+    label: 'Google Search', 
+    description: 'Found us while searching online'
+  },
+  { 
+    value: 'colleague', 
+    label: 'Colleague or Friend', 
+    description: 'Someone recommended us to you'
+  },
+  { 
+    value: 'conference', 
+    label: 'Conference or Event', 
+    description: 'Met us at an industry event'
+  },
+  { 
+    value: 'blog_article', 
+    label: 'Blog or Article', 
+    description: 'Read about us in content'
+  },
+  { 
+    value: 'social_media', 
+    label: 'Social Media', 
+    description: 'Discovered us on social platforms'
+  },
+  { 
+    value: 'other', 
+    label: 'Other Source', 
+    description: 'Somewhere else entirely'
+  },
 ];
 
 export default function ProgressiveOnboarding({ email, leadId, onComplete }: ProgressiveOnboardingProps) {
@@ -265,7 +363,10 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="p-8"
           >
-            <h2 className="text-2xl font-semibold mb-6">{currentStepData.title}</h2>
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold mb-2">{currentStepData.title}</h2>
+              <p className="text-gray-600 text-lg leading-relaxed">{currentStepData.subtitle}</p>
+            </div>
 
             {/* Text inputs */}
             {(currentStep === 1 || currentStep === 2) && (
@@ -284,7 +385,7 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     ...formData, 
                     [currentStepData.field]: e.target.value 
                   })}
-                  className="text-lg py-6 px-4 border-2 focus:border-future-green transition-colors"
+                  className="text-xl py-8 px-6 border-2 focus:border-future-green transition-all duration-300 bg-gray-50 focus:bg-white rounded-xl"
                   autoFocus
                 />
                 <Button
@@ -309,13 +410,16 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('role', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-future-green hover:shadow-md',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
                       formData.role === option.value
-                        ? 'border-future-green bg-future-green/5'
-                        : 'border-gray-200'
+                        ? 'border-future-green bg-future-green/10 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
                     )}
                   >
-                    <span className="font-medium">{option.label}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-lg">{option.label}</span>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </div>
                   </motion.button>
                 ))}
               </div>
@@ -332,13 +436,16 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('useCase', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-future-green hover:shadow-md',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
                       formData.useCase === option.value
-                        ? 'border-future-green bg-future-green/5'
-                        : 'border-gray-200'
+                        ? 'border-future-green bg-future-green/10 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
                     )}
                   >
-                    <span className="font-medium">{option.label}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-lg">{option.label}</span>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </div>
                   </motion.button>
                 ))}
               </div>
@@ -355,13 +462,16 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleFieldComplete('heardAbout', option.value)}
                     className={cn(
-                      'w-full p-4 rounded-lg border-2 text-left transition-all hover:border-future-green hover:shadow-md',
+                      'w-full p-6 rounded-xl border-2 text-left transition-all hover:border-future-green hover:shadow-lg hover:scale-[1.02]',
                       formData.heardAbout === option.value
-                        ? 'border-future-green bg-future-green/5'
-                        : 'border-gray-200'
+                        ? 'border-future-green bg-future-green/10 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
                     )}
                   >
-                    <span className="font-medium">{option.label}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-lg">{option.label}</span>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </div>
                   </motion.button>
                 ))}
               </div>
@@ -370,22 +480,6 @@ export default function ProgressiveOnboarding({ email, leadId, onComplete }: Pro
         </AnimatePresence>
       </Card>
 
-      {/* Skip for now */}
-      {!completedSteps.includes(currentStep) && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          onClick={() => {
-            if (currentStep < STEPS.length) {
-              setCurrentStep(currentStep + 1);
-            }
-          }}
-          className="mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors block mx-auto"
-        >
-          Skip for now
-        </motion.button>
-      )}
     </div>
   );
 }

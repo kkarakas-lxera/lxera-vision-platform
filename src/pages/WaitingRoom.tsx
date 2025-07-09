@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Clock, Zap, Users, Calendar, ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProgressiveOnboarding from '@/components/onboarding/ProgressiveOnboarding';
@@ -159,15 +160,22 @@ const WaitingRoom = () => {
   return (
     <DashboardLayout isEarlyAccess={true} mockAuth={mockAuthContext}>
       <div className="space-y-6">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to LXERA Early Access Dashboard
-          </h1>
-          <p className="text-lg text-gray-600">
+        {/* Compact Welcome Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
+            </h1>
+            {profileCompleted && (
+              <Badge className="bg-future-green text-white">
+                ✓ Waitlisted
+              </Badge>
+            )}
+          </div>
+          <p className="text-gray-600">
             {profileCompleted 
-              ? `Hi ${leadData.name || 'there'}, you're officially on the list!`
-              : 'Complete your profile to unlock your dashboard'
+              ? "You're officially on the LXERA early access list."
+              : 'Complete your profile to join the waitlist'
             }
           </p>
         </div>
@@ -185,68 +193,121 @@ const WaitingRoom = () => {
           />
         )}
 
-        {/* Position Card - Only show when profile completed */}
+        {/* Compact Position Card */}
         {profileCompleted && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Your Waitlist Position</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center mb-6">
-                <div className="text-6xl font-bold text-future-green mb-2">
-                  #{leadData.waitlist_position || 'TBD'}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-future-green mb-1">
+                    #{leadData.waitlist_position || 'TBD'}
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    of {totalLeads} applicants
+                  </p>
+                  <Progress value={progressPercentage} className="h-2" />
                 </div>
-                <p className="text-gray-600">
-                  of {totalLeads} total applicants
-                </p>
-              </div>
-              
-              <div className="mb-4">
-                <Progress value={progressPercentage} className="h-3" />
-              </div>
-              
-              <p className="text-sm text-gray-500 text-center">
-                Estimated access: March 2025
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-8 h-8 text-future-green" />
+                  <div>
+                    <p className="font-semibold">Estimated Access</p>
+                    <p className="text-sm text-gray-600">March 2025</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
 
 
-        {/* Profile Summary */}
+        {/* What Happens Next - Attention Grabbing */}
         {profileCompleted && (
-          <Card className="mt-8">
+          <Card className="mb-6 border-2 border-future-green/20 bg-gradient-to-br from-future-green/5 to-future-green/10">
             <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Zap className="w-6 h-6 text-future-green animate-pulse" />
+                What happens next?
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Name:</span>
-                  <span className="font-medium">{leadData.name || 'Not specified'}</span>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">We're building something amazing</h4>
+                    <p className="text-sm text-gray-600">Our team is hard at work developing the most advanced L&D platform ever created.</p>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Company:</span>
-                  <span className="font-medium">{leadData.company || 'Not specified'}</span>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">You'll get early access</h4>
+                    <p className="text-sm text-gray-600">Based on your position, you'll receive an invitation to try LXERA before anyone else.</p>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Role:</span>
-                  <span className="font-medium">
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-future-green text-white flex items-center justify-center text-sm font-bold mt-0.5">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Shape the future of L&D</h4>
+                    <p className="text-sm text-gray-600">Your feedback will directly influence how we build the platform that transforms learning.</p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-white/50 rounded-lg border border-future-green/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-future-green" />
+                    <span className="font-semibold text-sm">Stay tuned</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    We'll email you with updates on our progress and when it's your turn to access the platform.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Compact Profile Summary */}
+        {profileCompleted && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Your Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Name</span>
+                  <p className="font-medium">{leadData.name || 'Not specified'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Company</span>
+                  <p className="font-medium">{leadData.company || 'Not specified'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Role</span>
+                  <p className="font-medium">
                     {leadData.role ? leadData.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Use Case:</span>
-                  <span className="font-medium">
+                <div>
+                  <span className="text-gray-600">Focus</span>
+                  <p className="font-medium">
                     {leadData.use_case ? leadData.use_case.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">How you found us:</span>
-                  <span className="font-medium">
-                    {leadData.heard_about ? leadData.heard_about.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}
-                  </span>
+                  </p>
                 </div>
               </div>
             </CardContent>

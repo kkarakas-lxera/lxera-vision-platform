@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
                     </ol>
                     
                     <div style="text-align: center; margin: 40px 0;">
-                      <a href="${Deno.env.get('SUPABASE_URL')}/waiting-room?email=${encodeURIComponent(leadData.email)}" 
+                      <a href="https://lxera.ai/waiting-room?email=${encodeURIComponent(leadData.email)}" 
                          style="background-color: #B1B973; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                         Visit Your Dashboard
                       </a>
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
                   </div>
                 </div>
               `,
-              text: `Welcome to LXERA Early Access!\n\nHi ${leadData.name || 'there'},\n\nCongratulations! You've successfully joined our early access waitlist at position #${leadData.waitlist_position}.\n\nVisit your dashboard: ${Deno.env.get('SUPABASE_URL')}/waiting-room?email=${encodeURIComponent(leadData.email)}\n\n© 2025 LXERA. All rights reserved.`
+              text: `Welcome to LXERA Early Access!\n\nHi ${leadData.name || 'there'},\n\nCongratulations! You've successfully joined our early access waitlist at position #${leadData.waitlist_position}.\n\nVisit your dashboard: https://lxera.ai/waiting-room?email=${encodeURIComponent(leadData.email)}\n\n© 2025 LXERA. All rights reserved.`
             });
 
             // Log email sent
