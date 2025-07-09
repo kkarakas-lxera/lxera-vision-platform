@@ -21,6 +21,7 @@ import Loading from "@/components/Loading";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
+import EarlyAccessLogin from "./pages/auth/EarlyAccessLogin";
 import AuthCallback from "./pages/auth/AuthCallback";
 
 // Lazy load public/marketing pages
@@ -174,7 +175,8 @@ const App = () => {
             <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
 
             {/* Auth routes */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<EarlyAccessLogin />} />
+            <Route path="/admin-login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Onboarding routes */}

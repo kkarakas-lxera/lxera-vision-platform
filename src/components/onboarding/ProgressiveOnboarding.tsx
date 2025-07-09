@@ -282,11 +282,63 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
   const progress = (completedSteps.length / STEPS.length) * 100;
   const currentStepData = STEPS[currentStep - 1];
 
+  // Dynamic encouraging messages based on step
+  const getEncouragingMessage = (step: number) => {
+    switch (step) {
+      case 1:
+        return "Quick and easy – just 30 seconds!";
+      case 2:
+        return "Great start! Just 4 more quick questions...";
+      case 3:
+        return "Halfway there – you're flying through this!";
+      case 4:
+        return "Almost done – just 2 more questions!";
+      case 5:
+        return "Last one – thanks for sticking with us!";
+      default:
+        return "Keep going...";
+    }
+  };
+
+  // Get time estimate for remaining steps
+  const getTimeEstimate = (step: number) => {
+    const remainingSteps = STEPS.length - step + 1;
+    const secondsPerStep = 6;
+    const totalSeconds = remainingSteps * secondsPerStep;
+    return totalSeconds < 30 ? `${totalSeconds} seconds left` : "Less than 30 seconds left";
+  };
+
+  // Get progress message based on filled fields
+  const getProgressMessage = () => {
+    const filledCount = Object.values(formData).filter(val => val).length;
+    if (filledCount === 0) return "";
+    if (filledCount === STEPS.length) return "🎉 All done!";
+    return `${filledCount} of ${STEPS.length} completed`;
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto px-4 sm:max-w-md">
       {/* Mobile Progress Indicator */}
       <div className="mb-4 text-center">
-        <div className="text-xs text-gray-500 mb-2">{currentStep} of {STEPS.length}</div>
+        <motion.div 
+          key={currentStep}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="text-sm font-medium text-indigo-600 mb-1"
+        >
+          {getEncouragingMessage(currentStep)}
+        </motion.div>
+        <motion.div
+          key={`time-${currentStep}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-xs text-gray-600 font-semibold mb-2"
+        >
+          ⏱️ {getTimeEstimate(currentStep)}
+        </motion.div>
+        <div className="text-xs text-gray-500 mb-2">{getProgressMessage()}</div>
         <div className="w-full bg-slate-300 rounded-full h-2">
           <motion.div
             className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full shadow-lg"
@@ -315,13 +367,63 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
             className="p-4 sm:p-6"
           >
             <div className="mb-6 text-center sm:text-left">
-              <div className="mb-2">
-                <span className="inline-block bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-md">
-                  ⏱️ Takes less than 30 seconds
-                </span>
-              </div>
               <h2 className="text-lg sm:text-xl font-bold mb-3 bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent">{currentStepData.title}</h2>
               <p className="text-slate-600 text-sm leading-relaxed font-medium">{currentStepData.subtitle}</p>
+              {currentStep === 1 && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                  className="mt-3 space-y-2"
+                >
+                  <span className="inline-block bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-md">
+                    🚀 No credit card required
+                  </span>
+                  <div className="text-xs text-slate-500 font-medium">
+                    Join 500+ companies already transforming their L&D
+                  </div>
+                </motion.div>
+              )}
+              {currentStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2 text-xs text-slate-600 font-medium"
+                >
+                  🏢 We work with companies of all sizes
+                </motion.div>
+              )}
+              {currentStep === 3 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2 text-xs text-slate-600 font-medium"
+                >
+                  👋 We'll tailor your experience to your role
+                </motion.div>
+              )}
+              {currentStep === 4 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2 text-xs text-slate-600 font-medium"
+                >
+                  🎯 We'll show you features that matter most to you
+                </motion.div>
+              )}
+              {currentStep === 5 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2 text-xs text-slate-600 font-medium"
+                >
+                  💡 This helps us improve our outreach
+                </motion.div>
+              )}
             </div>
 
             {/* Text inputs */}

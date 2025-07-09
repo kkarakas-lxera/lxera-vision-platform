@@ -64,7 +64,8 @@ serve(async (req) => {
           use_case: session.early_access_leads.use_case,
           heard_about: session.early_access_leads.heard_about,
           waitlist_position: session.early_access_leads.waitlist_position,
-          status: session.early_access_leads.status
+          status: session.early_access_leads.status,
+          profile_completed_at: session.early_access_leads.profile_completed_at
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

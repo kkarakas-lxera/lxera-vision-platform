@@ -23,6 +23,7 @@ const WaitingRoom = () => {
     status: string;
     waitlist_position?: number;
     heard_about?: string;
+    profile_completed_at?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalLeads, setTotalLeads] = useState(0);
@@ -182,7 +183,7 @@ const WaitingRoom = () => {
           <p className="text-sm text-gray-600">
             {profileCompleted 
               ? "You're officially on the LXERA early access list."
-              : 'Complete your profile to join the waitlist'
+              : ''
             }
           </p>
         </div>
@@ -225,7 +226,16 @@ const WaitingRoom = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-600">
                       <Calendar className="w-3 h-3" />
-                      <span>March 2025</span>
+                      <span>
+                        {leadData.profile_completed_at 
+                          ? new Date(leadData.profile_completed_at).toLocaleDateString('en-US', { 
+                              month: 'long', 
+                              day: 'numeric',
+                              year: 'numeric' 
+                            })
+                          : 'Today'
+                        }
+                      </span>
                     </div>
                   </div>
                   <Progress value={progressPercentage} className="h-1 mt-3" />
