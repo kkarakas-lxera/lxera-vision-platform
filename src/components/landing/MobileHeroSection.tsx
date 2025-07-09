@@ -4,7 +4,7 @@ import { Play, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DemoModalWrapper from '@/components/DemoModalWrapper';
 import VideoModal from '@/components/VideoModal';
-import InlineEmailCapture from '@/components/forms/InlineEmailCapture';
+import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 
 const MobileHeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
@@ -102,7 +102,7 @@ const MobileHeroSection = () => {
         <div className="mb-6 animate-fade-in-up animate-delay-700">
           {!emailCaptured ? (
             <div className="space-y-3">
-              <InlineEmailCapture 
+              <SmartEmailCapture 
                 source="mobile_hero"
                 buttonText="Get Early Access"
                 variant="mobile"

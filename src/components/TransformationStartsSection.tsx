@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import DemoModal from "@/components/DemoModal";
-import InlineEmailCapture from "@/components/forms/InlineEmailCapture";
+import SmartEmailCapture from "@/components/forms/SmartEmailCapture";
 import { ArrowDown } from "lucide-react";
 import { useState } from "react";
 
@@ -47,22 +47,25 @@ const TransformationStartsSection = () => {
           <div className="mt-6 animate-fade-in-up animate-delay-700 max-w-md mx-auto">
             {showEmailCapture && !emailCaptured ? (
               <div className="space-y-4">
-                <InlineEmailCapture 
+                <SmartEmailCapture 
                   source="transformation_section"
                   buttonText="Get Early Access"
                   onSuccess={handleEmailSuccess}
+                  className="mx-auto"
                 />
                 <p className="text-xs text-gray-500">
                   No credit card required • Join 200+ teams
                 </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRequestDemo}
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  Prefer a demo? Schedule a call
-                </Button>
+                <p className="text-sm">
+                  Prefer a demo? 
+                  <SmartEmailCapture 
+                    source="transformation_section_demo"
+                    buttonText="Schedule a call"
+                    variant="minimal"
+                    onSuccess={handleEmailSuccess}
+                    className="ml-2"
+                  />
+                </p>
               </div>
             ) : emailCaptured ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">

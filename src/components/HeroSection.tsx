@@ -4,7 +4,7 @@ import { ArrowDown } from "lucide-react";
 import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import DemoModalWrapper from "./DemoModalWrapper";
-import InlineEmailCapture from "./forms/InlineEmailCapture";
+import SmartEmailCapture from "./forms/SmartEmailCapture";
 import { useState } from "react";
 
 const HeroSection = () => {
@@ -85,23 +85,25 @@ const HeroSection = () => {
                 </p>
                 
                 {showEmailCapture && !emailCaptured ? (
-                  <div className="space-y-3">
-                    <InlineEmailCapture 
-                      source="hero_section"
-                      buttonText="Get Early Access"
-                      onSuccess={handleEmailSuccess}
-                    />
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                      <SmartEmailCapture 
+                        source="hero_section"
+                        buttonText="Get Early Access"
+                        onSuccess={handleEmailSuccess}
+                      />
+                      <span className="text-sm text-gray-500">or</span>
+                      <Button
+                        variant="outline"
+                        onClick={handleRequestDemo}
+                        className="border-business-black/20 text-business-black hover:bg-business-black hover:text-white"
+                      >
+                        Schedule Demo
+                      </Button>
+                    </div>
                     <p className="text-xs text-center text-gray-500">
                       No credit card required • Join 200+ teams
                     </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRequestDemo}
-                      className="w-full text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      Prefer a demo? Schedule a call
-                    </Button>
                   </div>
                 ) : emailCaptured ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
