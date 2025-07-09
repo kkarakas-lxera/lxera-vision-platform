@@ -53,7 +53,7 @@ const WaitingRoom = () => {
             .single();
 
           if (!error && lead) {
-            console.log('Lead data loaded:', lead);
+            console.log('Full lead object:', JSON.stringify(lead, null, 2));
             setLeadData(lead);
             setProfileCompleted(lead.status === 'profile_completed' || lead.status === 'waitlisted');
           }
@@ -169,15 +169,14 @@ const WaitingRoom = () => {
                 {profileCompleted ? `Hi ${leadData.name || 'there'}!` : 'Almost there...'}
               </h1>
               {profileCompleted && (
-                <Badge className="bg-emerald-700 hover:bg-emerald-700 text-white text-xs">
+                <Badge className="bg-emerald-700 hover:bg-emerald-700 text-white text-xs border-emerald-700" style={{backgroundColor: '#047857', color: 'white'}}>
                   ✓ Waitlisted
                 </Badge>
               )}
             </div>
             {profileCompleted && (
               <div className="flex items-center gap-2 text-xs text-slate-600">
-                <Clock className="w-3 h-3" />
-                <span>Stay tuned</span>
+                <span>🚀 We're building something amazing — you'll be first to know!</span>
               </div>
             )}
           </div>
