@@ -60,6 +60,10 @@ serve(async (req) => {
           email: session.early_access_leads.email,
           name: session.early_access_leads.name,
           company: session.early_access_leads.company,
+          role: session.early_access_leads.role,
+          use_case: session.early_access_leads.use_case,
+          heard_about: session.early_access_leads.heard_about,
+          waitlist_position: session.early_access_leads.waitlist_position,
           status: session.early_access_leads.status
         }
       }),
