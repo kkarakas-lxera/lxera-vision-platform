@@ -66,7 +66,7 @@ const iconFor = (name: string) => {
   }
 };
 
-const MobileMenu = ({
+const MobileMenu: React.FC<MobileMenuProps> = ({
   menuItems,
   activeSection,
   isMobileMenuOpen,
