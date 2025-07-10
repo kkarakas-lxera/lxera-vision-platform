@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import {
   Home,
-  Ticket,
+  Users2,
   Users,
   BookOpen,
   MoreHorizontal,
@@ -53,7 +53,7 @@ const MobileAdminNavigation: React.FC<MobileAdminNavigationProps> = ({
       case 'super_admin':
         return [
           { href: '/admin', icon: Home, label: 'Dashboard' },
-          { href: '/admin/tickets', icon: Ticket, label: 'Tickets' },
+          { href: '/admin/leads', icon: Users2, label: 'Leads' },
           { href: '/admin/users', icon: Users, label: 'Users' },
           { href: '/admin/courses', icon: BookOpen, label: 'Courses' },
         ];

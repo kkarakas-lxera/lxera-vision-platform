@@ -25,11 +25,12 @@ import {
   Target,
   BrainCircuit,
   MessageSquare,
-  Ticket,
+  Users2,
   HelpCircle,
   FileText,
   Sparkles,
-  Lock
+  Lock,
+  Ticket
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -74,6 +75,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         return [
           { href: '/admin', icon: Home, label: 'Dashboard' },
           { href: '/admin/tickets', icon: Ticket, label: 'Tickets' },
+          { href: '/admin/leads', icon: Users2, label: 'Leads' },
           { href: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
           { href: '/admin/companies', icon: Building2, label: 'Companies' },
           { href: '/admin/users', icon: Users, label: 'Users' },

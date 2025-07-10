@@ -1,144 +1,49 @@
-import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Building, Headphones, Users, MessageCircle, Loader2 } from "lucide-react";
-import { ticketService } from "@/services/ticketService";
-import { useToast } from "@/hooks/use-toast";
+import { Building, Headphones, Users, MessageCircle } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 
 const Contact = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    company: "",
-    subject: "",
-    message: ""
-  });
-  const { toast } = useToast();
   const contactOptions = [
     {
       icon: Building,
       title: "Sales Inquiries",
       description: "Learn how LXERA can transform your organization's learning strategy",
       action: "Contact Sales",
-      email: "sales@lxera.ai",
-      ticketType: 'contact_sales' as const
+      email: "sales@lxera.ai"
     },
     {
       icon: Headphones,
       title: "Customer Support",
       description: "Get help with your LXERA platform and account questions",
       action: "Get Support",
-      email: "support@lxera.ai",
-      ticketType: 'contact_sales' as const
+      email: "support@lxera.ai"
     },
     {
       icon: Users,
       title: "Partnerships",
       description: "Explore partnership opportunities and integration possibilities",
       action: "Partner With Us",
-      email: "partnerships@lxera.ai",
-      ticketType: 'contact_sales' as const
+      email: "partnerships@lxera.ai"
     },
     {
       icon: MessageCircle,
       title: "General Inquiries",
       description: "For press, media, or other general questions about LXERA",
       action: "Send Message",
-      email: "hello@lxera.ai",
-      ticketType: 'contact_sales' as const
+      email: "hello@lxera.ai"
     }
   ];
 
-  const handleContactOptionClick = async (option: typeof contactOptions[0]) => {
-    // Pre-fill the subject based on the contact type
-    const subjectMap = {
-      "Contact Sales": "Sales Inquiry",
-      "Get Support": "Support Request",
-      "Partner With Us": "Partnership Opportunity",
-      "Send Message": "General Inquiry"
-    };
+  const handleContactOptionClick = (option: typeof contactOptions[0]) => {
+    // Create a mailto link to open the user's email client
+    const subject = encodeURIComponent(`${option.title} - LXERA Inquiry`);
+    const body = encodeURIComponent(`Hello LXERA Team,\n\nI would like to inquire about ${option.title.toLowerCase()}.\n\nPlease get in touch with me to discuss further.\n\nBest regards,`);
+    const mailtoLink = `mailto:${option.email}?subject=${subject}&body=${body}`;
     
-    setFormData(prev => ({
-      ...prev,
-      subject: subjectMap[option.action as keyof typeof subjectMap] || option.title
-    }));
-    
-    // Scroll to the contact form
-    const formSection = document.getElementById('contact-form');
-    if (formSection) {
-      formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const handleInputChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.company || !formData.subject || !formData.message) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const result = await ticketService.submitTicket({
-        ticketType: 'contact_sales',
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        company: formData.company,
-        message: `Subject: ${formData.subject}\n\n${formData.message}`,
-        source: 'Contact Page'
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to submit contact form');
-      }
-
-      toast({
-        title: "Message Sent!",
-        description: "We'll get back to you within 24 hours.",
-      });
-
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        company: "",
-        subject: "",
-        message: ""
-      });
-    } catch (error) {
-      console.error('Contact form submission failed:', error);
-      toast({
-        title: "Submission Failed",
-        description: "There was an error sending your message. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    window.open(mailtoLink, '_blank');
   };
 
   return (
@@ -209,108 +114,62 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Form - Enhanced Curved Design */}
-      <section id="contact-form" className="py-20 px-6 lg:px-12 bg-white/30">
+      {/* Contact Information */}
+      <section id="contact-info" className="py-20 px-6 lg:px-12 bg-white/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
-              Send Us a Message
+              Get in Touch
             </h2>
             <p className="text-lg text-business-black/70">
-              Fill out the form below and we'll get back to you within 24 hours
+              We're here to help you transform your organization's learning experience
             </p>
           </div>
           
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden">
-            <CardContent className="p-10">
-              <form onSubmit={handleFormSubmit} className="space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-business-black font-medium mb-3 text-lg">First Name</label>
-                    <Input 
-                      placeholder="Your first name" 
-                      value={formData.firstName}
-                      onChange={handleInputChange("firstName")}
-                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-business-black font-medium mb-3 text-lg">Last Name</label>
-                    <Input 
-                      placeholder="Your last name" 
-                      value={formData.lastName}
-                      onChange={handleInputChange("lastName")}
-                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-business-black font-medium mb-3 text-lg">Email</label>
-                    <Input 
-                      type="email" 
-                      placeholder="your.email@company.com" 
-                      value={formData.email}
-                      onChange={handleInputChange("email")}
-                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-business-black font-medium mb-3 text-lg">Company</label>
-                    <Input 
-                      placeholder="Your company name" 
-                      value={formData.company}
-                      onChange={handleInputChange("company")}
-                      className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
-                      required
-                    />
-                  </div>
-                </div>
-                
+            <CardContent className="p-10 text-center">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-business-black font-medium mb-3 text-lg">Subject</label>
-                  <Input 
-                    placeholder="What would you like to discuss?" 
-                    value={formData.subject}
-                    onChange={handleInputChange("subject")}
-                    className="border-business-black/20 rounded-2xl h-14 px-6 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg" 
-                    required
+                  <h3 className="text-2xl font-medium text-business-black mb-4">
+                    Ready to See LXERA in Action?
+                  </h3>
+                  <p className="text-lg text-business-black/70 mb-6">
+                    Book a personalized demo to discover how LXERA can revolutionize your workforce development.
+                  </p>
+                  <ProgressiveDemoCapture
+                    source="contact_page_demo"
+                    buttonText="Schedule Your Demo"
+                    variant="default"
+                    className="bg-gradient-to-r from-future-green to-emerald text-business-black font-semibold py-4 px-8 rounded-2xl text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-business-black font-medium mb-3 text-lg">Message</label>
-                  <Textarea 
-                    placeholder="Tell us more about your learning goals and how we can help..."
-                    rows={6}
-                    value={formData.message}
-                    onChange={handleInputChange("message")}
-                    className="border-business-black/20 rounded-2xl px-6 py-4 text-lg bg-white/70 focus:bg-white transition-all duration-300 focus:shadow-lg resize-none"
-                    required
-                  />
+                <div className="pt-8 border-t border-business-black/10">
+                  <h4 className="text-xl font-medium text-business-black mb-4">
+                    Direct Contact
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-business-black/70 mb-2">General Inquiries</p>
+                      <a 
+                        href="mailto:hello@lxera.ai" 
+                        className="text-future-green hover:text-emerald transition-colors duration-300 font-medium"
+                      >
+                        hello@lxera.ai
+                      </a>
+                    </div>
+                    <div>
+                      <p className="text-business-black/70 mb-2">Sales Team</p>
+                      <a 
+                        href="mailto:sales@lxera.ai" 
+                        className="text-future-green hover:text-emerald transition-colors duration-300 font-medium"
+                      >
+                        sales@lxera.ai
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-future-green to-emerald text-business-black font-semibold py-6 rounded-2xl text-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-6 h-6 mr-2 animate-spin inline" />
-                        Sending...
-                      </>
-                    ) : (
-                      "Send Message"
-                    )}
-                  </Button>
-                </div>
-              </form>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ticketService } from "@/services/ticketService";
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -48,35 +47,38 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
     setIsSubmitting(true);
 
     try {
-      // Split full name into first and last name
-      const nameParts = formData.fullName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      // Create a mailto link to open the user's email client
+      const subject = encodeURIComponent(`Waitlist Registration - ${formData.fullName}`);
+      const body = encodeURIComponent(`Hello LXERA Team,
 
-      const result = await ticketService.submitTicket({
-        ticketType: 'early_access',
-        firstName,
-        lastName,
-        email: formData.email,
-        company: 'Not Provided', // Required field but not collected in waitlist
-        message: formData.interest || 'Interested in early access',
-        source: 'Waitlist Modal'
-      });
+I would like to join the waitlist for early access to LXERA.
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to join waitlist');
-      }
+Name: ${formData.fullName}
+Email: ${formData.email}
+
+${formData.interest ? `Interest: ${formData.interest}` : ''}
+
+Please add me to your early access list.
+
+Best regards,
+${formData.fullName}`);
+      
+      const mailtoLink = `mailto:hello@lxera.ai?subject=${subject}&body=${body}`;
+      window.open(mailtoLink, '_blank');
+      
+      // Simulate a brief delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       setIsSubmitted(true);
       toast({
         title: "Welcome to the Waitlist!",
-        description: "You're now on our early access list. We'll notify you when LXERA is ready.",
+        description: "Your email client should open with a pre-filled message to join our waitlist.",
       });
     } catch (error) {
       console.error('Waitlist submission failed:', error);
       toast({
-        title: "Submission Failed",
-        description: error instanceof Error ? error.message : "There was an error joining the waitlist. Please try again.",
+        title: "Unable to Open Email",
+        description: "Please contact us directly at hello@lxera.ai to join the waitlist.",
         variant: "destructive",
       });
     } finally {

@@ -73,14 +73,13 @@ const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const Tickets = lazy(() => import("./pages/admin/Tickets"));
+const Leads = lazy(() => import("./pages/admin/Leads"));
 const CompaniesManagement = lazy(() => import("./pages/admin/companies/CompaniesManagement"));
 const UsersManagement = lazy(() => import("./pages/admin/users/UsersManagement"));
 const CoursesManagement = lazy(() => import("./pages/admin/courses/CoursesManagement"));
 const AnalyticsDashboard = lazy(() => import("./pages/admin/analytics/AnalyticsDashboard"));
 const Settings = lazy(() => import("./pages/admin/Settings"));
 const CustomerFeedback = lazy(() => import("./pages/admin/CustomerFeedback"));
-const DemoRequests = lazy(() => import("./pages/admin/DemoRequests"));
 
 // Lazy load learner pages
 const LearnerDashboard = lazy(() => import("./pages/learner/LearnerDashboard"));
@@ -193,14 +192,14 @@ const App = () => {
                   <DashboardLayout>
                     <Routes>
                       <Route path="/" element={<PageSuspense><AdminDashboard /></PageSuspense>} />
-                      <Route path="/tickets" element={<PageSuspense><Tickets /></PageSuspense>} />
+                      <Route path="/leads" element={<PageSuspense><Leads /></PageSuspense>} />
                       <Route path="/companies" element={<PageSuspense><CompaniesManagement /></PageSuspense>} />
                       <Route path="/users" element={<PageSuspense><UsersManagement /></PageSuspense>} />
                       <Route path="/courses" element={<PageSuspense><CoursesManagement /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><AnalyticsDashboard /></PageSuspense>} />
                       <Route path="/settings" element={<PageSuspense><Settings /></PageSuspense>} />
                       <Route path="/feedback" element={<PageSuspense><CustomerFeedback /></PageSuspense>} />
-                      <Route path="/demo-requests" element={<PageSuspense><DemoRequests /></PageSuspense>} />
+                      <Route path="/leads" element={<PageSuspense><Leads /></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>

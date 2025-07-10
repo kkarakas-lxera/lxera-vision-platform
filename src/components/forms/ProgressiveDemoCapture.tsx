@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowRight, Mail, Calendar, Building2, Users, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ticketService } from '@/services/ticketService';
+import { demoCaptureService } from '@/services/demoCaptureService';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -92,19 +92,16 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
       company: prev.company || companyName.charAt(0).toUpperCase() + companyName.slice(1)
     }));
 
-    // Save lead immediately with just email
+    // Save demo capture with email only (step 1)
     try {
-      const response = await supabase.functions.invoke('capture-email', {
-        body: {
-          email: formData.email,
-          source: `demo_${source}`,
-          utm_source: new URLSearchParams(window.location.search).get('utm_source'),
-          utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
-          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
-        }
+      await demoCaptureService.captureDemo({
+        email: formData.email,
+        source,
+        stepCompleted: 1,
+        utmSource: new URLSearchParams(window.location.search).get('utm_source'),
+        utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
+        utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
       });
-
-      if (response.error) throw response.error;
 
       // Move to next step
       setCurrentStep(2);
@@ -133,42 +130,37 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
     setLoading(true);
 
     try {
-      // Split name into first and last
+      // Split name into first and last for email
       const nameParts = formData.name.trim().split(' ');
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(' ') || nameParts[0];
 
-      // Submit full demo request
-      const result = await ticketService.submitTicket({
-        ticketType: 'demo_request',
-        firstName,
-        lastName,
+      // Update demo capture with full details (step 2)
+      await demoCaptureService.captureDemo({
         email: formData.email,
+        name: formData.name,
         company: formData.company,
         companySize: formData.companySize,
-        country: 'United States', // Default, can be enhanced later
-        source: `progressive_${source}`,
-        message: 'Submitted via progressive demo form'
+        source,
+        stepCompleted: 2,
+        utmSource: new URLSearchParams(window.location.search).get('utm_source'),
+        utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
+        utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
       });
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to submit demo request');
-      }
-      
+
       // Send demo scheduling email
-      try {
-        await supabase.functions.invoke('send-demo-email', {
-          body: {
-            email: formData.email,
-            firstName,
-            lastName,
-            company: formData.company,
-            companySize: formData.companySize,
-            ticketId: result.data?.id
-          }
-        });
-      } catch (emailError) {
-        console.error('Failed to send demo email:', emailError);
+      const emailResult = await supabase.functions.invoke('send-demo-email', {
+        body: {
+          email: formData.email,
+          firstName,
+          lastName,
+          company: formData.company,
+          companySize: formData.companySize
+        }
+      });
+
+      if (emailResult.error) {
+        console.error('Failed to send demo email:', emailResult.error);
         // Continue anyway - the request was saved
       }
       
@@ -235,7 +227,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setCurrentStep(1)}
-              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40"
+              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target"
             >
               {buttonText}
             </motion.button>
@@ -248,7 +240,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
               onSubmit={handleEmailSubmit}
-              className="flex gap-2"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-2"
             >
               <Input
                 ref={emailRef}
@@ -256,11 +248,11 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Work email"
-                className="w-48"
+                className="w-full sm:w-48 h-12 sm:h-10 text-base sm:text-sm"
                 inputMode="email"
                 autoComplete="email"
               />
-              <Button type="submit" size="sm">
+              <Button type="submit" size="sm" className="w-full sm:w-auto h-12 sm:h-10">
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </motion.form>
@@ -272,23 +264,23 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               onSubmit={handleDetailsSubmit}
-              className="flex gap-2"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-2"
             >
               <Input
                 ref={nameRef}
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Full name"
-                className="w-32"
+                className="w-full sm:w-32 h-12 sm:h-10 text-base sm:text-sm"
               />
               <Input
                 value={formData.company}
                 onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                 placeholder="Company"
-                className="w-32"
+                className="w-full sm:w-32 h-12 sm:h-10 text-base sm:text-sm"
               />
               <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-full sm:w-24 h-12 sm:h-10 text-base sm:text-sm">
                   <SelectValue placeholder="Size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,7 +289,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="submit" size="sm" disabled={loading}>
+              <Button type="submit" size="sm" disabled={loading} className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Get Demo'}
               </Button>
             </motion.form>

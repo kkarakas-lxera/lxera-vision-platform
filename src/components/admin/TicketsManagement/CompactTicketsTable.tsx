@@ -1,5 +1,33 @@
 import React from 'react';
-import { TicketRecord, TicketType } from '@/services/ticketService';
+// Types from removed ticketService
+type TicketType = 'demo_request' | 'contact_sales' | 'early_access';
+
+interface TicketRecord {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  company: string;
+  job_title: string | null;
+  phone: string | null;
+  company_size: string | null;
+  country: string | null;
+  message: string | null;
+  source: string;
+  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'rejected';
+  priority: 'low' | 'medium' | 'high';
+  notes: string | null;
+  processed_by: string | null;
+  processed_at: string | null;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+  ticket_type: TicketType;
+  budget_range: string | null;
+  timeline: string | null;
+  use_case: string | null;
+  referral_source: string | null;
+}
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';

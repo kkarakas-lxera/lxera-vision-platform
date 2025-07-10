@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ArrowRight, Mail, Sparkles } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, Sparkles, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,11 +11,26 @@ interface SmartEmailCaptureProps {
   variant?: 'default' | 'mobile' | 'minimal';
   buttonText?: string;
   placeholder?: string;
-  onSuccess?: (email: string) => void;
+  onSuccess?: (email: string, name: string) => void;
   className?: string;
   initialEmail?: string;
   autoSubmit?: boolean;
 }
+
+// Common personal/consumer email domains to block
+const BLOCKED_DOMAINS = [
+  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+  'icloud.com', 'me.com', 'protonmail.com', 'tutanota.com', 'yandex.com',
+  'mail.com', 'gmx.com', 'zoho.com', 'fastmail.com', 'hushmail.com',
+  'guerrillamail.com', 'mailinator.com', '10minutemail.com', 'tempmail.org',
+  'throwaway.email', 'maildrop.cc', 'sharklasers.com', 'grr.la'
+];
+
+const isCompanyEmail = (email: string): boolean => {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return false;
+  return !BLOCKED_DOMAINS.includes(domain);
+};
 
 const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
   source,
@@ -29,20 +44,43 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!initialEmail);
   const [email, setEmail] = useState(initialEmail);
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const hasAutoSubmitted = useRef(false);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate email format
     if (!email || !email.includes('@')) {
       toast({
         title: 'Invalid Email',
         description: 'Please enter a valid email address',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate company email domain
+    if (!isCompanyEmail(email)) {
+      toast({
+        title: 'Work Email Required',
+        description: 'Please use your company email address instead of a personal email',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate name
+    if (!name || name.trim().length < 2) {
+      toast({
+        title: 'Name Required',
+        description: 'Please enter your full name',
         variant: 'destructive'
       });
       return;
@@ -54,6 +92,7 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
       const response = await supabase.functions.invoke('capture-email', {
         body: {
           email,
+          name: name.trim(),
           source,
           utm_source: new URLSearchParams(window.location.search).get('utm_source'),
           utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
@@ -74,7 +113,7 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
           description: 'We sent you a magic link to complete your profile.',
         });
 
-        onSuccess?.(email);
+        onSuccess?.(email, name.trim());
       }
     } catch (error: any) {
       console.error('Error capturing email:', error);
@@ -86,11 +125,11 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [email, source, onSuccess]);
+  }, [email, name, source, onSuccess]);
 
   useEffect(() => {
-    if (isExpanded && inputRef.current) {
-      inputRef.current.focus();
+    if (isExpanded && emailRef.current) {
+      emailRef.current.focus();
     }
   }, [isExpanded]);
 
@@ -152,10 +191,10 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
               onSubmit={handleSubmit}
-              className="flex gap-2"
+              className="flex flex-col gap-2"
             >
               <Input
-                ref={inputRef}
+                ref={emailRef}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -164,6 +203,16 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
                 disabled={loading}
                 inputMode="email"
                 autoComplete="email"
+              />
+              <Input
+                ref={nameRef}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your full name"
+                className="w-64"
+                disabled={loading}
+                autoComplete="name"
               />
               <Button type="submit" disabled={loading} size="sm">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
@@ -238,50 +287,86 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             onSubmit={handleSubmit}
-            className={`flex ${variant === 'mobile' ? 'flex-col' : 'flex-row'} gap-2 w-full max-w-full`}
+            className={`bg-white rounded-2xl shadow-xl border border-gray-200 p-4 ${variant === 'mobile' ? 'w-full' : 'w-80'}`}
           >
-            <Input
-              ref={inputRef}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={placeholder}
-              className={`
-                ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
-                ${variant === 'mobile' ? 'w-full' : 'w-64'}
-                transition-all duration-300
-                bg-white/95
-              `}
-              disabled={loading}
-              inputMode="email"
-              autoComplete="email"
-              onBlur={() => {
-                if (!email) {
-                  setTimeout(() => setIsExpanded(false), 200);
-                }
-              }}
-            />
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className={`
-                bg-future-green text-business-black hover:bg-future-green/90 font-medium
-                ${variant === 'mobile' ? 'h-12 text-base w-full' : 'h-11 px-6'}
-                flex items-center justify-center whitespace-nowrap
-              `}
-            >
-              {loading ? (
-                <span className="flex items-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
-                  <span>Sending...</span>
-                </span>
-              ) : (
-                <span className="flex items-center">
-                  <span>Get Access</span>
-                  <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
-                </span>
-              )}
-            </Button>
+            <div className="space-y-3">
+              <div className="text-center">
+                <h3 className="font-semibold text-lg text-business-black">Get Early Access</h3>
+                <p className="text-sm text-gray-600 mt-1">Enter your work email and name to continue</p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="relative">
+                  <Input
+                    ref={emailRef}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={placeholder}
+                    className={`
+                      w-full border-gray-300 pl-10
+                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                      transition-all duration-300
+                      bg-white/95
+                    `}
+                    disabled={loading}
+                    inputMode="email"
+                    autoComplete="email"
+                    onBlur={() => {
+                      if (!email && !name) {
+                        setTimeout(() => setIsExpanded(false), 200);
+                      }
+                    }}
+                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                </div>
+                
+                <div className="relative">
+                  <Input
+                    ref={nameRef}
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                    className={`
+                      w-full border-gray-300 pl-10
+                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                      transition-all duration-300
+                      bg-white/95
+                    `}
+                    disabled={loading}
+                    autoComplete="name"
+                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className={`
+                    w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300
+                    ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                    flex items-center justify-center whitespace-nowrap
+                  `}
+                >
+                  {loading ? (
+                    <span className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
+                      <span>Sending...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <span>Get Access</span>
+                      <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
+                    </span>
+                  )}
+                </Button>
+              </div>
+              
+              <p className="text-xs text-center text-gray-500">
+                Work email required • No spam, ever
+              </p>
+            </div>
           </motion.form>
         )}
       </AnimatePresence>

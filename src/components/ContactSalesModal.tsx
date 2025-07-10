@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ticketService } from "@/services/ticketService";
 
 interface ContactSalesModalProps {
   isOpen: boolean;
@@ -59,36 +58,40 @@ const ContactSalesModal = ({ isOpen, onClose }: ContactSalesModalProps) => {
     setIsSubmitting(true);
 
     try {
-      // Split name into firstName and lastName
-      const nameParts = formData.name.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      // Create a mailto link to open the user's email client
+      const subject = encodeURIComponent(`Sales Inquiry from ${formData.company}`);
+      const body = encodeURIComponent(`Hello LXERA Sales Team,
 
-      const result = await ticketService.submitTicket({
-        ticketType: 'contact_sales',
-        firstName,
-        lastName,
-        email: formData.email,
-        company: formData.company,
-        teamSize: formData.teamSize,
-        message: formData.message,
-        source: 'Contact Sales Modal'
-      });
+I'm interested in learning more about LXERA for my organization.
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to submit contact request');
-      }
+Name: ${formData.name}
+Company: ${formData.company}
+Email: ${formData.email}
+Team Size: ${formData.teamSize}
+
+${formData.message ? `Message: ${formData.message}` : ''}
+
+Please get in touch to discuss how LXERA can work for our team.
+
+Best regards,
+${formData.name}`);
+      
+      const mailtoLink = `mailto:sales@lxera.ai?subject=${subject}&body=${body}`;
+      window.open(mailtoLink, '_blank');
+      
+      // Simulate a brief delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       setIsSubmitted(true);
       toast({
-        title: "Contact Request Sent!",
-        description: "Our sales team will reach out to you within 24 hours.",
+        title: "Email Client Opened!",
+        description: "Your email client should open with a pre-filled message to our sales team.",
       });
     } catch (error) {
       console.error('Contact sales submission failed:', error);
       toast({
-        title: "Submission Failed",
-        description: error instanceof Error ? error.message : "There was an error sending your request. Please try again.",
+        title: "Unable to Open Email",
+        description: "Please contact our sales team directly at sales@lxera.ai",
         variant: "destructive",
       });
     } finally {

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
+  Users2,
   BookOpen, 
   TrendingUp, 
   Calendar,
@@ -29,8 +30,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import TicketDetailModal from '@/components/admin/TicketsManagement/TicketDetailModal';
-import { ticketService, TicketRecord } from '@/services/ticketService';
 import MobileStatsCarousel from '@/components/mobile/admin/MobileStatsCarousel';
 import { cn } from '@/lib/utils';
 
@@ -39,8 +38,6 @@ interface DashboardStats {
   totalCourses: number;
   activeLearners: number;
   completionRate: number;
-  totalTickets: number;
-  newTickets: number;
   totalCompanies: number;
   activeCompanies: number;
   totalFeedback: number;
@@ -52,7 +49,7 @@ interface DashboardStats {
 
 interface RecentActivity {
   id: string;
-  type: 'ticket' | 'company_joined' | 'course_completed';
+  type: 'lead' | 'company_joined' | 'course_completed';
   title: string;
   description: string;
   timestamp: string;
@@ -67,8 +64,6 @@ const AdminDashboard: React.FC = () => {
     totalCourses: 0,
     activeLearners: 0,
     completionRate: 0,
-    totalTickets: 0,
-    newTickets: 0,
     totalCompanies: 0,
     activeCompanies: 0,
     totalFeedback: 0,
@@ -76,11 +71,8 @@ const AdminDashboard: React.FC = () => {
     averageRating: 0,
     newFeedback: 0
   });
-  const [recentTickets, setRecentTickets] = useState<TicketRecord[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
-  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -100,14 +92,12 @@ const AdminDashboard: React.FC = () => {
         employeesData, 
         coursesData, 
         assignmentsData, 
-        ticketsData,
         companiesData,
         feedbackData
       ] = await Promise.all([
         supabase.from('employees').select('id', { count: 'exact' }),
         supabase.from('cm_module_content').select('content_id', { count: 'exact' }),
         supabase.from('course_assignments').select('id, status, progress_percentage'),
-        supabase.from('tickets').select('*').order('submitted_at', { ascending: false }),
         supabase.from('companies').select('id, created_at', { count: 'exact' }),
         supabase.from('company_feedback').select('*').order('created_at', { ascending: false })
       ]);
@@ -119,8 +109,6 @@ const AdminDashboard: React.FC = () => {
       const completedAssignments = assignments.filter(a => a.status === 'completed').length;
       const completionRate = assignments.length > 0 ? (completedAssignments / assignments.length) * 100 : 0;
 
-      const tickets = ticketsData.data || [];
-      const newTickets = tickets.filter(t => t.status === 'new').length;
 
       const totalCompanies = companiesData.count || 0;
       const activeCompanies = companiesData.data?.filter(c => {
@@ -154,8 +142,6 @@ const AdminDashboard: React.FC = () => {
         totalCourses,
         activeLearners,
         completionRate,
-        totalTickets: tickets.length,
-        newTickets,
         totalCompanies,
         activeCompanies,
         totalFeedback: allFeedback.length,
@@ -164,26 +150,18 @@ const AdminDashboard: React.FC = () => {
         newFeedback
       });
 
-      // Set recent tickets
-      setRecentTickets(tickets.slice(0, 5) as TicketRecord[]);
-
-      // Create recent activity
+      // Create recent activity from feedback
       const activities: RecentActivity[] = [];
       
-      // Add recent tickets to activity
-      tickets.slice(0, 3).forEach(ticket => {
-        const typeLabels = {
-          demo_request: 'Demo Request',
-          contact_sales: 'Sales Contact',
-          early_access: 'Early Access'
-        };
+      // Add recent feedback to activity
+      allFeedback.slice(0, 5).forEach(feedback => {
         activities.push({
-          id: ticket.id,
-          type: 'ticket',
-          title: `New ${typeLabels[ticket.ticket_type as keyof typeof typeLabels]}`,
-          description: `${ticket.first_name} ${ticket.last_name}${ticket.company ? ` from ${ticket.company}` : ''}`,
-          timestamp: ticket.submitted_at,
-          icon: <Mail className="h-4 w-4" />
+          id: feedback.id,
+          type: 'lead',
+          title: `New ${feedback.type.replace('_', ' ')} Feedback`,
+          description: feedback.title || 'Feedback received',
+          timestamp: feedback.created_at!,
+          icon: <MessageSquare className="h-4 w-4" />
         });
       });
 
@@ -203,28 +181,7 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  const handleViewTicketDetails = (ticket: TicketRecord) => {
-    setSelectedTicket(ticket);
-    setIsTicketModalOpen(true);
-  };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      new: { color: 'default', label: 'New' },
-      contacted: { color: 'secondary', label: 'Contacted' },
-      qualified: { color: 'success', label: 'Qualified' },
-      converted: { color: 'success', label: 'Converted' },
-      rejected: { color: 'destructive', label: 'Rejected' }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
-    
-    return (
-      <Badge variant={config.color as any}>
-        {config.label}
-      </Badge>
-    );
-  };
 
   const formatTimeAgo = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -266,7 +223,7 @@ const AdminDashboard: React.FC = () => {
       companies: '/admin/companies',
       users: '/admin/users',
       courses: '/admin/courses',
-      tickets: '/admin/tickets',
+      leads: '/admin/leads',
       feedback: '/admin/feedback'
     };
     
@@ -327,7 +284,7 @@ const AdminDashboard: React.FC = () => {
         <MobileStatsCarousel stats={stats} onCardClick={handleStatsCardClick} />
       </div>
       
-      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/companies')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -374,25 +331,6 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/tickets')}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Customer Tickets</p>
-                <p className="text-3xl font-bold mt-1">{stats.totalTickets}</p>
-                {stats.newTickets > 0 && (
-                  <Badge variant="default" className="mt-1">
-                    {stats.newTickets} new
-                  </Badge>
-                )}
-              </div>
-              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </CardContent>
@@ -503,10 +441,10 @@ const AdminDashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start h-12 md:h-10 text-sm"
-              onClick={() => navigate('/admin/tickets')}
+              onClick={() => navigate('/admin/leads')}
             >
-              <Mail className="h-4 w-4 mr-2" />
-              Customer Tickets
+              <Users2 className="h-4 w-4 mr-2" />
+              Leads
             </Button>
             <Button 
               variant="outline" 
@@ -536,110 +474,6 @@ const AdminDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Recent Tickets */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between pb-3 md:pb-6">
-          <div>
-            <CardTitle className="text-lg md:text-xl">Recent Tickets</CardTitle>
-            <CardDescription className="text-sm">Latest customer interactions</CardDescription>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate('/admin/tickets')}
-            className="self-end"
-          >
-            View All
-            <ArrowUpRight className="h-4 w-4 ml-1" />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {/* Mobile view - Cards */}
-          <div className="block md:hidden space-y-3">
-            {recentTickets.map((ticket) => {
-              const typeIcons = {
-                demo_request: '🎯',
-                contact_sales: '💰',
-                early_access: '🚀'
-              };
-              return (
-                <div 
-                  key={ticket.id} 
-                  className="p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer active:scale-98"
-                  onClick={() => handleViewTicketDetails(ticket)}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{typeIcons[ticket.ticket_type]}</span>
-                      <div className="font-medium text-sm">
-                        {ticket.first_name} {ticket.last_name}
-                      </div>
-                    </div>
-                    {getStatusBadge(ticket.status)}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      {ticket.company || ticket.ticket_type.replace(/_/g, ' ')}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {ticket.email}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTimeAgo(ticket.submitted_at)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Desktop view - Table-like layout */}
-          <div className="hidden md:block space-y-2">
-            {recentTickets.map((ticket) => {
-              const typeIcons = {
-                demo_request: '🎯',
-                contact_sales: '💰',
-                early_access: '🚀'
-              };
-              return (
-                <div 
-                  key={ticket.id} 
-                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => handleViewTicketDetails(ticket)}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">{typeIcons[ticket.ticket_type]}</span>
-                      <div>
-                        <p className="font-medium">
-                          {ticket.first_name} {ticket.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{ticket.company || ticket.ticket_type.replace(/_/g, ' ')}</p>
-                      </div>
-                      {getStatusBadge(ticket.status)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="hidden lg:inline">{ticket.email}</span>
-                    <span>{formatTimeAgo(ticket.submitted_at)}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Ticket Detail Modal */}
-      <TicketDetailModal
-        ticket={selectedTicket}
-        isOpen={isTicketModalOpen}
-        onClose={() => {
-          setIsTicketModalOpen(false);
-          setSelectedTicket(null);
-        }}
-        onStatusUpdate={fetchDashboardData}
-      />
     </div>
   );
 };
