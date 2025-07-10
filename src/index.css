@@ -21,4 +21,44 @@
     display: none;  /* Chrome, Safari and Opera */
   }
 }
-/* Force rebuild: Thu Jul 10 13:18:21 +03 2025 */
+
+/* Critical mobile fixes that must override Tailwind */
+@layer base {
+  /* Prevent iOS Safari yellow highlight on form fields */
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: text !important;
+  }
+
+  /* Mobile-specific input styling */
+  @media (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important; /* Prevent zoom on iOS */
+      -webkit-text-size-adjust: 100%;
+      -webkit-appearance: none !important;
+      background-color: white !important;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgb(156 163 175) !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: rgb(156 163 175) !important;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-user-select: text !important;
+      background-color: white !important;
+    }
+  }
+}
+
+/* Version: 1.0.2 - Critical mobile fixes in Tailwind layer - 2025-07-10 13:35 */

@@ -223,9 +223,9 @@
   input,
   textarea,
   select {
-    -webkit-appearance: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: text;
+    -webkit-appearance: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: text !important;
   }
 
   /* Additional mobile-specific input styling */

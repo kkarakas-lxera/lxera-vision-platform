@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lxera Email Templates - Unified Brand Design</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .preview-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .email-preview {
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .email-title {
+            background: #191919;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        .email-frame {
+            background: white;
+            padding: 20px;
+            height: 800px;
+            overflow-y: auto;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Email Template Styles */
+        .email-template {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #191919;
+            background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .email-wrapper {
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .email-header {
+            text-align: center;
+            padding: 40px 40px 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .email-logo {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        .email-tagline {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .email-content {
+            padding: 40px;
+        }
+        .email-title-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: #191919;
+            margin: 0 0 20px;
+            text-align: center;
+        }
+        .email-body {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .verification-code {
+            background: #7AE5C6;
+            color: #191919;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 8px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: #191919;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(25, 25, 25, 0.3);
+        }
+        .btn-center {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .waitlist-badge {
+            background: #7AE5C6;
+            color: #191919;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .waitlist-number {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .waitlist-percent {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 5px 0 0;
+        }
+        .profile-box {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #666;
+        }
+        .profile-label {
+            font-weight: 500;
+        }
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .steps-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #666;
+        }
+        .steps-list li:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 10px;
+            background: #7AE5C6;
+            color: #191919;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .steps-list {
+            counter-reset: step;
+        }
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .benefits-list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #666;
+            font-size: 15px;
+        }
+        .benefits-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 12px;
+            color: #7AE5C6;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .calendar-box {
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .calendar-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .help-box {
+            background: #EFEFE3;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .email-footer {
+            padding: 30px 40px;
+            border-top: 1px solid #f0f0f0;
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+        }
+        .footer-links {
+            margin: 10px 0;
+        }
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .footer-links a:hover {
+            color: #191919;
+        }
+        .social-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .social-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .linkedin-button {
+            display: inline-flex;
+            align-items: center;
+            background: #0077B5;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .linkedin-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 119, 181, 0.3);
+            color: white;
+        }
+        .linkedin-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        .expire-notice {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+        .expire-notice .icon {
+            font-size: 16px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .fallback-link {
+            font-size: 12px;
+            color: #999;
+            word-break: break-all;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <h1>Lxera Email Templates - Unified Brand Design</h1>
+            <p>Brand Colors: #EFEFE3 (smart-beige), #7AE5C6 (future-green), #191919 (business-black)</p>
+            <p>Font: Inter | Slogan: "Beyond Learning" | Year: 2025</p>
+        </div>
+
+        <!-- Verification Code Email -->
+        <div class="email-preview">
+            <div class="email-title">1. Verification Code Email (OTP)</div>
+            <div class="email-frame">
+                <div class="email-template">
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" class="email-logo">
+                                <div class="email-tagline">Beyond Learning</div>
+                            </div>
+                            <div class="email-content">
+                                <h1 class="email-title-text">Verify Your Email</h1>
+                                <p class="email-body">Hi there, welcome to LXERA!</p>
+                                <div class="verification-code">123456</div>
+                                <div class="expire-notice">
+                                    <span class="icon">⏱️</span> Code expires in 15 minutes
+                                </div>
+                            </div>
+                            <div class="email-footer">
+                                <div class="social-section">
+                                    <div class="social-text">Follow us for updates and insights:</div>
+                                    <a href="https://www.linkedin.com/company/lxera" class="linkedin-button">
+                                        <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                        </svg>
+                                        Follow on LinkedIn
+                                    </a>
+                                </div>
+                                <div>Beyond Learning | <a href="https://www.lxera.ai">www.lxera.ai</a></div>
+                                <div style="margin-top: 10px;">© 2025 LXERA. All rights reserved.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Early Access Welcome Email -->
+        <div class="email-preview">
+            <div class="email-title">2. Early Access Welcome Email</div>
+            <div class="email-frame">
+                <div class="email-template">
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" class="email-logo">
+                                <div class="email-tagline">Beyond Learning</div>
+                            </div>
+                            <div class="email-content">
+                                <h1 class="email-title-text">Welcome to Early Access!</h1>
+                                <div class="waitlist-badge">
+                                    <p class="waitlist-number">You're #123!</p>
+                                    <p class="waitlist-percent">Top 5% of waitlist</p>
+                                </div>
+                                <div class="profile-box">
+                                    <h3 style="margin-top: 0; color: #191919;">Your Profile</h3>
+                                    <div class="profile-item">
+                                        <span class="profile-label">Company:</span>
+                                        <span>Acme Corporation</span>
+                                    </div>
+                                    <div class="profile-item">
+                                        <span class="profile-label">Role:</span>
+                                        <span>HR Manager</span>
+                                    </div>
+                                    <div class="profile-item">
+                                        <span class="profile-label">Focus:</span>
+                                        <span>Employee Training</span>
+                                    </div>
+                                </div>
+                                <h3 style="color: #191919;">What's Next?</h3>
+                                <ol class="steps-list">
+                                    <li>Join your personalized waiting room</li>
+                                    <li>Complete your profile for priority access</li>
+                                    <li>Get notified when we launch</li>
+                                </ol>
+                                <div class="btn-center">
+                                    <a href="#" class="btn-primary">Visit Your Dashboard</a>
+                                </div>
+                            </div>
+                            <div class="email-footer">
+                                <div>Beyond Learning | <a href="https://www.lxera.ai">www.lxera.ai</a></div>
+                                <div style="margin-top: 10px;">© 2025 LXERA. All rights reserved.</div>
+                                <div class="footer-links">
+                                    <a href="#">Unsubscribe</a> | <a href="#">Update Preferences</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Request Email -->
+        <div class="email-preview">
+            <div class="email-title">3. Demo Request Email</div>
+            <div class="email-frame">
+                <div class="email-template">
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" class="email-logo">
+                                <div class="email-tagline">Beyond Learning</div>
+                            </div>
+                            <div class="email-content">
+                                <h1 class="email-title-text">Hi Sarah, ready to see LXERA?</h1>
+                                <p class="email-body">Thanks for your interest from Acme Corporation!</p>
+                                
+                                <div class="calendar-box">
+                                    <div class="calendar-icon">📅</div>
+                                    <h2 style="margin: 10px 0; color: #191919;">Schedule Your Demo</h2>
+                                    <a href="#" class="btn-primary">Schedule Demo Call</a>
+                                    <p style="margin-top: 15px; color: #999; font-size: 14px;">Takes just 30 seconds</p>
+                                </div>
+
+                                <h3 style="color: #191919; margin-top: 40px;">During our call, we'll cover:</h3>
+                                <ul class="benefits-list">
+                                    <li>AI-powered skills gap analysis</li>
+                                    <li>Automated course creation</li>
+                                    <li>ROI calculator for your team</li>
+                                    <li>Live platform demonstration</li>
+                                </ul>
+
+                                <div class="help-box">
+                                    💡 Can't find a time that works? Simply reply to this email and we'll coordinate directly.
+                                </div>
+                            </div>
+                            <div class="email-footer">
+                                <div class="social-section">
+                                    <div class="social-text">Follow us for updates and insights:</div>
+                                    <a href="https://www.linkedin.com/company/lxera" class="linkedin-button">
+                                        <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                        </svg>
+                                        Follow on LinkedIn
+                                    </a>
+                                </div>
+                                <div>Beyond Learning | <a href="https://www.lxera.ai">www.lxera.ai</a></div>
+                                <div style="margin-top: 10px;">© 2025 LXERA. All rights reserved.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Magic Link Email -->
+        <div class="email-preview">
+            <div class="email-title">4. Magic Link Email</div>
+            <div class="email-frame">
+                <div class="email-template">
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" class="email-logo">
+                                <div class="email-tagline">Beyond Learning</div>
+                            </div>
+                            <div class="email-content">
+                                <h1 class="email-title-text">Complete Your Profile</h1>
+                                <p class="email-body">
+                                    Thanks for signing up for LXERA early access!<br><br>
+                                    Click below to complete your profile and secure your spot:
+                                </p>
+                                <div class="btn-center">
+                                    <a href="#" class="btn-primary">Complete Your Profile</a>
+                                </div>
+                                <div class="expire-notice">
+                                    <span class="icon">🔒</span> Link expires in 24 hours
+                                </div>
+                                <div class="fallback-link">
+                                    If the button doesn't work, copy and paste this link:<br>
+                                    https://app.lxera.ai/profile/complete?token=abc123xyz789
+                                </div>
+                            </div>
+                            <div class="email-footer">
+                                <div class="social-section">
+                                    <div class="social-text">Follow us for updates and insights:</div>
+                                    <a href="https://www.linkedin.com/company/lxera" class="linkedin-button">
+                                        <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                        </svg>
+                                        Follow on LinkedIn
+                                    </a>
+                                </div>
+                                <div>Beyond Learning | <a href="https://www.lxera.ai">www.lxera.ai</a></div>
+                                <div style="margin-top: 10px;">© 2025 LXERA. All rights reserved.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
