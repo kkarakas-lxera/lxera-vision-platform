@@ -1,324 +1,250 @@
+import React, { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import {
+  Menu,
+  X,
+  ChevronRight,
+  ChevronDown,
+  Target,
+  Sparkles,
+  CreditCard,
+  BookOpen,
+  LogIn,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Brain, Users, Lightbulb, BarChart3, MessageCircle, Building2, Cog, Shield, Plug, Zap, Target, Sparkles, BookOpen, Trophy, Gamepad2, Play, Book } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
+import { useAuth } from "@/contexts/AuthContext";
+
+// -------------------------------------------------------------------
+// Types identical to previous implementation so Navigation.tsx props stay.
+// -------------------------------------------------------------------
+
+interface DropdownCategory {
+  category: string;
+  items: Array<{ name: string; href: string }>;
+}
+
+interface MobileMenuItem {
+  name: string;
+  href: string;
+  id: string;
+  hasDropdown?: boolean;
+  dropdownItems?: DropdownCategory[];
+}
 
 interface MobileMenuProps {
-  menuItems: Array<{
-    name: string;
-    href: string;
-    id: string;
-    hasDropdown?: boolean;
-    dropdownItems?: Array<{
-      category: string;
-      items: Array<{
-        name: string;
-        href: string;
-      }>;
-    }>;
-  }>;
+  menuItems: MobileMenuItem[];
   activeSection: string;
   isMobileMenuOpen: boolean;
   handleMobileMenuToggle: () => void;
   scrollToSection: (href: string) => void;
 }
 
-const MobileMenu = ({ 
-  menuItems, 
-  activeSection, 
-  isMobileMenuOpen, 
-  handleMobileMenuToggle, 
-  scrollToSection 
-}: MobileMenuProps) => {
-  const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null);
+// Icon mapping for top-level items – tweak to match LXERA brand icons
+const iconFor = (name: string) => {
+  switch (name) {
+    case "Platform":
+      return Target;
+    case "Solutions":
+      return Sparkles;
+    case "Pricing":
+      return CreditCard;
+    case "Resources":
+      return BookOpen;
+    default:
+      return Target;
+  }
+};
+
+const MobileMenu = ({
+  menuItems,
+  activeSection,
+  isMobileMenuOpen,
+  handleMobileMenuToggle,
+  scrollToSection,
+}) => {
+  const [expanded, setExpanded] = useState<string[]>([]);
   const { user, userProfile } = useAuth();
   const location = useLocation();
-  const isHomepage = location.pathname === '/';
 
+  const isHomepage = location.pathname === "/";
 
-  const toggleDropdown = (itemName: string) => {
-    setExpandedDropdown(expandedDropdown === itemName ? null : itemName);
+  const toggleExpand = (id: string) => {
+    setExpanded((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
-  // Define the solutions with clean circular icons
-  const solutionsItems = [
-    {
-      name: "AI-Personalized Learning",
-      href: "/solutions/ai-personalized-learning",
-      icon: Brain,
-      color: "bg-pink-500",
-      description: "Personalized content and pathways — powered by AI"
-    },
-    {
-      name: "Workforce Reskilling & Upskilling", 
-      href: "/solutions/workforce-reskilling-upskilling",
-      icon: Users,
-      color: "bg-blue-500",
-      description: "Close skill gaps and future-proof your teams"
-    },
-    {
-      name: "AI Gamification & Motivation",
-      href: "/solutions/ai-gamification-motivation",
-      icon: Gamepad2,
-      color: "bg-orange-500",
-      description: "Boost engagement with dynamic rewards and intelligent challenges"
-    },
-    {
-      name: "AI Mentorship & Support",
-      href: "/solutions/ai-mentorship-support",
-      icon: MessageCircle,
-      color: "bg-purple-500",
-      description: "Real-time guidance to keep learners engaged and on track"
-    },
-    {
-      name: "Learning Analytics & Insights",
-      href: "/solutions/learning-analytics-engagement",
-      icon: BarChart3,
-      color: "bg-teal-500", 
-      description: "Turn engagement data into actionable insights"
-    },
-    {
-      name: "Citizen Developer Enablement",
-      href: "/solutions/citizen-led-innovation", 
-      icon: Lightbulb,
-      color: "bg-amber-500",
-      description: "Equip business users to build and automate without coding"
-    },
-    {
-      name: "Enterprise Innovation Enablement",
-      href: "/solutions/enterprise-innovation-enablement",
-      icon: Building2,
-      color: "bg-slate-500",
-      description: "Empower every level of the organization to drive transformation"
-    }
-  ];
+  const isActive = (href: string, id: string) => {
+    if (href.startsWith("#")) return activeSection === id;
+    return location.pathname.startsWith(href);
+  };
 
-  // Define platform items with clean circular icons
-  const platformItems = [
-    {
-      name: "How LXERA Works",
-      href: "/platform/how-it-works",
-      icon: Target,
-      color: "bg-blue-500",
-      description: "Discover the core methodology behind LXERA"
-    },
-    {
-      name: "AI Engine",
-      href: "/platform/ai-engine",
-      icon: Sparkles,
-      color: "bg-purple-500",
-      description: "Advanced AI that powers personalized learning"
-    },
-    {
-      name: "Engagement & Insights",
-      href: "/platform/engagement-insights",
-      icon: BarChart3,
-      color: "bg-cyan-500",
-      description: "Real-time analytics and engagement tracking"
-    },
-    {
-      name: "Innovation Hub",
-      href: "/platform/innovation-hub",
-      icon: Lightbulb,
-      color: "bg-amber-500",
-      description: "Collaborative space for innovation and ideation"
-    },
-    {
-      name: "Mentorship & Support Tools",
-      href: "/platform/mentorship-support",
-      icon: MessageCircle,
-      color: "bg-rose-500",
-      description: "AI-powered mentorship and support systems"
-    },
-    {
-      name: "Security & Data Privacy",
-      href: "/platform/security-privacy",
-      icon: Shield,
-      color: "bg-indigo-500",
-      description: "Enterprise-grade security and privacy protection"
-    },
-    {
-      name: "Integrations",
-      href: "/platform/integrations",
-      icon: Plug,
-      color: "bg-green-500",
-      description: "Seamless integration with your existing tools"
-    }
-  ];
-
-  // Updated resources items
-  const resourcesItems = [
-    {
-      name: "Blog",
-      href: "/resources/blog",
-      icon: BookOpen,
-      color: "bg-blue-500",
-      description: "Latest insights, trends, and best practices"
-    },
-    {
-      name: "Product Tour",
-      href: "/resources/product-tour",
-      icon: Play,
-      color: "bg-green-500",
-      description: "Interactive walkthrough of LXERA features"
-    },
-    {
-      name: "Glossary",
-      href: "/resources/glossary",
-      icon: Book,
-      color: "bg-purple-500",
-      description: "Key terms and definitions in learning technology"
-    }
-  ];
-
-  const renderDropdownItems = (itemName: string) => {
-    if (itemName === 'Platform') {
-      return platformItems;
-    } else if (itemName === 'Solutions') {
-      return solutionsItems;
-    } else if (itemName === 'Resources') {
-      return resourcesItems;
-    }
-    return [];
+  const handleNavigate = (href: string) => {
+    scrollToSection(href);
+    // scrollToSection already closes the menu via handleMobileMenuToggle()
   };
 
   return (
-    <div className="lg:hidden">
-      {/* Mobile Menu Button and Request Demo */}
-      <div className="flex items-center space-x-3">
-        {!isHomepage && (
-          <>
-            {/* Remove background styles from container to avoid black block next to hamburger */}
-            <ProgressiveDemoCapture
-              source="mobile_menu"
-              buttonText="Request a Demo"
-              variant="default"
-              className="text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
-            />
-          </>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleMobileMenuToggle}
-          className="text-business-black hover:text-business-black/70 hover:bg-gray-100 transition-all duration-300"
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isMobileMenuOpen}
-        >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-      </div>
-
-      {/* Mobile Menu Dropdown with improved scrolling */}
-      {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-200 z-50 animate-slide-in-right">
-          <div className="max-w-7xl mx-auto">
-            <ScrollArea className="h-[calc(100vh-120px)] w-full">
-              <div className="px-6 py-6 space-y-1">
-                {menuItems.map((item, index) => (
-                  <div key={item.name}>
-                    {item.hasDropdown ? (
-                      <>
-                        <button
-                          onClick={() => toggleDropdown(item.name)}
-                          className={`flex items-center justify-between w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-future-green/20 rounded-lg transition-all duration-200 animate-fade-in ${
-                            activeSection === item.id ? 'bg-future-green/30' : ''
-                          }`}
-                          style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                          <span>{item.name}</span>
-                          {expandedDropdown === item.name ? (
-                            <ChevronDown className="h-4 w-4 text-gray-500" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-gray-500" />
-                          )}
-                        </button>
-                        {expandedDropdown === item.name && (
-                          <div className="ml-4 mt-2 bg-gray-50 rounded-xl p-4">
-                            <div className="mb-3">
-                              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                {item.name === 'Platform' ? 'Platform features' : 
-                                 item.name === 'Solutions' ? 'Capabilities' : 
-                                 'Resources'}
-                              </div>
-                            </div>
-                            <div className="max-h-80 overflow-y-auto">
-                              <div className="space-y-1 pr-2">
-                                {renderDropdownItems(item.name).map((dropdownItem, subIndex) => {
-                                  const IconComponent = dropdownItem.icon;
-                                  return (
-                                    <button
-                                      key={subIndex}
-                                      onClick={() => scrollToSection(dropdownItem.href)}
-                                      className="flex items-center w-full text-left px-3 py-3 hover:bg-future-green/20 text-business-black rounded-lg transition-all duration-200 group"
-                                    >
-                                      <div className={`w-8 h-8 rounded-full ${dropdownItem.color} flex items-center justify-center mr-3 flex-shrink-0`}>
-                                        <IconComponent className="w-4 h-4 text-white" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-business-black font-medium text-sm mb-0.5">
-                                          {dropdownItem.name}
-                                        </div>
-                                        <div className="text-gray-600 text-xs line-clamp-2">
-                                          {dropdownItem.description}
-                                        </div>
-                                      </div>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => scrollToSection(item.href)}
-                        className={`block w-full text-left px-4 py-3 text-base font-medium text-business-black hover:bg-future-green/20 rounded-lg transition-all duration-200 animate-fade-in ${
-                          activeSection === item.id ? 'bg-future-green/30' : ''
-                        }`}
-                        style={{ animationDelay: `${index * 50}ms` }}
-                        aria-current={activeSection === item.id ? 'page' : undefined}
-                      >
-                        {item.name}
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {/* Show Go to Dashboard when authenticated, Sign In when not */}
-                <div className="pt-4 border-t border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                  {user && userProfile ? (
-                    <Link to={
-                      userProfile.role === 'super_admin' ? '/admin' : 
-                      userProfile.role === 'company_admin' ? '/dashboard' : 
-                      '/learner'
-                    }>
-                      <Button 
-                        className="w-full bg-future-green text-business-black hover:bg-future-green/90 transition-all duration-200 rounded-xl font-medium"
-                      >
-                        Go to Dashboard
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link to="/login">
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white hover:border-business-black transition-all duration-200 rounded-xl font-medium"
-                      >
-                        Sign In
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
+    <div className="flex items-center space-x-3">
+      {/* Request Demo button (kept from previous design) */}
+      {!isHomepage && (
+        <ProgressiveDemoCapture
+          source="mobile_menu"
+          buttonText="Request a Demo"
+          variant="default"
+          className="text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+        />
       )}
+
+      {/* Hamburger & Sheet */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={handleMobileMenuToggle}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="text-business-black hover:text-business-black/70 hover:bg-smart-beige/50 transition-all duration-300"
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
+        </SheetTrigger>
+
+        <SheetContent
+          side="left"
+          className="w-full sm:w-80 p-0 bg-smart-beige border-r border-gray-200 text-business-black"
+        >
+          {/* Header */}
+          <SheetHeader className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-lg font-medium">Navigation</SheetTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleMobileMenuToggle}
+                className="h-8 w-8 text-business-black hover:bg-smart-beige/70"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </SheetHeader>
+
+          {/* Nav Items */}
+          <ScrollArea className="h-[calc(100vh-64px)] px-4 py-6">
+            <nav className="space-y-2">
+              {menuItems.map((item) => {
+                const Icon = iconFor(item.name);
+                const active = isActive(item.href, item.id);
+                const isExpanded = expanded.includes(item.id);
+
+                if (item.hasDropdown && item.dropdownItems) {
+                  return (
+                    <div key={item.id} className="space-y-1">
+                      <button
+                        onClick={() => toggleExpand(item.id)}
+                        className={cn(
+                          "w-full flex items-center py-3 px-3 rounded-lg transition-all duration-200",
+                          active
+                            ? "bg-future-green/40 text-business-black shadow-sm"
+                            : "hover:bg-future-green/20"
+                        )}
+                      >
+                        <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                        <span className="flex-1 text-left font-medium">
+                          {item.name}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </button>
+
+                      {isExpanded && (
+                        <div className="ml-8 space-y-1">
+                          {item.dropdownItems.map((cat) => (
+                            <React.Fragment key={cat.category}>
+                              {cat.items.map((sub) => (
+                                <button
+                                  key={sub.href}
+                                  onClick={() => handleNavigate(sub.href)}
+                                  className={cn(
+                                    "flex items-center py-2 px-3 rounded-lg text-sm transition-all duration-200",
+                                    location.pathname === sub.href
+                                      ? "bg-future-green/40 text-business-black"
+                                      : "hover:bg-future-green/20"
+                                  )}
+                                >
+                                  •<span className="ml-2 text-left">{sub.name}</span>
+                                </button>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigate(item.href)}
+                    className={cn(
+                      "flex items-center py-3 px-3 rounded-lg transition-all duration-200 w-full",
+                      active
+                        ? "bg-future-green/40 text-business-black shadow-sm"
+                        : "hover:bg-future-green/20"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                    <span className="font-medium">{item.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Bottom Action */}
+            <div className="pt-6 border-t border-gray-200 mt-6">
+              {user && userProfile ? (
+                <Link
+                  to={
+                    userProfile.role === "super_admin"
+                      ? "/admin"
+                      : userProfile.role === "company_admin"
+                      ? "/dashboard"
+                      : "/learner"
+                  }
+                >
+                  <Button className="w-full bg-business-black text-white hover:bg-business-black/90 rounded-xl font-medium">
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/login">
+                  <Button
+                    variant="outline"
+                    className="w-full border-2 border-business-black bg-white text-business-black hover:bg-business-black hover:text-white hover:border-business-black rounded-xl font-medium"
+                  >
+                    <LogIn className="h-4 w-4 mr-2" /> Sign In
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
