@@ -61,18 +61,18 @@
   }
 }
 
-/* Version: 1.3.0 - FORCE CACHE CLEAR: Z-index, mobile gradient bg, and UX improvements - 2025-07-10 18:45 */
-/* TIMESTAMP: 1736538300000 */
+/* Version: 1.3.1 - FORCE CACHE CLEAR: Mobile demo modal stacking fix - 2025-07-10 22:55 */
+/* TIMESTAMP: 1736542500000 */
 
 /* Cache busting rule to force new hash generation */
-.cache-bust-v130-force-clear {
+.cache-bust-v131-force-clear {
   display: none !important;
-  content: "FORCE CACHE CLEAR: Fixed z-index, mobile gradient backgrounds, and improved mobile UX - timestamp-1736538300000";
+  content: "FORCE CACHE CLEAR: Mobile demo modal stacking fix - timestamp-1736542500000";
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  --force-rebuild: "v130-timestamp-1736538300000";
-  --build-id: "build-2025-07-10-18-45";
+  --force-rebuild: "v131-timestamp-1736542500000";
+  --build-id: "build-2025-07-10-22-55";
 }
 
 /* Fix for demo form positioning */
