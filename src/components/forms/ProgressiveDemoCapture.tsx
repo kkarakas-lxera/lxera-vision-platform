@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { demoCaptureService } from '@/services/demoCaptureService';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 // Common personal/consumer email domains to block
@@ -307,152 +308,81 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   // Minimal variant - ultra compact
   if (variant === 'minimal') {
     return (
-      <div className={`progressive-demo-capture inline-block relative isolate ${className}`}>
-        <AnimatePresence mode="wait">
-          {!isExpanded && (
-            <motion.button
-              key="button"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setIsExpanded(true);
-                if (currentStep === 0) setCurrentStep(1);
-              }}
-              className="text-business-black hover:text-white bg-white hover:bg-business-black border-2 border-business-black font-medium transition-all duration-300 rounded-full min-h-[48px] px-6 py-2 touch-target flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"
-            >
-              {formData.email ? (
-                <>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                    <span>Continue Demo Request</span>
-                  </span>
-                  {formData.name && (
-                    <span className="text-xs text-gray-500">({formData.name.split(' ')[0]})</span>
-                  )}
-                </>
-              ) : (
-                buttonText
-              )}
-            </motion.button>
-          )}
-          
-          {isExpanded && currentStep === 1 && (
-            <motion.div
-              key="email-form"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto"
-            >
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4">
-                <div className="mb-3">
-                  <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex gap-1">
-                      <div className={`w-2 h-2 rounded-full ${formData.email ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      <div className={`w-2 h-2 rounded-full ${formData.name ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      <div className={`w-2 h-2 rounded-full ${formData.companySize ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    </div>
-                    <span className="text-xs text-gray-500">Step 1 of 1</span>
-                  </div>
-                </div>
-                
-                <form onSubmit={handleEmailSubmit} className="space-y-3">
-                  <Input
-                    ref={emailRef}
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="Work email"
-                    className="w-full h-12 text-base"
-                    inputMode="email"
-                    autoComplete="email"
-                  />
-                  <Input
-                    ref={nameRef}
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Your full name"
-                    className="w-full h-12 text-base"
-                    autoComplete="name"
-                  />
-                  <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-                    <SelectTrigger className="w-full h-12 text-base">
-                      <SelectValue placeholder="Company size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companySizeOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsExpanded(false)}
-                      className="flex-1 h-12"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={loading || !formData.email || !formData.name || !formData.companySize}
-                      className="flex-1 h-12 bg-future-green text-business-black hover:bg-future-green/90"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Get Demo'}
-                    </Button>
-                  </div>
-                </form>
+      <div className={`progressive-demo-capture inline-block relative isolate ${className}`}> 
+      <Dialog>
+        <DialogTrigger asChild>
+          <button
+            className="text-business-black hover:text-white bg-white hover:bg-business-black border-2 border-business-black font-medium transition-all duration-300 rounded-full min-h-[48px] px-6 py-2 touch-target flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"
+          >
+            {formData.email ? (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                  <span>Continue Demo Request</span>
+                </span>
+                {formData.name && (
+                  <span className="text-xs text-gray-500">({formData.name.split(' ')[0]})</span>
+                )}
+              </>
+            ) : (
+              buttonText
+            )}
+          </button>
+        </DialogTrigger>
+
+        <DialogContent className="max-w-sm w-[90vw] rounded-2xl p-4">
+          <div className="mb-3">
+            <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex gap-1">
+                <div className={`w-2 h-2 rounded-full ${formData.email ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.name ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.companySize ? 'bg-green-500' : 'bg-gray-300'}`}></div>
               </div>
-              
-              {/* Backdrop */}
-              <div 
-                className="fixed inset-0 bg-black/50 -z-10"
-                onClick={() => setIsExpanded(false)}
-              />
-            </motion.div>
-          )}
-          
-          {isExpanded && currentStep === 2 && (
-            <motion.form
-              key="details"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onSubmit={handleDetailsSubmit}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-2"
+              <span className="text-xs text-gray-500">Step 1 of 1</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleEmailSubmit} className="space-y-3">
+            <Input
+              ref={emailRef}
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="Work email"
+              className="w-full h-12 text-base"
+              inputMode="email"
+              autoComplete="email"
+            />
+            <Input
+              ref={nameRef}
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Your full name"
+              className="w-full h-12 text-base"
+              autoComplete="name"
+            />
+            <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
+              <SelectTrigger className="w-full h-12 text-base">
+                <SelectValue placeholder="Company size" />
+              </SelectTrigger>
+              <SelectContent>
+                {companySizeOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button 
+              type="submit" 
+              disabled={loading || !formData.email || !formData.name || !formData.companySize}
+              className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90"
             >
-              <Input
-                ref={nameRef}
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Full name"
-                className="w-full sm:w-32 h-12 sm:h-10 text-base sm:text-sm"
-              />
-              <Input
-                value={formData.company}
-                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                placeholder="Company"
-                className="w-full sm:w-32 h-12 sm:h-10 text-base sm:text-sm"
-              />
-              <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-                <SelectTrigger className="w-full sm:w-24 h-12 sm:h-10 text-base sm:text-sm">
-                  <SelectValue placeholder="Size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companySizeOptions.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button type="submit" size="sm" disabled={loading} className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Get Demo'}
-              </Button>
-            </motion.form>
-          )}
-        </AnimatePresence>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Get Demo'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
       </div>
     );
   }
@@ -475,12 +405,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 setIsExpanded(true);
                 if (currentStep === 0) setCurrentStep(1);
               }}
-              className={cn(
-                "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
-                variant === 'mobile' ? 'h-12 text-base w-full rounded-full' : 'h-11 px-8 rounded-full',
-                "transition-all duration-300 transform relative overflow-hidden",
-                isHovered && "scale-105"
-              )}
+              className={`
+                bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40
+                transition-all duration-300 transform relative overflow-hidden
+                ${variant === 'mobile' ? 'h-12 text-base w-full rounded-full' : 'h-11 px-8 rounded-full'}
+                ${isHovered && "scale-105"}
+              `}
             >
               {isHovered && (
                 <motion.div
@@ -538,14 +468,14 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onSubmit={handleEmailSubmit}
-              className={cn(
-                "bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
-                variant === 'mobile' ? (
+              className={`
+                bg-white rounded-2xl shadow-xl border border-gray-200 p-4
+                ${variant === 'mobile' ? (
                   'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-50'
                 ) : (
                   'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] demo-form-dropdown'
-                )
-              )}
+                )}
+              `}
             >
             <div className="space-y-3">
               <div className="text-center">
@@ -561,14 +491,14 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="Enter your work email"
-                    className={cn(
-                      "w-full border-gray-300 pl-10 bg-white text-business-black",
-                      "placeholder:text-gray-400 placeholder:font-normal",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
-                      "transition-all duration-300",
-                      "focus:border-future-green focus:ring-future-green focus:ring-1",
-                      "autofill:bg-white autofill:text-business-black"
-                    )}
+                    className={`
+                      w-full border-gray-300 pl-10 bg-white text-business-black
+                      placeholder:text-gray-400 placeholder:font-normal
+                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                      transition-all duration-300
+                      focus:border-future-green focus:ring-future-green focus:ring-1
+                      autofill:bg-white autofill:text-business-black
+                    `}
                     inputMode="email"
                     autoComplete="email"
                   />
@@ -580,14 +510,14 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Your full name"
-                    className={cn(
-                      "w-full border-gray-300 pl-10 bg-white text-business-black",
-                      "placeholder:text-gray-400 placeholder:font-normal",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
-                      "transition-all duration-300",
-                      "focus:border-future-green focus:ring-future-green focus:ring-1",
-                      "autofill:bg-white autofill:text-business-black"
-                    )}
+                    className={`
+                      w-full border-gray-300 pl-10 bg-white text-business-black
+                      placeholder:text-gray-400 placeholder:font-normal
+                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                      transition-all duration-300
+                      focus:border-future-green focus:ring-future-green focus:ring-1
+                      autofill:bg-white autofill:text-business-black
+                    `}
                     autoComplete="name"
                   />
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -595,12 +525,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 
                 <div className="relative">
                   <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-                    <SelectTrigger className={cn(
-                      "w-full border-gray-300 pl-10 bg-white text-business-black",
-                      "placeholder:text-gray-400 data-[placeholder]:text-gray-400",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
-                      "focus:border-future-green focus:ring-future-green focus:ring-1"
-                    )}>
+                    <SelectTrigger className={`
+                      w-full border-gray-300 pl-10 bg-white text-business-black
+                      placeholder:text-gray-400 data-[placeholder]:text-gray-400
+                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                      focus:border-future-green focus:ring-future-green focus:ring-1
+                    `}>
                       <SelectValue placeholder="Company size" />
                     </SelectTrigger>
                     <SelectContent>
@@ -617,10 +547,10 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 <Button 
                   type="submit" 
                   disabled={loading}
-                  className={cn(
-                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300",
-                    variant === 'mobile' ? 'h-12 text-base' : 'h-11'
-                  )}
+                  className={`
+                    w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300
+                    ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
+                  `}
                 >
                   {loading ? (
                     <>
