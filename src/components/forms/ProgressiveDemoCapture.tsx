@@ -389,192 +389,61 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
 
   // Default and mobile variants - elegant and compact
   return (
-    <div className={`progressive-demo-capture relative isolate ${className}`}>
-      <AnimatePresence mode="wait">
-        {!isExpanded && (
-          <motion.div
-            key="button"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <Button
-              onClick={() => {
-                setIsExpanded(true);
-                if (currentStep === 0) setCurrentStep(1);
-              }}
-              className={`
-                bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40
-                transition-all duration-300 transform relative overflow-hidden
-                ${variant === 'mobile' ? 'h-12 text-base w-full rounded-full' : 'h-11 px-8 rounded-full'}
-                ${isHovered && "scale-105"}
-              `}
-            >
-              {isHovered && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: '100%' }}
-                  exit={{ width: 0 }}
-                  className="absolute inset-0 bg-future-green/10"
-                  transition={{ duration: 0.3 }}
-                />
-              )}
-              <AnimatePresence mode="wait">
-                {isHovered ? (
-                  <motion.div
-                    key="hover"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-2 relative z-10"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>{formData.email ? 'Continue Demo Request' : buttonText}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </motion.div>
-                ) : (
-                  <motion.span
-                    key="normal"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="relative z-10"
-                  >
-                    {formData.email ? 'Continue Demo Request' : buttonText}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
-          </motion.div>
-        )}
-        
-        {isExpanded && currentStep === 1 && (
-          <>
-            {/* Mobile backdrop */}
-            {variant === 'mobile' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-40"
-                onClick={() => setIsExpanded(false)}
-              />
+    <div className={`progressive-demo-capture inline-block relative isolate ${className}`}>
+      <Dialog open={isExpanded} onOpenChange={(open)=>{setIsExpanded(open); if(open && currentStep===0){setCurrentStep(1);} }}>
+        <DialogTrigger asChild>
+          <Button
+            onMouseEnter={()=>setIsHovered(true)}
+            onMouseLeave={()=>setIsHovered(false)}
+            className={cn(
+              "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
+              variant==='mobile'?'h-12 text-base w-full rounded-full':'h-11 px-8 rounded-full',
+              "transition-all duration-300 transform relative overflow-hidden",
+              isHovered && 'scale-105'
             )}
-            <motion.form
-              key="email"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onSubmit={handleEmailSubmit}
-              className={`
-                bg-white rounded-2xl shadow-xl border border-gray-200 p-4
-                ${variant === 'mobile' ? (
-                  'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-50'
-                ) : (
-                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] demo-form-dropdown'
-                )}
-              `}
-            >
-            <div className="space-y-3">
-              <div className="text-center">
-                <h3 className="font-semibold text-lg text-business-black">Get Your Demo</h3>
-                <p className="text-sm text-gray-600 mt-1">Enter your details to schedule a demo</p>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="relative">
-                  <Input
-                    ref={emailRef}
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="Enter your work email"
-                    className={`
-                      w-full border-gray-300 pl-10 bg-white text-business-black
-                      placeholder:text-gray-400 placeholder:font-normal
-                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
-                      transition-all duration-300
-                      focus:border-future-green focus:ring-future-green focus:ring-1
-                      autofill:bg-white autofill:text-business-black
-                    `}
-                    inputMode="email"
-                    autoComplete="email"
-                  />
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                </div>
-                
-                <div className="relative">
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Your full name"
-                    className={`
-                      w-full border-gray-300 pl-10 bg-white text-business-black
-                      placeholder:text-gray-400 placeholder:font-normal
-                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
-                      transition-all duration-300
-                      focus:border-future-green focus:ring-future-green focus:ring-1
-                      autofill:bg-white autofill:text-business-black
-                    `}
-                    autoComplete="name"
-                  />
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                </div>
-                
-                <div className="relative">
-                  <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-                    <SelectTrigger className={`
-                      w-full border-gray-300 pl-10 bg-white text-business-black
-                      placeholder:text-gray-400 data-[placeholder]:text-gray-400
-                      ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
-                      focus:border-future-green focus:ring-future-green focus:ring-1
-                    `}>
-                      <SelectValue placeholder="Company size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companySizeOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label} employees
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                  className={`
-                    w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300
-                    ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
-                  `}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Scheduling...
-                    </>
-                  ) : (
-                    <>
-                      Schedule Demo
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              <p className="text-xs text-center text-gray-500">
-                Work email required • You'll receive a calendar link via email
-              </p>
-            </div>
-          </motion.form>
-          </>
-        )}
-        
-      </AnimatePresence>
+          >
+            {buttonText}
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4">
+          {/* Same form as minimal variant */}
+          <div className="mb-3">
+            <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
+          </div>
+
+          <form onSubmit={handleEmailSubmit} className="space-y-3">
+            <Input
+              ref={emailRef}
+              type="email"
+              value={formData.email}
+              onChange={(e)=>setFormData(prev=>({...prev,email:e.target.value}))}
+              placeholder="Work email"
+              className="w-full h-12 text-base"
+              autoComplete="email" inputMode="email"
+            />
+            <Input
+              ref={nameRef}
+              value={formData.name}
+              onChange={(e)=>setFormData(prev=>({...prev,name:e.target.value}))}
+              placeholder="Your full name"
+              className="w-full h-12 text-base"
+              autoComplete="name"
+            />
+            <Select value={formData.companySize} onValueChange={(v)=>setFormData(prev=>({...prev,companySize:v}))}>
+              <SelectTrigger className="w-full h-12 text-base">
+                <SelectValue placeholder="Company size" />
+              </SelectTrigger>
+              <SelectContent>
+                {companySizeOptions.map(opt=>(<SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={loading||!formData.email||!formData.name||!formData.companySize} className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90">
+              {loading?<Loader2 className="w-4 h-4 animate-spin"/>:'Get Demo'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
