@@ -3,9 +3,9 @@
 @layer components {
   /* Mobile-specific optimizations for touch devices */
   @media (hover: none) and (pointer: coarse) {
-    /* Disable hover effects on touch devices */
-    a:hover,
-    button:hover,
+    /* Disable hover effects on touch devices - except for critical elements */
+    a:hover:not(.from-business-black),
+    button:hover:not(.from-business-black),
     .hover\:shadow-xl:hover,
     .hover\:shadow-lg:hover,
     .hover\:scale-105:hover,
@@ -15,6 +15,11 @@
       transform: none !important;
       box-shadow: none !important;
       background-color: inherit !important;
+    }
+    
+    /* Preserve business-black button gradients on touch devices */
+    button.from-business-black:hover {
+      background-image: var(--tw-gradient-to) !important;
     }
 
     /* Ensure touch targets are at least 48px */
@@ -120,11 +125,11 @@
 
   /* Performance budget classes for mobile */
   @media (max-width: 640px) {
-    /* Disable expensive gradients */
-    .bg-gradient-to-br,
-    .bg-gradient-to-r,
-    .bg-gradient-to-t,
-    .bg-gradient-to-b {
+    /* Disable expensive gradients - except for critical business-black buttons */
+    .bg-gradient-to-br:not(.from-business-black),
+    .bg-gradient-to-r:not(.from-business-black),
+    .bg-gradient-to-t:not(.from-business-black),
+    .bg-gradient-to-b:not(.from-business-black) {
       background-image: none !important;
       background-color: var(--smart-beige) !important;
     }
