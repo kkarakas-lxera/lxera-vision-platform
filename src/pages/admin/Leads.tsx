@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Download, Users, Calendar, Target, TrendingUp, Filter } from 'lucide-react';
+import { Search, Download, Users, Calendar, Target, TrendingUp, Filter, Mail, Building2, User, Tag, Clock, Globe, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { demoCaptureService } from '@/services/demoCaptureService';
 import { toast } from '@/components/ui/use-toast';
@@ -36,12 +37,14 @@ interface UnifiedLead {
 }
 
 const Leads = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<UnifiedLead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<UnifiedLead[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [selectedLead, setSelectedLead] = useState<UnifiedLead | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     demo: 0,
@@ -178,6 +181,10 @@ const Leads = () => {
     a.click();
   };
 
+  const handleLeadClick = (lead: UnifiedLead) => {
+    setSelectedLead(selectedLead?.id === lead.id ? null : lead);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -297,7 +304,10 @@ const Leads = () => {
                   key={lead.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="border rounded-lg p-4 space-y-2"
+                  className={`border rounded-lg p-4 space-y-2 cursor-pointer hover:shadow-md transition-all duration-200 ${
+                    selectedLead?.id === lead.id ? 'ring-2 ring-future-green border-future-green' : ''
+                  }`}
+                  onClick={() => handleLeadClick(lead)}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -326,49 +336,48 @@ const Leads = () => {
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeads.map((lead) => (
-                  <TableRow key={lead.id}>
-                    <TableCell>
+            <div className="space-y-2">
+              {filteredLeads.map((lead) => (
+                <motion.div
+                  key={lead.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer ${
+                    selectedLead?.id === lead.id ? 'ring-2 ring-future-green border-future-green' : ''
+                  }`}
+                  onClick={() => handleLeadClick(lead)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <Badge variant="outline">
                         {lead.type === 'demo' ? 'Demo' : 'Early Access'}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
                       <div>
                         <p className="font-medium">{lead.name || 'N/A'}</p>
                         <p className="text-sm text-gray-600">{lead.email}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>{lead.company || 'N/A'}</TableCell>
-                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {lead.company || 'N/A'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
                       <Badge variant={getStatusBadgeVariant(lead.status)}>
                         {lead.status}
                       </Badge>
-                    </TableCell>
-                    <TableCell>{getProgressDisplay(lead)}</TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {lead.source || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <div className="text-sm text-gray-600">
+                        {getProgressDisplay(lead)}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {lead.source || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           )}
           
           {filteredLeads.length === 0 && (
@@ -379,6 +388,306 @@ const Leads = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Lead Detail View */}
+      {selectedLead && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="mt-6"
+        >
+          <Card className="border-future-green">
+            <CardHeader className="bg-gradient-to-r from-future-green/10 to-transparent">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Lead Profile
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedLead(null)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Profile Header */}
+                <div className="lg:col-span-2">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-future-green to-business-black rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      {(selectedLead.name || selectedLead.email).charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-business-black">
+                          {selectedLead.name || 'Unnamed Lead'}
+                        </h3>
+                        <Badge variant={getStatusBadgeVariant(selectedLead.status)}>
+                          {selectedLead.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-gray-600 mb-2">
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-4 h-4" />
+                          <span>{selectedLead.email}</span>
+                        </div>
+                        {selectedLead.company && (
+                          <div className="flex items-center gap-1">
+                            <Building2 className="w-4 h-4" />
+                            <span>{selectedLead.company}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <Badge variant="outline" className="px-2 py-1">
+                          {selectedLead.type === 'demo' ? 'Demo Request' : 'Early Access'}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Joined {new Date(selectedLead.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Target className="w-3 h-3" />
+                          <span>{getProgressDisplay(selectedLead)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Contact Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <p className="text-sm text-gray-600">Email</p>
+                            <p className="font-medium">{selectedLead.email}</p>
+                          </div>
+                        </div>
+                        {selectedLead.name && (
+                          <div className="flex items-center gap-3">
+                            <User className="w-4 h-4 text-gray-500" />
+                            <div>
+                              <p className="text-sm text-gray-600">Full Name</p>
+                              <p className="font-medium">{selectedLead.name}</p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedLead.company && (
+                          <div className="flex items-center gap-3">
+                            <Building2 className="w-4 h-4 text-gray-500" />
+                            <div>
+                              <p className="text-sm text-gray-600">Company</p>
+                              <p className="font-medium">{selectedLead.company}</p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedLead.role && (
+                          <div className="flex items-center gap-3">
+                            <Tag className="w-4 h-4 text-gray-500" />
+                            <div>
+                              <p className="text-sm text-gray-600">Role</p>
+                              <p className="font-medium">{selectedLead.role}</p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedLead.company_size && (
+                          <div className="flex items-center gap-3">
+                            <Users className="w-4 h-4 text-gray-500" />
+                            <div>
+                              <p className="text-sm text-gray-600">Company Size</p>
+                              <p className="font-medium">{selectedLead.company_size} employees</p>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Timeline</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div>
+                            <p className="font-medium text-sm">Lead Created</p>
+                            <p className="text-xs text-gray-600">
+                              {new Date(selectedLead.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        {selectedLead.updated_at && (
+                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <div>
+                              <p className="font-medium text-sm">Last Updated</p>
+                              <p className="text-xs text-gray-600">
+                                {new Date(selectedLead.updated_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedLead.scheduled_at && (
+                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <div>
+                              <p className="font-medium text-sm">Demo Scheduled</p>
+                              <p className="text-xs text-gray-600">
+                                {new Date(selectedLead.scheduled_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedLead.completed_at && (
+                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <div>
+                              <p className="font-medium text-sm">Completed</p>
+                              <p className="text-xs text-gray-600">
+                                {new Date(selectedLead.completed_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Additional Details */}
+                  {(selectedLead.use_case || selectedLead.waitlist_position) && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Additional Details</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {selectedLead.use_case && (
+                          <div>
+                            <p className="text-sm text-gray-600">Use Case</p>
+                            <p className="font-medium">{selectedLead.use_case}</p>
+                          </div>
+                        )}
+                        {selectedLead.waitlist_position && (
+                          <div>
+                            <p className="text-sm text-gray-600">Waitlist Position</p>
+                            <p className="font-medium">#{selectedLead.waitlist_position}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                  {/* Status Card */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Status</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Current Status</p>
+                        <Badge variant={getStatusBadgeVariant(selectedLead.status)} className="mt-1">
+                          {selectedLead.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Progress</p>
+                        <p className="font-medium">{getProgressDisplay(selectedLead)}</p>
+                      </div>
+                      {selectedLead.calendly_scheduled && (
+                        <div>
+                          <p className="text-sm text-gray-600">Demo Status</p>
+                          <Badge variant="default" className="mt-1">
+                            Scheduled
+                          </Badge>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Source Information */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Source Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {selectedLead.source && (
+                        <div>
+                          <p className="text-sm text-gray-600">Source</p>
+                          <p className="font-medium">{selectedLead.source}</p>
+                        </div>
+                      )}
+                      {selectedLead.utm_source && (
+                        <div>
+                          <p className="text-sm text-gray-600">UTM Source</p>
+                          <p className="font-medium">{selectedLead.utm_source}</p>
+                        </div>
+                      )}
+                      {selectedLead.utm_medium && (
+                        <div>
+                          <p className="text-sm text-gray-600">UTM Medium</p>
+                          <p className="font-medium">{selectedLead.utm_medium}</p>
+                        </div>
+                      )}
+                      {selectedLead.utm_campaign && (
+                        <div>
+                          <p className="text-sm text-gray-600">UTM Campaign</p>
+                          <p className="font-medium">{selectedLead.utm_campaign}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Actions */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => window.open(`mailto:${selectedLead.email}`, '_blank')}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Send Email
+                      </Button>
+                      {selectedLead.type === 'demo' && (
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            toast({
+                              title: 'Demo Link',
+                              description: 'Demo scheduling functionality coming soon',
+                            });
+                          }}
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Schedule Demo
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 };

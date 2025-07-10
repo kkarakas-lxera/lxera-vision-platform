@@ -199,7 +199,6 @@ const App = () => {
                       <Route path="/analytics" element={<PageSuspense><AnalyticsDashboard /></PageSuspense>} />
                       <Route path="/settings" element={<PageSuspense><Settings /></PageSuspense>} />
                       <Route path="/feedback" element={<PageSuspense><CustomerFeedback /></PageSuspense>} />
-                      <Route path="/leads" element={<PageSuspense><Leads /></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
