@@ -238,7 +238,7 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             onSubmit={handleSubmit}
-            className={`flex ${variant === 'mobile' ? 'flex-col' : 'flex-row'} gap-2`}
+            className={`flex ${variant === 'mobile' ? 'flex-col' : 'flex-row'} gap-2 w-full max-w-full`}
           >
             <Input
               ref={inputRef}
@@ -250,6 +250,7 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
                 ${variant === 'mobile' ? 'h-12 text-base' : 'h-11'}
                 ${variant === 'mobile' ? 'w-full' : 'w-64'}
                 transition-all duration-300
+                bg-white/95
               `}
               disabled={loading}
               inputMode="email"
@@ -266,18 +267,19 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
               className={`
                 bg-future-green text-business-black hover:bg-future-green/90 font-medium
                 ${variant === 'mobile' ? 'h-12 text-base w-full' : 'h-11 px-6'}
+                flex items-center justify-center whitespace-nowrap
               `}
             >
               {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
+                <span className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
+                  <span>Sending...</span>
+                </span>
               ) : (
-                <>
-                  Get Access
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+                <span className="flex items-center">
+                  <span>Get Access</span>
+                  <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
+                </span>
               )}
             </Button>
           </motion.form>

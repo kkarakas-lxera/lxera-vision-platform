@@ -68,7 +68,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ value, onChange, onComplete }) => {
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all touch-manipulation bg-white/80 backdrop-blur-sm hover:bg-future-green/5"
+          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all touch-manipulation bg-white backdrop-blur-sm hover:bg-future-green/5"
           autoComplete="off"
         />
       ))}
@@ -252,7 +252,7 @@ const EarlyAccessLogin = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@company.com"
-                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white/80 backdrop-blur-sm placeholder:text-gray-400"
+                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white backdrop-blur-sm placeholder:text-gray-400"
                           autoComplete="email"
                           autoFocus
                         />
@@ -289,10 +289,10 @@ const EarlyAccessLogin = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-4 mt-4"
                       >
-                        <Alert className="border-2 border-future-green/30 bg-gradient-to-br from-future-green/10 to-lxera-blue/10">
-                          <AlertCircle className="h-4 w-4 text-future-green" />
-                          <AlertDescription className="text-business-black font-medium">
-                            <strong className="text-business-black">{email}</strong> is not on our early access list yet.
+                        <Alert className="border-2 border-orange-400/50 bg-gradient-to-br from-orange-50 via-amber-50/80 to-orange-100/60 shadow-lg shadow-orange-200/20">
+                          <AlertCircle className="h-4 w-4 text-orange-600" />
+                          <AlertDescription className="text-gray-800 font-medium">
+                            <strong className="text-gray-900">{email}</strong> is not on our early access list yet.
                           </AlertDescription>
                         </Alert>
                         
@@ -300,10 +300,10 @@ const EarlyAccessLogin = () => {
                           <p className="text-sm text-gray-600">
                             Join our early access program to get started
                           </p>
-                          <div className="space-y-2">
+                          <div className="space-y-2 w-full max-w-full overflow-hidden">
                             <SmartEmailCapture
                               source="login-page-not-found"
-                              variant="default"
+                              variant="mobile"
                               buttonText="Get Early Access"
                               placeholder="Enter your work email"
                               initialEmail={email}
