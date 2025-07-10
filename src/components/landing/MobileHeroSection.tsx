@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,26 @@ const MobileHeroSection = () => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [emailCaptured, setEmailCaptured] = useState(false);
   const navigate = useNavigate();
+
+  // Add scroll animation CSS
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes scroll-mobile {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const handleVideoClick = () => {
     setIsVideoModalOpen(true);
@@ -24,6 +44,10 @@ const MobileHeroSection = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleRequestDemo = () => {
+    navigate('/contact-sales');
   };
 
   // Integration platforms with real logos
@@ -45,7 +69,7 @@ const MobileHeroSection = () => {
       
       <div className="relative z-10">
         {/* Headline */}
-        <div className="animate-fade-in-up mb-4">
+        <div className="animate-fade-in-up mb-4" style={{ animationDelay: '0ms' }}>
           <h1 className="text-2xl font-medium text-business-black leading-tight tracking-tight">
             <span className="block">LXERA: The First</span>
             <span className="block text-[#B1B973]">Learning & Innovation</span>
@@ -57,7 +81,7 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Subheadline */}
-        <div className="animate-fade-in-up animate-delay-200 mb-4">
+        <div className="animate-fade-in-up mb-4" style={{ animationDelay: '200ms' }}>
           <p className="text-base text-business-black/85 font-normal leading-relaxed">
             Empower your teams to{" "}
             <b className="text-business-black font-medium">learn faster,</b>{" "}
@@ -68,7 +92,8 @@ const MobileHeroSection = () => {
 
         {/* Video Preview with Actual Thumbnail */}
         <div 
-          className="relative rounded-xl overflow-hidden mb-4 aspect-video cursor-pointer shadow-xl animate-fade-in-up animate-delay-400 group"
+          className="relative rounded-xl overflow-hidden mb-4 aspect-video cursor-pointer shadow-xl animate-fade-in-up group"
+          style={{ animationDelay: '400ms' }}
           onClick={handleVideoClick}
         >
           {/* Actual Video Thumbnail */}
@@ -94,7 +119,7 @@ const MobileHeroSection = () => {
 
 
         {/* CTA - Email capture or success state */}
-        <div className="mb-6 animate-fade-in-up animate-delay-700">
+        <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '700ms' }}>
           {!emailCaptured ? (
             <div className="space-y-3">
               <SmartEmailCapture 
@@ -124,14 +149,14 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Early Access Banner with Social Proof */}
-        <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up animate-delay-800">
+        <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
           <span className="font-semibold flex items-center justify-center gap-2 text-sm">
             🚀 Join 200+ innovative teams in early access
           </span>
         </div>
 
         {/* Key Benefits */}
-        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 mb-6 animate-fade-in-up animate-delay-1000">
+        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 mb-6 animate-fade-in-up" style={{ animationDelay: '1000ms' }}>
           <h3 className="font-medium text-business-black mb-3 text-sm">Why Choose LXERA?</h3>
           <div className="space-y-2.5">
             <div className="flex items-start gap-2.5">
@@ -166,7 +191,7 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Demo Option - Moved after benefits */}
-        <div className="text-center mb-6 animate-fade-in-up animate-delay-1100">
+        <div className="text-center mb-6 animate-fade-in-up" style={{ animationDelay: '1100ms' }}>
           <p className="text-sm text-business-black/70 mb-3">Need a personalized walkthrough?</p>
           <Button
             variant="outline"
@@ -178,12 +203,12 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Integration Section */}
-        <div className="mb-6 animate-fade-in-up animate-delay-1200">
+        <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '1200ms' }}>
           <p className="text-xs text-business-black/80 mb-2.5 text-center font-medium">
             250+ HRIS and project management tools with one-click integration
           </p>
           <div className="relative overflow-hidden">
-            <div className="flex gap-4 animate-scroll-mobile">
+            <div className="flex gap-4" style={{ animation: 'scroll-mobile 20s linear infinite', display: 'flex', width: 'max-content' }}>
               {/* Double the platforms for seamless loop */}
               {[...integrationPlatforms, ...integrationPlatforms].map((platform, index) => (
                 <div 
@@ -203,7 +228,7 @@ const MobileHeroSection = () => {
         </div>
 
         {/* Explore More */}
-        <div className="text-center animate-fade-in-up animate-delay-1600">
+        <div className="text-center animate-fade-in-up" style={{ animationDelay: '1600ms' }}>
           <button
             onClick={handleExploreClick}
             className="text-business-black/60 text-sm flex items-center justify-center gap-2 mx-auto hover:text-business-black transition-colors"
@@ -214,48 +239,6 @@ const MobileHeroSection = () => {
         </div>
       </div>
 
-      {/* CSS for scrolling animation */}
-      <style jsx>{`
-        @keyframes scroll-mobile {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        
-        .animate-scroll-mobile {
-          animation: scroll-mobile 20s linear infinite;
-          display: flex;
-          width: max-content;
-        }
-
-        .animate-delay-200 {
-          animation-delay: 200ms;
-        }
-        .animate-delay-400 {
-          animation-delay: 400ms;
-        }
-        .animate-delay-600 {
-          animation-delay: 600ms;
-        }
-        .animate-delay-800 {
-          animation-delay: 800ms;
-        }
-        .animate-delay-1000 {
-          animation-delay: 1000ms;
-        }
-        .animate-delay-1200 {
-          animation-delay: 1200ms;
-        }
-        .animate-delay-1400 {
-          animation-delay: 1400ms;
-        }
-        .animate-delay-1600 {
-          animation-delay: 1600ms;
-        }
-      `}</style>
 
       {/* Modals */}
       <VideoModal

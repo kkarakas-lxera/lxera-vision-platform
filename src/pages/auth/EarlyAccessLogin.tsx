@@ -287,15 +287,20 @@ const EarlyAccessLogin = () => {
                           <p className="text-sm text-gray-600">
                             Join our early access program to get started
                           </p>
-                          <Button
-                            type="button"
-                            variant="default"
-                            onClick={() => navigate('/early-access')}
-                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                          >
-                            <Clock className="mr-2 h-4 w-4" />
-                            Get early access (30 seconds, no card required)
-                          </Button>
+                          <div className="space-y-2">
+                            <Button
+                              type="button"
+                              variant="default"
+                              onClick={() => navigate(`/early-access?email=${encodeURIComponent(email)}`)}
+                              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-4 text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
+                            >
+                              <Clock className="mr-2 h-4 w-4" />
+                              Get Early Access
+                            </Button>
+                            <p className="text-xs text-gray-500">
+                              30 seconds, no card required
+                            </p>
+                          </div>
                           <button
                             type="button"
                             onClick={() => {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Logo from '@/components/Logo';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 
 const EarlyAccessSignup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const emailFromUrl = searchParams.get('email');
 
   const handleSuccess = () => {
     // After successful email capture, redirect to login
@@ -73,6 +75,13 @@ const EarlyAccessSignup = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Start your journey
           </h3>
+          {emailFromUrl && (
+            <div className="mb-4 p-3 bg-indigo-50 rounded-lg">
+              <p className="text-sm text-indigo-700">
+                We're setting up your early access for <strong>{emailFromUrl}</strong>
+              </p>
+            </div>
+          )}
           <SmartEmailCapture
             source="early-access-signup"
             variant="default"
@@ -80,6 +89,8 @@ const EarlyAccessSignup = () => {
             placeholder="your@company.com"
             onSuccess={handleSuccess}
             className="w-full"
+            initialEmail={emailFromUrl || undefined}
+            autoSubmit={!!emailFromUrl}
           />
           <p className="text-xs text-gray-500 mt-4 text-center">
             Takes only 30 seconds • No credit card required • Cancel anytime

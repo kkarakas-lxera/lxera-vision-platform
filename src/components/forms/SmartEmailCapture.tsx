@@ -13,6 +13,8 @@ interface SmartEmailCaptureProps {
   placeholder?: string;
   onSuccess?: (email: string) => void;
   className?: string;
+  initialEmail?: string;
+  autoSubmit?: boolean;
 }
 
 const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
@@ -21,20 +23,33 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
   buttonText = 'Get Early Access',
   placeholder = 'Enter your work email',
   onSuccess,
-  className = ''
+  className = '',
+  initialEmail = '',
+  autoSubmit = false
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [email, setEmail] = useState('');
+  const [isExpanded, setIsExpanded] = useState(autoSubmit && !!initialEmail);
+  const [email, setEmail] = useState(initialEmail);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (isExpanded && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isExpanded]);
+
+  useEffect(() => {
+    if (autoSubmit && initialEmail && !submitted && !loading) {
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSubmit, initialEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

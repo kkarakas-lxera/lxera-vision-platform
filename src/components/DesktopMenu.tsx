@@ -366,7 +366,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           source="desktop_menu"
           buttonText="Request a Demo"
           variant="default"
-          className="bg-business-black text-white hover:bg-business-black/90 font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
+          className=""
         />
 
         {/* Show Go to Dashboard when authenticated, Sign In when not */}
