@@ -123,6 +123,7 @@ const HeroSection = () => {
                       <ProgressiveDemoCapture 
                         source="hero_section"
                         buttonText="Request Demo"
+                        variant="minimal"
                         className=""
                       />
                     </div>

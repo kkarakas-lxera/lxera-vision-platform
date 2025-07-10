@@ -1,13 +1,7 @@
 import { Check, X } from "lucide-react";
-import { useState } from "react";
-import ContactSalesModal from "./ContactSalesModal";
+import PricingContactSales from "./forms/PricingContactSales";
 
 const PlanComparisonSection = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
-
-  const handleContactSales = () => {
-    setIsContactSalesModalOpen(true);
-  };
 
   const comparisonFeatures = [
     {
@@ -226,25 +220,18 @@ const PlanComparisonSection = () => {
             <p className="text-base text-black mb-6 font-inter font-normal">
               Need help choosing the right plan? Our team is here to help.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <button className="bg-future-green hover:bg-future-green/90 text-black px-8 py-3 rounded-xl text-sm font-medium transition-all hover:scale-105 hover:shadow-lg font-inter">
                 Start Free Trial
               </button>
-              <button 
-                onClick={handleContactSales}
-                className="bg-business-black hover:bg-business-black/90 text-white px-8 py-3 rounded-xl text-sm font-medium transition-all hover:scale-105 hover:shadow-lg font-inter"
-              >
-                Contact Sales
-              </button>
+              <PricingContactSales 
+                source="plan_comparison_section"
+                className="flex-1"
+              />
             </div>
           </div>
         </div>
       </div>
-
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </>
   );
 };

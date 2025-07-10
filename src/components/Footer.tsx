@@ -28,7 +28,7 @@ const Footer = () => {
               innovation enablement, and scalable mentorship solutions.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
+              <a href="https://www.linkedin.com/company/lxera" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-future-green hover:text-business-black transition-all duration-300">
                 <Linkedin className="w-5 h-5" />
               </a>
             </div>

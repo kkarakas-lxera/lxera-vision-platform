@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Puzzle, Users, Calendar, BarChart3, ArrowRight, CheckCircle, Zap, Link as LinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const Integrations = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const integrationCategories = [
     {
       title: "Learning Management Systems",
@@ -95,14 +94,10 @@ const Integrations = () => {
               buttonText="Request a Demo"
               onSuccess={() => {}}
             />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
-              onClick={() => setIsContactSalesModalOpen(true)}
-            >
-              Talk to Our Experts
-            </Button>
+            <PricingContactSales 
+              source="integrations_page"
+              className="max-w-xs"
+            />
           </div>
         </div>
       </section>
@@ -231,14 +226,10 @@ const Integrations = () => {
               buttonText="Request a Demo"
               onSuccess={() => {}}
             />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
-              onClick={() => setIsContactSalesModalOpen(true)}
-            >
-              Talk to Our Experts
-            </Button>
+            <PricingContactSales 
+              source="integrations_page"
+              className="max-w-xs"
+            />
           </div>
         </div>
       </section>
@@ -246,10 +237,6 @@ const Integrations = () => {
       <Footer />
       
       {/* Modals */}
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </div>
   );
 };

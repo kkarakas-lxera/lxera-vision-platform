@@ -6,10 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Lightbulb, Users, Target, Brain, BarChart3, MessageCircle, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const InnovationHub = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const hubFeatures = [
     {
       title: "AI-Powered Ideation",
@@ -192,14 +191,10 @@ const InnovationHub = () => {
               buttonText="Request a Demo"
               onSuccess={() => {}}
             />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
-              onClick={() => setIsContactSalesModalOpen(true)}
-            >
-              Talk to Our Experts
-            </Button>
+            <PricingContactSales 
+              source="innovation_hub_page"
+              className="max-w-xs"
+            />
           </div>
         </div>
       </section>
@@ -207,10 +202,6 @@ const InnovationHub = () => {
       <Footer />
       
       {/* Modals */}
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </div>
   );
 };

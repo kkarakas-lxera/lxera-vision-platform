@@ -5,21 +5,12 @@ import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import ContactSalesModal from "@/components/ContactSalesModal";
-import WaitlistModal from "@/components/WaitlistModal";
+import PricingEarlyAccess from "@/components/forms/PricingEarlyAccess";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
 
-  const handleContactSales = () => {
-    setIsContactSalesModalOpen(true);
-  };
-
-  const handleGetStarted = () => {
-    setIsWaitlistModalOpen(true);
-  };
 
   const featureExplanations: {[key: string]: string} = {
     "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
@@ -219,16 +210,21 @@ const Pricing = () => {
                     })}
                   </ul>
 
-                  <Button
-                    onClick={plan.name === 'Enterprise' ? handleContactSales : handleGetStarted}
-                    className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 hover:shadow-lg font-inter ${
-                      plan.name === 'Enterprise'
-                        ? 'bg-business-black hover:bg-business-black/90 text-white hover:shadow-business-black/25'
-                        : 'bg-white hover:bg-gray-50 text-business-black border-2 border-business-black hover:bg-business-black hover:text-white'
-                    }`}
-                  >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
-                  </Button>
+                  {plan.name === 'Enterprise' ? (
+                    <PricingContactSales
+                      source="pricing_page_enterprise"
+                      onSuccess={(email, name) => {
+                        console.log('Contact sales submission:', { email, name });
+                      }}
+                    />
+                  ) : (
+                    <PricingEarlyAccess
+                      source="pricing_page_core"
+                      onSuccess={(email, name) => {
+                        console.log('Early access signup:', { email, name });
+                      }}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -278,15 +274,6 @@ const Pricing = () => {
         </div>
 
         <Footer />
-
-        <ContactSalesModal 
-          isOpen={isContactSalesModalOpen} 
-          onClose={() => setIsContactSalesModalOpen(false)}
-        />
-        <WaitlistModal 
-          isOpen={isWaitlistModalOpen} 
-          onClose={() => setIsWaitlistModalOpen(false)}
-        />
       </div>
     </TooltipProvider>
   );

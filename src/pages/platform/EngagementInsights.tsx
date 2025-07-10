@@ -6,10 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { BarChart3, Users, Target, TrendingUp, Eye, Clock, Award, ArrowRight, CheckCircle } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const EngagementInsights = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const insightFeatures = [
     {
       title: "Real-Time Engagement Tracking",
@@ -190,14 +189,10 @@ const EngagementInsights = () => {
               buttonText="Request a Demo"
               onSuccess={() => {}}
             />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
-              onClick={() => setIsContactSalesModalOpen(true)}
-            >
-              Talk to Our Experts
-            </Button>
+            <PricingContactSales 
+              source="engagement_insights_page"
+              className="max-w-xs"
+            />
           </div>
         </div>
       </section>
@@ -205,10 +200,6 @@ const EngagementInsights = () => {
       <Footer />
       
       {/* Modals */}
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </div>
   );
 };

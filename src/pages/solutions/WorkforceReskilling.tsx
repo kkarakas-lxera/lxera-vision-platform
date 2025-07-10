@@ -4,16 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 import { ArrowRight, Users, TrendingUp, Target, Award, BarChart3, Puzzle, Brain, RefreshCw, Globe, Star, Map, Quote } from "lucide-react";
 import { useState } from "react";
 
 const WorkforceReskilling = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
-
-  const handleContactSales = () => {
-    setIsContactSalesModalOpen(true);
-  };
 
   const features = [
     {
@@ -98,21 +93,7 @@ const WorkforceReskilling = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-indigo-600 hover:to-blue-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 border-0 group font-inter"
-                >
-                  Request a Demo
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="border-2 border-business-black/20 bg-white/80 backdrop-blur-sm text-business-black hover:bg-business-black hover:text-white hover:border-business-black font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2 font-inter"
-                >
-                  Get Early Access
-                </Button>
+                <PricingContactSales source="workforce_reskilling_page" className="max-w-xs" />
               </div>
             </div>
           </div>
@@ -207,21 +188,7 @@ const WorkforceReskilling = () => {
                 Build a workforce ready for tomorrow.
               </h2>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
-                >
-                  Request a Demo
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-blue-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
-                >
-                  Get Early Access
-                </Button>
+                <PricingContactSales source="workforce_reskilling_page" className="max-w-xs" />
               </div>
             </div>
           </div>
@@ -230,10 +197,6 @@ const WorkforceReskilling = () => {
         <Footer />
       </div>
 
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </>
   );
 };

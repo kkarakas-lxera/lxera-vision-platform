@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Clock, Brain, ArrowRight, Zap, Heart, CheckCircle, Bot, Target, Eye, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const MentorshipSupport = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const supportFeatures = [
     {
       title: "AI Behavior Monitoring",
@@ -223,14 +222,10 @@ const MentorshipSupport = () => {
               buttonText="Request a Demo"
               onSuccess={() => {}}
             />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal"
-              onClick={() => setIsContactSalesModalOpen(true)}
-            >
-              Talk to Our Experts <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <PricingContactSales 
+              source="mentorship_support_page"
+              className="max-w-xs"
+            />
           </div>
         </div>
       </section>
@@ -238,10 +233,6 @@ const MentorshipSupport = () => {
       <Footer />
       
       {/* Modals */}
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
     </div>
   );
 };

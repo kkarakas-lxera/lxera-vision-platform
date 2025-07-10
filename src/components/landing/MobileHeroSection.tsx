@@ -47,7 +47,7 @@ const MobileHeroSection = () => {
   };
 
   const handleRequestDemo = () => {
-    navigate('/contact-sales');
+    navigate('/company/contact');
   };
 
   // Integration platforms with real logos

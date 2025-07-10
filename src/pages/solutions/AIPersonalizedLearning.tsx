@@ -4,18 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 import WaitlistModal from "@/components/WaitlistModal";
 import { ArrowRight, Brain, CheckCircle, Users, Target, BarChart3, Zap, Star, Search, BookOpen, Lightbulb } from "lucide-react";
 import { useState } from "react";
 
 const AIPersonalizedLearning = () => {
-  const [isContactSalesModalOpen, setIsContactSalesModalOpen] = useState(false);
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
-
-  const handleContactSales = () => {
-    setIsContactSalesModalOpen(true);
-  };
 
   const handleGetEarlyAccess = () => {
     setIsWaitlistModalOpen(true);
@@ -80,13 +75,7 @@ const AIPersonalizedLearning = () => {
                 Deliver uniquely tailored content and learning journeys that adapt to each individual's goals, pace, and motivation — all powered by AI.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-rose-600 hover:to-pink-600 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 border-0 group font-inter"
-                >
-                  Request a Demo
-                </Button>
+                <PricingContactSales source="ai_personalized_learning_page" className="max-w-xs" />
                 <Button
                   variant="outline"
                   size="lg"
@@ -189,13 +178,7 @@ const AIPersonalizedLearning = () => {
                 Make every learning experience personal and powerful.
               </h2>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={handleContactSales}
-                  className="bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 border-0 font-inter"
-                >
-                  Request a Demo
-                </Button>
+                <PricingContactSales source="ai_personalized_learning_page" className="max-w-xs" />
                 <Button
                   variant="outline"
                   size="lg"
@@ -212,10 +195,6 @@ const AIPersonalizedLearning = () => {
         <Footer />
       </div>
 
-      <ContactSalesModal 
-        isOpen={isContactSalesModalOpen} 
-        onClose={() => setIsContactSalesModalOpen(false)}
-      />
       <WaitlistModal 
         isOpen={isWaitlistModalOpen} 
         onClose={() => setIsWaitlistModalOpen(false)}

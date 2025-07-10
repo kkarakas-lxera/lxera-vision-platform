@@ -3,14 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Heart, Users, Target, Coffee, Lightbulb, Smile } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import ContactSalesModal from "@/components/ContactSalesModal";
+import PricingContactSales from "@/components/forms/PricingContactSales";
 
 const About = () => {
-  const [showContactSales, setShowContactSales] = useState(false);
-
-  const handleContactSales = () => {
-    setShowContactSales(true);
-  };
 
   const values = [
     {
@@ -177,22 +172,15 @@ const About = () => {
             Seriously, we love talking about this stuff. Whether you have 5 employees or 50,000, 
             let's figure out how to make learning work better for your people.
           </p>
-          <Button 
-            size="lg"
-            onClick={handleContactSales}
-            className="bg-gradient-to-r from-future-green to-emerald-500 hover:from-emerald-500 hover:to-future-green text-business-black font-medium px-8 py-4 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-          >
-            Let's Talk
-          </Button>
+          <PricingContactSales 
+            source="about_page"
+            className="max-w-xs"
+          />
         </div>
       </section>
 
       <Footer />
       
-      <ContactSalesModal 
-        isOpen={showContactSales} 
-        onClose={() => setShowContactSales(false)} 
-      />
     </div>
   );
 };
