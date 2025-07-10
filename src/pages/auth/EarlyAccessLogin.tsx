@@ -410,11 +410,30 @@ const EarlyAccessLogin = () => {
             </AnimatePresence>
 
             {error && (
-              <Alert className="mt-4 border-2 border-lxera-red/30 bg-gradient-to-br from-lxera-red/10 to-transparent">
-                <AlertDescription className="text-lxera-red font-medium">
-                  {error}
-                </AlertDescription>
-              </Alert>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.3, y: -20 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: [0.3, 1.1, 0.95, 1.02, 1],
+                  y: [0, 5, -2, 0],
+                  x: [0, -12, 12, -10, 10, -8, 8, -5, 5, -2, 0],
+                  rotate: [0, -1, 1, -1, 1, -0.5, 0.5, 0]
+                }}
+                transition={{
+                  duration: 0.6,
+                  times: [0, 0.15, 0.3, 0.45, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1],
+                  ease: "easeInOut"
+                }}
+                className="mt-4"
+              >
+                <Alert className="border-2 border-red-600 bg-gradient-to-br from-red-500 to-red-600 shadow-xl animate-pulse-slow relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  <AlertCircle className="h-5 w-5 text-white animate-bounce-slow" />
+                  <AlertDescription className="text-white font-bold text-base relative">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
             )}
           </CardContent>
         </Card>

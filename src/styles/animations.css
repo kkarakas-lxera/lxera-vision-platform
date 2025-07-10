@@ -186,6 +186,16 @@
     transform: scale(1.12);
     filter: drop-shadow(0 0 2px #7AE5C6);
   }
+
+  /* Dramatic shake animation for errors */
+  .animate-shake-error {
+    animation: shake-error 0.5s ease-in-out;
+  }
+
+  /* Bounce in animation for alerts */
+  .animate-bounce-in {
+    animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
 }
 
 /* Enhanced and new keyframe animations */
@@ -390,4 +400,56 @@
   0% { transform: scaleX(0);}
   75% { transform: scaleX(1.16);}
   100% { transform: scaleX(1);}
+}
+
+/* Dramatic shake animation for errors */
+@keyframes shake-error {
+  0%, 100% { 
+    transform: translateX(0);
+  }
+  10% { 
+    transform: translateX(-12px) rotate(-1deg);
+  }
+  20% { 
+    transform: translateX(12px) rotate(1deg);
+  }
+  30% { 
+    transform: translateX(-10px) rotate(-1deg);
+  }
+  40% { 
+    transform: translateX(10px) rotate(1deg);
+  }
+  50% { 
+    transform: translateX(-8px) rotate(-0.5deg);
+  }
+  60% { 
+    transform: translateX(8px) rotate(0.5deg);
+  }
+  70% { 
+    transform: translateX(-5px);
+  }
+  80% { 
+    transform: translateX(5px);
+  }
+  90% { 
+    transform: translateX(-2px);
+  }
+}
+
+/* Bounce in animation */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-20px);
+  }
+  50% {
+    transform: scale(1.05) translateY(5px);
+  }
+  70% {
+    transform: scale(0.95) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
