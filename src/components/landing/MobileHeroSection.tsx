@@ -17,10 +17,10 @@ const MobileHeroSection = () => {
     style.textContent = `
       @keyframes scroll-mobile {
         0% {
-          transform: translateX(0);
+          left: 0;
         }
         100% {
-          transform: translateX(-50%);
+          left: -50%;
         }
       }
     `;
@@ -207,7 +207,7 @@ const MobileHeroSection = () => {
             250+ HRIS and project management tools with one-click integration
           </p>
           <div className="relative overflow-hidden">
-            <div className="flex gap-4" style={{ animation: 'scroll-mobile 20s linear infinite', display: 'flex', width: 'max-content' }}>
+            <div className="flex gap-4 relative" style={{ animation: 'scroll-mobile 20s linear infinite', display: 'flex', width: 'max-content' }}>
               {/* Double the platforms for seamless loop */}
               {[...integrationPlatforms, ...integrationPlatforms].map((platform, index) => (
                 <div 
