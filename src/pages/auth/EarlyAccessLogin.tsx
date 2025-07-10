@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, ArrowRight, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, ArrowRight, Clock, AlertCircle, Check, Zap, Shield, Rocket, ArrowLeft, Users, Brain, BarChart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
@@ -211,7 +211,7 @@ const EarlyAccessLogin = () => {
             <Logo />
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
-            Welcome back<span className="text-future-green">!</span>
+            Welcome back<span className="text-business-black">!</span>
           </h2>
           <p className="mt-2 text-base sm:text-lg text-gray-700 font-medium">
             Sign in to your early access account
@@ -307,8 +307,8 @@ const EarlyAccessLogin = () => {
                               buttonText="Get Early Access"
                               placeholder="Enter your work email"
                               initialEmail={email}
-                              autoSubmit={false}
-                              className="w-full [&_button]:bg-gradient-to-r [&_button]:from-future-green [&_button]:to-future-green/90 [&_button]:hover:from-future-green [&_button]:hover:to-lxera-blue [&_button]:text-business-black [&_button]:font-bold [&_button]:shadow-lg [&_button]:hover:shadow-xl [&_button]:transition-all [&_button]:transform [&_button]:hover:scale-[1.02]"
+                              autoSubmit={true}
+                              className="w-full"
                               onSuccess={(email) => {
                                 toast({
                                   title: 'Welcome to Early Access!',
@@ -329,7 +329,7 @@ const EarlyAccessLogin = () => {
                               setUserNotFound(false);
                               setEmail('');
                             }}
-                            className="text-sm text-future-green hover:text-business-black font-bold transition-colors"
+                            className="text-sm text-business-black/80 hover:text-business-black font-bold transition-colors underline underline-offset-2"
                           >
                             Try a different email
                           </button>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, ArrowRight, Mail, Sparkles } from 'lucide-react';
@@ -27,31 +27,16 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
   initialEmail = '',
   autoSubmit = false
 }) => {
-  const [isExpanded, setIsExpanded] = useState(autoSubmit && !!initialEmail);
+  const [isExpanded, setIsExpanded] = useState(!!initialEmail);
   const [email, setEmail] = useState(initialEmail);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const hasAutoSubmitted = useRef(false);
 
-  useEffect(() => {
-    if (isExpanded && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isExpanded]);
-
-  useEffect(() => {
-    if (autoSubmit && initialEmail && !submitted && !loading) {
-      // Small delay to ensure the component is fully mounted
-      const timer = setTimeout(() => {
-        handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [autoSubmit, initialEmail]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !email.includes('@')) {
@@ -101,7 +86,24 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, source, onSuccess]);
+
+  useEffect(() => {
+    if (isExpanded && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isExpanded]);
+
+  useEffect(() => {
+    if (autoSubmit && initialEmail && !submitted && !loading && !hasAutoSubmitted.current) {
+      hasAutoSubmitted.current = true;
+      // Small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSubmit, initialEmail, submitted, loading, handleSubmit]);
 
   const handleClickOutside = (e: MouseEvent) => {
     if (isExpanded && !(e.target as Element).closest('.smart-email-capture')) {
