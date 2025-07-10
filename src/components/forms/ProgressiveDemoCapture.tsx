@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowRight, Mail, Sparkles, Building2, Users, Check } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, Calendar, Building2, Users, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ticketService } from '@/services/ticketService';
 import { toast } from '@/components/ui/use-toast';
@@ -215,7 +215,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 rounded-full border border-green-200"
+        className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-200"
       >
         <Check className="w-5 h-5" />
         <span className="font-medium">Check your email for scheduling!</span>
@@ -235,7 +235,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setCurrentStep(1)}
-              className="text-future-green hover:text-future-green/80 underline underline-offset-4 font-medium transition-colors"
+              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40"
             >
               {buttonText}
             </motion.button>
@@ -323,12 +323,21 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
             <Button
               onClick={() => setCurrentStep(1)}
               className={cn(
-                "bg-gradient-to-r from-future-green to-emerald-500 text-white hover:from-future-green/90 hover:to-emerald-500/90 font-medium shadow-lg hover:shadow-xl",
+                "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
                 variant === 'mobile' ? 'h-12 text-base w-full rounded-full' : 'h-11 px-8 rounded-full',
-                "transition-all duration-300 transform",
+                "transition-all duration-300 transform relative overflow-hidden",
                 isHovered && "scale-105"
               )}
             >
+              {isHovered && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: '100%' }}
+                  exit={{ width: 0 }}
+                  className="absolute inset-0 bg-future-green/10"
+                  transition={{ duration: 0.3 }}
+                />
+              )}
               <AnimatePresence mode="wait">
                 {isHovered ? (
                   <motion.div
@@ -336,9 +345,9 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 relative z-10"
                   >
-                    <Mail className="w-4 h-4" />
+                    <Calendar className="w-4 h-4" />
                     <span>{buttonText}</span>
                     <ArrowRight className="w-4 h-4" />
                   </motion.div>
@@ -348,10 +357,9 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-2"
+                    className="relative z-10"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    <span>{buttonText}</span>
+                    {buttonText}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -395,7 +403,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 <Button 
                   type="submit" 
                   className={cn(
-                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full",
+                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300",
                     variant === 'mobile' ? 'h-12 text-base' : 'h-11'
                   )}
                 >
@@ -487,7 +495,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                   type="submit" 
                   disabled={loading}
                   className={cn(
-                    "w-full bg-gradient-to-r from-future-green to-emerald-500 text-white hover:from-future-green/90 hover:to-emerald-500/90 font-medium rounded-full shadow-lg",
+                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300",
                     variant === 'mobile' ? 'h-12 text-base' : 'h-11'
                   )}
                 >
