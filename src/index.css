@@ -61,12 +61,15 @@
   }
 }
 
-/* Version: 1.0.6 - Fixed demo form positioning and z-index issues - 2025-07-10 15:45 */
+/* Version: 1.0.7 - CRITICAL FIX: Demo form positioning and z-index issues - 2025-07-10 16:15 */
 
 /* Cache busting rule to force new hash generation */
-.cache-bust-v106 {
+.cache-bust-v107-critical {
   display: none !important;
-  content: "Fixed demo form off-screen and z-index issues";
+  content: "CRITICAL: Fixed demo form off-screen and z-index issues - forced rebuild";
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Fix for demo form positioning */
