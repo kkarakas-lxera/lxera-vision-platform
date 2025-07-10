@@ -81,13 +81,15 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   }, []);
 
   useEffect(() => {
-    // Auto-focus inputs when expanded
-    if (isExpanded && currentStep === 1 && emailRef.current) {
-      emailRef.current.focus();
-    } else if (isExpanded && currentStep === 2 && nameRef.current) {
-      nameRef.current.focus();
+    // Auto-focus the first empty input when expanded
+    if (isExpanded && currentStep === 1) {
+      if (!formData.email && emailRef.current) {
+        emailRef.current.focus();
+      } else if (formData.email && !formData.name && nameRef.current) {
+        nameRef.current.focus();
+      }
     }
-  }, [currentStep, isExpanded]);
+  }, [currentStep, isExpanded, formData.email, formData.name]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,9 +277,10 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
     const target = e.target as Element;
     if (isExpanded && 
         !target.closest('.progressive-demo-capture') && 
-        !target.closest('[data-radix-collection-item]') && // Don't close on Select items
-        !target.closest('[data-radix-select-content]') && // Don't close on Select content
-        !target.closest('[data-radix-popper-content-wrapper]')) { // Don't close on Select wrapper
+        !target.closest('[role="option"]') && // Don't close on Select options
+        !target.closest('[role="listbox"]') && // Don't close on Select listbox
+        !target.closest('[data-radix-popper-content-wrapper]') && // Don't close on Radix popper
+        !target.closest('[data-state="open"]')) { // Don't close on open select
       // Collapse but keep progress
       setIsExpanded(false);
     }
@@ -304,7 +307,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   // Minimal variant - ultra compact
   if (variant === 'minimal') {
     return (
-      <div className={`progressive-demo-capture inline-block ${className}`}>
+      <div className={`progressive-demo-capture inline-block relative isolate ${className}`}>
         <AnimatePresence mode="wait">
           {!isExpanded && (
             <motion.button
@@ -329,7 +332,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
               onSubmit={handleEmailSubmit}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-2"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-2 relative z-[9999]"
             >
               <Input
                 ref={emailRef}
@@ -390,7 +393,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
 
   // Default and mobile variants - elegant and compact
   return (
-    <div className={`progressive-demo-capture relative ${className}`}>
+    <div className={`progressive-demo-capture relative isolate ${className}`}>
       <AnimatePresence mode="wait">
         {!isExpanded && (
           <motion.div
@@ -452,17 +455,32 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
         )}
         
         {isExpanded && currentStep === 1 && (
-          <motion.form
-            key="email"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            onSubmit={handleEmailSubmit}
-            className={cn(
-              "absolute top-full mt-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
-              variant === 'mobile' ? 'w-full left-0' : 'w-80 left-1/2 -translate-x-1/2'
+          <>
+            {/* Mobile backdrop */}
+            {variant === 'mobile' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-[9998]"
+                onClick={() => setIsExpanded(false)}
+              />
             )}
-          >
+            <motion.form
+              key="email"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onSubmit={handleEmailSubmit}
+              className={cn(
+                "bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
+                variant === 'mobile' ? (
+                  'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-[9999]'
+                ) : (
+                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-[9999]'
+                )
+              )}
+            >
             <div className="space-y-3">
               <div className="text-center">
                 <h3 className="font-semibold text-lg text-business-black">Get Your Demo</h3>
@@ -557,6 +575,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               </p>
             </div>
           </motion.form>
+          </>
         )}
         
       </AnimatePresence>
