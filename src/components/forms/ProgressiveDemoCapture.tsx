@@ -477,7 +477,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 variant === 'mobile' ? (
                   'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-50'
                 ) : (
-                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)]'
+                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] demo-form-dropdown'
                 )
               )}
             >
