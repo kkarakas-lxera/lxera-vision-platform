@@ -307,4 +307,14 @@
     background-color: transparent !important;
     background-image: none !important;
   }
+  /* Fix mobile hero demo form stacking */
+  .hero .progressive-demo-capture {
+    position: relative;
+    z-index: 100;
+  }
+
+  .hero .demo-form-dropdown {
+    z-index: 110;
+    position: fixed !important;
+  }
 }
