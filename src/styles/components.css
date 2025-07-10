@@ -317,4 +317,9 @@
     z-index: 110;
     position: fixed !important;
   }
+  /* Ensure visible modal card is topmost on mobile hero */
+  .hero .progressive-demo-capture .fixed {
+    z-index: 120;
+    isolation: isolate;
+  }
 }
