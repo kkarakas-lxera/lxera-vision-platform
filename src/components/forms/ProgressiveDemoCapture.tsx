@@ -272,7 +272,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   };
 
   const handleClickOutside = (e: MouseEvent) => {
-    if (isExpanded && !(e.target as Element).closest('.progressive-demo-capture')) {
+    const target = e.target as Element;
+    if (isExpanded && 
+        !target.closest('.progressive-demo-capture') && 
+        !target.closest('[data-radix-collection-item]') && // Don't close on Select items
+        !target.closest('[data-radix-select-content]') && // Don't close on Select content
+        !target.closest('[data-radix-popper-content-wrapper]')) { // Don't close on Select wrapper
       // Collapse but keep progress
       setIsExpanded(false);
     }
@@ -454,8 +459,8 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
             exit={{ opacity: 0, scale: 0.9 }}
             onSubmit={handleEmailSubmit}
             className={cn(
-              "bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
-              variant === 'mobile' ? 'w-full' : 'w-80'
+              "absolute top-full mt-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
+              variant === 'mobile' ? 'w-full left-0' : 'w-80 left-1/2 -translate-x-1/2'
             )}
           >
             <div className="space-y-3">
@@ -473,9 +478,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="Enter your work email"
                     className={cn(
-                      "w-full border-gray-300 pl-10",
+                      "w-full border-gray-300 pl-10 bg-white text-business-black",
+                      "placeholder:text-gray-400 placeholder:font-normal",
                       variant === 'mobile' ? 'h-12 text-base' : 'h-11',
-                      "transition-all duration-300 bg-white/95"
+                      "transition-all duration-300",
+                      "focus:border-future-green focus:ring-future-green focus:ring-1",
+                      "autofill:bg-white autofill:text-business-black"
                     )}
                     inputMode="email"
                     autoComplete="email"
@@ -489,9 +497,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Your full name"
                     className={cn(
-                      "w-full border-gray-300 pl-10",
+                      "w-full border-gray-300 pl-10 bg-white text-business-black",
+                      "placeholder:text-gray-400 placeholder:font-normal",
                       variant === 'mobile' ? 'h-12 text-base' : 'h-11',
-                      "transition-all duration-300 bg-white/95"
+                      "transition-all duration-300",
+                      "focus:border-future-green focus:ring-future-green focus:ring-1",
+                      "autofill:bg-white autofill:text-business-black"
                     )}
                     autoComplete="name"
                   />
@@ -501,8 +512,10 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 <div className="relative">
                   <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
                     <SelectTrigger className={cn(
-                      "w-full border-gray-300 pl-10",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11'
+                      "w-full border-gray-300 pl-10 bg-white text-business-black",
+                      "placeholder:text-gray-400 data-[placeholder]:text-gray-400",
+                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
+                      "focus:border-future-green focus:ring-future-green focus:ring-1"
                     )}>
                       <SelectValue placeholder="Company size" />
                     </SelectTrigger>
