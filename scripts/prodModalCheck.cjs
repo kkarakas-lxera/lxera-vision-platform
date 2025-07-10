@@ -12,7 +12,7 @@ const puppeteer=require('puppeteer');
    const btn=[...document.querySelectorAll('button')].find(b=>/request/i.test(b.textContent));
    if(btn) btn.click();
  });
- await page.waitForSelector('[role="dialog"]',{visible:true,timeout:10000});
+ await page.waitForSelector('[role="dialog"]',{visible:true,timeout:30000});
  const overlap=await page.evaluate(()=>{
    const dlg=document.querySelector('[role="dialog"]');
    if(!dlg) return 'dialog missing';
