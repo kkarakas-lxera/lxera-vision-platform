@@ -88,6 +88,7 @@ const EarlyAccessLogin = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [userNotFound, setUserNotFound] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   // Resend timer countdown
   useEffect(() => {
@@ -283,7 +284,7 @@ const EarlyAccessLogin = () => {
                     )}
 
                     {/* Show this only after user submits email and they're not in the database */}
-                    {userNotFound && (
+                    {userNotFound && !signupSuccess && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -309,20 +310,20 @@ const EarlyAccessLogin = () => {
                               initialEmail={email}
                               autoSubmit={false}
                               className="w-full"
-                              onSuccess={(email) => {
+                              onSuccess={(capturedEmail) => {
                                 toast({
                                   title: 'Welcome to Early Access!',
                                   description: 'Check your email to complete your profile.',
                                 });
-                                // Reset the form state after successful submission
-                                setUserNotFound(false);
-                                setEmail('');
+                                setSignupSuccess(true);
+                                setEmail(capturedEmail); // keep for information
                               }}
                             />
                             <p className="text-xs text-gray-500">
                               30 seconds, no card required
                             </p>
                           </div>
+                          {!signupSuccess && (
                           <button
                             type="button"
                             onClick={() => {
@@ -332,7 +333,8 @@ const EarlyAccessLogin = () => {
                             className="text-sm text-business-black/80 hover:text-business-black font-bold transition-colors underline underline-offset-2"
                           >
                             Try a different email
-                          </button>
+                          </button>)
+                          }
                         </div>
                       </motion.div>
                     )}
@@ -434,6 +436,14 @@ const EarlyAccessLogin = () => {
                   </AlertDescription>
                 </Alert>
               </motion.div>
+            )}
+            {signupSuccess && (
+              <Alert className="border-2 border-green-600 bg-green-50 mt-4">
+                <Check className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-gray-800 font-medium">
+                  Success! Check your inbox to finish setting up your early access.
+                </AlertDescription>
+              </Alert>
             )}
           </CardContent>
         </Card>

@@ -363,7 +363,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               autoComplete="name"
             />
             <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
-              <SelectTrigger className="w-full h-12 text-base">
+              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
                 <SelectValue placeholder="Company size" />
               </SelectTrigger>
               <SelectContent>
@@ -431,7 +431,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               autoComplete="name"
             />
             <Select value={formData.companySize} onValueChange={(v)=>setFormData(prev=>({...prev,companySize:v}))}>
-              <SelectTrigger className="w-full h-12 text-base">
+              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
                 <SelectValue placeholder="Company size" />
               </SelectTrigger>
               <SelectContent>
