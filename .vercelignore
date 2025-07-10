@@ -1,0 +1,24 @@
+# Ignore build artifacts from being cached
+dist
+.vercel
+node_modules/.vite
+node_modules/.cache
+
+# Ignore temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# Ignore local environment files
+.env.local
+.env.*.local
+
+# Ignore test coverage
+coverage
+.nyc_output
+
+# Ignore IDE files
+.idea
+.vscode/*.local
+*.swp
+*.swo

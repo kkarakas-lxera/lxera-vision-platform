@@ -61,4 +61,10 @@
   }
 }
 
-/* Version: 1.0.2 - Critical mobile fixes in Tailwind layer - 2025-07-10 13:35 */
+/* Version: 1.0.5 - Fixed duplicate CSS, PostCSS config, and browserslist - 2025-07-10 14:45 */
+
+/* Cache busting rule to force new hash generation */
+.cache-bust-v105 {
+  display: none !important;
+  content: "Fixed CSS deployment issues";
+}
