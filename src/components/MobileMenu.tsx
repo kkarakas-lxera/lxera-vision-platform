@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, type FC } from "react";
+import type { ElementType } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Menu,
@@ -51,7 +52,7 @@ interface MobileMenuProps {
 }
 
 // Icon mapping for top-level items – tweak to match LXERA brand icons
-const iconFor = (name: string) => {
+const iconFor = (name: string): ElementType => {
   switch (name) {
     case "Platform":
       return Target;
@@ -66,7 +67,7 @@ const iconFor = (name: string) => {
   }
 };
 
-const MobileMenu: React.FC<MobileMenuProps> = ({
+const MobileMenu: FC<MobileMenuProps> = ({
   menuItems,
   activeSection,
   isMobileMenuOpen,
