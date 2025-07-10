@@ -2,12 +2,27 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowRight, Mail, Calendar, Building2, Users, Check } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, Calendar, Building2, Users, Check, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { demoCaptureService } from '@/services/demoCaptureService';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+// Common personal/consumer email domains to block
+const BLOCKED_DOMAINS = [
+  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+  'icloud.com', 'me.com', 'protonmail.com', 'tutanota.com', 'yandex.com',
+  'mail.com', 'gmx.com', 'zoho.com', 'fastmail.com', 'hushmail.com',
+  'guerrillamail.com', 'mailinator.com', '10minutemail.com', 'tempmail.org',
+  'throwaway.email', 'maildrop.cc', 'sharklasers.com', 'grr.la'
+];
+
+const isCompanyEmail = (email: string): boolean => {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return false;
+  return !BLOCKED_DOMAINS.includes(domain);
+};
 
 interface ProgressiveDemoCaptureProps {
   source: string;
@@ -25,6 +40,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   className = ''
 }) => {
   const [currentStep, setCurrentStep] = useState(0); // 0: button, 1: email, 2: details, 3: success
+  const [isExpanded, setIsExpanded] = useState(false); // Controls UI expansion state
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -52,29 +68,31 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   }, [formData]);
 
   useEffect(() => {
-    // Restore from localStorage
+    // Restore from localStorage but keep collapsed initially
     const saved = localStorage.getItem('demo_progress');
     if (saved) {
       const parsed = JSON.parse(saved);
       setFormData(parsed);
-      if (parsed.email && !parsed.name) {
-        setCurrentStep(2);
+      // Keep step at 1 since we collect everything in one form now
+      if (parsed.email) {
+        setCurrentStep(1);
       }
     }
   }, []);
 
   useEffect(() => {
-    // Auto-focus inputs
-    if (currentStep === 1 && emailRef.current) {
+    // Auto-focus inputs when expanded
+    if (isExpanded && currentStep === 1 && emailRef.current) {
       emailRef.current.focus();
-    } else if (currentStep === 2 && nameRef.current) {
+    } else if (isExpanded && currentStep === 2 && nameRef.current) {
       nameRef.current.focus();
     }
-  }, [currentStep]);
+  }, [currentStep, isExpanded]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate all required fields
     if (!formData.email || !formData.email.includes('@')) {
       toast({
         title: 'Invalid Email',
@@ -84,34 +102,98 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
       return;
     }
 
-    // Auto-detect company from email domain
-    const domain = formData.email.split('@')[1];
-    const companyName = domain.split('.')[0];
-    setFormData(prev => ({ 
-      ...prev, 
-      company: prev.company || companyName.charAt(0).toUpperCase() + companyName.slice(1)
-    }));
+    // Validate company email domain
+    if (!isCompanyEmail(formData.email)) {
+      toast({
+        title: 'Work Email Required',
+        description: 'Please use your company email address instead of a personal email',
+        variant: 'destructive'
+      });
+      return;
+    }
 
-    // Save demo capture with email only (step 1)
+    if (!formData.name || formData.name.trim().length < 2) {
+      toast({
+        title: 'Name Required',
+        description: 'Please enter your full name',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.companySize) {
+      toast({
+        title: 'Company Size Required',
+        description: 'Please select your company size',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setLoading(true);
+
     try {
+      // Auto-detect company from email domain if not provided
+      const domain = formData.email.split('@')[1];
+      const companyName = domain.split('.')[0];
+      const company = formData.company || companyName.charAt(0).toUpperCase() + companyName.slice(1);
+      
+      // Split name into first and last for email
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0];
+
+      // Save complete demo capture
       await demoCaptureService.captureDemo({
         email: formData.email,
+        name: formData.name.trim(),
+        company,
+        companySize: formData.companySize,
         source,
-        stepCompleted: 1,
+        stepCompleted: 2,
         utmSource: new URLSearchParams(window.location.search).get('utm_source'),
         utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
         utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
       });
 
-      // Move to next step
-      setCurrentStep(2);
-    } catch (error: any) {
-      console.error('Error capturing email:', error);
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive'
+      // Send demo scheduling email
+      const emailResult = await supabase.functions.invoke('send-demo-email', {
+        body: {
+          email: formData.email,
+          firstName,
+          lastName,
+          company,
+          companySize: formData.companySize
+        }
       });
+
+      if (emailResult.error) {
+        console.error('Failed to send demo email:', emailResult.error);
+        // Continue anyway - the request was saved
+      }
+      
+      // Clear localStorage
+      localStorage.removeItem('demo_progress');
+      
+      // Show success and collapse after delay
+      setCurrentStep(3);
+      setIsExpanded(false);
+      
+      toast({
+        title: 'Check Your Email!',
+        description: 'We sent you a link to schedule your demo.',
+      });
+
+      onSuccess?.(formData.email);
+    } catch (error: any) {
+      console.error('Demo request submission failed:', error);
+      toast({
+        title: 'Submission Failed',
+        description: 'Please try again or contact support.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -167,8 +249,9 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
       // Clear localStorage
       localStorage.removeItem('demo_progress');
       
-      // Show success
+      // Show success and collapse after delay
       setCurrentStep(3);
+      setIsExpanded(false);
       
       toast({
         title: 'Check Your Email!',
@@ -189,18 +272,16 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   };
 
   const handleClickOutside = (e: MouseEvent) => {
-    if (currentStep > 0 && !(e.target as Element).closest('.progressive-demo-capture')) {
-      // Don't close if we have data
-      if (!formData.email) {
-        setCurrentStep(0);
-      }
+    if (isExpanded && !(e.target as Element).closest('.progressive-demo-capture')) {
+      // Collapse but keep progress
+      setIsExpanded(false);
     }
   };
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [currentStep, formData.email]);
+  }, [isExpanded]);
 
   if (currentStep === 3) {
     return (
@@ -220,20 +301,23 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
     return (
       <div className={`progressive-demo-capture inline-block ${className}`}>
         <AnimatePresence mode="wait">
-          {currentStep === 0 && (
+          {!isExpanded && (
             <motion.button
               key="button"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setCurrentStep(1)}
+              onClick={() => {
+                setIsExpanded(true);
+                if (currentStep === 0) setCurrentStep(1);
+              }}
               className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target"
             >
-              {buttonText}
+              {formData.email ? 'Continue Demo Request' : buttonText}
             </motion.button>
           )}
           
-          {currentStep === 1 && (
+          {isExpanded && currentStep === 1 && (
             <motion.form
               key="email"
               initial={{ opacity: 0, width: 0 }}
@@ -258,7 +342,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
             </motion.form>
           )}
           
-          {currentStep === 2 && (
+          {isExpanded && currentStep === 2 && (
             <motion.form
               key="details"
               initial={{ opacity: 0 }}
@@ -303,7 +387,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   return (
     <div className={`progressive-demo-capture relative ${className}`}>
       <AnimatePresence mode="wait">
-        {currentStep === 0 && (
+        {!isExpanded && (
           <motion.div
             key="button"
             initial={{ opacity: 0 }}
@@ -313,7 +397,10 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
             onMouseLeave={() => setIsHovered(false)}
           >
             <Button
-              onClick={() => setCurrentStep(1)}
+              onClick={() => {
+                setIsExpanded(true);
+                if (currentStep === 0) setCurrentStep(1);
+              }}
               className={cn(
                 "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
                 variant === 'mobile' ? 'h-12 text-base w-full rounded-full' : 'h-11 px-8 rounded-full',
@@ -340,7 +427,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     className="flex items-center gap-2 relative z-10"
                   >
                     <Calendar className="w-4 h-4" />
-                    <span>{buttonText}</span>
+                    <span>{formData.email ? 'Continue Demo Request' : buttonText}</span>
                     <ArrowRight className="w-4 h-4" />
                   </motion.div>
                 ) : (
@@ -351,7 +438,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                     exit={{ opacity: 0, y: -10 }}
                     className="relative z-10"
                   >
-                    {buttonText}
+                    {formData.email ? 'Continue Demo Request' : buttonText}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -359,7 +446,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           </motion.div>
         )}
         
-        {currentStep === 1 && (
+        {isExpanded && currentStep === 1 && (
           <motion.form
             key="email"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -373,95 +460,42 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           >
             <div className="space-y-3">
               <div className="text-center">
-                <h3 className="font-semibold text-lg text-business-black">Let's get started</h3>
-                <p className="text-sm text-gray-600 mt-1">Enter your work email to continue</p>
-              </div>
-              
-              <div className="space-y-3">
-                <Input
-                  ref={emailRef}
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="your@company.com"
-                  className={cn(
-                    "w-full border-gray-300",
-                    variant === 'mobile' ? 'h-12 text-base' : 'h-11'
-                  )}
-                  inputMode="email"
-                  autoComplete="email"
-                />
-                
-                <Button 
-                  type="submit" 
-                  className={cn(
-                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300",
-                    variant === 'mobile' ? 'h-12 text-base' : 'h-11'
-                  )}
-                >
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-              
-              <p className="text-xs text-center text-gray-500">
-                No spam, ever. Just a quick demo.
-              </p>
-            </div>
-          </motion.form>
-        )}
-        
-        {currentStep === 2 && (
-          <motion.form
-            key="details"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            onSubmit={handleDetailsSubmit}
-            className={cn(
-              "bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
-              variant === 'mobile' ? 'w-full' : 'w-96'
-            )}
-          >
-            <div className="space-y-3">
-              <div className="text-center">
-                <h3 className="font-semibold text-lg text-business-black">Almost there!</h3>
-                <p className="text-sm text-gray-600 mt-1">Just 3 quick details</p>
-                <div className="flex justify-center gap-1 mt-2">
-                  <div className="w-8 h-1 bg-future-green rounded-full" />
-                  <div className="w-8 h-1 bg-future-green rounded-full" />
-                  <div className="w-8 h-1 bg-gray-300 rounded-full" />
-                </div>
+                <h3 className="font-semibold text-lg text-business-black">Get Your Demo</h3>
+                <p className="text-sm text-gray-600 mt-1">Enter your details to schedule a demo</p>
               </div>
               
               <div className="space-y-3">
                 <div className="relative">
                   <Input
-                    ref={nameRef}
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Full name"
+                    ref={emailRef}
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Enter your work email"
                     className={cn(
                       "w-full border-gray-300 pl-10",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11'
+                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
+                      "transition-all duration-300 bg-white/95"
                     )}
-                    autoComplete="name"
+                    inputMode="email"
+                    autoComplete="email"
                   />
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
                 
                 <div className="relative">
                   <Input
-                    value={formData.company}
-                    onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                    placeholder="Company name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your full name"
                     className={cn(
                       "w-full border-gray-300 pl-10",
-                      variant === 'mobile' ? 'h-12 text-base' : 'h-11'
+                      variant === 'mobile' ? 'h-12 text-base' : 'h-11',
+                      "transition-all duration-300 bg-white/95"
                     )}
-                    autoComplete="organization"
+                    autoComplete="name"
                   />
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
                 
                 <div className="relative">
@@ -470,7 +504,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                       "w-full border-gray-300 pl-10",
                       variant === 'mobile' ? 'h-12 text-base' : 'h-11'
                     )}>
-                      <SelectValue placeholder="Team size" />
+                      <SelectValue placeholder="Company size" />
                     </SelectTrigger>
                     <SelectContent>
                       {companySizeOptions.map(opt => (
@@ -487,7 +521,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                   type="submit" 
                   disabled={loading}
                   className={cn(
-                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300",
+                    "w-full bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300",
                     variant === 'mobile' ? 'h-12 text-base' : 'h-11'
                   )}
                 >
@@ -506,11 +540,12 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               </div>
               
               <p className="text-xs text-center text-gray-500">
-                You'll receive a calendar link via email
+                Work email required • You'll receive a calendar link via email
               </p>
             </div>
           </motion.form>
         )}
+        
       </AnimatePresence>
     </div>
   );
