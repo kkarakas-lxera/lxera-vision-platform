@@ -15,7 +15,7 @@ const puppeteer = require('puppeteer');
   const page = await browser.newPage();
 
   const { devices } = puppeteer;
-  const iPhone = devices['iPhone 14'];
+  const iPhone = puppeteer.KnownDevices['iPhone X'];
   await page.emulate(iPhone);
 
   await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 60000 });
@@ -23,14 +23,12 @@ const puppeteer = require('puppeteer');
   // Scroll a bit to ensure hero loaded
   await page.evaluate(() => window.scrollBy(0, 300));
 
-  // Click first button containing Request
-  const [btn] = await page.$x("//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'request')]");
-  if (!btn) {
-    console.error('❌ Request button not found');
-    await browser.close();
-    process.exit(1);
-  }
-  await btn.click();
+  // Click first button containing text "Request" (case-insensitive)
+  await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const btn = buttons.find(b => /request/i.test(b.textContent));
+    if (btn) btn.click();
+  });
 
   // Wait for modal
   await page.waitForSelector('.progressive-demo-capture .fixed', { visible: true, timeout: 10000 });
