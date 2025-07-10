@@ -17,10 +17,10 @@ const HeroSection = () => {
     style.textContent = `
       @keyframes scroll-desktop {
         0% {
-          transform: translateX(0);
+          left: 0;
         }
         100% {
-          transform: translateX(-50%);
+          left: -50%;
         }
       }
     `;
@@ -162,7 +162,7 @@ const HeroSection = () => {
               250+ HRIS and project management tools with one-click integration
             </p>
             <div className="relative overflow-hidden max-w-5xl mx-auto logo-carousel-container">
-              <div className="flex gap-6" style={{ animation: 'scroll-desktop 25s linear infinite', display: 'flex', width: 'max-content' }}>
+              <div className="flex gap-6 relative" style={{ animation: 'scroll-desktop 25s linear infinite', display: 'flex', width: 'max-content' }}>
                 {/* Double the platforms for seamless loop */}
                 {[...integrationPlatforms, ...integrationPlatforms].map((platform, index) => (
                   <div 
