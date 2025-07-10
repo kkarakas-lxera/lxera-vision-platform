@@ -37,6 +37,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { MobileAdminNavigation, MobileCompanyNavigation, MobileLearnerNavigation } from '@/components/mobile/navigation';
+import MobileHamburgerMenu from '@/components/mobile/navigation/MobileHamburgerMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
@@ -239,7 +240,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         <div className="flex h-16 items-center justify-between bg-white px-4 md:px-6 shadow-sm">
           <div className="flex items-center space-x-4">
             {isMobile && (
-              <div className="flex items-center">
+              <div className="flex items-center space-x-3">
+                <MobileHamburgerMenu isEarlyAccess={isEarlyAccess} mockAuth={mockAuth} />
                 <img
                   src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
                   alt="LXERA logo"
@@ -299,21 +301,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         </main>
       </div>
 
-      {/* Mobile navigation */}
-      {isMobile && userProfile && !hideNavigation && (
-        <>
-          {userProfile.role === 'company_admin' ? (
-            <MobileCompanyNavigation />
-          ) : userProfile.role === 'learner' ? (
-            <MobileLearnerNavigation />
-          ) : (
-            <MobileAdminNavigation 
-              navigationItems={navigationItems}
-              userRole={userProfile.role}
-            />
-          )}
-        </>
-      )}
+      {/* Mobile navigation is now handled by MobileHamburgerMenu in the header */}
     </div>
   );
 };
