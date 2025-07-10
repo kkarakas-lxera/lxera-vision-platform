@@ -191,12 +191,15 @@ const MobileMenu = ({
       {/* Mobile Menu Button and Request Demo */}
       <div className="flex items-center space-x-3">
         {!isHomepage && (
-          <ProgressiveDemoCapture
-            source="mobile_menu"
-            buttonText="Request a Demo"
-            variant="default"
-            className="bg-business-black text-white hover:bg-business-black/90 font-semibold px-4 py-2 text-sm rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
-          />
+          <>
+            {/* Remove background styles from container to avoid black block next to hamburger */}
+            <ProgressiveDemoCapture
+              source="mobile_menu"
+              buttonText="Request a Demo"
+              variant="default"
+              className="text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+            />
+          </>
         )}
         <Button
           variant="ghost"

@@ -307,4 +307,26 @@
     background-color: transparent !important;
     background-image: none !important;
   }
+  /* Fix mobile hero demo form stacking */
+  .hero .progressive-demo-capture {
+    position: relative;
+    z-index: 100;
+  }
+
+  .hero .demo-form-dropdown {
+    z-index: 110;
+    position: fixed !important;
+  }
+  /* Ensure visible modal card is topmost on mobile hero */
+  .hero .progressive-demo-capture .fixed {
+    z-index: 120 !important;
+    isolation: isolate;
+  }
+  /* Remove dark gradient behind hamburger - ensure nav demo button remains transparent */
+  nav .progressive-demo-capture button,
+  nav .progressive-demo-capture button * {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
 }
