@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, ArrowRight, Clock } from 'lucide-react';
+import { Loader2, Mail, ArrowRight, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
@@ -249,43 +249,64 @@ const EarlyAccessLogin = () => {
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending code...
-                        </>
-                      ) : (
-                        <>
-                          Continue with email
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
+                    {!userNotFound && (
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Checking email...
+                          </>
+                        ) : (
+                          <>
+                            Continue with email
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                    )}
 
                     {/* Show this only after user submits email and they're not in the database */}
                     {userNotFound && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center space-y-3 mt-4"
+                        className="space-y-4 mt-4"
                       >
-                        <p className="text-sm text-gray-600">
-                          Not on the early access list yet?
-                        </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => navigate('/early-access')}
-                          className="w-full border-2 border-indigo-200 hover:bg-indigo-50 py-5"
-                        >
-                          <Clock className="mr-2 h-4 w-4" />
-                          Get early access (30 seconds, no card required)
-                        </Button>
+                        <Alert className="border-amber-200 bg-amber-50">
+                          <AlertCircle className="h-4 w-4 text-amber-600" />
+                          <AlertDescription className="text-amber-800">
+                            <strong>{email}</strong> is not on our early access list yet.
+                          </AlertDescription>
+                        </Alert>
+                        
+                        <div className="text-center space-y-3">
+                          <p className="text-sm text-gray-600">
+                            Join our early access program to get started
+                          </p>
+                          <Button
+                            type="button"
+                            variant="default"
+                            onClick={() => navigate('/early-access')}
+                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                          >
+                            <Clock className="mr-2 h-4 w-4" />
+                            Get early access (30 seconds, no card required)
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserNotFound(false);
+                              setEmail('');
+                            }}
+                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                          >
+                            Try a different email
+                          </button>
+                        </div>
                       </motion.div>
                     )}
                   </form>
