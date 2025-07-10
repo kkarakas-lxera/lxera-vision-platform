@@ -5,11 +5,43 @@ import HeroVideoPreview from "./HeroVideoPreview";
 import { Button } from "@/components/ui/button";
 import SmartEmailCapture from "./forms/SmartEmailCapture";
 import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const HeroSection = () => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
+
+  // Add scroll animation CSS
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes scroll-desktop {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  // Integration platforms with real logos
+  const integrationPlatforms = [
+    { name: 'Workday', logo: '/logos/workday-logo.png' },
+    { name: 'SAP', logo: '/logos/sap-logo.svg' },
+    { name: 'BambooHR', logo: '/logos/bamboohr-logo.png' },
+    { name: 'ADP', logo: '/logos/adp-logo.svg' },
+    { name: 'Teams', logo: '/logos/microsoft-teams.png' },
+    { name: 'Slack', logo: '/logos/slack.svg' },
+    { name: 'Oracle', logo: '/logos/oracle-logo.png' },
+    { name: 'Asana', logo: '/logos/asana-logo.png' },
+  ];
 
   const handleEmailSuccess = (email: string) => {
     setEmailCaptured(true);
@@ -123,6 +155,30 @@ const HeroSection = () => {
             </div>
           </div>
           
+          {/* Integration Section - Desktop Only */}
+          <div className="hidden lg:block mt-12 mb-8 animate-fade-in-up" style={{ animationDelay: '1000ms' }}>
+            <p className="text-sm text-business-black/80 mb-4 text-center font-medium">
+              250+ HRIS and project management tools with one-click integration
+            </p>
+            <div className="relative overflow-hidden max-w-5xl mx-auto">
+              <div className="flex gap-6" style={{ animation: 'scroll-desktop 25s linear infinite', display: 'flex', width: 'max-content' }}>
+                {/* Double the platforms for seamless loop */}
+                {[...integrationPlatforms, ...integrationPlatforms].map((platform, index) => (
+                  <div 
+                    key={`${platform.name}-${index}`}
+                    className="flex-shrink-0 bg-white rounded-lg px-6 py-3 shadow-md flex items-center h-12 hover:shadow-lg transition-shadow"
+                  >
+                    <img 
+                      src={platform.logo} 
+                      alt={platform.name}
+                      className="h-8 w-auto object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           
           {/* Discover more indicator - centered and non-clickable */}
           <div className="mt-3 sm:mt-4 md:mt-6 animate-fade-in-up animate-delay-1200 text-center">

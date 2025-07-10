@@ -10,6 +10,7 @@ import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 
 interface OTPInputProps {
   value: string;
@@ -67,7 +68,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ value, onChange, onComplete }) => {
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all touch-manipulation"
+          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 focus:border-future-green focus:ring-2 focus:ring-future-green/20 transition-all touch-manipulation bg-white/80 backdrop-blur-sm hover:bg-future-green/5"
           autoComplete="off"
         />
       ))}
@@ -198,22 +199,31 @@ const EarlyAccessLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-business-black/5 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-future-green/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-lxera-blue/10 rounded-full blur-3xl" />
+      
+      <div className="max-w-md w-full space-y-6 relative z-10">
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <Logo />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Welcome back!</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl sm:text-4xl font-bold text-business-black leading-tight">
+            Welcome back<span className="text-future-green">!</span>
+          </h2>
+          <p className="mt-2 text-base sm:text-lg text-gray-700 font-medium">
             Sign in to your early access account
           </p>
         </div>
 
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Early Access Login</CardTitle>
-            <CardDescription>
+        <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-md hover:shadow-3xl transition-shadow duration-300">
+          <CardHeader className="pb-4 bg-gradient-to-br from-future-green/5 to-transparent">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-business-black">
+              Early Access Login
+            </CardTitle>
+            <CardDescription className="text-base text-gray-700 mt-1">
               {step === 'email' 
                 ? 'Enter your email to receive a verification code'
                 : 'Enter the 6-digit code sent to your email'
@@ -232,7 +242,7 @@ const EarlyAccessLogin = () => {
                 >
                   <form onSubmit={handleSendOTP} className="space-y-4">
                     <div>
-                      <Label htmlFor="email">Email address</Label>
+                      <Label htmlFor="email" className="text-base font-bold text-business-black">Email address</Label>
                       <div className="mt-1 relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <Input
@@ -242,7 +252,7 @@ const EarlyAccessLogin = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@company.com"
-                          className="pl-10 py-5 text-base border-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-2 focus:ring-future-green/20 transition-all bg-white/80 backdrop-blur-sm"
                           autoComplete="email"
                           autoFocus
                         />
@@ -252,20 +262,23 @@ const EarlyAccessLogin = () => {
                     {!userNotFound && (
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]" 
+                        className="w-full bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black hover:to-business-black text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98] group relative overflow-hidden" 
                         disabled={isLoading}
                       >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Checking email...
-                          </>
-                        ) : (
-                          <>
-                            Continue with email
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
+                        <span className="absolute inset-0 bg-gradient-to-r from-future-green/20 to-lxera-blue/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <span className="relative">
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Checking email...
+                            </>
+                          ) : (
+                            <>
+                              Continue with email
+                              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </span>
                       </Button>
                     )}
 
@@ -276,10 +289,10 @@ const EarlyAccessLogin = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-4 mt-4"
                       >
-                        <Alert className="border-amber-200 bg-amber-50">
-                          <AlertCircle className="h-4 w-4 text-amber-600" />
-                          <AlertDescription className="text-amber-800">
-                            <strong>{email}</strong> is not on our early access list yet.
+                        <Alert className="border-2 border-future-green/30 bg-gradient-to-br from-future-green/10 to-lxera-blue/10">
+                          <AlertCircle className="h-4 w-4 text-future-green" />
+                          <AlertDescription className="text-business-black font-medium">
+                            <strong className="text-business-black">{email}</strong> is not on our early access list yet.
                           </AlertDescription>
                         </Alert>
                         
@@ -288,15 +301,24 @@ const EarlyAccessLogin = () => {
                             Join our early access program to get started
                           </p>
                           <div className="space-y-2">
-                            <Button
-                              type="button"
+                            <SmartEmailCapture
+                              source="login-page-not-found"
                               variant="default"
-                              onClick={() => navigate(`/early-access?email=${encodeURIComponent(email)}`)}
-                              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-4 text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
-                            >
-                              <Clock className="mr-2 h-4 w-4" />
-                              Get Early Access
-                            </Button>
+                              buttonText="Get Early Access"
+                              placeholder="Enter your work email"
+                              initialEmail={email}
+                              autoSubmit={false}
+                              className="w-full [&_button]:bg-gradient-to-r [&_button]:from-future-green [&_button]:to-future-green/90 [&_button]:hover:from-future-green [&_button]:hover:to-lxera-blue [&_button]:text-business-black [&_button]:font-bold [&_button]:shadow-lg [&_button]:hover:shadow-xl [&_button]:transition-all [&_button]:transform [&_button]:hover:scale-[1.02]"
+                              onSuccess={(email) => {
+                                toast({
+                                  title: 'Welcome to Early Access!',
+                                  description: 'Check your email to complete your profile.',
+                                });
+                                // Reset the form state after successful submission
+                                setUserNotFound(false);
+                                setEmail('');
+                              }}
+                            />
                             <p className="text-xs text-gray-500">
                               30 seconds, no card required
                             </p>
@@ -307,7 +329,7 @@ const EarlyAccessLogin = () => {
                               setUserNotFound(false);
                               setEmail('');
                             }}
-                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                            className="text-sm text-future-green hover:text-business-black font-bold transition-colors"
                           >
                             Try a different email
                           </button>
@@ -326,13 +348,13 @@ const EarlyAccessLogin = () => {
                   className="space-y-6"
                 >
                   <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      We sent a code to <span className="font-semibold">{email}</span>
+                    <p className="text-sm sm:text-base text-gray-700 font-medium">
+                      We sent a code to <span className="font-bold text-business-black">{email}</span>
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-center block">Verification code</Label>
+                    <Label className="text-center block text-base font-bold text-business-black">Verification code</Label>
                     <OTPInput 
                       value={otp} 
                       onChange={setOtp}
@@ -342,17 +364,20 @@ const EarlyAccessLogin = () => {
 
                   <Button 
                     onClick={handleVerifyOTP}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]" 
+                    className="w-full bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black hover:to-business-black text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98] group relative overflow-hidden" 
                     disabled={isLoading || otp.length !== 6}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      'Verify and continue'
-                    )}
+                    <span className="absolute inset-0 bg-gradient-to-r from-future-green/20 to-lxera-blue/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="relative">
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify and continue'
+                      )}
+                    </span>
                   </Button>
 
                   <div className="flex items-center justify-between text-sm">
@@ -363,7 +388,7 @@ const EarlyAccessLogin = () => {
                         setOtp('');
                         setError('');
                       }}
-                      className="text-indigo-600 hover:text-indigo-700 font-medium"
+                      className="text-future-green hover:text-business-black font-bold transition-colors"
                     >
                       Change email
                     </button>
@@ -371,10 +396,10 @@ const EarlyAccessLogin = () => {
                       type="button"
                       onClick={handleResendOTP}
                       disabled={resendTimer > 0}
-                      className={`font-medium ${
+                      className={`font-bold transition-colors ${
                         resendTimer > 0 
                           ? 'text-gray-400 cursor-not-allowed' 
-                          : 'text-indigo-600 hover:text-indigo-700'
+                          : 'text-future-green hover:text-business-black'
                       }`}
                     >
                       {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend code'}
@@ -385,8 +410,8 @@ const EarlyAccessLogin = () => {
             </AnimatePresence>
 
             {error && (
-              <Alert className="mt-4 border-red-200 bg-red-50">
-                <AlertDescription className="text-red-700">
+              <Alert className="mt-4 border-2 border-lxera-red/30 bg-gradient-to-br from-lxera-red/10 to-transparent">
+                <AlertDescription className="text-lxera-red font-medium">
                   {error}
                 </AlertDescription>
               </Alert>
@@ -394,8 +419,8 @@ const EarlyAccessLogin = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-gray-500">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+        <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
+          By continuing, you agree to our <span className="text-business-black">Terms of Service</span> and <span className="text-business-black">Privacy Policy</span>
         </p>
       </div>
     </div>

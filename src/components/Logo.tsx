@@ -20,11 +20,11 @@ const Logo = () => {
       <img
         src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
         alt="LXERA logo"
-        className="h-4 md:h-6 object-contain rounded-none select-none bg-transparent"
+        className="h-6 md:h-10 lg:h-12 object-contain rounded-none select-none bg-transparent"
         draggable={false}
         style={{ backgroundColor: 'transparent' }}
-        width={80}
-        height={24}
+        width={160}
+        height={48}
         loading="eager"
         decoding="sync"
       />
