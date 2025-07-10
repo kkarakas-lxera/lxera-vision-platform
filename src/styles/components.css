@@ -15,6 +15,14 @@
     @apply transition-all duration-300 ease-out hover:scale-105 hover:shadow-lg;
   }
   
+  /* Input focus state consistency */
+  .smart-email-capture input:focus,
+  .smart-email-capture input:focus-visible {
+    outline: none !important;
+    border-color: #7AE5C6 !important;
+    box-shadow: none !important;
+  }
+  
   /* Typography Utilities */
   .lxera-headline {
     @apply font-medium text-business-black leading-tight tracking-tight;

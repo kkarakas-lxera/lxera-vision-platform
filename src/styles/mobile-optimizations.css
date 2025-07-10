@@ -43,6 +43,25 @@
       transform: scale(0.98);
       transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     }
+
+    /* Remove tap highlight color on mobile */
+    input,
+    textarea,
+    select {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    /* Ensure consistent focus states on mobile */
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none !important;
+      border-color: #7AE5C6 !important;
+      box-shadow: none !important;
+    }
   }
 
   /* Replace backdrop-blur with solid backgrounds on mobile */
@@ -208,6 +227,37 @@
 
   .touch-manipulation {
     touch-action: manipulation;
+  }
+
+  /* Fix mobile input placeholder and autofill colors */
+  @media (hover: none) and (pointer: coarse) {
+    /* Override mobile browser default placeholder styling */
+    input::placeholder,
+    textarea::placeholder,
+    select::placeholder {
+      color: rgb(156 163 175) !important; /* gray-400 */
+      opacity: 1 !important;
+      -webkit-text-fill-color: rgb(156 163 175) !important;
+    }
+
+    /* Fix iOS Safari specific placeholder styling */
+    input::-webkit-input-placeholder,
+    textarea::-webkit-input-placeholder {
+      color: rgb(156 163 175) !important;
+      opacity: 1 !important;
+    }
+
+    /* Fix mobile autofill styling */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+      -webkit-text-fill-color: rgb(25, 25, 25) !important;
+      -webkit-box-shadow: 0 0 0 1000px white inset !important;
+      background-color: white !important;
+      caret-color: rgb(25, 25, 25) !important;
+    }
   }
 
   /* Optimize scrolling performance */

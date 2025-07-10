@@ -145,6 +145,23 @@
     }
   }
 
+  /* Remove webkit autofill styling */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #191919 !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Remove any default focus outline that might cause pink/turquoise colors */
+  input:focus,
+  input:focus-visible {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Touch target optimization */
   @media (hover: none) and (pointer: coarse) {
     button,
@@ -164,6 +181,41 @@
     a + a,
     .btn + .btn {
       margin-left: 0.5rem;
+    }
+  }
+
+  /* Fix placeholder colors across all devices */
+  input::placeholder,
+  textarea::placeholder {
+    color: rgb(156 163 175); /* text-gray-400 */
+    opacity: 1; /* Override Firefox default opacity */
+  }
+
+  /* Fix autofill background and text colors */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
+    -webkit-text-fill-color: rgb(25, 25, 25) !important; /* business-black */
+    -webkit-box-shadow: 0 0 0 1000px rgb(255, 255, 255) inset !important; /* white background */
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: rgb(25, 25, 25) !important;
+  }
+
+  /* Ensure consistent placeholder styling on iOS Safari */
+  @supports (-webkit-touch-callout: none) {
+    input::placeholder,
+    textarea::placeholder {
+      color: rgb(156 163 175) !important;
+      opacity: 1 !important;
     }
   }
 

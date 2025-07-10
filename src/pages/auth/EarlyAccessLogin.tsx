@@ -68,7 +68,7 @@ const OTPInput: React.FC<OTPInputProps> = ({ value, onChange, onComplete }) => {
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 focus:border-future-green focus:ring-2 focus:ring-future-green/20 transition-all touch-manipulation bg-white/80 backdrop-blur-sm hover:bg-future-green/5"
+          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all touch-manipulation bg-white/80 backdrop-blur-sm hover:bg-future-green/5"
           autoComplete="off"
         />
       ))}
@@ -252,7 +252,7 @@ const EarlyAccessLogin = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@company.com"
-                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-2 focus:ring-future-green/20 transition-all bg-white/80 backdrop-blur-sm"
+                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white/80 backdrop-blur-sm placeholder:text-gray-400"
                           autoComplete="email"
                           autoFocus
                         />
@@ -268,15 +268,15 @@ const EarlyAccessLogin = () => {
                         <span className="absolute inset-0 bg-gradient-to-r from-future-green/20 to-lxera-blue/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <span className="relative">
                           {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span className="flex items-center justify-center whitespace-nowrap">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin inline-flex" />
                               Checking email...
-                            </>
+                            </span>
                           ) : (
-                            <>
+                            <span className="flex items-center justify-center whitespace-nowrap">
                               Continue with email
-                              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </>
+                              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform inline-flex" />
+                            </span>
                           )}
                         </span>
                       </Button>
@@ -307,7 +307,7 @@ const EarlyAccessLogin = () => {
                               buttonText="Get Early Access"
                               placeholder="Enter your work email"
                               initialEmail={email}
-                              autoSubmit={true}
+                              autoSubmit={false}
                               className="w-full"
                               onSuccess={(email) => {
                                 toast({
@@ -370,10 +370,10 @@ const EarlyAccessLogin = () => {
                     <span className="absolute inset-0 bg-gradient-to-r from-future-green/20 to-lxera-blue/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <span className="relative">
                       {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span className="flex items-center justify-center whitespace-nowrap">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin inline-flex" />
                           Verifying...
-                        </>
+                        </span>
                       ) : (
                         'Verify and continue'
                       )}
