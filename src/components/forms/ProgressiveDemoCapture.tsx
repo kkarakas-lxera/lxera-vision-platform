@@ -330,7 +330,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           </button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-sm w-[90vw] rounded-2xl p-4">
+        <DialogContent className="max-w-sm w-[90vw] rounded-2xl p-4 bg-white">
           <div className="mb-3">
             <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
             <div className="flex items-center gap-2 mt-1">
@@ -406,7 +406,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4">
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4 bg-white">
           {/* Same form as minimal variant */}
           <div className="mb-3">
             <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
