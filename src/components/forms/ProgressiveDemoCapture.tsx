@@ -319,7 +319,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 setIsExpanded(true);
                 if (currentStep === 0) setCurrentStep(1);
               }}
-              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target"
+              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target bg-transparent"
             >
               {formData.email ? 'Continue Demo Request' : buttonText}
             </motion.button>

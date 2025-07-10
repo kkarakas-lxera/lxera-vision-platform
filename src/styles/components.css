@@ -249,4 +249,39 @@
       max-width: calc(100vw - 2rem) !important;
     }
   }
+  
+  /* Fix navbar demo dropdown positioning */
+  nav .progressive-demo-capture .demo-form-dropdown {
+    position: absolute;
+    right: 0;
+    left: auto;
+    transform: none;
+    margin-right: 1rem;
+  }
+  
+  /* Fix hero section demo dropdown z-index */
+  .hero-section .progressive-demo-capture {
+    position: relative;
+    z-index: 30;
+  }
+  
+  .hero-section .demo-form-dropdown {
+    z-index: 40;
+  }
+  
+  /* Fix minimal variant demo button background on mobile */
+  .progressive-demo-capture button.touch-target {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+  
+  /* Ensure the button stays transparent on all states */
+  @media (hover: none) and (pointer: coarse) {
+    .progressive-demo-capture button.touch-target:hover,
+    .progressive-demo-capture button.touch-target:active,
+    .progressive-demo-capture button.touch-target:focus {
+      background-color: transparent !important;
+      background-image: none !important;
+    }
+  }
 }

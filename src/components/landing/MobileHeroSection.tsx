@@ -128,8 +128,7 @@ const MobileHeroSection = () => {
                 variant="mobile"
                 onSuccess={handleEmailSuccess}
               />
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-xs text-gray-500">or</span>
+              <div className="flex items-center justify-center">
                 <ProgressiveDemoCapture 
                   source="mobile_hero"
                   buttonText="Request Demo"

@@ -24,7 +24,10 @@ interface FormData {
   name: string;
   company: string;
   role: string;
+  otherRole?: string;
+  teamSize: string;
   useCase: string;
+  otherUseCase?: string;
   heardAbout: string;
 }
 
@@ -38,27 +41,34 @@ const STEPS = [
   },
   { 
     id: 2, 
-    title: "Where do you work?", 
+    title: "What's the name of your company?", 
     field: 'company', 
     placeholder: 'Your company name',
     subtitle: "Tell us about the organization you're helping to transform."
   },
   { 
     id: 3, 
-    title: "What's your role?", 
+    title: "What best describes your role?", 
     field: 'role', 
     placeholder: 'Your role',
     subtitle: "Help us understand your position so we can personalize your experience."
   },
   { 
     id: 4, 
-    title: "How can LXERA help you?", 
-    field: 'useCase', 
-    placeholder: 'Your main focus area',
-    subtitle: "What's the biggest challenge you're looking to solve?"
+    title: "How big is your team?", 
+    field: 'teamSize', 
+    placeholder: 'Select team size',
+    subtitle: "This helps us recommend the right solution for your organization."
   },
   { 
     id: 5, 
+    title: "What are you hoping to achieve with LXERA?", 
+    field: 'useCase', 
+    placeholder: 'Your main focus area',
+    subtitle: "Select all that apply to your learning and development goals."
+  },
+  { 
+    id: 6, 
     title: "How did you discover us?", 
     field: 'heardAbout', 
     placeholder: 'Discovery source',
@@ -88,27 +98,85 @@ const ROLE_OPTIONS = [
     description: 'Managing employee experience and operations'
   },
   { 
+    value: 'digital_transformation_director', 
+    label: 'Digital Transformation Director', 
+    description: 'Leading digital transformation initiatives'
+  },
+  { 
+    value: 'innovation_director', 
+    label: 'Innovation Director', 
+    description: 'Driving innovation and change'
+  },
+  { 
     value: 'other', 
     label: 'Other Role', 
     description: 'Something else entirely'
   },
 ];
 
-const USE_CASE_OPTIONS = [
+const TEAM_SIZE_OPTIONS = [
   { 
-    value: 'skills_gap_analysis', 
-    label: 'Skills Gap Analysis', 
-    description: 'Identify and bridge skill gaps in your organization'
+    value: '1-10', 
+    label: '1-10 employees', 
+    description: 'Small team or startup'
   },
+  { 
+    value: '11-50', 
+    label: '11-50 employees', 
+    description: 'Growing team'
+  },
+  { 
+    value: '51-200', 
+    label: '51-200 employees', 
+    description: 'Mid-size organization'
+  },
+  { 
+    value: '201-500', 
+    label: '201-500 employees', 
+    description: 'Large organization'
+  },
+  { 
+    value: '501-1000', 
+    label: '501-1000 employees', 
+    description: 'Enterprise scale'
+  },
+  { 
+    value: '1000+', 
+    label: '1000+ employees', 
+    description: 'Global enterprise'
+  },
+];
+
+const USE_CASE_OPTIONS = [
   { 
     value: 'employee_training', 
     label: 'Employee Training', 
     description: 'Create and deliver effective training programs'
   },
   { 
-    value: 'course_creation', 
-    label: 'Course Creation', 
-    description: 'Build engaging learning experiences'
+    value: 'personalized_learning_paths', 
+    label: 'Personalized Learning Paths', 
+    description: 'Tailor learning journeys to individual needs'
+  },
+  { 
+    value: 'skills_gap_analysis', 
+    label: 'Skills Gap Analysis', 
+    description: 'Identify and bridge skill gaps in your organization'
+  },
+  { 
+    value: 'onboarding_upskilling', 
+    label: 'Onboarding & Upskilling', 
+    description: 'Streamline employee onboarding and skill development'
+  },
+  { 
+    value: 'compliance_certification', 
+    label: 'Compliance & Certification Training', 
+    description: 'Ensure regulatory compliance and track certifications'
+  },
+  { 
+    value: 'learning_culture', 
+    label: 'Learning Culture Building', 
+    description: 'Foster a culture of continuous learning'
   },
   { 
     value: 'performance_tracking', 
@@ -116,9 +184,34 @@ const USE_CASE_OPTIONS = [
     description: 'Monitor and measure learning outcomes'
   },
   { 
+    value: 'innovation_enablement', 
+    label: 'Innovation Enablement / Citizen Development', 
+    description: 'Empower employees to drive innovation'
+  },
+  { 
+    value: 'ai_content_generation', 
+    label: 'AI-Powered Content Generation', 
+    description: 'Create learning content with AI assistance'
+  },
+  { 
+    value: 'learning_roi', 
+    label: 'Measuring Learning ROI', 
+    description: 'Track and demonstrate the value of L&D investments'
+  },
+  { 
+    value: 'mentorship_coaching', 
+    label: 'Mentorship & Coaching', 
+    description: 'Connect learners with mentors and coaches'
+  },
+  { 
+    value: 'course_creation', 
+    label: 'Course Creation', 
+    description: 'Build courses for internal knowledge transfer'
+  },
+  { 
     value: 'other', 
-    label: 'Something Else', 
-    description: 'Tell us what unique challenge you\'re facing'
+    label: 'Other Use Case', 
+    description: 'Tell us a bit more so we can recommend the right solution'
   },
 ];
 
@@ -161,37 +254,69 @@ const HEARD_ABOUT_OPTIONS = [
 ];
 
 export default function ProgressiveOnboarding({ email, leadId, initialData, onComplete }: ProgressiveOnboardingProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  // Determine initial step based on pre-filled data
+  const getInitialStep = () => {
+    if (initialData?.name) {
+      // If name is pre-filled, skip to company or next empty field
+      if (!initialData.company) return 2;
+      if (!initialData.role) return 3;
+      return 4; // Start at team size if name, company, and role are filled
+    }
+    return 1; // Start at name if not pre-filled
+  };
+
+  const [currentStep, setCurrentStep] = useState(getInitialStep());
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name || '',
     company: initialData?.company || '',
     role: initialData?.role || '',
+    otherRole: '',
+    teamSize: '',
     useCase: initialData?.use_case || '',
+    otherUseCase: '',
     heardAbout: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<number[]>(() => {
+    // Mark steps as completed if data is pre-filled
+    const completed = [];
+    if (initialData?.name) completed.push(1);
+    if (initialData?.company) completed.push(2);
+    if (initialData?.role) completed.push(3);
+    return completed;
+  });
 
   // Load saved progress from localStorage
   useEffect(() => {
     const savedData = localStorage.getItem(`onboarding_${email}`);
     if (savedData) {
       const parsed = JSON.parse(savedData);
-      setFormData(parsed.formData);
-      setCompletedSteps(parsed.completedSteps || []);
+      // Merge saved data with initial data, giving preference to saved data
+      const mergedFormData = {
+        ...formData,
+        ...parsed.formData
+      };
+      setFormData(mergedFormData);
+      
+      // Update completed steps based on merged data
+      const newCompletedSteps = [];
+      STEPS.forEach((step, index) => {
+        const field = step.field as keyof FormData;
+        if (mergedFormData[field] && mergedFormData[field] !== '') {
+          newCompletedSteps.push(index + 1);
+        }
+      });
+      setCompletedSteps(newCompletedSteps);
       setLastSaved(parsed.timestamp ? new Date(parsed.timestamp) : null);
       
-      // Find the first incomplete step after formData is updated
-      setTimeout(() => {
-        const currentFormData = { ...formData, ...parsed.formData };
-        const firstIncomplete = STEPS.find(step => {
-          const field = step.field as keyof FormData;
-          return !currentFormData[field];
-        });
-        setCurrentStep(firstIncomplete?.id || 6); // If all filled, go to completion
-      }, 0);
+      // Find the first incomplete step
+      const firstIncomplete = STEPS.find(step => {
+        const field = step.field as keyof FormData;
+        return !mergedFormData[field] || mergedFormData[field] === '';
+      });
+      setCurrentStep(firstIncomplete?.id || STEPS.length + 1);
     }
   }, [email]);
 
@@ -232,6 +357,16 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
   const handleFieldComplete = async (field: keyof FormData, value: string) => {
     const newFormData = { ...formData, [field]: value };
     setFormData(newFormData);
+    
+    // Handle special cases for "other" options
+    if (field === 'role' && value === 'other') {
+      // Don't advance, wait for otherRole input
+      return;
+    }
+    if (field === 'useCase' && value === 'other') {
+      // Don't advance, wait for otherUseCase input
+      return;
+    }
     
     const stepIndex = STEPS.findIndex(s => s.field === field);
     if (stepIndex !== -1 && !completedSteps.includes(stepIndex + 1)) {
@@ -281,6 +416,8 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
 
   const progress = (completedSteps.length / STEPS.length) * 100;
   const currentStepData = STEPS[currentStep - 1];
+  
+  // Auto-advance for confirmed fields (removed to prevent auto-skip of name confirmation)
 
   // Dynamic encouraging messages based on step
   const getEncouragingMessage = (step: number) => {
@@ -288,12 +425,14 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
       case 1:
         return "Quick and easy – just 30 seconds!";
       case 2:
-        return "Great start! Just 4 more quick questions...";
+        return "Great start! Just 5 more quick questions...";
       case 3:
-        return "Halfway there – you're flying through this!";
+        return "Nice progress – keep going!";
       case 4:
-        return "Almost done – just 2 more questions!";
+        return "Halfway there – you're doing great!";
       case 5:
+        return "Almost done – just 2 more questions!";
+      case 6:
         return "Last one – thanks for sticking with us!";
       default:
         return "Keep going...";
@@ -367,8 +506,14 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
             className="p-4 sm:p-6"
           >
             <div className="mb-6 text-center sm:text-left">
-              <h2 className="text-lg sm:text-xl font-bold mb-3 bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent">{currentStepData.title}</h2>
-              <p className="text-slate-600 text-sm leading-relaxed font-medium">{currentStepData.subtitle}</p>
+              <h2 className="text-lg sm:text-xl font-bold mb-3 bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent">
+                {currentStep === 1 && initialData?.name ? "Welcome back!" : currentStepData.title}
+              </h2>
+              <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                {currentStep === 1 && initialData?.name 
+                  ? "Great to see you again! Let's continue setting up your profile."
+                  : currentStepData.subtitle}
+              </p>
               {currentStep === 1 && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -411,10 +556,20 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                   transition={{ delay: 0.3 }}
                   className="mt-2 text-xs text-slate-600 font-medium"
                 >
-                  🎯 We'll show you features that matter most to you
+                  👥 This helps us recommend the right plan for you
                 </motion.div>
               )}
               {currentStep === 5 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2 text-xs text-slate-600 font-medium"
+                >
+                  🎯 We'll show you features that matter most to you
+                </motion.div>
+              )}
+              {currentStep === 6 && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -435,19 +590,54 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                   handleFieldComplete(field, formData[field]);
                 }
               }}>
-                <Input
-                  type="text"
-                  placeholder={currentStepData.placeholder}
-                  value={formData[currentStepData.field as keyof FormData]}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    [currentStepData.field]: e.target.value 
-                  })}
-                  className="text-base sm:text-lg py-4 px-4 border-2 border-slate-300 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-white to-blue-50 focus:bg-gradient-to-r focus:from-white focus:to-indigo-50 rounded-xl focus:ring-2 focus:ring-indigo-300 w-full focus:shadow-xl focus:border-indigo-600"
-                  autoFocus
-                  autoComplete="off"
-                  autoCapitalize="words"
-                />
+                <div className="relative">
+                  {/* Special handling for name field when it comes from Early Access */}
+                  {currentStep === 1 && initialData?.name ? (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={formData.name}
+                          className="text-base sm:text-lg py-4 px-4 border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl w-full cursor-not-allowed opacity-90"
+                          readOnly
+                          disabled
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          <Check className="w-5 h-5 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">Confirmed</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 text-center">
+                        We already have your name from sign-up. Click continue to proceed.
+                      </p>
+                    </div>
+                  ) : (
+                    <Input
+                      type="text"
+                      placeholder={currentStepData.placeholder}
+                      value={formData[currentStepData.field as keyof FormData]}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        [currentStepData.field]: e.target.value 
+                      })}
+                      className={cn(
+                        "text-base sm:text-lg py-4 px-4 border-2 border-slate-300 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-white to-blue-50 focus:bg-gradient-to-r focus:from-white focus:to-indigo-50 rounded-xl focus:ring-2 focus:ring-indigo-300 w-full focus:shadow-xl focus:border-indigo-600",
+                        // Show different styling if pre-filled from initialData (for company field)
+                        currentStep === 2 && initialData?.company && "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300"
+                      )}
+                      autoFocus
+                      autoComplete="off"
+                      autoCapitalize="words"
+                    />
+                  )}
+                  {currentStep === 2 && initialData?.company && (
+                    <div className="absolute -top-2 right-2">
+                      <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+                        Pre-filled
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <Button
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
@@ -461,6 +651,8 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
 
             {/* Role selection */}
             {currentStep === 3 && (
+              <>
+              {formData.role !== 'other' ? (
               <div className="space-y-3">
                 {ROLE_OPTIONS.map((option, index) => (
                   <motion.button
@@ -483,10 +675,68 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                   </motion.button>
                 ))}
               </div>
+              ) : (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (formData.otherRole) {
+                    handleFieldComplete('otherRole', formData.otherRole);
+                  }
+                }}>
+                  <Input
+                    type="text"
+                    placeholder="Please specify your role"
+                    value={formData.otherRole || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      otherRole: e.target.value 
+                    })}
+                    className="text-base sm:text-lg py-4 px-4 border-2 border-slate-300 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-white to-blue-50 focus:bg-gradient-to-r focus:from-white focus:to-indigo-50 rounded-xl focus:ring-2 focus:ring-indigo-300 w-full focus:shadow-xl focus:border-indigo-600"
+                    autoFocus
+                    autoComplete="off"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!formData.otherRole}
+                    className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
+                  >
+                    Continue
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </form>
+              )}
+              </>
+            )}
+
+            {/* Team size selection */}
+            {currentStep === 4 && (
+              <div className="space-y-3">
+                {TEAM_SIZE_OPTIONS.map((option, index) => (
+                  <motion.button
+                    key={option.value}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    onClick={() => handleFieldComplete('teamSize', option.value)}
+                    className={cn(
+                      'w-full p-4 rounded-xl border-2 text-left transition-all active:scale-95 touch-manipulation hover:shadow-lg',
+                      formData.teamSize === option.value
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-100 via-purple-50 to-indigo-100 shadow-xl ring-2 ring-indigo-200'
+                        : 'border-slate-300 active:border-indigo-400 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50'
+                    )}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="font-bold text-base text-slate-800">{option.label}</span>
+                      <span className="text-xs text-slate-600 font-medium">{option.description}</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
             )}
 
             {/* Use case selection */}
-            {currentStep === 4 && (
+            {currentStep === 5 && (
+              <>
+              {formData.useCase !== 'other' ? (
               <div className="space-y-3">
                 {USE_CASE_OPTIONS.map((option, index) => (
                   <motion.button
@@ -509,10 +759,40 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                   </motion.button>
                 ))}
               </div>
+              ) : (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (formData.otherUseCase) {
+                    handleFieldComplete('otherUseCase', formData.otherUseCase);
+                  }
+                }}>
+                  <Input
+                    type="text"
+                    placeholder="Tell us a bit more so we can recommend the right solution"
+                    value={formData.otherUseCase || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      otherUseCase: e.target.value 
+                    })}
+                    className="text-base sm:text-lg py-4 px-4 border-2 border-slate-300 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-white to-blue-50 focus:bg-gradient-to-r focus:from-white focus:to-indigo-50 rounded-xl focus:ring-2 focus:ring-indigo-300 w-full focus:shadow-xl focus:border-indigo-600"
+                    autoFocus
+                    autoComplete="off"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!formData.otherUseCase}
+                    className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
+                  >
+                    Continue
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </form>
+              )}
+              </>
             )}
 
             {/* How did you hear about us */}
-            {currentStep === 5 && (
+            {currentStep === 6 && (
               <div className="space-y-3">
                 {HEARD_ABOUT_OPTIONS.map((option, index) => (
                   <motion.button

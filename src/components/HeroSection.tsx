@@ -58,7 +58,7 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero w-full pt-28 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 lg:bg-gradient-to-br max-lg:bg-smart-beige relative overflow-hidden font-inter transition-all duration-1000 ease-in-out mobile-optimize">
+      <section className="hero hero-section w-full pt-28 sm:pt-24 md:pt-28 lg:pt-32 pb-12 sm:pb-16 md:pb-20 px-3 sm:px-6 lg:px-12 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 lg:bg-gradient-to-br max-lg:bg-smart-beige relative overflow-hidden font-inter transition-all duration-1000 ease-in-out mobile-optimize">
         {/* Simple background gradient without animated elements - hidden on mobile */}
         <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30 lg:block hidden"></div>
         
