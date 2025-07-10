@@ -262,26 +262,49 @@
   /* Fix hero section demo dropdown z-index */
   .hero-section .progressive-demo-capture {
     position: relative;
-    z-index: 30;
+    z-index: 100;
   }
   
   .hero-section .demo-form-dropdown {
-    z-index: 40;
+    z-index: 110;
+    position: fixed !important;
+  }
+  
+  /* Ensure logo carousel stays below */
+  .logo-carousel-container,
+  .logo-carousel-container * {
+    z-index: 1 !important;
   }
   
   /* Fix minimal variant demo button background on mobile */
-  .progressive-demo-capture button.touch-target {
+  .progressive-demo-capture button.touch-target,
+  .progressive-demo-capture button.touch-target.text-business-black {
     background-color: transparent !important;
     background-image: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
   
   /* Ensure the button stays transparent on all states */
   @media (hover: none) and (pointer: coarse) {
     .progressive-demo-capture button.touch-target:hover,
     .progressive-demo-capture button.touch-target:active,
-    .progressive-demo-capture button.touch-target:focus {
+    .progressive-demo-capture button.touch-target:focus,
+    .progressive-demo-capture button.touch-target.text-business-black:hover,
+    .progressive-demo-capture button.touch-target.text-business-black:active,
+    .progressive-demo-capture button.touch-target.text-business-black:focus {
       background-color: transparent !important;
       background-image: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
+  }
+  
+  /* Override any gradient backgrounds for minimal demo buttons */
+  nav .progressive-demo-capture button,
+  .mobile-optimize .progressive-demo-capture button {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
   }
 }

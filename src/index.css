@@ -61,12 +61,12 @@
   }
 }
 
-/* Version: 1.0.9 - CRITICAL FIX: Mobile demo button black background issue - 2025-07-10 17:45 */
+/* Version: 1.1.0 - CRITICAL FIX: Z-index, mobile gradient bg, and UX improvements - 2025-07-10 18:00 */
 
 /* Cache busting rule to force new hash generation */
-.cache-bust-v109-mobile-button-bg {
+.cache-bust-v110-mobile-ux-fixes {
   display: none !important;
-  content: "CRITICAL: Fixed mobile 'Continue Demo Request' button black background - forced rebuild";
+  content: "CRITICAL: Fixed z-index, mobile gradient backgrounds, and improved mobile UX - forced rebuild";
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

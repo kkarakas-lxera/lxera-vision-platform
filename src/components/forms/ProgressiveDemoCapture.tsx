@@ -319,35 +319,101 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 setIsExpanded(true);
                 if (currentStep === 0) setCurrentStep(1);
               }}
-              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target bg-transparent"
+              className="text-business-black hover:text-business-black/70 underline underline-offset-4 font-medium transition-colors decoration-2 decoration-business-black/20 hover:decoration-business-black/40 min-h-[48px] px-3 py-2 touch-target bg-transparent flex items-center gap-2"
             >
-              {formData.email ? 'Continue Demo Request' : buttonText}
+              {formData.email ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                    <span>Continue Demo Request</span>
+                  </span>
+                  {formData.name && (
+                    <span className="text-xs text-gray-500">({formData.name.split(' ')[0]})</span>
+                  )}
+                </>
+              ) : (
+                buttonText
+              )}
             </motion.button>
           )}
           
           {isExpanded && currentStep === 1 && (
-            <motion.form
-              key="email"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              onSubmit={handleEmailSubmit}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-2 relative z-50"
+            <motion.div
+              key="email-form"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto"
             >
-              <Input
-                ref={emailRef}
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Work email"
-                className="w-full sm:w-48 h-12 sm:h-10 text-base sm:text-sm"
-                inputMode="email"
-                autoComplete="email"
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4">
+                <div className="mb-3">
+                  <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex gap-1">
+                      <div className={`w-2 h-2 rounded-full ${formData.email ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${formData.name ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${formData.companySize ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    </div>
+                    <span className="text-xs text-gray-500">Step 1 of 1</span>
+                  </div>
+                </div>
+                
+                <form onSubmit={handleEmailSubmit} className="space-y-3">
+                  <Input
+                    ref={emailRef}
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Work email"
+                    className="w-full h-12 text-base"
+                    inputMode="email"
+                    autoComplete="email"
+                  />
+                  <Input
+                    ref={nameRef}
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your full name"
+                    className="w-full h-12 text-base"
+                    autoComplete="name"
+                  />
+                  <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
+                    <SelectTrigger className="w-full h-12 text-base">
+                      <SelectValue placeholder="Company size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companySizeOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsExpanded(false)}
+                      className="flex-1 h-12"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={loading || !formData.email || !formData.name || !formData.companySize}
+                      className="flex-1 h-12 bg-future-green text-business-black hover:bg-future-green/90"
+                    >
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Get Demo'}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+              
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 bg-black/50 -z-10"
+                onClick={() => setIsExpanded(false)}
               />
-              <Button type="submit" size="sm" className="w-full sm:w-auto h-12 sm:h-10">
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </motion.form>
+            </motion.div>
           )}
           
           {isExpanded && currentStep === 2 && (
