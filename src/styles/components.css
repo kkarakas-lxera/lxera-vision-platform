@@ -213,4 +213,40 @@
   .lxera-rounded-3xl {
     border-radius: 3rem !important;
   }
+  
+  /* Fix for hero section button positioning */
+  .hero-cta-buttons {
+    position: relative;
+    z-index: 10;
+    isolation: isolate;
+  }
+  
+  /* Ensure logo carousel doesn't interfere with buttons */
+  .logo-carousel-container {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .logo-carousel-container > * {
+    pointer-events: auto;
+  }
+  
+  /* Fix demo form positioning on all screen sizes */
+  .demo-form-container {
+    position: relative;
+    z-index: 20;
+  }
+  
+  /* Prevent form from going off-screen */
+  @media (max-width: 640px) {
+    .demo-form-dropdown {
+      position: fixed !important;
+      left: 1rem !important;
+      right: 1rem !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      max-width: calc(100vw - 2rem) !important;
+    }
+  }
 }

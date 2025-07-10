@@ -332,7 +332,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
               onSubmit={handleEmailSubmit}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-2 relative z-[9999]"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-2 relative z-50"
             >
               <Input
                 ref={emailRef}
@@ -462,7 +462,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-[9998]"
+                className="fixed inset-0 bg-black/50 z-40"
                 onClick={() => setIsExpanded(false)}
               />
             )}
@@ -475,9 +475,9 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               className={cn(
                 "bg-white rounded-2xl shadow-xl border border-gray-200 p-4",
                 variant === 'mobile' ? (
-                  'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-[9999]'
+                  'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-md mx-auto z-50'
                 ) : (
-                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-[9999]'
+                  'absolute top-full mt-2 w-80 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)]'
                 )
               )}
             >

@@ -61,10 +61,36 @@
   }
 }
 
-/* Version: 1.0.5 - Fixed duplicate CSS, PostCSS config, and browserslist - 2025-07-10 14:45 */
+/* Version: 1.0.6 - Fixed demo form positioning and z-index issues - 2025-07-10 15:45 */
 
 /* Cache busting rule to force new hash generation */
-.cache-bust-v105 {
+.cache-bust-v106 {
   display: none !important;
-  content: "Fixed CSS deployment issues";
+  content: "Fixed demo form off-screen and z-index issues";
+}
+
+/* Fix for demo form positioning */
+@layer components {
+  /* Ensure demo forms stay within viewport */
+  .absolute {
+    @media (max-width: 640px) {
+      &[class*="left-1/2"][class*="-translate-x-1/2"] {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        max-width: calc(100vw - 2rem) !important;
+      }
+    }
+  }
+  
+  /* Fix z-index stacking for proper layering */
+  /* Logo carousel should be below modals */
+  [style*="animation: scroll"] {
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Ensure proper stacking context for fixed elements */
+  .fixed[class*="z-50"] {
+    isolation: isolate;
+  }
 }
