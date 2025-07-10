@@ -319,7 +319,7 @@
   }
   /* Ensure visible modal card is topmost on mobile hero */
   .hero .progressive-demo-capture .fixed {
-    z-index: 120;
+    z-index: 120 !important;
     isolation: isolate;
   }
 }
