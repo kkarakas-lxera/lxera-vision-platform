@@ -322,4 +322,11 @@
     z-index: 120 !important;
     isolation: isolate;
   }
+  /* Remove dark gradient behind hamburger - ensure nav demo button remains transparent */
+  nav .progressive-demo-capture button,
+  nav .progressive-demo-capture button * {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
 }
