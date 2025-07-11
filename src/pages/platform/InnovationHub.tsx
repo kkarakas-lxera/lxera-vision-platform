@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Lightbulb, Users, Target, Brain, BarChart3, MessageCircle, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
+import VideoModal from "@/components/VideoModal";
 
 interface InnovationHubProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const InnovationHub = ({ openDemoModal }: InnovationHubProps) => {
+const InnovationHub = ({ openDemoModal, openContactSalesModal }: InnovationHubProps) => {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const hubFeatures = [
     {
       title: "AI-Powered Ideation",
@@ -90,7 +93,7 @@ const InnovationHub = ({ openDemoModal }: InnovationHubProps) => {
               onSuccess={() => {}}
               openDemoModal={openDemoModal}
             />
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal" onClick={() => setIsVideoModalOpen(true)}>
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -117,7 +120,7 @@ const InnovationHub = ({ openDemoModal }: InnovationHubProps) => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-future-green/10 rounded-xl flex items-center justify-center mr-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-xl flex items-center justify-center mr-4">
                         <IconComponent className="w-6 h-6 text-business-black" />
                       </div>
                     </div>
@@ -200,6 +203,7 @@ const InnovationHub = ({ openDemoModal }: InnovationHubProps) => {
             <PricingContactSales 
               source="innovation_hub_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>
@@ -208,6 +212,12 @@ const InnovationHub = ({ openDemoModal }: InnovationHubProps) => {
       <Footer />
       
       {/* Modals */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        setIsOpen={setIsVideoModalOpen}
+        videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo-v2.mp4"
+        videoCaption="LXERA Platform Demo"
+      />
     </div>
   );
 };

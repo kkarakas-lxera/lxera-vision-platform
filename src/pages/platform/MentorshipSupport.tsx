@@ -11,9 +11,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface MentorshipSupportProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const MentorshipSupport = ({ openDemoModal }: MentorshipSupportProps) => {
+const MentorshipSupport = ({ openDemoModal, openContactSalesModal }: MentorshipSupportProps) => {
   const supportFeatures = [
     {
       title: "AI Behavior Monitoring",
@@ -231,6 +232,7 @@ const MentorshipSupport = ({ openDemoModal }: MentorshipSupportProps) => {
             <PricingContactSales 
               source="mentorship_support_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>

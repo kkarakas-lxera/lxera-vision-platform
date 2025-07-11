@@ -11,9 +11,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface IntegrationsProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const Integrations = ({ openDemoModal }: IntegrationsProps) => {
+const Integrations = ({ openDemoModal, openContactSalesModal }: IntegrationsProps) => {
   const integrationCategories = [
     {
       title: "Learning Management Systems",
@@ -102,6 +103,7 @@ const Integrations = ({ openDemoModal }: IntegrationsProps) => {
             <PricingContactSales 
               source="integrations_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>
@@ -235,6 +237,7 @@ const Integrations = ({ openDemoModal }: IntegrationsProps) => {
             <PricingContactSales 
               source="integrations_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>
