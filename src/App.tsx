@@ -675,7 +675,7 @@ const App = () => {
                       if (contactSalesErrors.email) setContactSalesErrors(prev => ({ ...prev, email: '' }));
                     }}
                     placeholder="Enter your work email"
-                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.email ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-colors duration-200"
                     disabled={contactSalesLoading}
                     inputMode="email"
                     autoComplete="email"
@@ -696,7 +696,7 @@ const App = () => {
                       if (contactSalesErrors.name) setContactSalesErrors(prev => ({ ...prev, name: '' }));
                     }}
                     placeholder="Your full name"
-                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.name ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-colors duration-200"
                     disabled={contactSalesLoading}
                     autoComplete="name"
                   />
@@ -715,7 +715,7 @@ const App = () => {
                       if (contactSalesErrors.company) setContactSalesErrors(prev => ({ ...prev, company: '' }));
                     }}
                     placeholder="Company name"
-                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.company ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-colors duration-200"
                     disabled={contactSalesLoading}
                     autoComplete="organization"
                   />
@@ -734,7 +734,7 @@ const App = () => {
                     }}
                     disabled={contactSalesLoading}
                   >
-                    <SelectTrigger className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.teamSize ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}>
+                    <SelectTrigger className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-colors duration-200">
                       <SelectValue placeholder="Team size" />
                     </SelectTrigger>
                     <SelectContent>
