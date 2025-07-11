@@ -10,6 +10,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix for yellow border issue - Override incorrect HSL interpretation */
+/* The issue is that --border: 214 214 214 is being interpreted as HSL instead of RGB */
+@layer base {
+  /* Fix the Card component border specifically */
+  .rounded-3xl.border {
+    border-color: rgb(229, 231, 235) !important;
+  }
+  
+  /* Fix other common border utilities */
+  .border-gray-200 {
+    border-color: rgb(229, 231, 235) !important;
+  }
+  
+  .border-slate-200 {
+    border-color: rgb(226, 232, 240) !important;
+  }
+  
+  .border-white {
+    border-color: rgb(255, 255, 255) !important;
+  }
+  
+  .border-transparent {
+    border-color: transparent !important;
+  }
+  
+  /* Mobile-specific fix for waiting room */
+  @media (max-width: 768px) {
+    .rounded-3xl.border {
+      border-color: rgb(229, 231, 235) !important;
+    }
+  }
+}
+
 /* Utility class to hide scrollbars */
 @layer utilities {
   .scrollbar-hide {

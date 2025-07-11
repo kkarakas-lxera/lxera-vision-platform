@@ -115,7 +115,7 @@ const WaitingRoom = () => {
   if (!leadData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full bg-white">
+        <Card className="max-w-md w-full bg-white border-gray-200" style={{ borderColor: 'rgb(229, 231, 235)' }}>
           <CardHeader>
             <CardTitle>Check Your Waitlist Status</CardTitle>
           </CardHeader>
@@ -214,7 +214,7 @@ const WaitingRoom = () => {
             {/* Left Side - Status & Profile */}
             <div className="space-y-3 sm:space-y-4">
               {/* Position Card */}
-              <Card className="bg-white">
+              <Card className="bg-white border-gray-200" style={{ borderColor: 'rgb(229, 231, 235)' }}>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -244,7 +244,7 @@ const WaitingRoom = () => {
               </Card>
               
               {/* Profile Summary */}
-              <Card className="bg-white">
+              <Card className="bg-white border-gray-200" style={{ borderColor: 'rgb(229, 231, 235)' }}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Your Profile</CardTitle>
                 </CardHeader>
@@ -279,7 +279,7 @@ const WaitingRoom = () => {
             
             {/* Right Side - What Happens Next */}
             <div>
-              <Card className="border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+              <Card className="border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100" style={{ borderColor: 'rgb(203, 213, 225)' }}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Zap className="w-4 h-4 text-slate-600 animate-pulse" />
