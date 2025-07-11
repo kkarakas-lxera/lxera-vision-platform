@@ -244,7 +244,6 @@ const MobilePricingCards = () => {
                     source="mobile_pricing"
                     buttonText={plan.ctaText}
                     variant="mobile"
-                    className="w-full"
                   />
                   )}
                 </Suspense>

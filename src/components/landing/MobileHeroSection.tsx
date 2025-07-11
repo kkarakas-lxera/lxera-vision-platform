@@ -131,7 +131,7 @@ const MobileHeroSection = () => {
               <div className="flex items-center justify-center">
                 <ProgressiveDemoCapture 
                   source="mobile_hero"
-                  buttonText="Request Demo"
+                  buttonText="Book Demo"
                   variant="minimal"
                 />
               </div>

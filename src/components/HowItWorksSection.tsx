@@ -52,9 +52,8 @@ const HowItWorksSection = () => {
           
           <ProgressiveDemoCapture
             source="how_it_works_section"
-            buttonText="Request a Demo"
+            buttonText="Book Demo"
             onSuccess={() => {}}
-            className=""
           />
         </div>
 

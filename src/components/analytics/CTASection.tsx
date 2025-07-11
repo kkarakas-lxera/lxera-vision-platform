@@ -24,7 +24,7 @@ const CTASection = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ProgressiveDemoCapture
                 source="analytics_cta_section"
-                buttonText="Request a Demo"
+                buttonText="Book Demo"
                 onSuccess={() => {}}
               />
               <Button

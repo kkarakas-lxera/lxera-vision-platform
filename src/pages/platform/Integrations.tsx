@@ -91,7 +91,7 @@ const Integrations = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="integrations_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 
@@ -223,7 +223,7 @@ const Integrations = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="integrations_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 

@@ -106,8 +106,6 @@ const MobileMenu: FC<MobileMenuProps> = ({
           <ProgressiveDemoCapture
             source="mobile_menu"
             buttonText="Book Demo"
-            variant="default"
-            className="!bg-transparent !border-0 !shadow-none hover:!bg-black/10 !text-business-black !font-semibold !text-sm !px-4 !py-2"
           />
         </div>
       )}

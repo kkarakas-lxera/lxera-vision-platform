@@ -86,7 +86,7 @@ const HowItWorks = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="how_it_works_platform_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
@@ -199,7 +199,7 @@ const HowItWorks = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="how_it_works_platform_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 

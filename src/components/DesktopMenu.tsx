@@ -364,9 +364,8 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
 
         <ProgressiveDemoCapture
           source="desktop_menu"
-          buttonText="Request a Demo"
+          buttonText="Book Demo"
           variant="default"
-          className=""
         />
 
         {/* Show Go to Dashboard when authenticated, Sign In when not */}

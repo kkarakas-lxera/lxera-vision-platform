@@ -52,7 +52,7 @@ const CTASection = () => {
                 <div className="flex gap-3 text-sm">
                   <ProgressiveDemoCapture
                     source="cta_section_demo_link"
-                    buttonText="Prefer a demo?"
+                    buttonText="Book Demo"
                     variant="minimal"
                     onSuccess={handleEmailSuccess}
                   />
@@ -75,9 +75,8 @@ const CTASection = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <ProgressiveDemoCapture
                   source="cta_section_main"
-                  buttonText="Request a Demo"
+                  buttonText="Book Demo"
                   onSuccess={handleEmailSuccess}
-                  className=""
                 />
                 <Button
                   size="lg"

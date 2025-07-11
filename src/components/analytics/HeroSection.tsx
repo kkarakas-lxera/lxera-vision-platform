@@ -42,7 +42,7 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <ProgressiveDemoCapture
               source="analytics_hero_section"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <Button

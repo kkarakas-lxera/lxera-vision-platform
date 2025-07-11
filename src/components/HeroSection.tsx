@@ -122,9 +122,8 @@ const HeroSection = () => {
                       <span className="text-sm text-gray-500">or</span>
                       <ProgressiveDemoCapture 
                         source="hero_section"
-                        buttonText="Request Demo"
+                        buttonText="Book Demo"
                         variant="minimal"
-                        className=""
                       />
                     </div>
                     <p className="text-xs text-center text-gray-500">
@@ -140,7 +139,7 @@ const HeroSection = () => {
                   <div className="flex flex-row gap-2 sm:gap-3 hero-cta-buttons">
                     <ProgressiveDemoCapture 
                       source="hero_section_cta"
-                      buttonText="Request a Demo"
+                      buttonText="Book Demo"
                       variant="default"
                     />
                   </div>

@@ -34,9 +34,8 @@ const HowItWorksStepsCTA = () => {
             </span>
             <ProgressiveDemoCapture
               source="how_it_works_steps_cta"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               variant="default"
-              className="bg-future-green text-business-black hover:bg-future-green/90 font-medium px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 min-h-[48px]"
             />
           </div>
         </div>

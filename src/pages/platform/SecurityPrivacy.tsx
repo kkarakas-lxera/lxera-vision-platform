@@ -82,7 +82,7 @@ const SecurityPrivacy = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="security_privacy_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 
@@ -220,7 +220,7 @@ const SecurityPrivacy = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="security_privacy_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 

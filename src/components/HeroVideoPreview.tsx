@@ -43,7 +43,7 @@ const HeroVideoPreview = () => {
         <div className="fixed bottom-4 right-4 z-50">
           <ProgressiveDemoCapture
             source="video_end_cta"
-            buttonText="Get a Demo"
+            buttonText="Book Demo"
             onSuccess={() => setShowDemoCapture(false)}
           />
         </div>

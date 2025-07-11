@@ -82,7 +82,7 @@ const InnovationHub = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="innovation_hub_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
@@ -188,7 +188,7 @@ const InnovationHub = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="innovation_hub_page"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <PricingContactSales 

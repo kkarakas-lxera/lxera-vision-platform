@@ -84,7 +84,7 @@ const Platform = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="platform_hero_section"
-              buttonText="Request a Demo"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <Link to="/platform/how-it-works">
@@ -153,7 +153,7 @@ const Platform = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <ProgressiveDemoCapture
               source="platform_page_cta"
-              buttonText="Get Started Today"
+              buttonText="Book Demo"
               onSuccess={() => {}}
             />
             <Link to="/pricing">

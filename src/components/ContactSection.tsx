@@ -17,9 +17,8 @@ const ContactSection = () => {
           <div className="flex justify-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
             <ProgressiveDemoCapture
               source="contact_section_book_demo"
-              buttonText="Book a Demo"
+              buttonText="Book Demo"
               variant="default"
-              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-8 py-4 rounded-xl font-normal transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] min-w-[10rem] focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2"
             />
           </div>
         </div>
@@ -37,9 +36,8 @@ const ContactSection = () => {
           <div className="text-center">
             <ProgressiveDemoCapture
               source="contact_section_form"
-              buttonText="Book Your Demo"
+              buttonText="Book Demo"
               variant="default"
-              className="bg-future-green text-business-black hover:bg-future-green/90 hover:scale-105 text-lg px-12 py-4 rounded-xl font-normal transition-all duration-300 shadow-lg hover:shadow-xl min-h-[3rem] focus:ring-2 focus:ring-future-green/50 focus:ring-offset-2 w-full md:w-auto"
             />
             
             <p className="text-xs text-white/60 mt-4">

@@ -103,11 +103,11 @@ const TransformationStartsSection = () => {
                     <p className="text-sm text-business-black/90 mb-2 font-medium">
                       Prefer a demo? 
                     </p>
-                    <SmartEmailCapture 
+                    <ProgressiveDemoCapture 
                       source="transformation_section_demo"
-                      buttonText="Schedule a call"
+                      buttonText="Book Demo"
                       variant="minimal"
-                      onSuccess={handleEmailSuccess}
+                      onSuccess={() => {}}
                       className="inline-flex font-semibold"
                     />
                   </div>
@@ -129,9 +129,7 @@ const TransformationStartsSection = () => {
                   <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-future-green/20 shadow-lg">
                     <ProgressiveDemoCapture
                       source="transformation_starts_section"
-                      buttonText="Request a Demo"
-                      onSuccess={handleEmailSuccess}
-                      className=""
+                      buttonText="Book Demo"
                     />
                   </div>
                 </div>

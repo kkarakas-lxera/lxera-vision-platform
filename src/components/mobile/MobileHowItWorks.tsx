@@ -65,9 +65,7 @@ const MobileHowItWorks = () => {
             
             <ProgressiveDemoCapture
               source="how_it_works_section"
-              buttonText="Request a Demo"
-              onSuccess={() => {}}
-              className=""
+              buttonText="Book Demo"
             />
           </div>
         </div>

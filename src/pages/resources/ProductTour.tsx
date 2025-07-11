@@ -87,7 +87,7 @@ const ProductTour = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <ProgressiveDemoCapture
                 source="product_tour_page"
-                buttonText="Request a Demo"
+                buttonText="Book Demo"
                 onSuccess={() => {}}
               />
               <Button 
@@ -180,7 +180,7 @@ const ProductTour = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ProgressiveDemoCapture
                 source="product_tour_cta"
-                buttonText="Request a Demo"
+                buttonText="Book Demo"
                 onSuccess={() => {}}
               />
               <Button 
