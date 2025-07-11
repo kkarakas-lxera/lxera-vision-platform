@@ -376,10 +376,6 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               value={formData.companySize} 
               onValueChange={(v) => {
                 setFormData(prev => ({ ...prev, companySize: v }));
-                // Prevent modal from closing on selection
-                setTimeout(() => {
-                  setIsExpanded(true);
-                }, 0);
               }}
             >
               <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
@@ -409,7 +405,20 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
   // Default and mobile variants - elegant and compact
   return (
     <div className={`progressive-demo-capture inline-block relative isolate ${className}`}>
-      <Dialog open={isExpanded} onOpenChange={(open)=>{setIsExpanded(open); if(open && currentStep===0){setCurrentStep(1);} }}>
+      <Dialog open={isExpanded} onOpenChange={(open)=>{
+        if (!open) {
+          // Only close if not interacting with select
+          const activeElement = document.activeElement;
+          if (!activeElement?.closest('[data-radix-select-content]') && 
+              !activeElement?.closest('.select-content') &&
+              !activeElement?.closest('[role="listbox"]')) {
+            setIsExpanded(false);
+          }
+        } else {
+          setIsExpanded(true);
+          if(currentStep===0){setCurrentStep(1);}
+        }
+      }}>
         <DialogTrigger asChild>
           <Button
             onMouseEnter={()=>setIsHovered(true)}
@@ -467,10 +476,6 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               value={formData.companySize} 
               onValueChange={(v)=>{
                 setFormData(prev=>({...prev,companySize:v}));
-                // Prevent modal from closing on selection
-                setTimeout(() => {
-                  setIsExpanded(true);
-                }, 0);
               }}
             >
               <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">

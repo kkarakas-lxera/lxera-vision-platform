@@ -11,6 +11,7 @@ import {
   CreditCard,
   BookOpen,
   LogIn,
+  Home,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 import { useAuth } from "@/contexts/AuthContext";
+import Logo from "@/components/Logo";
 
 // -------------------------------------------------------------------
 // Types identical to previous implementation so Navigation.tsx props stay.
@@ -126,12 +128,32 @@ const MobileMenu: FC<MobileMenuProps> = ({
 
         <SheetContent
           side="left"
-          className="w-full sm:w-80 p-0 bg-smart-beige border-r border-gray-200 text-business-black [&>button:last-child]:hidden"
+          className="w-full sm:w-80 p-0 bg-smart-beige border-r border-gray-200 text-business-black"
         >
           {/* Header */}
           <SheetHeader className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-lg font-medium">Navigation</SheetTitle>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center">
+                  <Logo className="h-8 w-auto" />
+                </div>
+                <Link 
+                  to="/" 
+                  onClick={handleMobileMenuToggle}
+                  className="flex items-center gap-2 text-business-black hover:text-business-black/70 transition-colors"
+                >
+                  <Home className="h-5 w-5" />
+                  <span className="text-sm font-medium">Home</span>
+                </Link>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleMobileMenuToggle}
+                className="h-8 w-8 text-business-black hover:bg-smart-beige/70"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </SheetHeader>
 

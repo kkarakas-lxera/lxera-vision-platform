@@ -11,7 +11,7 @@ import {
 const MobileHowItWorks = () => {
   return (
     <>
-      <section id="how-it-works" className="w-full py-12 px-4 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
+      <section id="how-it-works" className="w-full py-8 px-4 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-6xl mx-auto">
           {/* Section Header - same as desktop */}
           <div className="text-center mb-6">

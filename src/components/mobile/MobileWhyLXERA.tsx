@@ -13,7 +13,7 @@ const MobileWhyLXERA = () => {
 
   return (
     <>
-      <section id="platform" className="w-full py-12 px-4 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
+      <section id="platform" className="w-full py-8 px-4 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/10"></div>
         <AnimatedBackground />
         
@@ -105,7 +105,7 @@ const MobileWhyLXERA = () => {
           </div>
 
           {/* Bottom text - same as desktop */}
-          <p className="text-business-black/70 mb-2 text-center text-sm font-normal font-inter">
+          <p className="text-business-black/70 mb-1 text-center text-sm font-normal font-inter">
             Every LXERA innovation capability shaped by real-world feedback for maximum impact.
           </p>
         </div>

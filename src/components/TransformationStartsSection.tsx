@@ -29,9 +29,7 @@ const TransformationStartsSection = () => {
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-smart-beige/40 rounded-full blur-sm animate-pulse" style={{animationDelay: '0.5s'}}></div>
             
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-business-black mb-4 animate-fade-in-up font-inter relative">
-              <span className="bg-gradient-to-r from-business-black via-future-green/80 to-business-black bg-clip-text text-transparent">
-                Your Transformation Starts Here
-              </span>
+              Your Transformation Starts Here
             </h2>
             
             {/* Decorative accent line */}
@@ -62,7 +60,7 @@ const TransformationStartsSection = () => {
                 Ready to see how transformation happens? Let's walk through the journey from learning to innovation.
               </p>
               <div className="mt-4 text-center">
-                <span className="inline-block px-4 py-2 bg-future-green/10 text-future-green/80 rounded-full text-sm font-medium">
+                <span className="inline-block px-4 py-2 bg-future-green/10 text-business-black/80 rounded-full text-sm font-semibold">
                   Join 200+ teams already transforming
                 </span>
               </div>
@@ -93,16 +91,16 @@ const TransformationStartsSection = () => {
                         onSuccess={handleEmailSuccess}
                         className="mx-auto"
                       />
-                      <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-business-black/60">
+                      <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-business-black/80">
                         <span>No credit card required</span>
                         <span>•</span>
-                        <span className="font-medium text-future-green">Join 200+ teams</span>
+                        <span className="font-semibold text-business-black">Join 200+ teams</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-center">
-                    <p className="text-sm text-business-black/70 mb-2">
+                    <p className="text-sm text-business-black/90 mb-2 font-medium">
                       Prefer a demo? 
                     </p>
                     <SmartEmailCapture 
@@ -110,7 +108,7 @@ const TransformationStartsSection = () => {
                       buttonText="Schedule a call"
                       variant="minimal"
                       onSuccess={handleEmailSuccess}
-                      className="inline-flex"
+                      className="inline-flex font-semibold"
                     />
                   </div>
                 </div>

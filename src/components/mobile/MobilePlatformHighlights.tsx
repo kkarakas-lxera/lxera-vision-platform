@@ -152,7 +152,7 @@ const MobilePlatformHighlights = () => {
 
   return (
     <>
-      <section className="w-full py-12 px-4 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-8 px-4 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-7xl mx-auto relative z-0">
           {/* Header */}
           <div className="text-center mb-6 animate-fade-in-up">
@@ -287,7 +287,7 @@ const MobilePlatformHighlights = () => {
           )}
 
           {/* Bottom text */}
-          <p className="text-business-black/70 mb-2 text-center text-sm mt-10 font-normal font-inter">
+          <p className="text-business-black/70 mb-1 text-center text-sm mt-6 font-normal font-inter">
             Each feature designed and refined with real-world feedback for measurable results.
           </p>
         </div>
