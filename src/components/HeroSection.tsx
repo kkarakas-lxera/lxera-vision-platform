@@ -92,7 +92,7 @@ const HeroSection = ({ openDemoModal, openEarlyAccessModal }: HeroSectionProps) 
               {/* Subheadline - increased text sizes */}
               <div className="animate-fade-in-up animate-delay-200">
                 <p className="subheadline text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-business-black/85 font-normal leading-relaxed font-inter">
-                  Empower your teams to <TypingText words={["learn faster,", "innovate deeper,", "lead transformation"]} className="text-business-black font-medium" /> within one intelligent ecosystem.
+                  Empower your teams to <TypingText words={["learn faster", "innovate deeper", "lead transformation"]} className="text-business-black font-medium" /> within one intelligent ecosystem.
                 </p>
               </div>
 

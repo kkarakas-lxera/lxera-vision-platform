@@ -89,7 +89,7 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
         {/* Subheadline */}
         <div className="animate-fade-in-up mb-4" style={{ animationDelay: '200ms' }}>
           <p className="text-base text-business-black/85 font-normal leading-relaxed">
-            Empower your teams to <TypingText words={["learn faster,", "innovate deeper,", "lead transformation"]} className="text-business-black font-medium" />.
+            Empower your teams to <TypingText words={["learn faster", "innovate deeper", "lead transformation"]} className="text-business-black font-medium" />.
           </p>
         </div>
 
@@ -152,11 +152,13 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
         </div>
 
         {/* Early Access Banner with Social Proof */}
-        <div className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
-          <span className="font-semibold flex items-center justify-center gap-2 text-sm">
-            🚀 Join 200+ innovative teams in early access
-          </span>
-        </div>
+        <button
+          onClick={() => openEarlyAccessModal && openEarlyAccessModal("mobile_hero_banner")}
+          className="bg-future-green/20 border border-future-green/30 text-business-black px-4 py-2.5 rounded-lg text-center mb-6 animate-fade-in-up font-semibold flex items-center justify-center gap-2 text-sm hover:bg-future-green/30 active:scale-95 transition-transform"
+          style={{ animationDelay: '800ms' }}
+        >
+          🚀 Join 200+ innovative teams in early access
+        </button>
 
         {/* Key Benefits */}
         <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 mb-6 animate-fade-in-up" style={{ animationDelay: '1000ms' }}>
