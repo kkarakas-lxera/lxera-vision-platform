@@ -12,9 +12,10 @@ const ProgressiveDemoCapture = lazy(() => import('@/components/forms/Progressive
 
 interface MobilePricingCardsProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
+const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal }: MobilePricingCardsProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [currentCard, setCurrentCard] = useState(0);
   const [isMonthly, setIsMonthly] = useState(false); // Default to annual like desktop
@@ -112,28 +113,43 @@ const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
     setExpandedCard(expandedCard === planName ? null : planName);
   };
 
-  // Handle swipe gestures
+  // Handle swipe gestures - improved to not block vertical scrolling
   useEffect(() => {
     const container = cardsRef.current;
     if (!container) return;
 
     let startX: number;
+    let startY: number;
     let scrollLeft: number;
+    let isDragging = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       startX = e.touches[0].pageX - container.offsetLeft;
+      startY = e.touches[0].pageY;
       scrollLeft = container.scrollLeft;
+      isDragging = false;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!startX) return;
-      e.preventDefault();
+      if (!startX || !startY) return;
+      
       const x = e.touches[0].pageX - container.offsetLeft;
-      const walk = (x - startX) * 2;
-      container.scrollLeft = scrollLeft - walk;
+      const y = e.touches[0].pageY;
+      const diffX = Math.abs(x - startX);
+      const diffY = Math.abs(y - startY);
+      
+      // Only handle horizontal swipes, allow vertical scrolling
+      if (diffX > diffY && diffX > 10) {
+        isDragging = true;
+        e.preventDefault();
+        const walk = (x - startX) * 2;
+        container.scrollLeft = scrollLeft - walk;
+      }
     };
 
     const handleTouchEnd = () => {
+      if (!isDragging) return;
+      
       const cardWidth = container.offsetWidth;
       const scrollPosition = container.scrollLeft;
       const targetCard = Math.round(scrollPosition / cardWidth);
@@ -146,9 +162,9 @@ const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
       setCurrentCard(targetCard);
     };
 
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove);
-    container.addEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener('touchstart', handleTouchStart);
@@ -191,7 +207,7 @@ const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
       {/* Swipeable Cards Container */}
       <div 
         ref={cardsRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4 pt-4"
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4 pt-4 touch-pan-x"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {plans.map((plan, index) => (
@@ -242,6 +258,7 @@ const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
                     buttonText={plan.ctaText}
                     variant="mobile"
                     className="w-full"
+                    openEarlyAccessModal={openEarlyAccessModal}
                   />
                 ) : (
                   <ProgressiveDemoCapture 

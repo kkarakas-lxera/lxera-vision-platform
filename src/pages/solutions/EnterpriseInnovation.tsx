@@ -6,7 +6,11 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { ArrowRight, Lightbulb, CheckCircle, Rocket, Zap, Trophy, Building2, Target, TrendingUp, Users, Brain, Sparkles } from "lucide-react";
 
-const EnterpriseInnovation = () => {
+interface EnterpriseInnovationProps {
+  openEarlyAccessModal?: (source: string) => void;
+}
+
+const EnterpriseInnovation = ({ openEarlyAccessModal }: EnterpriseInnovationProps) => {
   const innovationFramework = [
     {
       phase: "Discover",
@@ -130,6 +134,7 @@ const EnterpriseInnovation = () => {
             <Button
               variant="outline"
               size="lg"
+              onClick={() => openEarlyAccessModal?.('enterprise_innovation_hero')}
               className="border-2 border-business-black/20 bg-white/80 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-base rounded-xl font-inter font-normal"
             >
               Get Early Access
@@ -336,6 +341,7 @@ const EnterpriseInnovation = () => {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={() => openEarlyAccessModal?.('enterprise_innovation_cta')}
                 className="border-2 border-white bg-white/20 backdrop-blur-sm text-white hover:bg-white hover:text-orange-600 hover:border-white px-8 py-4 text-base rounded-xl font-normal font-inter"
               >
                 Get Early Access

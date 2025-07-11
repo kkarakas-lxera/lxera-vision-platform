@@ -6,14 +6,13 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Play, MousePointer, Eye, Zap, Target, Users, BarChart3, Brain } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
-import WaitlistModal from "@/components/WaitlistModal";
 
 interface ProductTourProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal }) => {
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal, openEarlyAccessModal }) => {
   const tourSteps = [
     {
       title: "AI-Powered Personalization",
@@ -95,7 +94,7 @@ const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal }) => {
                 openDemoModal={openDemoModal}
               />
               <Button 
-                onClick={() => setIsWaitlistModalOpen(true)}
+                onClick={() => openEarlyAccessModal?.('product_tour')}
                 variant="outline" 
                 className="border-business-black/30 text-business-black hover:bg-business-black hover:text-white px-8 py-4 text-lg"
               >
@@ -188,7 +187,7 @@ const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal }) => {
                 openDemoModal={openDemoModal}
               />
               <Button 
-                onClick={() => setIsWaitlistModalOpen(true)}
+                onClick={() => openEarlyAccessModal?.('product_tour')}
                 className="bg-white text-business-black hover:bg-gray-50 border-2 border-white px-8 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 min-h-[48px]"
               >
                 Get Early Access
@@ -198,12 +197,6 @@ const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal }) => {
         </section>
 
         <Footer />
-        
-        {/* Modals */}
-        <WaitlistModal 
-          isOpen={isWaitlistModalOpen} 
-          onClose={() => setIsWaitlistModalOpen(false)} 
-        />
       </div>
     </>
   );

@@ -228,6 +228,11 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeSpeed;
+      /* Ensure proper mobile scrolling */
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
     }
 
     /* Reduce reflows */
@@ -239,6 +244,22 @@
     object {
       max-width: 100%;
       height: auto;
+    }
+    
+    /* Fix iOS Safari viewport issues */
+    html {
+      height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Ensure main content areas can scroll */
+    main,
+    section,
+    article,
+    .pricing-page {
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: visible;
     }
   }
 }

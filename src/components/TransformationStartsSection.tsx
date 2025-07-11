@@ -7,9 +7,10 @@ import { useState } from "react";
 
 interface TransformationStartsSectionProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const TransformationStartsSection = ({ openDemoModal }: TransformationStartsSectionProps) => {
+const TransformationStartsSection = ({ openDemoModal, openEarlyAccessModal }: TransformationStartsSectionProps) => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
 
@@ -92,7 +93,7 @@ const TransformationStartsSection = ({ openDemoModal }: TransformationStartsSect
                       <SmartEmailCapture 
                         source="transformation_section"
                         buttonText="Get Early Access"
-                        onSuccess={handleEmailSuccess}
+                        openEarlyAccessModal={openEarlyAccessModal}
                         className="mx-auto"
                       />
                       <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-business-black/80">

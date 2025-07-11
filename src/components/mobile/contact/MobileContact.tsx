@@ -7,9 +7,10 @@ const PricingEarlyAccess = lazy(() => import('../../forms/PricingEarlyAccess'));
 
 interface MobileContactProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const MobileContact: React.FC<MobileContactProps> = ({ openDemoModal }) => {
+const MobileContact: React.FC<MobileContactProps> = ({ openDemoModal, openEarlyAccessModal }) => {
 
   return (
     <div className="min-h-screen bg-smart-beige">
@@ -72,8 +73,8 @@ const MobileContact: React.FC<MobileContactProps> = ({ openDemoModal }) => {
               <div className="w-full py-4 bg-future-green/20 rounded-full animate-pulse" />
             }>
               <PricingEarlyAccess 
-                variant="mobile"
                 className="w-full"
+                openEarlyAccessModal={openEarlyAccessModal}
               />
             </Suspense>
           </div>

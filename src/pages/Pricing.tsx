@@ -13,9 +13,10 @@ import MobilePricingFAQ from "@/components/mobile/pricing/MobilePricingFAQ";
 
 interface PricingProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const Pricing = ({ openDemoModal }: PricingProps) => {
+const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
 
 
@@ -75,11 +76,11 @@ const Pricing = ({ openDemoModal }: PricingProps) => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-smart-beige font-inter">
+      <div className="min-h-screen bg-smart-beige font-inter pricing-page">
         <Navigation openDemoModal={openDemoModal} />
         
         {/* Mobile Pricing Section */}
-        <section className="md:hidden w-full pt-24 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
+        <section className="md:hidden w-full pt-24 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter touch-pan-y">
           {/* Background gradient with better contrast */}
           <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-smart-beige/10"></div>
           
@@ -95,7 +96,7 @@ const Pricing = ({ openDemoModal }: PricingProps) => {
             </div>
 
             {/* Mobile Pricing Cards */}
-            <MobilePricingCards openDemoModal={openDemoModal} />
+            <MobilePricingCards openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
 
             {/* Plan Comparison */}
             <div className="mt-8">
@@ -258,9 +259,7 @@ const Pricing = ({ openDemoModal }: PricingProps) => {
                   ) : (
                     <PricingEarlyAccess
                       source="pricing_page_core"
-                      onSuccess={(email, name) => {
-                        console.log('Early access signup:', { email, name });
-                      }}
+                      openEarlyAccessModal={openEarlyAccessModal}
                     />
                   )}
                 </div>

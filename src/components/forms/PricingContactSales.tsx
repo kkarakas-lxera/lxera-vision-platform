@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowRight, Mail, User, Building2, Users, MessageSquare, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PricingContactSalesProps {
@@ -120,8 +120,7 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
       if (data.success) {
         setSubmitted(true);
         
-        toast({
-          title: 'Message Sent!',
+        toast.success('Message Sent!', {
           description: 'Our sales team will contact you within 24 hours.',
         });
 
@@ -138,10 +137,8 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
       });
       
       // Show toast notification
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: error.message || 'Something went wrong. Please try again.',
-        variant: 'destructive'
       });
       
       // Set server error for display

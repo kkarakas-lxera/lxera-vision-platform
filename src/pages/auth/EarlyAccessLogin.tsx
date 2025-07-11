@@ -8,7 +8,7 @@ import { Loader2, Mail, ArrowRight, Clock, AlertCircle, Check, Zap, Shield, Rock
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 
@@ -138,8 +138,7 @@ const EarlyAccessLogin = () => {
       setOtpSent(true);
       setStep('otp');
       setResendTimer(60); // 60 second cooldown
-      toast({
-        title: 'Code sent!',
+      toast.success('Code sent!', {
         description: 'Check your email for the 6-digit verification code.',
       });
     } catch (err: any) {
@@ -197,8 +196,7 @@ const EarlyAccessLogin = () => {
       if (error) throw error;
 
       setResendTimer(60);
-      toast({
-        title: 'Code resent!',
+      toast.success('Code resent!', {
         description: 'Check your email for the new verification code.',
       });
     } catch (err: any) {
@@ -322,8 +320,7 @@ const EarlyAccessLogin = () => {
                             requireCompanyEmail={false}
                             className="w-full"
                             onSuccess={(capturedEmail) => {
-                              toast({
-                                title: 'Welcome to Early Access!',
+                              toast.success('Welcome to Early Access!', {
                                 description: 'Check your email to complete your profile.',
                               });
                               setSignupSuccess(true);

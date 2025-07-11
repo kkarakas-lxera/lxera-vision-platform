@@ -5,7 +5,11 @@ import Logo from '@/components/Logo';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 import { Button } from '@/components/ui/button';
 
-const EarlyAccessSignup = () => {
+interface EarlyAccessSignupProps {
+  openEarlyAccessModal?: (source: string) => void;
+}
+
+const EarlyAccessSignup = ({ openEarlyAccessModal }: EarlyAccessSignupProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const emailFromUrl = searchParams.get('email');

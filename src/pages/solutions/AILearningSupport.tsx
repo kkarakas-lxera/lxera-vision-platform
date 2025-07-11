@@ -6,7 +6,11 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { ArrowRight, MessageCircle, Bot, Brain, Users, Clock, Zap, Target, Quote, Eye } from "lucide-react";
 
-const AILearningSupport = () => {
+interface AILearningSupportProps {
+  openEarlyAccessModal?: (source: string) => void;
+}
+
+const AILearningSupport = ({ openEarlyAccessModal }: AILearningSupportProps) => {
   const supportFeatures = [
     {
       icon: MessageCircle,
@@ -205,6 +209,7 @@ const AILearningSupport = () => {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={() => openEarlyAccessModal?.('ai_learning_support_cta')}
                 className="border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-teal-600 hover:border-white font-medium px-10 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:ring-2 focus:ring-white/30 focus:ring-offset-2 font-inter"
               >
                 Get Early Access

@@ -19,9 +19,10 @@ import MobilePlatformHighlights from "@/components/mobile/MobilePlatformHighligh
 
 interface IndexProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const Index = ({ openDemoModal }: IndexProps) => {
+const Index = ({ openDemoModal, openEarlyAccessModal }: IndexProps) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -43,11 +44,11 @@ const Index = ({ openDemoModal }: IndexProps) => {
         <ScrollProgress />
         <div className="min-h-screen bg-white">
           <Navigation openDemoModal={openDemoModal} />
-          <MobileHeroSection openDemoModal={openDemoModal} />
+          <MobileHeroSection openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
           <MobileWhyLXERA />
           <MobileHowItWorks openDemoModal={openDemoModal} />
           <MobilePlatformHighlights />
-          <TransformationStartsSection openDemoModal={openDemoModal} />
+          <TransformationStartsSection openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
           <Footer />
           <BackToTop />
         </div>
@@ -62,11 +63,11 @@ const Index = ({ openDemoModal }: IndexProps) => {
       <ScrollProgress />
       <div className="min-h-screen bg-white">
         <Navigation openDemoModal={openDemoModal} />
-        <HeroSection openDemoModal={openDemoModal} />
+        <HeroSection openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
         <WhyLXERASection />
         <HowItWorksSection openDemoModal={openDemoModal} />
         <PlatformHighlightsSection />
-        <TransformationStartsSection openDemoModal={openDemoModal} />
+        <TransformationStartsSection openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
         <Footer />
         <BackToTop />
       </div>

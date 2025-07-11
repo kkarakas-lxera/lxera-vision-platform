@@ -24,6 +24,29 @@
 
 /* Critical mobile fixes that must override Tailwind */
 @layer base {
+  /* Fix mobile viewport and scrolling issues */
+  @media (max-width: 768px) {
+    html {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      height: 100%;
+    }
+    
+    body {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+    
+    /* Fix for pricing page scrolling */
+    .pricing-page {
+      overflow-x: hidden;
+      overflow-y: visible;
+      position: relative;
+    }
+  }
+
   /* Prevent iOS Safari yellow highlight on form fields */
   input,
   textarea,

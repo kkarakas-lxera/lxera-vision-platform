@@ -123,7 +123,7 @@
     }
   }
 
-  /* CSS containment for card components */
+  /* CSS containment for card components - avoid strict containment that blocks scrolling */
   .card,
   .card-container,
   [data-card],
@@ -131,14 +131,20 @@
     contain: layout style;
   }
 
-  /* Optimize card performance on mobile */
+  /* Optimize card performance on mobile but preserve scrolling */
   @media (max-width: 1023px) {
     .card,
     .card-container,
     [data-card],
     .rounded-3xl.border.bg-card {
-      contain: layout style paint;
+      contain: layout style; /* Remove paint containment to allow scrolling */
       transform: translateZ(0); /* Force GPU layer */
+    }
+    
+    /* Ensure pricing page can scroll properly */
+    .pricing-page,
+    .pricing-page * {
+      contain: none !important; /* Remove containment that blocks scrolling */
     }
   }
 
@@ -269,6 +275,20 @@
   @media (max-width: 1023px) {
     .scroll-smooth {
       scroll-behavior: auto; /* Disable smooth scrolling on mobile for better performance */
+    }
+    
+    /* Ensure mobile pages can scroll properly */
+    body {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    
+    /* Fix iOS Safari scrolling issues */
+    html {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
   }
 

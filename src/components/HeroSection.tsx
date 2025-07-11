@@ -9,9 +9,10 @@ import { useState, useEffect } from "react";
 
 interface HeroSectionProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const HeroSection = ({ openDemoModal }: HeroSectionProps) => {
+const HeroSection = ({ openDemoModal, openEarlyAccessModal }: HeroSectionProps) => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
 
@@ -121,7 +122,7 @@ const HeroSection = ({ openDemoModal }: HeroSectionProps) => {
                       <SmartEmailCapture 
                         source="hero_section"
                         buttonText="Get Early Access"
-                        onSuccess={handleEmailSuccess}
+                        openEarlyAccessModal={openEarlyAccessModal}
                       />
                       <span className="text-sm text-gray-500">or</span>
                       <ProgressiveDemoCapture 

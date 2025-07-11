@@ -5,15 +5,15 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import PricingContactSales from "@/components/forms/PricingContactSales";
-import WaitlistModal from "@/components/WaitlistModal";
 import { ArrowRight, Brain, CheckCircle, Users, Target, BarChart3, Zap, Star, Search, BookOpen, Lightbulb } from "lucide-react";
-import { useState } from "react";
 
-const AIPersonalizedLearning = () => {
-  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+interface AIPersonalizedLearningProps {
+  openEarlyAccessModal?: (source: string) => void;
+}
 
+const AIPersonalizedLearning = ({ openEarlyAccessModal }: AIPersonalizedLearningProps) => {
   const handleGetEarlyAccess = () => {
-    setIsWaitlistModalOpen(true);
+    openEarlyAccessModal?.('ai_personalized_learning');
   };
 
   const features = [
@@ -194,11 +194,6 @@ const AIPersonalizedLearning = () => {
 
         <Footer />
       </div>
-
-      <WaitlistModal 
-        isOpen={isWaitlistModalOpen} 
-        onClose={() => setIsWaitlistModalOpen(false)}
-      />
     </>
   );
 };

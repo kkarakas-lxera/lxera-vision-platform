@@ -8,9 +8,10 @@ import ProgressiveDemoCapture from '@/components/forms/ProgressiveDemoCapture';
 
 interface MobileHeroSectionProps {
   openDemoModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
 }
 
-const MobileHeroSection = ({ openDemoModal }: MobileHeroSectionProps) => {
+const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSectionProps) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [emailCaptured, setEmailCaptured] = useState(false);
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const MobileHeroSection = ({ openDemoModal }: MobileHeroSectionProps) => {
                 source="mobile_hero"
                 buttonText="Get Early Access"
                 variant="mobile"
-                onSuccess={handleEmailSuccess}
+                openEarlyAccessModal={openEarlyAccessModal}
               />
               <div className="flex items-center justify-center">
                 <ProgressiveDemoCapture 

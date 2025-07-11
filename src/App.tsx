@@ -20,10 +20,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2, Building2, Mail, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { demoCaptureService } from "@/services/demoCaptureService";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 // Critical pages - loaded synchronously
 import Index from "./pages/Index";
@@ -145,6 +145,17 @@ const App = () => {
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
+  // Global early access modal state
+  const [earlyAccessModalOpen, setEarlyAccessModalOpen] = useState(false);
+  const [earlyAccessModalSource, setEarlyAccessModalSource] = useState("");
+  const [earlyAccessFormData, setEarlyAccessFormData] = useState({
+    email: '',
+    name: ''
+  });
+  const [earlyAccessLoading, setEarlyAccessLoading] = useState(false);
+  const earlyAccessEmailRef = useRef<HTMLInputElement>(null);
+  const earlyAccessNameRef = useRef<HTMLInputElement>(null);
+
   const companySizeOptions = [
     { value: '1-10', label: '1-10' },
     { value: '11-50', label: '11-50' },
@@ -168,7 +179,7 @@ const App = () => {
     }
   }, []);
 
-  // Focus management
+  // Focus management for demo modal
   useEffect(() => {
     if (demoModalOpen) {
       if (!formData.email && emailRef.current) {
@@ -179,38 +190,57 @@ const App = () => {
     }
   }, [demoModalOpen, formData.email, formData.name]);
 
+  // Auto-save and restore early access form data
+  useEffect(() => {
+    if (earlyAccessFormData.email) {
+      localStorage.setItem('early_access_progress', JSON.stringify(earlyAccessFormData));
+    }
+  }, [earlyAccessFormData]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('early_access_progress');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setEarlyAccessFormData(parsed);
+    }
+  }, []);
+
+  // Focus management for early access modal
+  useEffect(() => {
+    if (earlyAccessModalOpen) {
+      if (!earlyAccessFormData.email && earlyAccessEmailRef.current) {
+        earlyAccessEmailRef.current.focus();
+      } else if (earlyAccessFormData.email && !earlyAccessFormData.name && earlyAccessNameRef.current) {
+        earlyAccessNameRef.current.focus();
+      }
+    }
+  }, [earlyAccessModalOpen, earlyAccessFormData.email, earlyAccessFormData.name]);
+
   const openDemoModal = (source: string) => {
     setDemoModalSource(source);
     setDemoModalOpen(true);
+  };
+
+  const openEarlyAccessModal = (source: string) => {
+    setEarlyAccessModalSource(source);
+    setEarlyAccessModalOpen(true);
   };
 
   const handleDemoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.email || !formData.email.includes('@')) {
-      toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid work email',
-        variant: 'destructive'
-      });
+      toast.error('Please enter a valid work email');
       return;
     }
 
     if (!formData.name || formData.name.trim().length < 2) {
-      toast({
-        title: 'Name Required',
-        description: 'Please enter your full name',
-        variant: 'destructive'
-      });
+      toast.error('Please enter your full name');
       return;
     }
 
     if (!formData.companySize) {
-      toast({
-        title: 'Company Size Required',
-        description: 'Please select your company size',
-        variant: 'destructive'
-      });
+      toast.error('Please select your company size');
       return;
     }
 
@@ -255,8 +285,7 @@ const App = () => {
       
       setDemoModalOpen(false);
       
-      toast({
-        title: 'Check Your Email!',
+      toast.success('Check Your Email!', {
         description: 'We sent you a link to schedule your demo.',
       });
 
@@ -269,13 +298,80 @@ const App = () => {
       });
     } catch (error: any) {
       console.error('Demo request submission failed:', error);
-      toast({
-        title: 'Submission Failed',
+      toast.error('Submission Failed', {
         description: 'Please try again or contact support.',
-        variant: 'destructive',
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Focus management for early access modal
+  useEffect(() => {
+    if (earlyAccessModalOpen) {
+      if (!earlyAccessFormData.email && earlyAccessEmailRef.current) {
+        earlyAccessEmailRef.current.focus();
+      } else if (earlyAccessFormData.email && !earlyAccessFormData.name && earlyAccessNameRef.current) {
+        earlyAccessNameRef.current.focus();
+      }
+    }
+  }, [earlyAccessModalOpen, earlyAccessFormData.email, earlyAccessFormData.name]);
+
+  const handleEarlyAccessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate email format
+    if (!earlyAccessFormData.email || !earlyAccessFormData.email.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Validate name
+    if (!earlyAccessFormData.name || earlyAccessFormData.name.trim().length < 2) {
+      toast.error('Please enter your full name');
+      return;
+    }
+
+    setEarlyAccessLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke('capture-email', {
+        body: {
+          email: earlyAccessFormData.email,
+          name: earlyAccessFormData.name.trim(),
+          source: earlyAccessModalSource,
+          utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+          utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      const data = response.data as any;
+
+      if (data.success) {
+        localStorage.removeItem('early_access_progress');
+        
+        setEarlyAccessModalOpen(false);
+        
+        toast.success('Check Your Email!', {
+          description: 'We sent you a magic link to complete your profile.',
+        });
+
+        // Reset form
+        setEarlyAccessFormData({
+          email: '',
+          name: ''
+        });
+      }
+    } catch (error: any) {
+      console.error('Error capturing email:', error);
+      toast.error('Error', {
+        description: error.message || 'Something went wrong. Please try again.',
+      });
+    } finally {
+      setEarlyAccessLoading(false);
     }
   };
 
@@ -338,6 +434,66 @@ const App = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Global Early Access Modal */}
+      <Dialog open={earlyAccessModalOpen} onOpenChange={setEarlyAccessModalOpen}>
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
+          <div className="mb-4 text-center">
+            <h3 className="font-semibold text-lg text-business-black">Get Early Access</h3>
+            <p className="text-sm text-gray-600 mt-1">Enter your work email and name to continue</p>
+          </div>
+
+          <form onSubmit={handleEarlyAccessSubmit} className="space-y-4">
+            <div className="relative">
+              <Input
+                ref={earlyAccessEmailRef}
+                type="email"
+                value={earlyAccessFormData.email}
+                onChange={(e) => setEarlyAccessFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter your work email"
+                className="w-full h-12 text-base border-gray-300 pl-10 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+                autoComplete="email"
+                inputMode="email"
+                disabled={earlyAccessLoading}
+              />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+            
+            <div className="relative">
+              <Input
+                ref={earlyAccessNameRef}
+                type="text"
+                value={earlyAccessFormData.name}
+                onChange={(e) => setEarlyAccessFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Your full name"
+                className="w-full h-12 text-base border-gray-300 pl-10 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+                autoComplete="name"
+                disabled={earlyAccessLoading}
+              />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+            
+            <Button 
+              type="submit" 
+              disabled={earlyAccessLoading || !earlyAccessFormData.email || !earlyAccessFormData.name}
+              className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full"
+            >
+              {earlyAccessLoading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Sending...</span>
+                </span>
+              ) : (
+                'Get Access'
+              )}
+            </Button>
+            
+            <p className="text-xs text-center text-gray-500">
+              Work email required • No spam, ever
+            </p>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -347,28 +503,28 @@ const App = () => {
               <AuthProvider>
                 <CourseGenerationProvider>
                   <Routes>
-            {/* Public routes - Pass openDemoModal to pages that need it */}
-            <Route path="/" element={<Index openDemoModal={openDemoModal} />} />
-            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} /></PageSuspense>} />
+            {/* Public routes - Pass openDemoModal and openEarlyAccessModal to pages that need them */}
+            <Route path="/" element={<Index openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />} />
+            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
             <Route path="/platform" element={<PageSuspense><Platform openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
             <Route path="/company/about" element={<PageSuspense><About /></PageSuspense>} />
             <Route path="/company/blog" element={<PageSuspense><Blog /></PageSuspense>} />
             <Route path="/company/careers" element={<PageSuspense><Careers /></PageSuspense>} />
-            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/legal/privacy" element={<PageSuspense><PrivacyPolicy /></PageSuspense>} />
             <Route path="/legal/terms" element={<PageSuspense><TermsOfService /></PageSuspense>} />
             <Route path="/legal/cookies" element={<PageSuspense><CookiePolicy /></PageSuspense>} />
 
             {/* Solution routes */}
-            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning /></PageSuspense>} />
+            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling /></PageSuspense>} />
-            <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation /></PageSuspense>} />
+            <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement /></PageSuspense>} />
             <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport /></PageSuspense>} />
-            <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation /></PageSuspense>} />
+            <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
+            <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport /></PageSuspense>} />
 
             {/* Platform routes */}
@@ -383,7 +539,7 @@ const App = () => {
             {/* Resource routes */}
             <Route path="/resources/blog" element={<PageSuspense><ResourcesBlog /></PageSuspense>} />
             <Route path="/resources/success-stories" element={<PageSuspense><SuccessStories /></PageSuspense>} />
-            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
 
             {/* Auth routes */}
@@ -393,7 +549,7 @@ const App = () => {
             
             {/* Onboarding routes */}
             <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />
-            <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup /></PageSuspense>} />
+            <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
 
             {/* Protected admin routes */}

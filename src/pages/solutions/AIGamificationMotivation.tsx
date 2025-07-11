@@ -7,7 +7,11 @@ import Footer from "@/components/Footer";
 import SectionHeader from "@/components/SectionHeader";
 import { ArrowRight, Gamepad2, Trophy, Target, Zap, Star, Users, BarChart3, Brain, Sparkles, Award, TrendingUp, Play } from "lucide-react";
 
-const AIGamificationMotivation = () => {
+interface AIGamificationMotivationProps {
+  openEarlyAccessModal?: (source: string) => void;
+}
+
+const AIGamificationMotivation = ({ openEarlyAccessModal }: AIGamificationMotivationProps) => {
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
   const [hoveredBenefit, setHoveredBenefit] = useState<number | null>(null);
 
@@ -160,6 +164,7 @@ const AIGamificationMotivation = () => {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={() => openEarlyAccessModal?.('ai_gamification_hero')}
                 className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-semibold px-12 py-5 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
               >
                 Get Early Access
@@ -571,6 +576,7 @@ const AIGamificationMotivation = () => {
                 </Button>
                 <Button
                   size="lg"
+                  onClick={() => openEarlyAccessModal?.('ai_gamification_cta')}
                   className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-orange-600 font-semibold px-12 py-5 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl font-inter"
                 >
                   Get Early Access
