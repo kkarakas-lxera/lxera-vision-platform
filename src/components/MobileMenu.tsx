@@ -100,12 +100,14 @@ const MobileMenu: FC<MobileMenuProps> = ({
     <div className="flex items-center space-x-3">
       {/* Request Demo button - mobile optimized */}
       {!isHomepage && (
-        <ProgressiveDemoCapture
-          source="mobile_menu"
-          buttonText="Book Demo"
-          variant="default"
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold text-sm px-4 py-2 rounded-lg"
-        />
+        <div className="bg-future-green rounded-full">
+          <ProgressiveDemoCapture
+            source="mobile_menu"
+            buttonText="Book Demo"
+            variant="default"
+            className="!bg-transparent !border-0 !shadow-none hover:!bg-black/10 !text-business-black !font-semibold !text-sm !px-4 !py-2"
+          />
+        </div>
       )}
 
       {/* Hamburger & Sheet */}

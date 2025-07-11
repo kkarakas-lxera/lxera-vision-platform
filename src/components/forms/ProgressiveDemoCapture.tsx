@@ -406,7 +406,8 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
               variant==='mobile'?'h-12 text-base w-full rounded-full':'h-11 px-8 rounded-full',
               "transition-all duration-300 transform relative overflow-hidden",
-              isHovered && 'scale-105'
+              isHovered && 'scale-105',
+              className // Apply custom className last to allow overrides
             )}
           >
             {formData.email ? (
