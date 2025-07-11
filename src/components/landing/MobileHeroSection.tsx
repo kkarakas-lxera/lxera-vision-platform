@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import VideoModal from '@/components/VideoModal';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 import ProgressiveDemoCapture from '@/components/forms/ProgressiveDemoCapture';
+import TypingText from "@/components/TypingText";
 
 interface MobileHeroSectionProps {
   openDemoModal?: (source: string) => void;
@@ -88,10 +89,7 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
         {/* Subheadline */}
         <div className="animate-fade-in-up mb-4" style={{ animationDelay: '200ms' }}>
           <p className="text-base text-business-black/85 font-normal leading-relaxed">
-            Empower your teams to{" "}
-            <b className="text-business-black font-medium">learn faster,</b>{" "}
-            <b className="text-business-black font-medium">innovate deeper,</b>{" "}
-            and <b className="text-business-black font-medium">lead transformation</b>.
+            Empower your teams to <TypingText words={["learn faster,", "innovate deeper,", "lead transformation"]} className="text-business-black font-medium" />.
           </p>
         </div>
 
