@@ -221,8 +221,8 @@ const HeroVideoPlayer = ({
           className="absolute inset-0 flex items-center justify-center cursor-pointer"
           onClick={togglePlay}
         >
-          <div className="bg-white/90 rounded-full p-6 shadow-lg hover:bg-white transition-all transform hover:scale-110">
-            <Play className="h-12 w-12 text-business-black fill-business-black ml-1" />
+          <div className="bg-white/90 rounded-full p-4 shadow-lg hover:bg-white transition-all transform hover:scale-110">
+            <Play className="h-10 w-10 text-business-black fill-business-black ml-0.5" />
           </div>
         </div>
       )}

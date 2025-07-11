@@ -111,10 +111,9 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
           {/* Play button overlay */}
           <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-all duration-300">
             <div className="text-center">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-2 mx-auto shadow-xl transform transition-all group-hover:scale-110">
-                <Play className="w-7 h-7 text-business-black ml-0.5" fill="currentColor" />
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl transform transition-all group-hover:scale-110">
+                <Play className="w-6 h-6 text-business-black ml-0.5" fill="currentColor" />
               </div>
-              <p className="text-white text-sm font-medium drop-shadow-lg">See LXERA in Action</p>
             </div>
           </div>
         </div>
