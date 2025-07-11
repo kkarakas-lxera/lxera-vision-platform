@@ -11,9 +11,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface HowItWorksProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const HowItWorks = ({ openDemoModal }: HowItWorksProps) => {
+const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) => {
   const journeySteps = [
     {
       step: "1",
@@ -211,6 +212,7 @@ const HowItWorks = ({ openDemoModal }: HowItWorksProps) => {
             <PricingContactSales 
               source="how_it_works_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>

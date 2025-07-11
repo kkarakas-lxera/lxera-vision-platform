@@ -13,9 +13,10 @@ const ProgressiveDemoCapture = lazy(() => import('@/components/forms/Progressive
 interface MobilePricingCardsProps {
   openDemoModal?: (source: string) => void;
   openEarlyAccessModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal }: MobilePricingCardsProps) => {
+const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal, openContactSalesModal }: MobilePricingCardsProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [currentCard, setCurrentCard] = useState(0);
   const [isMonthly, setIsMonthly] = useState(false); // Default to annual like desktop
@@ -105,7 +106,7 @@ const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal }: MobilePrici
       ],
       icon: <Zap className="w-5 h-5" />,
       ctaText: 'Contact Sales',
-      ctaAction: 'demo'
+      ctaAction: 'contact_sales'
     }
   ];
 
@@ -260,6 +261,13 @@ const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal }: MobilePrici
                     className="w-full"
                     openEarlyAccessModal={openEarlyAccessModal}
                   />
+                ) : plan.ctaAction === 'contact_sales' ? (
+                  <Button 
+                    onClick={() => openContactSalesModal?.('mobile_pricing_enterprise')}
+                    className="w-full h-12 bg-business-black hover:bg-business-black/90 text-white rounded-full font-semibold transition-all duration-300 hover:shadow-lg"
+                  >
+                    {plan.ctaText}
+                  </Button>
                 ) : (
                   <ProgressiveDemoCapture 
                     source="mobile_pricing"

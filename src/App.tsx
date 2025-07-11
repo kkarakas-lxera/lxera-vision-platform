@@ -19,8 +19,9 @@ import Loading from "@/components/Loading";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Building2, Mail, User } from "lucide-react";
+import { Loader2, Building2, Mail, User, Users, MessageSquare, Check, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { demoCaptureService } from "@/services/demoCaptureService";
 import { toast } from "@/components/ui/sonner";
@@ -156,13 +157,53 @@ const App = () => {
   const earlyAccessEmailRef = useRef<HTMLInputElement>(null);
   const earlyAccessNameRef = useRef<HTMLInputElement>(null);
 
+  // Global contact sales modal state
+  const [contactSalesModalOpen, setContactSalesModalOpen] = useState(false);
+  const [contactSalesModalSource, setContactSalesModalSource] = useState("");
+  const [contactSalesFormData, setContactSalesFormData] = useState({
+    email: '',
+    name: '',
+    company: '',
+    teamSize: '',
+    message: ''
+  });
+  const [contactSalesLoading, setContactSalesLoading] = useState(false);
+  const [contactSalesSubmitted, setContactSalesSubmitted] = useState(false);
+  const [contactSalesErrors, setContactSalesErrors] = useState<Record<string, string>>({});
+  const [contactSalesServerError, setContactSalesServerError] = useState<string | null>(null);
+  const contactSalesEmailRef = useRef<HTMLInputElement>(null);
+  const contactSalesNameRef = useRef<HTMLInputElement>(null);
+
   const companySizeOptions = [
     { value: '1-10', label: '1-10' },
     { value: '11-50', label: '11-50' },
     { value: '51-200', label: '51-200' },
     { value: '201-500', label: '201-500' },
-    { value: '501+', label: '501+' }
+    { value: '500+', label: '500+' }
   ];
+
+  const teamSizeOptions = [
+    { value: '1-10', label: '1-10' },
+    { value: '11-50', label: '11-50' },
+    { value: '51-200', label: '51-200' },
+    { value: '201-500', label: '201-500' },
+    { value: '500+', label: '500+' }
+  ];
+
+  // Common personal/consumer email domains to block
+  const BLOCKED_DOMAINS = [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'icloud.com', 'me.com', 'protonmail.com', 'tutanota.com', 'yandex.com',
+    'mail.com', 'gmx.com', 'zoho.com', 'fastmail.com', 'hushmail.com',
+    'guerrillamail.com', 'mailinator.com', '10minutemail.com', 'tempmail.org',
+    'throwaway.email', 'maildrop.cc', 'sharklasers.com', 'grr.la'
+  ];
+
+  const isCompanyEmail = (email: string): boolean => {
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (!domain) return false;
+    return !BLOCKED_DOMAINS.includes(domain);
+  };
 
   // Auto-save and restore form data
   useEffect(() => {
@@ -205,6 +246,128 @@ const App = () => {
     }
   }, []);
 
+  // Auto-save and restore contact sales form data
+  useEffect(() => {
+    if (contactSalesFormData.email) {
+      localStorage.setItem('contact_sales_progress', JSON.stringify(contactSalesFormData));
+    }
+  }, [contactSalesFormData]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('contact_sales_progress');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setContactSalesFormData(parsed);
+    }
+  }, []);
+
+  // Focus management for contact sales modal
+  useEffect(() => {
+    if (contactSalesModalOpen) {
+      if (!contactSalesFormData.email && contactSalesEmailRef.current) {
+        contactSalesEmailRef.current.focus();
+      } else if (contactSalesFormData.email && !contactSalesFormData.name && contactSalesNameRef.current) {
+        contactSalesNameRef.current.focus();
+      }
+    }
+  }, [contactSalesModalOpen, contactSalesFormData.email, contactSalesFormData.name]);
+
+  const validateContactSalesForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Validate email format
+    if (!contactSalesFormData.email || !contactSalesFormData.email.includes('@')) {
+      newErrors.email = 'Please enter a valid email address';
+    } else if (!isCompanyEmail(contactSalesFormData.email)) {
+      newErrors.email = 'Please use your company email address';
+    }
+    
+    // Validate required fields
+    if (!contactSalesFormData.name || contactSalesFormData.name.trim().length < 2) {
+      newErrors.name = 'Please enter your full name';
+    }
+    
+    if (!contactSalesFormData.company || contactSalesFormData.company.trim().length < 2) {
+      newErrors.company = 'Please enter your company name';
+    }
+    
+    if (!contactSalesFormData.teamSize) {
+      newErrors.teamSize = 'Please select your team size';
+    }
+    
+    setContactSalesErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContactSalesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Clear previous errors
+    setContactSalesErrors({});
+    setContactSalesServerError(null);
+    
+    // Validate form
+    if (!validateContactSalesForm()) {
+      return;
+    }
+
+    setContactSalesLoading(true);
+
+    try {
+      // Submit to capture-contact-sales edge function
+      const response = await supabase.functions.invoke('capture-contact-sales', {
+        body: {
+          email: contactSalesFormData.email,
+          name: contactSalesFormData.name.trim(),
+          company: contactSalesFormData.company.trim(),
+          teamSize: contactSalesFormData.teamSize,
+          message: contactSalesFormData.message.trim() || null,
+          source: contactSalesModalSource,
+          utmSource: new URLSearchParams(window.location.search).get('utm_source'),
+          utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
+          utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      const data = response.data as any;
+
+      if (data.success) {
+        setContactSalesSubmitted(true);
+        
+        toast.success('Message Sent!', {
+          description: 'Our sales team will contact you within 24 hours.',
+        });
+
+        localStorage.removeItem('contact_sales_progress');
+        
+        // Reset form after delay
+        setTimeout(() => {
+          setContactSalesFormData({
+            email: '',
+            name: '',
+            company: '',
+            teamSize: '',
+            message: ''
+          });
+          setContactSalesModalOpen(false);
+          setContactSalesSubmitted(false);
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error('Error submitting contact sales:', error);
+      
+      toast.error('Error', {
+        description: error.message || 'Something went wrong. Please try again.',
+      });
+      
+      setContactSalesServerError(error.message || 'Something went wrong. Please try again.');
+    } finally {
+      setContactSalesLoading(false);
+    }
+  };
+
   const openDemoModal = (source: string) => {
     setDemoModalSource(source);
     setDemoModalOpen(true);
@@ -213,6 +376,12 @@ const App = () => {
   const openEarlyAccessModal = (source: string) => {
     setEarlyAccessModalSource(source);
     setEarlyAccessModalOpen(true);
+  };
+
+  const openContactSalesModal = (source: string) => {
+    setContactSalesModalSource(source);
+    setContactSalesModalOpen(true);
+    setContactSalesSubmitted(false);
   };
 
   const handleDemoSubmit = async (e: React.FormEvent) => {
@@ -472,6 +641,156 @@ const App = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Global Contact Sales Modal */}
+      <Dialog open={contactSalesModalOpen} onOpenChange={setContactSalesModalOpen}>
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
+          {contactSalesSubmitted ? (
+            <div className="text-center py-4">
+              <div className="w-full py-4 rounded-xl bg-green-50 border-2 border-green-200 flex items-center justify-center gap-2">
+                <Check className="w-5 h-5 text-green-600" />
+                <span className="font-semibold text-green-700">We'll be in touch soon!</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-4">
+                <h3 className="font-semibold text-lg text-business-black">Contact Sales</h3>
+                <p className="text-sm text-gray-600 mt-1">Let's discuss how LXERA can work for your team</p>
+              </div>
+
+              {contactSalesServerError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">{contactSalesServerError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleContactSalesSubmit} className="space-y-3">
+                <div className="relative">
+                  <Input
+                    ref={contactSalesEmailRef}
+                    type="email"
+                    value={contactSalesFormData.email}
+                    onChange={(e) => {
+                      setContactSalesFormData(prev => ({ ...prev, email: e.target.value }));
+                      if (contactSalesErrors.email) setContactSalesErrors(prev => ({ ...prev, email: '' }));
+                    }}
+                    placeholder="Enter your work email"
+                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.email ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    disabled={contactSalesLoading}
+                    inputMode="email"
+                    autoComplete="email"
+                    autoFocus
+                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  {contactSalesErrors.email && (
+                    <p className="text-red-500 text-xs mt-1">{contactSalesErrors.email}</p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <Input
+                    ref={contactSalesNameRef}
+                    type="text"
+                    value={contactSalesFormData.name}
+                    onChange={(e) => {
+                      setContactSalesFormData(prev => ({ ...prev, name: e.target.value }));
+                      if (contactSalesErrors.name) setContactSalesErrors(prev => ({ ...prev, name: '' }));
+                    }}
+                    placeholder="Your full name"
+                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.name ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    disabled={contactSalesLoading}
+                    autoComplete="name"
+                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  {contactSalesErrors.name && (
+                    <p className="text-red-500 text-xs mt-1">{contactSalesErrors.name}</p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={contactSalesFormData.company}
+                    onChange={(e) => {
+                      setContactSalesFormData(prev => ({ ...prev, company: e.target.value }));
+                      if (contactSalesErrors.company) setContactSalesErrors(prev => ({ ...prev, company: '' }));
+                    }}
+                    placeholder="Company name"
+                    className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.company ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
+                    disabled={contactSalesLoading}
+                    autoComplete="organization"
+                  />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  {contactSalesErrors.company && (
+                    <p className="text-red-500 text-xs mt-1">{contactSalesErrors.company}</p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <Select 
+                    value={contactSalesFormData.teamSize} 
+                    onValueChange={(value) => {
+                      setContactSalesFormData(prev => ({ ...prev, teamSize: value }));
+                      if (contactSalesErrors.teamSize) setContactSalesErrors(prev => ({ ...prev, teamSize: '' }));
+                    }}
+                    disabled={contactSalesLoading}
+                  >
+                    <SelectTrigger className={`w-full h-12 text-base pl-10 border-2 ${contactSalesErrors.teamSize ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}>
+                      <SelectValue placeholder="Team size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teamSizeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label} employees
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                  {contactSalesErrors.teamSize && (
+                    <p className="text-red-500 text-xs mt-1">{contactSalesErrors.teamSize}</p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <Textarea
+                    value={contactSalesFormData.message}
+                    onChange={(e) => setContactSalesFormData(prev => ({ ...prev, message: e.target.value }))}
+                    placeholder="Tell us about your needs (optional)"
+                    className="w-full min-h-[80px] text-base pl-10 pt-3 border-2 border-gray-300 focus:border-business-black transition-all duration-200 resize-none"
+                    disabled={contactSalesLoading}
+                    rows={3}
+                  />
+                  <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  disabled={contactSalesLoading}
+                  className="w-full py-4 rounded-xl font-semibold text-base bg-business-black hover:bg-business-black/90 text-white transition-all duration-300 hover:shadow-lg"
+                >
+                  {contactSalesLoading ? (
+                    <span className="flex items-center justify-center">
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <span>Sending...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <span>Send Message</span>
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </span>
+                  )}
+                </Button>
+                
+                <p className="text-xs text-center text-gray-500">
+                  Work email required • We'll respond within 24 hours
+                </p>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -483,36 +802,36 @@ const App = () => {
                   <Routes>
             {/* Public routes - Pass openDemoModal and openEarlyAccessModal to pages that need them */}
             <Route path="/" element={<Index openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />} />
-            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
+            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
             <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
             <Route path="/platform" element={<PageSuspense><Platform openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
-            <Route path="/company/about" element={<PageSuspense><About /></PageSuspense>} />
+            <Route path="/company/about" element={<PageSuspense><About openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
             <Route path="/company/blog" element={<PageSuspense><Blog /></PageSuspense>} />
             <Route path="/company/careers" element={<PageSuspense><Careers /></PageSuspense>} />
-            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
+            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
             <Route path="/legal/privacy" element={<PageSuspense><PrivacyPolicy /></PageSuspense>} />
             <Route path="/legal/terms" element={<PageSuspense><TermsOfService /></PageSuspense>} />
             <Route path="/legal/cookies" element={<PageSuspense><CookiePolicy /></PageSuspense>} />
 
             {/* Solution routes */}
-            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling /></PageSuspense>} />
+            <Route path="/solutions/ai-personalized-learning" element={<PageSuspense><AIPersonalizedLearning openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
             <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement /></PageSuspense>} />
+            <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
             <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
-            <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport /></PageSuspense>} />
+            <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
 
             {/* Platform routes */}
-            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy openDemoModal={openDemoModal} /></PageSuspense>} />
-            <Route path="/platform/integrations" element={<PageSuspense><Integrations openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
+            <Route path="/platform/integrations" element={<PageSuspense><Integrations openDemoModal={openDemoModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
 
             {/* Resource routes */}
             <Route path="/resources/blog" element={<PageSuspense><ResourcesBlog /></PageSuspense>} />

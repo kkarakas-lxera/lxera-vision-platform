@@ -9,9 +9,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface AIEngineProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const AIEngine = ({ openDemoModal }: AIEngineProps) => {
+const AIEngine = ({ openDemoModal, openContactSalesModal }: AIEngineProps) => {
   const aiCapabilities = [
     {
       title: "Adaptive Learning Paths",
@@ -197,6 +198,7 @@ const AIEngine = ({ openDemoModal }: AIEngineProps) => {
             <PricingContactSales 
               source="ai_engine_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>

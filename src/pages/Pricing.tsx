@@ -14,9 +14,10 @@ import MobilePricingFAQ from "@/components/mobile/pricing/MobilePricingFAQ";
 interface PricingProps {
   openDemoModal?: (source: string) => void;
   openEarlyAccessModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
+const Pricing = ({ openDemoModal, openEarlyAccessModal, openContactSalesModal }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
 
 
@@ -96,7 +97,7 @@ const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
             </div>
 
             {/* Mobile Pricing Cards */}
-            <MobilePricingCards openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />
+            <MobilePricingCards openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} />
 
             {/* Plan Comparison */}
             <div className="mt-8">
@@ -255,6 +256,7 @@ const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
                       onSuccess={(email, name) => {
                         console.log('Contact sales submission:', { email, name });
                       }}
+                      openContactSalesModal={openContactSalesModal}
                     />
                   ) : (
                     <PricingEarlyAccess
@@ -270,7 +272,7 @@ const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
 
         {/* Desktop Plan Comparison Section */}
         <div className="hidden md:block">
-          <PlanComparisonSection />
+          <PlanComparisonSection openContactSalesModal={openContactSalesModal} openEarlyAccessModal={openEarlyAccessModal} />
         </div>
 
         {/* Desktop Enhanced FAQ Section */}

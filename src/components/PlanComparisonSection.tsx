@@ -2,7 +2,12 @@ import { Check, X } from "lucide-react";
 import PricingContactSales from "./forms/PricingContactSales";
 import PricingEarlyAccess from "./forms/PricingEarlyAccess";
 
-const PlanComparisonSection = () => {
+interface PlanComparisonSectionProps {
+  openContactSalesModal?: (source: string) => void;
+  openEarlyAccessModal?: (source: string) => void;
+}
+
+const PlanComparisonSection = ({ openContactSalesModal, openEarlyAccessModal }: PlanComparisonSectionProps) => {
 
   const comparisonFeatures = [
     {
@@ -224,10 +229,12 @@ const PlanComparisonSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <PricingEarlyAccess
                 source="plan_comparison_free_trial"
+                openEarlyAccessModal={openEarlyAccessModal}
               />
               <PricingContactSales 
                 source="plan_comparison_section"
                 className="flex-1"
+                openContactSalesModal={openContactSalesModal}
               />
             </div>
           </div>
