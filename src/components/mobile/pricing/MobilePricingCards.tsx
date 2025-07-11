@@ -208,7 +208,7 @@ const MobilePricingCards = ({ openDemoModal, openEarlyAccessModal, openContactSa
       {/* Swipeable Cards Container */}
       <div 
         ref={cardsRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4 pt-4 touch-pan-x"
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4 pt-4 touch-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {plans.map((plan, index) => (

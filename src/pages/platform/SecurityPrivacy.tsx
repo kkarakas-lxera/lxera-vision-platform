@@ -11,9 +11,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface SecurityPrivacyProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const SecurityPrivacy = ({ openDemoModal }: SecurityPrivacyProps) => {
+const SecurityPrivacy = ({ openDemoModal, openContactSalesModal }: SecurityPrivacyProps) => {
   const securityFeatures = [
     {
       title: "Enterprise-Grade Security",
@@ -93,6 +94,7 @@ const SecurityPrivacy = ({ openDemoModal }: SecurityPrivacyProps) => {
             <PricingContactSales 
               source="security_privacy_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>
@@ -232,6 +234,7 @@ const SecurityPrivacy = ({ openDemoModal }: SecurityPrivacyProps) => {
             <PricingContactSales 
               source="security_privacy_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>

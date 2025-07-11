@@ -10,9 +10,10 @@ import PricingContactSales from "@/components/forms/PricingContactSales";
 
 interface EngagementInsightsProps {
   openDemoModal?: (source: string) => void;
+  openContactSalesModal?: (source: string) => void;
 }
 
-const EngagementInsights = ({ openDemoModal }: EngagementInsightsProps) => {
+const EngagementInsights = ({ openDemoModal, openContactSalesModal }: EngagementInsightsProps) => {
   const insightFeatures = [
     {
       title: "Real-Time Engagement Tracking",
@@ -116,7 +117,7 @@ const EngagementInsights = ({ openDemoModal }: EngagementInsightsProps) => {
                 <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <CardHeader className="pb-4">
                     <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-future-green/10 rounded-xl flex items-center justify-center mr-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-xl flex items-center justify-center mr-4">
                         <IconComponent className="w-6 h-6 text-business-black" />
                       </div>
                     </div>
@@ -198,6 +199,7 @@ const EngagementInsights = ({ openDemoModal }: EngagementInsightsProps) => {
             <PricingContactSales 
               source="engagement_insights_page"
               className="max-w-xs"
+              openContactSalesModal={openContactSalesModal}
             />
           </div>
         </div>
