@@ -108,4 +108,13 @@
   .fixed[class*="z-50"] {
     isolation: isolate;
   }
+  
+  /* Ensure Sonner toasts appear above all other content */
+  [data-sonner-toaster] {
+    z-index: 9999 !important;
+  }
+  
+  [data-sonner-toast] {
+    z-index: 9999 !important;
+  }
 }

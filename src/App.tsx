@@ -1,5 +1,5 @@
 
-import { Toaster } from "@/components/ui/toaster";
+// Using Sonner as the primary toast system for better features and consistency
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -128,8 +128,7 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
+          <Sonner position="top-right" richColors closeButton />
           <BrowserRouter>
             <ThemeProvider>
               <AuthProvider>

@@ -175,7 +175,8 @@ Beyond Learning | www.lxera.ai
       console.log('Email sent successfully:', emailData);
     } catch (emailErr) {
       console.error('Email sending failed:', emailErr);
-      // Don't throw here - we still want to log the attempt
+      // Re-throw the error so the client knows email failed
+      throw new Error('Failed to send magic link email. Please try again.');
     }
 
     // Log email sent - commented out since we're using Resend for email tracking
