@@ -75,7 +75,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       case 'super_admin':
         return [
           { href: '/admin', icon: Home, label: 'Dashboard' },
-          { href: '/admin/tickets', icon: Ticket, label: 'Tickets' },
           { href: '/admin/leads', icon: Users2, label: 'Leads' },
           { href: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
           { href: '/admin/companies', icon: Building2, label: 'Companies' },

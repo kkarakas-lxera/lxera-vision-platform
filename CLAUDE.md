@@ -87,3 +87,41 @@ npm run build
 3. Automated position recommendations
 4. Skills trend analysis over time
 5. Multi-language CV support
+
+## Critical Technical Learnings
+
+### Modal Overlay Issues - React Portal Solution
+**Problem**: Modal overlays were being blocked by parent elements despite high z-index values.
+
+**Root Cause**: GPU compositing layers created by CSS `transform` animations establish new stacking contexts that trap child elements, making traditional z-index solutions ineffective.
+
+**Solution**: Migrated all modals to use Radix UI Dialog components with React Portals, which render content outside the component tree directly to document.body.
+
+**Key Insights**:
+1. **GPU Layers Override Z-Index**: Elements with `transform`, `filter`, or `will-change` create GPU compositing layers that exist on separate rendering planes
+2. **Portal Rendering Escapes Stacking Contexts**: React Portals bypass all parent stacking contexts by rendering at document root
+3. **Animation Method Matters**: Changed carousel animations from `transform: translateX()` to `left: position` to avoid GPU layer creation
+
+**Implementation Pattern**:
+```tsx
+// ✅ Correct - Uses Dialog with Portal
+<Dialog>
+  <DialogTrigger asChild>
+    <Button>Open Modal</Button>
+  </DialogTrigger>
+  <DialogContent>
+    {/* Content renders via portal */}
+  </DialogContent>
+</Dialog>
+
+// ❌ Incorrect - Manual fixed positioning
+<div className="fixed z-50">
+  {/* Trapped in parent stacking context */}
+</div>
+```
+
+**Best Practices**:
+- Always use portal-based components (Dialog, Sheet, Dropdown) for overlays
+- Avoid transform animations on elements containing modals
+- Don't rely on z-index alone for overlay management
+- Use consistent modal patterns across the codebase

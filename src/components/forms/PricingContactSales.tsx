@@ -44,6 +44,8 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const teamSizeOptions = [
     { value: '1-10', label: '1-10' },
@@ -53,54 +55,43 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
     { value: '500+', label: '500+' }
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
     
     // Validate email format
     if (!formData.email || !formData.email.includes('@')) {
-      toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address',
-        variant: 'destructive'
-      });
-      return;
+      newErrors.email = 'Please enter a valid email address';
+    } else if (!isCompanyEmail(formData.email)) {
+      newErrors.email = 'Please use your company email address';
     }
-
-    // Validate company email domain
-    if (!isCompanyEmail(formData.email)) {
-      toast({
-        title: 'Work Email Required',
-        description: 'Please use your company email address instead of a personal email',
-        variant: 'destructive'
-      });
-      return;
-    }
-
+    
     // Validate required fields
     if (!formData.name || formData.name.trim().length < 2) {
-      toast({
-        title: 'Name Required',
-        description: 'Please enter your full name',
-        variant: 'destructive'
-      });
-      return;
+      newErrors.name = 'Please enter your full name';
     }
-
+    
     if (!formData.company || formData.company.trim().length < 2) {
-      toast({
-        title: 'Company Required',
-        description: 'Please enter your company name',
-        variant: 'destructive'
-      });
-      return;
+      newErrors.company = 'Please enter your company name';
     }
-
+    
     if (!formData.teamSize) {
-      toast({
-        title: 'Team Size Required',
-        description: 'Please select your team size',
-        variant: 'destructive'
-      });
+      newErrors.teamSize = 'Please select your team size';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Clear previous errors
+    setErrors({});
+    setServerError(null);
+    
+    // Validate form
+    if (!validateForm()) {
+      // The errors are already set in state by validateForm
       return;
     }
 
@@ -138,11 +129,23 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
       }
     } catch (error: any) {
       console.error('Error submitting contact sales:', error);
+      // Log more detailed error information
+      console.error('Error details:', {
+        message: error.message,
+        error: error,
+        response: error.response,
+        data: error.data
+      });
+      
+      // Show toast notification
       toast({
         title: 'Error',
         description: error.message || 'Something went wrong. Please try again.',
         variant: 'destructive'
       });
+      
+      // Set server error for display
+      setServerError(error.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -194,54 +197,81 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
               <p className="text-sm text-gray-600 mt-1">Let's discuss how LXERA can work for your team</p>
             </div>
 
+            {serverError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">{serverError}</p>
+              </div>
+            )}
+
             <div className="relative">
               <Input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, email: e.target.value }));
+                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                }}
                 placeholder="Enter your work email"
-                className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200"
+                className={`w-full h-12 text-base pl-10 border-2 ${errors.email ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
                 disabled={loading}
                 inputMode="email"
                 autoComplete="email"
                 autoFocus
               />
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
             
             <div className="relative">
               <Input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, name: e.target.value }));
+                  if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                }}
                 placeholder="Your full name"
-                className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200"
+                className={`w-full h-12 text-base pl-10 border-2 ${errors.name ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
                 disabled={loading}
                 autoComplete="name"
               />
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+              )}
             </div>
             
             <div className="relative">
               <Input
                 type="text"
                 value={formData.company}
-                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, company: e.target.value }));
+                  if (errors.company) setErrors(prev => ({ ...prev, company: '' }));
+                }}
                 placeholder="Company name"
-                className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200"
+                className={`w-full h-12 text-base pl-10 border-2 ${errors.company ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
                 disabled={loading}
                 autoComplete="organization"
               />
               <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {errors.company && (
+                <p className="text-red-500 text-xs mt-1">{errors.company}</p>
+              )}
             </div>
             
             <div className="relative">
               <Select 
                 value={formData.teamSize} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, teamSize: value }))}
+                onValueChange={(value) => {
+                  setFormData(prev => ({ ...prev, teamSize: value }));
+                  if (errors.teamSize) setErrors(prev => ({ ...prev, teamSize: '' }));
+                }}
                 disabled={loading}
               >
-                <SelectTrigger className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200">
+                <SelectTrigger className={`w-full h-12 text-base pl-10 border-2 ${errors.teamSize ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}>
                   <SelectValue placeholder="Team size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -253,6 +283,9 @@ const PricingContactSales: React.FC<PricingContactSalesProps> = ({
                 </SelectContent>
               </Select>
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+              {errors.teamSize && (
+                <p className="text-red-500 text-xs mt-1">{errors.teamSize}</p>
+              )}
             </div>
             
             <div className="relative">

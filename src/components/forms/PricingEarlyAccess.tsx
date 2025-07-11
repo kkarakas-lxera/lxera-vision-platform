@@ -37,37 +37,35 @@ const PricingEarlyAccess: React.FC<PricingEarlyAccessProps> = ({
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Validate email format
+    if (!email || !email.includes('@')) {
+      newErrors.email = 'Please enter a valid email address';
+    } else if (!isCompanyEmail(email)) {
+      newErrors.email = 'Please use your company email address';
+    }
+    
+    // Validate name
+    if (!name || name.trim().length < 2) {
+      newErrors.name = 'Please enter your full name';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email format
-    if (!email || !email.includes('@')) {
-      toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    // Validate company email domain
-    if (!isCompanyEmail(email)) {
-      toast({
-        title: 'Work Email Required',
-        description: 'Please use your company email address instead of a personal email',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    // Validate name
-    if (!name || name.trim().length < 2) {
-      toast({
-        title: 'Name Required',
-        description: 'Please enter your full name',
-        variant: 'destructive'
-      });
+    // Clear previous errors
+    setErrors({});
+    
+    // Validate form
+    if (!validateForm()) {
       return;
     }
 
@@ -101,11 +99,23 @@ const PricingEarlyAccess: React.FC<PricingEarlyAccessProps> = ({
       }
     } catch (error: any) {
       console.error('Error capturing email:', error);
+      // Log more detailed error information
+      console.error('Error details:', {
+        message: error.message,
+        error: error,
+        response: error.response,
+        data: error.data
+      });
+      
+      // Show toast notification
       toast({
         title: 'Error',
         description: error.message || 'Something went wrong. Please try again.',
         variant: 'destructive'
       });
+      
+      // Set server error for display
+      setServerError(error.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -152,32 +162,50 @@ const PricingEarlyAccess: React.FC<PricingEarlyAccessProps> = ({
             onSubmit={handleSubmit}
             className="w-full space-y-3"
           >
+            {serverError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">{serverError}</p>
+              </div>
+            )}
+            
             <div className="relative">
               <Input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                }}
                 placeholder="Enter your work email"
-                className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200"
+                className={`w-full h-12 text-base pl-10 border-2 ${errors.email ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
                 disabled={loading}
                 inputMode="email"
                 autoComplete="email"
                 autoFocus
               />
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
             
             <div className="relative">
               <Input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                }}
                 placeholder="Your full name"
-                className="w-full h-12 text-base pl-10 border-2 border-gray-300 focus:border-business-black transition-all duration-200"
+                className={`w-full h-12 text-base pl-10 border-2 ${errors.name ? 'border-red-500' : 'border-gray-300'} focus:border-business-black transition-all duration-200`}
                 disabled={loading}
                 autoComplete="name"
               />
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+              )}
             </div>
             
             <Button 

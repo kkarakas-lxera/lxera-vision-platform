@@ -312,7 +312,14 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
       <Dialog>
         <DialogTrigger asChild>
           <button
-            className="text-business-black hover:text-white bg-white hover:bg-business-black border-2 border-business-black font-medium transition-all duration-300 rounded-full min-h-[48px] px-6 py-2 touch-target flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105"
+            onMouseEnter={()=>setIsHovered(true)}
+            onMouseLeave={()=>setIsHovered(false)}
+            className={cn(
+              "bg-white text-business-black hover:bg-gray-50 font-medium shadow-lg hover:shadow-xl border-2 border-business-black/20 hover:border-business-black/40",
+              "h-11 px-8 rounded-full",
+              "transition-all duration-300 transform relative overflow-hidden",
+              isHovered && 'scale-105'
+            )}
           >
             {formData.email ? (
               <>
@@ -402,7 +409,19 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               isHovered && 'scale-105'
             )}
           >
-            {buttonText}
+            {formData.email ? (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                  <span>Continue Demo Request</span>
+                </span>
+                {formData.name && (
+                  <span className="text-xs text-gray-500">({formData.name.split(' ')[0]})</span>
+                )}
+              </>
+            ) : (
+              buttonText
+            )}
           </Button>
         </DialogTrigger>
 
