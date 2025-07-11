@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Check, X, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, X, Info, Zap, Users, BrainCircuit, Link2, HeadphonesIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Accordion,
@@ -20,6 +20,14 @@ interface ComparisonCategory {
 
 const MobilePlanComparison = () => {
   const [expandedInfo, setExpandedInfo] = useState<string | null>(null);
+
+  const categoryIcons = {
+    'AI & Analytics': <BrainCircuit className="w-4 h-4" />,
+    'Content & Learning': <Zap className="w-4 h-4" />,
+    'Team Management': <Users className="w-4 h-4" />,
+    'Integrations': <Link2 className="w-4 h-4" />,
+    'Support & Success': <HeadphonesIcon className="w-4 h-4" />
+  };
 
   const categories: ComparisonCategory[] = [
     {
@@ -181,7 +189,10 @@ const MobilePlanComparison = () => {
             >
               <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between w-full">
-                  <span className="font-medium text-business-black">{category.name}</span>
+                  <div className="flex items-center gap-2">
+                    {categoryIcons[category.name as keyof typeof categoryIcons]}
+                    <span className="font-medium text-business-black">{category.name}</span>
+                  </div>
                   <span className="text-xs text-gray-500 mr-2">
                     {category.features.length} features
                   </span>
@@ -225,14 +236,14 @@ const MobilePlanComparison = () => {
                         </div>
                       </div>
 
-                      {/* Plan Comparison */}
+                      {/* Plan Comparison with better contrast */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center justify-between bg-white rounded-md px-3 py-2">
-                          <span className="text-xs text-gray-600">Core</span>
+                        <div className="flex items-center justify-between bg-white rounded-md px-3 py-2 border border-gray-200">
+                          <span className="text-xs font-semibold text-gray-700">Core</span>
                           {renderFeatureValue(feature.core)}
                         </div>
-                        <div className="flex items-center justify-between bg-white rounded-md px-3 py-2">
-                          <span className="text-xs text-gray-600">Enterprise</span>
+                        <div className="flex items-center justify-between bg-white rounded-md px-3 py-2 border border-gray-200">
+                          <span className="text-xs font-semibold text-gray-700">Enterprise</span>
                           {renderFeatureValue(feature.enterprise)}
                         </div>
                       </div>

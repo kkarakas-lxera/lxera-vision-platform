@@ -1,22 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Star, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Star, Zap, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
-import ProgressiveDemoCapture from '@/components/forms/ProgressiveDemoCapture';
+import { PricingPlan } from '@/types/pricing';
+import { Loader2 } from 'lucide-react';
 
-interface PricingPlan {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-  icon?: React.ReactNode;
-  ctaText: string;
-  ctaAction: 'email' | 'demo';
-}
+// Lazy load forms for better performance
+const SmartEmailCapture = lazy(() => import('@/components/forms/SmartEmailCapture'));
+const ProgressiveDemoCapture = lazy(() => import('@/components/forms/ProgressiveDemoCapture'));
 
 const MobilePricingCards = () => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -56,6 +48,22 @@ const MobilePricingCards = () => {
       document.head.removeChild(style);
     };
   }, []);
+
+  // Feature explanations from desktop
+  const featureExplanations: {[key: string]: string} = {
+    "AI Hyper-Personalized Learning Engine": "Adapts learning based on role, behavior, and goals using LLMs and RAG.",
+    "AI Avatar-Powered Content Creation": "Generate dynamic video lessons with lifelike avatars.",
+    "Real-Time Adaptive Gamification": "Game mechanics adjust to each learner's behavior and progress.",
+    "Smart Nudging & Behavioral Triggers": "Nudges and reminders based on user behavior via Slack/email.",
+    "Human-in-the-Loop Intelligence": "Combine scalable AI with human review for high-trust learning.",
+    "Executive-Ready Analytics Dashboard": "Visualize outcomes and innovation metrics across departments.",
+    "Knowledge Base Transformation": "Turn SOPs and reports into microlearning modules.",
+    "Taxonomist Skill Gap Engine": "Automatically detects role-based skill gaps and maps them to personalized learning paths.",
+    "Organization-Specific AI Mentor": "Private AI chatbot trained on your company's content to support contextual, role-specific learning.",
+    "Enterprise-Grade Security & Compliance": "SOC2 & GDPR aligned, encryption, role-based access.",
+    "Low-Code / No-Code Innovation Sandbox": "Enable bottom-up innovation through app building and automation.",
+    "SSO/HRIS Integrations": "Sync with HR systems to personalize content by job role."
+  };
 
   const plans: PricingPlan[] = [
     {
@@ -147,18 +155,19 @@ const MobilePricingCards = () => {
 
   return (
     <div className="w-full">
-      {/* Billing Toggle - Sticky */}
-      <div className="sticky top-16 z-20 bg-gradient-to-br from-smart-beige/95 via-future-green/8 to-smart-beige/95 backdrop-blur-sm px-4 py-3 -mx-4 mb-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+      {/* Billing Toggle - Sticky with improved contrast */}
+      <div className="sticky top-16 z-20 bg-white/95 backdrop-blur-sm px-4 py-3 -mx-4 mb-6 animate-fade-in-up border-b border-gray-200 shadow-sm" style={{ animationDelay: '200ms' }}>
         <div className="flex items-center justify-center gap-3">
           <span className={cn(
-            "text-sm font-medium transition-colors",
-            isMonthly ? "text-business-black" : "text-business-black/60"
+            "text-sm font-semibold transition-colors",
+            isMonthly ? "text-business-black" : "text-gray-600"
           )}>
             Monthly
           </span>
           <button
             onClick={() => setIsMonthly(!isMonthly)}
-            className="relative w-14 h-7 bg-business-black/10 rounded-full transition-colors hover:bg-business-black/20"
+            className="relative w-14 h-7 bg-gray-300 rounded-full transition-colors hover:bg-gray-400"
+            aria-label="Toggle billing cycle"
           >
             <div className={cn(
               "absolute top-1 w-5 h-5 bg-future-green rounded-full transition-all duration-300 shadow-md",
@@ -166,8 +175,8 @@ const MobilePricingCards = () => {
             )} />
           </button>
           <span className={cn(
-            "text-sm font-medium transition-colors",
-            !isMonthly ? "text-business-black" : "text-business-black/60"
+            "text-sm font-semibold transition-colors",
+            !isMonthly ? "text-business-black" : "text-gray-600"
           )}>
             Annual
             <span className="text-future-green ml-1 font-semibold">-20%</span>
@@ -216,10 +225,15 @@ const MobilePricingCards = () => {
                 <p className="text-sm text-business-black/80">{plan.description}</p>
               </div>
 
-              {/* CTA Button */}
+              {/* CTA Button with Suspense */}
               <div className="mb-6">
-                {plan.ctaAction === 'email' ? (
-                  <SmartEmailCapture 
+                <Suspense fallback={
+                  <Button className="w-full h-12" disabled>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </Button>
+                }>
+                  {plan.ctaAction === 'email' ? (
+                    <SmartEmailCapture 
                     source="mobile_pricing"
                     buttonText={plan.ctaText}
                     variant="mobile"
@@ -232,18 +246,27 @@ const MobilePricingCards = () => {
                     variant="mobile"
                     className="w-full"
                   />
-                )}
+                  )}
+                </Suspense>
               </div>
 
               {/* Features Preview */}
               <div>
                 <div className="space-y-3 mb-4">
-                  {plan.features.slice(0, 3).map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <Check className="w-4 h-4 text-future-green mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-business-black/80">{feature}</span>
-                    </div>
-                  ))}
+                  {plan.features.slice(0, 3).map((feature, idx) => {
+                    const hasExplanation = featureExplanations[feature];
+                    return (
+                      <div key={idx} className="flex items-start gap-3">
+                        <Check className="w-4 h-4 text-future-green mt-0.5 flex-shrink-0" aria-hidden="true" />
+                        <div className="flex-1">
+                          <span className="text-sm text-business-black font-medium">{feature}</span>
+                          {hasExplanation && (
+                            <p className="text-xs text-gray-600 mt-0.5">{hasExplanation}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Expand Button */}
@@ -269,12 +292,20 @@ const MobilePricingCards = () => {
                     {/* Expanded Features */}
                     {expandedCard === plan.name && (
                       <div className="mt-4 space-y-3 animate-fade-in-up">
-                        {plan.features.slice(3).map((feature, idx) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <Check className="w-4 h-4 text-future-green mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-business-black/80">{feature}</span>
-                          </div>
-                        ))}
+                        {plan.features.slice(3).map((feature, idx) => {
+                          const hasExplanation = featureExplanations[feature];
+                          return (
+                            <div key={idx} className="flex items-start gap-3">
+                              <Check className="w-4 h-4 text-future-green mt-0.5 flex-shrink-0" aria-hidden="true" />
+                              <div className="flex-1">
+                                <span className="text-sm text-business-black font-medium">{feature}</span>
+                                {hasExplanation && (
+                                  <p className="text-xs text-gray-600 mt-0.5">{hasExplanation}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </>

@@ -16,28 +16,20 @@ interface FAQItem {
 const MobilePricingFAQ = () => {
   const faqs: FAQItem[] = [
     {
-      question: "How does the pricing work?",
-      answer: "Our pricing is per learner, per month. You only pay for active users who access the platform. The Core plan starts at £10 per learner monthly (or £8 with annual billing). Enterprise pricing is customized based on your organization's needs."
+      question: "Can I change my plan anytime?",
+      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences."
     },
     {
-      question: "What's included in the free trial?",
-      answer: "You get 14 days of full access to all Core features with up to 10 team members. No credit card required. This includes AI-powered skills analysis, course creation tools, and all integrations."
+      question: "Is there a free trial?",
+      answer: "We offer a 14-day free trial for all plans. No credit card required. You'll have full access to all features during your trial period."
     },
     {
-      question: "Can I switch plans anytime?",
-      answer: "Yes! You can upgrade from Core to Enterprise at any time. Downgrades take effect at the end of your billing cycle. Our team will help ensure a smooth transition between plans."
+      question: "What payment methods do you accept?",
+      answer: "We accept all major credit cards, PayPal, and bank transfers for Enterprise plans. All payments are processed securely."
     },
     {
-      question: "Do you offer discounts for non-profits?",
-      answer: "We offer special pricing for registered non-profits and educational institutions. Contact our sales team with your organization details to learn about available discounts."
-    },
-    {
-      question: "What integrations are available?",
-      answer: "Core includes standard integrations with popular HRIS systems like Workday, BambooHR, and ADP, plus Slack and Teams. Enterprise customers get unlimited custom integrations and API access."
-    },
-    {
-      question: "How secure is my data?",
-      answer: "We use enterprise-grade security with SOC 2 Type II compliance, 256-bit encryption, and regular security audits. Enterprise plans include SSO/SAML support and custom security configurations."
+      question: "Do you offer custom pricing for large teams?",
+      answer: "Yes! For teams over 100 users, we offer custom pricing and additional enterprise features. Contact our sales team for a personalized quote."
     }
   ];
 
