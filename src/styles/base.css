@@ -14,33 +14,33 @@
     --light-green: #e8fa9b;
     --emerald: #029c55;
 
-    --background: 239 239 227; /* Smart Beige */
-    --foreground: 25 25 25; /* Business Black */
+    --card: 0 0% 100%; /* White in HSL */
+    --card-foreground: 0 0% 10%; /* Business Black (approx 10% lightness) */
 
-    --card: 255 255 255; /* White */
-    --card-foreground: 25 25 25;
+    --background: 60 27% 91%; /* Smart Beige */
+    --foreground: 0 0% 10%; /* Business Black */
 
-    --popover: 255 255 255;
-    --popover-foreground: 25 25 25;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 25 25 25; /* Business Black */
-    --primary-foreground: 255 255 255;
+    --primary: 0 0% 10%; /* Business Black */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 239 239 227; /* Smart Beige */
-    --secondary-foreground: 25 25 25;
+    --secondary: 60 27% 91%; /* Smart Beige */
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 239 239 227;
-    --muted-foreground: 25 25 25; /* Business Black - updated for consistency */
+    --muted: 60 27% 91%; /* Smart Beige */
+    --muted-foreground: 0 0% 10%;
 
-    --accent: 122 229 198; /* Future Green */
-    --accent-foreground: 25 25 25;
+    --accent: 163 67% 69%; /* Future Green */
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 249 67 67; /* LXERA Red */
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 94% 62%; /* LXERA Red */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 214 214;
-    --input: 214 214 214;
-    --ring: 122 229 198; /* Future Green */
+    --border: 0 0% 84%;
+    --input: 0 0% 84%;
+    --ring: 163 67% 69%;
 
     --radius: 0.5rem;
   }
