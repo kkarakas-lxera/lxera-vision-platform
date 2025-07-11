@@ -6,7 +6,11 @@ import { Target, Sparkles, BarChart3, Lightbulb, MessageCircle, Shield, Plug, Ar
 import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 
-const Platform = () => {
+interface PlatformProps {
+  openDemoModal: (source: string) => void;
+}
+
+const Platform = ({ openDemoModal }: PlatformProps) => {
 
   const platformFeatures = [
     {
@@ -69,7 +73,7 @@ const Platform = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-6 lg:px-12">
@@ -85,7 +89,7 @@ const Platform = () => {
             <ProgressiveDemoCapture
               source="platform_hero_section"
               buttonText="Book Demo"
-              onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Link to="/platform/how-it-works">
               <Button
@@ -154,7 +158,7 @@ const Platform = () => {
             <ProgressiveDemoCapture
               source="platform_page_cta"
               buttonText="Book Demo"
-              onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Link to="/pricing">
               <Button

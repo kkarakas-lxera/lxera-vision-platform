@@ -8,7 +8,11 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-const MobileHowItWorks = () => {
+interface MobileHowItWorksProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const MobileHowItWorks = ({ openDemoModal }: MobileHowItWorksProps) => {
   return (
     <>
       <section id="how-it-works" className="w-full py-8 px-4 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
@@ -66,6 +70,7 @@ const MobileHowItWorks = () => {
             <ProgressiveDemoCapture
               source="how_it_works_section"
               buttonText="Book Demo"
+              openDemoModal={openDemoModal}
             />
           </div>
         </div>

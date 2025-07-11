@@ -5,7 +5,11 @@ import SmartEmailCapture from "@/components/forms/SmartEmailCapture";
 import { ArrowDown } from "lucide-react";
 import { useState } from "react";
 
-const TransformationStartsSection = () => {
+interface TransformationStartsSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const TransformationStartsSection = ({ openDemoModal }: TransformationStartsSectionProps) => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
 
@@ -106,8 +110,8 @@ const TransformationStartsSection = () => {
                     <ProgressiveDemoCapture 
                       source="transformation_section_demo"
                       buttonText="Book Demo"
+                      openDemoModal={openDemoModal}
                       variant="minimal"
-                      onSuccess={() => {}}
                       className="inline-flex font-semibold"
                     />
                   </div>
@@ -130,6 +134,7 @@ const TransformationStartsSection = () => {
                     <ProgressiveDemoCapture
                       source="transformation_starts_section"
                       buttonText="Book Demo"
+                      openDemoModal={openDemoModal}
                     />
                   </div>
                 </div>

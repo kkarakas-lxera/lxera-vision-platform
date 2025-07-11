@@ -1,11 +1,15 @@
 import React, { Suspense, lazy } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ProgressiveDemoCapture } from '../../forms/ProgressiveDemoCapture';
+import ProgressiveDemoCapture from '../../forms/ProgressiveDemoCapture';
 
 const PricingEarlyAccess = lazy(() => import('../../forms/PricingEarlyAccess'));
 
-const MobileContact: React.FC = () => {
+interface MobileContactProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const MobileContact: React.FC<MobileContactProps> = ({ openDemoModal }) => {
 
   return (
     <div className="min-h-screen bg-smart-beige">
@@ -50,6 +54,7 @@ const MobileContact: React.FC = () => {
               source="mobile_contact_demo"
               buttonText="Book Demo"
               variant="mobile"
+              openDemoModal={openDemoModal}
             />
           </div>
         </div>

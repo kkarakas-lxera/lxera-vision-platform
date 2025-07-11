@@ -17,7 +17,11 @@ import MobileWhyLXERA from "@/components/mobile/MobileWhyLXERA";
 import MobileHowItWorks from "@/components/mobile/MobileHowItWorks";
 import MobilePlatformHighlights from "@/components/mobile/MobilePlatformHighlights";
 
-const Index = () => {
+interface IndexProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const Index = ({ openDemoModal }: IndexProps) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -38,12 +42,12 @@ const Index = () => {
         <SEO />
         <ScrollProgress />
         <div className="min-h-screen bg-white">
-          <Navigation />
-          <MobileHeroSection />
+          <Navigation openDemoModal={openDemoModal} />
+          <MobileHeroSection openDemoModal={openDemoModal} />
           <MobileWhyLXERA />
-          <MobileHowItWorks />
+          <MobileHowItWorks openDemoModal={openDemoModal} />
           <MobilePlatformHighlights />
-          <TransformationStartsSection />
+          <TransformationStartsSection openDemoModal={openDemoModal} />
           <Footer />
           <BackToTop />
         </div>
@@ -57,12 +61,12 @@ const Index = () => {
       <SEO />
       <ScrollProgress />
       <div className="min-h-screen bg-white">
-        <Navigation />
-        <HeroSection />
+        <Navigation openDemoModal={openDemoModal} />
+        <HeroSection openDemoModal={openDemoModal} />
         <WhyLXERASection />
-        <HowItWorksSection />
+        <HowItWorksSection openDemoModal={openDemoModal} />
         <PlatformHighlightsSection />
-        <TransformationStartsSection />
+        <TransformationStartsSection openDemoModal={openDemoModal} />
         <Footer />
         <BackToTop />
       </div>

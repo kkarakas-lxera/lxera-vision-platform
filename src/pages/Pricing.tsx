@@ -11,7 +11,11 @@ import MobilePricingCards from "@/components/mobile/pricing/MobilePricingCards";
 import MobilePlanComparison from "@/components/mobile/pricing/MobilePlanComparison";
 import MobilePricingFAQ from "@/components/mobile/pricing/MobilePricingFAQ";
 
-const Pricing = () => {
+interface PricingProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const Pricing = ({ openDemoModal }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
 
 
@@ -72,7 +76,7 @@ const Pricing = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-smart-beige font-inter">
-        <Navigation />
+        <Navigation openDemoModal={openDemoModal} />
         
         {/* Mobile Pricing Section */}
         <section className="md:hidden w-full pt-24 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
@@ -91,7 +95,7 @@ const Pricing = () => {
             </div>
 
             {/* Mobile Pricing Cards */}
-            <MobilePricingCards />
+            <MobilePricingCards openDemoModal={openDemoModal} />
 
             {/* Plan Comparison */}
             <div className="mt-8">

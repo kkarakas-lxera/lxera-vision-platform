@@ -5,7 +5,11 @@ import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import InlineEmailCapture from "@/components/forms/InlineEmailCapture";
 import { useState } from "react";
 
-const CTASection = () => {
+interface CTASectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const CTASection = ({ openDemoModal }: CTASectionProps) => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
 
@@ -55,6 +59,7 @@ const CTASection = () => {
                     buttonText="Book Demo"
                     variant="minimal"
                     onSuccess={handleEmailSuccess}
+                    openDemoModal={openDemoModal}
                   />
                   <Button
                     variant="ghost"
@@ -77,6 +82,7 @@ const CTASection = () => {
                   source="cta_section_main"
                   buttonText="Book Demo"
                   onSuccess={handleEmailSuccess}
+                  openDemoModal={openDemoModal}
                 />
                 <Button
                   size="lg"
@@ -94,7 +100,7 @@ const CTASection = () => {
 
         {/* Right side - Video */}
         <div className="w-full lg:w-1/2 mt-8 lg:mt-0">
-          <HeroVideoPreview />
+          <HeroVideoPreview openDemoModal={openDemoModal} />
         </div>
       </div>
 

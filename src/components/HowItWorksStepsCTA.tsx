@@ -9,7 +9,11 @@ const stepMap = [
   { number: 4, label: "Launch Innovation" },
 ];
 
-const HowItWorksStepsCTA = () => {
+interface HowItWorksStepsCTAProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HowItWorksStepsCTA = ({ openDemoModal }: HowItWorksStepsCTAProps) => {
 
   return (
     <>
@@ -36,6 +40,7 @@ const HowItWorksStepsCTA = () => {
               source="how_it_works_steps_cta"
               buttonText="Book Demo"
               variant="default"
+              openDemoModal={openDemoModal}
             />
           </div>
         </div>

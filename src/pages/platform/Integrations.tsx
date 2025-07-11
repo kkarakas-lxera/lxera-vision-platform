@@ -9,7 +9,11 @@ import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const Integrations = () => {
+interface IntegrationsProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const Integrations = ({ openDemoModal }: IntegrationsProps) => {
   const integrationCategories = [
     {
       title: "Learning Management Systems",
@@ -71,7 +75,7 @@ const Integrations = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -93,6 +97,7 @@ const Integrations = () => {
               source="integrations_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="integrations_page"
@@ -225,6 +230,7 @@ const Integrations = () => {
               source="integrations_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="integrations_page"

@@ -8,7 +8,11 @@ import { BarChart3, Users, Target, TrendingUp, Eye, Clock, Award, ArrowRight, Ch
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const EngagementInsights = () => {
+interface EngagementInsightsProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const EngagementInsights = ({ openDemoModal }: EngagementInsightsProps) => {
   const insightFeatures = [
     {
       title: "Real-Time Engagement Tracking",
@@ -61,7 +65,7 @@ const EngagementInsights = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -83,6 +87,7 @@ const EngagementInsights = () => {
               source="engagement_insights_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
@@ -188,6 +193,7 @@ const EngagementInsights = () => {
               source="engagement_insights_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="engagement_insights_page"

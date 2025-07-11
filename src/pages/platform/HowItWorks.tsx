@@ -9,7 +9,11 @@ import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const HowItWorks = () => {
+interface HowItWorksProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HowItWorks = ({ openDemoModal }: HowItWorksProps) => {
   const journeySteps = [
     {
       step: "1",
@@ -66,7 +70,7 @@ const HowItWorks = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -88,6 +92,7 @@ const HowItWorks = () => {
               source="how_it_works_platform_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
@@ -201,6 +206,7 @@ const HowItWorks = () => {
               source="how_it_works_platform_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="how_it_works_page"

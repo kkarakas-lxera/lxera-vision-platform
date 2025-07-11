@@ -7,7 +7,11 @@ import SmartEmailCapture from "./forms/SmartEmailCapture";
 import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 import { useState, useEffect } from "react";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HeroSection = ({ openDemoModal }: HeroSectionProps) => {
   const [showEmailCapture, setShowEmailCapture] = useState(true);
   const [emailCaptured, setEmailCaptured] = useState(false);
 
@@ -124,6 +128,7 @@ const HeroSection = () => {
                         source="hero_section"
                         buttonText="Book Demo"
                         variant="minimal"
+                        openDemoModal={openDemoModal}
                       />
                     </div>
                     <p className="text-xs text-center text-gray-500">
@@ -141,6 +146,7 @@ const HeroSection = () => {
                       source="hero_section_cta"
                       buttonText="Book Demo"
                       variant="default"
+                      openDemoModal={openDemoModal}
                     />
                   </div>
                 )}
@@ -150,7 +156,7 @@ const HeroSection = () => {
             {/* Right side - Video (responsive sizing) */}
             <div className="w-full lg:w-3/5 lg:pl-8 mt-4 sm:mt-6 lg:mt-6 px-1 sm:px-2 lg:px-0">
               <div className="transform lg:scale-110 lg:translate-x-4 lg:translate-y-2">
-                <HeroVideoPreview />
+                <HeroVideoPreview openDemoModal={openDemoModal} />
               </div>
             </div>
           </div>

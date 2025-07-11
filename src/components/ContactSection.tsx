@@ -1,6 +1,10 @@
 import ProgressiveDemoCapture from "./forms/ProgressiveDemoCapture";
 
-const ContactSection = () => {
+interface ContactSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const ContactSection = ({ openDemoModal }: ContactSectionProps) => {
 
   return (
     <section id="contact" className="w-full py-20 sm:py-24 px-6 lg:px-12 bg-business-black" role="region" aria-labelledby="contact-heading">
@@ -19,6 +23,7 @@ const ContactSection = () => {
               source="contact_section_book_demo"
               buttonText="Book Demo"
               variant="default"
+              openDemoModal={openDemoModal}
             />
           </div>
         </div>
@@ -38,6 +43,7 @@ const ContactSection = () => {
               source="contact_section_form"
               buttonText="Book Demo"
               variant="default"
+              openDemoModal={openDemoModal}
             />
             
             <p className="text-xs text-white/60 mt-4">

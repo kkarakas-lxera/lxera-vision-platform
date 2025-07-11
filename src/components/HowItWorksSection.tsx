@@ -4,7 +4,11 @@ import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import React, { useState } from "react";
 import { stepsData } from "@/data/howItWorksSteps";
 
-const HowItWorksSection = () => {
+interface HowItWorksSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HowItWorksSection = ({ openDemoModal }: HowItWorksSectionProps) => {
 
   return (
     <>
@@ -53,7 +57,7 @@ const HowItWorksSection = () => {
           <ProgressiveDemoCapture
             source="how_it_works_section"
             buttonText="Book Demo"
-            onSuccess={() => {}}
+            openDemoModal={openDemoModal}
           />
         </div>
 

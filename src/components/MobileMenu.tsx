@@ -51,6 +51,7 @@ interface MobileMenuProps {
   isMobileMenuOpen: boolean;
   handleMobileMenuToggle: () => void;
   scrollToSection: (href: string) => void;
+  openDemoModal?: (source: string) => void;
 }
 
 // Icon mapping for top-level items – tweak to match LXERA brand icons
@@ -75,6 +76,7 @@ const MobileMenu: FC<MobileMenuProps> = ({
   isMobileMenuOpen,
   handleMobileMenuToggle,
   scrollToSection,
+  openDemoModal,
 }) => {
   const [expanded, setExpanded] = useState<string[]>([]);
   const { user, userProfile } = useAuth();
@@ -106,6 +108,7 @@ const MobileMenu: FC<MobileMenuProps> = ({
           <ProgressiveDemoCapture
             source="mobile_menu"
             buttonText="Book Demo"
+            openDemoModal={openDemoModal}
           />
         </div>
       )}

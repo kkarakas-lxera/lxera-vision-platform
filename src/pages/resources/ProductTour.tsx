@@ -8,7 +8,11 @@ import { Play, MousePointer, Eye, Zap, Target, Users, BarChart3, Brain } from "l
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import WaitlistModal from "@/components/WaitlistModal";
 
-const ProductTour = () => {
+interface ProductTourProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const ProductTour: React.FC<ProductTourProps> = ({ openDemoModal }) => {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const tourSteps = [
     {
@@ -70,7 +74,7 @@ const ProductTour = () => {
         description="Take an interactive tour of LXERA's AI-powered learning platform. Explore features, see real examples, and discover how LXERA transforms workplace learning."
       />
       <div className="min-h-screen bg-smart-beige">
-        <Navigation />
+        <Navigation openDemoModal={openDemoModal} />
         
         {/* Hero Section */}
         <section className="pt-32 pb-24 px-6 bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige">
@@ -88,7 +92,7 @@ const ProductTour = () => {
               <ProgressiveDemoCapture
                 source="product_tour_page"
                 buttonText="Book Demo"
-                onSuccess={() => {}}
+                openDemoModal={openDemoModal}
               />
               <Button 
                 onClick={() => setIsWaitlistModalOpen(true)}
@@ -181,7 +185,7 @@ const ProductTour = () => {
               <ProgressiveDemoCapture
                 source="product_tour_cta"
                 buttonText="Book Demo"
-                onSuccess={() => {}}
+                openDemoModal={openDemoModal}
               />
               <Button 
                 onClick={() => setIsWaitlistModalOpen(true)}

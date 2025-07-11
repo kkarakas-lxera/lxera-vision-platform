@@ -10,7 +10,11 @@ import { Loader2 } from 'lucide-react';
 const SmartEmailCapture = lazy(() => import('@/components/forms/SmartEmailCapture'));
 const ProgressiveDemoCapture = lazy(() => import('@/components/forms/ProgressiveDemoCapture'));
 
-const MobilePricingCards = () => {
+interface MobilePricingCardsProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const MobilePricingCards = ({ openDemoModal }: MobilePricingCardsProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [currentCard, setCurrentCard] = useState(0);
   const [isMonthly, setIsMonthly] = useState(false); // Default to annual like desktop
@@ -244,6 +248,7 @@ const MobilePricingCards = () => {
                     source="mobile_pricing"
                     buttonText={plan.ctaText}
                     variant="mobile"
+                    openDemoModal={openDemoModal}
                   />
                   )}
                 </Suspense>

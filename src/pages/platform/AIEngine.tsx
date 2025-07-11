@@ -7,7 +7,11 @@ import { Brain, Zap, Target, Users, BarChart3, Lightbulb, ArrowRight, CheckCircl
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const AIEngine = () => {
+interface AIEngineProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const AIEngine = ({ openDemoModal }: AIEngineProps) => {
   const aiCapabilities = [
     {
       title: "Adaptive Learning Paths",
@@ -60,7 +64,7 @@ const AIEngine = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -82,6 +86,7 @@ const AIEngine = () => {
               source="ai_engine_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
@@ -187,6 +192,7 @@ const AIEngine = () => {
               source="ai_engine_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="ai_engine_page"

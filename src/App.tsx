@@ -14,8 +14,16 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ClarityProvider } from "@/components/ClarityProvider";
 import HotjarProvider from "@/components/HotjarProvider";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import Loading from "@/components/Loading";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Building2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { demoCaptureService } from "@/services/demoCaptureService";
+import { toast } from "@/components/ui/use-toast";
 
 // Critical pages - loaded synchronously
 import Index from "./pages/Index";
@@ -124,8 +132,213 @@ const PageSuspense = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => {
+  // Global demo modal state
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+  const [demoModalSource, setDemoModalSource] = useState("");
+  const [formData, setFormData] = useState({
+    email: '',
+    name: '',
+    company: '',
+    companySize: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  const companySizeOptions = [
+    { value: '1-10', label: '1-10' },
+    { value: '11-50', label: '11-50' },
+    { value: '51-200', label: '51-200' },
+    { value: '201-500', label: '201-500' },
+    { value: '501+', label: '501+' }
+  ];
+
+  // Auto-save and restore form data
+  useEffect(() => {
+    if (formData.email) {
+      localStorage.setItem('demo_progress', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('demo_progress');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setFormData(parsed);
+    }
+  }, []);
+
+  // Focus management
+  useEffect(() => {
+    if (demoModalOpen) {
+      if (!formData.email && emailRef.current) {
+        emailRef.current.focus();
+      } else if (formData.email && !formData.name && nameRef.current) {
+        nameRef.current.focus();
+      }
+    }
+  }, [demoModalOpen, formData.email, formData.name]);
+
+  const openDemoModal = (source: string) => {
+    setDemoModalSource(source);
+    setDemoModalOpen(true);
+  };
+
+  const handleDemoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.email || !formData.email.includes('@')) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid work email',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.name || formData.name.trim().length < 2) {
+      toast({
+        title: 'Name Required',
+        description: 'Please enter your full name',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.companySize) {
+      toast({
+        title: 'Company Size Required',
+        description: 'Please select your company size',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const domain = formData.email.split('@')[1];
+      const companyName = domain.split('.')[0];
+      const company = formData.company || companyName.charAt(0).toUpperCase() + companyName.slice(1);
+      
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0];
+
+      await demoCaptureService.captureDemo({
+        email: formData.email,
+        name: formData.name.trim(),
+        company,
+        companySize: formData.companySize,
+        source: demoModalSource,
+        stepCompleted: 2,
+        utmSource: new URLSearchParams(window.location.search).get('utm_source'),
+        utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
+        utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
+      });
+
+      const emailResult = await supabase.functions.invoke('send-demo-email', {
+        body: {
+          email: formData.email,
+          firstName,
+          lastName,
+          company,
+          companySize: formData.companySize
+        }
+      });
+
+      if (emailResult.error) {
+        console.error('Failed to send demo email:', emailResult.error);
+      }
+      
+      localStorage.removeItem('demo_progress');
+      
+      setDemoModalOpen(false);
+      
+      toast({
+        title: 'Check Your Email!',
+        description: 'We sent you a link to schedule your demo.',
+      });
+
+      // Reset form
+      setFormData({
+        email: '',
+        name: '',
+        company: '',
+        companySize: ''
+      });
+    } catch (error: any) {
+      console.error('Demo request submission failed:', error);
+      toast({
+        title: 'Submission Failed',
+        description: 'Please try again or contact support.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <ErrorBoundary>
+    <>
+      {/* Global Demo Modal */}
+      <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4 bg-gradient-to-br from-gray-50 via-white to-gray-50">
+          <div className="mb-3">
+            <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
+          </div>
+
+          <form onSubmit={handleDemoSubmit} className="space-y-3">
+            <Input
+              ref={emailRef}
+              type="email"
+              value={formData.email}
+              onChange={(e)=>setFormData(prev=>({...prev,email:e.target.value}))}
+              placeholder="Work email"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+              autoComplete="email" 
+              inputMode="email"
+            />
+            <Input
+              ref={nameRef}
+              value={formData.name}
+              onChange={(e)=>setFormData(prev=>({...prev,name:e.target.value}))}
+              placeholder="Your full name"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+              autoComplete="name"
+            />
+            <Select 
+              value={formData.companySize} 
+              onValueChange={(v)=>{
+                setFormData(prev=>({...prev,companySize:v}));
+              }}
+            >
+              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3 focus:border-future-green focus:ring-future-green focus:ring-opacity-50 hover:border-gray-400">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-gray-500" />
+                  <SelectValue placeholder="Select number of employees" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="select-content bg-white border-gray-300 shadow-lg">
+                {companySizeOptions.map(opt=>(
+                  <SelectItem 
+                    key={opt.value} 
+                    value={opt.value}
+                    className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                  >
+                    {opt.label} employees
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={loading||!formData.email||!formData.name||!formData.companySize} className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90">
+              {loading?<Loader2 className="w-4 h-4 animate-spin"/>:'Book Demo'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Sonner position="top-right" richColors closeButton />
@@ -134,16 +347,16 @@ const App = () => {
               <AuthProvider>
                 <CourseGenerationProvider>
                   <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<PageSuspense><Pricing /></PageSuspense>} />
+            {/* Public routes - Pass openDemoModal to pages that need it */}
+            <Route path="/" element={<Index openDemoModal={openDemoModal} />} />
+            <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
-            <Route path="/platform" element={<PageSuspense><Platform /></PageSuspense>} />
+            <Route path="/platform" element={<PageSuspense><Platform openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
             <Route path="/company/about" element={<PageSuspense><About /></PageSuspense>} />
             <Route path="/company/blog" element={<PageSuspense><Blog /></PageSuspense>} />
             <Route path="/company/careers" element={<PageSuspense><Careers /></PageSuspense>} />
-            <Route path="/company/contact" element={<PageSuspense><Contact /></PageSuspense>} />
+            <Route path="/company/contact" element={<PageSuspense><Contact openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/legal/privacy" element={<PageSuspense><PrivacyPolicy /></PageSuspense>} />
             <Route path="/legal/terms" element={<PageSuspense><TermsOfService /></PageSuspense>} />
             <Route path="/legal/cookies" element={<PageSuspense><CookiePolicy /></PageSuspense>} />
@@ -153,24 +366,24 @@ const App = () => {
             <Route path="/solutions/workforce-reskilling-upskilling" element={<PageSuspense><WorkforceReskilling /></PageSuspense>} />
             <Route path="/solutions/ai-gamification-motivation" element={<PageSuspense><AIGamificationMotivation /></PageSuspense>} />
             <Route path="/solutions/citizen-led-innovation" element={<PageSuspense><CitizenDeveloperEnablement /></PageSuspense>} />
-            <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics /></PageSuspense>} />
+            <Route path="/solutions/learning-analytics-engagement" element={<PageSuspense><LearningAnalytics openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/solutions/ai-mentorship-support" element={<PageSuspense><AILearningSupport /></PageSuspense>} />
             <Route path="/solutions/enterprise-innovation-enablement" element={<PageSuspense><EnterpriseInnovation /></PageSuspense>} />
             <Route path="/solutions/scalable-learning-support" element={<PageSuspense><ScalableLearningSupport /></PageSuspense>} />
 
             {/* Platform routes */}
-            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks /></PageSuspense>} />
-            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine /></PageSuspense>} />
-            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights /></PageSuspense>} />
-            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub /></PageSuspense>} />
-            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport /></PageSuspense>} />
-            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy /></PageSuspense>} />
-            <Route path="/platform/integrations" element={<PageSuspense><Integrations /></PageSuspense>} />
+            <Route path="/platform/how-it-works" element={<PageSuspense><HowItWorks openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/ai-engine" element={<PageSuspense><AIEngine openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/engagement-insights" element={<PageSuspense><EngagementInsights openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/innovation-hub" element={<PageSuspense><InnovationHub openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/mentorship-support" element={<PageSuspense><MentorshipSupport openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/security-privacy" element={<PageSuspense><SecurityPrivacy openDemoModal={openDemoModal} /></PageSuspense>} />
+            <Route path="/platform/integrations" element={<PageSuspense><Integrations openDemoModal={openDemoModal} /></PageSuspense>} />
 
             {/* Resource routes */}
             <Route path="/resources/blog" element={<PageSuspense><ResourcesBlog /></PageSuspense>} />
             <Route path="/resources/success-stories" element={<PageSuspense><SuccessStories /></PageSuspense>} />
-            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour /></PageSuspense>} />
+            <Route path="/resources/product-tour" element={<PageSuspense><ProductTour openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
 
             {/* Auth routes */}
@@ -270,6 +483,7 @@ const App = () => {
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
+    </>
   );
 };
 

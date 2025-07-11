@@ -5,7 +5,11 @@ import { BarChart3 } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useState } from "react";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HeroSection = ({ openDemoModal }: HeroSectionProps) => {
 
   const handleSeeHowItWorks = () => {
     // Could navigate to how it works section
@@ -44,6 +48,7 @@ const HeroSection = () => {
               source="analytics_hero_section"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Button
               size="lg"

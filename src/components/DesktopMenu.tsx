@@ -27,9 +27,10 @@ interface DesktopMenuProps {
   }>;
   activeSection: string;
   scrollToSection: (href: string) => void;
+  openDemoModal?: (source: string) => void;
 }
 
-const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuProps) => {
+const DesktopMenu = ({ menuItems, activeSection, scrollToSection, openDemoModal }: DesktopMenuProps) => {
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
@@ -366,6 +367,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection }: DesktopMenuP
           source="desktop_menu"
           buttonText="Book Demo"
           variant="default"
+          openDemoModal={openDemoModal}
         />
 
         {/* Show Go to Dashboard when authenticated, Sign In when not */}

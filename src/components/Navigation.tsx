@@ -8,7 +8,11 @@ import BackToTop from "./BackToTop";
 import SEO from "./SEO";
 import ScrollProgress from "./ScrollProgress";
 
-const Navigation = () => {
+interface NavigationProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const Navigation = ({ openDemoModal }: NavigationProps) => {
   const {
     isScrolled,
     isMobileMenuOpen,
@@ -40,6 +44,7 @@ const Navigation = () => {
                 menuItems={menuItems}
                 activeSection={activeSection}
                 scrollToSection={scrollToSection}
+                openDemoModal={openDemoModal}
               />
             </div>
 
@@ -51,6 +56,7 @@ const Navigation = () => {
                 isMobileMenuOpen={isMobileMenuOpen}
                 handleMobileMenuToggle={handleMobileMenuToggle}
                 scrollToSection={scrollToSection}
+                openDemoModal={openDemoModal}
               />
             </div>
           </div>

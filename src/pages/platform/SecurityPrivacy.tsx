@@ -9,7 +9,11 @@ import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const SecurityPrivacy = () => {
+interface SecurityPrivacyProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const SecurityPrivacy = ({ openDemoModal }: SecurityPrivacyProps) => {
   const securityFeatures = [
     {
       title: "Enterprise-Grade Security",
@@ -62,7 +66,7 @@ const SecurityPrivacy = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -84,6 +88,7 @@ const SecurityPrivacy = () => {
               source="security_privacy_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="security_privacy_page"
@@ -222,6 +227,7 @@ const SecurityPrivacy = () => {
               source="security_privacy_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="security_privacy_page"

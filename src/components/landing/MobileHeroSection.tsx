@@ -6,7 +6,11 @@ import VideoModal from '@/components/VideoModal';
 import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 import ProgressiveDemoCapture from '@/components/forms/ProgressiveDemoCapture';
 
-const MobileHeroSection = () => {
+interface MobileHeroSectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const MobileHeroSection = ({ openDemoModal }: MobileHeroSectionProps) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [emailCaptured, setEmailCaptured] = useState(false);
   const navigate = useNavigate();
@@ -133,6 +137,7 @@ const MobileHeroSection = () => {
                   source="mobile_hero"
                   buttonText="Book Demo"
                   variant="minimal"
+                  openDemoModal={openDemoModal}
                 />
               </div>
               <p className="text-xs text-center text-business-black/60">

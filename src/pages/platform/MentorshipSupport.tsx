@@ -9,7 +9,11 @@ import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 
-const MentorshipSupport = () => {
+interface MentorshipSupportProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const MentorshipSupport = ({ openDemoModal }: MentorshipSupportProps) => {
   const supportFeatures = [
     {
       title: "AI Behavior Monitoring",
@@ -62,7 +66,7 @@ const MentorshipSupport = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
@@ -84,6 +88,7 @@ const MentorshipSupport = () => {
               source="mentorship_support_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
               Watch How It Works
@@ -221,6 +226,7 @@ const MentorshipSupport = () => {
               source="mentorship_support_page"
               buttonText="Book Demo"
               onSuccess={() => {}}
+              openDemoModal={openDemoModal}
             />
             <PricingContactSales 
               source="mentorship_support_page"

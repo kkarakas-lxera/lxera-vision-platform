@@ -1,24 +1,28 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProgressiveDemoCapture } from "@/components/forms/ProgressiveDemoCapture";
+import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileContact from "@/components/mobile/contact/MobileContact";
 import { Suspense, lazy } from "react";
 
 const PricingEarlyAccess = lazy(() => import("@/components/forms/PricingEarlyAccess"));
 
-const Contact = () => {
+interface ContactProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const Contact: React.FC<ContactProps> = ({ openDemoModal }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Show mobile version for mobile devices
   if (isMobile) {
-    return <MobileContact />;
+    return <MobileContact openDemoModal={openDemoModal} />;
   }
 
   return (
     <div className="min-h-screen bg-smart-beige">
-      <Navigation />
+      <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 lg:px-12">
@@ -52,6 +56,7 @@ const Contact = () => {
                   source="contact_page_demo"
                   buttonText="Book Demo"
                   variant="default"
+                  openDemoModal={openDemoModal}
                 />
               </CardContent>
             </Card>

@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useState } from "react";
 
-const CTASection = () => {
+interface CTASectionProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const CTASection = ({ openDemoModal }: CTASectionProps) => {
 
   const handleExplorePlatform = () => {
     // Could navigate to platform page
@@ -26,6 +30,7 @@ const CTASection = () => {
                 source="analytics_cta_section"
                 buttonText="Book Demo"
                 onSuccess={() => {}}
+                openDemoModal={openDemoModal}
               />
               <Button
                 variant="outline"

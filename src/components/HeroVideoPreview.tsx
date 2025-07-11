@@ -3,7 +3,11 @@ import { useState } from 'react';
 import HeroVideoPlayer from './HeroVideoPlayer';
 import ProgressiveDemoCapture from './forms/ProgressiveDemoCapture';
 
-const HeroVideoPreview = () => {
+interface HeroVideoPreviewProps {
+  openDemoModal?: (source: string) => void;
+}
+
+const HeroVideoPreview = ({ openDemoModal }: HeroVideoPreviewProps) => {
   const [showDemoCapture, setShowDemoCapture] = useState(false);
   // Video hosting options:
   // 1. Upload to Cloudflare Stream and use the HLS/DASH URL
@@ -44,7 +48,7 @@ const HeroVideoPreview = () => {
           <ProgressiveDemoCapture
             source="video_end_cta"
             buttonText="Book Demo"
-            onSuccess={() => setShowDemoCapture(false)}
+            openDemoModal={openDemoModal}
           />
         </div>
       )}
