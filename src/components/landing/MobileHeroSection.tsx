@@ -105,7 +105,7 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
           <video
             className="w-full h-full object-cover"
             poster=""
-            src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4"
+            src="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo.mp4"
             muted
             playsInline
           />
@@ -249,7 +249,7 @@ const MobileHeroSection = ({ openDemoModal, openEarlyAccessModal }: MobileHeroSe
       <VideoModal
         isOpen={isVideoModalOpen}
         setIsOpen={setIsVideoModalOpen}
-        videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera%20Demo%20v2.1-m5UjU6fNWgyk0NuT47B2TPgn5UMRz7.mp4"
+        videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo.mp4"
         videoCaption="LXERA Platform Demo"
       />
     </section>

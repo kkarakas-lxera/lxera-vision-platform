@@ -20,29 +20,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Slider } from '@/components/ui/slider';
 
-interface VideoChapter {
-  title: string;
-  time: number; // in seconds
-}
-
 interface HeroVideoPlayerProps {
   videoUrl: string;
   posterUrl?: string;
-  chapters?: VideoChapter[];
   autoPlay?: boolean;
   muted?: boolean;
   className?: string;
-  onVideoEnd?: () => void;
 }
 
 const HeroVideoPlayer = ({ 
   videoUrl, 
   posterUrl,
-  chapters = [],
   autoPlay = false,
   muted = true,
-  className,
-  onVideoEnd
+  className
 }: HeroVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -168,15 +159,6 @@ const HeroVideoPlayer = ({
     video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, duration));
   };
 
-  const jumpToChapter = (time: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.currentTime = time;
-    if (!isPlaying) {
-      video.play();
-    }
-  };
 
   const changePlaybackRate = (rate: number) => {
     const video = videoRef.current;
@@ -202,19 +184,6 @@ const HeroVideoPlayer = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getCurrentChapter = () => {
-    if (chapters.length === 0) return null;
-    
-    let currentChapter = chapters[0];
-    for (const chapter of chapters) {
-      if (currentTime >= chapter.time) {
-        currentChapter = chapter;
-      } else {
-        break;
-      }
-    }
-    return currentChapter;
-  };
 
   return (
     <div 
@@ -258,38 +227,23 @@ const HeroVideoPlayer = ({
         </div>
       )}
 
-      {/* Get Started Button Overlay (when video ends) */}
+      {/* Replay Button Overlay (when video ends) */}
       {hasEnded && !isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 animate-in fade-in-0 duration-300">
-          <div className="text-center space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-2xl sm:text-3xl font-bold text-white">Ready to Transform Your Learning?</h3>
-              <p className="text-lg text-white/80">See LXERA in action with a personalized demo</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                onClick={onVideoEnd}
-                size="lg"
-                className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                Get Started
-              </Button>
-              <Button
-                onClick={() => {
-                  const video = videoRef.current;
-                  if (video) {
-                    video.currentTime = 0;
-                    video.play();
-                  }
-                }}
-                size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-business-black font-medium px-6 py-4 text-lg rounded-xl transition-all duration-300"
-              >
-                Watch Again
-              </Button>
-            </div>
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+          <Button
+            onClick={() => {
+              const video = videoRef.current;
+              if (video) {
+                video.currentTime = 0;
+                video.play();
+              }
+            }}
+            size="lg"
+            variant="outline"
+            className="border-2 border-white text-white hover:bg-white hover:text-business-black font-medium px-6 py-4 text-lg rounded-xl transition-all duration-300"
+          >
+            Watch Again
+          </Button>
         </div>
       )}
 
@@ -374,45 +328,9 @@ const HeroVideoPlayer = ({
               </div>
             </div>
 
-            {/* Current Chapter */}
-            {chapters.length > 0 && getCurrentChapter() && (
-              <div className="hidden md:flex items-center gap-2 ml-4 text-white/70 text-sm">
-                <span>Chapter:</span>
-                <span className="text-white">{getCurrentChapter()?.title}</span>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Chapters Menu */}
-            {chapters.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20 hidden sm:flex"
-                  >
-                    Chapters
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {chapters.map((chapter, index) => (
-                    <DropdownMenuItem
-                      key={index}
-                      onClick={() => jumpToChapter(chapter.time)}
-                      className="cursor-pointer"
-                    >
-                      <span className="flex-1">{chapter.title}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(chapter.time)}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
             {/* Speed Control */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
