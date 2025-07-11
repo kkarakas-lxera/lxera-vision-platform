@@ -106,8 +106,9 @@ const EarlyAccessLogin = () => {
 
     try {
       // Check if email exists in early access leads
+      // @ts-ignore - early_access_leads table not in generated types yet
       const { data: leads, error: leadError } = await supabase
-        .from('early_access_leads')
+        .from('early_access_leads' as any)
         .select('id, status')
         .eq('email', email.toLowerCase());
 
@@ -317,6 +318,7 @@ const EarlyAccessLogin = () => {
                               placeholder="Enter your work email"
                               initialEmail={email}
                               autoSubmit={false}
+                              requireCompanyEmail={false}
                               className="w-full"
                               onSuccess={(capturedEmail) => {
                                 toast({

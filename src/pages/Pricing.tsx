@@ -7,6 +7,9 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PricingEarlyAccess from "@/components/forms/PricingEarlyAccess";
 import PricingContactSales from "@/components/forms/PricingContactSales";
+import MobilePricingCards from "@/components/mobile/pricing/MobilePricingCards";
+import MobilePlanComparison from "@/components/mobile/pricing/MobilePlanComparison";
+import MobilePricingFAQ from "@/components/mobile/pricing/MobilePricingFAQ";
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
@@ -71,8 +74,39 @@ const Pricing = () => {
       <div className="min-h-screen bg-smart-beige font-inter">
         <Navigation />
         
-        {/* Header Section */}
-        <div className="bg-white py-4 lg:py-6 mt-24">
+        {/* Mobile Pricing Section */}
+        <section className="md:hidden w-full pt-20 pb-8 px-4 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative overflow-hidden font-inter">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-future-green/10 via-transparent to-smart-beige/30"></div>
+          
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="animate-fade-in-up mb-6" style={{ animationDelay: '0ms' }}>
+              <h1 className="text-2xl font-medium text-business-black leading-tight tracking-tight text-center">
+                Simple, transparent pricing
+              </h1>
+              <p className="text-base text-business-black/85 font-normal leading-relaxed text-center mt-2">
+                Scale your L&D with the right plan
+              </p>
+            </div>
+
+            {/* Mobile Pricing Cards */}
+            <MobilePricingCards />
+
+            {/* Plan Comparison */}
+            <div className="mt-8">
+              <MobilePlanComparison />
+            </div>
+
+            {/* FAQ Section */}
+            <div className="mt-8">
+              <MobilePricingFAQ />
+            </div>
+          </div>
+        </section>
+
+        {/* Desktop Header Section */}
+        <div className="hidden md:block bg-white py-4 lg:py-6 mt-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <h1 className="text-4xl lg:text-5xl xl:text-6xl font-medium text-business-black mb-6 font-inter leading-tight tracking-tight">
               Plans & Pricing
@@ -83,8 +117,8 @@ const Pricing = () => {
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="py-8 lg:py-12">
+        {/* Desktop Pricing Cards */}
+        <div className="hidden md:block py-8 lg:py-12">
           <div className="max-w-5xl mx-auto px-6 lg:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {plans.map((plan, index) => (
@@ -231,11 +265,13 @@ const Pricing = () => {
           </div>
         </div>
 
-        {/* Plan Comparison Section */}
-        <PlanComparisonSection />
+        {/* Desktop Plan Comparison Section */}
+        <div className="hidden md:block">
+          <PlanComparisonSection />
+        </div>
 
-        {/* Enhanced FAQ Section */}
-        <div className="py-16 lg:py-24 bg-white">
+        {/* Desktop Enhanced FAQ Section */}
+        <div className="hidden md:block py-16 lg:py-24 bg-white">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black text-center mb-12 font-inter">
               Frequently Asked Questions

@@ -15,6 +15,11 @@ interface SmartEmailCaptureProps {
   className?: string;
   initialEmail?: string;
   autoSubmit?: boolean;
+  /**
+   * Whether to enforce company-domain email validation (blocks gmail, yahoo, etc.).
+   * Defaults to true.  For the /login early-access signup flow we disable this.
+   */
+  requireCompanyEmail?: boolean;
 }
 
 // Common personal/consumer email domains to block
@@ -40,7 +45,8 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
   onSuccess,
   className = '',
   initialEmail = '',
-  autoSubmit = false
+  autoSubmit = false,
+  requireCompanyEmail = true
 }) => {
   const [isExpanded, setIsExpanded] = useState(!!initialEmail);
   const [email, setEmail] = useState(initialEmail);
@@ -66,8 +72,8 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
       return;
     }
 
-    // Validate company email domain
-    if (!isCompanyEmail(email)) {
+    // Validate company email domain (optional)
+    if (requireCompanyEmail && !isCompanyEmail(email)) {
       toast({
         title: 'Work Email Required',
         description: 'Please use your company email address instead of a personal email',
@@ -125,7 +131,7 @@ const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [email, name, source, onSuccess]);
+  }, [email, name, source, onSuccess, requireCompanyEmail]);
 
   useEffect(() => {
     if (isExpanded && emailRef.current) {
