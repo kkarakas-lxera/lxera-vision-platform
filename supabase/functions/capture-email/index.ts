@@ -178,14 +178,14 @@ Beyond Learning | www.lxera.ai
       // Don't throw here - we still want to log the attempt
     }
 
-    // Log email sent
-    await supabase
-      .from('lead_email_log')
-      .insert({
-        lead_id: leadId,
-        email_type: 'magic_link',
-        subject: 'Complete your LXERA early access profile'
-      });
+    // Log email sent - commented out since we're using Resend for email tracking
+    // await supabase
+    //   .from('lead_email_log')
+    //   .insert({
+    //     lead_id: leadId,
+    //     email_type: 'magic_link',
+    //     subject: 'Complete your LXERA early access profile'
+    //   });
 
     return new Response(
       JSON.stringify({ 
