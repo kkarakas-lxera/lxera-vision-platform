@@ -106,18 +106,26 @@ const EarlyAccessLogin = () => {
 
     try {
       // Check if email exists in early access leads
-      const { data: lead, error: leadError } = await supabase
+      const { data: leads, error: leadError } = await supabase
         .from('early_access_leads')
         .select('id, status')
-        .eq('email', email.toLowerCase())
-        .single();
+        .eq('email', email.toLowerCase());
 
-      if (leadError || !lead) {
+      if (leadError) {
+        console.error('Error checking early access lead:', leadError);
+        setError('Failed to check early access status');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!leads || leads.length === 0) {
         // User not found in early access list
         setUserNotFound(true);
         setIsLoading(false);
         return;
       }
+
+      const lead = leads[0];
 
       // Send OTP
       const { error: otpError } = await supabase.functions.invoke('send-verification-code', {
