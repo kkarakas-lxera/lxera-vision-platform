@@ -15,7 +15,7 @@ const HeroVideoPreview = ({ openDemoModal }: HeroVideoPreviewProps) => {
   // 4. Upload to Vercel Blob and use the blob URL
   
   // Vercel Blob hosted video
-  const videoUrl = "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo.mp4";
+  const videoUrl = "https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo-v2.mp4";
   const posterUrl = ""; // Optional: Add a poster image if you have one
 
   return (
