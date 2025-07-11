@@ -98,13 +98,13 @@ const MobileMenu: FC<MobileMenuProps> = ({
 
   return (
     <div className="flex items-center space-x-3">
-      {/* Request Demo button (kept from previous design) */}
+      {/* Request Demo button - minimized for mobile */}
       {!isHomepage && (
         <ProgressiveDemoCapture
           source="mobile_menu"
-          buttonText="Request a Demo"
-          variant="default"
-          className="text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl focus:ring-2 focus:ring-business-black/50 focus:ring-offset-2"
+          buttonText="Demo"
+          variant="minimal"
+          className="text-future-green"
         />
       )}
 

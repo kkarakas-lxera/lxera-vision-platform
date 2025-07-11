@@ -75,7 +75,7 @@ const Pricing = () => {
         <Navigation />
         
         {/* Mobile Pricing Section */}
-        <section className="md:hidden w-full pt-20 pb-24 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
+        <section className="md:hidden w-full pt-20 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
           {/* Background gradient with better contrast */}
           <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-smart-beige/10"></div>
           
@@ -101,25 +101,6 @@ const Pricing = () => {
             {/* FAQ Section */}
             <div className="mt-8">
               <MobilePricingFAQ />
-            </div>
-          </div>
-          
-          {/* Sticky CTA for mobile */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg md:hidden z-30">
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => document.querySelector('.smart-email-capture')?.querySelector('button')?.click()}
-                className="flex-1 bg-future-green text-business-black hover:bg-future-green/90 font-semibold h-12"
-              >
-                Get Started
-              </Button>
-              <Button 
-                onClick={() => window.location.href = '/company/contact'}
-                variant="outline"
-                className="flex-1 border-business-black/30 text-business-black hover:bg-business-black hover:text-white h-12"
-              >
-                Contact Sales
-              </Button>
             </div>
           </div>
         </section>

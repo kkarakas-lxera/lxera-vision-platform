@@ -187,7 +187,7 @@ const MobilePricingCards = () => {
       {/* Swipeable Cards Container */}
       <div 
         ref={cardsRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4"
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-4 pt-4"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {plans.map((plan, index) => (
@@ -202,8 +202,8 @@ const MobilePricingCards = () => {
             )}>
               {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-future-green text-business-black text-xs font-semibold px-4 py-1.5 rounded-full shadow-md flex items-center gap-1">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-future-green text-business-black text-xs font-semibold px-4 py-1.5 rounded-full shadow-md flex items-center gap-1 whitespace-nowrap">
                     <Star className="w-3 h-3 fill-current" />
                     Most Popular
                   </div>
@@ -211,7 +211,7 @@ const MobilePricingCards = () => {
               )}
 
               {/* Plan Header */}
-              <div className="text-center mb-6 pt-2">
+              <div className="text-center mb-6 pt-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   {plan.icon}
                   <h3 className="text-2xl font-semibold text-business-black">{plan.name}</h3>
