@@ -378,12 +378,21 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 setFormData(prev => ({ ...prev, companySize: v }));
               }}
             >
-              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
-                <SelectValue placeholder="Company size" />
+              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3 focus:border-future-green focus:ring-future-green focus:ring-opacity-50 hover:border-gray-400">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-gray-500" />
+                  <SelectValue placeholder="Select number of employees" />
+                </div>
               </SelectTrigger>
-              <SelectContent className="select-content">
+              <SelectContent className="select-content bg-white border-gray-300 shadow-lg">
                 {companySizeOptions.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>
+                  <SelectItem 
+                    key={opt.value} 
+                    value={opt.value}
+                    className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                  >
+                    {opt.label} employees
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -478,11 +487,22 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
                 setFormData(prev=>({...prev,companySize:v}));
               }}
             >
-              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
-                <SelectValue placeholder="Company size" />
+              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3 focus:border-future-green focus:ring-future-green focus:ring-opacity-50 hover:border-gray-400">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-gray-500" />
+                  <SelectValue placeholder="Select number of employees" />
+                </div>
               </SelectTrigger>
-              <SelectContent className="select-content">
-                {companySizeOptions.map(opt=>(<SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>))}
+              <SelectContent className="select-content bg-white border-gray-300 shadow-lg">
+                {companySizeOptions.map(opt=>(
+                  <SelectItem 
+                    key={opt.value} 
+                    value={opt.value}
+                    className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                  >
+                    {opt.label} employees
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button type="submit" disabled={loading||!formData.email||!formData.name||!formData.companySize} className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90">

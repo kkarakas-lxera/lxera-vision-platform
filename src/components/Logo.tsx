@@ -1,5 +1,9 @@
 
-const Logo = () => {
+interface LogoProps {
+  className?: string;
+}
+
+const Logo = ({ className }: LogoProps) => {
   const handleLogoClick = () => {
     // If we're on the homepage, scroll to top
     if (window.location.pathname === '/') {
@@ -13,7 +17,7 @@ const Logo = () => {
   return (
     <button
       onClick={handleLogoClick}
-      className="flex items-center space-x-3 -ml-4 sm:-ml-8 md:-ml-12 lg:-ml-16 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-future-green focus:ring-offset-2 rounded-lg"
+      className={className || "flex items-center space-x-3 -ml-4 sm:-ml-8 md:-ml-12 lg:-ml-16 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-future-green focus:ring-offset-2 rounded-lg"}
       aria-label="Go to homepage"
     >
       {/* Logo Icon */}

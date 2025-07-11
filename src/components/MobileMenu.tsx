@@ -135,7 +135,7 @@ const MobileMenu: FC<MobileMenuProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center">
-                  <Logo className="h-8 w-auto" />
+                  <Logo className="flex items-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-0 focus:ring-offset-0 rounded-lg h-8 w-auto" />
                 </div>
                 <Link 
                   to="/" 
