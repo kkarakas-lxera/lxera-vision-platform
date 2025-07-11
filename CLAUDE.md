@@ -125,3 +125,37 @@ npm run build
 - Avoid transform animations on elements containing modals
 - Don't rely on z-index alone for overlay management
 - Use consistent modal patterns across the codebase
+
+### Form Nesting Issues - HTML Validation
+**Problem**: Forms nested inside other forms cause unexpected behavior and page reloads.
+
+**Root Cause**: HTML specification forbids nested forms. Browsers automatically close the first form when encountering a nested form, breaking event handlers and causing the outer form to submit unexpectedly.
+
+**Symptoms**:
+1. Page reloads before JavaScript can execute
+2. Toast notifications never appear
+3. API calls are interrupted
+4. No error messages displayed to users
+
+**Solution**: Restructure components to ensure forms are siblings, not nested:
+```jsx
+// ✅ Correct - Forms as siblings
+{condition1 && (
+  <form onSubmit={handler1}>
+    {/* Form 1 content */}
+  </form>
+)}
+
+{condition2 && (
+  <div>
+    <ComponentWithOwnForm />  {/* Form 2 - not nested */}
+  </div>
+)}
+
+// ❌ Incorrect - Nested forms
+<form>
+  <ComponentWithOwnForm />  {/* Creates invalid HTML */}
+</form>
+```
+
+**Key Learning**: Always check for nested forms when debugging form submission issues, especially when integrating form components that manage their own form elements.
