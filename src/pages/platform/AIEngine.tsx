@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Brain, Zap, Target, Users, BarChart3, Lightbulb, ArrowRight, CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
+import { useState } from "react";
+import VideoModal from "@/components/VideoModal";
 
 interface AIEngineProps {
   openDemoModal?: (source: string) => void;
@@ -63,6 +65,8 @@ const AIEngine = ({ openDemoModal, openContactSalesModal }: AIEngineProps) => {
     }
   ];
 
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation openDemoModal={openDemoModal} />
@@ -89,7 +93,7 @@ const AIEngine = ({ openDemoModal, openContactSalesModal }: AIEngineProps) => {
               onSuccess={() => {}}
               openDemoModal={openDemoModal}
             />
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal" onClick={() => setIsVideoModalOpen(true)}>
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -207,6 +211,12 @@ const AIEngine = ({ openDemoModal, openContactSalesModal }: AIEngineProps) => {
       <Footer />
       
       {/* Modals */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        setIsOpen={setIsVideoModalOpen}
+        videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo-v2.mp4"
+        videoCaption="LXERA Platform Demo"
+      />
     </div>
   );
 };

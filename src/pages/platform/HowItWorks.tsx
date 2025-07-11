@@ -8,6 +8,7 @@ import { Target, Users, Brain, BarChart3, MessageCircle, Lightbulb, ArrowRight, 
 import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import PricingContactSales from "@/components/forms/PricingContactSales";
+import VideoModal from "@/components/VideoModal";
 
 interface HowItWorksProps {
   openDemoModal?: (source: string) => void;
@@ -69,6 +70,8 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
     }
   ];
 
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
       <Navigation openDemoModal={openDemoModal} />
@@ -95,7 +98,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
               onSuccess={() => {}}
               openDemoModal={openDemoModal}
             />
-            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal">
+            <Button variant="outline" size="lg" className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:scale-105 font-inter font-normal" onClick={() => setIsVideoModalOpen(true)}>
               Watch How It Works
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -221,6 +224,12 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
       <Footer />
       
       {/* Modals */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        setIsOpen={setIsVideoModalOpen}
+        videoUrl="https://finwsjdjo4tof45q.public.blob.vercel-storage.com/Lxera-Demo-v2.mp4"
+        videoCaption="LXERA Platform Demo"
+      />
     </div>
   );
 };
