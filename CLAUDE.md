@@ -159,3 +159,62 @@ npm run build
 ```
 
 **Key Learning**: Always check for nested forms when debugging form submission issues, especially when integrating form components that manage their own form elements.
+
+### Single Shared Modal Implementation - State Lifting Pattern
+**Problem**: Multiple instances of demo modals across the platform causing inconsistent behavior and code duplication.
+
+**Solution**: Implemented a single shared modal using the state lifting pattern, with modal state and logic centralized in App.tsx.
+
+**Implementation Date**: January 2025
+
+**Technical Details**:
+1. **Modal State in App.tsx**: Created global state for demo modal (open/closed, source tracking, form data)
+2. **Button-Only Component**: Converted ProgressiveDemoCapture from a full modal component to a button that triggers the global modal
+3. **Props Drilling**: Pass openDemoModal function through component tree to all pages and components that need it
+
+**Implementation Pattern**:
+```tsx
+// In App.tsx - Global modal state
+const [demoModalOpen, setDemoModalOpen] = useState(false);
+const [demoModalSource, setDemoModalSource] = useState("");
+const [formData, setFormData] = useState({
+  email: '',
+  name: '',
+  company: '',
+  companySize: ''
+});
+
+const openDemoModal = (source: string) => {
+  setDemoModalSource(source);
+  setDemoModalOpen(true);
+};
+
+// Single modal instance in App.tsx
+<Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
+  <DialogContent>
+    {/* Form with all demo capture logic */}
+  </DialogContent>
+</Dialog>
+
+// In ProgressiveDemoCapture - Now just a button
+const ProgressiveDemoCapture = ({ source, openDemoModal }) => {
+  const handleClick = () => {
+    if (openDemoModal) {
+      openDemoModal(source);
+    }
+  };
+  
+  return <Button onClick={handleClick}>Book Demo</Button>;
+};
+```
+
+**Benefits**:
+1. **Single Modal Instance**: Only one modal exists in the entire application
+2. **Consistent Behavior**: All demo buttons work exactly the same way
+3. **Reduced Code Duplication**: Form logic exists in one place
+4. **Maintained Analytics**: Source tracking preserved for each button
+5. **Better Performance**: Fewer modal instances in the DOM
+
+**Files Modified**: 32 files including all pages, mobile components, and shared components
+
+**Key Learning**: State lifting is an effective pattern for sharing complex UI components (like modals) across an entire application while maintaining consistency and reducing duplication.
