@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import PricingEarlyAccess from "@/components/forms/PricingEarlyAccess";
 import PricingContactSales from "@/components/forms/PricingContactSales";
 import MobilePricingCards from "@/components/mobile/pricing/MobilePricingCards";
-import MobilePlanComparison from "@/components/mobile/pricing/MobilePlanComparison";
 import MobilePricingFAQ from "@/components/mobile/pricing/MobilePricingFAQ";
 
 interface PricingProps {
@@ -99,10 +98,7 @@ const Pricing = ({ openDemoModal, openEarlyAccessModal, openContactSalesModal }:
             {/* Mobile Pricing Cards */}
             <MobilePricingCards openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} />
 
-            {/* Plan Comparison */}
-            <div className="mt-8">
-              <MobilePlanComparison />
-            </div>
+            {/* Feature comparison table removed for cleaner mobile UX – details are inside each plan card */}
 
             {/* FAQ Section */}
             <div className="mt-8">
