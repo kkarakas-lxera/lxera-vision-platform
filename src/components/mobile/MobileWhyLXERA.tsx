@@ -13,13 +13,13 @@ const MobileWhyLXERA = () => {
 
   return (
     <>
-      <section id="platform" className="w-full py-16 px-4 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
+      <section id="platform" className="w-full py-12 px-4 relative overflow-hidden bg-gradient-to-br from-future-green/6 via-smart-beige/50 to-future-green/12 transition-all duration-1000 ease-in-out">
         <div className="absolute inset-0 bg-gradient-to-tr from-smart-beige/20 via-transparent to-future-green/10"></div>
         <AnimatedBackground />
         
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Header - same as desktop */}
-          <div className="text-left mb-8 animate-fade-in-up relative">
+          <div className="text-left mb-6 animate-fade-in-up relative">
             <div className="relative z-10">
               <h2 className="text-2xl font-medium text-business-black mb-4 animate-slide-in-left leading-tight font-inter" style={{animationDelay: '0.2s'}}>
                 Outcomes That Matter: How LXERA Drives Real Transformation
@@ -39,7 +39,7 @@ const MobileWhyLXERA = () => {
           </div>
 
           {/* Mobile Cards - 2x2 grid with tap interactions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             {capabilitiesData.map((capability, index) => (
               <div
                 key={capability.title}
@@ -73,7 +73,7 @@ const MobileWhyLXERA = () => {
                     <>
                       <button
                         onClick={() => toggleCard(capability.title)}
-                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-future-green hover:bg-future-green/90 transition-all duration-200 py-3 mt-4 rounded-xl border-2 border-future-green hover:border-future-green/90 min-h-[48px] touch-manipulation"
+                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-business-black bg-future-green hover:bg-future-green/90 transition-all duration-200 py-3 mt-4 rounded-xl border-2 border-future-green hover:border-future-green/90 min-h-[48px] touch-manipulation"
                         style={{ minHeight: '48px' }}
                       >
                         {expandedCard === capability.title ? (

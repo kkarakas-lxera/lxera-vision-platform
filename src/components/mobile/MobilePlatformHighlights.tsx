@@ -152,10 +152,10 @@ const MobilePlatformHighlights = () => {
 
   return (
     <>
-      <section className="w-full py-16 px-4 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
+      <section className="w-full py-12 px-4 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-7xl mx-auto relative z-0">
           {/* Header */}
-          <div className="text-center mb-10 animate-fade-in-up">
+          <div className="text-center mb-6 animate-fade-in-up">
             <h2 className="text-2xl font-semibold text-business-black mb-6 font-inter">
               Platform Highlights
             </h2>
@@ -167,7 +167,7 @@ const MobilePlatformHighlights = () => {
           {/* Swipeable Featured Cards */}
           <div 
             ref={cardsRef}
-            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 mb-8 px-2"
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 mb-4 px-2"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {featuredFeatures.map((item, index) => (
@@ -221,7 +221,7 @@ const MobilePlatformHighlights = () => {
           </div>
 
           {/* Progress Dots */}
-          <div className="flex justify-center gap-3 mb-8">
+          <div className="flex justify-center gap-3 mb-4">
             {Array.from({ length: Math.ceil(featuredFeatures.length / 2) }).map((_, index) => (
               <div
                 key={index}

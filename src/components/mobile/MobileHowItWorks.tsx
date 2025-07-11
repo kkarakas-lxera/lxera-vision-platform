@@ -11,10 +11,10 @@ import {
 const MobileHowItWorks = () => {
   return (
     <>
-      <section id="how-it-works" className="w-full py-16 px-4 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
+      <section id="how-it-works" className="w-full py-12 px-4 bg-gradient-to-br from-smart-beige/40 via-future-green/8 to-smart-beige/60 relative overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-6xl mx-auto">
           {/* Section Header - same as desktop */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-6">
             <h2 className="text-3xl font-semibold text-business-black mb-6 animate-fade-in-up">
               How LXERA Works
             </h2>
@@ -24,7 +24,7 @@ const MobileHowItWorks = () => {
           </div>
           
           {/* Accordion Steps */}
-          <Accordion type="single" collapsible className="space-y-4 mb-12">
+          <Accordion type="single" collapsible className="space-y-4 mb-6">
             {stepsData.map((step, index) => (
               <AccordionItem
                 key={index}
@@ -50,9 +50,7 @@ const MobileHowItWorks = () => {
                 
                 <AccordionContent className="px-6 pb-6 pt-2">
                   <div className="ml-19 border-l-2 border-future-green/30 pl-6">
-                    <div className="text-base text-business-black/60 italic leading-relaxed">
-                      {step.metrics}
-                    </div>
+                    {/* Metrics display removed as requested */}
                   </div>
                 </AccordionContent>
               </AccordionItem>
