@@ -115,7 +115,7 @@ const WaitingRoom = () => {
   if (!leadData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
+        <Card className="max-w-md w-full bg-white">
           <CardHeader>
             <CardTitle>Check Your Waitlist Status</CardTitle>
           </CardHeader>
@@ -214,7 +214,7 @@ const WaitingRoom = () => {
             {/* Left Side - Status & Profile */}
             <div className="space-y-3 sm:space-y-4">
               {/* Position Card */}
-              <Card>
+              <Card className="bg-white">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -244,7 +244,7 @@ const WaitingRoom = () => {
               </Card>
               
               {/* Profile Summary */}
-              <Card>
+              <Card className="bg-white">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Your Profile</CardTitle>
                 </CardHeader>

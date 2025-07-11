@@ -642,6 +642,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                   type="submit"
                   disabled={!formData[currentStepData.field as keyof FormData]}
                   className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
+                  style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -698,6 +699,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     type="submit"
                     disabled={!formData.otherRole}
                     className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
+                    style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}
                   >
                     Continue
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -782,6 +784,7 @@ export default function ProgressiveOnboarding({ email, leadId, initialData, onCo
                     type="submit"
                     disabled={!formData.otherUseCase}
                     className="mt-4 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 active:from-indigo-800 active:via-purple-800 active:to-indigo-900 transition-all text-white text-base py-3.5 rounded-xl touch-manipulation shadow-xl hover:shadow-2xl font-semibold"
+                    style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}
                   >
                     Continue
                     <ChevronRight className="w-4 h-4 ml-1" />

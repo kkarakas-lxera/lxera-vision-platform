@@ -36,7 +36,7 @@ SELECT
     eal.use_case,
     eal.waitlist_position,
     eal.company_size,
-    'early_access' as source,
+    eal.source,
     null as utm_source,
     null as utm_medium,
     null as utm_campaign,
