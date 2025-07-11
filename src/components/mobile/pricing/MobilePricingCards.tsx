@@ -81,7 +81,7 @@ const MobilePricingCards = () => {
         'Knowledge Base Transformation',
         'Taxonomist Skill Gap Engine'
       ],
-      popular: true,
+      popular: !isMonthly, // Popular when annual (cheaper)
       icon: <Star className="w-5 h-5" />,
       ctaText: 'Get Started',
       ctaAction: 'email'
@@ -155,8 +155,8 @@ const MobilePricingCards = () => {
 
   return (
     <div className="w-full">
-      {/* Billing Toggle - Sticky with improved contrast */}
-      <div className="sticky top-16 z-20 bg-white/95 backdrop-blur-sm px-4 py-3 -mx-4 mb-6 animate-fade-in-up border-b border-gray-200 shadow-sm" style={{ animationDelay: '200ms' }}>
+      {/* Billing Toggle - Sticky with white background */}
+      <div className="sticky top-16 z-20 bg-white backdrop-blur-sm px-4 py-3 -mx-4 mb-6 animate-fade-in-up border-b border-gray-200 shadow-sm" style={{ animationDelay: '200ms' }}>
         <div className="flex items-center justify-center gap-3">
           <span className={cn(
             "text-sm font-semibold transition-colors",
@@ -166,7 +166,7 @@ const MobilePricingCards = () => {
           </span>
           <button
             onClick={() => setIsMonthly(!isMonthly)}
-            className="relative w-14 h-7 bg-gray-300 rounded-full transition-colors hover:bg-gray-400"
+            className="relative w-14 h-7 bg-white border-2 border-gray-300 rounded-full transition-all hover:border-gray-400"
             aria-label="Toggle billing cycle"
           >
             <div className={cn(
@@ -274,7 +274,7 @@ const MobilePricingCards = () => {
                   <>
                     <button
                       onClick={() => toggleFeatures(plan.name)}
-                      className="w-full flex items-center justify-center gap-2 text-sm font-medium text-future-green hover:text-future-green/80 transition-colors py-2"
+                      className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-future-green hover:text-future-green/80 transition-colors py-2 bg-future-green/10 rounded-lg hover:bg-future-green/20"
                     >
                       {expandedCard === plan.name ? (
                         <>
@@ -283,7 +283,7 @@ const MobilePricingCards = () => {
                         </>
                       ) : (
                         <>
-                          View all {plan.features.length} features
+                          View all features
                           <ChevronDown className="w-4 h-4" />
                         </>
                       )}

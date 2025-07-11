@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, Info, ChevronDown, Star, Zap } from "lucide-react";
+import { Check, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import PlanComparisonSection from "@/components/PlanComparisonSection";

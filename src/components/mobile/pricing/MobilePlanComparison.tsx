@@ -241,13 +241,13 @@ const MobilePlanComparison = () => {
         </Accordion>
 
         {/* Bottom CTA */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 mb-3">
+        <div className="mt-6 text-center bg-future-green/10 rounded-lg p-4">
+          <p className="text-sm text-gray-700 mb-3 font-medium">
             Need help choosing the right plan?
           </p>
           <button
             onClick={() => window.location.href = '/company/contact'}
-            className="text-future-green font-medium text-sm hover:text-future-green/80 transition-colors"
+            className="text-future-green font-semibold text-base hover:text-future-green/80 transition-colors underline underline-offset-2"
           >
             Talk to our team →
           </button>

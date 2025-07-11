@@ -250,26 +250,26 @@ const EarlyAccessLogin = () => {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <form onSubmit={handleSendOTP} className="space-y-4">
-                    <div>
-                      <Label htmlFor="email" className="text-base font-bold text-business-black">Email address</Label>
-                      <div className="mt-1 relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          placeholder="you@company.com"
-                          className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white backdrop-blur-sm placeholder:text-gray-400"
-                          autoComplete="email"
-                          autoFocus
-                        />
+                  {!userNotFound && (
+                    <form onSubmit={handleSendOTP} className="space-y-4">
+                      <div>
+                        <Label htmlFor="email" className="text-base font-bold text-business-black">Email address</Label>
+                        <div className="mt-1 relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="you@company.com"
+                            className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white backdrop-blur-sm placeholder:text-gray-400"
+                            autoComplete="email"
+                            autoFocus
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {!userNotFound && (
                       <Button 
                         type="submit" 
                         className="w-full bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black hover:to-business-black text-white py-5 text-base font-semibold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-[0.98] group relative overflow-hidden" 
@@ -290,65 +290,65 @@ const EarlyAccessLogin = () => {
                           )}
                         </span>
                       </Button>
-                    )}
+                    </form>
+                  )}
 
-                    {/* Show this only after user submits email and they're not in the database */}
-                    {userNotFound && !signupSuccess && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-4 mt-4"
-                      >
-                        <Alert className="border-2 border-orange-400/50 bg-gradient-to-br from-orange-50 via-amber-50/80 to-orange-100/60 shadow-lg shadow-orange-200/20">
-                          <AlertCircle className="h-4 w-4 text-orange-600" />
-                          <AlertDescription className="text-gray-800 font-medium">
-                            <strong className="text-gray-900">{email}</strong> is not on our early access list yet.
-                          </AlertDescription>
-                        </Alert>
-                        
-                        <div className="text-center space-y-3">
-                          <p className="text-sm text-gray-600">
-                            Join our early access program to get started
-                          </p>
-                          <div className="space-y-2 w-full max-w-full overflow-hidden">
-                            <SmartEmailCapture
-                              source="login-page-not-found"
-                              variant="mobile"
-                              buttonText="Get Early Access"
-                              placeholder="Enter your work email"
-                              initialEmail={email}
-                              autoSubmit={false}
-                              requireCompanyEmail={false}
-                              className="w-full"
-                              onSuccess={(capturedEmail) => {
-                                toast({
-                                  title: 'Welcome to Early Access!',
-                                  description: 'Check your email to complete your profile.',
-                                });
-                                setSignupSuccess(true);
-                                setEmail(capturedEmail); // keep for information
-                              }}
-                            />
-                            <p className="text-xs text-gray-500">
-                              30 seconds, no card required
-                            </p>
-                          </div>
-                          {!signupSuccess && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUserNotFound(false);
-                              setEmail('');
+                  {/* Show this only after user submits email and they're not in the database */}
+                  {userNotFound && !signupSuccess && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4 mt-4"
+                    >
+                      <Alert className="border-2 border-orange-400/50 bg-gradient-to-br from-orange-50 via-amber-50/80 to-orange-100/60 shadow-lg shadow-orange-200/20">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        <AlertDescription className="text-gray-800 font-medium">
+                          <strong className="text-gray-900">{email}</strong> is not on our early access list yet.
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <div className="text-center space-y-3">
+                        <p className="text-sm text-gray-600">
+                          Join our early access program to get started
+                        </p>
+                        <div className="space-y-2 w-full max-w-full overflow-hidden">
+                          <SmartEmailCapture
+                            source="login-page-not-found"
+                            variant="mobile"
+                            buttonText="Get Early Access"
+                            placeholder="Enter your work email"
+                            initialEmail={email}
+                            autoSubmit={false}
+                            requireCompanyEmail={false}
+                            className="w-full"
+                            onSuccess={(capturedEmail) => {
+                              toast({
+                                title: 'Welcome to Early Access!',
+                                description: 'Check your email to complete your profile.',
+                              });
+                              setSignupSuccess(true);
+                              setEmail(capturedEmail); // keep for information
                             }}
-                            className="text-sm text-business-black/80 hover:text-business-black font-bold transition-colors underline underline-offset-2"
-                          >
-                            Try a different email
-                          </button>)
-                          }
+                          />
+                          <p className="text-xs text-gray-500">
+                            30 seconds, no card required
+                          </p>
                         </div>
-                      </motion.div>
-                    )}
-                  </form>
+                        {!signupSuccess && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserNotFound(false);
+                            setEmail('');
+                          }}
+                          className="text-sm text-business-black/80 hover:text-business-black font-bold transition-colors underline underline-offset-2"
+                        >
+                          Try a different email
+                        </button>)
+                        }
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
