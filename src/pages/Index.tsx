@@ -12,6 +12,11 @@ import BackToTop from "@/components/BackToTop";
 import SEO from "@/components/SEO";
 import { useEffect, useState } from "react";
 
+// Mobile-optimized components
+import MobileWhyLXERA from "@/components/mobile/MobileWhyLXERA";
+import MobileHowItWorks from "@/components/mobile/MobileHowItWorks";
+import MobilePlatformHighlights from "@/components/mobile/MobilePlatformHighlights";
+
 const Index = () => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -26,7 +31,7 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile version with optimized hero
+  // Mobile version with optimized components
   if (isMobile) {
     return (
       <>
@@ -35,9 +40,9 @@ const Index = () => {
         <div className="min-h-screen bg-white">
           <Navigation />
           <MobileHeroSection />
-          <WhyLXERASection />
-          <HowItWorksSection />
-          <PlatformHighlightsSection />
+          <MobileWhyLXERA />
+          <MobileHowItWorks />
+          <MobilePlatformHighlights />
           <TransformationStartsSection />
           <Footer />
           <BackToTop />

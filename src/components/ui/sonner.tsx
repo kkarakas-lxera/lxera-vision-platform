@@ -4,18 +4,8 @@ import { useEffect, useState } from "react"
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  // Simple theme detection without next-themes dependency
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  
-  useEffect(() => {
-    // Check for dark mode preference
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setTheme(mediaQuery.matches ? 'dark' : 'light')
-    
-    const handler = (e: MediaQueryListEvent) => setTheme(e.matches ? 'dark' : 'light')
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
+  // Force light theme to match LXERA's light design system
+  const theme = 'light'
 
   return (
     <Sonner
