@@ -39,40 +39,42 @@ const MobileWhyLXERA = () => {
           </div>
 
           {/* Mobile Cards - 2x2 grid with tap interactions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             {capabilitiesData.map((capability, index) => (
               <div
                 key={capability.title}
-                className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 rounded-2xl shadow-lg transition-all duration-300 animate-fade-in-up"
+                className="bg-white rounded-xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in-up"
                 style={{
                   animationDelay: `${300 + index * 100}ms`,
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
                 }}
               >
                 <div className="p-4">
-                  <div className="mb-3 flex justify-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center border border-gray-100">
                       {capability.icon && (
-                        <capability.icon className="w-6 h-6 text-business-black" />
+                        <capability.icon className="w-7 h-7 text-business-black" />
                       )}
                     </div>
                   </div>
                   
-                  <h3 className="text-business-black font-medium text-base mb-1 font-inter text-center">{capability.title}</h3>
+                  <h3 className="text-business-black font-semibold text-lg mb-2 font-inter text-center leading-tight">{capability.title}</h3>
                   
                   {/* Value statement */}
                   {capability.valueStatement && (
-                    <p className="text-business-black/80 mb-2 text-sm font-normal font-inter text-center">{capability.valueStatement}</p>
+                    <p className="text-business-black/80 mb-3 text-sm font-medium font-inter text-center leading-relaxed">{capability.valueStatement}</p>
                   )}
                   
                   {/* Description */}
-                  <p className="text-business-black/70 text-sm font-normal font-inter text-center">{capability.description}</p>
+                  <p className="text-business-black/70 text-sm font-normal font-inter text-center leading-relaxed">{capability.description}</p>
                   
                   {/* Expand button if tangible results exist */}
                   {capability.tangibleResults && (
                     <>
                       <button
                         onClick={() => toggleCard(capability.title)}
-                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-future-green hover:text-future-green/80 transition-colors py-2 mt-3 bg-future-green/10 rounded-lg hover:bg-future-green/20"
+                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-future-green hover:bg-future-green/90 transition-all duration-200 py-3 mt-4 rounded-xl border-2 border-future-green hover:border-future-green/90 min-h-[48px] touch-manipulation"
+                        style={{ minHeight: '48px' }}
                       >
                         {expandedCard === capability.title ? (
                           <>
@@ -81,7 +83,7 @@ const MobileWhyLXERA = () => {
                           </>
                         ) : (
                           <>
-                            View impact
+                            Learn More
                             <ChevronDown className="w-4 h-4" />
                           </>
                         )}
@@ -89,8 +91,8 @@ const MobileWhyLXERA = () => {
 
                       {/* Expanded content */}
                       {expandedCard === capability.title && (
-                        <div className="mt-3 animate-fade-in-up">
-                          <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-3 leading-relaxed font-normal font-inter">
+                        <div className="mt-4 animate-fade-in-up">
+                          <p className="text-sm text-business-black/60 italic border-t border-gray-200 pt-4 leading-relaxed font-normal font-inter">
                             {capability.tangibleResults.description}
                           </p>
                         </div>

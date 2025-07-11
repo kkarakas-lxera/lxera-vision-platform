@@ -154,9 +154,9 @@ const MobilePlatformHighlights = () => {
     <>
       <section className="w-full py-16 px-4 bg-gradient-to-br from-smart-beige/30 via-white/60 to-smart-beige/40 relative overflow-hidden z-0 font-inter transition-all duration-1000 ease-in-out">
         <div className="max-w-7xl mx-auto relative z-0">
-          {/* Header - same as desktop */}
-          <div className="text-center mb-8 animate-fade-in-up">
-            <h2 className="text-2xl font-medium text-business-black mb-6 font-inter">
+          {/* Header */}
+          <div className="text-center mb-10 animate-fade-in-up">
+            <h2 className="text-2xl font-semibold text-business-black mb-6 font-inter">
               Platform Highlights
             </h2>
             <p className="text-base text-business-black/80 mb-2 max-w-3xl mx-auto font-normal font-inter">
@@ -167,31 +167,32 @@ const MobilePlatformHighlights = () => {
           {/* Swipeable Featured Cards */}
           <div 
             ref={cardsRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 mb-6"
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 mb-8 px-2"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {featuredFeatures.map((item, index) => (
               <Card
                 key={index}
-                className="flex-shrink-0 w-72 snap-center bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 shadow-lg rounded-2xl animate-fade-in-up"
+                className="flex-shrink-0 w-80 snap-center bg-white border-2 border-gray-200 rounded-3xl animate-fade-in-up"
                 style={{
                   animationDelay: `${250 + index * 60}ms`,
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}
               >
-                <CardContent className="p-4">
-                  <div className="mb-3 flex justify-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center">
-                      <item.icon className="w-6 h-6 text-business-black" />
+                <CardContent className="p-6">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center border-2 border-gray-200">
+                      <item.icon className="w-7 h-7 text-business-black" />
                     </div>
                   </div>
                   
-                  <h3 className="text-business-black font-medium text-base mb-1 font-inter text-center">{item.title}</h3>
-                  <p className="text-business-black/70 mb-3 text-sm font-normal font-inter text-center">{item.description}</p>
+                  <h3 className="text-business-black font-semibold text-lg mb-3 font-inter text-center leading-tight">{item.title}</h3>
+                  <p className="text-business-black/70 mb-5 text-sm font-normal font-inter text-center leading-relaxed">{item.description}</p>
                   
                   {/* Tap to reveal impact */}
                   <button
                     onClick={() => toggleCard(item.title)}
-                    className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-future-green hover:text-future-green/80 transition-colors py-2 bg-future-green/10 rounded-lg hover:bg-future-green/20"
+                    className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-business-black hover:bg-business-black/90 transition-all duration-200 py-3 px-4 rounded-xl border-2 border-gray-200 min-h-[48px] active:scale-95"
                   >
                     {expandedCard === item.title ? (
                       <>
@@ -200,7 +201,7 @@ const MobilePlatformHighlights = () => {
                       </>
                     ) : (
                       <>
-                        Show impact
+                        Learn More
                         <ChevronDown className="w-4 h-4" />
                       </>
                     )}
@@ -208,8 +209,8 @@ const MobilePlatformHighlights = () => {
 
                   {/* Expanded microcopy */}
                   {expandedCard === item.title && (
-                    <div className="mt-3 animate-fade-in-up">
-                      <p className="text-sm text-business-black/60 italic border-t border-future-green/20 pt-2 font-normal font-inter text-center">
+                    <div className="mt-4 animate-fade-in-up">
+                      <p className="text-sm text-business-black/70 font-medium border-t-2 border-gray-200 pt-4 font-inter text-center">
                         {item.microcopy}
                       </p>
                     </div>
@@ -219,16 +220,16 @@ const MobilePlatformHighlights = () => {
             ))}
           </div>
 
-          {/* Swipe Indicators */}
-          <div className="flex justify-center gap-2 mb-6">
+          {/* Progress Dots */}
+          <div className="flex justify-center gap-3 mb-8">
             {Array.from({ length: Math.ceil(featuredFeatures.length / 2) }).map((_, index) => (
               <div
                 key={index}
                 className={cn(
-                  "h-1.5 rounded-full transition-all duration-300",
+                  "h-2 rounded-full transition-all duration-300",
                   currentCard === index
                     ? "w-8 bg-future-green"
-                    : "w-1.5 bg-business-black/20"
+                    : "w-2 bg-business-black/30"
                 )}
               />
             ))}
@@ -238,7 +239,7 @@ const MobilePlatformHighlights = () => {
           <div className="text-center">
             <button
               onClick={() => setShowAllFeatures(!showAllFeatures)}
-              className="inline-flex items-center gap-2 text-future-green font-semibold hover:text-future-green/80 transition-colors py-2 px-4 bg-future-green/10 rounded-lg hover:bg-future-green/20"
+              className="inline-flex items-center gap-2 text-white font-semibold bg-business-black hover:bg-business-black/90 transition-all duration-200 py-3 px-6 rounded-xl border-2 border-gray-200 min-h-[48px] active:scale-95"
             >
               {showAllFeatures ? (
                 <>
@@ -256,24 +257,27 @@ const MobilePlatformHighlights = () => {
 
           {/* Additional Features - Grid */}
           {showAllFeatures && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 animate-fade-in-up">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 animate-fade-in-up px-2">
               {additionalFeatures.map((item, index) => (
                 <Card
                   key={index + 6}
-                  className="bg-gradient-to-br from-smart-beige/80 via-future-green/10 to-smart-beige/60 shadow-lg rounded-2xl"
+                  className="bg-white border-2 border-gray-200 rounded-3xl"
+                  style={{
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }}
                 >
-                  <CardContent className="p-4">
-                    <div className="mb-3 flex justify-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center">
-                        <item.icon className="w-5 h-5 text-business-black" />
+                  <CardContent className="p-6">
+                    <div className="mb-4 flex justify-center">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-future-green/25 to-smart-beige/30 flex items-center justify-center border-2 border-gray-200">
+                        <item.icon className="w-6 h-6 text-business-black" />
                       </div>
                     </div>
                     
-                    <h3 className="text-business-black font-medium text-sm mb-1 font-inter text-center">{item.title}</h3>
-                    <p className="text-business-black/70 mb-2 text-xs font-normal font-inter text-center">{item.description}</p>
+                    <h3 className="text-business-black font-semibold text-base mb-2 font-inter text-center leading-tight">{item.title}</h3>
+                    <p className="text-business-black/70 mb-3 text-sm font-normal font-inter text-center leading-relaxed">{item.description}</p>
                     
                     {/* Show microcopy directly for additional features */}
-                    <p className="text-xs text-business-black/60 italic text-center font-normal font-inter">
+                    <p className="text-sm text-business-black/70 font-medium text-center font-inter">
                       {item.microcopy}
                     </p>
                   </CardContent>
@@ -282,14 +286,14 @@ const MobilePlatformHighlights = () => {
             </div>
           )}
 
-          {/* Bottom text - same as desktop */}
-          <p className="text-business-black/70 mb-2 text-center text-sm mt-8 font-normal font-inter">
+          {/* Bottom text */}
+          <p className="text-business-black/70 mb-2 text-center text-sm mt-10 font-normal font-inter">
             Each feature designed and refined with real-world feedback for measurable results.
           </p>
         </div>
       </section>
 
-      {/* Section Separator - same as desktop */}
+      {/* Section Separator */}
       <div className="relative">
         <div className="h-8 bg-gradient-to-b from-smart-beige/30 via-smart-beige/50 to-future-green/10 transition-all duration-1000 ease-in-out"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-future-green/8 to-transparent"></div>
