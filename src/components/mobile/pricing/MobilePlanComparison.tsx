@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, X, BrainCircuit, Zap, BarChart3, Lightbulb, Users, Shield, HeadphonesIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -176,6 +176,10 @@ const MobilePlanComparison = () => {
     }
   ];
 
+  const [selectedPlan, setSelectedPlan] = useState<'core' | 'enterprise' | 'both'>('both');
+
+  const isDim = (plan: 'core' | 'enterprise') => selectedPlan !== 'both' && selectedPlan !== plan;
+
   const renderFeatureValue = (value: boolean) => {
     return value ? (
       <Check className="w-3 h-3 text-future-green" />
@@ -186,6 +190,18 @@ const MobilePlanComparison = () => {
 
   return (
     <div className="w-full animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+      {/* Plan Toggle */}
+      <div className="flex justify-center gap-2 mb-4">
+        {(['both','core','enterprise'] as const).map(p => (
+          <button
+            key={p}
+            onClick={() => setSelectedPlan(p)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${selectedPlan===p ? 'bg-future-green text-business-black border-future-green':'bg-white border-gray-300 text-business-black/60'}`}
+          >
+            {p==='both' ? 'Show Both' : p.charAt(0).toUpperCase()+p.slice(1)}
+          </button>
+        ))}
+      </div>
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
         <h3 className="text-lg font-semibold text-business-black mb-4 text-center">
           Compare plans and features
