@@ -205,17 +205,6 @@ const App = () => {
     }
   }, []);
 
-  // Focus management for early access modal
-  useEffect(() => {
-    if (earlyAccessModalOpen) {
-      if (!earlyAccessFormData.email && earlyAccessEmailRef.current) {
-        earlyAccessEmailRef.current.focus();
-      } else if (earlyAccessFormData.email && !earlyAccessFormData.name && earlyAccessNameRef.current) {
-        earlyAccessNameRef.current.focus();
-      }
-    }
-  }, [earlyAccessModalOpen, earlyAccessFormData.email, earlyAccessFormData.name]);
-
   const openDemoModal = (source: string) => {
     setDemoModalSource(source);
     setDemoModalOpen(true);
@@ -305,17 +294,6 @@ const App = () => {
       setLoading(false);
     }
   };
-
-  // Focus management for early access modal
-  useEffect(() => {
-    if (earlyAccessModalOpen) {
-      if (!earlyAccessFormData.email && earlyAccessEmailRef.current) {
-        earlyAccessEmailRef.current.focus();
-      } else if (earlyAccessFormData.email && !earlyAccessFormData.name && earlyAccessNameRef.current) {
-        earlyAccessNameRef.current.focus();
-      }
-    }
-  }, [earlyAccessModalOpen, earlyAccessFormData.email, earlyAccessFormData.name]);
 
   const handleEarlyAccessSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

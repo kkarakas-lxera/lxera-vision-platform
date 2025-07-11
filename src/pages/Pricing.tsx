@@ -80,7 +80,7 @@ const Pricing = ({ openDemoModal, openEarlyAccessModal }: PricingProps) => {
         <Navigation openDemoModal={openDemoModal} />
         
         {/* Mobile Pricing Section */}
-        <section className="md:hidden w-full pt-24 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter touch-pan-y">
+        <section className="md:hidden w-full pt-20 pb-8 px-4 bg-gradient-to-br from-smart-beige/60 via-future-green/8 to-smart-beige/80 relative font-inter overflow-y-auto">
           {/* Background gradient with better contrast */}
           <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-smart-beige/10"></div>
           

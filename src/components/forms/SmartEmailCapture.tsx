@@ -8,6 +8,14 @@ interface SmartEmailCaptureProps {
   buttonText?: string;
   className?: string;
   openEarlyAccessModal?: (source: string) => void;
+  // The following props exist on other call sites but are ignored by this
+  // simplified modal-trigger implementation. Adding them keeps TypeScript
+  // happy without changing behaviour.
+  placeholder?: string;
+  initialEmail?: string;
+  autoSubmit?: boolean;
+  requireCompanyEmail?: boolean;
+  onSuccess?: (email: string) => void;
 }
 
 const SmartEmailCapture: React.FC<SmartEmailCaptureProps> = ({

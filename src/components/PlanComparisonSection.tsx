@@ -1,5 +1,6 @@
 import { Check, X } from "lucide-react";
 import PricingContactSales from "./forms/PricingContactSales";
+import PricingEarlyAccess from "./forms/PricingEarlyAccess";
 
 const PlanComparisonSection = () => {
 
@@ -221,9 +222,9 @@ const PlanComparisonSection = () => {
               Need help choosing the right plan? Our team is here to help.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <button className="bg-future-green hover:bg-future-green/90 text-black px-8 py-3 rounded-xl text-sm font-medium transition-all hover:scale-105 hover:shadow-lg font-inter">
-                Start Free Trial
-              </button>
+              <PricingEarlyAccess
+                source="plan_comparison_free_trial"
+              />
               <PricingContactSales 
                 source="plan_comparison_section"
                 className="flex-1"
