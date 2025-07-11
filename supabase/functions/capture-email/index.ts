@@ -172,21 +172,13 @@ Beyond Learning | www.lxera.ai
         throw new Error('Failed to send email');
       }
 
-      console.log('Email sent successfully:', emailData);
+      // Email sent successfully
     } catch (emailErr) {
       console.error('Email sending failed:', emailErr);
       // Re-throw the error so the client knows email failed
       throw new Error('Failed to send magic link email. Please try again.');
     }
 
-    // Log email sent - commented out since we're using Resend for email tracking
-    // await supabase
-    //   .from('lead_email_log')
-    //   .insert({
-    //     lead_id: leadId,
-    //     email_type: 'magic_link',
-    //     subject: 'Complete your LXERA early access profile'
-    //   });
 
     return new Response(
       JSON.stringify({ 
