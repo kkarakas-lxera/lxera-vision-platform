@@ -281,7 +281,10 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
         !target.closest('[role="option"]') && // Don't close on Select options
         !target.closest('[role="listbox"]') && // Don't close on Select listbox
         !target.closest('[data-radix-popper-content-wrapper]') && // Don't close on Radix popper
-        !target.closest('[data-state="open"]')) { // Don't close on open select
+        !target.closest('[data-state="open"]') && // Don't close on open select
+        !target.closest('[data-radix-collection-item]') && // Don't close on select items
+        !target.closest('.select-content') && // Don't close on select content
+        !target.closest('[data-radix-select-content]')) { // Don't close on radix select content
       // Collapse but keep progress
       setIsExpanded(false);
     }
@@ -337,7 +340,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           </button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-sm w-[90vw] rounded-2xl p-4 bg-white">
+        <DialogContent className="max-w-sm w-[90vw] rounded-2xl p-4 bg-gradient-to-br from-gray-50 via-white to-gray-50">
           <div className="mb-3">
             <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
             <div className="flex items-center gap-2 mt-1">
@@ -357,7 +360,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               placeholder="Work email"
-              className="w-full h-12 text-base"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
               inputMode="email"
               autoComplete="email"
             />
@@ -366,14 +369,23 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Your full name"
-              className="w-full h-12 text-base"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
               autoComplete="name"
             />
-            <Select value={formData.companySize} onValueChange={(v) => setFormData(prev => ({ ...prev, companySize: v }))}>
+            <Select 
+              value={formData.companySize} 
+              onValueChange={(v) => {
+                setFormData(prev => ({ ...prev, companySize: v }));
+                // Prevent modal from closing on selection
+                setTimeout(() => {
+                  setIsExpanded(true);
+                }, 0);
+              }}
+            >
               <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
                 <SelectValue placeholder="Company size" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="select-content">
                 {companySizeOptions.map(opt => (
                   <SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>
                 ))}
@@ -426,7 +438,7 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4 bg-white">
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4 bg-gradient-to-br from-gray-50 via-white to-gray-50">
           {/* Same form as minimal variant */}
           <div className="mb-3">
             <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
@@ -439,22 +451,32 @@ const ProgressiveDemoCapture: React.FC<ProgressiveDemoCaptureProps> = ({
               value={formData.email}
               onChange={(e)=>setFormData(prev=>({...prev,email:e.target.value}))}
               placeholder="Work email"
-              className="w-full h-12 text-base"
-              autoComplete="email" inputMode="email"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+              autoComplete="email" 
+              inputMode="email"
             />
             <Input
               ref={nameRef}
               value={formData.name}
               onChange={(e)=>setFormData(prev=>({...prev,name:e.target.value}))}
               placeholder="Your full name"
-              className="w-full h-12 text-base"
+              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
               autoComplete="name"
             />
-            <Select value={formData.companySize} onValueChange={(v)=>setFormData(prev=>({...prev,companySize:v}))}>
+            <Select 
+              value={formData.companySize} 
+              onValueChange={(v)=>{
+                setFormData(prev=>({...prev,companySize:v}));
+                // Prevent modal from closing on selection
+                setTimeout(() => {
+                  setIsExpanded(true);
+                }, 0);
+              }}
+            >
               <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3">
                 <SelectValue placeholder="Company size" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="select-content">
                 {companySizeOptions.map(opt=>(<SelectItem key={opt.value} value={opt.value}>{opt.label} employees</SelectItem>))}
               </SelectContent>
             </Select>

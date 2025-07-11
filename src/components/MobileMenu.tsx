@@ -126,20 +126,12 @@ const MobileMenu: FC<MobileMenuProps> = ({
 
         <SheetContent
           side="left"
-          className="w-full sm:w-80 p-0 bg-smart-beige border-r border-gray-200 text-business-black"
+          className="w-full sm:w-80 p-0 bg-smart-beige border-r border-gray-200 text-business-black [&>button:last-child]:hidden"
         >
           {/* Header */}
           <SheetHeader className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-lg font-medium">Navigation</SheetTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleMobileMenuToggle}
-                className="h-8 w-8 text-business-black hover:bg-smart-beige/70"
-              >
-                <X className="h-5 w-5" />
-              </Button>
             </div>
           </SheetHeader>
 
