@@ -75,7 +75,7 @@ const Pricing = () => {
         <Navigation />
         
         {/* Mobile Pricing Section */}
-        <section className="md:hidden w-full pt-20 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
+        <section className="md:hidden w-full pt-24 pb-8 px-4 bg-gradient-to-br from-white via-smart-beige/20 to-white relative overflow-hidden font-inter">
           {/* Background gradient with better contrast */}
           <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-smart-beige/10"></div>
           

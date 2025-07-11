@@ -104,7 +104,7 @@ const MobileMenu: FC<MobileMenuProps> = ({
           source="mobile_menu"
           buttonText="Book Demo"
           variant="default"
-          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold text-sm px-4 py-2"
+          className="bg-future-green text-business-black hover:bg-future-green/90 font-semibold text-sm px-4 py-2 rounded-lg"
         />
       )}
 
