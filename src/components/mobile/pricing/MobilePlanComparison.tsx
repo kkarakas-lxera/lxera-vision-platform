@@ -223,11 +223,11 @@ const MobilePlanComparison = () => {
 
                       {/* Plan Comparison */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200">
+                        <div className={`flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200 ${isDim('core') ? 'opacity-40' : ''}`}>
                           <span className="text-[11px] font-medium text-gray-600">Core</span>
                           {renderFeatureValue(feature.core)}
                         </div>
-                        <div className="flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200">
+                        <div className={`flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200 ${isDim('enterprise') ? 'opacity-40' : ''}`}>
                           <span className="text-[11px] font-medium text-gray-600">Enterprise</span>
                           {renderFeatureValue(feature.enterprise)}
                         </div>
