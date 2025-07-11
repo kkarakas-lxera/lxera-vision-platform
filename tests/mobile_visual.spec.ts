@@ -1,7 +1,7 @@
 import { test, expect, devices } from '@playwright/test';
 
 // Base URL for site under test; override in CI or locally via env variable
-const BASE_URL = process.env.TEST_URL || 'http://localhost:5173';
+// Remove BASE_URL, use test's baseURL from config
 
 // All Solutions page paths to verify
 const solutionPages = [
@@ -45,31 +45,22 @@ for (const [deviceName, deviceProfile] of Object.entries(mobileDevices)) {
 
     for (const pagePath of solutionPages) {
       test(`No neon-yellow cards on ${pagePath}`, async ({ page }) => {
-        await page.goto(`${BASE_URL}${pagePath}`);
+        await page.goto(pagePath);
         await page.waitForLoadState('networkidle');
 
-        // Take snapshot for manual comparison
+        // Prepare screenshot path
+        const safePath = pagePath.replace(/[\/]/g, '_');
         await page.screenshot({
-          path: `tests/mobile-screenshots/${deviceName}${pagePath}.png`,
+          path: `tests/mobile-screenshots/${deviceName}_${safePath}.png`,
           fullPage: true,
         });
 
-        // Query cards (using common CSS in codebase)
-        const invalidCards = await page.$$eval(
-          '.rounded-3xl.border',
-          (elements, _isAllowedBackground) => {
-            // @ts-ignore - runtime injection
-            const checker = new Function('rgb', `return (${_isAllowedBackground})(rgb);`);
-            return elements.filter(el => {
-              const style = window.getComputedStyle(el as HTMLElement);
-              return !checker(style.backgroundColor);
-            }).length;
-          },
-          // Serialize helper into the browser context as string
-          isAllowedBackground.toString()
-        );
+        const invalidCards = await page.$$eval('.rounded-3xl.border', els => {
+          const allowed = ['rgb(255, 255, 255)', 'rgb(239, 239, 227)'];
+          return els.filter(el => !allowed.includes(getComputedStyle(el).backgroundColor)).length;
+        });
 
-        expect(invalidCards, 'No card should have disallowed background colour').toBe(0);
+        expect(invalidCards).toBe(0);
       });
     }
   });
