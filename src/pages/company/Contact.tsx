@@ -1,4 +1,3 @@
-import React from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileContact from "@/components/mobile/contact/MobileContact";
 import { Suspense, lazy } from "react";
+import type { FC } from "react";
 
 const PricingEarlyAccess = lazy(() => import("@/components/forms/PricingEarlyAccess"));
 
@@ -14,7 +14,7 @@ interface ContactProps {
   openEarlyAccessModal?: (source: string) => void;
 }
 
-const Contact: React.FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }) => {
+const Contact: FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Show mobile version for mobile devices
