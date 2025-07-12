@@ -88,14 +88,30 @@ const MobileContact: React.FC<MobileContactProps> = ({ openDemoModal, openEarlyA
             Have Questions?
           </h3>
           <p className="text-base text-business-black/70 mb-2">
-            We're here to help
+            We're here to help. Contact us via:
           </p>
-          <a
-            href="mailto:sales@lxera.ai"
-            className="text-base text-business-black hover:text-future-green transition-colors"
-          >
-            sales@lxera.ai
-          </a>
+          <div className="space-y-2">
+            <a
+              href="tel:+14155551234"
+              className="block text-base text-business-black hover:text-future-green transition-colors"
+            >
+              +1 (415) 555-1234
+            </a>
+            <a
+              href="mailto:sales@lxera.ai"
+              className="block text-base text-business-black hover:text-future-green transition-colors"
+            >
+              sales@lxera.ai
+            </a>
+            <a
+              href="https://maps.google.com/?q=2151+Park+Blvd,+Palo+Alto,+CA+94306"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-base text-business-black hover:text-future-green transition-colors"
+            >
+              2151 Park Blvd, Palo Alto
+            </a>
+          </div>
         </div>
       </section>
 

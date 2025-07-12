@@ -13,7 +13,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "@playwright/test"],
+    "types": ["vite/client", "@playwright/test", "react", "react-dom", "react-router-dom"],
 
     /* Linting */
     "strict": false,

@@ -5,6 +5,7 @@ import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileContact from "@/components/mobile/contact/MobileContact";
 import { Suspense, lazy } from "react";
+import type { FC } from "react";
 
 const PricingEarlyAccess = lazy(() => import("@/components/forms/PricingEarlyAccess"));
 
@@ -13,7 +14,7 @@ interface ContactProps {
   openEarlyAccessModal?: (source: string) => void;
 }
 
-const Contact: React.FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }) => {
+const Contact: FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Show mobile version for mobile devices
@@ -57,6 +58,7 @@ const Contact: React.FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }
                   source="contact_page_demo"
                   buttonText="Book Demo"
                   variant="default"
+                  className="w-full"
                   openDemoModal={openDemoModal}
                 />
               </CardContent>
@@ -91,14 +93,32 @@ const Contact: React.FC<ContactProps> = ({ openDemoModal, openEarlyAccessModal }
                 Have Questions?
               </h3>
               <p className="text-lg text-business-black/70 mb-4">
-                We're here to help you get started
+                We're here to help you get started. Reach us via phone, email or visit our office.
               </p>
-              <a 
-                href="mailto:sales@lxera.ai" 
-                className="text-lg text-future-green hover:text-emerald transition-colors duration-300 font-medium"
-              >
-                sales@lxera.ai
-              </a>
+              <div className="space-y-2 md:space-y-0 md:space-x-6 flex flex-col md:flex-row items-center justify-center">
+                <a
+                  href="tel:+14155551234"
+                  className="text-lg text-future-green hover:text-emerald transition-colors duration-300 font-medium"
+                >
+                  +1 (415) 555-1234
+                </a>
+                <span className="hidden md:inline text-business-black/40">•</span>
+                <a
+                  href="mailto:sales@lxera.ai"
+                  className="text-lg text-future-green hover:text-emerald transition-colors duration-300 font-medium"
+                >
+                  sales@lxera.ai
+                </a>
+                <span className="hidden md:inline text-business-black/40">•</span>
+                <a
+                  href="https://maps.google.com/?q=2151+Park+Blvd,+Palo+Alto,+CA+94306"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg text-future-green hover:text-emerald transition-colors duration-300 font-medium"
+                >
+                  2151 Park Blvd, Palo Alto
+                </a>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -142,6 +142,28 @@ const App = () => {
     company: '',
     companySize: ''
   });
+
+  // Autosave demo form progress
+  // Restore when modal opens
+  useEffect(() => {
+    if (demoModalOpen) {
+      try {
+        const saved = localStorage.getItem('demo_request_progress');
+        if (saved) {
+          setFormData(JSON.parse(saved));
+        }
+      } catch (_) {
+        // ignore JSON errors
+      }
+    }
+  }, [demoModalOpen]);
+
+  // Persist while typing
+  useEffect(() => {
+    if (demoModalOpen) {
+      localStorage.setItem('demo_request_progress', JSON.stringify(formData));
+    }
+  }, [formData, demoModalOpen]);
   const [loading, setLoading] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -447,13 +469,14 @@ const App = () => {
         description: 'We sent you a link to schedule your demo.',
       });
 
-      // Reset form
+      // Reset form and clear draft
       setFormData({
         email: '',
         name: '',
         company: '',
         companySize: ''
       });
+      localStorage.removeItem('demo_request_progress');
     } catch (error: any) {
       console.error('Demo request submission failed:', error);
       toast.error('Submission Failed', {
