@@ -477,6 +477,12 @@ const App = () => {
       return;
     }
 
+    // Check for company email
+    if (!isCompanyEmail(earlyAccessFormData.email)) {
+      toast.error('Please use your company email address');
+      return;
+    }
+
     // Validate name
     if (!earlyAccessFormData.name || earlyAccessFormData.name.trim().length < 2) {
       toast.error('Please enter your full name');
