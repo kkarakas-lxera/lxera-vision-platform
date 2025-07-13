@@ -10,7 +10,6 @@ import Logo from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import SmartEmailCapture from '@/components/forms/SmartEmailCapture';
 
 interface OTPInputProps {
   value: string;
@@ -369,23 +368,59 @@ const EarlyAccessLogin = () => {
                           Join our early access program to get started
                         </p>
                         <div className="space-y-2 w-full max-w-full overflow-hidden">
-                          <SmartEmailCapture
-                            source="login-page-not-found"
-                            variant="mobile"
-                            buttonText="Get Early Access"
-                            placeholder="Enter your work email"
-                            initialEmail={email}
-                            autoSubmit={false}
-                            requireCompanyEmail={true}
-                            className="w-full"
-                            onSuccess={(capturedEmail) => {
+                          <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            setIsLoading(true);
+                            try {
+                              const response = await supabase.functions.invoke('capture-email', {
+                                body: {
+                                  email: email.toLowerCase(),
+                                  name: '',
+                                  source: 'login-page-not-found',
+                                  utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+                                  utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+                                  utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign')
+                                }
+                              });
+
+                              if (response.error) throw response.error;
+
                               toast.success('Welcome to Early Access!', {
                                 description: 'Check your email to complete your profile.',
                               });
                               setSignupSuccess(true);
-                              setEmail(capturedEmail); // keep for information
-                            }}
-                          />
+                            } catch (error: any) {
+                              toast.error('Error', {
+                                description: error.message || 'Something went wrong. Please try again.',
+                              });
+                            } finally {
+                              setIsLoading(false);
+                            }
+                          }}>
+                            <Input
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="Enter your work email"
+                              className="mb-2 h-12 text-base"
+                              required
+                              disabled={isLoading}
+                            />
+                            <Button 
+                              type="submit"
+                              className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90 font-medium"
+                              disabled={isLoading || !email || !isCompanyEmail(email)}
+                            >
+                              {isLoading ? (
+                                <span className="flex items-center justify-center">
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Signing up...
+                                </span>
+                              ) : (
+                                'Get Early Access'
+                              )}
+                            </Button>
+                          </form>
                           <p className="text-xs text-gray-500">
                             30 seconds, no card required
                           </p>
