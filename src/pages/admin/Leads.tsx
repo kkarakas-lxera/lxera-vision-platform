@@ -15,25 +15,18 @@ import { motion } from 'framer-motion';
 
 interface UnifiedLead {
   id: string;
-  type: 'demo' | 'early_access';
+  lead_type: 'demo' | 'early_access' | 'contact_sales';
   email: string;
   name: string | null;
   company: string | null;
-  role: string | null;
-  use_case: string | null;
-  waitlist_position: number | null;
   company_size: string | null;
   source: string | null;
+  step_completed: number;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
-  status: string;
   created_at: string;
   updated_at: string | null;
-  progress_step: number;
-  calendly_scheduled: boolean;
-  scheduled_at: string | null;
-  completed_at: string | null;
 }
 
 const Leads = () => {
@@ -49,14 +42,18 @@ const Leads = () => {
     total: 0,
     demo: 0,
     earlyAccess: 0,
+    contactSales: 0,
     newToday: 0
   });
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchLeads();
-    fetchStats();
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [leads]);
 
   useEffect(() => {
     filterLeads();
@@ -83,26 +80,45 @@ const Leads = () => {
     }
   };
 
+  const getLeadStatus = (lead: UnifiedLead): string => {
+    if (lead.lead_type === 'demo') {
+      return lead.step_completed === 2 ? 'completed' : 'in_progress';
+    } else if (lead.lead_type === 'early_access') {
+      switch (lead.step_completed) {
+        case 1: return 'email_captured';
+        case 2: return 'profile_completed';
+        case 3: return 'verified';
+        default: return 'pending';
+      }
+    } else if (lead.lead_type === 'contact_sales') {
+      switch (lead.step_completed) {
+        case 1: return 'new';
+        case 2: return 'contacted';
+        case 3: return 'qualified';
+        case 4: return 'closed';
+        default: return 'new';
+      }
+    }
+    return 'unknown';
+  };
+
   const fetchStats = async () => {
     try {
-      // Get demo stats
-      const demoStats = await demoCaptureService.getDemoCaptureStats();
-      
-      // Get early access stats
-      const { data: earlyAccessData } = await supabase
-        .from('early_access_leads')
-        .select('created_at');
-
+      // Calculate stats from the leads array
       const today = new Date().toDateString();
-      const earlyAccessNewToday = earlyAccessData?.filter(item => 
-        new Date(item.created_at).toDateString() === today
-      ).length || 0;
+      const demoLeads = leads.filter(lead => lead.lead_type === 'demo');
+      const earlyAccessLeads = leads.filter(lead => lead.lead_type === 'early_access');
+      const contactSalesLeads = leads.filter(lead => lead.lead_type === 'contact_sales');
+      const newToday = leads.filter(lead => 
+        new Date(lead.created_at).toDateString() === today
+      ).length;
 
       setStats({
-        total: demoStats.total + (earlyAccessData?.length || 0),
-        demo: demoStats.total,
-        earlyAccess: earlyAccessData?.length || 0,
-        newToday: demoStats.newToday + earlyAccessNewToday
+        total: leads.length,
+        demo: demoLeads.length,
+        earlyAccess: earlyAccessLeads.length,
+        contactSales: contactSalesLeads.length,
+        newToday: newToday
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -123,12 +139,12 @@ const Leads = () => {
 
     // Type filter
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(lead => lead.type === typeFilter);
+      filtered = filtered.filter(lead => lead.lead_type === typeFilter);
     }
 
     // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(lead => lead.status === statusFilter);
+      filtered = filtered.filter(lead => getLeadStatus(lead) === statusFilter);
     }
 
     setFilteredLeads(filtered);
@@ -151,11 +167,14 @@ const Leads = () => {
   };
 
   const getProgressDisplay = (lead: UnifiedLead) => {
-    if (lead.type === 'demo') {
-      return `Step ${lead.progress_step}/2`;
+    if (lead.lead_type === 'demo') {
+      return `Step ${lead.step_completed}/2`;
+    } else if (lead.lead_type === 'contact_sales') {
+      const steps = ['New', 'Contacted', 'Qualified', 'Closed'];
+      return steps[lead.step_completed - 1] || 'New';
     } else {
       const steps = ['Email', 'Verified', 'Profile', 'Waitlisted'];
-      return steps[lead.progress_step - 1] || 'Email';
+      return steps[lead.step_completed - 1] || 'Email';
     }
   };
 
@@ -163,11 +182,11 @@ const Leads = () => {
     const csvContent = [
       ['Type', 'Email', 'Name', 'Company', 'Status', 'Source', 'Created'],
       ...filteredLeads.map(lead => [
-        lead.type,
+        lead.lead_type,
         lead.email,
         lead.name || '',
         lead.company || '',
-        lead.status,
+        getLeadStatus(lead),
         lead.source || '',
         new Date(lead.created_at).toLocaleDateString()
       ])
@@ -235,6 +254,15 @@ const Leads = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contact Sales</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.contactSales}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Today</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -268,6 +296,7 @@ const Leads = () => {
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="demo">Demo Requests</SelectItem>
                 <SelectItem value="early_access">Early Access</SelectItem>
+                <SelectItem value="contact_sales">Contact Sales</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -279,6 +308,9 @@ const Leads = () => {
                 <SelectItem value="captured">Captured</SelectItem>
                 <SelectItem value="email_captured">Email Captured</SelectItem>
                 <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="qualified">Qualified</SelectItem>
                 <SelectItem value="waitlisted">Waitlisted</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
@@ -314,14 +346,14 @@ const Leads = () => {
                       <p className="font-medium">{lead.name || lead.email}</p>
                       <p className="text-sm text-gray-600">{lead.company}</p>
                     </div>
-                    <Badge variant={getStatusBadgeVariant(lead.status)}>
-                      {lead.status}
+                    <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
+                      {getLeadStatus(lead)}
                     </Badge>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Type:</span>
                     <Badge variant="outline">
-                      {lead.type === 'demo' ? 'Demo' : 'Early Access'}
+                      {lead.lead_type === 'demo' ? 'Demo' : lead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
                     </Badge>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -350,7 +382,7 @@ const Leads = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Badge variant="outline">
-                        {lead.type === 'demo' ? 'Demo' : 'Early Access'}
+                        {lead.lead_type === 'demo' ? 'Demo' : lead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
                       </Badge>
                       <div>
                         <p className="font-medium">{lead.name || 'N/A'}</p>
@@ -361,8 +393,8 @@ const Leads = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <Badge variant={getStatusBadgeVariant(lead.status)}>
-                        {lead.status}
+                      <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
+                        {getLeadStatus(lead)}
                       </Badge>
                       <div className="text-sm text-gray-600">
                         {getProgressDisplay(lead)}
@@ -426,8 +458,8 @@ const Leads = () => {
                         <h3 className="text-2xl font-bold text-business-black">
                           {selectedLead.name || 'Unnamed Lead'}
                         </h3>
-                        <Badge variant={getStatusBadgeVariant(selectedLead.status)}>
-                          {selectedLead.status}
+                        <Badge variant={getStatusBadgeVariant(getLeadStatus(selectedLead))}>
+                          {getLeadStatus(selectedLead)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-gray-600 mb-2">
@@ -444,7 +476,7 @@ const Leads = () => {
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <Badge variant="outline" className="px-2 py-1">
-                          {selectedLead.type === 'demo' ? 'Demo Request' : 'Early Access'}
+                          {selectedLead.lead_type === 'demo' ? 'Demo Request' : selectedLead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales Inquiry'}
                         </Badge>
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -536,54 +568,10 @@ const Leads = () => {
                             </div>
                           </div>
                         )}
-                        {selectedLead.scheduled_at && (
-                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <div>
-                              <p className="font-medium text-sm">Demo Scheduled</p>
-                              <p className="text-xs text-gray-600">
-                                {new Date(selectedLead.scheduled_at).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        {selectedLead.completed_at && (
-                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <div>
-                              <p className="font-medium text-sm">Completed</p>
-                              <p className="text-xs text-gray-600">
-                                {new Date(selectedLead.completed_at).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   </div>
 
-                  {/* Additional Details */}
-                  {(selectedLead.use_case || selectedLead.waitlist_position) && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Additional Details</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {selectedLead.use_case && (
-                          <div>
-                            <p className="text-sm text-gray-600">Use Case</p>
-                            <p className="font-medium">{selectedLead.use_case}</p>
-                          </div>
-                        )}
-                        {selectedLead.waitlist_position && (
-                          <div>
-                            <p className="text-sm text-gray-600">Waitlist Position</p>
-                            <p className="font-medium">#{selectedLead.waitlist_position}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
                 </div>
 
                 {/* Sidebar */}
@@ -596,22 +584,14 @@ const Leads = () => {
                     <CardContent className="space-y-3">
                       <div>
                         <p className="text-sm text-gray-600">Current Status</p>
-                        <Badge variant={getStatusBadgeVariant(selectedLead.status)} className="mt-1">
-                          {selectedLead.status}
+                        <Badge variant={getStatusBadgeVariant(getLeadStatus(selectedLead))} className="mt-1">
+                          {getLeadStatus(selectedLead)}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Progress</p>
                         <p className="font-medium">{getProgressDisplay(selectedLead)}</p>
                       </div>
-                      {selectedLead.calendly_scheduled && (
-                        <div>
-                          <p className="text-sm text-gray-600">Demo Status</p>
-                          <Badge variant="default" className="mt-1">
-                            Scheduled
-                          </Badge>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
 
@@ -665,7 +645,7 @@ const Leads = () => {
                         <Mail className="w-4 h-4 mr-2" />
                         Send Email
                       </Button>
-                      {selectedLead.type === 'demo' && (
+                      {(selectedLead.lead_type === 'demo' || selectedLead.lead_type === 'contact_sales') && (
                         <Button
                           variant="outline"
                           className="w-full justify-start"
