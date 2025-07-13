@@ -390,6 +390,12 @@ const App = () => {
       return;
     }
 
+    // Check for company email
+    if (!isCompanyEmail(formData.email)) {
+      toast.error('Please use your company email address');
+      return;
+    }
+
     if (!formData.name || formData.name.trim().length < 2) {
       toast.error('Please enter your full name');
       return;
