@@ -524,57 +524,85 @@ const App = () => {
     <>
       {/* Global Demo Modal */}
       <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
-        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-4 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-          <div className="mb-3">
-            <h3 className="font-semibold text-sm text-business-black">Complete Your Demo Request</h3>
+        <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
+          <div className="mb-4 text-center">
+            <h3 className="font-semibold text-lg text-business-black">Book Your Demo</h3>
+            <p className="text-sm text-gray-600 mt-1">See how LXERA can transform your workforce</p>
           </div>
 
-          <form onSubmit={handleDemoSubmit} className="space-y-3">
-            <Input
-              ref={emailRef}
-              type="email"
-              value={formData.email}
-              onChange={(e)=>setFormData(prev=>({...prev,email:e.target.value}))}
-              placeholder="Work email"
-              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
-              autoComplete="email" 
-              inputMode="email"
-            />
-            <Input
-              ref={nameRef}
-              value={formData.name}
-              onChange={(e)=>setFormData(prev=>({...prev,name:e.target.value}))}
-              placeholder="Your full name"
-              className="w-full h-12 text-base border-gray-300 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
-              autoComplete="name"
-            />
-            <Select 
-              value={formData.companySize} 
-              onValueChange={(v)=>{
-                setFormData(prev=>({...prev,companySize:v}));
-              }}
+          <form onSubmit={handleDemoSubmit} className="space-y-4">
+            <div className="relative">
+              <Input
+                ref={emailRef}
+                type="email"
+                value={formData.email}
+                onChange={(e)=>setFormData(prev=>({...prev,email:e.target.value}))}
+                placeholder="Enter your work email"
+                className="w-full h-12 text-base border-gray-300 pl-10 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+                autoComplete="email" 
+                inputMode="email"
+                disabled={loading}
+              />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+            
+            <div className="relative">
+              <Input
+                ref={nameRef}
+                value={formData.name}
+                onChange={(e)=>setFormData(prev=>({...prev,name:e.target.value}))}
+                placeholder="Your full name"
+                className="w-full h-12 text-base border-gray-300 pl-10 focus:border-future-green focus:ring-future-green focus:ring-opacity-50"
+                autoComplete="name"
+                disabled={loading}
+              />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+            
+            <div className="relative">
+              <Select 
+                value={formData.companySize} 
+                onValueChange={(v)=>{
+                  setFormData(prev=>({...prev,companySize:v}));
+                }}
+                disabled={loading}
+              >
+                <SelectTrigger className="w-full h-12 text-base bg-white border-gray-300 pl-10 focus:border-future-green focus:ring-future-green focus:ring-opacity-50 hover:border-gray-400">
+                  <SelectValue placeholder="Number of employees" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300 shadow-lg">
+                  {companySizeOptions.map(opt=>(
+                    <SelectItem 
+                      key={opt.value} 
+                      value={opt.value}
+                      className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                    >
+                      {opt.label} employees
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+            
+            <Button 
+              type="submit" 
+              disabled={loading||!formData.email||!formData.name||!formData.companySize} 
+              className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90 font-medium rounded-full"
             >
-              <SelectTrigger className="w-full h-12 text-base bg-white/95 border-gray-300 px-3 focus:border-future-green focus:ring-future-green focus:ring-opacity-50 hover:border-gray-400">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-gray-500" />
-                  <SelectValue placeholder="Select number of employees" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="select-content bg-white border-gray-300 shadow-lg">
-                {companySizeOptions.map(opt=>(
-                  <SelectItem 
-                    key={opt.value} 
-                    value={opt.value}
-                    className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
-                  >
-                    {opt.label} employees
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit" disabled={loading||!formData.email||!formData.name||!formData.companySize} className="w-full h-12 bg-future-green text-business-black hover:bg-future-green/90">
-              {loading?<Loader2 className="w-4 h-4 animate-spin"/>:'Book Demo'}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Booking...</span>
+                </span>
+              ) : (
+                'Book Demo'
+              )}
             </Button>
+            
+            <p className="text-xs text-center text-gray-500">
+              Enterprise ready • Quick 15-min call • No obligation
+            </p>
           </form>
         </DialogContent>
       </Dialog>
