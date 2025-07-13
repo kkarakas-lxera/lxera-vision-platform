@@ -218,3 +218,51 @@ const ProgressiveDemoCapture = ({ source, openDemoModal }) => {
 **Files Modified**: 32 files including all pages, mobile components, and shared components
 
 **Key Learning**: State lifting is an effective pattern for sharing complex UI components (like modals) across an entire application while maintaining consistency and reducing duplication.
+
+### Yellow Border CSS Issue - HSL/RGB Mismatch
+**Problem**: Card components in the waiting room displayed bright yellow borders (rgb(255, 255, 0)) instead of gray on mobile devices.
+
+**Root Cause**: CSS variable `--border: 214 214 214` (RGB values) was being incorrectly interpreted as `hsl(214 214 214)` which is invalid HSL syntax. The browser falls back to yellow when HSL values are invalid.
+
+**Discovery Date**: January 2025
+
+**Technical Analysis**:
+1. **CSS Variable Definition**: `--border: 214 214 214` in base.css (intended as RGB)
+2. **Tailwind Usage**: Border utility applies `border-color: hsl(var(--border))`
+3. **Invalid HSL**: `hsl(214 214 214)` is invalid because HSL expects:
+   - H: 0-360 (degrees)
+   - S: 0-100% (percentage)
+   - L: 0-100% (percentage)
+4. **Browser Fallback**: Invalid HSL results in `rgb(255, 255, 0)` (yellow)
+
+**Fix Applied**:
+```css
+/* In index.css - Override for Card components */
+@layer base {
+  .rounded-3xl.border {
+    border-color: rgb(229, 231, 235) !important;
+  }
+  
+  .border-gray-200 {
+    border-color: rgb(229, 231, 235) !important;
+  }
+  
+  .border-slate-200 {
+    border-color: rgb(226, 232, 240) !important;
+  }
+}
+```
+
+**Also inline styles in WaitingRoom.tsx**:
+```tsx
+<Card className="..." style={{ borderColor: 'rgb(229, 231, 235)' }}>
+```
+
+**Debugging Method**:
+- Used Puppeteer DevTools inspection to identify exact CSS rules
+- Found wildcard `*` selector applying `border-color: hsl(var(--border))`
+- Verified 61 elements had yellow borders due to this issue
+
+**Key Learning**: When using CSS variables with color functions, ensure the variable format matches the function's expected input format (RGB values for rgb(), HSL values for hsl()).
+
+**Deployment Note**: Changes require Vercel deployment. Use `vercel --prod --force --yes` to force deploy if automatic deployment fails.

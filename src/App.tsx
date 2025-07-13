@@ -220,16 +220,15 @@ const App = () => {
     }
   }, []);
 
-  // Focus management for demo modal
+  // Focus management for demo modal - only focus on initial open
   useEffect(() => {
     if (demoModalOpen) {
-      if (!formData.email && emailRef.current) {
+      // Only focus on the first field when modal opens
+      if (emailRef.current) {
         emailRef.current.focus();
-      } else if (formData.email && !formData.name && nameRef.current) {
-        nameRef.current.focus();
       }
     }
-  }, [demoModalOpen, formData.email, formData.name]);
+  }, [demoModalOpen]);
 
   // Auto-save and restore early access form data
   useEffect(() => {
@@ -261,16 +260,15 @@ const App = () => {
     }
   }, []);
 
-  // Focus management for contact sales modal
+  // Focus management for contact sales modal - only focus on initial open
   useEffect(() => {
     if (contactSalesModalOpen) {
-      if (!contactSalesFormData.email && contactSalesEmailRef.current) {
+      // Only focus on the first field when modal opens
+      if (contactSalesEmailRef.current) {
         contactSalesEmailRef.current.focus();
-      } else if (contactSalesFormData.email && !contactSalesFormData.name && contactSalesNameRef.current) {
-        contactSalesNameRef.current.focus();
       }
     }
-  }, [contactSalesModalOpen, contactSalesFormData.email, contactSalesFormData.name]);
+  }, [contactSalesModalOpen]);
 
   const validateContactSalesForm = () => {
     const newErrors: Record<string, string> = {};
