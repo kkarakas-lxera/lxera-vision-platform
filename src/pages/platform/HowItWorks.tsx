@@ -209,13 +209,13 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                               {step.step}
                             </div>
                           </div>
-                          <CardTitle className="text-xl text-business-black transition-colors">
+                          <CardTitle className="text-xl font-bold text-business-black transition-colors">
                             {step.title}
                           </CardTitle>
                           
                           {/* Miller's Law: Show main benefit with tooltip for details */}
                           <div className="mt-2 flex items-center gap-2">
-                            <p className="text-sm font-medium text-future-green">
+                            <p className="text-base font-semibold bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
                               {step.mainBenefit}
                             </p>
                             <Tooltip>
@@ -252,14 +252,14 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                           {isExpanded ? (
                             <ul className="space-y-2 animate-fade-in">
                               {step.features.map((feature, featureIndex) => (
-                                <li key={featureIndex} className="flex items-center text-sm text-business-black/70">
+                                <li key={featureIndex} className="flex items-center text-sm text-business-black font-medium">
                                   <CheckCircle className="w-4 h-4 text-future-green mr-2 flex-shrink-0" />
                                   {feature}
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <div className="flex items-center justify-between text-sm text-business-black/50">
+                            <div className="flex items-center justify-between text-sm text-business-black font-medium">
                               <span>Click to explore features</span>
                               <ArrowRight className="w-4 h-4" />
                             </div>
@@ -309,7 +309,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                     <CardTitle className="text-lg text-business-black">
                       {touchpoint.title}
                     </CardTitle>
-                    <CardDescription className="text-business-black/60">
+                    <CardDescription className="text-business-black font-medium">
                       {touchpoint.description}
                     </CardDescription>
                   </CardHeader>
