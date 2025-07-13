@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 // @ts-nocheck
 /**
  * Automated test to verify mobile Request Demo modal renders correctly.

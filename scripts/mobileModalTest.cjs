@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* eslint-disable no-console */
+ 
 /**
  * Automated test to verify mobile Request Demo modal renders correctly.
  * Usage: node scripts/mobileModalTest.cjs [url]

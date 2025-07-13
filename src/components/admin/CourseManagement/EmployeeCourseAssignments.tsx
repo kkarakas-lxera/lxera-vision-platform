@@ -231,7 +231,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         // Get course title from plan or course
         let courseTitle = 'No Course Assigned';
         let skillsGapPercentage = 0;
-        let targetedSkills: string[] = [];
+        const targetedSkills: string[] = [];
         let modules: ModuleInfo[] = [];
 
         if (plan) {

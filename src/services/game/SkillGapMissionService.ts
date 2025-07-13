@@ -177,7 +177,7 @@ export class SkillGapMissionService {
       }
 
       // Get relevant course content if available
-      let contentSections: any[] = [];
+      const contentSections: any[] = [];
       if (contentId) {
         const { data: modules } = await supabase
           .from('cm_module_content')
