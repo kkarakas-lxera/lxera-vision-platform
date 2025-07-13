@@ -89,6 +89,22 @@ const EarlyAccessLogin = () => {
   const [resendTimer, setResendTimer] = useState(0);
   const [userNotFound, setUserNotFound] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [personalEmailError, setPersonalEmailError] = useState(false);
+
+  // Common personal/consumer email domains to block
+  const BLOCKED_DOMAINS = [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'icloud.com', 'me.com', 'protonmail.com', 'tutanota.com', 'yandex.com',
+    'mail.com', 'gmx.com', 'zoho.com', 'fastmail.com', 'hushmail.com',
+    'guerrillamail.com', 'mailinator.com', '10minutemail.com', 'tempmail.org',
+    'throwaway.email', 'maildrop.cc', 'sharklasers.com', 'grr.la'
+  ];
+
+  const isCompanyEmail = (email: string): boolean => {
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (!domain) return false;
+    return !BLOCKED_DOMAINS.includes(domain);
+  };
 
   // Resend timer countdown
   useEffect(() => {
@@ -103,6 +119,14 @@ const EarlyAccessLogin = () => {
     setIsLoading(true);
     setError('');
     setUserNotFound(false);
+    setPersonalEmailError(false);
+
+    // First check if it's a company email
+    if (!isCompanyEmail(email)) {
+      setPersonalEmailError(true);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Check if email exists in early access leads
@@ -248,7 +272,7 @@ const EarlyAccessLogin = () => {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {!userNotFound && (
+                  {!userNotFound && !personalEmailError && (
                     <form onSubmit={handleSendOTP} className="space-y-4">
                       <div>
                         <Label htmlFor="email" className="text-base font-bold text-business-black">Email address</Label>
@@ -258,7 +282,10 @@ const EarlyAccessLogin = () => {
                             id="email"
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              setPersonalEmailError(false);
+                            }}
                             required
                             placeholder="you@company.com"
                             className="pl-10 py-5 text-base border-2 border-gray-200 focus:border-future-green focus:ring-0 focus:outline-none transition-all bg-white backdrop-blur-sm placeholder:text-gray-400"
@@ -291,6 +318,38 @@ const EarlyAccessLogin = () => {
                     </form>
                   )}
 
+                  {/* Show this when user enters a personal email */}
+                  {personalEmailError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4 mt-4"
+                    >
+                      <Alert className="border-2 border-red-400/50 bg-gradient-to-br from-red-50 via-red-50/80 to-red-100/60 shadow-lg shadow-red-200/20">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <AlertDescription className="text-gray-800 font-medium">
+                          Please use your company email address
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <div className="text-center space-y-3">
+                        <p className="text-sm text-gray-600">
+                          Early access is available for business accounts only
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPersonalEmailError(false);
+                            setEmail('');
+                          }}
+                          className="text-sm text-business-black/80 hover:text-business-black font-bold transition-colors underline underline-offset-2"
+                        >
+                          Try with your work email
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Show this only after user submits email and they're not in the database */}
                   {userNotFound && !signupSuccess && (
                     <motion.div
@@ -317,7 +376,7 @@ const EarlyAccessLogin = () => {
                             placeholder="Enter your work email"
                             initialEmail={email}
                             autoSubmit={false}
-                            requireCompanyEmail={false}
+                            requireCompanyEmail={true}
                             className="w-full"
                             onSuccess={(capturedEmail) => {
                               toast.success('Welcome to Early Access!', {
