@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Calendar, Clock, FileText, User, Briefcase, Users, Target, AlertCircle, Mail } from 'lucide-react';
+import { X, Building2, Calendar, Clock, FileText, User, Briefcase, Users, Target, AlertCircle, Mail, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,10 @@ interface UnifiedLead {
 interface LeadDetailsPanelProps {
   selectedLead: UnifiedLead | null;
   onClose: () => void;
+  onDelete?: (lead: UnifiedLead) => void;
 }
 
-export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProps) {
+export function LeadDetailsPanel({ selectedLead, onClose, onDelete }: LeadDetailsPanelProps) {
   if (!selectedLead) return null;
 
   const getLeadStatus = (lead: UnifiedLead): string => {
@@ -316,6 +317,16 @@ export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProp
                   >
                     <Calendar className="w-4 h-4 mr-2" />
                     Schedule Demo
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                    onClick={() => onDelete(selectedLead)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Lead
                   </Button>
                 )}
               </div>
