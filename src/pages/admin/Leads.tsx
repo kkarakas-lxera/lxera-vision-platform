@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Download, Users, Calendar, Target, TrendingUp, Filter, Mail, Building2, User, Tag, Clock, Globe, X, ArrowLeft, Keyboard, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { demoCaptureService } from '@/services/demoCaptureService';
@@ -47,6 +48,8 @@ const Leads = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<UnifiedLead | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     demo: 0,
@@ -283,61 +286,105 @@ const Leads = () => {
   const handleDeleteClick = (lead: UnifiedLead, e?: React.MouseEvent) => {
     e?.stopPropagation(); // Prevent lead selection when clicking delete
     setLeadToDelete(lead);
+    setIsBulkDelete(false);
     setDeleteDialogOpen(true);
   };
 
+  const handleBulkDelete = () => {
+    if (selectedLeadIds.size === 0) return;
+    setIsBulkDelete(true);
+    setDeleteDialogOpen(true);
+  };
+
+  const toggleLeadSelection = (leadId: string) => {
+    const newSelection = new Set(selectedLeadIds);
+    if (newSelection.has(leadId)) {
+      newSelection.delete(leadId);
+    } else {
+      newSelection.add(leadId);
+    }
+    setSelectedLeadIds(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLeadIds.size === filteredLeads.length) {
+      setSelectedLeadIds(new Set());
+    } else {
+      setSelectedLeadIds(new Set(filteredLeads.map(lead => lead.id)));
+    }
+  };
+
   const handleDeleteConfirm = async () => {
-    if (!leadToDelete) return;
+    if (!isBulkDelete && !leadToDelete) return;
+    if (isBulkDelete && selectedLeadIds.size === 0) return;
     
     setIsDeleting(true);
     try {
-      // Determine which table to update based on lead type
-      let tableName: string;
-      switch (leadToDelete.lead_type) {
-        case 'demo':
-          tableName = 'demo_captures';
-          break;
-        case 'early_access':
-          tableName = 'early_access_leads';
-          break;
-        case 'contact_sales':
-          tableName = 'contact_sales';
-          break;
-        default:
-          throw new Error('Unknown lead type');
+      const leadsToDelete = isBulkDelete 
+        ? leads.filter(lead => selectedLeadIds.has(lead.id))
+        : [leadToDelete!];
+
+      // Group leads by type for batch operations
+      const leadsByType = leadsToDelete.reduce((acc, lead) => {
+        if (!acc[lead.lead_type]) acc[lead.lead_type] = [];
+        acc[lead.lead_type].push(lead.id);
+        return acc;
+      }, {} as Record<string, string[]>);
+
+      // Delete from each table
+      for (const [leadType, leadIds] of Object.entries(leadsByType)) {
+        let tableName: string;
+        switch (leadType) {
+          case 'demo':
+            tableName = 'demo_captures';
+            break;
+          case 'early_access':
+            tableName = 'early_access_leads';
+            break;
+          case 'contact_sales':
+            tableName = 'contact_sales';
+            break;
+          default:
+            continue;
+        }
+
+        // Soft delete by setting deleted_at
+        const { error } = await supabase
+          .from(tableName)
+          .update({ deleted_at: new Date().toISOString() })
+          .in('id', leadIds);
+
+        if (error) throw error;
       }
-
-      // Soft delete by setting deleted_at
-      const { error } = await supabase
-        .from(tableName)
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', leadToDelete.id);
-
-      if (error) throw error;
 
       // Update local state
-      setLeads(leads.filter(lead => lead.id !== leadToDelete.id));
+      const deletedIds = new Set(leadsToDelete.map(lead => lead.id));
+      setLeads(leads.filter(lead => !deletedIds.has(lead.id)));
       
-      // Clear selection if deleted lead was selected
-      if (selectedLead?.id === leadToDelete.id) {
+      // Clear selections
+      if (selectedLead && deletedIds.has(selectedLead.id)) {
         setSelectedLead(null);
       }
+      setSelectedLeadIds(new Set());
 
       toast({
-        title: 'Lead deleted',
-        description: 'The lead has been successfully removed.',
+        title: isBulkDelete ? 'Leads deleted' : 'Lead deleted',
+        description: isBulkDelete 
+          ? `${leadsToDelete.length} leads have been successfully removed.`
+          : 'The lead has been successfully removed.',
       });
     } catch (error) {
-      console.error('Error deleting lead:', error);
+      console.error('Error deleting lead(s):', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete the lead. Please try again.',
+        description: 'Failed to delete the lead(s). Please try again.',
         variant: 'destructive'
       });
     } finally {
       setIsDeleting(false);
       setDeleteDialogOpen(false);
       setLeadToDelete(null);
+      setIsBulkDelete(false);
     }
   };
 
@@ -571,6 +618,12 @@ const Leads = () => {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
+            {selectedLeadIds.size > 0 && (
+              <Button onClick={handleBulkDelete} variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete ({selectedLeadIds.size})
+              </Button>
+            )}
             {!isMobile && (
               <Button variant="ghost" size="sm" className="text-gray-500">
                 <Keyboard className="h-4 w-4 mr-1" />
@@ -583,8 +636,16 @@ const Leads = () => {
 
       {/* Leads Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Leads ({filteredLeads.length})</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-3">
+            {filteredLeads.length > 0 && (
+              <Checkbox
+                checked={selectedLeadIds.size === filteredLeads.length}
+                onCheckedChange={toggleSelectAll}
+              />
+            )}
+            All Leads ({filteredLeads.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isMobile ? (
@@ -594,16 +655,22 @@ const Leads = () => {
                   key={lead.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`border rounded-lg p-4 space-y-2 cursor-pointer hover:shadow-md transition-all duration-200 ${
+                  className={`border rounded-lg p-4 space-y-2 hover:shadow-md transition-all duration-200 ${
                     selectedLead?.id === lead.id ? 'ring-2 ring-future-green border-future-green' : ''
                   }`}
-                  onClick={() => handleLeadClick(lead)}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-medium">{lead.name || lead.email}</p>
-                      <p className="text-sm text-gray-600">{lead.company}</p>
-                    </div>
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedLeadIds.has(lead.id)}
+                      onCheckedChange={() => toggleLeadSelection(lead.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex-1 cursor-pointer" onClick={() => handleLeadClick(lead)}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-medium">{lead.name || lead.email}</p>
+                          <p className="text-sm text-gray-600">{lead.company}</p>
+                        </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
                         {getLeadStatus(lead)}
@@ -618,19 +685,22 @@ const Leads = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type:</span>
-                    <Badge variant="outline">
-                      {lead.lead_type === 'demo' ? 'Demo' : lead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Progress:</span>
-                    <span>{getProgressDisplay(lead)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Created:</span>
-                    <span>{new Date(lead.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Type:</span>
+                        <Badge variant="outline">
+                          {lead.lead_type === 'demo' ? 'Demo' : lead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Progress:</span>
+                        <span>{getProgressDisplay(lead)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Created:</span>
+                        <span>{new Date(lead.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -642,12 +712,17 @@ const Leads = () => {
                   key={lead.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`group bg-white rounded-lg border border-gray-200 p-5 hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer relative overflow-hidden ${
+                  className={`group bg-white rounded-lg border border-gray-200 p-5 hover:shadow-lg hover:border-gray-300 transition-all duration-200 relative overflow-hidden ${
                     selectedLead?.id === lead.id ? 'ring-2 ring-future-green border-future-green' : ''
                   }`}
-                  onClick={() => handleLeadClick(lead)}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Checkbox
+                      checked={selectedLeadIds.has(lead.id)}
+                      onCheckedChange={() => toggleLeadSelection(lead.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex items-center justify-between flex-1 cursor-pointer" onClick={() => handleLeadClick(lead)}>
                     {/* Left side - Lead type, Name/Email, Company */}
                     <div className="flex items-center gap-6 flex-1">
                       {/* Lead Type Badge */}
@@ -690,6 +765,7 @@ const Leads = () => {
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
+                    </div>
                     </div>
                   </div>
                   
@@ -788,10 +864,15 @@ const Leads = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isBulkDelete ? `Delete ${selectedLeadIds.size} Leads` : 'Delete Lead'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this lead? This action cannot be undone.
-              {leadToDelete && (
+              {isBulkDelete 
+                ? `Are you sure you want to delete ${selectedLeadIds.size} leads? This action cannot be undone.`
+                : 'Are you sure you want to delete this lead? This action cannot be undone.'
+              }
+              {!isBulkDelete && leadToDelete && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-700">
                     <strong>Name:</strong> {leadToDelete.name || 'N/A'}
@@ -802,6 +883,28 @@ const Leads = () => {
                   <p className="text-sm text-gray-700">
                     <strong>Type:</strong> {leadToDelete.lead_type === 'demo' ? 'Demo Request' : leadToDelete.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
                   </p>
+                </div>
+              )}
+              {isBulkDelete && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">
+                    <strong>Selected leads breakdown:</strong>
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                    {(() => {
+                      const selectedLeads = leads.filter(lead => selectedLeadIds.has(lead.id));
+                      const breakdown = selectedLeads.reduce((acc, lead) => {
+                        acc[lead.lead_type] = (acc[lead.lead_type] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>);
+                      
+                      return Object.entries(breakdown).map(([type, count]) => (
+                        <li key={type}>
+                          • {type === 'demo' ? 'Demo Requests' : type === 'early_access' ? 'Early Access' : 'Contact Sales'}: {count}
+                        </li>
+                      ));
+                    })()}
+                  </ul>
                 </div>
               )}
             </AlertDialogDescription>
