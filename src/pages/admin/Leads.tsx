@@ -35,9 +35,11 @@ const Leads = () => {
   const [filteredLeads, setFilteredLeads] = useState<UnifiedLead[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [activePreset, setActivePreset] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<UnifiedLead | null>(null);
+  const [isNewTodayFilter, setIsNewTodayFilter] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     demo: 0,
@@ -179,7 +181,7 @@ const Leads = () => {
       case 'total':
         // Clear all filters
         setTypeFilter('all');
-        setStatusFilter('all');
+        setActivePreset('all');
         setSearchTerm('');
         break;
       case 'demo':
@@ -200,7 +202,7 @@ const Leads = () => {
         setFilteredLeads(todayLeads);
         // Clear other filters to show we're in "new today" mode
         setTypeFilter('all');
-        setStatusFilter('all');
+        setActivePreset('all');
         break;
     }
   };
@@ -282,7 +284,7 @@ const Leads = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card 
           className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-            typeFilter === 'all' && statusFilter === 'all' && searchTerm === '' 
+            typeFilter === 'all' && activePreset === 'all' && searchTerm === '' 
               ? 'ring-2 ring-future-green border-future-green' 
               : 'hover:border-gray-300'
           }`}
@@ -355,7 +357,8 @@ const Leads = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>Filter & Search</CardTitle>
+          <CardDescription>Find leads quickly with smart presets</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
