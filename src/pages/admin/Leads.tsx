@@ -64,53 +64,6 @@ const Leads = () => {
     filterLeads();
   }, [leads, searchTerm, typeFilter, activePreset, isNewTodayFilter]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      switch(e.key.toLowerCase()) {
-        case '/':
-          e.preventDefault();
-          // Focus search input
-          const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-          searchInput?.focus();
-          break;
-        case 'a':
-          if (e.ctrlKey || e.metaKey) return; // Don't interfere with select all
-          setActivePreset('all');
-          break;
-        case 'r':
-          if (e.ctrlKey || e.metaKey) return; // Don't interfere with refresh
-          setActivePreset('action_required');
-          break;
-        case 'c':
-          setActivePreset('completed');
-          break;
-        case 'w':
-          setActivePreset('this_week');
-          break;
-        case 'escape':
-          setSelectedLead(null);
-          break;
-        case 'e':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            exportToCSV();
-          }
-          break;
-        case '?':
-          e.preventDefault();
-          setShowKeyboardShortcuts(!showKeyboardShortcuts);
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [showKeyboardShortcuts, exportToCSV]);
-
   const fetchLeads = async () => {
     try {
       const { data, error } = await supabase
@@ -322,6 +275,53 @@ const Leads = () => {
   const handleLeadClick = (lead: UnifiedLead) => {
     setSelectedLead(selectedLead?.id === lead.id ? null : lead);
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch(e.key.toLowerCase()) {
+        case '/':
+          e.preventDefault();
+          // Focus search input
+          const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+          searchInput?.focus();
+          break;
+        case 'a':
+          if (e.ctrlKey || e.metaKey) return; // Don't interfere with select all
+          setActivePreset('all');
+          break;
+        case 'r':
+          if (e.ctrlKey || e.metaKey) return; // Don't interfere with refresh
+          setActivePreset('action_required');
+          break;
+        case 'c':
+          setActivePreset('completed');
+          break;
+        case 'w':
+          setActivePreset('this_week');
+          break;
+        case 'escape':
+          setSelectedLead(null);
+          break;
+        case 'e':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            exportToCSV();
+          }
+          break;
+        case '?':
+          e.preventDefault();
+          setShowKeyboardShortcuts(!showKeyboardShortcuts);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showKeyboardShortcuts, exportToCSV]);
 
   if (loading) {
     return (
