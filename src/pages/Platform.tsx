@@ -2,15 +2,20 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, Sparkles, BarChart3, Lightbulb, MessageCircle, Shield, Plug, ArrowRight } from "lucide-react";
+import { Target, Sparkles, BarChart3, Lightbulb, MessageCircle, Shield, Plug, ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProgressiveDemoCapture from "@/components/forms/ProgressiveDemoCapture";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
 
 interface PlatformProps {
   openDemoModal: (source: string) => void;
 }
 
 const Platform = ({ openDemoModal }: PlatformProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
 
   const platformFeatures = [
     {
@@ -116,12 +121,19 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Desktop Grid - Show all cards */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
             {platformFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <Link key={index} to={feature.href}>
-                  <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200">
+                <Link 
+                  key={index} 
+                  to={feature.href}
+                  className={index === 0 ? "md:col-span-2" : ""}
+                >
+                  <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 ${
+                    index === 0 ? 'ring-2 ring-future-green' : ''
+                  }`}>
                     <CardHeader>
                       <div className={`w-16 h-16 rounded-2xl ${feature.color} flex items-center justify-center mb-4`}>
                         <IconComponent className={`w-8 h-8 ${feature.iconColor}`} />
@@ -132,14 +144,82 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
                       <CardDescription className="text-base">
                         {feature.description}
                       </CardDescription>
-                      <div className="mt-4 flex items-center text-business-black font-medium">
-                        Learn more <ArrowRight className="w-4 h-4 ml-2" />
-                      </div>
                     </CardContent>
                   </Card>
                 </Link>
               );
             })}
+          </div>
+
+          {/* Mobile - Show first 3 cards + collapsible for rest */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-1 gap-4">
+              {platformFeatures.slice(0, 3).map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <Link key={index} to={feature.href}>
+                    <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 ${
+                      index === 0 ? 'ring-2 ring-future-green' : ''
+                    }`}>
+                      <CardHeader>
+                        <div className={`w-16 h-16 rounded-2xl ${feature.color} flex items-center justify-center mb-4`}>
+                          <IconComponent className={`w-8 h-8 ${feature.iconColor}`} />
+                        </div>
+                        <CardTitle className="text-xl">{feature.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription className="text-base">
+                          {feature.description}
+                        </CardDescription>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Collapsible section for remaining cards (4-7) */}
+            <Collapsible
+              open={showAllFeatures}
+              onOpenChange={setShowAllFeatures}
+              className="mt-6"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full py-4 px-6 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 text-business-black font-medium"
+                >
+                  <span>View More Platform Features</span>
+                  <ChevronDown className={`ml-2 h-5 w-5 transition-transform duration-300 ${
+                    showAllFeatures ? 'rotate-180' : ''
+                  }`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-6">
+                <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-top duration-300">
+                  {platformFeatures.slice(3).map((feature, index) => {
+                    const IconComponent = feature.icon;
+                    return (
+                      <Link key={index + 3} to={feature.href}>
+                        <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200">
+                          <CardHeader>
+                            <div className={`w-16 h-16 rounded-2xl ${feature.color} flex items-center justify-center mb-4`}>
+                              <IconComponent className={`w-8 h-8 ${feature.iconColor}`} />
+                            </div>
+                            <CardTitle className="text-xl">{feature.title}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <CardDescription className="text-base">
+                              {feature.description}
+                            </CardDescription>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
       </section>

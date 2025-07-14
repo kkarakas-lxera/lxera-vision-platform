@@ -840,7 +840,7 @@ const App = () => {
             {/* Public routes - Pass openDemoModal and openEarlyAccessModal to pages that need them */}
             <Route path="/" element={<Index openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} />} />
             <Route path="/pricing" element={<PageSuspense><Pricing openDemoModal={openDemoModal} openEarlyAccessModal={openEarlyAccessModal} openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
-            <Route path="/solutions" element={<PageSuspense><Solutions /></PageSuspense>} />
+            <Route path="/solutions" element={<PageSuspense><Solutions openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/platform" element={<PageSuspense><Platform openDemoModal={openDemoModal} /></PageSuspense>} />
             <Route path="/resources" element={<PageSuspense><Resources /></PageSuspense>} />
             <Route path="/company/about" element={<PageSuspense><About openContactSalesModal={openContactSalesModal} /></PageSuspense>} />
