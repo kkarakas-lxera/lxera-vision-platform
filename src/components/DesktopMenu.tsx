@@ -373,7 +373,7 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection, openDemoModal 
         {/* Show Go to Dashboard when authenticated, Sign In when not */}
         {user && userProfile ? (
           <Link to={
-            userProfile.role === 'super_admin' ? '/admin' : 
+            userProfile.role === 'super_admin' ? '/admin-login' : 
             userProfile.role === 'company_admin' ? '/dashboard' : 
             '/learner'
           }>
