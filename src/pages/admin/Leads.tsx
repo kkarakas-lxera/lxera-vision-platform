@@ -35,7 +35,7 @@ const Leads = () => {
   const [filteredLeads, setFilteredLeads] = useState<UnifiedLead[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [activePreset, setActivePreset] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<UnifiedLead | null>(null);
   const [stats, setStats] = useState({
@@ -57,7 +57,7 @@ const Leads = () => {
 
   useEffect(() => {
     filterLeads();
-  }, [leads, searchTerm, typeFilter, statusFilter]);
+  }, [leads, searchTerm, typeFilter, activePreset]);
 
   const fetchLeads = async () => {
     try {
@@ -142,12 +142,67 @@ const Leads = () => {
       filtered = filtered.filter(lead => lead.lead_type === typeFilter);
     }
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(lead => getLeadStatus(lead) === statusFilter);
+    // Preset filter
+    if (activePreset !== 'all') {
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      switch (activePreset) {
+        case 'action_required':
+          // Show leads that need attention (new, in_progress, email_captured, etc.)
+          filtered = filtered.filter(lead => {
+            const status = getLeadStatus(lead);
+            return ['new', 'in_progress', 'captured', 'email_captured', 'contacted', 'qualified'].includes(status);
+          });
+          break;
+        case 'completed':
+          // Show completed/closed leads
+          filtered = filtered.filter(lead => {
+            const status = getLeadStatus(lead);
+            return ['completed', 'closed', 'verified', 'profile_completed', 'waitlisted'].includes(status);
+          });
+          break;
+        case 'this_week':
+          // Show leads from the last 7 days
+          filtered = filtered.filter(lead => 
+            new Date(lead.created_at) >= oneWeekAgo
+          );
+          break;
+      }
     }
 
     setFilteredLeads(filtered);
+  };
+
+  const handleStatCardClick = (cardType: string) => {
+    switch (cardType) {
+      case 'total':
+        // Clear all filters
+        setTypeFilter('all');
+        setStatusFilter('all');
+        setSearchTerm('');
+        break;
+      case 'demo':
+        setTypeFilter('demo');
+        break;
+      case 'early_access':
+        setTypeFilter('early_access');
+        break;
+      case 'contact_sales':
+        setTypeFilter('contact_sales');
+        break;
+      case 'new_today':
+        // Filter by today's date
+        const today = new Date().toDateString();
+        const todayLeads = leads.filter(lead => 
+          new Date(lead.created_at).toDateString() === today
+        );
+        setFilteredLeads(todayLeads);
+        // Clear other filters to show we're in "new today" mode
+        setTypeFilter('all');
+        setStatusFilter('all');
+        break;
+    }
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -225,7 +280,14 @@ const Leads = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+            typeFilter === 'all' && statusFilter === 'all' && searchTerm === '' 
+              ? 'ring-2 ring-future-green border-future-green' 
+              : 'hover:border-gray-300'
+          }`}
+          onClick={() => handleStatCardClick('total')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -234,7 +296,12 @@ const Leads = () => {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+            typeFilter === 'demo' ? 'ring-2 ring-future-green border-future-green' : 'hover:border-gray-300'
+          }`}
+          onClick={() => handleStatCardClick('demo')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Demo Requests</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -243,7 +310,12 @@ const Leads = () => {
             <div className="text-2xl font-bold">{stats.demo}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+            typeFilter === 'early_access' ? 'ring-2 ring-future-green border-future-green' : 'hover:border-gray-300'
+          }`}
+          onClick={() => handleStatCardClick('early_access')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Early Access</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
@@ -252,7 +324,12 @@ const Leads = () => {
             <div className="text-2xl font-bold">{stats.earlyAccess}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+            typeFilter === 'contact_sales' ? 'ring-2 ring-future-green border-future-green' : 'hover:border-gray-300'
+          }`}
+          onClick={() => handleStatCardClick('contact_sales')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Contact Sales</CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
@@ -261,7 +338,10 @@ const Leads = () => {
             <div className="text-2xl font-bold">{stats.contactSales}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-gray-300"
+          onClick={() => handleStatCardClick('new_today')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Today</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -299,22 +379,44 @@ const Leads = () => {
                 <SelectItem value="contact_sales">Contact Sales</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="captured">Captured</SelectItem>
-                <SelectItem value="email_captured">Email Captured</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="contacted">Contacted</SelectItem>
-                <SelectItem value="qualified">Qualified</SelectItem>
-                <SelectItem value="waitlisted">Waitlisted</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+          </div>
+          {/* Smart Filter Presets */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              variant={activePreset === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActivePreset('all')}
+              className="transition-all"
+            >
+              All Leads
+            </Button>
+            <Button
+              variant={activePreset === 'action_required' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActivePreset('action_required')}
+              className="transition-all"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Action Required
+            </Button>
+            <Button
+              variant={activePreset === 'completed' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActivePreset('completed')}
+              className="transition-all"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Completed
+            </Button>
+            <Button
+              variant={activePreset === 'this_week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActivePreset('this_week')}
+              className="transition-all"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              This Week
+            </Button>
             <Button onClick={exportToCSV} variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -374,38 +476,54 @@ const Leads = () => {
                   key={lead.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer ${
+                  className={`group bg-white rounded-lg border border-gray-200 p-5 hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer relative overflow-hidden ${
                     selectedLead?.id === lead.id ? 'ring-2 ring-future-green border-future-green' : ''
                   }`}
                   onClick={() => handleLeadClick(lead)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline">
+                    {/* Left side - Lead type, Name/Email, Company */}
+                    <div className="flex items-center gap-6 flex-1">
+                      {/* Lead Type Badge */}
+                      <Badge 
+                        variant="outline" 
+                        className="shrink-0 text-xs font-medium"
+                      >
                         {lead.lead_type === 'demo' ? 'Demo' : lead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales'}
                       </Badge>
-                      <div>
-                        <p className="font-medium">{lead.name || 'N/A'}</p>
-                        <p className="text-sm text-gray-600">{lead.email}</p>
+                      
+                      {/* Primary Info - Name & Email */}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-900 text-base truncate">
+                          {lead.name || 'Unnamed Lead'}
+                        </p>
+                        <p className="text-sm text-gray-600 truncate mt-0.5">
+                          {lead.email}
+                        </p>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {lead.company || 'N/A'}
+                      
+                      {/* Company */}
+                      <div className="text-sm text-gray-700 font-medium truncate max-w-[200px]">
+                        {lead.company || 'No Company'}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
+                    
+                    {/* Right side - Status Badge */}
+                    <div className="ml-6">
+                      <Badge 
+                        variant={getStatusBadgeVariant(getLeadStatus(lead))}
+                        className="text-xs font-medium"
+                      >
                         {getLeadStatus(lead)}
                       </Badge>
-                      <div className="text-sm text-gray-600">
-                        {getProgressDisplay(lead)}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {lead.source || 'N/A'}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(lead.created_at).toLocaleDateString()}
-                      </div>
                     </div>
+                  </div>
+                  
+                  {/* Hover Preview - Shows one additional detail */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 px-5 py-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
+                    <p className="text-xs text-gray-600">
+                      Created {new Date(lead.created_at).toLocaleDateString()} • {getProgressDisplay(lead)}
+                    </p>
                   </div>
                 </motion.div>
               ))}
