@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
 
@@ -70,14 +70,15 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-4xl w-full p-0 bg-black rounded-2xl"
-        aria-describedby="video-desc"
         aria-modal="true"
-        aria-label="Demonstration video modal"
       >
+        <DialogTitle className="sr-only">
+          {videoCaption || "LXERA Demo Video"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          LXERA feature demonstration video {videoCaption ? `about ${videoCaption}` : ""}
+        </DialogDescription>
         <div className="aspect-video w-full relative rounded-2xl overflow-hidden">
-          <div id="video-desc" className="sr-only">
-            LXERA feature demo video {videoCaption ?? ""}
-          </div>
           {isLoading && !hasError && (
             <div className="absolute inset-0 flex items-center justify-center bg-business-black/80 rounded-lg animate-pulse">
               <div className="text-center">

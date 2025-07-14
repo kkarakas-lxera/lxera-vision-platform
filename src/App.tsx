@@ -16,7 +16,7 @@ import { ClarityProvider } from "@/components/ClarityProvider";
 import HotjarProvider from "@/components/HotjarProvider";
 import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import Loading from "@/components/Loading";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -537,10 +537,10 @@ const App = () => {
       {/* Global Demo Modal */}
       <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
         <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
-          <div className="mb-4 text-center">
-            <h3 className="font-semibold text-lg text-business-black">Book Your Demo</h3>
-            <p className="text-sm text-gray-600 mt-1">See how LXERA can transform your workforce</p>
-          </div>
+          <DialogHeader className="mb-4 text-center">
+            <DialogTitle className="font-semibold text-lg text-business-black">Book Your Demo</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mt-1">See how LXERA can transform your workforce</DialogDescription>
+          </DialogHeader>
 
           <form onSubmit={handleDemoSubmit} className="space-y-4">
             <div className="relative">
@@ -622,10 +622,10 @@ const App = () => {
       {/* Global Early Access Modal */}
       <Dialog open={earlyAccessModalOpen} onOpenChange={setEarlyAccessModalOpen}>
         <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
-          <div className="mb-4 text-center">
-            <h3 className="font-semibold text-lg text-business-black">Get Early Access</h3>
-            <p className="text-sm text-gray-600 mt-1">Enter your work email and name to continue</p>
-          </div>
+          <DialogHeader className="mb-4 text-center">
+            <DialogTitle className="font-semibold text-lg text-business-black">Get Early Access</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mt-1">Enter your work email and name to continue</DialogDescription>
+          </DialogHeader>
 
           <form onSubmit={handleEarlyAccessSubmit} className="space-y-4">
             <div className="relative">
@@ -682,19 +682,24 @@ const App = () => {
       {/* Global Contact Sales Modal */}
       <Dialog open={contactSalesModalOpen} onOpenChange={setContactSalesModalOpen}>
         <DialogContent className="w-[90vw] max-w-md rounded-2xl p-6 bg-white">
+          <DialogHeader className="text-center mb-4">
+            <DialogTitle className="font-semibold text-lg text-business-black">
+              {contactSalesSubmitted ? "Thank You!" : "Contact Sales"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mt-1">
+              {contactSalesSubmitted ? "We'll be in touch soon!" : "Let's discuss how LXERA can work for your team"}
+            </DialogDescription>
+          </DialogHeader>
+          
           {contactSalesSubmitted ? (
             <div className="text-center py-4">
               <div className="w-full py-4 rounded-xl bg-green-50 border-2 border-green-200 flex items-center justify-center gap-2">
                 <Check className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-700">We'll be in touch soon!</span>
+                <span className="font-semibold text-green-700">Success! Check your email.</span>
               </div>
             </div>
           ) : (
             <>
-              <div className="text-center mb-4">
-                <h3 className="font-semibold text-lg text-business-black">Contact Sales</h3>
-                <p className="text-sm text-gray-600 mt-1">Let's discuss how LXERA can work for your team</p>
-              </div>
 
               {contactSalesServerError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
