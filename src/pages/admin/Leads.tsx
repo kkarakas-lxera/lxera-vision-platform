@@ -7,11 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Download, Users, Calendar, Target, TrendingUp, Filter, Mail, Building2, User, Tag, Clock, Globe, X, ArrowLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, Download, Users, Calendar, Target, TrendingUp, Filter, Mail, Building2, User, Tag, Clock, Globe, X, ArrowLeft, Keyboard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { demoCaptureService } from '@/services/demoCaptureService';
 import { toast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
+import { LeadDetailsPanel } from '@/components/admin/LeadDetailsPanel';
 
 interface UnifiedLead {
   id: string;
@@ -40,6 +42,7 @@ const Leads = () => {
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<UnifiedLead | null>(null);
   const [isNewTodayFilter, setIsNewTodayFilter] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     demo: 0,
@@ -59,7 +62,54 @@ const Leads = () => {
 
   useEffect(() => {
     filterLeads();
-  }, [leads, searchTerm, typeFilter, activePreset]);
+  }, [leads, searchTerm, typeFilter, activePreset, isNewTodayFilter]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch(e.key.toLowerCase()) {
+        case '/':
+          e.preventDefault();
+          // Focus search input
+          const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+          searchInput?.focus();
+          break;
+        case 'a':
+          if (e.ctrlKey || e.metaKey) return; // Don't interfere with select all
+          setActivePreset('all');
+          break;
+        case 'r':
+          if (e.ctrlKey || e.metaKey) return; // Don't interfere with refresh
+          setActivePreset('action_required');
+          break;
+        case 'c':
+          setActivePreset('completed');
+          break;
+        case 'w':
+          setActivePreset('this_week');
+          break;
+        case 'escape':
+          setSelectedLead(null);
+          break;
+        case 'e':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            exportToCSV();
+          }
+          break;
+        case '?':
+          e.preventDefault();
+          setShowKeyboardShortcuts(!showKeyboardShortcuts);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showKeyboardShortcuts, exportToCSV]);
 
   const fetchLeads = async () => {
     try {
@@ -130,6 +180,16 @@ const Leads = () => {
   const filterLeads = () => {
     let filtered = leads;
 
+    // New Today filter takes precedence
+    if (isNewTodayFilter) {
+      const today = new Date().toDateString();
+      filtered = filtered.filter(lead => 
+        new Date(lead.created_at).toDateString() === today
+      );
+      setFilteredLeads(filtered);
+      return;
+    }
+
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(lead => 
@@ -183,24 +243,26 @@ const Leads = () => {
         setTypeFilter('all');
         setActivePreset('all');
         setSearchTerm('');
+        setIsNewTodayFilter(false);
         break;
       case 'demo':
         setTypeFilter('demo');
+        setActivePreset('all');
+        setIsNewTodayFilter(false);
         break;
       case 'early_access':
         setTypeFilter('early_access');
+        setActivePreset('all');
+        setIsNewTodayFilter(false);
         break;
       case 'contact_sales':
         setTypeFilter('contact_sales');
+        setActivePreset('all');
+        setIsNewTodayFilter(false);
         break;
       case 'new_today':
-        // Filter by today's date
-        const today = new Date().toDateString();
-        const todayLeads = leads.filter(lead => 
-          new Date(lead.created_at).toDateString() === today
-        );
-        setFilteredLeads(todayLeads);
-        // Clear other filters to show we're in "new today" mode
+        // Set special flag for new today filter
+        setIsNewTodayFilter(true);
         setTypeFilter('all');
         setActivePreset('all');
         break;
@@ -274,8 +336,8 @@ const Leads = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
+      {/* Header - Sticky on mobile */}
+      <div className={isMobile ? "sticky top-0 z-20 bg-white/95 backdrop-blur-sm pb-4 -mx-4 px-4 pt-4 shadow-sm" : ""}>
         <h1 className="text-3xl font-bold text-business-black">Leads</h1>
         <p className="text-gray-600 mt-2">Manage demo requests and early access signups</p>
       </div>
@@ -284,7 +346,7 @@ const Leads = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card 
           className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-            typeFilter === 'all' && activePreset === 'all' && searchTerm === '' 
+            typeFilter === 'all' && activePreset === 'all' && searchTerm === '' && !isNewTodayFilter
               ? 'ring-2 ring-future-green border-future-green' 
               : 'hover:border-gray-300'
           }`}
@@ -341,7 +403,9 @@ const Leads = () => {
           </CardContent>
         </Card>
         <Card 
-          className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-gray-300"
+          className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+            isNewTodayFilter ? 'ring-2 ring-future-green border-future-green' : 'hover:border-gray-300'
+          }`}
           onClick={() => handleStatCardClick('new_today')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -367,11 +431,17 @@ const Leads = () => {
               <Input
                 placeholder="Search by email, name, or company..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setIsNewTodayFilter(false);
+                }}
                 className="pl-8"
               />
             </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select value={typeFilter} onValueChange={(value) => {
+              setTypeFilter(value);
+              setIsNewTodayFilter(false);
+            }}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
@@ -388,7 +458,10 @@ const Leads = () => {
             <Button
               variant={activePreset === 'all' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActivePreset('all')}
+              onClick={() => {
+                setActivePreset('all');
+                setIsNewTodayFilter(false);
+              }}
               className="transition-all"
             >
               All Leads
@@ -396,7 +469,10 @@ const Leads = () => {
             <Button
               variant={activePreset === 'action_required' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActivePreset('action_required')}
+              onClick={() => {
+                setActivePreset('action_required');
+                setIsNewTodayFilter(false);
+              }}
               className="transition-all"
             >
               <Target className="h-4 w-4 mr-2" />
@@ -405,7 +481,10 @@ const Leads = () => {
             <Button
               variant={activePreset === 'completed' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActivePreset('completed')}
+              onClick={() => {
+                setActivePreset('completed');
+                setIsNewTodayFilter(false);
+              }}
               className="transition-all"
             >
               <Clock className="h-4 w-4 mr-2" />
@@ -414,7 +493,10 @@ const Leads = () => {
             <Button
               variant={activePreset === 'this_week' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActivePreset('this_week')}
+              onClick={() => {
+                setActivePreset('this_week');
+                setIsNewTodayFilter(false);
+              }}
               className="transition-all"
             >
               <Calendar className="h-4 w-4 mr-2" />
@@ -424,6 +506,12 @@ const Leads = () => {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
+            {!isMobile && (
+              <Button variant="ghost" size="sm" className="text-gray-500">
+                <Keyboard className="h-4 w-4 mr-1" />
+                <span className="text-xs">Press ? for shortcuts</span>
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -542,253 +630,75 @@ const Leads = () => {
         </CardContent>
       </Card>
 
-      {/* Lead Detail View */}
-      {selectedLead && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="mt-6"
-        >
-          <Card className="border-future-green">
-            <CardHeader className="bg-gradient-to-r from-future-green/10 to-transparent">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Lead Profile
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedLead(null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Profile Header */}
-                <div className="lg:col-span-2">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-future-green to-business-black rounded-full flex items-center justify-center text-white text-xl font-bold">
-                      {(selectedLead.name || selectedLead.email).charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-2xl font-bold text-business-black">
-                          {selectedLead.name || 'Unnamed Lead'}
-                        </h3>
-                        <Badge variant={getStatusBadgeVariant(getLeadStatus(selectedLead))}>
-                          {getLeadStatus(selectedLead)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-4 h-4" />
-                          <span>{selectedLead.email}</span>
-                        </div>
-                        {selectedLead.company && (
-                          <div className="flex items-center gap-1">
-                            <Building2 className="w-4 h-4" />
-                            <span>{selectedLead.company}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <Badge variant="outline" className="px-2 py-1">
-                          {selectedLead.lead_type === 'demo' ? 'Demo Request' : selectedLead.lead_type === 'early_access' ? 'Early Access' : 'Contact Sales Inquiry'}
-                        </Badge>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span>Joined {new Date(selectedLead.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Target className="w-3 h-3" />
-                          <span>{getProgressDisplay(selectedLead)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+      {/* Lead Detail Panel */}
+      <LeadDetailsPanel 
+        selectedLead={selectedLead}
+        onClose={() => setSelectedLead(null)}
+      />
 
-                  {/* Contact Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Contact Information</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <div>
-                            <p className="text-sm text-gray-600">Email</p>
-                            <p className="font-medium">{selectedLead.email}</p>
-                          </div>
-                        </div>
-                        {selectedLead.name && (
-                          <div className="flex items-center gap-3">
-                            <User className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Full Name</p>
-                              <p className="font-medium">{selectedLead.name}</p>
-                            </div>
-                          </div>
-                        )}
-                        {selectedLead.company && (
-                          <div className="flex items-center gap-3">
-                            <Building2 className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Company</p>
-                              <p className="font-medium">{selectedLead.company}</p>
-                            </div>
-                          </div>
-                        )}
-                        {selectedLead.role && (
-                          <div className="flex items-center gap-3">
-                            <Tag className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Role</p>
-                              <p className="font-medium">{selectedLead.role}</p>
-                            </div>
-                          </div>
-                        )}
-                        {selectedLead.company_size && (
-                          <div className="flex items-center gap-3">
-                            <Users className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="text-sm text-gray-600">Company Size</p>
-                              <p className="font-medium">{selectedLead.company_size} employees</p>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Timeline</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <div>
-                            <p className="font-medium text-sm">Lead Created</p>
-                            <p className="text-xs text-gray-600">
-                              {new Date(selectedLead.created_at).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        {selectedLead.updated_at && (
-                          <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <div>
-                              <p className="font-medium text-sm">Last Updated</p>
-                              <p className="text-xs text-gray-600">
-                                {new Date(selectedLead.updated_at).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-
+      {/* Keyboard Shortcuts Dialog */}
+      <Dialog open={showKeyboardShortcuts} onOpenChange={setShowKeyboardShortcuts}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Keyboard Shortcuts</DialogTitle>
+            <DialogDescription>
+              Quick navigation and actions for power users
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-gray-700">Navigation</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Focus search</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">/</kbd>
                 </div>
-
-                {/* Sidebar */}
-                <div className="space-y-6">
-                  {/* Status Card */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Status</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <p className="text-sm text-gray-600">Current Status</p>
-                        <Badge variant={getStatusBadgeVariant(getLeadStatus(selectedLead))} className="mt-1">
-                          {getLeadStatus(selectedLead)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Progress</p>
-                        <p className="font-medium">{getProgressDisplay(selectedLead)}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Source Information */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Globe className="w-4 h-4" />
-                        Source Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {selectedLead.source && (
-                        <div>
-                          <p className="text-sm text-gray-600">Source</p>
-                          <p className="font-medium">{selectedLead.source}</p>
-                        </div>
-                      )}
-                      {selectedLead.utm_source && (
-                        <div>
-                          <p className="text-sm text-gray-600">UTM Source</p>
-                          <p className="font-medium">{selectedLead.utm_source}</p>
-                        </div>
-                      )}
-                      {selectedLead.utm_medium && (
-                        <div>
-                          <p className="text-sm text-gray-600">UTM Medium</p>
-                          <p className="font-medium">{selectedLead.utm_medium}</p>
-                        </div>
-                      )}
-                      {selectedLead.utm_campaign && (
-                        <div>
-                          <p className="text-sm text-gray-600">UTM Campaign</p>
-                          <p className="font-medium">{selectedLead.utm_campaign}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Actions */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Actions</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => window.open(`mailto:${selectedLead.email}`, '_blank')}
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Send Email
-                      </Button>
-                      {(selectedLead.lead_type === 'demo' || selectedLead.lead_type === 'contact_sales') && (
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            toast({
-                              title: 'Demo Link',
-                              description: 'Demo scheduling functionality coming soon',
-                            });
-                          }}
-                        >
-                          <Calendar className="w-4 h-4 mr-2" />
-                          Schedule Demo
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Close details</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Esc</kbd>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-gray-700">Filters</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">All leads</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">A</kbd>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Action required</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">R</kbd>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Completed</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">C</kbd>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">This week</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">W</kbd>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-gray-700">Actions</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Export CSV</span>
+                  <div className="flex gap-1">
+                    <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘</kbd>
+                    <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">E</kbd>
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Show shortcuts</span>
+                  <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">?</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

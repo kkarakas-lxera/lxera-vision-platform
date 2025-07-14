@@ -1,73 +1,88 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Calendar, Clock, FileText, MessageSquare, User, Briefcase, Users, Target, AlertCircle } from 'lucide-react';
+import { X, Building2, Calendar, Clock, FileText, User, Briefcase, Users, Target, AlertCircle, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
-interface Lead {
+interface UnifiedLead {
   id: string;
-  created_at: string;
-  name: string;
+  lead_type: 'demo' | 'early_access' | 'contact_sales';
   email: string;
-  company: string;
-  company_size: string;
-  source: string;
-  ip_address: string | null;
-  location_data: any;
-  page_visits: any;
-  submitted_at: string;
-  utm_params: any;
-  user_agent: string | null;
-  engagement_score: number;
-  status: string;
-  notes: string | null;
-  assigned_to: string | null;
-  last_contact: string | null;
-  deal_value: number | null;
-  conversion_probability: number | null;
-  industry: string | null;
-  job_title: string | null;
-  phone: string | null;
-  linkedin_url: string | null;
-  referrer_url: string | null;
-  first_seen_at: string | null;
-  session_count: number;
-  total_time_spent: number;
-  device_type: string | null;
-  browser: string | null;
-  lead_source_details: any;
+  name: string | null;
+  company: string | null;
+  company_size: string | null;
+  source: string | null;
+  step_completed: number;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  created_at: string;
+  updated_at: string | null;
+  role?: string;
 }
 
 interface LeadDetailsPanelProps {
-  selectedLead: Lead | null;
+  selectedLead: UnifiedLead | null;
   onClose: () => void;
 }
 
 export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProps) {
   if (!selectedLead) return null;
 
+  const getLeadStatus = (lead: UnifiedLead): string => {
+    if (lead.lead_type === 'demo') {
+      return lead.step_completed === 2 ? 'completed' : 'in_progress';
+    } else if (lead.lead_type === 'early_access') {
+      switch (lead.step_completed) {
+        case 1: return 'email_captured';
+        case 2: return 'profile_completed';
+        case 3: return 'verified';
+        default: return 'pending';
+      }
+    } else if (lead.lead_type === 'contact_sales') {
+      switch (lead.step_completed) {
+        case 1: return 'new';
+        case 2: return 'contacted';
+        case 3: return 'qualified';
+        case 4: return 'closed';
+        default: return 'new';
+      }
+    }
+    return 'unknown';
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800';
-      case 'contacted': return 'bg-yellow-100 text-yellow-800';
-      case 'qualified': return 'bg-green-100 text-green-800';
-      case 'converted': return 'bg-purple-100 text-purple-800';
-      case 'lost': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed':
+      case 'verified':
+      case 'closed':
+        return 'bg-green-100 text-green-800';
+      case 'in_progress':
+      case 'profile_completed':
+      case 'qualified':
+        return 'bg-blue-100 text-blue-800';
+      case 'email_captured':
+      case 'contacted':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'pending':
+      case 'new':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const formatTimeSpent = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
+  const getProgressDisplay = (lead: UnifiedLead): string => {
+    if (lead.lead_type === 'demo') {
+      return `Step ${lead.step_completed} of 2`;
+    } else if (lead.lead_type === 'early_access') {
+      return `Step ${lead.step_completed} of 3`;
+    } else if (lead.lead_type === 'contact_sales') {
+      return `Step ${lead.step_completed} of 4`;
     }
-    return `${minutes}m`;
+    return 'Unknown';
   };
 
   return (
@@ -106,71 +121,71 @@ export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProp
                   <h3 className="text-xl font-semibold text-gray-900">{selectedLead.name}</h3>
                   <p className="text-gray-600">{selectedLead.email}</p>
                 </div>
-                <Badge className={getStatusColor(selectedLead.status)}>
-                  {selectedLead.status}
+                <Badge className={getStatusColor(getLeadStatus(selectedLead))}>
+                  {getLeadStatus(selectedLead)}
                 </Badge>
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700">{selectedLead.company}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700">{selectedLead.company_size} employees</span>
-                </div>
-                {selectedLead.job_title && (
+                {selectedLead.company && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700">{selectedLead.company}</span>
+                  </div>
+                )}
+                {selectedLead.company_size && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700">{selectedLead.company_size} employees</span>
+                  </div>
+                )}
+                {selectedLead.role && (
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-700">{selectedLead.job_title}</span>
+                    <span className="text-gray-700">{selectedLead.role}</span>
                   </div>
                 )}
-                {selectedLead.industry && (
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-700">{selectedLead.industry}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-gray-500" />
+                  <span className="text-gray-700">
+                    {selectedLead.lead_type === 'demo' ? 'Demo Request' : 
+                     selectedLead.lead_type === 'early_access' ? 'Early Access' : 
+                     'Contact Sales'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Engagement Metrics */}
+            {/* Lead Progress */}
             <div className="bg-white border rounded-lg p-6">
               <h4 className="font-semibold mb-4 flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-blue-600" />
-                Engagement Metrics
+                Lead Progress
               </h4>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Engagement Score</p>
-                  <div className="flex items-center gap-2">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {selectedLead.engagement_score}
-                    </div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${selectedLead.engagement_score}%` }}
-                      />
-                    </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm text-gray-600">Progress Status</p>
+                    <span className="font-medium">{getProgressDisplay(selectedLead)}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      style={{ 
+                        width: `${(selectedLead.step_completed / 
+                          (selectedLead.lead_type === 'demo' ? 2 : 
+                           selectedLead.lead_type === 'early_access' ? 3 : 4)) * 100}%` 
+                      }}
+                    />
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Session Count</p>
-                  <p className="text-2xl font-bold text-gray-900">{selectedLead.session_count}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Time Spent</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatTimeSpent(selectedLead.total_time_spent || 0)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Page Views</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {selectedLead.page_visits?.length || 0}
-                  </p>
+                <div className="pt-2">
+                  <p className="text-sm text-gray-600 mb-1">Lead Type</p>
+                  <Badge variant="outline">
+                    {selectedLead.lead_type === 'demo' ? 'Demo Request' : 
+                     selectedLead.lead_type === 'early_access' ? 'Early Access' : 
+                     'Contact Sales Inquiry'}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -183,24 +198,16 @@ export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProp
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">First Seen</span>
+                  <span className="text-gray-600">Created</span>
                   <span className="font-medium">
-                    {selectedLead.first_seen_at 
-                      ? format(new Date(selectedLead.first_seen_at), 'MMM d, yyyy h:mm a')
-                      : 'N/A'}
+                    {format(new Date(selectedLead.created_at), 'MMM d, yyyy h:mm a')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Form Submitted</span>
-                  <span className="font-medium">
-                    {format(new Date(selectedLead.submitted_at), 'MMM d, yyyy h:mm a')}
-                  </span>
-                </div>
-                {selectedLead.last_contact && (
+                {selectedLead.updated_at && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Last Contact</span>
+                    <span className="text-gray-600">Last Updated</span>
                     <span className="font-medium">
-                      {format(new Date(selectedLead.last_contact), 'MMM d, yyyy')}
+                      {format(new Date(selectedLead.updated_at), 'MMM d, yyyy h:mm a')}
                     </span>
                   </div>
                 )}
@@ -214,105 +221,105 @@ export function LeadDetailsPanel({ selectedLead, onClose }: LeadDetailsPanelProp
                 Source Information
               </h4>
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Lead Source</span>
-                  <Badge variant="outline">{selectedLead.source}</Badge>
-                </div>
-                {selectedLead.referrer_url && (
-                  <div className="text-sm">
-                    <span className="text-gray-600 block mb-1">Referrer</span>
-                    <a 
-                      href={selectedLead.referrer_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline break-all"
-                    >
-                      {selectedLead.referrer_url}
-                    </a>
+                {selectedLead.source && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Lead Source</span>
+                    <Badge variant="outline">{selectedLead.source}</Badge>
                   </div>
                 )}
-                {selectedLead.utm_params && Object.keys(selectedLead.utm_params).length > 0 && (
+                {(selectedLead.utm_source || selectedLead.utm_medium || selectedLead.utm_campaign) && (
                   <div className="text-sm">
                     <span className="text-gray-600 block mb-2">UTM Parameters</span>
                     <div className="bg-gray-50 rounded p-3 space-y-1">
-                      {Object.entries(selectedLead.utm_params).map(([key, value]) => (
-                        <div key={key} className="flex justify-between">
-                          <span className="text-gray-600">{key}:</span>
-                          <span className="font-medium">{value as string}</span>
+                      {selectedLead.utm_source && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Source:</span>
+                          <span className="font-medium">{selectedLead.utm_source}</span>
                         </div>
-                      ))}
+                      )}
+                      {selectedLead.utm_medium && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Medium:</span>
+                          <span className="font-medium">{selectedLead.utm_medium}</span>
+                        </div>
+                      )}
+                      {selectedLead.utm_campaign && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Campaign:</span>
+                          <span className="font-medium">{selectedLead.utm_campaign}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Technical Details */}
+            {/* Contact Information */}
             <div className="bg-white border rounded-lg p-6">
-              <h4 className="font-semibold mb-4">Technical Details</h4>
-              <div className="space-y-2 text-sm">
-                {selectedLead.device_type && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Device</span>
-                    <span>{selectedLead.device_type}</span>
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-gray-600" />
+                Contact Information
+              </h4>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-gray-600">Email</p>
+                  <p className="font-medium">{selectedLead.email}</p>
+                </div>
+                {selectedLead.name && (
+                  <div>
+                    <p className="text-sm text-gray-600">Full Name</p>
+                    <p className="font-medium">{selectedLead.name}</p>
                   </div>
                 )}
-                {selectedLead.browser && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Browser</span>
-                    <span>{selectedLead.browser}</span>
+                {selectedLead.company && (
+                  <div>
+                    <p className="text-sm text-gray-600">Company</p>
+                    <p className="font-medium">{selectedLead.company}</p>
                   </div>
                 )}
-                {selectedLead.ip_address && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">IP Address</span>
-                    <span className="font-mono">{selectedLead.ip_address}</span>
+                {selectedLead.company_size && (
+                  <div>
+                    <p className="text-sm text-gray-600">Company Size</p>
+                    <p className="font-medium">{selectedLead.company_size} employees</p>
                   </div>
                 )}
-                {selectedLead.location_data && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Location</span>
-                    <span>
-                      {selectedLead.location_data.city}, {selectedLead.location_data.country}
-                    </span>
+                {selectedLead.role && (
+                  <div>
+                    <p className="text-sm text-gray-600">Role</p>
+                    <p className="font-medium">{selectedLead.role}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Page Visits */}
-            {selectedLead.page_visits && selectedLead.page_visits.length > 0 && (
-              <div className="bg-white border rounded-lg p-6">
-                <h4 className="font-semibold mb-4">Page Visits</h4>
-                <div className="space-y-2">
-                  {selectedLead.page_visits.map((visit: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">{visit.page_title || visit.url}</p>
-                        <p className="text-gray-500 text-xs">{visit.url}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-gray-600">{visit.visits} visits</p>
-                        <p className="text-gray-500 text-xs">
-                          {formatTimeSpent(visit.time_spent || 0)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Actions */}
+            <div className="bg-white border rounded-lg p-6">
+              <h4 className="font-semibold mb-4">Quick Actions</h4>
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => window.open(`mailto:${selectedLead.email}`, '_blank')}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send Email
+                </Button>
+                {(selectedLead.lead_type === 'demo' || selectedLead.lead_type === 'contact_sales') && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      // TODO: Implement demo scheduling
+                      console.log('Schedule demo for:', selectedLead.email);
+                    }}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule Demo
+                  </Button>
+                )}
               </div>
-            )}
-
-            {/* Notes */}
-            {selectedLead.notes && (
-              <div className="bg-white border rounded-lg p-6">
-                <h4 className="font-semibold mb-4 flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-gray-600" />
-                  Notes
-                </h4>
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedLead.notes}</p>
-              </div>
-            )}
+            </div>
           </motion.div>
         </AnimatePresence>
       </SheetContent>
