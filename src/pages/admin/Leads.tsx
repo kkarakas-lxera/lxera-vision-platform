@@ -671,20 +671,19 @@ const Leads = () => {
                           <p className="font-medium">{lead.name || lead.email}</p>
                           <p className="text-sm text-gray-600">{lead.company}</p>
                         </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
-                        {getLeadStatus(lead)}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 hover:bg-red-50"
-                        onClick={(e) => handleDeleteClick(lead, e)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getStatusBadgeVariant(getLeadStatus(lead))}>
+                            {getLeadStatus(lead)}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-red-50"
+                            onClick={(e) => handleDeleteClick(lead, e)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Type:</span>
