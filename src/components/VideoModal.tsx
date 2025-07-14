@@ -57,7 +57,6 @@ const VideoModal = ({ isOpen, setIsOpen, videoUrl, videoCaption }: VideoModalPro
       // Small delay to ensure the modal is fully rendered
       const timer = setTimeout(() => {
         videoRef.current?.play().catch(err => {
-          console.log("Autoplay failed:", err);
           // Autoplay might be blocked by browser policy
         });
       }, 100);

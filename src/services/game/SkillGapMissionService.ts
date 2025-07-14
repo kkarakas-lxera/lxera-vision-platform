@@ -43,7 +43,6 @@ export class SkillGapMissionService {
         .eq('id', employeeId)
         .single();
 
-      console.log('Employee data:', employeeData);
       
       if (employeeError || !employeeData) {
         console.error('Error fetching employee:', employeeError);
@@ -67,8 +66,7 @@ export class SkillGapMissionService {
         .eq('id', employeeData.current_position_id)
         .single();
 
-      console.log('Position data:', positionData);
-
+      
       if (positionError || !positionData) {
         console.error('Error fetching position:', positionError);
         return [];
@@ -79,7 +77,6 @@ export class SkillGapMissionService {
         ...(positionData.nice_to_have_skills || [])
       ];
 
-      console.log('Required skills:', allRequiredSkills);
 
       // Get employee's current skill levels from extracted skills
       const { data: skillProfile } = await supabase
@@ -89,7 +86,6 @@ export class SkillGapMissionService {
         .single();
 
       const extractedSkills = skillProfile?.extracted_skills || [];
-      console.log('Extracted skills count:', extractedSkills.length);
       
       // Create a map of current skills by name (since skill_id might not be populated)
       const skillsMap = new Map();
@@ -105,7 +101,6 @@ export class SkillGapMissionService {
         }
       }
       
-      console.log('Skills map size:', skillsMap.size);
 
       // Calculate gaps for required skills
       const skillGaps: EmployeeSkillGap[] = [];
@@ -117,13 +112,11 @@ export class SkillGapMissionService {
           reqSkill.proficiency_level : 
           this.mapProficiencyToLevel(reqSkill.proficiency_level);
         
-        console.log(`Checking skill: ${reqSkill.skill_name} (required: ${requiredLevel})`);
         
         // Try to find current skill by name
         const currentSkill = skillsMap.get(skillName);
         const currentLevel = currentSkill?.current_level || 1;
         
-        console.log(`  Current level: ${currentLevel}, Has gap: ${currentLevel < requiredLevel}`);
         
         if (currentLevel < requiredLevel) {
           const gapSize = requiredLevel - currentLevel;
@@ -143,7 +136,6 @@ export class SkillGapMissionService {
         }
       }
 
-      console.log(`Found ${skillGaps.length} skill gaps`);
       
       // Sort by severity and gap size
       return skillGaps.sort((a, b) => {
@@ -172,7 +164,6 @@ export class SkillGapMissionService {
       const skillGaps = await this.getEmployeeSkillGaps(employeeId);
       
       if (skillGaps.length === 0) {
-        console.log('No skill gaps found for employee');
         return [];
       }
 

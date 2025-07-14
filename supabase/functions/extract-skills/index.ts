@@ -4,6 +4,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@4.24.1'
+import { createErrorResponse, logSanitizedError, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -106,14 +107,10 @@ Be comprehensive but accurate. Only include skills that are clearly mentioned or
     )
 
   } catch (error) {
-    console.error('Skills extraction error:', error)
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    )
+    return createErrorResponse(error, {
+      requestId: crypto.randomUUID(),
+      functionName: 'extract-skills'
+    }, getErrorStatusCode(error))
   }
 })
 

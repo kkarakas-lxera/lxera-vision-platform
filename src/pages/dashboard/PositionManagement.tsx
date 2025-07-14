@@ -98,9 +98,6 @@ export default function PositionManagement() {
         throw employeesError;
       }
 
-      console.log('Company ID:', userProfile.company_id);
-      console.log('Total employees:', employees?.length || 0);
-      console.log('Sample employee data:', employees?.[0]);
 
       // Calculate metrics for each position
       const positionMetrics = new Map();
@@ -193,13 +190,6 @@ export default function PositionManagement() {
         ? totalMatchScore / employeesWithScores
         : 0;
 
-      console.log('Stats calculation:', {
-        totalEmployees,
-        employeesWithScores,
-        totalMatchScore,
-        overallAvgMatch,
-        positionsWithGaps
-      });
 
       const stats: PositionStats = {
         total_positions: typedPositions.length,

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createErrorResponse, logSanitizedError, getErrorStatusCode } from '../_shared/error-utils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,8 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID()
+  
   try {
     const { email, name, source = 'website', utm_source, utm_medium, utm_campaign } = await req.json();
 
@@ -168,13 +171,21 @@ Beyond Learning | www.lxera.ai
       });
 
       if (emailError) {
-        console.error('Resend error:', emailError);
+        logSanitizedError(emailError, {
+          requestId,
+          functionName: 'capture-email',
+          metadata: { context: 'resend_email' }
+        })
         throw new Error('Failed to send email');
       }
 
       // Email sent successfully
     } catch (emailErr) {
-      console.error('Email sending failed:', emailErr);
+      logSanitizedError(emailErr, {
+        requestId,
+        functionName: 'capture-email',
+        metadata: { context: 'email_sending' }
+      })
       // Re-throw the error so the client knows email failed
       throw new Error('Failed to send magic link email. Please try again.');
     }
@@ -192,13 +203,9 @@ Beyond Learning | www.lxera.ai
     );
 
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'capture-email'
+    }, getErrorStatusCode(error))
   }
 });

@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
 import { PDFExtract } from 'https://esm.sh/pdf-extract@1.0.12'
 import * as mammoth from 'https://esm.sh/mammoth@1.6.0'
+import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,6 @@ serve(async (req) => {
   try {
     const { employee_id, file_path, source } = await req.json()
     
-    console.log(`[${requestId}] Starting CV analysis for employee ${employee_id}`)
     
     // Initialize OpenAI
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -37,7 +37,6 @@ serve(async (req) => {
       throw new Error('Missing required parameters: employee_id and file_path')
     }
 
-    console.log(`Analyzing CV for employee ${employee_id}, source: ${source || 'storage'}, path: ${file_path}`)
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -187,7 +186,11 @@ serve(async (req) => {
         }
         
       } catch (extractError) {
-        console.error('Failed to extract CV text:', extractError)
+        logSanitizedError(extractError, {
+          requestId,
+          functionName: 'analyze-cv',
+          metadata: { context: 'cv_text_extraction' }
+        })
         throw new Error(`Failed to parse ${cvContent.fileType} file: ${extractError.message}`)
       }
       
@@ -236,7 +239,6 @@ Return the response in the following JSON format:
       
       while (retries < maxRetries) {
         try {
-          console.log(`[${requestId}] Calling OpenAI API (attempt ${retries + 1}/${maxRetries})`)
           
           completion = await openai.createChatCompletion({
             model: 'gpt-4',
@@ -275,7 +277,6 @@ Return the response in the following JSON format:
           
           // Exponential backoff
           const delay = retryDelay * Math.pow(2, retries - 1)
-          console.log(`[${requestId}] OpenAI API error, retrying in ${delay}ms...`)
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
@@ -287,7 +288,11 @@ Return the response in the following JSON format:
         try {
           analysisResult = JSON.parse(responseContent)
         } catch (parseError) {
-          console.error('Failed to parse OpenAI response:', responseContent)
+          logSanitizedError(parseError, {
+            requestId,
+            functionName: 'analyze-cv',
+            metadata: { context: 'openai_response_parsing' }
+          })
           throw new Error('Invalid response format from AI analysis')
         }
         
@@ -355,12 +360,15 @@ Return the response in the following JSON format:
           })
 
         if (profileError) {
-          console.error('Failed to store skills profile:', profileError)
+          logSanitizedError(profileError, {
+            requestId,
+            functionName: 'analyze-cv',
+            metadata: { context: 'skills_profile_storage' }
+          })
           throw profileError
         }
         
         const analysisTime = Date.now() - startTime
-        console.log(`[${requestId}] CV analysis completed in ${analysisTime}ms. Match: ${matchPercentage}%, Gaps: ${skillGaps.length}`)
         
         // Log analysis metrics for monitoring
         try {
@@ -378,11 +386,19 @@ Return the response in the following JSON format:
               created_at: new Date().toISOString()
             })
         } catch (metricsError) {
-          console.error('Failed to log metrics:', metricsError)
+          logSanitizedError(metricsError, {
+            requestId,
+            functionName: 'analyze-cv',
+            metadata: { context: 'metrics_logging' }
+          })
           // Don't throw here - metrics logging is optional
         }
       } catch (openaiError) {
-        console.error('OpenAI API error:', openaiError)
+        logSanitizedError(openaiError, {
+          requestId,
+          functionName: 'analyze-cv',
+          metadata: { context: 'openai_api_error' }
+        })
         
         // Check for specific error types
         if (openaiError.response?.status === 401) {
@@ -414,9 +430,8 @@ Return the response in the following JSON format:
 
   } catch (error) {
     const errorTime = Date.now() - startTime
-    console.error(`[${requestId}] Error in analyze-cv function after ${errorTime}ms:`, error)
     
-    // Log error metrics
+    // Log error metrics with sanitized information
     try {
       await supabase
         .from('cv_analysis_metrics')
@@ -428,44 +443,21 @@ Return the response in the following JSON format:
           skills_extracted: 0,
           gaps_found: 0,
           status: 'failed',
-          error_message: error.message || 'Unknown error',
+          error_message: error.constructor?.name || 'UnknownError',
           created_at: new Date().toISOString()
         })
     } catch (logError) {
-      console.error(`[${requestId}] Failed to log error metrics:`, logError)
+      logSanitizedError(logError, {
+        requestId,
+        functionName: 'analyze-cv',
+        metadata: { context: 'error_metrics_logging' }
+      })
     }
     
-    // Return user-friendly error messages
-    let statusCode = 500
-    let userMessage = 'An error occurred while analyzing the CV'
-    
-    if (error.message.includes('OPENAI_API_KEY')) {
-      statusCode = 503
-      userMessage = 'CV analysis service is not configured. Please contact support.'
-    } else if (error.message.includes('rate limit')) {
-      statusCode = 429
-      userMessage = 'Too many requests. Please try again in a few moments.'
-    } else if (error.message.includes('Invalid response format')) {
-      statusCode = 502
-      userMessage = 'Failed to process CV analysis results. Please try again.'
-    } else if (error.message.includes('CV text too short')) {
-      statusCode = 400
-      userMessage = 'The CV appears to be empty or corrupted. Please upload a valid CV.'
-    } else if (error.message.includes('Unsupported file type')) {
-      statusCode = 400
-      userMessage = error.message
-    }
-    
-    return new Response(
-      JSON.stringify({ 
-        error: userMessage,
-        request_id: requestId,
-        details: Deno.env.get('DEVELOPMENT') === 'true' ? error.message : undefined
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: statusCode
-      }
-    )
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'analyze-cv',
+      employeeId: employee_id
+    }, getErrorStatusCode(error))
   }
 })

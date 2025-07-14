@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { createErrorResponse, logSanitizedError } from '../_shared/error-utils.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -74,7 +75,11 @@ serve(async (req) => {
         .single()
 
       if (updateError) {
-        console.error('Error updating demo capture:', updateError)
+        logSanitizedError(updateError, {
+          requestId: crypto.randomUUID(),
+          functionName: 'capture-demo',
+          metadata: { context: 'update_demo_capture' }
+        })
         throw updateError
       }
 
@@ -99,7 +104,11 @@ serve(async (req) => {
         .single()
 
       if (insertError) {
-        console.error('Error creating demo capture:', insertError)
+        logSanitizedError(insertError, {
+          requestId: crypto.randomUUID(),
+          functionName: 'capture-demo',
+          metadata: { context: 'create_demo_capture' }
+        })
         throw insertError
       }
 
@@ -119,16 +128,9 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in capture-demo function:', error)
-    return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message 
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
+    return createErrorResponse(error, {
+      requestId: crypto.randomUUID(),
+      functionName: 'capture-demo'
+    }, 500)
   }
 })

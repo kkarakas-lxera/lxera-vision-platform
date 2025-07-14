@@ -1,0 +1,18 @@
+{
+  "extends": ["./.eslintrc.json"],
+  "rules": {
+    "no-console": ["error", {
+      "allow": ["error", "warn"]
+    }],
+    "no-debugger": "error",
+    "@typescript-eslint/no-explicit-any": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**/*", "supabase/functions/**/*"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

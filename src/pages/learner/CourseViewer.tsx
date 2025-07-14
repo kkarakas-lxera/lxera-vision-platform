@@ -392,7 +392,6 @@ export default function CourseViewer() {
       const employeeCompanyId = employeeData?.company_id;
       
       if (!employeeName || !employeeCompanyId) {
-        console.log('Employee name or company_id not found, cannot fetch personalized video');
         return;
       }
 
@@ -417,12 +416,10 @@ export default function CourseViewer() {
 
       if (videoAssets && videoAssets.length > 0) {
         const videoAsset = videoAssets[0];
-        console.log(`Found personalized video for ${employeeName}:`, videoAsset);
         // Clean the URL by removing trailing ? if present
         const cleanUrl = videoAsset.public_url?.replace(/\?$/, '') || '';
         setSectionVideoUrl(cleanUrl);
       } else {
-        console.log(`No video found for section ${currentSection}, employee ${employeeName}`);
         setSectionVideoUrl('');
       }
     } catch (error) {
@@ -582,7 +579,6 @@ export default function CourseViewer() {
   const generateMissionFromTask = async (task: any) => {
     try {
       console.log('🎮 Generating mission from task:', task);
-      console.log('👤 Employee ID:', employeeId);
       console.log('📚 Course Content ID:', courseContent?.content_id);
       
       // Show loading state
@@ -1241,7 +1237,6 @@ export default function CourseViewer() {
                       videoUrl={sectionVideoUrl}
                       title={`${courseContent?.module_name || 'Course'} - ${((currentSection || 'introduction').replace('_', ' ') || '').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
-                        console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}
                       onFullscreenChange={(isFullscreen) => {
                         // Handle mobile fullscreen state if needed
@@ -1252,7 +1247,6 @@ export default function CourseViewer() {
                       videoUrl={sectionVideoUrl}
                       title={`${courseContent?.module_name || 'Course'} - ${((currentSection || 'introduction').replace('_', ' ') || '').replace(/\b\w/g, l => l.toUpperCase())}`}
                       onFeedback={(isPositive) => {
-                        console.log(`Video feedback for ${currentSection}:`, isPositive ? 'positive' : 'negative');
                       }}
                     />
                   )

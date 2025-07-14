@@ -1,11 +1,8 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders } from '../_shared/cors.ts'
+import { createErrorResponse } from '../_shared/error-utils.ts'
 
 interface MagicLinkRequest {
   email: string;
@@ -17,6 +14,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID()
+  
   try {
     const { email, employee_id }: MagicLinkRequest = await req.json()
 
@@ -45,12 +44,9 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
-    )
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'send-magic-link'
+    }, 400)
   }
 })

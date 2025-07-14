@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
 import { PDFExtract } from 'https://esm.sh/pdf-extract@1.0.12'
 import * as mammoth from 'https://esm.sh/mammoth@1.6.0'
+import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,6 @@ serve(async (req) => {
   try {
     const { employee_id, file_path, source, session_item_id, use_template } = await req.json()
     
-    console.log(`[${requestId}] Starting enhanced CV analysis for employee ${employee_id}`)
     
     // Initialize OpenAI
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -116,7 +116,11 @@ serve(async (req) => {
         // Basic PDF text extraction (simplified)
         cvText = await extractTextFromPDF(uint8Array)
       } catch (pdfError) {
-        console.error('PDF extraction error:', pdfError)
+        logSanitizedError(pdfError, {
+          requestId,
+          functionName: 'analyze-cv-enhanced',
+          metadata: { context: 'pdf_extraction' }
+        })
         throw new Error('Failed to extract text from PDF')
       }
     } else if (fileName.toLowerCase().endsWith('.docx')) {
@@ -126,7 +130,11 @@ serve(async (req) => {
         const result = await mammoth.extractRawText({ arrayBuffer })
         cvText = result.value
       } catch (docxError) {
-        console.error('DOCX extraction error:', docxError)
+        logSanitizedError(docxError, {
+          requestId,
+          functionName: 'analyze-cv-enhanced',
+          metadata: { context: 'docx_extraction' }
+        })
         throw new Error('Failed to extract text from DOCX')
       }
     } else {
@@ -188,7 +196,11 @@ serve(async (req) => {
         response_format: { type: 'json_object' }
       })
     } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError)
+      logSanitizedError(openaiError, {
+        requestId,
+        functionName: 'analyze-cv-enhanced',
+        metadata: { context: 'openai_api_error' }
+      })
       throw new Error(`Failed to analyze CV: ${openaiError.message}`)
     }
 
@@ -307,7 +319,11 @@ serve(async (req) => {
       .upsert(profileData, { onConflict: 'employee_id' })
 
     if (profileError) {
-      console.error('Failed to store skills profile:', profileError)
+      logSanitizedError(profileError, {
+        requestId,
+        functionName: 'analyze-cv-enhanced',
+        metadata: { context: 'skills_profile_storage' }
+      })
       throw profileError
     }
 
@@ -343,7 +359,6 @@ serve(async (req) => {
       .eq('id', employee_id)
 
     const analysisTime = Date.now() - startTime
-    console.log(`[${requestId}] Enhanced CV analysis completed in ${analysisTime}ms. Skills: ${extractedSkills.length}, Tokens: ${tokensUsed}`)
 
     return new Response(
       JSON.stringify({ 
@@ -365,9 +380,8 @@ serve(async (req) => {
 
   } catch (error) {
     const errorTime = Date.now() - startTime
-    console.error(`[${requestId}] Error in analyze-cv-enhanced function after ${errorTime}ms:`, error)
     
-    // Log error metrics
+    // Log error metrics with sanitized information
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -383,26 +397,25 @@ serve(async (req) => {
           cost_estimate: 0,
           duration_ms: errorTime,
           success: false,
-          error_code: error.message,
+          error_code: error.constructor?.name || 'UnknownError',
           metadata: {
             request_id: requestId,
             employee_id: employee_id || 'unknown'
           }
         })
     } catch (logError) {
-      console.error(`[${requestId}] Failed to log error metrics:`, logError)
+      logSanitizedError(logError, {
+        requestId,
+        functionName: 'analyze-cv-enhanced',
+        metadata: { context: 'error_metrics_logging' }
+      })
     }
     
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        request_id: requestId
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
-    )
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'analyze-cv-enhanced',
+      employeeId: employee_id
+    }, getErrorStatusCode(error))
   }
 })
 

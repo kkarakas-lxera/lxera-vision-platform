@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createErrorResponse, logSanitizedError } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,7 +91,10 @@ Return as JSON object with a "skills" array.`
     )
 
   } catch (error) {
-    console.error('Error in suggest-position-skills function:', error)
+    logSanitizedError(error, {
+      requestId: crypto.randomUUID(),
+      functionName: 'suggest-position-skills'
+    })
     
     // Return fallback skills on error
     const fallbackSkills = [
@@ -102,7 +106,7 @@ Return as JSON object with a "skills" array.`
     ]
     
     return new Response(
-      JSON.stringify({ skills: fallbackSkills, error: error.message }),
+      JSON.stringify({ skills: fallbackSkills, error: 'Service temporarily unavailable' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

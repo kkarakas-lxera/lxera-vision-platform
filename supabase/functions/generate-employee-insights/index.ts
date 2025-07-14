@@ -1,16 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders } from '../_shared/cors.ts'
+import { createErrorResponse, logSanitizedError } from '../_shared/error-utils.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID()
+  
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -81,7 +80,12 @@ Keep the tone professional yet personable. Focus on actionable insights rather t
 
     if (!response.ok) {
       const error = await response.text()
-      throw new Error(`OpenAI API error: ${error}`)
+      logSanitizedError(error, {
+        requestId,
+        functionName: 'generate-employee-insights',
+        metadata: { context: 'openai_api_call' }
+      })
+      throw new Error('OpenAI API error')
     }
 
     const data = await response.json()
@@ -104,7 +108,11 @@ Keep the tone professional yet personable. Focus on actionable insights rather t
       })
 
     if (usageError) {
-      console.error('Error logging usage:', usageError)
+      logSanitizedError(usageError, {
+        requestId,
+        functionName: 'generate-employee-insights',
+        metadata: { context: 'usage_logging' }
+      })
     }
 
     return new Response(
@@ -112,10 +120,9 @@ Keep the tone professional yet personable. Focus on actionable insights rather t
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    )
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'generate-employee-insights'
+    }, 400)
   }
 })

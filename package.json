@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "build:fresh": "rm -rf dist && vite build",
     "lint": "eslint .",
+    "lint:security": "eslint . --config .eslintrc-security.json",
     "preview": "vite preview",
     "clear-cache": "rm -rf dist .vercel node_modules/.vite"
   },

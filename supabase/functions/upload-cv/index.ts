@@ -1,10 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders } from '../_shared/cors.ts'
+import { createErrorResponse, logSanitizedError } from '../_shared/error-utils.ts'
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -12,6 +9,8 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const requestId = crypto.randomUUID()
+  
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -36,7 +35,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication', details: authError }),
+        JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -108,9 +107,13 @@ serve(async (req) => {
       })
 
     if (uploadError) {
-      console.error('Storage upload error:', uploadError)
+      logSanitizedError(uploadError, {
+        requestId,
+        functionName: 'upload-cv',
+        metadata: { context: 'storage_upload' }
+      })
       return new Response(
-        JSON.stringify({ error: 'Upload failed', details: uploadError }),
+        JSON.stringify({ error: 'Upload failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -122,12 +125,16 @@ serve(async (req) => {
       .eq('id', employeeId)
 
     if (updateError) {
-      console.error('Employee update error:', updateError)
+      logSanitizedError(updateError, {
+        requestId,
+        functionName: 'upload-cv',
+        metadata: { context: 'employee_update' }
+      })
       // Try to clean up uploaded file
       await serviceClient.storage.from('employee-cvs').remove([filePath])
       
       return new Response(
-        JSON.stringify({ error: 'Failed to update employee record', details: updateError }),
+        JSON.stringify({ error: 'Failed to update employee record' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -142,10 +149,18 @@ serve(async (req) => {
       })
 
       if (analysisError) {
-        console.warn('CV analysis failed:', analysisError)
+        logSanitizedError(analysisError, {
+          requestId,
+          functionName: 'upload-cv',
+          metadata: { context: 'analysis_trigger' }
+        })
       }
     } catch (e) {
-      console.warn('CV analysis request failed:', e)
+      logSanitizedError(e, {
+        requestId,
+        functionName: 'upload-cv',
+        metadata: { context: 'analysis_request' }
+      })
     }
 
     return new Response(
@@ -158,10 +173,9 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Unexpected error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return createErrorResponse(error, {
+      requestId,
+      functionName: 'upload-cv'
+    }, 500)
   }
 })

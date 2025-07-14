@@ -4,6 +4,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@4.24.1'
+import { createErrorResponse, logSanitizedError } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -189,17 +190,10 @@ Return only valid JSON.
     )
 
   } catch (error) {
-    console.error('CV processing error:', error)
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    )
+    return createErrorResponse(error, {
+      requestId: crypto.randomUUID(),
+      functionName: 'cv-process'
+    }, 500)
   }
 })
 

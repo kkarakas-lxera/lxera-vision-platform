@@ -113,7 +113,6 @@ export default function CompanyDashboard() {
             filter: `company_id=eq.${userProfile.company_id}`
           },
           () => {
-            console.log('Employee data changed, refreshing dashboard...');
             fetchDashboardData();
           }
         )
@@ -129,7 +128,6 @@ export default function CompanyDashboard() {
             table: 'st_employee_skills_profile'
           },
           () => {
-            console.log('Skills profile changed, refreshing dashboard...');
             fetchDashboardData();
           }
         )
@@ -145,7 +143,6 @@ export default function CompanyDashboard() {
             table: 'course_assignments'
           },
           () => {
-            console.log('Course assignments changed, refreshing dashboard...');
             fetchDashboardData();
           }
         )

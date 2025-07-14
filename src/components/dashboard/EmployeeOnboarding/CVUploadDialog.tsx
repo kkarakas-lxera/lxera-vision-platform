@@ -82,7 +82,6 @@ export function CVUploadDialog({
 
     try {
       // Debug current auth state
-      console.log('🔐 Starting CV upload, checking auth state...');
       await debugAuthState();
       
       // Verify we have a valid session before proceeding
@@ -91,11 +90,6 @@ export function CVUploadDialog({
         throw new Error('No active authentication session. Please sign in again.');
       }
       
-      console.log('✅ Auth session verified:', {
-        userId: session.user.id,
-        email: session.user.email,
-        expiresAt: new Date(session.expires_at! * 1000).toISOString()
-      });
       
       // Ensure the client is properly authenticated
       await ensureAuthenticatedClient();
@@ -127,20 +121,9 @@ export function CVUploadDialog({
       
       // Final auth check before upload
       const { data: authCheck } = await supabase.rpc('check_auth_uid');
-      console.log('📊 Database auth check:', authCheck);
       
-      console.log('CV Upload attempt:', { 
-        filePath, 
-        employeeName: employee.name, 
-        userRole: userProfile.role,
-        companyId: userProfile.company_id,
-        bucketId: 'employee-cvs',
-        hasAuthSession: !!session,
-        authUid: (authCheck as any)?.auth_uid
-      });
       
       // Try uploading with proper auth headers
-      console.log('🚀 Attempting storage upload...');
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-cvs')
         .upload(filePath, file, {
@@ -154,18 +137,15 @@ export function CVUploadDialog({
         // Check if it's an auth issue
         if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
           // Try refreshing session and retrying once
-          console.log('🔄 Auth error detected, refreshing session...');
           const { data: { session: newSession } } = await supabase.auth.refreshSession();
           
           if (newSession) {
-            console.log('✅ Session refreshed, retrying upload...');
             await debugAuthState();
           }
         }
         
         // Try alternative path format if first one fails
         const altFilePath = `${userProfile.company_id}/${employee.id}/${timestamp}.${fileExtension}`;
-        console.log('Trying alternative path:', altFilePath);
         
         const { data: altUploadData, error: altUploadError } = await supabase.storage
           .from('employee-cvs')
@@ -178,7 +158,6 @@ export function CVUploadDialog({
           console.error('Alternative upload also failed:', altUploadError);
           
           // Try edge function as last resort
-          console.log('🔄 Trying edge function upload...');
           const edgeResult = await uploadCVViaEdgeFunction(
             file, 
             employee.id,
@@ -187,7 +166,6 @@ export function CVUploadDialog({
           
           if (!edgeResult.success) {
             // Final fallback: Use database storage
-            console.log('🔄 Edge function failed, trying database storage...');
             const dbResult = await uploadCVToDatabase(
               file,
               employee.id,
@@ -197,8 +175,6 @@ export function CVUploadDialog({
             if (!dbResult.success) {
               throw new Error(dbResult.error || 'All upload methods failed');
             }
-            
-            console.log('✅ Database storage successful');
             setProgress(100);
             
             toast({
@@ -214,7 +190,6 @@ export function CVUploadDialog({
             return;
           }
           
-          console.log('✅ Edge function upload successful');
           setProgress(60);
           
           // Skip the employee update since edge function handles it
@@ -238,11 +213,9 @@ export function CVUploadDialog({
           return; // Exit early since edge function handled everything
         }
         
-        console.log('Alternative upload successful');
       }
       
       const finalPath = uploadData?.path || filePath;
-      console.log('Upload successful, file path:', finalPath);
       setProgress(60);
 
       // Step 2: Save file path to employee record

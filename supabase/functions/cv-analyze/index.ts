@@ -3,6 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
+import { createErrorResponse, logSanitizedError, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -222,14 +223,10 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('CV analysis error:', error)
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    )
+    return createErrorResponse(error, {
+      requestId: crypto.randomUUID(),
+      functionName: 'cv-analyze'
+    }, getErrorStatusCode(error))
   }
 })
 
