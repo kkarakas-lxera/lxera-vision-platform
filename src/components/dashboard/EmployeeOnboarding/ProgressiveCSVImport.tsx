@@ -363,16 +363,27 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Progress Bar */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Import Progress</span>
-          <span className="text-sm text-muted-foreground">{Math.round(getStepProgress())}%</span>
-        </div>
-        <Progress value={getStepProgress()} className="h-2" />
-      </div>
+return (
+  <div className="space-y-6">
+    {/* Headline */}
+    <div className="text-center mb-8">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        Welcome Your Team to LXERA
+      </h1>
+      <p className="text-lg text-gray-600 mt-2">
+        Import your workforce in minutes, not hours
+      </p>
+    </div>
+{/* Progress Bar */}
+<div className="mb-8">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-xl font-semibold">Getting Started</h2>
+    <Badge variant="outline">{currentStep === 'setup' ? '1 of 3' : currentStep === 'mapping' ? '2 of 3' : '3 of 3'}</Badge>
+  </div>
+  <Progress value={getStepProgress()} className="h-3 bg-gray-100">
+    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
+  </Progress>
+</div>
 
       {/* Current Step Content */}
       {currentStep === 'setup' && (
@@ -397,35 +408,35 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
             </p>
           </div>
 
-          {/* File Upload */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">CSV file with employee data</p>
-                </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept=".csv"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </div>
+{/* File Upload */}
+<div className="space-y-4">
+<label htmlFor="csv-upload" className="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer block">
+  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <Upload className="w-8 h-8 text-blue-600" />
+  </div>
+  <h3 className="text-lg font-semibold mb-2">Drop your CSV file here</h3>
+  <p className="text-gray-600 mb-4">or click to browse</p>
+  <Button className="bg-gradient-to-r from-blue-500 to-purple-500" type="button">
+    Choose File
+  </Button>
+  <input 
+    id="csv-upload"
+    type="file" 
+    className="hidden" 
+    accept=".csv"
+    onChange={handleFileUpload}
+  />
+</label>
 
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download CSV Template
-            </Button>
-          </div>
+  <Button
+    variant="outline"
+    onClick={downloadTemplate}
+    className="w-full"
+  >
+    <Download className="h-4 w-4 mr-2" />
+    Download CSV Template
+  </Button>
+</div>
 
           {/* Data Preview */}
           {csvFile && (
