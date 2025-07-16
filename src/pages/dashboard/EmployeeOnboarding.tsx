@@ -49,7 +49,7 @@ export default function EmployeeOnboarding() {
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyMode, setCompanyMode] = useState<'manual' | 'automated'>('manual');
-  const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({});
+  // Removed expandedSteps - showing active step content inline
   const [savingMode, setSavingMode] = useState(false);
   const [hasPositions, setHasPositions] = useState(false);
   const [checkingPositions, setCheckingPositions] = useState(true);
@@ -280,24 +280,17 @@ export default function EmployeeOnboarding() {
     }
   };
 
-  const toggleStepExpansion = (stepNumber: number) => {
-    // Only allow one step to be expanded at a time
-    if (expandedSteps[stepNumber]) {
-      setExpandedSteps(prev => ({
-        ...prev,
-        [stepNumber]: false
-      }));
-    } else {
-      setExpandedSteps({ [stepNumber]: true });
-    }
-  };
+  // Remove toggleStepExpansion - no longer needed
   
-  // Automatically expand the active step on mount
+  // Auto-refresh employee statuses periodically
   React.useEffect(() => {
-    setExpandedSteps(prev => ({
-      ...prev,
-      [currentStep]: true
-    }));
+    const interval = setInterval(() => {
+      if (currentStep === 2 || currentStep === 3) {
+        fetchEmployeeStatuses();
+      }
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(interval);
   }, [currentStep]);
 
   if (loading) {
@@ -492,118 +485,144 @@ export default function EmployeeOnboarding() {
           />
         )}
 
-        {/* Step Progress */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium">Onboarding Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                const isActive = currentStep === step.number;
-                const isCompleted = step.completed;
-                const isClickable = canProceedToStep(step.number);
-                const isExpanded = expandedSteps[step.number];
+        {/* Overall Progress Bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Overall Progress</span>
+            <span className="text-sm text-muted-foreground">
+              {steps.filter(s => s.completed).length} of {steps.length} completed
+            </span>
+          </div>
+          <Progress 
+            value={(steps.filter(s => s.completed).length / steps.length) * 100} 
+            className="h-2"
+          />
+        </div>
 
-                return (
-                  <div key={step.number} className="border rounded-lg">
-                    <div 
-                      className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
-                        isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => {
-                        if (isClickable) {
-                          setCurrentStep(step.number);
-                          // Close all other steps and open this one
-                          setExpandedSteps({ [step.number]: true });
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`flex items-center justify-center h-8 w-8 rounded-full transition-colors ${
-                          isCompleted 
-                            ? 'bg-green-100 text-green-700' 
-                            : isActive 
-                              ? 'bg-blue-600 text-white' 
-                              : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {isCompleted ? (
-                            <CheckCircle className="h-5 w-5" />
-                          ) : (
-                            <Icon className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className={`font-medium text-sm ${
-                            isActive ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
-                            {step.title}
-                          </h3>
-                          <p className="text-xs text-gray-500">{step.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isCompleted && (
-                          <Badge variant="outline" className="text-green-700">
-                            Completed
-                          </Badge>
-                        )}
-                        {!isClickable && !isCompleted && (
-                          <Badge variant="outline" className="text-gray-500">
-                            Locked
-                          </Badge>
-                        )}
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
+        {/* Steps - Clean Hierarchy */}
+        <div className="space-y-6">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = currentStep === step.number;
+            const isCompleted = step.completed;
+            const isClickable = canProceedToStep(step.number);
+
+            return (
+              <div key={step.number} className="relative">
+                {/* Step Header */}
+                <div 
+                  className={cn(
+                    "flex items-start gap-4 p-4 rounded-lg border bg-white transition-all",
+                    isActive && "border-blue-500 shadow-sm",
+                    !isActive && isClickable && "hover:border-gray-300 cursor-pointer",
+                    !isClickable && "opacity-60 cursor-not-allowed"
+                  )}
+                  onClick={() => {
+                    if (isClickable && !isActive) {
+                      setCurrentStep(step.number);
+                    }
+                  }}
+                >
+                  <div className={cn(
+                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                    isCompleted ? "bg-green-500 text-white" :
+                    isActive ? "bg-blue-500 text-white" :
+                    "bg-gray-200 text-gray-500"
+                  )}>
+                    {isCompleted ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <span className="font-semibold">{step.number}</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className={cn(
+                        "font-semibold",
+                        isActive ? "text-blue-900" : "text-gray-900"
+                      )}>
+                        {step.title}
+                      </h3>
+                      {isCompleted && (
+                        <Badge variant="outline" className="text-green-600 border-green-300">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Complete
+                        </Badge>
+                      )}
                     </div>
-
-                    {/* Expanded Content */}
-                    {isExpanded && (
-                      <div className="border-t p-4">
-                        {step.number === 1 && (
-                          <InlineAddEmployees 
-                            onSessionCreated={() => {
-                              fetchImportSessions();
-                              fetchEmployeeStatuses();
-                              if (canProceedToStep(2)) {
-                                setTimeout(() => {
-                                  setCurrentStep(2);
-                                  setExpandedSteps(prev => ({ ...prev, 2: true }));
-                                }, 500);
-                              }
-                            }}
-                            existingSessions={importSessions}
-                          />
-                        )}
-                        
-                        {step.number === 2 && (
-                          <InviteEmployees 
-                            onInvitationsSent={() => {
-                              fetchEmployeeStatuses();
-                              toast.success('Invitations sent successfully!');
-                            }}
-                          />
-                        )}
-                        
-                        {step.number === 3 && (
-                          <SkillsGapAnalysis
-                            companyId={userProfile?.company_id!}
-                            employeeStatuses={employeeStatuses}
-                          />
-                        )}
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {step.description}
+                    </p>
+                    
+                    {/* Step Progress Bar */}
+                    {isActive && !isCompleted && (
+                      <div className="mt-3">
+                        <Progress 
+                          value={
+                            step.number === 1 ? (stats.total > 0 ? 100 : 0) :
+                            step.number === 2 ? ((stats.withCV / Math.max(stats.total, 1)) * 100) :
+                            step.number === 3 ? ((stats.analyzed / Math.max(stats.total, 1)) * 100) : 0
+                          } 
+                          className="h-1.5"
+                        />
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+
+                {/* Step Content - Only show for active step */}
+                {isActive && (
+                  <div className="mt-4 ml-14 p-4 border-l-2 border-gray-200">
+                    {step.number === 1 && (
+                      <InlineAddEmployees 
+                        onSessionCreated={() => {
+                          fetchImportSessions();
+                          fetchEmployeeStatuses();
+                          // Auto-advance to step 2
+                          if (canProceedToStep(2)) {
+                            setTimeout(() => {
+                              setCurrentStep(2);
+                              toast.success('Employees imported! Now invite them to complete their profiles.');
+                            }, 1000);
+                          }
+                        }}
+                        existingSessions={importSessions}
+                      />
+                    )}
+                    
+                    {step.number === 2 && (
+                      <InviteEmployees 
+                        onInvitationsSent={() => {
+                          fetchEmployeeStatuses();
+                          // Check if we can advance to step 3
+                          setTimeout(() => {
+                            if (stats.withCV > 0 || stats.analyzed > 0) {
+                              setCurrentStep(3);
+                              toast.success('Great! Some employees have already uploaded their CVs.');
+                            }
+                          }, 1000);
+                        }}
+                      />
+                    )}
+                    
+                    {step.number === 3 && (
+                      <SkillsGapAnalysis
+                        companyId={userProfile?.company_id!}
+                        employeeStatuses={employeeStatuses}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Connector Line */}
+                {index < steps.length - 1 && (
+                  <div className="absolute left-5 top-14 w-0.5 h-6 bg-gray-200" />
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         {/* Latest Import Sessions */}
         {importSessions.length > 0 && (

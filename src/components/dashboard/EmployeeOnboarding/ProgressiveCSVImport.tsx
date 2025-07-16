@@ -1,14 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, ChevronRight, ChevronDown, Target, Sparkles, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, Target, Sparkles, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,12 +30,8 @@ interface Position {
 
 interface PositionMapping {
   csvPosition: string;
-  mappedPositionId: string | 'create' | 'skip';
-  createNew?: {
-    title: string;
-    code: string;
-    department?: string;
-  };
+  mappedPositionId: string | 'skip';
+  employeeCount: number;
 }
 
 interface ProgressiveCSVImportProps {
@@ -45,13 +39,11 @@ interface ProgressiveCSVImportProps {
   existingSessions?: any[];
 }
 
-type ImportStep = 'mode' | 'upload' | 'preview' | 'mapping' | 'importing' | 'complete';
-type ImportMode = 'strict' | 'flexible' | 'smart';
+type ImportStep = 'setup' | 'mapping' | 'importing' | 'complete';
 
 export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }: ProgressiveCSVImportProps) {
   const { userProfile } = useAuth();
-  const [currentStep, setCurrentStep] = useState<ImportStep>('mode');
-  const [importMode, setImportMode] = useState<ImportMode>('smart');
+  const [currentStep, setCurrentStep] = useState<ImportStep>('setup');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -60,7 +52,6 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
-  const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({ mode: true });
 
   // Fetch positions on mount
   useEffect(() => {
@@ -85,50 +76,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
     }
   };
 
-  const steps = [
-    {
-      id: 'mode',
-      title: 'Choose Import Mode',
-      description: 'Select how to handle positions',
-      icon: Target,
-      completed: currentStep !== 'mode'
-    },
-    {
-      id: 'upload',
-      title: 'Upload CSV File',
-      description: 'Select your employee data file',
-      icon: Upload,
-      completed: ['preview', 'mapping', 'importing', 'complete'].includes(currentStep)
-    },
-    {
-      id: 'preview',
-      title: 'Preview & Validate',
-      description: 'Review employee data',
-      icon: FileText,
-      completed: ['mapping', 'importing', 'complete'].includes(currentStep)
-    },
-    {
-      id: 'mapping',
-      title: 'Map Positions',
-      description: 'Match positions to your system',
-      icon: Sparkles,
-      completed: ['importing', 'complete'].includes(currentStep),
-      show: importMode !== 'strict'
-    },
-    {
-      id: 'complete',
-      title: 'Import Complete',
-      description: 'View results',
-      icon: CheckCircle,
-      completed: currentStep === 'complete'
-    }
-  ];
-
-  const toggleStepExpansion = (stepId: string) => {
-    setExpandedSteps({ [stepId]: true });
-  };
-
-  const downloadSampleCSV = () => {
+  const downloadTemplate = () => {
     const sampleData = [
       ['name', 'email', 'department', 'position', 'position_code', 'manager_email'],
       ['John Smith', 'john.smith@company.com', 'Engineering', 'Senior Developer', 'ENG_SR_DEV', 'jane.doe@company.com'],
@@ -141,7 +89,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'employee_import_template.csv';
+    link.download = 'employee_template.csv';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -218,13 +166,10 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
       const data = await parseCSV(file);
       setCsvData(data);
       
-      // Auto-advance to preview
-      setCurrentStep('preview');
-      setExpandedSteps({ preview: true });
+      // Prepare position mappings
+      const uniquePositions = [...new Set(data.map(r => r.position || r.position_code).filter(Boolean))];
       
-      // Prepare position mappings for smart mode
-      if (importMode === 'smart') {
-        const uniquePositions = [...new Set(data.map(r => r.position || r.position_code).filter(Boolean))];
+      if (uniquePositions.length > 0) {
         const mappings: PositionMapping[] = uniquePositions.map(pos => {
           // Try to find matching position
           const match = positions.find(p => 
@@ -232,12 +177,18 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
             p.position_title.toLowerCase() === pos?.toLowerCase()
           );
           
+          const employeeCount = data.filter(r => (r.position || r.position_code) === pos).length;
+          
           return {
             csvPosition: pos!,
-            mappedPositionId: match ? match.id : 'skip'
+            mappedPositionId: match ? match.id : 'skip',
+            employeeCount
           };
         });
         setPositionMappings(mappings);
+        
+        // Auto-advance to mapping if we have positions to map
+        setCurrentStep('mapping');
       }
       
       toast.success(`Loaded ${data.length} employees from CSV`);
@@ -270,7 +221,6 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
           created_by: userProfile.id,
           active_position_id: defaultPositionId || null,
           session_metadata: {
-            import_mode: importMode,
             has_position_mappings: positionMappings.length > 0
           }
         })
@@ -285,7 +235,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
       // Create position mapping lookup
       const positionMap = new Map<string, string>();
       positionMappings.forEach(mapping => {
-        if (mapping.mappedPositionId !== 'skip' && mapping.mappedPositionId !== 'create') {
+        if (mapping.mappedPositionId !== 'skip') {
           positionMap.set(mapping.csvPosition, mapping.mappedPositionId);
         }
       });
@@ -300,13 +250,14 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
           let positionId = defaultPositionId;
           let positionCode = '';
           
-          if (importMode !== 'strict') {
-            const csvPos = row.position || row.position_code;
-            if (csvPos && positionMap.has(csvPos)) {
-              positionId = positionMap.get(csvPos)!;
-              const pos = positions.find(p => p.id === positionId);
-              positionCode = pos?.position_code || '';
-            }
+          const csvPos = row.position || row.position_code;
+          if (csvPos && positionMap.has(csvPos)) {
+            positionId = positionMap.get(csvPos)!;
+            const pos = positions.find(p => p.id === positionId);
+            positionCode = pos?.position_code || '';
+          } else if (defaultPositionId) {
+            const pos = positions.find(p => p.id === defaultPositionId);
+            positionCode = pos?.position_code || '';
           }
 
           // Check if user exists
@@ -387,7 +338,6 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
         .eq('id', importSession.id);
 
       setCurrentStep('complete');
-      setExpandedSteps({ complete: true });
       toast.success(`Import completed! ${successful} successful, ${failed} failed`);
       
       setTimeout(() => {
@@ -402,114 +352,53 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
     }
   };
 
-  // Render step content
-  const renderStepContent = (stepId: string) => {
-    switch (stepId) {
-      case 'mode':
-        return (
-          <div className="space-y-4">
-            <RadioGroup value={importMode} onValueChange={(value) => setImportMode(value as ImportMode)}>
-              <div className="space-y-3">
-                <label className={cn(
-                  "flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                  importMode === 'strict' && "border-primary bg-primary/5"
-                )}>
-                  <RadioGroupItem value="strict" id="strict" className="mt-1" />
-                  <div className="space-y-1">
-                    <Label htmlFor="strict" className="text-base font-medium cursor-pointer">
-                      Strict Mode
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      All employees must be assigned to a single position you select. Best for bulk imports of similar roles.
-                    </p>
-                  </div>
-                </label>
+  // Progress calculation
+  const getStepProgress = () => {
+    switch (currentStep) {
+      case 'setup': return csvData.length > 0 ? 33 : 0;
+      case 'mapping': return 66;
+      case 'importing': return 80 + (importProgress * 0.2);
+      case 'complete': return 100;
+      default: return 0;
+    }
+  };
 
-                <label className={cn(
-                  "flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                  importMode === 'flexible' && "border-primary bg-primary/5"
-                )}>
-                  <RadioGroupItem value="flexible" id="flexible" className="mt-1" />
-                  <div className="space-y-1">
-                    <Label htmlFor="flexible" className="text-base font-medium cursor-pointer">
-                      Flexible Mode
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Employees without matching positions will be marked as "Unassigned". You can update them later.
-                    </p>
-                  </div>
-                </label>
+  return (
+    <div className="space-y-6">
+      {/* Progress Bar */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Import Progress</span>
+          <span className="text-sm text-muted-foreground">{Math.round(getStepProgress())}%</span>
+        </div>
+        <Progress value={getStepProgress()} className="h-2" />
+      </div>
 
-                <label className={cn(
-                  "flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                  importMode === 'smart' && "border-primary bg-primary/5"
-                )}>
-                  <RadioGroupItem value="smart" id="smart" className="mt-1" />
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="smart" className="text-base font-medium cursor-pointer">
-                        Smart Mode
-                      </Label>
-                      <Badge variant="outline" className="text-xs">Recommended</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      AI-assisted position matching. Map CSV positions to existing ones or create new positions as needed.
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </RadioGroup>
-
-            {importMode === 'strict' && (
-              <div className="space-y-2 pt-4 border-t">
-                <Label>Select Default Position</Label>
-                <Select value={defaultPositionId} onValueChange={setDefaultPositionId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a position for all employees" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions.map(pos => (
-                      <SelectItem key={pos.id} value={pos.id}>
-                        {pos.position_title} ({pos.position_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <Button 
-              onClick={() => {
-                if (importMode === 'strict' && !defaultPositionId) {
-                  toast.error('Please select a default position');
-                  return;
-                }
-                setCurrentStep('upload');
-                setExpandedSteps({ upload: true });
-              }}
-              className="w-full"
-            >
-              Continue
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+      {/* Current Step Content */}
+      {currentStep === 'setup' && (
+        <div className="space-y-4">
+          {/* Default Position Selection */}
+          <div className="space-y-2">
+            <Label>Default Position (Optional)</Label>
+            <Select value={defaultPositionId} onValueChange={setDefaultPositionId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select default position for employees without one" />
+              </SelectTrigger>
+              <SelectContent>
+                {positions.map(pos => (
+                  <SelectItem key={pos.id} value={pos.id}>
+                    {pos.position_title} ({pos.position_code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              This will be used for employees whose positions can't be matched from the CSV
+            </p>
           </div>
-        );
 
-      case 'upload':
-        return (
+          {/* File Upload */}
           <div className="space-y-4">
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>CSV Format</AlertTitle>
-              <AlertDescription className="space-y-2 mt-2">
-                <p>Your CSV should include these columns:</p>
-                <ul className="text-sm space-y-1 ml-4">
-                  <li><strong>Required:</strong> name, email</li>
-                  <li><strong>Optional:</strong> department, position, position_code, manager_email</li>
-                </ul>
-              </AlertDescription>
-            </Alert>
-
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -517,7 +406,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
                   <p className="mb-2 text-sm text-gray-500">
                     <span className="font-semibold">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-xs text-gray-500">CSV files only</p>
+                  <p className="text-xs text-gray-500">CSV file with employee data</p>
                 </div>
                 <input 
                   type="file" 
@@ -530,264 +419,133 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
 
             <Button
               variant="outline"
-              onClick={downloadSampleCSV}
+              onClick={downloadTemplate}
               className="w-full"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download Sample CSV
-            </Button>
-
-            {csvFile && (
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-medium">{csvFile.name}</span>
-                </div>
-                <Badge variant="outline">{csvData.length} employees</Badge>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'preview':
-        return (
-          <div className="space-y-4">
-            {validationErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Validation Errors</AlertTitle>
-                <AlertDescription>
-                  <ul className="text-sm space-y-1 mt-2">
-                    {validationErrors.slice(0, 5).map((error, idx) => (
-                      <li key={idx}>• {error}</li>
-                    ))}
-                    {validationErrors.length > 5 && (
-                      <li>• ... and {validationErrors.length - 5} more errors</li>
-                    )}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Data Preview</h4>
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Name</th>
-                      <th className="px-3 py-2 text-left">Email</th>
-                      <th className="px-3 py-2 text-left">Department</th>
-                      <th className="px-3 py-2 text-left">Position</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {csvData.slice(0, 5).map((row, idx) => (
-                      <tr key={idx} className="border-t">
-                        <td className="px-3 py-2">{row.name}</td>
-                        <td className="px-3 py-2 text-xs">{row.email}</td>
-                        <td className="px-3 py-2">{row.department || '-'}</td>
-                        <td className="px-3 py-2">{row.position || row.position_code || '-'}</td>
-                      </tr>
-                    ))}
-                    {csvData.length > 5 && (
-                      <tr className="border-t bg-gray-50">
-                        <td colSpan={4} className="px-3 py-2 text-center text-sm text-muted-foreground">
-                          ... and {csvData.length - 5} more employees
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setCurrentStep('upload');
-                  setExpandedSteps({ upload: true });
-                }}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={() => {
-                  if (importMode === 'smart') {
-                    setCurrentStep('mapping');
-                    setExpandedSteps({ mapping: true });
-                  } else {
-                    processImport();
-                  }
-                }}
-                className="flex-1"
-                disabled={validationErrors.length > 0}
-              >
-                {importMode === 'smart' ? 'Continue to Mapping' : 'Start Import'}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'mapping':
-        return (
-          <div className="space-y-4">
-            <Alert className="bg-blue-50 border-blue-200">
-              <Sparkles className="h-4 w-4" />
-              <AlertDescription>
-                Map positions from your CSV to existing positions or skip unmapped ones.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-3">
-              {positionMappings.map((mapping, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{mapping.csvPosition}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {csvData.filter(r => (r.position || r.position_code) === mapping.csvPosition).length} employees
-                    </p>
-                  </div>
-                  <Select
-                    value={mapping.mappedPositionId}
-                    onValueChange={(value) => {
-                      const updated = [...positionMappings];
-                      updated[idx].mappedPositionId = value;
-                      setPositionMappings(updated);
-                    }}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="skip">Skip (Unassigned)</SelectItem>
-                      {positions.map(pos => (
-                        <SelectItem key={pos.id} value={pos.id}>
-                          {pos.position_title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setCurrentStep('preview');
-                  setExpandedSteps({ preview: true });
-                }}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={processImport}
-                className="flex-1"
-              >
-                Start Import
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'importing':
-        return (
-          <div className="space-y-4">
-            <div className="text-center space-y-2">
-              <p className="text-sm font-medium">Importing employees...</p>
-              <Progress value={importProgress} className="h-2" />
-              <p className="text-xs text-muted-foreground">{importProgress}% complete</p>
-            </div>
-          </div>
-        );
-
-      case 'complete':
-        return (
-          <div className="space-y-4">
-            <Alert className="bg-green-50 border-green-200">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertTitle>Import Successful!</AlertTitle>
-              <AlertDescription>
-                Your employees have been imported and are ready for the next step.
-              </AlertDescription>
-            </Alert>
-            <Button onClick={onImportComplete} className="w-full">
-              Continue to Invite Employees
-              <ArrowRight className="h-4 w-4 ml-2" />
+              Download CSV Template
             </Button>
           </div>
-        );
 
-      default:
-        return null;
-    }
-  };
+          {/* Data Preview */}
+          {csvFile && (
+            <Alert>
+              <FileText className="h-4 w-4" />
+              <AlertDescription>
+                <strong>{csvFile.name}</strong> - {csvData.length} employees ready to import
+              </AlertDescription>
+            </Alert>
+          )}
 
-  return (
-    <div className="space-y-4">
-      {/* Step Progress */}
-      <div className="space-y-3">
-        {steps.filter(step => step.show !== false).map((step, index) => {
-          const isActive = currentStep === step.id;
-          const isExpanded = expandedSteps[step.id];
-          const Icon = step.icon;
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Validation Errors</AlertTitle>
+              <AlertDescription>
+                <ul className="text-sm space-y-1 mt-2">
+                  {validationErrors.slice(0, 3).map((error, idx) => (
+                    <li key={idx}>• {error}</li>
+                  ))}
+                  {validationErrors.length > 3 && (
+                    <li>• ... and {validationErrors.length - 3} more errors</li>
+                  )}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      )}
 
-          return (
-            <div key={step.id} className="border rounded-lg overflow-hidden">
-              <div
-                className={cn(
-                  "flex items-center justify-between p-3 cursor-pointer transition-colors",
-                  isActive && "bg-blue-50",
-                  !isActive && "hover:bg-gray-50"
-                )}
-                onClick={() => toggleStepExpansion(step.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "flex items-center justify-center h-8 w-8 rounded-full transition-colors",
-                    step.completed ? "bg-green-100 text-green-700" : 
-                    isActive ? "bg-blue-600 text-white" : 
-                    "bg-gray-100 text-gray-500"
-                  )}>
-                    {step.completed ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <Icon className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className={cn(
-                      "font-medium text-sm",
-                      isActive ? "text-blue-900" : "text-gray-900"
-                    )}>
-                      {step.title}
-                    </h3>
-                    <p className="text-xs text-gray-500">{step.description}</p>
-                  </div>
+      {currentStep === 'mapping' && (
+        <div className="space-y-4">
+          <Alert>
+            <Sparkles className="h-4 w-4" />
+            <AlertDescription>
+              We found positions in your CSV. Map them to your existing positions or skip to use the default.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-3">
+            {positionMappings.map((mapping, idx) => (
+              <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{mapping.csvPosition}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {mapping.employeeCount} employee{mapping.employeeCount > 1 ? 's' : ''}
+                  </p>
                 </div>
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                )}
+                <Select
+                  value={mapping.mappedPositionId}
+                  onValueChange={(value) => {
+                    const updated = [...positionMappings];
+                    updated[idx].mappedPositionId = value;
+                    setPositionMappings(updated);
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="skip">Use Default Position</SelectItem>
+                    {positions.map(pos => (
+                      <SelectItem key={pos.id} value={pos.id}>
+                        {pos.position_title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+            ))}
+          </div>
 
-              {isExpanded && (
-                <div className="border-t p-4 bg-gray-50">
-                  {renderStepContent(step.id)}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+          <Button onClick={processImport} className="w-full" size="lg">
+            Import {csvData.length} Employees
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      )}
+
+      {currentStep === 'importing' && (
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 animate-pulse">
+            <Upload className="h-8 w-8 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Importing Employees</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Processing {csvData.length} employees...
+            </p>
+          </div>
+          <Progress value={importProgress} className="max-w-xs mx-auto" />
+          <p className="text-xs text-muted-foreground">{importProgress}%</p>
+        </div>
+      )}
+
+      {currentStep === 'complete' && (
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Import Complete!</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Successfully imported your employees
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Skip Mapping Button */}
+      {currentStep === 'mapping' && defaultPositionId && (
+        <Button 
+          variant="outline" 
+          onClick={processImport} 
+          className="w-full"
+        >
+          Skip Mapping - Use Default Position for All
+        </Button>
+      )}
     </div>
   );
 }

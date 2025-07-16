@@ -23,14 +23,13 @@ export function InlineAddEmployees({ onSessionCreated, existingSessions = [] }: 
   const successfulImports = existingSessions.filter(s => s.status === 'completed').length;
   const latestSession = existingSessions[0];
 
-  // If no sessions yet or showing wizard, show the progressive import
+  // If no sessions yet or showing import, show the progressive import
   if (showImportWizard || existingSessions.length === 0) {
     return (
       <ProgressiveCSVImport 
         onImportComplete={() => {
           setShowImportWizard(false);
           onSessionCreated();
-          toast.success('Employees imported successfully!');
         }}
         existingSessions={existingSessions}
       />
