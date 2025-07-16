@@ -47,6 +47,26 @@
     bottom: 80px !important;
     z-index: 1000 !important;
   }
+  
+  /* Progress bar animation */
+  @keyframes progressGlow {
+    0% {
+      box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(99, 102, 241, 0.6);
+    }
+    100% {
+      box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    }
+  }
+  
+  /* Apply glow to progress bar */
+  [role="progressbar"] > div {
+    background: linear-gradient(90deg, #3b82f6 0%, #6366f1 100%);
+    animation: progressGlow 2s ease-in-out infinite;
+    transition: width 0.5s ease-out;
+  }
 
   /* Mobile-specific positioning */
   @media (max-width: 768px) {

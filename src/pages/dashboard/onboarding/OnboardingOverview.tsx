@@ -105,16 +105,30 @@ export default function OnboardingOverview() {
 
         {/* Right Side - Steps and Progress (80%) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Overall Progress - Compact */}
-          <div className="bg-slate-50 rounded-lg p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Getting Started</span>
-              <Progress value={overallProgress} className="h-2 w-32" />
-              <span className="text-sm text-gray-600">{Math.round(overallProgress)}%</span>
+          {/* Overall Progress - Enhanced */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center animate-pulse">
+                    <span className="text-white font-bold text-sm">{completedSteps}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-800">Getting Started</h3>
+                    <p className="text-xs text-gray-600 mt-0.5">{completedSteps} of {steps.length} steps completed</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 ml-8">
+                  <Progress value={overallProgress} className="h-2.5 w-40 bg-blue-100" />
+                  <span className="text-sm font-medium text-gray-700 min-w-[3rem] text-right">{Math.round(overallProgress)}%</span>
+                </div>
+              </div>
+              {overallProgress === 100 && (
+                <Badge className="bg-green-500 text-white animate-bounce">
+                  Complete! 🎉
+                </Badge>
+              )}
             </div>
-            <Badge variant="outline" className="text-xs">
-              {completedSteps} of {steps.length} completed
-            </Badge>
           </div>
 
           {/* Quick Actions */}
