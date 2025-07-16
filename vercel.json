@@ -5,7 +5,7 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/((?!api|assets|favicon|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)).*)",
+      "source": "/((?!api|assets|favicon).*)",
       "destination": "/index.html"
     }
   ],
