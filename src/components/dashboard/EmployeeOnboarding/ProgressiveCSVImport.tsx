@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, Target, Sparkles, ArrowRight } from 'lucide-react';
+import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, Target, Sparkles, ArrowRight, ChevronDown, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,9 +18,9 @@ import { OnboardingProgressBar } from './shared/OnboardingProgressBar';
 interface CSVRow {
   name: string;
   email: string;
-  department?: string;
-  position?: string;
-  position_code?: string;
+  department: string;
+  position: string;
+  position_code: string;
   manager_email?: string;
 }
 
@@ -105,7 +106,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
           const lines = text.trim().split('\n');
           const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
           
-          const requiredHeaders = ['name', 'email'];
+          const requiredHeaders = ['name', 'email', 'department', 'position', 'position_code', 'manager_email'];
           const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
           
           if (missingHeaders.length > 0) {
@@ -118,20 +119,32 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
 
           for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
-            if (values.length >= 2 && values[0] && values[1]) {
+            if (values.length >= requiredHeaders.length) {
               const row: CSVRow = {
                 name: values[headers.indexOf('name')],
                 email: values[headers.indexOf('email')].toLowerCase(),
-                department: headers.includes('department') ? values[headers.indexOf('department')] : undefined,
-                position: headers.includes('position') ? values[headers.indexOf('position')] : undefined,
-                position_code: headers.includes('position_code') ? values[headers.indexOf('position_code')] : undefined,
-                manager_email: headers.includes('manager_email') ? values[headers.indexOf('manager_email')]?.toLowerCase() : undefined
+                department: values[headers.indexOf('department')],
+                position: values[headers.indexOf('position')],
+                position_code: values[headers.indexOf('position_code')],
+                manager_email: values[headers.indexOf('manager_email')]?.toLowerCase() || undefined
               };
+
+              // Validate all required fields are present
+              if (!row.name || !row.email || !row.department || !row.position || !row.position_code) {
+                errors.push(`Row ${i}: Missing required fields. All fields except manager_email are mandatory.`);
+                continue;
+              }
 
               // Validate email format
               const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
               if (!emailRegex.test(row.email)) {
                 errors.push(`Row ${i}: Invalid email format for ${row.email}`);
+                continue;
+              }
+
+              // Validate manager email format if provided
+              if (row.manager_email && !emailRegex.test(row.manager_email)) {
+                errors.push(`Row ${i}: Invalid manager email format for ${row.manager_email}`);
                 continue;
               }
 
@@ -169,17 +182,19 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
       setCsvData(data);
       
       // Prepare position mappings
-      const uniquePositions = [...new Set(data.map(r => r.position || r.position_code).filter(Boolean))];
+      const uniquePositionCodes = [...new Set(data.map(r => r.position_code))];
+      const uniquePositions = [...new Set(data.map(r => r.position))];
+      const allUniquePositions = [...new Set([...uniquePositionCodes, ...uniquePositions])];
       
-      if (uniquePositions.length > 0) {
-        const mappings: PositionMapping[] = uniquePositions.map(pos => {
+      if (allUniquePositions.length > 0) {
+        const mappings: PositionMapping[] = allUniquePositions.map(pos => {
           // Try to find matching position
           const match = positions.find(p => 
             p.position_code === pos || 
             p.position_title.toLowerCase() === pos?.toLowerCase()
           );
           
-          const employeeCount = data.filter(r => (r.position || r.position_code) === pos).length;
+          const employeeCount = data.filter(r => r.position_code === pos || r.position === pos).length;
           
           return {
             csvPosition: pos!,
@@ -250,16 +265,20 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
         try {
           // Determine position ID
           let positionId = defaultPositionId;
-          let positionCode = '';
+          let positionCode = row.position_code;
           
-          const csvPos = row.position || row.position_code;
-          if (csvPos && positionMap.has(csvPos)) {
-            positionId = positionMap.get(csvPos)!;
+          // Try to match by position_code first, then by position title
+          if (positionMap.has(row.position_code)) {
+            positionId = positionMap.get(row.position_code)!;
             const pos = positions.find(p => p.id === positionId);
-            positionCode = pos?.position_code || '';
+            positionCode = pos?.position_code || row.position_code;
+          } else if (positionMap.has(row.position)) {
+            positionId = positionMap.get(row.position)!;
+            const pos = positions.find(p => p.id === positionId);
+            positionCode = pos?.position_code || row.position_code;
           } else if (defaultPositionId) {
             const pos = positions.find(p => p.id === defaultPositionId);
-            positionCode = pos?.position_code || '';
+            positionCode = pos?.position_code || row.position_code;
           }
 
           // Check if user exists
@@ -289,7 +308,7 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
               user_id: userId,
               company_id: userProfile.company_id,
               department: row.department,
-              position: positionCode || row.position || 'Unassigned',
+              position: positionCode || 'Unassigned',
               current_position_id: positionId || null,
               target_position_id: positionId || null,
               is_active: true
@@ -414,15 +433,72 @@ const progressSteps = [
             </p>
           </div>
 
-          {/* File Upload */}
+          {/* CSV Template and Tips */}
           <div className="space-y-4">
-            <label htmlFor="csv-upload" className="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer block">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-blue-600" />
+            {/* Download Template Button */}
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="w-full border-green-200 bg-green-50 hover:bg-green-100 text-green-700"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV Template
+            </Button>
+
+            {/* CSV Import Tips */}
+            <Alert className="bg-blue-50 border-blue-200">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <div className="space-y-2">
+                  <p className="font-medium">Important CSV Requirements:</p>
+                  <ul className="text-sm space-y-1">
+                    <li>• <strong>All fields are mandatory</strong> except manager_email</li>
+                    <li>• Use the exact column names from the template</li>
+                    <li>• Ensure all emails are valid and unique</li>
+                    <li>• Position codes should match your company positions</li>
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            {/* Collapsible Example Data */}
+            <Collapsible>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">View Example CSV Data</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 p-4 bg-gray-50 rounded-lg border">
+                  <div className="text-xs font-mono text-gray-700 space-y-1">
+                    <div className="font-semibold text-gray-800">Example CSV format:</div>
+                    <div className="bg-white p-2 rounded border font-mono text-xs">
+                      name,email,department,position,position_code,manager_email<br/>
+                      John Smith,john.smith@company.com,Engineering,Senior Developer,ENG_SR_DEV,jane.doe@company.com<br/>
+                      Jane Doe,jane.doe@company.com,Operations,Project Manager,OPS_PM,<br/>
+                      Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,john.smith@company.com
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* File Upload */}
+            <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Upload className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Drop your CSV file here</h3>
-              <p className="text-gray-600 mb-4">or click to browse</p>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-500" type="button">
+              <h3 className="text-base font-semibold mb-2">Drop your CSV file here</h3>
+              <p className="text-sm text-gray-600 mb-4">or click to browse</p>
+              <Button 
+                className="bg-gradient-to-r from-blue-500 to-purple-500" 
+                type="button"
+                onClick={() => document.getElementById('csv-upload')?.click()}
+              >
                 Choose File
               </Button>
               <input 
@@ -432,16 +508,7 @@ const progressSteps = [
                 accept=".csv"
                 onChange={handleFileUpload}
               />
-            </label>
-
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download CSV Template
-            </Button>
+            </div>
           </div>
 
           {/* Data Preview */}

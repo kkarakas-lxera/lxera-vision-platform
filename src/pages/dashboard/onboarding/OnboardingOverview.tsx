@@ -16,15 +16,15 @@ export default function OnboardingOverview() {
     {
       number: 1,
       title: "Import Team Members",
-      description: "Upload employee data via CSV or manual entry",
+      description: "Upload team member data via CSV or manual entry",
       icon: Users,
       completed: stats.total > 0,
       route: "/dashboard/onboarding/import",
-      stat: `${stats.total} employees imported`
+      stat: `${stats.total} team members imported`
     },
     {
       number: 2,
-      title: "Invite Employees",
+      title: "Invite Team Members",
       description: "Send invitations for profile completion and CV upload",
       icon: Send,
       completed: stats.withCV > 0 || stats.analyzed > 0,
@@ -91,25 +91,7 @@ export default function OnboardingOverview() {
             <Progress value={overallProgress} className="h-3" />
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-              <p className="text-sm text-blue-600">Total Employees</p>
-            </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-              <p className="text-sm text-yellow-600">Pending Invites</p>
-            </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-              <p className="text-sm text-green-600">Completed</p>
-            </div>
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{stats.analyzed}</p>
-              <p className="text-sm text-purple-600">Analyzed CVs</p>
-            </div>
-          </div>
+
         </CardContent>
       </Card>
 
@@ -203,24 +185,62 @@ export default function OnboardingOverview() {
         })}
       </div>
 
-      {/* Get Started CTA */}
+      {/* Get Started CTA - Now Side-by-Side */}
       {completedSteps === 0 && (
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">Ready to Get Started?</h3>
-            <p className="text-muted-foreground mb-4">
-              Begin by importing your team members to start the onboarding process.
-            </p>
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/dashboard/onboarding/import')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Users className="h-5 w-5 mr-2" />
-              Import Team Members
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          {/* Left Side - Minimized Analytics */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">Your Team Overview</h3>
+            <div className="grid grid-cols-2 gap-3">
+                             <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                 <p className="text-xl font-bold text-blue-600">{stats.total}</p>
+                 <p className="text-xs text-blue-600">Team Members</p>
+               </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-xs text-yellow-600">Pending Invites</p>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg border border-green-100">
+                <p className="text-xl font-bold text-green-600">{stats.completed}</p>
+                <p className="text-xs text-green-600">Completed</p>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+                <p className="text-xl font-bold text-purple-600">{stats.analyzed}</p>
+                <p className="text-xs text-purple-600">Analyzed CVs</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Prominent Get Started Section */}
+          <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-lg">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Get Started?</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Begin by importing your team members to start the onboarding process.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <Button 
+                  size="lg" 
+                  onClick={() => navigate('/dashboard/onboarding/import')}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Users className="h-5 w-5 mr-2" />
+                  Import Team Members
+                </Button>
+                
+                <p className="text-xs text-gray-500">
+                  Takes less than 5 minutes to get started
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
