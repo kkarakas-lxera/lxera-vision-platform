@@ -247,10 +247,10 @@ export default function EmployeeOnboarding() {
     },
     {
       number: 2,
-      title: "Analyze Skills",
-      description: "Extract skills from CVs",
+      title: "Invite Employees",
+      description: "Employees upload profiles & CVs",
       icon: Zap,
-      completed: stats.analyzed > 0
+      completed: stats.withCV > 0 || stats.analyzed > 0
     },
     {
       number: 3,
@@ -263,8 +263,8 @@ export default function EmployeeOnboarding() {
 
   const canProceedToStep = (stepNumber: number) => {
     if (stepNumber === 1) return true;
-    if (stepNumber === 2) return stats.total > 0;
-    if (stepNumber === 3) return stats.withCV > 0;
+    if (stepNumber === 2) return stats.total > 0; // can invite after employees are imported
+    if (stepNumber === 3) return stats.analyzed > 0; // unlock report after some analyses complete
     return false;
   };
 
@@ -569,21 +569,16 @@ export default function EmployeeOnboarding() {
                         
                         {step.number === 2 && (
                           <div className="space-y-4">
-                            {/* Status Overview */}
                             <SessionStatusCard
                               total={stats.total}
                               withCV={stats.withCV}
                               analyzed={stats.analyzed}
                             />
-                            
-                            {/* Bulk CV Upload */}
-                            <BulkCVUpload
-                              companyId={userProfile?.company_id!}
-                              onUploadComplete={() => {
-                                fetchEmployeeStatuses();
-                                toast.success('CVs uploaded successfully!');
-                              }}
-                            />
+                            <Alert className="bg-white">
+                              <AlertDescription>
+                                Employees will receive an email to complete their profile and upload CVs in their learner portal. Progress updates automatically.
+                              </AlertDescription>
+                            </Alert>
                           </div>
                         )}
                         
