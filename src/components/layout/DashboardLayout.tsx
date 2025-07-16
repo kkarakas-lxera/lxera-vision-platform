@@ -34,7 +34,9 @@ import {
   Layout,
   ChartBar,
   School,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -56,6 +58,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    // Load from localStorage or default to all expanded
+    const saved = localStorage.getItem('sidebar-expanded-sections');
+    return saved ? JSON.parse(saved) : {
+      'Core Setup': true,
+      'Skills & Analytics': true,
+      'Learning Platform': true,
+      'More': true
+    };
+  });
   const isMobile = useIsMobile();
 
   const getNavigationItems = () => {
@@ -137,6 +149,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
     setSidebarExpanded(!sidebarExpanded);
   };
 
+  const toggleSection = (sectionName: string) => {
+    const newState = {
+      ...expandedSections,
+      [sectionName]: !expandedSections[sectionName]
+    };
+    setExpandedSections(newState);
+    localStorage.setItem('sidebar-expanded-sections', JSON.stringify(newState));
+  };
+
   return (
     <div className="min-h-screen bg-white dashboard-theme">
       {/* Sidebar - Hidden on mobile */}
@@ -173,21 +194,45 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         <nav className="mt-6 px-2">
           <div className="space-y-2">
             {navigationItems.map((item, index) => {
+              // Track current section for expand/collapse
+              let currentSection = '';
+              for (let i = index - 1; i >= 0; i--) {
+                if (navigationItems[i].section) {
+                  currentSection = navigationItems[i].section;
+                  break;
+                }
+              }
+              
+              // Hide items if their section is collapsed
+              if (currentSection && !item.section && expandedSections[currentSection] === false && sidebarExpanded) {
+                return null;
+              }
               // Handle section headers
               if (item.section) {
                 const SectionIcon = item.icon;
+                const isExpanded = expandedSections[item.section] !== false;
                 return (
                   <div key={`section-${index}`} className={cn(
                     "pt-4 pb-2",
                     index !== 0 && "mt-4 border-t border-slate-800"
                   )}>
                     {sidebarExpanded ? (
-                      <div className="flex items-center px-3 gap-2">
-                        {SectionIcon && <SectionIcon className="h-3 w-3 text-slate-500" />}
-                        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                          {item.section}
-                        </h3>
-                      </div>
+                      <button
+                        onClick={() => toggleSection(item.section)}
+                        className="flex items-center justify-between px-3 gap-2 w-full hover:bg-slate-800/50 rounded-md py-1 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {SectionIcon && <SectionIcon className="h-3 w-3 text-slate-500" />}
+                          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            {item.section}
+                          </h3>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronDown className="h-3 w-3 text-slate-500" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 text-slate-500" />
+                        )}
+                      </button>
                     ) : (
                       <div className="flex justify-center">
                         {SectionIcon && <SectionIcon className="h-4 w-4 text-slate-500" />}

@@ -105,26 +105,17 @@ export default function OnboardingOverview() {
 
         {/* Right Side - Steps and Progress (80%) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Overall Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Getting Started</span>
-                <Badge variant="outline">
-                  {completedSteps} of {steps.length} completed
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Overall Progress</span>
-                  <span className="font-medium">{Math.round(overallProgress)}%</span>
-                </div>
-                <Progress value={overallProgress} className="h-3" />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Overall Progress - Compact */}
+          <div className="bg-slate-50 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Getting Started</span>
+              <Progress value={overallProgress} className="h-2 w-32" />
+              <span className="text-sm text-gray-600">{Math.round(overallProgress)}%</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {completedSteps} of {steps.length} completed
+            </Badge>
+          </div>
 
           {/* Quick Actions */}
           {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
