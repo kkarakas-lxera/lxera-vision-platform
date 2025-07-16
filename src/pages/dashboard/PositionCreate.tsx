@@ -83,7 +83,7 @@ export default function PositionCreate() {
     setLoadingSkills(true);
     try {
       const { data, error } = await supabase
-        .from('esco_skills')
+        .from('st_skills_taxonomy')
         .select('skill_id, skill_name, description')
         .order('skill_name');
 
@@ -433,14 +433,13 @@ export default function PositionCreate() {
 
               {showAISuggestions && (
                 <AISkillSuggestions
-                  positionData={{
-                    position_title: positionData.position_title,
-                    position_level: positionData.position_level,
-                    department: positionData.department,
-                    description: positionData.description
-                  }}
-                  onAcceptSuggestions={handleAISuggestions}
-                  onClose={() => setShowAISuggestions(false)}
+                  positionTitle={positionData.position_title}
+                  positionDescription={positionData.description}
+                  positionLevel={positionData.position_level}
+                  department={positionData.department}
+                  onAddSkill={addSkill}
+                  existingSkills={positionData.required_skills}
+                  onSuggestionsLoaded={handleAISuggestions}
                 />
               )}
 

@@ -56,7 +56,7 @@ export default function PositionManagement() {
     avg_skill_match: 0
   });
   const [loading, setLoading] = useState(true);
-  const [createOpen, setCreateOpen] = useState(false);
+  const navigate = useNavigate();
   const [editPosition, setEditPosition] = useState<CompanyPosition | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [openPositions, setOpenPositions] = useState<Set<string>>(new Set());
@@ -304,7 +304,7 @@ export default function PositionManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Position Management</h1>
           <p className="text-gray-600 mt-1">Define and manage company positions and their skill requirements</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
+        <Button onClick={() => navigate('/dashboard/positions/new')} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Position
         </Button>
@@ -402,7 +402,7 @@ export default function PositionManagement() {
               <Briefcase className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No positions defined</h3>
               <p className="text-gray-500 mb-4">Create your first position to get started</p>
-              <Button onClick={() => setCreateOpen(true)}>
+              <Button onClick={() => navigate('/dashboard/positions/new')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Position
               </Button>
@@ -519,7 +519,7 @@ export default function PositionManagement() {
                               <div className="flex flex-wrap gap-2">
                                 {position.required_skills.map((skill, idx) => (
                                   <Badge key={idx} variant="outline" className="text-xs">
-                                    {skill.name}
+                                    {skill.skill_name}
                                   </Badge>
                                 ))}
                               </div>
@@ -555,17 +555,16 @@ export default function PositionManagement() {
       </Card>
 
       {/* Create Position Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={false} onOpenChange={() => {}}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Position</DialogTitle>
           </DialogHeader>
           <PositionCreateWizard
             onComplete={() => {
-              setCreateOpen(false);
-              fetchPositions();
+              navigate('/dashboard/positions');
             }}
-            onCancel={() => setCreateOpen(false)}
+            onCancel={() => {}}
           />
         </DialogContent>
       </Dialog>
