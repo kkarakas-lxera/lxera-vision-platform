@@ -145,7 +145,47 @@ export default function OnboardingOverview() {
               const Icon = step.icon;
               const isCompleted = step.completed;
               const canAccess = index === 0 || steps[index - 1].completed;
+              const isFirstStep = index === 0;
+              const showWelcomeMessage = isFirstStep && stats.total === 0;
 
+              // Special welcome card for first step when no team members imported
+              if (showWelcomeMessage) {
+                return (
+                  <Card 
+                    key={step.number}
+                    className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-lg"
+                  >
+                    <CardContent className="p-8 text-center">
+                      <div className="mb-6">
+                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="h-8 w-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Get Started?</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Begin by importing your team members to start the onboarding process.
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Button 
+                          size="lg" 
+                          onClick={() => navigate('/dashboard/onboarding/import')}
+                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          <Users className="h-5 w-5 mr-2" />
+                          Import Team Members
+                        </Button>
+                        
+                        <p className="text-xs text-gray-500">
+                          Takes less than 5 minutes to get started
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+
+              // Regular step card
               return (
                 <Card 
                   key={step.number} 
@@ -216,37 +256,6 @@ export default function OnboardingOverview() {
             })}
           </div>
 
-          {/* Get Started CTA - Only show if no steps completed */}
-          {completedSteps === 0 && (
-            <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Get Started?</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Begin by importing your team members to start the onboarding process.
-                  </p>
-                </div>
-                
-                <div className="space-y-4">
-                  <Button 
-                    size="lg" 
-                    onClick={() => navigate('/dashboard/onboarding/import')}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Users className="h-5 w-5 mr-2" />
-                    Import Team Members
-                  </Button>
-                  
-                  <p className="text-xs text-gray-500">
-                    Takes less than 5 minutes to get started
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

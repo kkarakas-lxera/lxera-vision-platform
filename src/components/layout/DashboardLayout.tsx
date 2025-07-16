@@ -30,7 +30,11 @@ import {
   FileText,
   Sparkles,
   Lock,
-  Ticket
+  Ticket,
+  Layout,
+  ChartBar,
+  School,
+  MoreHorizontal
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -61,13 +65,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
     if (isEarlyAccess) {
       return [
         { href: '/waiting-room', icon: Home, label: 'Overview', active: true },
+        { section: 'Core Setup', icon: Layout },
         { href: '#', icon: Target, label: 'Positions', locked: true },
         { href: '#', icon: Upload, label: 'Add Team Members', locked: true },
         { href: '#', icon: Users, label: 'Employees', locked: true },
+        { section: 'Skills & Analytics', icon: ChartBar },
         { href: '#', icon: BrainCircuit, label: 'Skills', locked: true },
+        { href: '#', icon: BarChart3, label: 'Analytics', locked: true },
+        { section: 'Learning Platform', icon: School },
         { href: '#', icon: BookOpen, label: 'Courses', locked: true },
         { href: '#', icon: Sparkles, label: 'AI Course Generator', locked: true },
-        { href: '#', icon: BarChart3, label: 'Analytics', locked: true },
       ];
     }
 
@@ -86,13 +93,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       case 'company_admin':
         return [
           { href: '/dashboard', icon: Home, label: 'Dashboard' },
+          { section: 'Core Setup', icon: Layout },
           { href: '/dashboard/positions', icon: Target, label: 'Positions' },
           { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
+          { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
+          { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+          { section: 'Learning Platform', icon: School },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
-          { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+          { section: 'More', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
@@ -161,7 +172,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         
         <nav className="mt-6 px-2">
           <div className="space-y-2">
-            {navigationItems.map((item) => {
+            {navigationItems.map((item, index) => {
+              // Handle section headers
+              if (item.section) {
+                const SectionIcon = item.icon;
+                return (
+                  <div key={`section-${index}`} className={cn(
+                    "pt-4 pb-2",
+                    index !== 0 && "mt-4 border-t border-slate-800"
+                  )}>
+                    {sidebarExpanded ? (
+                      <div className="flex items-center px-3 gap-2">
+                        {SectionIcon && <SectionIcon className="h-3 w-3 text-slate-500" />}
+                        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          {item.section}
+                        </h3>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        {SectionIcon && <SectionIcon className="h-4 w-4 text-slate-500" />}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               const Icon = item.icon;
               const isActive = location.pathname === item.href || 
                 (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/learner' && 
