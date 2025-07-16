@@ -1072,7 +1072,7 @@ export default function CompanyDashboard() {
                   </div>
                 </div>
               ) : (
-                <Alert>
+                <Alert className="bg-white">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     No skills data available yet. Upload CVs and analyze skills to see coverage.
@@ -1165,7 +1165,7 @@ export default function CompanyDashboard() {
                   ))}
                 </div>
               ) : (
-                <Alert>
+                <Alert className="bg-white">
                   <AlertDescription>
                     No skills data available yet. Upload CVs and analyze skills to see coverage.
                   </AlertDescription>

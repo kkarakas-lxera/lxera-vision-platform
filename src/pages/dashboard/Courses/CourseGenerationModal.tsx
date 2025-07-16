@@ -129,7 +129,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
 
         {step === 'setup' && (
           <div className="space-y-6">
-            <Alert>
+            <Alert className="bg-white">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 This will generate a personalized course based on the employee's CV analysis and skills gaps.
@@ -188,7 +188,7 @@ const CourseGenerationModal: React.FC<CourseGenerationModalProps> = ({
 
         {step === 'completed' && (
           <div className="space-y-6">
-            <Alert>
+            <Alert className="bg-white">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
                 Course generation completed successfully! The course is now available for review.

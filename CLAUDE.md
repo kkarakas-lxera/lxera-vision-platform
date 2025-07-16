@@ -266,3 +266,64 @@ const ProgressiveDemoCapture = ({ source, openDemoModal }) => {
 **Key Learning**: When using CSS variables with color functions, ensure the variable format matches the function's expected input format (RGB values for rgb(), HSL values for hsl()).
 
 **Deployment Note**: Changes require Vercel deployment. Use `vercel --prod --force --yes` to force deploy if automatic deployment fails.
+
+## Supabase Authentication Requirements
+
+### Critical Requirements for User Creation
+**Discovery Date**: January 2025
+
+When creating users in Supabase auth system, the following requirements MUST be met:
+
+1. **Password Hash**: Must use an existing working user's bcrypt hash (cannot generate new hashes)
+2. **Confirmation Token**: Must be a 56-character hex string (NOT empty, NOT NULL)
+3. **Phone Field**: Must be NULL (NOT empty string '')
+4. **User Metadata**: `raw_user_meta_data` must include:
+   - `sub`: User ID as string
+   - `email`: User's email
+   - `full_name`: User's full name
+   - `email_verified`: false
+   - `phone_verified`: false
+5. **App Metadata**: `raw_app_meta_data` must have:
+   - `provider`: "email"
+   - `providers`: ["email"]
+6. **Instance ID**: Must be `00000000-0000-0000-0000-000000000000`
+7. **Public Users Table**: `password_hash` must be "supabase_managed" (handled by trigger)
+
+**Common Errors**:
+- "Database error querying schema" - Caused by NULL values in string fields
+- "Invalid login credentials" - Caused by missing user metadata fields
+
+**Working Example**:
+```sql
+-- Create auth user
+INSERT INTO auth.users (
+  id,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  confirmation_token,
+  phone,
+  aud,
+  role,
+  instance_id,
+  raw_app_meta_data,
+  raw_user_meta_data
+) VALUES (
+  gen_random_uuid(),
+  'user@domain.com',
+  '$2a$10$...' -- Copy from working user
+  NOW(),
+  encode(gen_random_bytes(28), 'hex'),
+  NULL, -- Must be NULL, not ''
+  'authenticated',
+  'authenticated',
+  '00000000-0000-0000-0000-000000000000',
+  '{"provider": "email", "providers": ["email"]}',
+  jsonb_build_object(
+    'sub', id::text,
+    'email', 'user@domain.com',
+    'full_name', 'User Name',
+    'email_verified', false,
+    'phone_verified', false
+  )
+);

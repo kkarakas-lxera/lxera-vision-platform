@@ -444,7 +444,7 @@ export default function EmployeeOnboarding() {
 
         {/* Position Check Alert */}
         {!checkingPositions && !hasPositions && companyMode === 'manual' && (
-          <Alert>
+          <Alert className="bg-white">
             <Target className="h-4 w-4" />
             <AlertTitle>Define Positions First</AlertTitle>
             <AlertDescription className="space-y-2">

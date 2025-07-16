@@ -1,0 +1,176 @@
+# Pre-commit configuration for Lxera Vision Platform
+# This configuration helps prevent security issues and maintains code quality
+
+repos:
+  # General code quality hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-toml
+      - id: check-xml
+      - id: debug-statements
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+      - id: pretty-format-json
+        args: ['--autofix']
+
+  # Security-focused secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            .*\.lock$|
+            .*\.lockb$|
+            package-lock\.json$|
+            yarn\.lock$|
+            node_modules/.*|
+            venv/.*|
+            \.venv/.*|
+            __pycache__/.*|
+            \.git/.*|
+            \.DS_Store$|
+            .*\.log$|
+            .*\.backup$|
+            .*\.bak$
+          )$
+
+  # Python-specific hooks
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        exclude: |
+          (?x)^(
+            venv/.*|
+            \.venv/.*|
+            node_modules/.*|
+            migrations/.*
+          )$
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        exclude: |
+          (?x)^(
+            venv/.*|
+            \.venv/.*|
+            node_modules/.*|
+            migrations/.*
+          )$
+
+  # TypeScript/JavaScript hooks
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.43.0
+    hooks:
+      - id: eslint
+        files: \.(js|ts|jsx|tsx)$
+        exclude: |
+          (?x)^(
+            node_modules/.*|
+            dist/.*|
+            build/.*|
+            \.next/.*|
+            \.nuxt/.*
+          )$
+
+  # Prevent committing to main branch
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Custom security hooks
+  - repo: local
+    hooks:
+      - id: check-env-files
+        name: Check for .env files
+        entry: bash -c 'if find . -name "*.env" -not -path "./node_modules/*" -not -path "./venv/*" | grep -q .; then echo "ERROR: .env files found! These should not be committed."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        
+      - id: check-api-keys
+        name: Check for API keys
+        entry: bash -c 'if grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" -E "(sk-[A-Za-z0-9]{20,}|pk_[A-Za-z0-9]{20,}|tvly-[A-Za-z0-9-]{20,}|fc-[A-Za-z0-9-]{20,})" . --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=.git; then echo "ERROR: API keys found in code!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        
+      - id: check-jwt-tokens
+        name: Check for JWT tokens
+        entry: bash -c 'if grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" -E "eyJ[A-Za-z0-9+/=]{30,}" . --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=.git; then echo "ERROR: JWT tokens found in code!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        
+      - id: check-hardcoded-urls
+        name: Check for hardcoded database URLs
+        entry: bash -c 'if grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" -E "(postgres://|mysql://|mongodb://|https://[a-zA-Z0-9-]+\.supabase\.co)" . --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=.git --exclude-dir=docs; then echo "ERROR: Hardcoded database URLs found!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        
+      - id: check-backup-files
+        name: Check for backup files
+        entry: bash -c 'if find . -name "*.backup" -o -name "*.bak" -o -name "*.orig" | grep -v node_modules | grep -v venv | grep -q .; then echo "ERROR: Backup files found! These should not be committed."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        
+      - id: check-log-files
+        name: Check for log files
+        entry: bash -c 'if find . -name "*.log" | grep -v node_modules | grep -v venv | grep -q .; then echo "ERROR: Log files found! These should not be committed."; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+# Configuration for specific tools
+exclude: |
+  (?x)^(
+    .*\.lock$|
+    .*\.lockb$|
+    package-lock\.json$|
+    yarn\.lock$|
+    bun\.lockb$|
+    node_modules/.*|
+    venv/.*|
+    \.venv/.*|
+    __pycache__/.*|
+    \.git/.*|
+    \.DS_Store$|
+    dist/.*|
+    build/.*|
+    \.next/.*|
+    \.nuxt/.*|
+    \.vercel/.*|
+    \.cache/.*|
+    \.parcel-cache/.*|
+    coverage/.*|
+    htmlcov/.*|
+    \.pytest_cache/.*|
+    \.mypy_cache/.*
+  )$
+
+# Minimum supported pre-commit version
+minimum_pre_commit_version: 3.0.0
+
+# Default language version
+default_language_version:
+  python: python3
+
+# Default stages
+default_stages: [commit, push]
+
+# Fail fast - stop on first failure
+fail_fast: true

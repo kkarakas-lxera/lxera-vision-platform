@@ -492,7 +492,7 @@ export default function PositionCreate() {
                 {/* Selected Skills */}
                 <div className="space-y-2">
                   {positionData.required_skills.length === 0 ? (
-                    <Alert>
+                    <Alert className="bg-white">
                       <AlertDescription>
                         No skills added yet. Search and add required skills for this position.
                       </AlertDescription>
@@ -613,7 +613,7 @@ export default function PositionCreate() {
                   )}
                 </div>
 
-                <Alert className="mt-6">
+                <Alert className="mt-6 bg-white">
                   <Lightbulb className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-2">

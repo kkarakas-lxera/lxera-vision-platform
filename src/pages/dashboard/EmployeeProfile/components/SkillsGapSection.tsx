@@ -218,7 +218,7 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert>
+          <Alert className="bg-white">
             <Lightbulb className="h-4 w-4" />
             <AlertDescription>
               No position requirements found. Please ensure positions have required skills configured.
@@ -621,7 +621,7 @@ export function SkillsGapSection({ employee }: SkillsGapSectionProps) {
             )}
           </div>
         ) : (
-          <Alert>
+          <Alert className="bg-white">
             <Lightbulb className="h-4 w-4" />
             <AlertDescription>
               No skill requirements defined for this position yet.
