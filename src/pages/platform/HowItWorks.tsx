@@ -102,7 +102,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-white to-future-green/5">
+    <div className="min-h-screen bg-gray-50">
       <Navigation openDemoModal={openDemoModal} />
       
       {/* Hero Section */}
@@ -183,8 +183,8 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                         className={`
                           relative overflow-hidden border-0 transition-all duration-300 cursor-pointer
                           ${isResultStep 
-                            ? 'bg-gradient-to-br from-future-green/10 to-future-green/5 shadow-2xl scale-105 lg:scale-110' 
-                            : 'shadow-lg hover:shadow-xl'
+                            ? 'bg-white shadow-2xl scale-105 lg:scale-110 ring-2 ring-future-green/30' 
+                            : 'bg-white shadow-lg hover:shadow-xl'
                           }
                           ${isHovered ? 'transform scale-105' : ''}
                           ${isMiddleStep ? 'ring-2 ring-future-green/20' : ''}
@@ -193,7 +193,6 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                         onMouseLeave={() => setHoveredStep(null)}
                         onClick={() => {
                           toggleCardExpansion(index);
-                          setIsVideoModalOpen(true); // Fitts's Law: Entire card clickable for demo
                         }}
                       >
                         <CardHeader className="pb-4">
@@ -233,15 +232,15 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                           {/* Von Restorff Effect: Show metrics for results step */}
                           {isResultStep && step.metrics && (
                             <div className="grid grid-cols-3 gap-2 mb-4 animate-fade-in">
-                              <div className="text-center p-2 bg-white/50 rounded-lg">
+                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
                                 <p className="text-2xl font-bold text-future-green">{step.metrics.engagement}</p>
                                 <p className="text-xs text-business-black/60">Engagement</p>
                               </div>
-                              <div className="text-center p-2 bg-white/50 rounded-lg">
+                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
                                 <p className="text-2xl font-bold text-future-green">{step.metrics.completion}</p>
                                 <p className="text-xs text-business-black/60">Completion</p>
                               </div>
-                              <div className="text-center p-2 bg-white/50 rounded-lg">
+                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
                                 <p className="text-2xl font-bold text-future-green">{step.metrics.roi}</p>
                                 <p className="text-xs text-business-black/60">ROI</p>
                               </div>
@@ -286,7 +285,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
       </section>
 
       {/* Support Touchpoints */}
-      <section className="py-20 px-6 bg-gradient-to-r from-smart-beige/20 to-future-green/10">
+      <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-business-black mb-6 font-inter">
@@ -301,7 +300,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
             {touchpoints.map((touchpoint, index) => {
               const IconComponent = touchpoint.icon;
               return (
-                <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <Card key={index} className="text-center border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <CardHeader>
                     <div className="w-16 h-16 bg-gradient-to-br from-future-green/20 to-future-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <IconComponent className="w-8 h-8 text-business-black" />
