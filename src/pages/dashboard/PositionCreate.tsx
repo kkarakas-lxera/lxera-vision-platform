@@ -43,6 +43,7 @@ export default function PositionCreate() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [skillSearchTerm, setSkillSearchTerm] = useState('');
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -252,6 +253,63 @@ export default function PositionCreate() {
     });
   };
 
+  const generatePositionCode = (title: string) => {
+    return title
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 20);
+  };
+
+  const generateDescription = async () => {
+    if (!positionData.position_title || isGeneratingDescription) return;
+
+    setIsGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-position-description', {
+        body: {
+          position_title: positionData.position_title,
+          position_level: positionData.position_level,
+          department: positionData.department
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.description) {
+        setPositionData(prev => ({ ...prev, description: data.description }));
+        toast.success('AI generated a description. You can edit it.');
+      }
+    } catch (err) {
+      console.error('Error generating description:', err);
+      toast.error('Failed to generate description');
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
+  // Auto-generate description when title, level, or department changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (
+        positionData.position_title &&
+        (positionData.position_level || positionData.department) &&
+        !positionData.description &&
+        !isGeneratingDescription
+      ) {
+        generateDescription();
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [positionData.position_title, positionData.position_level, positionData.department]);
+
+  // Auto open AI suggestions panel when title available
+  useEffect(() => {
+    if (positionData.position_title && !showAISuggestions) {
+      setShowAISuggestions(true);
+    }
+  }, [positionData.position_title]);
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -324,7 +382,14 @@ export default function PositionCreate() {
                   <Input
                     id="position_title"
                     value={positionData.position_title}
-                    onChange={(e) => setPositionData({ ...positionData, position_title: e.target.value })}
+                    onChange={(e) => {
+                      const title = e.target.value;
+                      setPositionData(prev => ({
+                        ...prev,
+                        position_title: title,
+                        position_code: generatePositionCode(title)
+                      }));
+                    }}
                     placeholder="e.g., Senior Software Engineer"
                   />
                 </div>
@@ -387,7 +452,20 @@ export default function PositionCreate() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Position Description*</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label htmlFor="description">Position Description*</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateDescription}
+                    disabled={isGeneratingDescription || !positionData.position_title}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles className={`h-4 w-4 ${isGeneratingDescription ? 'animate-spin' : ''}`} />
+                    {isGeneratingDescription ? 'Generating...' : 'Generate with AI'}
+                  </Button>
+                </div>
                 <Textarea
                   ref={descriptionRef}
                   id="description"
@@ -397,6 +475,7 @@ export default function PositionCreate() {
                   placeholder="Describe the role, responsibilities, and key objectives..."
                   rows={6}
                   className="resize-none"
+                  disabled={isGeneratingDescription}
                 />
                 {positionData.description.length > 100 && !positionData.description_fully_read && (
                   <p className="text-xs text-orange-600 mt-1">
