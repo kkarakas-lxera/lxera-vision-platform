@@ -127,7 +127,6 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
               <ProgressiveDemoCapture
                 source="how_it_works_platform_page"
                 buttonText="Start Your Journey"
-                onSuccess={() => {}}
                 openDemoModal={openDemoModal}
                 className="!px-12 !py-6 !text-lg !font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               />
@@ -137,7 +136,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
             <Button 
               variant="ghost" 
               size="lg" 
-              className="rounded-xl px-8 py-4 text-base transition-all duration-300 hover:bg-future-green/10 font-inter font-normal text-business-black/70 hover:text-business-black" 
+              className="rounded-xl px-8 py-4 text-base transition-all duration-300 bg-white/80 backdrop-blur-sm hover:bg-future-green/10 font-inter font-normal text-business-black hover:text-business-black" 
               onClick={() => setIsVideoModalOpen(true)}
             >
               Watch How It Works
@@ -214,7 +213,7 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                           
                           {/* Miller's Law: Show main benefit with tooltip for details */}
                           <div className="mt-2 flex items-center gap-2">
-                            <p className="text-base font-semibold bg-gradient-to-r from-future-green to-emerald bg-clip-text text-transparent">
+                            <p className="text-base font-semibold lg:bg-gradient-to-r lg:from-future-green lg:to-emerald lg:bg-clip-text lg:text-transparent text-business-black">
                               {step.mainBenefit}
                             </p>
                             <Tooltip>
@@ -232,16 +231,16 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
                           {/* Von Restorff Effect: Show metrics for results step */}
                           {isResultStep && step.metrics && (
                             <div className="grid grid-cols-3 gap-2 mb-4 animate-fade-in">
-                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
-                                <p className="text-2xl font-bold text-future-green">{step.metrics.engagement}</p>
+                              <div className="text-center p-2 bg-white/90 rounded-lg shadow-sm">
+                                <p className="text-2xl font-extrabold text-business-black">{step.metrics.engagement}</p>
                                 <p className="text-xs text-business-black/60">Engagement</p>
                               </div>
-                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
-                                <p className="text-2xl font-bold text-future-green">{step.metrics.completion}</p>
+                              <div className="text-center p-2 bg-white/90 rounded-lg shadow-sm">
+                                <p className="text-2xl font-extrabold text-business-black">{step.metrics.completion}</p>
                                 <p className="text-xs text-business-black/60">Completion</p>
                               </div>
-                              <div className="text-center p-2 bg-future-green/10 rounded-lg">
-                                <p className="text-2xl font-bold text-future-green">{step.metrics.roi}</p>
+                              <div className="text-center p-2 bg-white/90 rounded-lg shadow-sm">
+                                <p className="text-2xl font-extrabold text-business-black">{step.metrics.roi}</p>
                                 <p className="text-xs text-business-black/60">ROI</p>
                               </div>
                             </div>
@@ -336,7 +335,6 @@ const HowItWorks = ({ openDemoModal, openContactSalesModal }: HowItWorksProps) =
               <ProgressiveDemoCapture
                 source="how_it_works_cta_section"
                 buttonText="Start Your Journey"
-                onSuccess={() => {}}
                 openDemoModal={openDemoModal}
                 className="!px-12 !py-6 !text-lg !font-medium shadow-lg hover:shadow-xl bg-future-green hover:bg-future-green/90"
               />
