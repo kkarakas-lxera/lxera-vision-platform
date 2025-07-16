@@ -12,11 +12,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { AddEmployees } from '@/components/dashboard/EmployeeOnboarding/AddEmployees';
+import { InlineAddEmployees } from '@/components/dashboard/EmployeeOnboarding/InlineAddEmployees';
+import { InviteEmployees } from '@/components/dashboard/EmployeeOnboarding/InviteEmployees';
 import { OnboardingProgress } from '@/components/dashboard/EmployeeOnboarding/OnboardingProgress';
 import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
-import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
-import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
 import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
 import { AutomatedOnboardingDashboard } from '@/components/dashboard/EmployeeOnboarding/AutomatedOnboardingDashboard';
 import { HRISService } from '@/services/hrisService';
@@ -264,7 +263,7 @@ export default function EmployeeOnboarding() {
   const canProceedToStep = (stepNumber: number) => {
     if (stepNumber === 1) return true;
     if (stepNumber === 2) return stats.total > 0; // can invite after employees are imported
-    if (stepNumber === 3) return stats.analyzed > 0; // unlock report after some analyses complete
+    if (stepNumber === 3) return stats.withCV > 0 || stats.analyzed > 0; // unlock report after CVs uploaded
     return false;
   };
 
@@ -282,10 +281,15 @@ export default function EmployeeOnboarding() {
   };
 
   const toggleStepExpansion = (stepNumber: number) => {
-    setExpandedSteps(prev => ({
-      ...prev,
-      [stepNumber]: !prev[stepNumber]
-    }));
+    // Only allow one step to be expanded at a time
+    if (expandedSteps[stepNumber]) {
+      setExpandedSteps(prev => ({
+        ...prev,
+        [stepNumber]: false
+      }));
+    } else {
+      setExpandedSteps({ [stepNumber]: true });
+    }
   };
   
   // Automatically expand the active step on mount
@@ -511,7 +515,8 @@ export default function EmployeeOnboarding() {
                       onClick={() => {
                         if (isClickable) {
                           setCurrentStep(step.number);
-                          toggleStepExpansion(step.number);
+                          // Close all other steps and open this one
+                          setExpandedSteps({ [step.number]: true });
                         }
                       }}
                     >
@@ -544,6 +549,11 @@ export default function EmployeeOnboarding() {
                             Completed
                           </Badge>
                         )}
+                        {!isClickable && !isCompleted && (
+                          <Badge variant="outline" className="text-gray-500">
+                            Locked
+                          </Badge>
+                        )}
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
@@ -556,30 +566,28 @@ export default function EmployeeOnboarding() {
                     {isExpanded && (
                       <div className="border-t p-4">
                         {step.number === 1 && (
-                          <AddEmployees 
+                          <InlineAddEmployees 
                             onSessionCreated={() => {
                               fetchImportSessions();
                               fetchEmployeeStatuses();
                               if (canProceedToStep(2)) {
-                                nextStep();
+                                setTimeout(() => {
+                                  setCurrentStep(2);
+                                  setExpandedSteps(prev => ({ ...prev, 2: true }));
+                                }, 500);
                               }
                             }}
+                            existingSessions={importSessions}
                           />
                         )}
                         
                         {step.number === 2 && (
-                          <div className="space-y-4">
-                            <SessionStatusCard
-                              total={stats.total}
-                              withCV={stats.withCV}
-                              analyzed={stats.analyzed}
-                            />
-                            <Alert className="bg-white">
-                              <AlertDescription>
-                                Employees will receive an email to complete their profile and upload CVs in their learner portal. Progress updates automatically.
-                              </AlertDescription>
-                            </Alert>
-                          </div>
+                          <InviteEmployees 
+                            onInvitationsSent={() => {
+                              fetchEmployeeStatuses();
+                              toast.success('Invitations sent successfully!');
+                            }}
+                          />
                         )}
                         
                         {step.number === 3 && (
