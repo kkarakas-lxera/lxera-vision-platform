@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 import { InlineAddEmployees } from '@/components/dashboard/EmployeeOnboarding/InlineAddEmployees';
 import { InviteEmployees } from '@/components/dashboard/EmployeeOnboarding/InviteEmployees';
 import { OnboardingProgress } from '@/components/dashboard/EmployeeOnboarding/OnboardingProgress';
