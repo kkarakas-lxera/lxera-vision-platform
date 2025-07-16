@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer, ChevronRight, ChevronDown } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer, ChevronRight, ChevronDown, Settings2, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddEmployees } from '@/components/dashboard/EmployeeOnboarding/AddEmployees';
@@ -39,12 +43,16 @@ interface EmployeeStatus {
 
 export default function EmployeeOnboarding() {
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [importSessions, setImportSessions] = useState<ImportSession[]>([]);
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyMode, setCompanyMode] = useState<'manual' | 'automated'>('manual');
   const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({});
+  const [savingMode, setSavingMode] = useState(false);
+  const [hasPositions, setHasPositions] = useState(false);
+  const [checkingPositions, setCheckingPositions] = useState(true);
 
   // Fetch company's onboarding mode
   const fetchCompanyMode = async () => {
@@ -63,6 +71,47 @@ export default function EmployeeOnboarding() {
       }
     } catch (error) {
       console.error('Error fetching company mode:', error);
+    }
+  };
+
+  // Check if company has positions defined
+  const checkForPositions = async () => {
+    if (!userProfile?.company_id) return;
+    
+    try {
+      const { data, count } = await supabase
+        .from('st_company_positions')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id);
+      
+      setHasPositions((count || 0) > 0);
+    } catch (error) {
+      console.error('Error checking positions:', error);
+    } finally {
+      setCheckingPositions(false);
+    }
+  };
+
+  // Save onboarding mode
+  const saveOnboardingMode = async (mode: 'manual' | 'automated') => {
+    if (!userProfile?.company_id) return;
+    
+    setSavingMode(true);
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ onboarding_mode: mode })
+        .eq('id', userProfile.company_id);
+
+      if (error) throw error;
+      
+      setCompanyMode(mode);
+      toast.success('Onboarding mode updated successfully');
+    } catch (error) {
+      console.error('Error updating onboarding mode:', error);
+      toast.error('Failed to update onboarding mode');
+    } finally {
+      setSavingMode(false);
     }
   };
 
@@ -175,7 +224,12 @@ export default function EmployeeOnboarding() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchCompanyMode(), fetchImportSessions(), fetchEmployeeStatuses()]);
+      await Promise.all([
+        fetchCompanyMode(), 
+        fetchImportSessions(), 
+        fetchEmployeeStatuses(),
+        checkForPositions()
+      ]);
       setLoading(false);
     };
 
@@ -324,9 +378,9 @@ export default function EmployeeOnboarding() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Onboard New Team Members</h1>
+            <h1 className="text-xl font-bold text-foreground">Add Team Members</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Add employees, analyze their skills, and create personalized learning paths
+              Choose your onboarding method and add employees to analyze their skills
             </p>
           </div>
           <Tooltip>
@@ -338,28 +392,90 @@ export default function EmployeeOnboarding() {
             <TooltipContent className="max-w-sm">
               <p className="text-sm">
                 <strong>Getting Started:</strong><br />
-                1. Select a default position for your employees<br />
-                2. Import employee data via CSV<br />
-                3. Upload CVs for each employee<br />
-                4. Run skills analysis to identify gaps<br />
+                1. Choose between Manual or Automated onboarding<br />
+                2. Define position requirements (if not done)<br />
+                3. Import employee data<br />
+                4. Upload CVs and run skills analysis<br />
                 5. View and export the skills gap report
               </p>
             </TooltipContent>
           </Tooltip>
         </div>
 
-        {/* Quick Actions - Only show if we have data */}
-        {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
-          <QuickActions
-            onAddEmployees={() => setCurrentStep(1)}
-            onUploadCVs={() => setCurrentStep(2)}
-            onAnalyzeSkills={() => setCurrentStep(2)}
-            onExportReport={() => setCurrentStep(3)}
-            hasEmployees={stats.total > 0}
-            hasEmployeesWithCVs={stats.withCV > 0}
-            hasEmployeesWithAnalysis={stats.analyzed > 0}
-          />
+        {/* Onboarding Mode Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              Employee Onboarding Mode
+            </CardTitle>
+            <CardDescription>
+              Choose how you want to onboard new employees
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <RadioGroup value={companyMode} onValueChange={(value) => saveOnboardingMode(value as 'manual' | 'automated')}>
+              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="manual" id="manual" disabled={savingMode} />
+                <div className="space-y-1">
+                  <Label htmlFor="manual" className="text-base font-medium cursor-pointer">
+                    Manual Mode (Traditional)
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Upload CVs and manually analyze employee skills. Full control over the process.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+                <RadioGroupItem value="automated" id="automated" disabled={savingMode} />
+                <div className="space-y-1">
+                  <Label htmlFor="automated" className="text-base font-medium cursor-pointer">
+                    Automated Mode (AI-Powered)
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Connect HRIS, employees complete profiles, and courses are automatically assigned based on skills gaps.
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Position Check Alert */}
+        {!checkingPositions && !hasPositions && companyMode === 'manual' && (
+          <Alert>
+            <Target className="h-4 w-4" />
+            <AlertTitle>Define Positions First</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>You need to define at least one position before importing employees.</p>
+              <Button 
+                onClick={() => navigate('/dashboard/positions')}
+                size="sm"
+                className="mt-2"
+              >
+                Define Positions
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </AlertDescription>
+          </Alert>
         )}
+
+        {/* Show rest of content only if positions exist or in automated mode */}
+        {(hasPositions || companyMode === 'automated') && (
+          <>
+            {/* Quick Actions - Only show if we have data */}
+            {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
+              <QuickActions
+                onAddEmployees={() => setCurrentStep(1)}
+                onUploadCVs={() => setCurrentStep(2)}
+                onAnalyzeSkills={() => setCurrentStep(2)}
+                onExportReport={() => setCurrentStep(3)}
+                hasEmployees={stats.total > 0}
+                hasEmployeesWithCVs={stats.withCV > 0}
+                hasEmployeesWithAnalysis={stats.analyzed > 0}
+              />
+            )}
 
       {/* Step Progress */}
       <Card>
@@ -493,7 +609,8 @@ export default function EmployeeOnboarding() {
 
         </CardContent>
       </Card>
-
+          </>
+        )}
 
     </div>
     </TooltipProvider>
