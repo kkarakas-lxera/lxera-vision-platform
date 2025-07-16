@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer, ChevronRight, ChevronDown, Settings2, Target } from 'lucide-react';
+import { Upload, Users, FileText, BarChart3, CheckCircle, AlertCircle, Clock, ArrowRight, ArrowLeft, HelpCircle, Zap, MousePointer, ChevronRight, ChevronDown, Settings2, Target, Link2, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUp
 import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
 import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
 import { AutomatedOnboardingDashboard } from '@/components/dashboard/EmployeeOnboarding/AutomatedOnboardingDashboard';
+import { HRISService } from '@/services/hrisService';
 
 interface ImportSession {
   id: string;
@@ -53,6 +54,8 @@ export default function EmployeeOnboarding() {
   const [savingMode, setSavingMode] = useState(false);
   const [hasPositions, setHasPositions] = useState(false);
   const [checkingPositions, setCheckingPositions] = useState(true);
+  const [hrisConnection, setHrisConnection] = useState<any>(null);
+  const [checkingHRIS, setCheckingHRIS] = useState(false);
 
   // Fetch company's onboarding mode
   const fetchCompanyMode = async () => {
@@ -92,6 +95,21 @@ export default function EmployeeOnboarding() {
     }
   };
 
+  // Check HRIS connection
+  const checkHRISConnection = async () => {
+    if (!userProfile?.company_id || companyMode !== 'automated') return;
+    
+    setCheckingHRIS(true);
+    try {
+      const connection = await HRISService.getConnection(userProfile.company_id);
+      setHrisConnection(connection);
+    } catch (error) {
+      console.error('Error checking HRIS connection:', error);
+    } finally {
+      setCheckingHRIS(false);
+    }
+  };
+
   // Save onboarding mode
   const saveOnboardingMode = async (mode: 'manual' | 'automated') => {
     if (!userProfile?.company_id) return;
@@ -102,18 +120,51 @@ export default function EmployeeOnboarding() {
         .from('companies')
         .update({ onboarding_mode: mode })
         .eq('id', userProfile.company_id);
-
+      
       if (error) throw error;
       
       setCompanyMode(mode);
-      toast.success('Onboarding mode updated successfully');
+      toast.success(`Switched to ${mode === 'manual' ? 'Manual' : 'Automated'} mode`);
+      
+      // Check HRIS if switching to automated
+      if (mode === 'automated') {
+        checkHRISConnection();
+      }
     } catch (error) {
-      console.error('Error updating onboarding mode:', error);
+      console.error('Error saving mode:', error);
       toast.error('Failed to update onboarding mode');
     } finally {
       setSavingMode(false);
     }
   };
+
+  // Connect HRIS
+  const connectHRIS = async (provider: string) => {
+    try {
+      const authUrl = await HRISService.initiateConnection(userProfile?.company_id!, provider);
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Error connecting HRIS:', error);
+      toast.error('Failed to connect HRIS');
+    }
+  };
+
+  useEffect(() => {
+    const initializePage = async () => {
+      setLoading(true);
+      await fetchCompanyMode();
+      await checkForPositions();
+      await fetchImportSessions();
+      await fetchEmployeeStatuses();
+      setLoading(false);
+    };
+
+    initializePage();
+  }, [userProfile]);
+
+  useEffect(() => {
+    checkHRISConnection();
+  }, [companyMode]);
 
   const fetchImportSessions = async () => {
     if (!userProfile?.company_id) return;
@@ -123,20 +174,13 @@ export default function EmployeeOnboarding() {
         .from('st_import_sessions')
         .select('*')
         .eq('company_id', userProfile.company_id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Transform the data to match our interface
-      const transformedData: ImportSession[] = (data || []).map(session => ({
-        ...session,
-        status: session.status as 'pending' | 'processing' | 'completed' | 'failed'
-      }));
-      
-      setImportSessions(transformedData);
+      setImportSessions(data || []);
     } catch (error) {
       console.error('Error fetching import sessions:', error);
+      toast.error('Failed to load import sessions');
     }
   };
 
@@ -144,76 +188,39 @@ export default function EmployeeOnboarding() {
     if (!userProfile?.company_id) return;
 
     try {
-      // Get employees first
-      const { data: employees, error } = await supabase
-        .from('employees')
+      const { data, error } = await supabase
+        .from('st_users')
         .select(`
           id,
-          position,
-          cv_file_path,
-          skills_last_analyzed,
-          user_id,
-          users!employees_user_id_fkey (
-            full_name,
-            email
+          full_name,
+          email,
+          st_user_profiles!inner(
+            position_title,
+            cv_uploaded,
+            cv_analyzed,
+            skills_extracted
           )
         `)
-        .eq('company_id', userProfile.company_id);
+        .eq('company_id', userProfile.company_id)
+        .eq('role', 'learner');
 
       if (error) throw error;
 
-      // Get skills profiles separately to bypass RLS join issues
-      const employeeIds = employees?.map(e => e.id) || [];
-      const { data: skillsProfiles, error: profilesError } = await supabase
-        .from('st_employee_skills_profile')
-        .select('employee_id, skills_match_score, analyzed_at, extracted_skills')
-        .in('employee_id', employeeIds);
-
-      if (profilesError) {
-        console.error('Error fetching skills profiles:', profilesError);
-      }
-
-      // Create a map for easy lookup
-      const profileMap = new Map();
-      skillsProfiles?.forEach(profile => {
-        if (!profileMap.has(profile.employee_id)) {
-          profileMap.set(profile.employee_id, []);
-        }
-        profileMap.get(profile.employee_id).push(profile);
-      });
-
-      // Merge the data
-      const employeesWithProfiles = employees?.map(emp => ({
-        ...emp,
-        st_employee_skills_profile: profileMap.get(emp.id) || []
-      })) || [];
-
-      // Transform data to include status information
-      const statuses: EmployeeStatus[] = employeesWithProfiles.map(emp => {
-        const hasProfile = emp.st_employee_skills_profile && 
-                          Array.isArray(emp.st_employee_skills_profile) && 
-                          emp.st_employee_skills_profile.length > 0;
-        const profile = hasProfile ? emp.st_employee_skills_profile[0] : null;
-        const hasExtractedSkills = profile?.extracted_skills && 
-                                  Array.isArray(profile.extracted_skills) && 
-                                  profile.extracted_skills.length > 0;
-        
-        // Use a fallback name if user doesn't exist
-        const name = emp.users?.full_name || `Employee ${emp.id.slice(0, 8)}`;
-        const email = emp.users?.email || `employee.${emp.id.slice(0, 8)}@company.com`;
-        
-        return {
-          id: emp.id,
-          name: name,
-          email: email,
-          position: emp.position || 'Not assigned',
-          cv_status: emp.cv_file_path ? 
-            (hasExtractedSkills ? 'analyzed' : 'uploaded') 
+      const statuses = (data || []).map(user => ({
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        position: user.st_user_profiles[0]?.position_title || 'Not Assigned',
+        cv_status: user.st_user_profiles[0]?.cv_analyzed 
+          ? 'analyzed' 
+          : user.st_user_profiles[0]?.cv_uploaded 
+            ? 'uploaded' 
             : 'missing',
-          skills_analysis: hasExtractedSkills ? 'completed' : 'pending',
-          gap_score: profile?.skills_match_score || 0
-        };
-      });
+        skills_analysis: user.st_user_profiles[0]?.skills_extracted 
+          ? 'completed' 
+          : 'pending',
+        gap_score: undefined
+      }));
 
       setEmployeeStatuses(statuses);
     } catch (error) {
@@ -221,82 +228,28 @@ export default function EmployeeOnboarding() {
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchCompanyMode(), 
-        fetchImportSessions(), 
-        fetchEmployeeStatuses(),
-        checkForPositions()
-      ]);
-      setLoading(false);
-    };
-
-    loadData();
-
-    // Set up real-time subscription for skills profile changes
-    const subscription = supabase
-      .channel('skills-profile-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'st_employee_skills_profile',
-          filter: `employee_id=in.(${employeeStatuses.map(e => e.id).join(',')})`
-        },
-        () => {
-          // Refresh employee statuses when skills profile changes
-          fetchEmployeeStatuses();
-        }
-      )
-      .subscribe();
-
-    // Also set up a periodic refresh every 5 seconds when analysis is in progress
-    const hasAnalysisInProgress = employeeStatuses.some(
-      e => e.cv_status === 'uploaded' && e.skills_analysis === 'pending'
-    );
-    
-    let intervalId: NodeJS.Timeout | null = null;
-    if (hasAnalysisInProgress) {
-      intervalId = setInterval(() => {
-        fetchEmployeeStatuses();
-      }, 5000);
-    }
-
-    return () => {
-      subscription.unsubscribe();
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [userProfile?.company_id, employeeStatuses.length]);
-
-
-  const getOverallStats = () => {
-    const total = employeeStatuses.length;
-    const withCV = employeeStatuses.filter(e => e.cv_status !== 'missing').length;
-    const analyzed = employeeStatuses.filter(e => e.skills_analysis === 'completed').length;
-
-    return { total, withCV, analyzed };
+  // Calculate statistics
+  const stats = {
+    total: employeeStatuses.length,
+    withCV: employeeStatuses.filter(e => e.cv_status !== 'missing').length,
+    analyzed: employeeStatuses.filter(e => e.cv_status === 'analyzed').length,
+    avgGapScore: 0
   };
 
-  const stats = getOverallStats();
-
+  // Steps configuration
   const steps = [
     {
       number: 1,
-      title: "Import Employees",
-      description: "Select position and import team members",
+      title: "Import Team Members",
+      description: "Upload employee data",
       icon: Users,
       completed: stats.total > 0
     },
     {
       number: 2,
-      title: "Upload & Analyze CVs",
-      description: "Upload resumes and run skills analysis",
-      icon: BarChart3,
+      title: "Analyze Skills",
+      description: "Extract skills from CVs",
+      icon: Zap,
       completed: stats.analyzed > 0
     },
     {
@@ -359,10 +312,115 @@ export default function EmployeeOnboarding() {
     );
   }
 
-  // Show different UI based on company's onboarding mode
-  if (companyMode === 'automated') {
+  // Check positions first - applies to both modes
+  if (!checkingPositions && !hasPositions) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto">
+        <Alert className="bg-white">
+          <Target className="h-5 w-5" />
+          <AlertTitle>Define Positions First</AlertTitle>
+          <AlertDescription className="space-y-3 mt-2">
+            <p>Before you can onboard employees, you need to define at least one position with its required skills.</p>
+            <Button 
+              onClick={() => navigate('/dashboard/positions/new')}
+              className="w-full sm:w-auto"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Create Your First Position
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Check HRIS connection for automated mode
+  if (companyMode === 'automated' && !checkingHRIS && !hrisConnection) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+        {/* Compact Mode Selector */}
+        <Card>
+          <CardContent className="p-4">
+            <RadioGroup value={companyMode} onValueChange={(value) => saveOnboardingMode(value as 'manual' | 'automated')} className="flex flex-row gap-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="manual" id="manual" disabled={savingMode} />
+                <Label htmlFor="manual" className="cursor-pointer font-normal">Manual Mode</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="automated" id="automated" disabled={savingMode} />
+                <Label htmlFor="automated" className="cursor-pointer font-normal">Automated Mode</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* HRIS Connection Required */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              Connect Your HR System
+            </CardTitle>
+            <CardDescription>
+              Automated onboarding requires connecting your HRIS for employee data synchronization
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col items-center justify-center gap-2"
+                onClick={() => connectHRIS('bamboohr')}
+              >
+                <Building2 className="h-8 w-8" />
+                <span>BambooHR</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col items-center justify-center gap-2"
+                onClick={() => connectHRIS('workday')}
+              >
+                <Building2 className="h-8 w-8" />
+                <span>Workday</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col items-center justify-center gap-2"
+                onClick={() => connectHRIS('adp')}
+              >
+                <Building2 className="h-8 w-8" />
+                <span>ADP</span>
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Don't see your HRIS? Contact support for custom integrations.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show automated dashboard if in automated mode with HRIS connected
+  if (companyMode === 'automated' && hrisConnection) {
     return (
       <div className="p-6">
+        {/* Compact Mode Selector */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <RadioGroup value={companyMode} onValueChange={(value) => saveOnboardingMode(value as 'manual' | 'automated')} className="flex flex-row gap-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="manual" id="manual" disabled={savingMode} />
+                <Label htmlFor="manual" className="cursor-pointer font-normal">Manual Mode</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="automated" id="automated" disabled={savingMode} />
+                <Label htmlFor="automated" className="cursor-pointer font-normal">Automated Mode</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         <AutomatedOnboardingDashboard 
           companyId={userProfile?.company_id!}
           employeeStatuses={employeeStatuses}
@@ -372,6 +430,7 @@ export default function EmployeeOnboarding() {
     );
   }
 
+  // Manual mode interface
   return (
     <TooltipProvider>
       <div className="p-4 space-y-4">
@@ -380,7 +439,7 @@ export default function EmployeeOnboarding() {
           <div>
             <h1 className="text-xl font-bold text-foreground">Add Team Members</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Choose your onboarding method and add employees to analyze their skills
+              Import employees and analyze their skills to identify gaps
             </p>
           </div>
           <Tooltip>
@@ -392,227 +451,162 @@ export default function EmployeeOnboarding() {
             <TooltipContent className="max-w-sm">
               <p className="text-sm">
                 <strong>Getting Started:</strong><br />
-                1. Choose between Manual or Automated onboarding<br />
-                2. Define position requirements (if not done)<br />
-                3. Import employee data<br />
-                4. Upload CVs and run skills analysis<br />
-                5. View and export the skills gap report
+                1. Import employee data via CSV<br />
+                2. Upload CVs and run skills analysis<br />
+                3. View and export the skills gap report
               </p>
             </TooltipContent>
           </Tooltip>
         </div>
 
-        {/* Onboarding Mode Selection */}
+        {/* Compact Mode Selector */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              Employee Onboarding Mode
-            </CardTitle>
-            <CardDescription>
-              Choose how you want to onboard new employees
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <RadioGroup value={companyMode} onValueChange={(value) => saveOnboardingMode(value as 'manual' | 'automated')}>
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+          <CardContent className="p-4">
+            <RadioGroup value={companyMode} onValueChange={(value) => saveOnboardingMode(value as 'manual' | 'automated')} className="flex flex-row gap-4">
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="manual" id="manual" disabled={savingMode} />
-                <div className="space-y-1">
-                  <Label htmlFor="manual" className="text-base font-medium cursor-pointer">
-                    Manual Mode (Traditional)
-                  </Label>
-                  <p className="text-sm text-gray-600">
-                    Upload CVs and manually analyze employee skills. Full control over the process.
-                  </p>
-                </div>
+                <Label htmlFor="manual" className="cursor-pointer font-normal">Manual Mode</Label>
               </div>
-              
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="automated" id="automated" disabled={savingMode} />
-                <div className="space-y-1">
-                  <Label htmlFor="automated" className="text-base font-medium cursor-pointer">
-                    Automated Mode (AI-Powered)
-                  </Label>
-                  <p className="text-sm text-gray-600">
-                    Connect HRIS, employees complete profiles, and courses are automatically assigned based on skills gaps.
-                  </p>
-                </div>
+                <Label htmlFor="automated" className="cursor-pointer font-normal">Automated Mode</Label>
               </div>
             </RadioGroup>
           </CardContent>
         </Card>
 
-        {/* Position Check Alert */}
-        {!checkingPositions && !hasPositions && companyMode === 'manual' && (
-          <Alert className="bg-white">
-            <Target className="h-4 w-4" />
-            <AlertTitle>Define Positions First</AlertTitle>
-            <AlertDescription className="space-y-2">
-              <p>You need to define at least one position before importing employees.</p>
-              <Button 
-                onClick={() => navigate('/dashboard/positions')}
-                size="sm"
-                className="mt-2"
-              >
-                Define Positions
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </AlertDescription>
-          </Alert>
+        {/* Quick Actions - Only show if we have data */}
+        {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
+          <QuickActions
+            onAddEmployees={() => setCurrentStep(1)}
+            onUploadCVs={() => setCurrentStep(2)}
+            onAnalyzeSkills={() => setCurrentStep(2)}
+            onExportReport={() => setCurrentStep(3)}
+            hasEmployees={stats.total > 0}
+            hasEmployeesWithCVs={stats.withCV > 0}
+            hasEmployeesWithAnalysis={stats.analyzed > 0}
+          />
         )}
 
-        {/* Show rest of content only if positions exist or in automated mode */}
-        {(hasPositions || companyMode === 'automated') && (
-          <>
-            {/* Quick Actions - Only show if we have data */}
-            {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
-              <QuickActions
-                onAddEmployees={() => setCurrentStep(1)}
-                onUploadCVs={() => setCurrentStep(2)}
-                onAnalyzeSkills={() => setCurrentStep(2)}
-                onExportReport={() => setCurrentStep(3)}
-                hasEmployees={stats.total > 0}
-                hasEmployeesWithCVs={stats.withCV > 0}
-                hasEmployeesWithAnalysis={stats.analyzed > 0}
-              />
-            )}
+        {/* Step Progress */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Onboarding Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = currentStep === step.number;
+                const isCompleted = step.completed;
+                const isClickable = canProceedToStep(step.number);
+                const isExpanded = expandedSteps[step.number];
 
-      {/* Step Progress */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Onboarding Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.number;
-              const isCompleted = step.completed;
-              const isClickable = canProceedToStep(step.number);
-              const isExpanded = expandedSteps[step.number];
-
-              return (
-                <div key={step.number} className="border rounded-lg">
-                  <div 
-                    className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
-                      isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => toggleStepExpansion(step.number)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
-                          isCompleted
-                            ? 'bg-green-600 border-green-600'
-                            : isActive
-                            ? 'bg-blue-600 border-blue-600'
-                            : isClickable
-                            ? 'border-gray-300'
-                            : 'border-gray-200'
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isClickable) setCurrentStep(step.number);
-                        }}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="h-4 w-4 text-white" />
+                return (
+                  <div key={step.number} className="border rounded-lg">
+                    <div 
+                      className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
+                        isActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => {
+                        if (isClickable) {
+                          setCurrentStep(step.number);
+                          toggleStepExpansion(step.number);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center h-8 w-8 rounded-full transition-colors ${
+                          isCompleted 
+                            ? 'bg-green-100 text-green-700' 
+                            : isActive 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckCircle className="h-5 w-5" />
+                          ) : (
+                            <Icon className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className={`font-medium text-sm ${
+                            isActive ? 'text-blue-900' : 'text-gray-900'
+                          }`}>
+                            {step.title}
+                          </h3>
+                          <p className="text-xs text-gray-500">{step.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isCompleted && (
+                          <Badge variant="outline" className="text-green-700">
+                            Completed
+                          </Badge>
+                        )}
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {step.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {step.description}
-                        </p>
-                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {isCompleted && <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">Done</Badge>}
-                      {isActive && !isCompleted && <Badge className="bg-blue-100 text-blue-800 text-xs">Active</Badge>}
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Expandable content */}
-                  {isExpanded && (
-                    <div className="px-4 pb-4 border-t">
-                      <div className="mt-4">
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div className="border-t p-4">
                         {step.number === 1 && (
-                          <div className="space-y-4">
-                            {stats.total > 0 ? (
-                              <div className="text-center py-8">
-                                <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                                <p className="text-lg font-medium text-foreground mb-2">
-                                  {stats.total} employees already imported
-                                </p>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                  Your team members have been successfully imported. You can proceed to the next step.
-                                </p>
-                                <Button
-                                  onClick={() => setCurrentStep(2)}
-                                  className="mt-2"
-                                >
-                                  Continue to CV Upload
-                                  <ArrowRight className="h-4 w-4 ml-2" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="text-center py-8">
-                                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                <p className="text-lg font-medium text-foreground mb-2">
-                                  No employees imported yet
-                                </p>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                  Import your team members to get started with skills analysis.
-                                </p>
-                                <Button
-                                  onClick={() => {
-                                    // In the future, this would open the import dialog
-                                    toast.info('Import functionality coming soon!');
-                                  }}
-                                >
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  Import Employees
-                                </Button>
-                              </div>
-                            )}
-                          </div>
+                          <AddEmployees 
+                            onSessionCreated={() => {
+                              fetchImportSessions();
+                              fetchEmployeeStatuses();
+                              if (canProceedToStep(2)) {
+                                nextStep();
+                              }
+                            }}
+                          />
                         )}
+                        
                         {step.number === 2 && (
-                          <div className="space-y-3">
-                            <OnboardingProgress
-                              employees={employeeStatuses}
-                              onRefresh={fetchEmployeeStatuses}
+                          <div className="space-y-4">
+                            {/* Status Overview */}
+                            <SessionStatusCard
+                              total={stats.total}
+                              withCV={stats.withCV}
+                              analyzed={stats.analyzed}
+                            />
+                            
+                            {/* Bulk CV Upload */}
+                            <BulkCVUpload
+                              companyId={userProfile?.company_id!}
+                              onUploadComplete={() => {
+                                fetchEmployeeStatuses();
+                                toast.success('CVs uploaded successfully!');
+                              }}
                             />
                           </div>
                         )}
+                        
                         {step.number === 3 && (
                           <SkillsGapAnalysis
-                            employees={employeeStatuses}
+                            companyId={userProfile?.company_id!}
+                            employeeStatuses={employeeStatuses}
                           />
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
-        </CardContent>
-      </Card>
-          </>
+        {/* Latest Import Sessions */}
+        {importSessions.length > 0 && (
+          <OnboardingProgress sessions={importSessions} />
         )}
-
-    </div>
+      </div>
     </TooltipProvider>
   );
 }
