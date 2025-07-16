@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Mail, UserCheck, Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -9,6 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { OnboardingStepHeader } from './shared/OnboardingStepHeader';
+import { OnboardingStepContainer } from './shared/OnboardingStepContainer';
 
 interface Employee {
   id: string;
@@ -174,40 +175,44 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <OnboardingStepContainer>
+      {/* Header */}
+      <OnboardingStepHeader
+        icon={Send}
+        title="Invite Employees"
+        description="Send personalized invitations to complete employee profiles"
+        status="active"
+      />
+
       {/* Progress Overview */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Invitation Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Overall Completion</span>
-              <span className="font-medium">{completionRate}%</span>
-            </div>
-            <Progress value={completionRate} className="h-2" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{stats.notInvited}</p>
-                <p className="text-xs text-muted-foreground">Not Invited</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                <p className="text-xs text-muted-foreground">Pending</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-                <p className="text-xs text-muted-foreground">Completed</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">{stats.cvsUploaded}</p>
-                <p className="text-xs text-muted-foreground">CVs Uploaded</p>
-              </div>
-            </div>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="font-medium">Overall Completion</span>
+            <span className="text-muted-foreground">{completionRate}%</span>
           </div>
-        </CardContent>
-      </Card>
+          <Progress value={completionRate} className="h-2" />
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <p className="text-2xl font-bold text-foreground">{stats.notInvited}</p>
+            <p className="text-xs text-muted-foreground">Not Invited</p>
+          </div>
+          <div className="text-center p-3 bg-yellow-50 rounded-lg">
+            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            <p className="text-xs text-muted-foreground">Pending</p>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+            <p className="text-xs text-muted-foreground">Completed</p>
+          </div>
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{stats.cvsUploaded}</p>
+            <p className="text-xs text-muted-foreground">CVs Uploaded</p>
+          </div>
+        </div>
+      </div>
 
       {/* Instructions */}
       <Alert className="bg-blue-50 border-blue-200">
@@ -240,22 +245,20 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
       </div>
 
       {/* Employee List */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         {filteredEmployees.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">
-                {filter === 'not_invited' && stats.total === 0 
-                  ? 'No employees imported yet' 
-                  : 'No employees in this category'}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg">
+            <p>
+              {filter === 'not_invited' && stats.total === 0 
+                ? 'No employees imported yet' 
+                : 'No employees in this category'}
+            </p>
+          </div>
         ) : (
           <>
             {/* Select All */}
             {filter !== 'completed' && (
-              <div className="flex items-center gap-2 p-2">
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                 <Checkbox
                   checked={selectedEmployees.length === filteredEmployees.length}
                   onCheckedChange={(checked) => {
@@ -266,107 +269,106 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
                     }
                   }}
                 />
-                <span className="text-sm font-medium">Select All</span>
+                <span className="text-sm font-medium">Select All ({filteredEmployees.length})</span>
               </div>
             )}
 
             {/* Employee Cards */}
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {filteredEmployees.map(employee => (
-                <Card key={employee.id} className="overflow-hidden">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-3">
-                      {filter !== 'completed' && (
-                        <Checkbox
-                          checked={selectedEmployees.includes(employee.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedEmployees([...selectedEmployees, employee.id]);
-                            } else {
-                              setSelectedEmployees(selectedEmployees.filter(id => id !== employee.id));
-                            }
-                          }}
-                        />
+                <div key={employee.id} className="p-4 border rounded-lg bg-white hover:shadow-sm transition-shadow">
+                  <div className="flex items-center gap-3">
+                    {filter !== 'completed' && (
+                      <Checkbox
+                        checked={selectedEmployees.includes(employee.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedEmployees([...selectedEmployees, employee.id]);
+                          } else {
+                            setSelectedEmployees(selectedEmployees.filter(id => id !== employee.id));
+                          }
+                        }}
+                      />
+                    )}
+                    
+                    <div className="flex-1">
+                      <p className="font-medium text-sm text-foreground">{employee.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{employee.email}</p>
+                      {employee.position_title && (
+                        <p className="text-xs text-muted-foreground">{employee.position_title}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {employee.cv_uploaded && (
+                        <Badge variant="outline" className="text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          CV
+                        </Badge>
                       )}
                       
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{employee.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{employee.email}</p>
-                        {employee.position_title && (
-                          <p className="text-xs text-muted-foreground">{employee.position_title}</p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {employee.cv_uploaded && (
-                          <Badge variant="outline" className="text-xs">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                            CV
-                          </Badge>
-                        )}
-                        
-                        {employee.invitation_status === 'not_sent' && (
-                          <Badge variant="secondary">Not Invited</Badge>
-                        )}
-                        {employee.invitation_status === 'sent' && (
-                          <Badge variant="outline" className="text-yellow-600">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Sent
-                          </Badge>
-                        )}
-                        {employee.invitation_status === 'viewed' && (
-                          <Badge variant="outline" className="text-blue-600">
-                            <Mail className="h-3 w-3 mr-1" />
-                            Viewed
-                          </Badge>
-                        )}
-                        {employee.invitation_status === 'completed' && (
-                          <Badge variant="default" className="bg-green-600">
-                            <UserCheck className="h-3 w-3 mr-1" />
-                            Completed
-                          </Badge>
-                        )}
-                      </div>
+                      {employee.invitation_status === 'not_sent' && (
+                        <Badge variant="secondary">Not Invited</Badge>
+                      )}
+                      {employee.invitation_status === 'sent' && (
+                        <Badge variant="outline" className="text-yellow-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Sent
+                        </Badge>
+                      )}
+                      {employee.invitation_status === 'viewed' && (
+                        <Badge variant="outline" className="text-blue-600">
+                          <Mail className="h-3 w-3 mr-1" />
+                          Viewed
+                        </Badge>
+                      )}
+                      {employee.invitation_status === 'completed' && (
+                        <Badge variant="default" className="bg-green-600">
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          Completed
+                        </Badge>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </>
         )}
       </div>
 
-      {/* Send Button */}
-      {selectedEmployees.length > 0 && (
-        <Button 
-          onClick={sendInvitations}
-          disabled={sending}
-          className="w-full"
-          size="lg"
-        >
-          {sending ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Sending...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4 mr-2" />
-              Send {selectedEmployees.length} Invitation{selectedEmployees.length > 1 ? 's' : ''}
-            </>
-          )}
-        </Button>
-      )}
+      {/* Action Buttons */}
+      <div className="flex flex-col gap-3">
+        {selectedEmployees.length > 0 && (
+          <Button 
+            onClick={sendInvitations}
+            disabled={sending}
+            className="w-full"
+            size="lg"
+          >
+            {sending ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send {selectedEmployees.length} Invitation{selectedEmployees.length > 1 ? 's' : ''}
+              </>
+            )}
+          </Button>
+        )}
 
-      {/* Refresh Button */}
-      <Button
-        variant="outline"
-        onClick={fetchEmployees}
-        className="w-full"
-      >
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Refresh Status
-      </Button>
-    </div>
+        <Button
+          variant="outline"
+          onClick={fetchEmployees}
+          className="w-full"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh Status
+        </Button>
+      </div>
+    </OnboardingStepContainer>
   );
 }

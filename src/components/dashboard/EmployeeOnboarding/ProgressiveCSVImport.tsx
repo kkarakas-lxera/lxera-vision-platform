@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Upload, Download, AlertCircle, CheckCircle, Users, FileText, Target, Sparkles, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +10,9 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { OnboardingStepHeader } from './shared/OnboardingStepHeader';
+import { OnboardingStepContainer } from './shared/OnboardingStepContainer';
+import { OnboardingProgressBar } from './shared/OnboardingProgressBar';
 
 interface CSVRow {
   name: string;
@@ -363,36 +365,40 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
     }
   };
 
-return (
-  <div className="space-y-6">
-    {/* Headline */}
-    <div className="text-center mb-8">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Welcome Your Team to LXERA
-      </h1>
-      <p className="text-lg text-gray-600 mt-2">
-        Import your workforce in minutes, not hours
-      </p>
-    </div>
-{/* Progress Bar */}
-<div className="mb-8">
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="text-xl font-semibold">Getting Started</h2>
-    <Badge variant="outline">{currentStep === 'setup' ? '1 of 3' : currentStep === 'mapping' ? '2 of 3' : '3 of 3'}</Badge>
-  </div>
-  <Progress value={getStepProgress()} className="h-3 bg-gray-100">
-    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
-  </Progress>
-</div>
+const progressSteps = [
+    { label: 'Setup', completed: currentStep !== 'setup' },
+    { label: 'Mapping', completed: currentStep === 'importing' || currentStep === 'complete' },
+    { label: 'Import', completed: currentStep === 'complete' }
+  ];
+
+  return (
+    <OnboardingStepContainer>
+      {/* Header */}
+      <OnboardingStepHeader
+        icon={Users}
+        title="Welcome Your Team to LXERA"
+        description="Import your workforce in minutes, not hours"
+        step={currentStep === 'setup' ? '1 of 3' : currentStep === 'mapping' ? '2 of 3' : '3 of 3'}
+        status={currentStep === 'complete' ? 'completed' : 'active'}
+      />
+
+      {/* Progress */}
+      <OnboardingProgressBar
+        value={getStepProgress()}
+        steps={progressSteps}
+      />
 
       {/* Current Step Content */}
       {currentStep === 'setup' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Default Position Selection */}
-          <div className="space-y-2">
-            <Label>Default Position (Optional)</Label>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="h-4 w-4 text-blue-600" />
+              <Label className="text-sm font-medium">Default Position (Optional)</Label>
+            </div>
             <Select value={defaultPositionId} onValueChange={setDefaultPositionId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue placeholder="Select default position for employees without one" />
               </SelectTrigger>
               <SelectContent>
@@ -408,41 +414,41 @@ return (
             </p>
           </div>
 
-{/* File Upload */}
-<div className="space-y-4">
-<label htmlFor="csv-upload" className="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer block">
-  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-    <Upload className="w-8 h-8 text-blue-600" />
-  </div>
-  <h3 className="text-lg font-semibold mb-2">Drop your CSV file here</h3>
-  <p className="text-gray-600 mb-4">or click to browse</p>
-  <Button className="bg-gradient-to-r from-blue-500 to-purple-500" type="button">
-    Choose File
-  </Button>
-  <input 
-    id="csv-upload"
-    type="file" 
-    className="hidden" 
-    accept=".csv"
-    onChange={handleFileUpload}
-  />
-</label>
+          {/* File Upload */}
+          <div className="space-y-4">
+            <label htmlFor="csv-upload" className="border-2 border-dashed border-blue-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer block">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Upload className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Drop your CSV file here</h3>
+              <p className="text-gray-600 mb-4">or click to browse</p>
+              <Button className="bg-gradient-to-r from-blue-500 to-purple-500" type="button">
+                Choose File
+              </Button>
+              <input 
+                id="csv-upload"
+                type="file" 
+                className="hidden" 
+                accept=".csv"
+                onChange={handleFileUpload}
+              />
+            </label>
 
-  <Button
-    variant="outline"
-    onClick={downloadTemplate}
-    className="w-full"
-  >
-    <Download className="h-4 w-4 mr-2" />
-    Download CSV Template
-  </Button>
-</div>
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV Template
+            </Button>
+          </div>
 
           {/* Data Preview */}
           {csvFile && (
-            <Alert>
+            <Alert className="bg-green-50 border-green-200">
               <FileText className="h-4 w-4" />
-              <AlertDescription>
+              <AlertDescription className="text-green-800">
                 <strong>{csvFile.name}</strong> - {csvData.length} employees ready to import
               </AlertDescription>
             </Alert>
@@ -469,19 +475,23 @@ return (
       )}
 
       {currentStep === 'mapping' && (
-        <div className="space-y-4">
-          <Alert>
+        <div className="space-y-6">
+          <Alert className="bg-blue-50 border-blue-200">
             <Sparkles className="h-4 w-4" />
-            <AlertDescription>
+            <AlertDescription className="text-blue-800">
               We found positions in your CSV. Map them to your existing positions or skip to use the default.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="h-4 w-4 text-blue-600" />
+              <h3 className="text-sm font-medium">Position Mapping</h3>
+            </div>
             {positionMappings.map((mapping, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
+              <div key={idx} className="flex items-center gap-3 p-4 border rounded-lg bg-gray-50">
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{mapping.csvPosition}</p>
+                  <p className="text-sm font-medium text-foreground">{mapping.csvPosition}</p>
                   <p className="text-xs text-muted-foreground">
                     {mapping.employeeCount} employee{mapping.employeeCount > 1 ? 's' : ''}
                   </p>
@@ -518,28 +528,30 @@ return (
       )}
 
       {currentStep === 'importing' && (
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 animate-pulse">
-            <Upload className="h-8 w-8 text-blue-600" />
+        <div className="text-center space-y-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 animate-pulse">
+            <Upload className="h-10 w-10 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-semibold">Importing Employees</h3>
+            <h3 className="text-lg font-semibold text-foreground">Importing Employees</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Processing {csvData.length} employees...
             </p>
           </div>
-          <Progress value={importProgress} className="max-w-xs mx-auto" />
-          <p className="text-xs text-muted-foreground">{importProgress}%</p>
+          <div className="max-w-xs mx-auto space-y-2">
+            <Progress value={importProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground">{importProgress}% complete</p>
+          </div>
         </div>
       )}
 
       {currentStep === 'complete' && (
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="text-center space-y-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
+            <CheckCircle className="h-10 w-10 text-green-600" />
           </div>
           <div>
-            <h3 className="font-semibold">Import Complete!</h3>
+            <h3 className="text-lg font-semibold text-foreground">Import Complete!</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Successfully imported your employees
             </p>
@@ -557,6 +569,6 @@ return (
           Skip Mapping - Use Default Position for All
         </Button>
       )}
-    </div>
+    </OnboardingStepContainer>
   );
 }

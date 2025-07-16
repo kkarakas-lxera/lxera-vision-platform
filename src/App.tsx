@@ -924,7 +924,7 @@ const App = () => {
                   <DashboardLayout>
                     <Routes>
                       <Route path="/" element={<PageSuspense><CompanyDashboard /></PageSuspense>} />
-                      <Route path="/onboarding" element={<PageSuspense><EmployeeOnboarding /></PageSuspense>} />
+                      <Route path="/onboarding/*" element={<PageSuspense><EmployeeOnboarding /></PageSuspense>} />
                       <Route path="/positions" element={<PageSuspense><PositionManagement /></PageSuspense>} />
                       <Route path="/positions/new" element={<PageSuspense><PositionCreate /></PageSuspense>} />
                       <Route path="/employees" element={<PageSuspense><Employees /></PageSuspense>} />

@@ -715,6 +715,7 @@ export type Database = {
           max_courses: number | null
           max_employees: number | null
           name: string
+          onboarding_mode: string | null
           plan_type: string | null
           settings: Json | null
           updated_at: string | null
@@ -728,6 +729,7 @@ export type Database = {
           max_courses?: number | null
           max_employees?: number | null
           name: string
+          onboarding_mode?: string | null
           plan_type?: string | null
           settings?: Json | null
           updated_at?: string | null
@@ -741,6 +743,7 @@ export type Database = {
           max_courses?: number | null
           max_employees?: number | null
           name?: string
+          onboarding_mode?: string | null
           plan_type?: string | null
           settings?: Json | null
           updated_at?: string | null
