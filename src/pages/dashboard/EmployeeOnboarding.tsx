@@ -435,9 +435,9 @@ export default function EmployeeOnboarding() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Add Team Members</h1>
+            <h2 className="text-2xl font-semibold text-foreground">Employee Onboarding</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Import employees and analyze their skills to identify gaps
+              Import your workforce data and let LXERA handle the rest
             </p>
           </div>
           <Tooltip>
@@ -449,12 +449,20 @@ export default function EmployeeOnboarding() {
             <TooltipContent className="max-w-sm">
               <p className="text-sm">
                 <strong>Getting Started:</strong><br />
-                1. Import employee data via CSV<br />
-                2. Upload CVs and run skills analysis<br />
-                3. View and export the skills gap report
+                1. Import employee data via CSV or HRIS<br />
+                2. Invite employees to complete profiles<br />
+                3. Review skills gap report
               </p>
             </TooltipContent>
           </Tooltip>
+        </div>
+
+        {/* Progress Summary */}
+        <div className="mt-4 bg-gray-50 border rounded-lg p-4 flex items-center gap-4">
+          <Progress value={stats.analyzed > 0 ? (stats.analyzed / Math.max(stats.total,1)) * 100 : 0} className="flex-1 h-2" />
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {stats.analyzed}/{stats.total} employees analyzed
+          </span>
         </div>
 
         {/* Compact Mode Selector */}
@@ -524,12 +532,13 @@ export default function EmployeeOnboarding() {
                     }
                   }}
                 >
-                  <div className={cn(
-                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                    isCompleted ? "bg-green-500 text-white" :
-                    isActive ? "bg-blue-500 text-white" :
-                    "bg-gray-200 text-gray-500"
-                  )}>
+                  <div className={`flex items-center justify-center h-7 w-7 rounded-full text-[10px] transition-colors ${
+                          isCompleted 
+                            ? 'bg-green-100 text-green-700' 
+                            : isActive 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-100 text-gray-500'
+                        }`}>
                     {isCompleted ? (
                       <CheckCircle className="h-5 w-5" />
                     ) : (
