@@ -127,7 +127,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dashboard-theme">
       {/* Sidebar - Hidden on mobile */}
       {!isMobile && (
         <div className={cn(

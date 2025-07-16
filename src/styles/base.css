@@ -263,3 +263,10 @@
     }
   }
 }
+
+/* Dashboard theme override to ensure white backgrounds */
+.dashboard-theme {
+  --background: 0 0% 100%; /* white */
+  --muted: 0 0% 100%;
+  --secondary: 0 0% 100%;
+}
