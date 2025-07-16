@@ -435,16 +435,6 @@ const progressSteps = [
 
           {/* CSV Template and Tips */}
           <div className="space-y-4">
-            {/* Download Template Button */}
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full border-green-200 bg-green-50 hover:bg-green-100 text-green-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download CSV Template
-            </Button>
-
             {/* CSV Import Tips */}
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-4 w-4 text-blue-600" />
@@ -464,12 +454,12 @@ const progressSteps = [
             {/* Collapsible Example Data */}
             <Collapsible>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-black hover:text-white transition-colors">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">View Example CSV Data</span>
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm font-medium">View Example CSV Data</span>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                  <ChevronDown className="h-4 w-4" />
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -486,6 +476,16 @@ const progressSteps = [
                 </div>
               </CollapsibleContent>
             </Collapsible>
+
+            {/* Download Template Button */}
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="w-full border-green-200 bg-green-50 hover:bg-green-100 text-green-700"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV Template
+            </Button>
 
             {/* File Upload */}
             <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">

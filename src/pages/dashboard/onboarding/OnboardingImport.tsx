@@ -137,26 +137,32 @@ export default function OnboardingImport() {
 
       {/* Import Progress */}
       {importSessions.length > 0 && (
-        <OnboardingProgress sessions={importSessions} />
-      )}
-
-      {/* Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="space-y-2">
-              <h3 className="font-medium text-blue-900">CSV Import Tips</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Required columns: full_name, email</li>
-                <li>• Optional columns: position_title, department, phone</li>
-                <li>• Make sure email addresses are valid and unique</li>
-                <li>• Maximum 500 employees per import</li>
-              </ul>
-            </div>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Recent Import Sessions</h3>
+          <div className="grid gap-4">
+            {importSessions.slice(0, 3).map((session) => (
+              <Card key={session.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">{session.total_employees} employees</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(session.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                      {session.status}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex justify-between items-center pt-4">
