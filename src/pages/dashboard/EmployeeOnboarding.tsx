@@ -14,6 +14,7 @@ import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/Ski
 import { BulkCVUpload } from '@/components/dashboard/EmployeeOnboarding/BulkCVUpload';
 import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
 import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
+import { AutomatedOnboardingDashboard } from '@/components/dashboard/EmployeeOnboarding/AutomatedOnboardingDashboard';
 
 interface ImportSession {
   id: string;
@@ -42,8 +43,28 @@ export default function EmployeeOnboarding() {
   const [importSessions, setImportSessions] = useState<ImportSession[]>([]);
   const [employeeStatuses, setEmployeeStatuses] = useState<EmployeeStatus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [onboardingMethod, setOnboardingMethod] = useState<'none' | 'api' | 'manual'>('none');
+  const [companyMode, setCompanyMode] = useState<'manual' | 'automated'>('manual');
   const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({});
+
+  // Fetch company's onboarding mode
+  const fetchCompanyMode = async () => {
+    if (!userProfile?.company_id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('onboarding_mode')
+        .eq('id', userProfile.company_id)
+        .single();
+      
+      if (error) throw error;
+      if (data?.onboarding_mode) {
+        setCompanyMode(data.onboarding_mode);
+      }
+    } catch (error) {
+      console.error('Error fetching company mode:', error);
+    }
+  };
 
   const fetchImportSessions = async () => {
     if (!userProfile?.company_id) return;
@@ -154,7 +175,7 @@ export default function EmployeeOnboarding() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchImportSessions(), fetchEmployeeStatuses()]);
+      await Promise.all([fetchCompanyMode(), fetchImportSessions(), fetchEmployeeStatuses()]);
       setLoading(false);
     };
 
@@ -198,17 +219,6 @@ export default function EmployeeOnboarding() {
     };
   }, [userProfile?.company_id, employeeStatuses.length]);
 
-  // Check if there's existing data to determine if we should skip method selection
-  // Only auto-skip to manual mode on initial load, not when user explicitly goes back
-  const [hasAutoSkipped, setHasAutoSkipped] = useState(false);
-  
-  useEffect(() => {
-    if (!loading && employeeStatuses.length > 0 && onboardingMethod === 'none' && !hasAutoSkipped) {
-      // If there's already employee data, go straight to manual mode
-      setOnboardingMethod('manual');
-      setHasAutoSkipped(true);
-    }
-  }, [loading, employeeStatuses.length, onboardingMethod, hasAutoSkipped]);
 
   const getOverallStats = () => {
     const total = employeeStatuses.length;
@@ -295,106 +305,15 @@ export default function EmployeeOnboarding() {
     );
   }
 
-  // Show onboarding method selection if none selected
-  if (onboardingMethod === 'none') {
+  // Show different UI based on company's onboarding mode
+  if (companyMode === 'automated') {
     return (
       <div className="p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Employee Onboarding</h1>
-            <p className="text-lg text-muted-foreground">
-              Choose how you'd like to import your team members
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* API Integration Option */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Zap className="h-8 w-8 text-blue-600" />
-                </div>
-                <CardTitle className="text-xl">HR System Integration</CardTitle>
-                <CardDescription className="mt-2">
-                  Connect your existing HR system for automatic employee data sync
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>One-click sync from 50+ HR systems</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Real-time updates when employees change</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Automatic data mapping</span>
-                  </div>
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={() => {
-                    toast.info('HR System Integration coming soon! For now, please use manual import.');
-                    // In the future: setOnboardingMethod('api')
-                  }}
-                >
-                  Connect HR System
-                </Button>
-                <p className="text-xs text-center text-muted-foreground mt-2">
-                  Coming soon
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Manual Import Option */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <MousePointer className="h-8 w-8 text-green-600" />
-                </div>
-                <CardTitle className="text-xl">Manual Import</CardTitle>
-                <CardDescription className="mt-2">
-                  Upload a CSV file or add employees one by one
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Import via CSV or add individually</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Bulk CV upload and analysis</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Immediate skills gap analysis</span>
-                  </div>
-                </div>
-                <Button 
-                  className="w-full"
-                  variant="default"
-                  onClick={() => setOnboardingMethod('manual')}
-                >
-                  Start Manual Import
-                </Button>
-                <p className="text-xs text-center text-muted-foreground mt-2">
-                  Available now
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Not sure which to choose? <a href="#" className="text-blue-600 hover:underline">Learn more</a>
-            </p>
-          </div>
-        </div>
+        <AutomatedOnboardingDashboard 
+          companyId={userProfile?.company_id!}
+          employeeStatuses={employeeStatuses}
+          onRefresh={fetchEmployeeStatuses}
+        />
       </div>
     );
   }
@@ -404,25 +323,11 @@ export default function EmployeeOnboarding() {
       <div className="p-4 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex items-start gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setOnboardingMethod('none');
-                setHasAutoSkipped(false);
-              }}
-              className="mt-1"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Onboard New Team Members</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Add employees, analyze their skills, and create personalized learning paths
-              </p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Onboard New Team Members</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Add employees, analyze their skills, and create personalized learning paths
+            </p>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>

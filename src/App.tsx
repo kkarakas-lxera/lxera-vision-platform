@@ -95,6 +95,7 @@ const LearnerDashboard = lazy(() => import("./pages/learner/LearnerDashboard"));
 const CourseViewer = lazy(() => import("./pages/learner/CourseViewer"));
 const CourseOverview = lazy(() => import("./pages/learner/CourseOverview"));
 const MyCourses = lazy(() => import("./pages/learner/MyCourses"));
+const ProfileBuilder = lazy(() => import("./pages/learner/ProfileBuilder"));
 
 // Lazy load company dashboard pages
 const CompanyDashboard = lazy(() => import("./pages/dashboard/CompanyDashboard"));
@@ -113,6 +114,8 @@ const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/Depar
 
 // Lazy load gamification analytics
 const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
+const CompanySettings = lazy(() => import("./pages/dashboard/CompanySettings"));
+const HRISCallback = lazy(() => import("./pages/dashboard/HRISCallback"));
 
 // Lazy load course generation
 const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationTwoColumn"));
@@ -932,7 +935,8 @@ const App = () => {
                       <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
                       <Route path="/course-generation" element={<PageSuspense><CourseGeneration /></PageSuspense>} />
-                      <Route path="/settings" element={<PageSuspense><div>Company Settings</div></PageSuspense>} />
+                      <Route path="/settings" element={<PageSuspense><CompanySettings /></PageSuspense>} />
+                      <Route path="/settings/hris-callback" element={<PageSuspense><HRISCallback /></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
@@ -953,6 +957,7 @@ const App = () => {
                         <Routes>
                           <Route path="/" element={<PageSuspense><LearnerDashboard /></PageSuspense>} />
                           <Route path="/courses" element={<PageSuspense><MyCourses /></PageSuspense>} />
+                          <Route path="/profile" element={<PageSuspense><ProfileBuilder /></PageSuspense>} />
                           <Route path="/certificates" element={<PageSuspense><div>My Certificates - Coming Soon</div></PageSuspense>} />
                         </Routes>
                       </DashboardLayout>

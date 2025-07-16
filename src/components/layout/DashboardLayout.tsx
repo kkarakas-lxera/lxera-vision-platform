@@ -93,12 +93,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
           { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+          { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
       case 'learner':
         return [
           { href: '/learner', icon: Home, label: 'Dashboard' },
           { href: '/learner/courses', icon: BookOpen, label: 'My Courses' },
+          { href: '/learner/profile', icon: Users, label: 'My Profile' },
           { href: '/learner/certificates', icon: GraduationCap, label: 'Certificates' },
         ];
       default:
