@@ -41,6 +41,20 @@
       border-color: rgb(229, 231, 235) !important;
     }
   }
+
+  /* Tawk.to Chat Widget Positioning - Prevent overlap */
+  #tawk-chat-widget {
+    bottom: 80px !important;
+    z-index: 1000 !important;
+  }
+
+  /* Mobile-specific positioning */
+  @media (max-width: 768px) {
+    #tawk-chat-widget {
+      bottom: 80px !important;
+      right: 16px !important;
+    }
+  }
 }
 
 /* Utility class to hide scrollbars */

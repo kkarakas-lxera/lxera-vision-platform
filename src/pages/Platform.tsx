@@ -99,7 +99,7 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
             <Link to="/platform/how-it-works">
               <Button
                 variant="outline"
-                className="border-business-black text-business-black hover:bg-business-black hover:text-white px-8 py-6 text-lg rounded-xl"
+                className="border-business-black text-business-black hover:bg-business-black hover:text-white px-8 py-6 text-lg rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 See How It Works
               </Button>
@@ -122,7 +122,7 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
           </div>
 
           {/* Desktop Grid - Show all cards */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
             {platformFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
@@ -131,7 +131,7 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
                   to={feature.href}
                   className={index === 0 ? "md:col-span-2" : ""}
                 >
-                  <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 ${
+                  <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 active:scale-95 active:shadow-lg ${
                     index === 0 ? 'ring-2 ring-future-green' : ''
                   }`}>
                     <CardHeader>
@@ -153,12 +153,12 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
 
           {/* Mobile - Show first 3 cards + collapsible for rest */}
           <div className="md:hidden">
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-6">
               {platformFeatures.slice(0, 3).map((feature, index) => {
                 const IconComponent = feature.icon;
                 return (
                   <Link key={index} to={feature.href}>
-                    <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 ${
+                    <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 active:scale-95 active:shadow-lg ${
                       index === 0 ? 'ring-2 ring-future-green' : ''
                     }`}>
                       <CardHeader>
@@ -187,7 +187,7 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full py-4 px-6 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 text-business-black font-medium"
+                  className="w-full py-4 px-6 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 text-business-black font-medium hover:scale-[1.02] active:scale-95"
                 >
                   <span>View More Platform Features</span>
                   <ChevronDown className={`ml-2 h-5 w-5 transition-transform duration-300 ${
@@ -196,12 +196,12 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-6">
-                <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-top duration-300">
+                <div className="grid grid-cols-1 gap-6 animate-in slide-in-from-top duration-300">
                   {platformFeatures.slice(3).map((feature, index) => {
                     const IconComponent = feature.icon;
                     return (
                       <Link key={index + 3} to={feature.href}>
-                        <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200">
+                        <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-gray-200 active:scale-95 active:shadow-lg">
                           <CardHeader>
                             <div className={`w-16 h-16 rounded-2xl ${feature.color} flex items-center justify-center mb-4`}>
                               <IconComponent className={`w-8 h-8 ${feature.iconColor}`} />
@@ -243,7 +243,7 @@ const Platform = ({ openDemoModal }: PlatformProps) => {
             <Link to="/pricing">
               <Button
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-business-black px-8 py-6 text-lg rounded-xl"
+                className="border-white text-white hover:bg-white hover:text-business-black px-8 py-6 text-lg rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 View Pricing
               </Button>
