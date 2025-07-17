@@ -34,6 +34,7 @@ import {
   Search,
   FileDown,
   User,
+  Users,
   Building,
   Target,
   ChevronRight,
@@ -42,7 +43,6 @@ import {
   AlertCircle,
   Eye,
   Building2,
-  Target,
   TrendingUp
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';

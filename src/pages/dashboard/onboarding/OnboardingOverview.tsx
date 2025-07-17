@@ -61,13 +61,19 @@ export default function OnboardingOverview() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6 min-h-screen bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-future-green/3 via-transparent to-business-black/3 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-future-green/8 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-lxera-blue/8 rounded-full blur-3xl" />
+      
+      <div className="relative z-10">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-business-black to-future-green bg-clip-text text-transparent">
           Welcome Your Team to LXERA
         </h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-700 font-medium">
           Import your workforce in minutes, not hours
         </p>
       </div>
@@ -76,27 +82,27 @@ export default function OnboardingOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left Side - Team Overview (20%) */}
         <div className="lg:col-span-1 space-y-4">
-          <Card>
+          <Card className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl">
             <CardHeader>
-              <CardTitle className="text-lg">Team Overview</CardTitle>
+              <CardTitle className="text-lg text-business-black">Team Overview</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                  <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-                  <p className="text-xs text-blue-600">Team Members</p>
+                <div className="text-center p-3 bg-gradient-to-br from-future-green/20 to-future-green/10 rounded-lg border border-future-green/20">
+                  <p className="text-2xl font-bold text-business-black">{stats.total}</p>
+                  <p className="text-xs text-gray-700 font-medium">Team Members</p>
                 </div>
-                <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-100">
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                  <p className="text-xs text-yellow-600">Pending Invites</p>
+                <div className="text-center p-3 bg-gradient-to-br from-lxera-blue/20 to-lxera-blue/10 rounded-lg border border-lxera-blue/20">
+                  <p className="text-2xl font-bold text-business-black">{stats.pending}</p>
+                  <p className="text-xs text-gray-700 font-medium">Pending Invites</p>
                 </div>
-                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-100">
-                  <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-                  <p className="text-xs text-green-600">Completed</p>
+                <div className="text-center p-3 bg-gradient-to-br from-future-green/30 to-future-green/15 rounded-lg border border-future-green/30">
+                  <p className="text-2xl font-bold text-business-black">{stats.completed}</p>
+                  <p className="text-xs text-gray-700 font-medium">Completed</p>
                 </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
-                  <p className="text-2xl font-bold text-purple-600">{stats.analyzed}</p>
-                  <p className="text-xs text-purple-600">Analyzed CVs</p>
+                <div className="text-center p-3 bg-gradient-to-br from-business-black/10 to-business-black/5 rounded-lg border border-business-black/20">
+                  <p className="text-2xl font-bold text-business-black">{stats.analyzed}</p>
+                  <p className="text-xs text-gray-700 font-medium">Analyzed CVs</p>
                 </div>
               </div>
             </CardContent>
@@ -106,25 +112,25 @@ export default function OnboardingOverview() {
         {/* Right Side - Steps and Progress (80%) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Overall Progress - Enhanced */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div className="bg-gradient-to-r from-smart-beige via-future-green/15 to-smart-beige border border-future-green/30 rounded-xl p-5 shadow-xl hover:shadow-2xl transition-shadow duration-300 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center animate-pulse">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-business-black to-future-green flex items-center justify-center animate-pulse">
                     <span className="text-white font-bold text-sm">{completedSteps}</span>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-800">Getting Started</h3>
-                    <p className="text-xs text-gray-600 mt-0.5">{completedSteps} of {steps.length} steps completed</p>
+                    <h3 className="text-sm font-semibold text-business-black">Getting Started</h3>
+                    <p className="text-xs text-gray-700 font-medium mt-0.5">{completedSteps} of {steps.length} steps completed</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 ml-8">
-                  <Progress value={overallProgress} className="h-2.5 w-40 bg-blue-100" />
-                  <span className="text-sm font-medium text-gray-700 min-w-[3rem] text-right">{Math.round(overallProgress)}%</span>
+                  <Progress value={overallProgress} className="h-2.5 w-40 bg-future-green/20" />
+                  <span className="text-sm font-medium text-business-black min-w-[3rem] text-right">{Math.round(overallProgress)}%</span>
                 </div>
               </div>
               {overallProgress === 100 && (
-                <Badge className="bg-green-500 text-white animate-bounce">
+                <Badge className="bg-future-green text-business-black animate-bounce font-bold">
                   Complete! 🎉
                 </Badge>
               )}
@@ -158,15 +164,19 @@ export default function OnboardingOverview() {
                 return (
                   <Card 
                     key={step.number}
-                    className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-lg"
+                    className="bg-gradient-to-br from-smart-beige via-future-green/15 to-smart-beige border-future-green/30 shadow-2xl backdrop-blur-md overflow-hidden"
                   >
-                    <CardContent className="p-8 text-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-business-black/5" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-future-green/10 rounded-full blur-2xl" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-lxera-blue/10 rounded-full blur-2xl" />
+                    
+                    <CardContent className="relative p-8 text-center">
                       <div className="mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-r from-business-black to-future-green rounded-full flex items-center justify-center mx-auto mb-4">
                           <Users className="h-8 w-8 text-white" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Get Started?</h3>
-                        <p className="text-gray-600 text-sm leading-relaxed">
+                        <h3 className="text-xl font-bold text-business-black mb-3">Ready to Get Started?</h3>
+                        <p className="text-gray-700 text-sm leading-relaxed font-medium">
                           Begin by importing your team members to start the onboarding process.
                         </p>
                       </div>
@@ -175,13 +185,13 @@ export default function OnboardingOverview() {
                         <Button 
                           size="lg" 
                           onClick={() => navigate('/dashboard/onboarding/import')}
-                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                          className="w-full bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black hover:to-business-black text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                           <Users className="h-5 w-5 mr-2" />
                           Import Team Members
                         </Button>
                         
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-600 font-medium">
                           Takes less than 5 minutes to get started
                         </p>
                       </div>
@@ -194,12 +204,12 @@ export default function OnboardingOverview() {
               return (
                 <Card 
                   key={step.number} 
-                  className={`transition-all duration-200 ${
+                  className={`transition-all duration-200 backdrop-blur-md ${
                     isCompleted 
-                      ? 'border-green-200 bg-green-50' 
+                      ? 'border-future-green/40 bg-gradient-to-br from-future-green/20 to-future-green/10 shadow-lg' 
                       : canAccess 
-                        ? 'border-blue-200 hover:border-blue-300 cursor-pointer' 
-                        : 'border-gray-200 opacity-60'
+                        ? 'border-lxera-blue/30 bg-white/90 hover:border-future-green/40 cursor-pointer shadow-md hover:shadow-xl' 
+                        : 'border-gray-300/50 bg-gray-50/80 opacity-60'
                   }`}
                 >
                   <CardHeader className="pb-3">
@@ -207,9 +217,9 @@ export default function OnboardingOverview() {
                       <div className="flex items-center gap-3">
                         <div className={`flex items-center justify-center h-10 w-10 rounded-full ${
                           isCompleted 
-                            ? 'bg-green-100 text-green-700' 
+                            ? 'bg-future-green/20 text-business-black' 
                             : canAccess 
-                              ? 'bg-blue-100 text-blue-700' 
+                              ? 'bg-lxera-blue/20 text-business-black' 
                               : 'bg-gray-100 text-gray-500'
                         }`}>
                           {isCompleted ? (
@@ -226,7 +236,7 @@ export default function OnboardingOverview() {
                       
                       <div className="flex items-center gap-3">
                         {isCompleted && (
-                          <Badge variant="default" className="bg-green-600">
+                          <Badge variant="default" className="bg-future-green text-business-black font-bold">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Complete
                           </Badge>
@@ -262,6 +272,7 @@ export default function OnboardingOverview() {
           </div>
 
         </div>
+      </div>
       </div>
     </div>
   );
