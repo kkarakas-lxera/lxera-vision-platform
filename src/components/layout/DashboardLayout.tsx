@@ -65,7 +65,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       'Core Setup': true,
       'Skills & Analytics': true,
       'Learning Platform': true,
-      'More': true
+      'System': true
     };
   });
   const isMobile = useIsMobile();
@@ -115,7 +115,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { section: 'Learning Platform', icon: School },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
-          { section: 'More', icon: MoreHorizontal },
+          { section: 'System', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
