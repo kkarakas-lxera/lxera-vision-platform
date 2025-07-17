@@ -158,25 +158,52 @@ export default function SkillsGapOnboardingFlow() {
           </div>
         </div>
 
-        {/* Progress */}
-        <Card className="mb-8 bg-white/60 backdrop-blur-sm border-indigo-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-indigo-700">
-                Setup Progress
-              </span>
-              <span className="text-sm font-medium text-indigo-700">
-                {completedSteps} of {steps.length} completed
-              </span>
-            </div>
-            <div className="w-full bg-indigo-100 rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Progress and Help Section - Side by Side */}
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
+          {/* Setup Progress - Smaller */}
+          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-business-black">
+                  Setup Progress
+                </span>
+                <span className="text-xs font-medium text-business-black/70">
+                  {completedSteps} of {steps.length}
+                </span>
+              </div>
+              <div className="w-full bg-future-green/20 rounded-full h-1.5">
+                <div
+                  className="bg-gradient-to-r from-future-green to-future-green/80 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Help Section - Minimalistic */}
+          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-future-green/20 rounded-lg">
+                  <Sparkles className="h-3.5 w-3.5 text-future-green" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-business-black text-xs mb-1">
+                    Need Help Getting Started?
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green/10">
+                      Tutorial
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green/10">
+                      Support
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Steps */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -185,24 +212,24 @@ export default function SkillsGapOnboardingFlow() {
               key={step.id}
               className={cn(
                 "relative overflow-hidden transition-all duration-200 bg-white/60 backdrop-blur-sm",
-                step.completed && "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200",
-                !step.completed && index === currentStep && "border-indigo-500 shadow-lg bg-white/80",
-                !step.completed && index > currentStep && "opacity-60 border-indigo-100"
+                step.completed && "bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige border-future-green/30",
+                !step.completed && index === currentStep && "border-future-green/50 shadow-lg bg-white/80",
+                !step.completed && index > currentStep && "opacity-60 border-future-green/20"
               )}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className={cn(
                     "p-2 rounded-lg",
-                    step.completed ? "bg-indigo-100" : "bg-indigo-50",
-                    index === currentStep && !step.completed && "bg-indigo-100"
+                    step.completed ? "bg-future-green/20" : "bg-future-green/10",
+                    index === currentStep && !step.completed && "bg-future-green/15"
                   )}>
                     {step.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-indigo-600" />
+                      <CheckCircle2 className="h-5 w-5 text-future-green" />
                     ) : (
                       <div className={cn(
-                        "text-indigo-300",
-                        index === currentStep && "text-indigo-600"
+                        "text-future-green/50",
+                        index === currentStep && "text-future-green"
                       )}>
                         {step.icon}
                       </div>
@@ -211,15 +238,19 @@ export default function SkillsGapOnboardingFlow() {
                   <Badge 
                     variant={step.completed ? "default" : "secondary"}
                     className={cn(
-                      step.completed && "bg-indigo-600 text-white",
-                      !step.completed && index === currentStep && "bg-indigo-600 text-white",
-                      !step.completed && index > currentStep && "bg-indigo-100 text-indigo-600"
+                      step.completed && "bg-future-green text-business-black",
+                      !step.completed && index === currentStep && "bg-future-green text-business-black",
+                      !step.completed && index > currentStep && "bg-future-green/20 text-future-green"
                     )}
                   >
                     Step {index + 1}
                   </Badge>
                 </div>
-                <CardTitle className="text-lg mt-3">{step.title}</CardTitle>
+                <CardTitle className={cn(
+                  "text-lg mt-3",
+                  step.completed ? "text-business-black" : "text-business-black/70",
+                  index === currentStep && !step.completed && "text-business-black"
+                )}>{step.title}</CardTitle>
                 <CardDescription className="text-sm">
                   {step.description}
                 </CardDescription>
@@ -231,8 +262,8 @@ export default function SkillsGapOnboardingFlow() {
                   variant={step.completed ? "outline" : "default"}
                   className={cn(
                     "w-full",
-                    step.completed && "border-indigo-200 text-indigo-600 hover:bg-indigo-50",
-                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                    step.completed && "border-future-green/30 text-future-green hover:bg-future-green/10",
+                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-gradient-to-r from-future-green to-future-green/80 hover:from-future-green/90 hover:to-future-green/70 text-business-black"
                   )}
                 >
                   {step.completed ? (
@@ -252,33 +283,6 @@ export default function SkillsGapOnboardingFlow() {
           ))}
         </div>
 
-        {/* Help Section */}
-        <Card className="mt-8 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 backdrop-blur-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Sparkles className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-1">
-                  Need Help Getting Started?
-                </h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  Our AI-powered skills gap analysis helps you understand your team's capabilities
-                  and identify areas for improvement. Complete all steps to unlock your comprehensive report.
-                </p>
-                <div className="flex gap-3">
-                  <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                    View Tutorial
-                  </Button>
-                  <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                    Contact Support
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
