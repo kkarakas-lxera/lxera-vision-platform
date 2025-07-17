@@ -48,6 +48,8 @@ export default function PositionCreate() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<Record<number, 'pending' | 'processing' | 'completed' | 'error'>>({});
+  const [expandedPositions, setExpandedPositions] = useState<Set<number>>(new Set([0]));
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const descriptionEndRef = useRef<HTMLDivElement>(null);
   const [hasScrolledDescription, setHasScrolledDescription] = useState(false);
@@ -113,9 +115,123 @@ export default function PositionCreate() {
     }
   };
 
+  const togglePositionExpanded = (index: number) => {
+    setExpandedPositions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const generateSkillsForPosition = async (positionIndex: number) => {
+    const position = positions[positionIndex];
+    if (!position.position_title) return;
+
+    setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'processing' }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('suggest-position-skills-enhanced', {
+        body: {
+          position_title: position.position_title,
+          position_description: position.description,
+          position_level: position.position_level,
+          department: position.department
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.skills) {
+        const newSkills = data.skills.map((skill: any) => ({
+          skill_id: skill.skill_id || `ai_${Date.now()}_${Math.random()}`,
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency_level === 'basic' ? 1 :
+                            skill.proficiency_level === 'intermediate' ? 2 :
+                            skill.proficiency_level === 'advanced' ? 3 : 4,
+          description: skill.description
+        }));
+
+        setPositions(prev => {
+          const newPositions = [...prev];
+          newPositions[positionIndex] = {
+            ...newPositions[positionIndex],
+            required_skills: newSkills,
+            ai_suggestions: data.skills
+          };
+          return newPositions;
+        });
+
+        setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'completed' }));
+      }
+    } catch (error) {
+      console.error('Error generating skills for position:', error);
+      setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'error' }));
+    }
+  };
+
+  const startBatchProcessing = async () => {
+    const positionsToProcess = positions
+      .map((_, index) => index)
+      .filter(index => positions[index].position_title && !positions[index].required_skills.length);
+
+    for (const index of positionsToProcess) {
+      await generateSkillsForPosition(index);
+      // Small delay between requests to avoid overwhelming the API
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  };
+
   useEffect(() => {
     fetchSkills();
   }, []);
+
+  // Start batch processing when entering step 2
+  useEffect(() => {
+    if (currentStep === 2) {
+      startBatchProcessing();
+    }
+  }, [currentStep]);
+
+  // Helper functions for processing status
+  const getProcessingStats = () => {
+    const completed = Object.values(processingStatus).filter(status => status === 'completed').length;
+    const processing = Object.values(processingStatus).filter(status => status === 'processing').length;
+    const total = positions.filter(p => p.position_title).length;
+    return { completed, processing, total };
+  };
+
+  const getPositionStatus = (index: number) => {
+    const position = positions[index];
+    if (!position.position_title) return 'empty';
+    if (position.required_skills.length > 0) return 'completed';
+    return processingStatus[index] || 'pending';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return '✓';
+      case 'processing': return '🔄';
+      case 'error': return '❌';
+      case 'pending': return '⏸';
+      case 'empty': return '○';
+      default: return '○';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-600';
+      case 'processing': return 'text-orange-600';
+      case 'error': return 'text-red-600';
+      case 'pending': return 'text-gray-500';
+      case 'empty': return 'text-gray-400';
+      default: return 'text-gray-400';
+    }
+  };
 
   // Generate position code from title
   const generatePositionCode = (title: string) => {
@@ -586,140 +702,244 @@ export default function PositionCreate() {
 
           {currentStep === 2 && (
             <div className="space-y-6">
-              {/* AI Suggestions Toggle */}
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium">AI-Powered Skill Suggestions</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {!positionData.position_title 
-                        ? "Enter a position title to get AI-powered suggestions"
-                        : "Get intelligent skill recommendations based on the position details"
-                      }
-                    </p>
+              {/* Processing Status */}
+              {(() => {
+                const stats = getProcessingStats();
+                return stats.total > 0 && (stats.completed < stats.total || stats.processing > 0) && (
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Generating skills for all positions...</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {stats.completed} of {stats.total} complete
+                      </span>
+                    </div>
+                    <Progress value={(stats.completed / stats.total) * 100} className="h-2" />
                   </div>
-                </div>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setShowAISuggestions(true)}
-                  disabled={loadingSuggestions || !positionData.position_title}
-                >
-                  {loadingSuggestions ? 'Loading...' : 'Get Suggestions'}
-                </Button>
-              </div>
+                );
+              })()}
 
-              {showAISuggestions && (
-                <AISkillSuggestions
-                  positionTitle={positionData.position_title}
-                  positionDescription={positionData.description}
-                  positionLevel={positionData.position_level}
-                  department={positionData.department}
-                  onAddSkill={addSkill}
-                  existingSkills={positionData.required_skills.map(skill => ({
-                    skill_id: skill.skill_id,
-                    skill_name: skill.skill_name
-                  }))}
-                  onSuggestionsLoaded={handleAISuggestions}
-                />
-              )}
+              {/* Position List */}
+              <div className="space-y-4">
+                {positions.map((position, index) => {
+                  const status = getPositionStatus(index);
+                  const isExpanded = expandedPositions.has(index);
+                  const skillCount = position.required_skills.length;
 
-              {/* Required Skills */}
-              <div>
-                <h3 className="font-medium mb-4">Required Skills</h3>
-                
-                {/* Skill Search */}
-                <div className="mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="text"
-                      placeholder="Search skills..."
-                      value={skillSearchTerm}
-                      onChange={(e) => setSkillSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  {skillSearchTerm && (
-                    <div className="mt-2 max-h-48 overflow-y-auto border rounded-md">
-                      {loadingSkills ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">Loading skills...</div>
-                      ) : filteredSkills.length > 0 ? (
-                        filteredSkills.map(skill => (
-                          <div
-                            key={skill.skill_id}
-                            className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                            onClick={() => addSkill(skill)}
-                          >
-                            <div className="font-medium text-sm">{skill.skill_name}</div>
-                            {skill.description && (
-                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {skill.description}
+                  return (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      {/* Position Header */}
+                      <div 
+                        className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => togglePositionExpanded(index)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">
+                              {isExpanded ? '▼' : '▶'}
+                            </span>
+                            <span className="font-medium">
+                              {index + 1}. {position.position_title || 'Untitled Position'} 
+                              {position.position_code && `(${position.position_code})`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-sm ${getStatusColor(status)}`}>
+                              {getStatusIcon(status)} {skillCount > 0 ? `${skillCount} skills ready` : 
+                                status === 'processing' ? 'Generating skills...' :
+                                status === 'error' ? 'Generation failed' :
+                                status === 'pending' ? 'In queue' : '0 skills'}
+                            </span>
+                            {!isExpanded && skillCount > 0 && (
+                              <div className="flex flex-wrap gap-1 max-w-96">
+                                {position.required_skills.slice(0, 4).map(skill => (
+                                  <Badge key={skill.skill_id} variant="outline" className="text-xs">
+                                    {skill.skill_name}
+                                  </Badge>
+                                ))}
+                                {skillCount > 4 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{skillCount - 4} more
+                                  </Badge>
+                                )}
                               </div>
                             )}
                           </div>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-sm text-muted-foreground">
-                          No skills found
+                        </div>
+                      </div>
+
+                      {/* Expanded Content */}
+                      {isExpanded && (
+                        <div className="border-t bg-white p-4">
+                          {status === 'processing' && (
+                            <div className="text-center py-8">
+                              <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                              <p className="text-muted-foreground">AI is analyzing {position.position_title} requirements...</p>
+                              <div className="mt-2 max-w-md mx-auto">
+                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  <div className="h-full bg-blue-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                                </div>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="mt-4"
+                                onClick={() => setProcessingStatus(prev => ({ ...prev, [index]: 'pending' }))}
+                              >
+                                Skip for now
+                              </Button>
+                            </div>
+                          )}
+
+                          {status === 'error' && (
+                            <div className="text-center py-8">
+                              <p className="text-red-600 mb-4">Failed to generate skills for this position</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => generateSkillsForPosition(index)}
+                              >
+                                Retry
+                              </Button>
+                            </div>
+                          )}
+
+                          {(status === 'completed' || skillCount > 0) && (
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium">
+                                  🤖 AI + Database found {skillCount} skills for {position.position_title}
+                                </h4>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Accept all - no action needed, skills are already added
+                                      toast.success(`Accepted ${skillCount} skills for ${position.position_title}`);
+                                    }}
+                                  >
+                                    Accept All
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => generateSkillsForPosition(index)}
+                                  >
+                                    Regenerate
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Skills Grid */}
+                              <div className="grid grid-cols-2 gap-2">
+                                {position.required_skills.map(skill => (
+                                  <div key={skill.skill_id} className="flex items-center justify-between p-2 border rounded">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium">{skill.skill_name}</span>
+                                      <div className="flex">
+                                        {[1, 2, 3, 4, 5].map(level => (
+                                          <div
+                                            key={level}
+                                            className={`w-2 h-2 rounded-full mr-1 ${
+                                              level <= skill.proficiency_level ? 'bg-primary' : 'bg-gray-200'
+                                            }`}
+                                          />
+                                        ))}
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">({skill.proficiency_level})</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setPositions(prev => {
+                                          const newPositions = [...prev];
+                                          newPositions[index] = {
+                                            ...newPositions[index],
+                                            required_skills: newPositions[index].required_skills.filter(s => s.skill_id !== skill.skill_id)
+                                          };
+                                          return newPositions;
+                                        });
+                                      }}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Manual Add */}
+                              <div className="border-t pt-4">
+                                <div className="flex gap-2">
+                                  <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Input
+                                      type="text"
+                                      placeholder="Add more skills..."
+                                      value={skillSearchTerm}
+                                      onChange={(e) => setSkillSearchTerm(e.target.value)}
+                                      className="pl-10"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                {skillSearchTerm && (
+                                  <div className="mt-2 max-h-32 overflow-y-auto border rounded-md">
+                                    {filteredSkills.slice(0, 3).map(skill => (
+                                      <div
+                                        key={skill.skill_id}
+                                        className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center justify-between"
+                                        onClick={() => {
+                                          const newSkill = {
+                                            skill_id: skill.skill_id,
+                                            skill_name: skill.skill_name,
+                                            proficiency_level: 3,
+                                            description: skill.description
+                                          };
+                                          setPositions(prev => {
+                                            const newPositions = [...prev];
+                                            if (!newPositions[index].required_skills.find(s => s.skill_id === skill.skill_id)) {
+                                              newPositions[index] = {
+                                                ...newPositions[index],
+                                                required_skills: [...newPositions[index].required_skills, newSkill]
+                                              };
+                                            }
+                                            return newPositions;
+                                          });
+                                          setSkillSearchTerm('');
+                                        }}
+                                      >
+                                        <span className="text-sm">{skill.skill_name}</span>
+                                        <Plus className="h-4 w-4 text-gray-400" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {status === 'pending' && skillCount === 0 && (
+                            <div className="text-center py-8">
+                              <p className="text-muted-foreground mb-4">Waiting to generate skills...</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => generateSkillsForPosition(index)}
+                              >
+                                Generate Now
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-
-                {/* Selected Skills */}
-                <div className="space-y-2">
-                  {positionData.required_skills.length === 0 ? (
-                    <Alert className="bg-white">
-                      <AlertDescription>
-                        No skills added yet. Search and add required skills for this position.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    positionData.required_skills.map(skill => (
-                      <div key={skill.skill_id} className="p-3 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{skill.skill_name}</h4>
-                            {skill.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {skill.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 mt-2">
-                              <Label className="text-sm">Required Proficiency:</Label>
-                              <div className="flex gap-1">
-                                {[1, 2, 3, 4, 5].map(level => (
-                                  <button
-                                    key={level}
-                                    onClick={() => updateSkillProficiency(skill.skill_id, level)}
-                                    className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                                      level <= skill.proficiency_level
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'bg-gray-200 text-gray-600'
-                                    }`}
-                                  >
-                                    {level}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSkill(skill.skill_id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                  );
+                })}
               </div>
             </div>
           )}
