@@ -9,6 +9,7 @@ import { HRISService } from '@/services/hrisService';
 import { toast } from 'sonner';
 import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
 import { Separator } from '@/components/ui/separator';
+import { CompanyProfileModal } from '@/components/settings/CompanyProfileModal';
 
 export default function CompanySettings() {
   const { userProfile } = useAuth();
@@ -16,6 +17,7 @@ export default function CompanySettings() {
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
   const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
+  const [companyProfileOpen, setCompanyProfileOpen] = useState(false);
 
   useEffect(() => {
     checkHRISConnection();
@@ -87,7 +89,10 @@ export default function CompanySettings() {
           </div>
           <div className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+              <button 
+                onClick={() => setCompanyProfileOpen(true)}
+                className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
+              >
                 <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
                 <span className="text-xs text-gray-700">Company Profile</span>
               </button>
@@ -293,6 +298,12 @@ export default function CompanySettings() {
         </div>
         </div>
       </div>
+
+      {/* Company Profile Modal */}
+      <CompanyProfileModal 
+        open={companyProfileOpen} 
+        onOpenChange={setCompanyProfileOpen} 
+      />
     </div>
   );
 }

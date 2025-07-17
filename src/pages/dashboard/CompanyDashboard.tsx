@@ -186,6 +186,15 @@ export default function CompanyDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('company_id', userProfile.company_id);
 
+      // Store positions count for later use
+      setPositionsCount(positionCount || 0);
+
+      // If no positions exist, don't show onboarding flow - show empty state instead
+      if (!positionCount || positionCount === 0) {
+        setOnboardingComplete(true);
+        return;
+      }
+
       const { count: employeeCount } = await supabase
         .from('employees')
         .select('*', { count: 'exact', head: true })
@@ -687,7 +696,44 @@ export default function CompanyDashboard() {
     );
   }
 
-  // Show onboarding flow for trial users who haven't completed setup
+  // Show positions empty state for trial users who haven't created any positions
+  if (userProfile?.companies?.plan_type === 'free_skills_gap' && positionsCount === 0) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="relative">
+          {/* Blurred background content */}
+          <div className="blur-md pointer-events-none select-none">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold">Welcome to Skills Gap Analysis</h1>
+                <p className="text-muted-foreground">Set up your organization to start analyzing skills gaps</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <Card key={i} className="h-32">
+                    <CardContent className="p-6">
+                      <div className="h-full bg-gray-100 rounded animate-pulse" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Empty state overlay */}
+          <EmptyStateOverlay
+            icon={Building2}
+            title="Define Positions First"
+            description="Before you can onboard employees, you need to define at least one position with its required skills."
+            ctaText="Create Your First Position"
+            ctaLink="/dashboard/positions"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show onboarding flow for trial users who have positions but haven't completed setup
   if (userProfile?.companies?.plan_type === 'free_skills_gap' && !onboardingComplete) {
     return <SkillsGapOnboardingFlow />;
   }

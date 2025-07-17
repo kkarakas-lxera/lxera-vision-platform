@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 import {
   Users,
   Upload,
-  BrainCircuit,
+  Send,
+  Briefcase,
   ChartBar,
   CheckCircle2,
   ArrowRight,
@@ -34,36 +35,36 @@ export default function SkillsGapOnboardingFlow() {
   const { userProfile } = useAuth();
   const [steps, setSteps] = useState<OnboardingStep[]>([
     {
+      id: 'define_positions',
+      title: 'Define Positions',
+      description: 'Set up role requirements and skills',
+      icon: <Briefcase className="h-5 w-5" />,
+      action: 'Define',
+      route: '/dashboard/positions',
+      completed: false
+    },
+    {
       id: 'import_employees',
       title: 'Import Employees',
-      description: 'Upload your employee list to get started',
+      description: 'Upload your employee list',
       icon: <Users className="h-5 w-5" />,
       action: 'Import',
       route: '/dashboard/employees/add',
       completed: false
     },
     {
-      id: 'upload_cvs',
-      title: 'Upload CVs',
-      description: 'Add employee resumes for skills analysis',
-      icon: <Upload className="h-5 w-5" />,
-      action: 'Upload',
-      route: '/dashboard/employees',
-      completed: false
-    },
-    {
-      id: 'analyze_skills',
-      title: 'Analyze Skills',
-      description: 'Run AI-powered analysis on your team',
-      icon: <BrainCircuit className="h-5 w-5" />,
-      action: 'Analyze',
+      id: 'send_invites',
+      title: 'Send Invites',
+      description: 'Invite employees to complete profiles',
+      icon: <Send className="h-5 w-5" />,
+      action: 'Send',
       route: '/dashboard/employees',
       completed: false
     },
     {
       id: 'view_reports',
-      title: 'View Gap Reports',
-      description: 'See comprehensive skills gap analysis',
+      title: 'View Reports',
+      description: 'Review skills gap analysis',
       icon: <ChartBar className="h-5 w-5" />,
       action: 'View',
       route: '/dashboard/skills-gap',
@@ -82,43 +83,46 @@ export default function SkillsGapOnboardingFlow() {
     if (!userProfile?.company_id) return;
 
     try {
+      // Check if positions exist
+      const { count: positionCount } = await supabase
+        .from('st_company_positions')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id);
+
       // Check if employees exist
       const { count: employeeCount } = await supabase
         .from('employees')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', userProfile.company_id);
 
-      // Check if CVs uploaded
-      const { count: cvCount } = await supabase
+      // Check if any employee has a user_id (indicating invites were sent)
+      const { count: invitedCount } = await supabase
         .from('employees')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', userProfile.company_id)
-        .not('cv_url', 'is', null);
-
-      // Check if any skills analyzed
-      const { count: analyzedCount } = await supabase
-        .from('employees')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', userProfile.company_id)
-        .not('cv_analysis', 'is', null);
+        .not('user_id', 'is', null);
 
       const updatedSteps = [...steps];
+      let newCurrentStep = 0;
+      
+      if (positionCount && positionCount > 0) {
+        updatedSteps[0].completed = true;
+        newCurrentStep = 1;
+      }
       
       if (employeeCount && employeeCount > 0) {
-        updatedSteps[0].completed = true;
-        setCurrentStep(1);
-      }
-      
-      if (cvCount && cvCount > 0) {
         updatedSteps[1].completed = true;
-        setCurrentStep(2);
+        newCurrentStep = 2;
       }
       
-      if (analyzedCount && analyzedCount > 0) {
+      if (invitedCount && invitedCount > 0) {
         updatedSteps[2].completed = true;
-        setCurrentStep(3);
+        newCurrentStep = 3;
+        // Step 4 is always available after step 3
+        updatedSteps[3].completed = false; // Keep it active, not completed
       }
 
+      setCurrentStep(newCurrentStep);
       setSteps(updatedSteps);
     } catch (error) {
       console.error('Error checking onboarding status:', error);
@@ -143,16 +147,15 @@ export default function SkillsGapOnboardingFlow() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 mb-4">
-            <Sparkles className="h-4 w-4 mr-1" />
-            Free Skills Gap Analysis
-          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to Your Skills Gap Analysis
+            Welcome to the new era of Learning and Development
           </h1>
           <p className="text-lg text-gray-600">
             Follow these steps to analyze your team's skills and identify gaps
           </p>
+          <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+            Current plan: Free Trial
+          </div>
         </div>
 
         {/* Progress */}
@@ -217,11 +220,11 @@ export default function SkillsGapOnboardingFlow() {
               <CardContent className="pt-0">
                 <Button
                   onClick={() => navigate(step.route)}
-                  disabled={!step.completed && index > currentStep}
+                  disabled={!step.completed && index > currentStep && !(index === 3 && currentStep === 3)}
                   variant={step.completed ? "outline" : "default"}
                   className={cn(
                     "w-full",
-                    !step.completed && index === currentStep && "bg-indigo-600 hover:bg-indigo-700"
+                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-indigo-600 hover:bg-indigo-700"
                   )}
                 >
                   {step.completed ? (
