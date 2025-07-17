@@ -61,13 +61,7 @@ export default function OnboardingOverview() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 min-h-screen bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-future-green/3 via-transparent to-business-black/3 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-future-green/8 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-lxera-blue/8 rounded-full blur-3xl" />
-      
-      <div className="relative z-10">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-business-black to-future-green bg-clip-text text-transparent">
@@ -272,7 +266,6 @@ export default function OnboardingOverview() {
           </div>
 
         </div>
-      </div>
       </div>
     </div>
   );
