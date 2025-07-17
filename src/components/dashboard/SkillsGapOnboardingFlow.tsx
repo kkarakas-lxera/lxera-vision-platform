@@ -1,0 +1,274 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import {
+  Users,
+  Upload,
+  BrainCircuit,
+  ChartBar,
+  CheckCircle2,
+  ArrowRight,
+  Circle,
+  Sparkles
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  action: string;
+  route: string;
+  completed: boolean;
+}
+
+export default function SkillsGapOnboardingFlow() {
+  const navigate = useNavigate();
+  const { userProfile } = useAuth();
+  const [steps, setSteps] = useState<OnboardingStep[]>([
+    {
+      id: 'import_employees',
+      title: 'Import Employees',
+      description: 'Upload your employee list to get started',
+      icon: <Users className="h-5 w-5" />,
+      action: 'Import',
+      route: '/dashboard/employees/add',
+      completed: false
+    },
+    {
+      id: 'upload_cvs',
+      title: 'Upload CVs',
+      description: 'Add employee resumes for skills analysis',
+      icon: <Upload className="h-5 w-5" />,
+      action: 'Upload',
+      route: '/dashboard/employees',
+      completed: false
+    },
+    {
+      id: 'analyze_skills',
+      title: 'Analyze Skills',
+      description: 'Run AI-powered analysis on your team',
+      icon: <BrainCircuit className="h-5 w-5" />,
+      action: 'Analyze',
+      route: '/dashboard/employees',
+      completed: false
+    },
+    {
+      id: 'view_reports',
+      title: 'View Gap Reports',
+      description: 'See comprehensive skills gap analysis',
+      icon: <ChartBar className="h-5 w-5" />,
+      action: 'View',
+      route: '/dashboard/skills-gap',
+      completed: false
+    }
+  ]);
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, [userProfile]);
+
+  const checkOnboardingStatus = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      // Check if employees exist
+      const { count: employeeCount } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id);
+
+      // Check if CVs uploaded
+      const { count: cvCount } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id)
+        .not('cv_url', 'is', null);
+
+      // Check if any skills analyzed
+      const { count: analyzedCount } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id)
+        .not('cv_analysis', 'is', null);
+
+      const updatedSteps = [...steps];
+      
+      if (employeeCount && employeeCount > 0) {
+        updatedSteps[0].completed = true;
+        setCurrentStep(1);
+      }
+      
+      if (cvCount && cvCount > 0) {
+        updatedSteps[1].completed = true;
+        setCurrentStep(2);
+      }
+      
+      if (analyzedCount && analyzedCount > 0) {
+        updatedSteps[2].completed = true;
+        setCurrentStep(3);
+      }
+
+      setSteps(updatedSteps);
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completedSteps = steps.filter(s => s.completed).length;
+  const progress = (completedSteps / steps.length) * 100;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 mb-4">
+            <Sparkles className="h-4 w-4 mr-1" />
+            Free Skills Gap Analysis
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome to Your Skills Gap Analysis
+          </h1>
+          <p className="text-lg text-gray-600">
+            Follow these steps to analyze your team's skills and identify gaps
+          </p>
+        </div>
+
+        {/* Progress */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Setup Progress
+              </span>
+              <span className="text-sm font-medium text-gray-700">
+                {completedSteps} of {steps.length} completed
+              </span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </CardContent>
+        </Card>
+
+        {/* Steps */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {steps.map((step, index) => (
+            <Card
+              key={step.id}
+              className={cn(
+                "relative overflow-hidden transition-all duration-200",
+                step.completed && "bg-green-50 border-green-200",
+                !step.completed && index === currentStep && "border-indigo-500 shadow-lg",
+                !step.completed && index > currentStep && "opacity-60"
+              )}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    step.completed ? "bg-green-100" : "bg-gray-100"
+                  )}>
+                    {step.completed ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <div className={cn(
+                        "text-gray-400",
+                        index === currentStep && "text-indigo-600"
+                      )}>
+                        {step.icon}
+                      </div>
+                    )}
+                  </div>
+                  <Badge 
+                    variant={step.completed ? "default" : "secondary"}
+                    className={cn(
+                      step.completed && "bg-green-600",
+                      !step.completed && index === currentStep && "bg-indigo-600"
+                    )}
+                  >
+                    Step {index + 1}
+                  </Badge>
+                </div>
+                <CardTitle className="text-lg mt-3">{step.title}</CardTitle>
+                <CardDescription className="text-sm">
+                  {step.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button
+                  onClick={() => navigate(step.route)}
+                  disabled={!step.completed && index > currentStep}
+                  variant={step.completed ? "outline" : "default"}
+                  className={cn(
+                    "w-full",
+                    !step.completed && index === currentStep && "bg-indigo-600 hover:bg-indigo-700"
+                  )}
+                >
+                  {step.completed ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Completed
+                    </>
+                  ) : (
+                    <>
+                      {step.action}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Help Section */}
+        <Card className="mt-8 border-indigo-200 bg-indigo-50/50">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <Sparkles className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  Need Help Getting Started?
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Our AI-powered skills gap analysis helps you understand your team's capabilities
+                  and identify areas for improvement. Complete all steps to unlock your comprehensive report.
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" size="sm">
+                    View Tutorial
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Contact Support
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

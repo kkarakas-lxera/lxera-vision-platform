@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -193,8 +194,32 @@ serve(async (req) => {
     let user;
     
     if (existingUser) {
-      // User profile exists, use it
-      user = existingUser;
+      // User profile exists, update it to company_admin
+      console.log(`[${requestId}] Updating existing user to company_admin`);
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('users')
+        .update({
+          role: 'company_admin',
+          company_id: companyRecord.id,
+          position: role || 'HR Manager',
+          is_active: true,
+          email_verified: true
+        })
+        .eq('id', existingUser.id)
+        .select()
+        .single();
+      
+      if (updateError) {
+        console.error(`[${requestId}] User update error:`, updateError);
+        // Clean up company if update fails
+        await supabase
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+        throw new Error('Failed to update user profile');
+      }
+      
+      user = updatedUser;
     } else {
       // Create new user profile
       const { data: newUser, error: userError } = await supabase
@@ -256,6 +281,81 @@ serve(async (req) => {
         heard_about: heardAbout
       })
       .eq('id', lead.id);
+
+    // Send welcome email
+    try {
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
+      if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai';
+        
+        await resend.emails.send({
+          from: 'LXERA <hello@lxera.ai>',
+          to: user.email,
+          subject: 'Welcome to LXERA - Your Skills Gap Analysis is Ready!',
+          html: `
+            <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%); padding: 40px 20px;">
+                <div style="background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                  <!-- Header -->
+                  <div style="text-align: center; padding: 40px 40px 30px; border-bottom: 1px solid #f0f0f0;">
+                    <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" style="height: 60px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                    <div style="color: #666; font-size: 14px; font-weight: 500; letter-spacing: 0.5px;">Beyond Learning</div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div style="padding: 40px;">
+                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Welcome to LXERA, ${user.full_name}!</h1>
+                    <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
+                      Your account has been successfully created and your Skills Gap Analysis platform is ready to use.
+                    </p>
+                    
+                    <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                      <h3 style="color: #191919; font-size: 18px; margin: 0 0 16px;">Your Account Details:</h3>
+                      <p style="color: #666; margin: 8px 0;"><strong>Company:</strong> ${company}</p>
+                      <p style="color: #666; margin: 8px 0;"><strong>Plan:</strong> Free Skills Gap Analysis (up to 10 employees)</p>
+                      <p style="color: #666; margin: 8px 0;"><strong>Email:</strong> ${user.email}</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${siteUrl}/admin-login" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Access Your Dashboard</a>
+                    </div>
+                    
+                    <div style="background: #7AE5C6; color: #191919; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                      <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">What's Next?</div>
+                      <div style="font-size: 14px;">
+                        1. Import your employees<br>
+                        2. Upload their CVs<br>
+                        3. Run AI-powered skills analysis<br>
+                        4. View comprehensive gap reports
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="padding: 30px 40px; border-top: 1px solid #f0f0f0; text-align: center;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Need help getting started?</p>
+                    <div style="margin: 20px 0;">
+                      <a href="mailto:hello@lxera.ai" style="display: inline-block; background: #0077B5; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px;">
+                        📧 Contact Support
+                      </a>
+                    </div>
+                    <p style="color: #666; font-size: 13px; margin: 20px 0 10px;">
+                      Beyond Learning | <a href="https://www.lxera.ai" style="color: #666; text-decoration: none;">www.lxera.ai</a>
+                    </p>
+                    <p style="color: #999; font-size: 13px; margin: 0;">© 2025 LXERA. All rights reserved.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        });
+        console.log(`[${requestId}] Welcome email sent to ${user.email}`);
+      }
+    } catch (emailError) {
+      // Log error but don't fail the signup
+      console.error(`[${requestId}] Failed to send welcome email:`, emailError);
+    }
 
     // Return success
     return new Response(

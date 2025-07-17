@@ -12,6 +12,11 @@ interface UserProfile {
   is_active: boolean;
   email_verified: boolean;
   position?: string;
+  companies?: {
+    id: string;
+    name: string;
+    plan_type: string;
+  };
 }
 
 interface AuthContextType {
@@ -50,7 +55,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const { data, error } = await supabase
         .from('users')
-        .select('id, email, full_name, role, company_id, is_active, email_verified, position')
+        .select(`
+          id, 
+          email, 
+          full_name, 
+          role, 
+          company_id, 
+          is_active, 
+          email_verified, 
+          position,
+          companies (
+            id,
+            name,
+            plan_type
+          )
+        `)
         .eq('id', userId)
         .maybeSingle();
 

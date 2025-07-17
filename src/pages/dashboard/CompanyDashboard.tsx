@@ -33,6 +33,7 @@ import MobileMetricsCarousel from '@/components/mobile/company/MobileMetricsCaro
 import MobileSkillsHealthCard from '@/components/mobile/company/MobileSkillsHealthCard';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
 import { cn } from '@/lib/utils';
+import SkillsGapOnboardingFlow from '@/components/dashboard/SkillsGapOnboardingFlow';
 
 interface DashboardMetrics {
   totalEmployees: number;
@@ -90,6 +91,7 @@ export default function CompanyDashboard() {
   const [skillsGapData, setSkillsGapData] = useState<SkillGapOverview[]>([]);
   const [skillsHealth, setSkillsHealth] = useState<SkillsHealthData | null>(null);
   const [positionsCount, setPositionsCount] = useState(0);
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   
   // Mobile pull-to-refresh state
   const touchStartY = useRef(0);
@@ -107,6 +109,7 @@ export default function CompanyDashboard() {
 
   useEffect(() => {
     if (userProfile?.company_id) {
+      checkOnboardingStatus();
       fetchDashboardData();
       checkPermissions();
 
@@ -165,6 +168,34 @@ export default function CompanyDashboard() {
       };
     }
   }, [userProfile]);
+
+  const checkOnboardingStatus = async () => {
+    if (!userProfile?.company_id || userProfile?.companies?.plan_type !== 'free_skills_gap') {
+      setOnboardingComplete(true);
+      return;
+    }
+
+    try {
+      // Check if skills gap analysis has been completed
+      const { count: analyzedCount } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id)
+        .not('cv_analysis', 'is', null);
+
+      // Check if gap analysis results exist
+      const { count: gapCount } = await supabase
+        .from('employee_skills_profile')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id)
+        .not('gap_analysis', 'is', null);
+
+      setOnboardingComplete((analyzedCount && analyzedCount > 0) || (gapCount && gapCount > 0));
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      setOnboardingComplete(false);
+    }
+  };
 
   const checkPermissions = async () => {
     if (userProfile?.company_id) {
@@ -594,7 +625,7 @@ export default function CompanyDashboard() {
     navigate('/dashboard/skills');
   };
 
-  if (loading) {
+  if (loading || onboardingComplete === null) {
     return (
       <div className="space-y-4 p-4">
         <div className="space-y-2">
@@ -638,6 +669,11 @@ export default function CompanyDashboard() {
         </div>
       </div>
     );
+  }
+
+  // Show onboarding flow for trial users who haven't completed setup
+  if (userProfile?.companies?.plan_type === 'free_skills_gap' && !onboardingComplete) {
+    return <SkillsGapOnboardingFlow />;
   }
 
   return (

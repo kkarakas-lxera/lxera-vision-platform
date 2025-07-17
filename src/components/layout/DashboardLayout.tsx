@@ -90,6 +90,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       ];
     }
 
+    const isFreeTrial = userProfile.companies?.plan_type === 'free_skills_gap';
+    
     switch (userProfile.role) {
       case 'super_admin':
         return [
@@ -111,10 +113,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
-          { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
+          { href: '/dashboard/skills-gap', icon: Target, label: 'Skills Gap Analysis' },
+          { href: isFreeTrial ? '#' : '/dashboard/analytics', icon: BarChart3, label: 'Game Engine', locked: isFreeTrial },
           { section: 'Learning Platform', icon: School },
-          { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
-          { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },
+          { href: isFreeTrial ? '#' : '/dashboard/courses', icon: BookOpen, label: 'Courses', locked: isFreeTrial },
+          { href: isFreeTrial ? '#' : '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator', locked: isFreeTrial },
           { section: 'System', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
           { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
@@ -357,7 +360,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{userProfile?.full_name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{userProfile?.full_name}</p>
+                    {userProfile?.companies?.plan_type === 'free_skills_gap' && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        Free Trial
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">{userProfile?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
