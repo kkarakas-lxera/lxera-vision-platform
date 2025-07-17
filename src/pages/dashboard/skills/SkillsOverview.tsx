@@ -52,7 +52,7 @@ export default function SkillsOverview() {
     if (userProfile?.company_id) {
       fetchSkillsOverview();
     }
-  }, [userProfile]);
+  }, [userProfile?.company_id]);
 
   const fetchSkillsOverview = async () => {
     if (!userProfile?.company_id) return;

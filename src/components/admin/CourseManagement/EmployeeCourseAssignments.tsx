@@ -114,7 +114,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
       fetchAssignments();
       fetchDepartments();
     }
-  }, [companyId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [companyId]);
 
   const fetchPositionsCount = async () => {
     if (!companyId) return;

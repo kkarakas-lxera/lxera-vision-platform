@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,19 +83,19 @@ const EmployeesPage = () => {
   const [positionsCount, setPositionsCount] = useState(0);
 
   useEffect(() => {
-    console.log('useEffect triggered, userProfile:', userProfile);
+    console.log('useEffect triggered, company_id:', userProfile?.company_id);
     if (userProfile?.company_id) {
       console.log('Calling fetchEmployees from useEffect');
       fetchEmployees();
     }
-  }, [userProfile]);
+  }, [userProfile?.company_id, fetchEmployees]);
 
   // Debug: Monitor positionsCount changes
   useEffect(() => {
     console.log('positionsCount state changed to:', positionsCount);
   }, [positionsCount]);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     if (!userProfile?.company_id) return;
 
     console.log('fetchEmployees called, company_id:', userProfile.company_id);
@@ -156,7 +156,7 @@ const EmployeesPage = () => {
       setLoading(false);
       console.log('Loading set to false. Final positionsCount should be:', calculatedPositionsCount);
     }
-  };
+  }, [userProfile?.company_id]);
 
   const handleDeleteEmployee = async (employeeId: string) => {
     try {

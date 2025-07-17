@@ -26,7 +26,7 @@ export default function GamificationAnalytics() {
     if (userProfile?.company_id) {
       fetchPositionsCount();
     }
-  }, [userProfile]);
+  }, [userProfile?.company_id]);
 
   const fetchPositionsCount = async () => {
     if (!userProfile?.company_id) return;
