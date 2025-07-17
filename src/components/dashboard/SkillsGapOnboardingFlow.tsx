@@ -143,7 +143,7 @@ export default function SkillsGapOnboardingFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -159,17 +159,22 @@ export default function SkillsGapOnboardingFlow() {
         </div>
 
         {/* Progress */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-white/60 backdrop-blur-sm border-indigo-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-indigo-700">
                 Setup Progress
               </span>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-indigo-700">
                 {completedSteps} of {steps.length} completed
               </span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <div className="w-full bg-indigo-100 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -179,23 +184,24 @@ export default function SkillsGapOnboardingFlow() {
             <Card
               key={step.id}
               className={cn(
-                "relative overflow-hidden transition-all duration-200",
-                step.completed && "bg-green-50 border-green-200",
-                !step.completed && index === currentStep && "border-indigo-500 shadow-lg",
-                !step.completed && index > currentStep && "opacity-60"
+                "relative overflow-hidden transition-all duration-200 bg-white/60 backdrop-blur-sm",
+                step.completed && "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200",
+                !step.completed && index === currentStep && "border-indigo-500 shadow-lg bg-white/80",
+                !step.completed && index > currentStep && "opacity-60 border-indigo-100"
               )}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className={cn(
                     "p-2 rounded-lg",
-                    step.completed ? "bg-green-100" : "bg-gray-100"
+                    step.completed ? "bg-indigo-100" : "bg-indigo-50",
+                    index === currentStep && !step.completed && "bg-indigo-100"
                   )}>
                     {step.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-indigo-600" />
                     ) : (
                       <div className={cn(
-                        "text-gray-400",
+                        "text-indigo-300",
                         index === currentStep && "text-indigo-600"
                       )}>
                         {step.icon}
@@ -205,8 +211,9 @@ export default function SkillsGapOnboardingFlow() {
                   <Badge 
                     variant={step.completed ? "default" : "secondary"}
                     className={cn(
-                      step.completed && "bg-green-600",
-                      !step.completed && index === currentStep && "bg-indigo-600"
+                      step.completed && "bg-indigo-600 text-white",
+                      !step.completed && index === currentStep && "bg-indigo-600 text-white",
+                      !step.completed && index > currentStep && "bg-indigo-100 text-indigo-600"
                     )}
                   >
                     Step {index + 1}
@@ -224,7 +231,8 @@ export default function SkillsGapOnboardingFlow() {
                   variant={step.completed ? "outline" : "default"}
                   className={cn(
                     "w-full",
-                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-indigo-600 hover:bg-indigo-700"
+                    step.completed && "border-indigo-200 text-indigo-600 hover:bg-indigo-50",
+                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                   )}
                 >
                   {step.completed ? (
@@ -245,7 +253,7 @@ export default function SkillsGapOnboardingFlow() {
         </div>
 
         {/* Help Section */}
-        <Card className="mt-8 border-indigo-200 bg-indigo-50/50">
+        <Card className="mt-8 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-indigo-100 rounded-lg">
@@ -260,10 +268,10 @@ export default function SkillsGapOnboardingFlow() {
                   and identify areas for improvement. Complete all steps to unlock your comprehensive report.
                 </p>
                 <div className="flex gap-3">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                     View Tutorial
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                     Contact Support
                   </Button>
                 </div>

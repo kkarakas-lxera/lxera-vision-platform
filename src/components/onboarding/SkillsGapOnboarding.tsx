@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { Check, ChevronRight, Eye, EyeOff, HelpCircle, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -282,10 +282,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
   };
 
   const getPasswordStrengthColor = () => {
-    if (formData.password.length === 0) return 'bg-gray-200';
+    if (formData.password.length === 0) return 'bg-indigo-100';
     if (formData.password.length < 8) return 'bg-red-400';
-    if (isPasswordStrong(formData.password)) return 'bg-green-400';
-    return 'bg-yellow-400';
+    if (isPasswordStrong(formData.password)) return 'bg-indigo-500';
+    return 'bg-indigo-300';
   };
 
   const getPasswordStrengthText = () => {
@@ -374,16 +374,16 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-indigo-400" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-indigo-400" />
                 )}
               </button>
             </div>
             {formData.password && (
               <div className="mt-2">
                 <div className="flex items-center space-x-2">
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full">
+                  <div className="flex-1 h-2 bg-indigo-100 rounded-full">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor()}`}
                       style={{
@@ -391,11 +391,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                       }}
                     />
                   </div>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-indigo-600">
                     {getPasswordStrengthText()}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-indigo-500 mt-1">
                   Use 8+ characters with uppercase, lowercase, and numbers
                 </p>
               </div>
@@ -420,9 +420,9 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-indigo-400" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-indigo-400" />
                 )}
               </button>
             </div>
@@ -574,23 +574,50 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Step {currentStep} of {STEPS.length}</span>
-            <span>{Math.round(progress)}% complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+      <div className="w-full max-w-4xl">
+        {/* Progress Bar and Help Section - Side by Side */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            {/* Progress Section */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center justify-between text-sm text-indigo-600 mb-2">
+                <span>Step {currentStep} of {STEPS.length}</span>
+                <span>{Math.round(progress)}% complete</span>
+              </div>
+              <div className="w-full bg-indigo-100 rounded-full h-1">
+                <div
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+            
+            {/* Help Section */}
+            <div className="lg:col-span-1">
+              <Card className="bg-indigo-50 border-indigo-200 p-3">
+                <div className="flex items-start space-x-2">
+                  <HelpCircle className="h-4 w-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-medium text-indigo-900 mb-1">Need Help Getting Started?</h4>
+                    <p className="text-xs text-indigo-700 mb-2">Our team is here to help you set up your account and get the most out of LXERA.</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-7 px-3 text-xs border-indigo-300 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-400"
+                      onClick={() => window.open('mailto:support@lxera.ai', '_blank')}
+                    >
+                      <MessageCircle className="h-3 w-3 mr-1" />
+                      Contact Support
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <Card className="bg-white backdrop-blur-sm border-indigo-100 shadow-lg">
+        <Card className="bg-white backdrop-blur-sm border-indigo-100 shadow-lg max-w-2xl mx-auto">
           <div className="p-8">
             <div className="text-center mb-8">
               <img 
