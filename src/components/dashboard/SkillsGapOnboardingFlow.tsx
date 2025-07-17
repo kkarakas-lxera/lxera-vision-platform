@@ -169,10 +169,10 @@ export default function SkillsGapOnboardingFlow() {
           </div>
         </div>
 
-        {/* Progress, User Info, and Help Section - Three Columns */}
-        <div className="mb-6 grid gap-3 grid-cols-1 md:grid-cols-3">
+        {/* Progress and Help Section - Side by Side */}
+        <div className="mb-6 grid gap-3 grid-cols-1 md:grid-cols-2">
           {/* Setup Progress - Smaller */}
-          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
+          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
             <CardContent className="p-2">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-business-black">
@@ -191,34 +191,8 @@ export default function SkillsGapOnboardingFlow() {
             </CardContent>
           </Card>
 
-          {/* User Info & Plan */}
-          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between mb-1">
-                <div>
-                  <div className="text-xs font-medium text-business-black">
-                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
-                  </div>
-                  <div className="text-xs text-business-black/70">
-                    {companyData?.subscription_tier === 'trial' ? 'Free Trial' : 
-                     companyData?.subscription_tier === 'premium' ? 'Premium Plan' : 
-                     'Free Plan'}
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white"
-                  onClick={() => navigate('/dashboard/settings')}
-                >
-                  Upgrade
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Help Section - Minimalistic */}
-          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
+          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
             <CardContent className="p-2">
               <div className="flex items-center gap-2">
                 <div className="p-1 bg-future-green/20 rounded-lg">
@@ -249,7 +223,7 @@ export default function SkillsGapOnboardingFlow() {
               key={step.id}
               className={cn(
                 "relative overflow-hidden transition-all duration-200 bg-white/60 backdrop-blur-sm",
-                step.completed && "bg-white border-future-green/30",
+                step.completed && "bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige border-future-green/30",
                 !step.completed && index === currentStep && "border-future-green/50 shadow-lg bg-white/80",
                 !step.completed && index > currentStep && "opacity-60 border-future-green/20"
               )}
