@@ -380,6 +380,7 @@ export default function CompanySettings() {
             </div>
           </CardContent>
         </Card>
+        </div>
       )}
 
       {/* Support Section - Platform Feedback */}
@@ -795,13 +796,12 @@ export default function CompanySettings() {
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Company Profile Modal */}
-      <CompanyProfileModal 
-        open={companyProfileOpen} 
-        onOpenChange={setCompanyProfileOpen} 
-      />
+        {/* Company Profile Modal */}
+        <CompanyProfileModal 
+          open={companyProfileOpen} 
+          onOpenChange={setCompanyProfileOpen} 
+        />
     </div>
   );
 }
