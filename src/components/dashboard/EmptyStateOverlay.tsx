@@ -35,7 +35,7 @@ const EmptyStateOverlay: React.FC<EmptyStateOverlayProps> = ({
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-lxera-blue/10 rounded-full blur-2xl" />
         
         {/* Content overlay for readability */}
-        <div className="relative bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6">
+        <div className="relative backdrop-blur-sm rounded-xl p-4 sm:p-6">
           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-future-green/20 to-business-black/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-business-black" />
           </div>
