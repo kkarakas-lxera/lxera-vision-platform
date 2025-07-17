@@ -31,6 +31,10 @@ serve(async (req) => {
       throw new Error('Token and password are required');
     }
 
+    if (!company || !role) {
+      throw new Error('Company and role are required');
+    }
+
     // Validate password strength
     if (password.length < 8) {
       throw new Error('Password must be at least 8 characters long');
@@ -72,9 +76,10 @@ serve(async (req) => {
       );
     }
 
-    // Generate company domain from email
+    // Generate company domain from email with timestamp for uniqueness
     const emailDomain = lead.email.split('@')[1];
-    const companyDomain = `${emailDomain}-${lead.id.substring(0, 8)}`;
+    const timestamp = Date.now().toString(36); // Convert timestamp to base36 for shorter string
+    const companyDomain = `${emailDomain}-${lead.id.substring(0, 8)}-${timestamp}`;
 
     // Create company record
     const { data: companyRecord, error: companyError } = await supabase

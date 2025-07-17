@@ -356,7 +356,8 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 value={formData.password}
                 onChange={(e) => updateFormData('password', e.target.value)}
                 placeholder="Enter your password"
-                className="pr-10"
+                className="pr-10 bg-white"
+                style={{ backgroundColor: 'white' }}
               />
               <button
                 type="button"
@@ -401,7 +402,8 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 value={formData.confirmPassword}
                 onChange={(e) => updateFormData('confirmPassword', e.target.value)}
                 placeholder="Confirm your password"
-                className="pr-10"
+                className="pr-10 bg-white"
+                style={{ backgroundColor: 'white' }}
               />
               <button
                 type="button"
@@ -432,7 +434,8 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             value={formData[field]}
             onChange={(e) => updateFormData(field, e.target.value)}
             placeholder={step.placeholder}
-            className="text-lg p-4 border-2 border-indigo-200 focus:border-indigo-500 focus:ring-indigo-200"
+            className="text-lg p-4 border-2 border-indigo-200 focus:border-indigo-500 focus:ring-indigo-200 bg-white"
+            style={{ backgroundColor: 'white' }}
           />
         </div>
       );
@@ -578,7 +581,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
         </div>
 
         {/* Main Content */}
-        <Card className="bg-white/80 backdrop-blur-sm border-indigo-100 shadow-lg">
+        <Card className="bg-white backdrop-blur-sm border-indigo-100 shadow-lg">
           <div className="p-8">
             <div className="text-center mb-8">
               <img 
