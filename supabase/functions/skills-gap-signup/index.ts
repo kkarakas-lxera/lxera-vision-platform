@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { createErrorResponse, logSanitizedError, getErrorStatusCode } from '../_shared/error-utils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,11 +10,6 @@ const corsHeaders = {
 interface SkillsGapSignupPayload {
   email: string;
   name: string;
-  company: string;
-  role: string;
-  teamSize: string;
-  primaryChallenge: string;
-  currentProcess: string;
   source?: string;
   utm_source?: string;
   utm_medium?: string;
@@ -35,11 +29,6 @@ serve(async (req) => {
     const { 
       email, 
       name, 
-      company, 
-      role, 
-      teamSize, 
-      primaryChallenge, 
-      currentProcess, 
       source = 'skills-gap-landing',
       utm_source, 
       utm_medium, 
@@ -47,8 +36,8 @@ serve(async (req) => {
     } = payload;
 
     // Validate required fields
-    if (!email || !name || !company) {
-      throw new Error('Missing required fields: email, name, and company');
+    if (!email || !name) {
+      throw new Error('Missing required fields: email and name');
     }
 
     // Validate email format
@@ -78,11 +67,6 @@ serve(async (req) => {
         .from('skills_gap_leads')
         .update({
           name,
-          company,
-          role,
-          team_size: teamSize,
-          primary_challenge: primaryChallenge,
-          current_process: currentProcess,
           utm_source,
           utm_medium,
           utm_campaign
@@ -108,11 +92,6 @@ serve(async (req) => {
         .insert({
           email: email.toLowerCase(),
           name,
-          company,
-          role,
-          team_size: teamSize,
-          primary_challenge: primaryChallenge,
-          current_process: currentProcess,
           source,
           utm_source,
           utm_medium,
@@ -156,7 +135,7 @@ serve(async (req) => {
 
     // Send verification email
     const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'http://localhost:5173';
-    const verificationLink = `${siteUrl}/set-password?token=${session.token}`;
+    const verificationLink = `${siteUrl}/skills-gap-onboarding?token=${session.token}`;
 
     // Initialize Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
@@ -187,11 +166,11 @@ serve(async (req) => {
                   <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Complete Your Skills Gap Analysis Setup</h1>
                   <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
                     Hi ${name},<br><br>
-                    Thanks for starting your skills gap analysis for ${company}!<br><br>
-                    Click below to set your password and access your dashboard:
+                    Thanks for starting your skills gap analysis!<br><br>
+                    Click below to complete your setup and access your dashboard:
                   </p>
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="${verificationLink}" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Set Password & Access Dashboard</a>
+                    <a href="${verificationLink}" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Complete Setup & Access Dashboard</a>
                   </div>
                   <div style="text-align: center; color: #666; font-size: 14px; margin: 20px 0;">
                     🔒 Link expires in 24 hours
@@ -227,9 +206,9 @@ serve(async (req) => {
 
 Hi ${name},
 
-Thanks for starting your skills gap analysis for ${company}!
+Thanks for starting your skills gap analysis!
 
-Set your password and access your dashboard: ${verificationLink}
+Complete your setup and access your dashboard: ${verificationLink}
 
 Free Skills Gap Analysis:
 ✓ Analyze up to 10 employees
@@ -280,3 +259,36 @@ Beyond Learning | www.lxera.ai
     }, getErrorStatusCode(error));
   }
 });
+
+// Error handling utilities
+function createErrorResponse(error, metadata, statusCode = 500) {
+  return new Response(
+    JSON.stringify({
+      error: error.message || 'Internal server error',
+      success: false,
+      requestId: metadata.requestId
+    }),
+    {
+      status: statusCode,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    }
+  );
+}
+
+function logSanitizedError(error, metadata) {
+  console.error('Edge function error:', {
+    message: error?.message,
+    code: error?.code,
+    ...metadata
+  });
+}
+
+function getErrorStatusCode(error) {
+  // Map specific error types to HTTP status codes
+  if (error.message?.includes('already exists')) return 409;
+  if (error.message?.includes('not found')) return 404;
+  if (error.message?.includes('unauthorized')) return 401;
+  if (error.message?.includes('forbidden')) return 403;
+  if (error.message?.includes('Invalid') || error.message?.includes('required')) return 400;
+  return 500;
+}

@@ -253,13 +253,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                     key={item.href}
                     variant="ghost"
                     className={cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group w-full justify-start",
+                      "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group w-full justify-start",
                       "text-slate-300 hover:bg-slate-700 hover:text-white",
                       !sidebarExpanded && "justify-center"
                     )}
                     title={!sidebarExpanded ? item.label : undefined}
                   >
-                    <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                    <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
                     {sidebarExpanded && <span>{item.label}</span>}
                   </FeedbackButton>
                 );
@@ -271,17 +271,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   <div
                     key={item.href}
                     className={cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
+                      "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
                       "text-slate-500 bg-slate-800/50",
                       !sidebarExpanded && "justify-center"
                     )}
                     title={!sidebarExpanded ? `${item.label} (Locked)` : undefined}
                   >
-                    <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                    <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
                     {sidebarExpanded && (
                       <>
                         <span className="flex-1">{item.label}</span>
-                        <Lock className="h-4 w-4 ml-2" />
+                        <Lock className="h-3 w-3 ml-2" />
                       </>
                     )}
                   </div>
@@ -293,7 +293,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group",
+                    "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group",
                     isActive
                       ? "bg-slate-800 text-white"
                       : "text-slate-300 hover:bg-slate-700 hover:text-white",
@@ -301,7 +301,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   )}
                   title={!sidebarExpanded ? item.label : undefined}
                 >
-                  <Icon className={cn("h-5 w-5", sidebarExpanded && "mr-3")} />
+                  <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
                   {sidebarExpanded && <span>{item.label}</span>}
                 </Link>
               );

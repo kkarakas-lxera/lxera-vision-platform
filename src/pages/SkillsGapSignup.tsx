@@ -1,29 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 const SkillsGapSignup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    company: '',
-    role: '',
-    teamSize: '',
-    primaryChallenge: '',
-    currentProcess: '',
     source: 'skills-gap-landing'
   });
 
@@ -39,28 +31,8 @@ const SkillsGapSignup = () => {
     }
   }, [searchParams]);
 
-  const steps = [
-    { id: 1, title: 'Contact Information', description: 'Your basic details' },
-    { id: 2, title: 'Company Details', description: 'About your organization' },
-    { id: 3, title: 'Current Challenges', description: 'What you\'re facing now' },
-    { id: 4, title: 'Success!', description: 'Check your email' }
-  ];
-
-  const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setIsSubmitting(true);
     
     try {
@@ -73,11 +45,6 @@ const SkillsGapSignup = () => {
         body: JSON.stringify({
           email: formData.email,
           name: formData.name,
-          company: formData.company,
-          role: formData.role,
-          teamSize: formData.teamSize,
-          primaryChallenge: formData.primaryChallenge,
-          currentProcess: formData.currentProcess,
           source: formData.source
         }),
       });
@@ -85,7 +52,7 @@ const SkillsGapSignup = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setCurrentStep(4);
+        setShowSuccess(true);
         toast.success('Verification email sent! Check your inbox to complete setup.');
       } else {
         throw new Error(data.error || 'Failed to send verification email');
@@ -108,171 +75,41 @@ const SkillsGapSignup = () => {
     return domain && !personalDomains.includes(domain);
   };
 
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1:
-        return formData.email && formData.name && formData.email.includes('@') && isBusinessEmail(formData.email);
-      case 2:
-        return formData.company && formData.role && formData.teamSize;
-      case 3:
-        return formData.primaryChallenge && formData.currentProcess;
-      default:
-        return true;
-    }
+  const isFormValid = () => {
+    return formData.email && formData.name && formData.email.includes('@') && isBusinessEmail(formData.email);
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter your full name"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Work Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="Enter your work email"
-                className="mt-1"
-              />
-              {formData.email && formData.email.includes('@') && !isBusinessEmail(formData.email) && (
-                <p className="text-sm text-red-600 mt-1">
-                  Please use your business email address
-                </p>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="company">Company Name</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                placeholder="Enter your company name"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="role">Your Role</Label>
-              <Input
-                id="role"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                placeholder="e.g., HR Director, People Manager"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="teamSize">Team Size</Label>
-              <Select value={formData.teamSize} onValueChange={(value) => setFormData({ ...formData, teamSize: value })}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select team size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1-10">1-10 employees</SelectItem>
-                  <SelectItem value="11-50">11-50 employees</SelectItem>
-                  <SelectItem value="51-200">51-200 employees</SelectItem>
-                  <SelectItem value="201-1000">201-1000 employees</SelectItem>
-                  <SelectItem value="1000+">1000+ employees</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="primaryChallenge">Primary Challenge</Label>
-              <RadioGroup
-                value={formData.primaryChallenge}
-                onValueChange={(value) => setFormData({ ...formData, primaryChallenge: value })}
-                className="mt-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="skills-assessment" id="skills-assessment" />
-                  <Label htmlFor="skills-assessment">Assessing current skills</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="training-gaps" id="training-gaps" />
-                  <Label htmlFor="training-gaps">Identifying training gaps</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="career-development" id="career-development" />
-                  <Label htmlFor="career-development">Career development planning</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="performance-improvement" id="performance-improvement" />
-                  <Label htmlFor="performance-improvement">Performance improvement</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="compliance-training" id="compliance-training" />
-                  <Label htmlFor="compliance-training">Compliance training</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div>
-              <Label htmlFor="currentProcess">Current Process</Label>
-              <Textarea
-                id="currentProcess"
-                value={formData.currentProcess}
-                onChange={(e) => setFormData({ ...formData, currentProcess: e.target.value })}
-                placeholder="Briefly describe how you currently handle skills assessment and training..."
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="text-center space-y-4">
-            <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-            <div>
-              <h3 className="text-lg font-semibold">Check Your Email!</h3>
-              <p className="text-gray-600 mt-2">
-                We've sent a verification email to <strong>{formData.email}</strong>
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Click the link in the email to set your password and access your dashboard.
-              </p>
-            </div>
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              Check Your Email!
+            </h2>
+            <p className="text-gray-600 mb-2">
+              We've sent a verification email to <strong>{formData.email}</strong>
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Click the link in the email to complete your setup and access your dashboard.
+            </p>
             <Button
               onClick={() => navigate('/admin-login')}
               variant="outline"
-              className="mt-4"
+              className="w-full"
             >
               Go to Login
             </Button>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
@@ -281,72 +118,58 @@ const SkillsGapSignup = () => {
               className="h-12"
             />
           </div>
-          <CardTitle className="text-2xl">Skills Gap Analysis Setup</CardTitle>
+          <CardTitle className="text-2xl">Get Free Skills Gap Analysis</CardTitle>
           <CardDescription>
-            Get started with your free skills gap analysis
+            Join companies transforming their L&D with AI-powered insights
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between mb-4">
-              {steps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={`flex-1 ${index < steps.length - 1 ? 'mr-2' : ''}`}
-                >
-                  <div
-                    className={`h-2 rounded-full transition-colors duration-300 ${
-                      step.id <= currentStep ? 'bg-blue-500' : 'bg-gray-200'
-                    }`}
-                  />
-                </div>
-              ))}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter your full name"
+                className="mt-1"
+                required
+              />
             </div>
-            <div className="flex justify-between text-sm text-gray-600">
-              {steps.map((step) => (
-                <div key={step.id} className="text-center">
-                  <div className="font-medium">{step.title}</div>
-                  <div className="text-xs">{step.description}</div>
-                </div>
-              ))}
+            
+            <div>
+              <Label htmlFor="email">Work Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="your@company.com"
+                className="mt-1"
+                required
+              />
+              {formData.email && formData.email.includes('@') && !isBusinessEmail(formData.email) && (
+                <Alert className="mt-2 border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-700">
+                    Please use your business email address
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-          </div>
 
-          {/* Form Content */}
-          {renderStep()}
+            <Button
+              type="submit"
+              disabled={!isFormValid() || isSubmitting}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              {isSubmitting ? 'Sending...' : 'Get Started'}
+            </Button>
+          </form>
 
-          {/* Navigation Buttons */}
-          {currentStep < 4 && (
-            <div className="flex justify-between mt-8">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                className="flex items-center"
-              >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={!isStepValid() || isSubmitting}
-                className="flex items-center"
-              >
-                {isSubmitting ? (
-                  'Sending...'
-                ) : currentStep === 3 ? (
-                  'Complete Setup'
-                ) : (
-                  <>
-                    Next
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+          <p className="text-xs text-gray-500 mt-4 text-center">
+            Free analysis for your team • No credit card required
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createErrorResponse, logSanitizedError, getErrorStatusCode } from '../_shared/error-utils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +9,11 @@ const corsHeaders = {
 interface CompleteSignupPayload {
   token: string;
   password: string;
+  company: string;
+  role: string;
+  teamSize: string;
+  useCase: string;
+  heardAbout: string;
 }
 
 serve(async (req) => {
@@ -21,7 +25,7 @@ serve(async (req) => {
   const requestId = crypto.randomUUID();
   
   try {
-    const { token, password }: CompleteSignupPayload = await req.json();
+    const { token, password, company, role, teamSize, useCase, heardAbout }: CompleteSignupPayload = await req.json();
 
     if (!token || !password) {
       throw new Error('Token and password are required');
@@ -50,11 +54,7 @@ serve(async (req) => {
       .single();
 
     if (sessionError || !session) {
-      logSanitizedError(sessionError, {
-        requestId,
-        functionName: 'complete-skills-gap-signup',
-        metadata: { context: 'token_verification' }
-      });
+      console.error('Session verification error:', sessionError);
       throw new Error('Invalid or expired token');
     }
 
@@ -66,7 +66,7 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true,
           message: 'already_converted',
-          redirectTo: '/admin-login'
+          redirectTo: '/dashboard'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -77,10 +77,10 @@ serve(async (req) => {
     const companyDomain = `${emailDomain}-${lead.id.substring(0, 8)}`;
 
     // Create company record
-    const { data: company, error: companyError } = await supabase
+    const { data: companyRecord, error: companyError } = await supabase
       .from('companies')
       .insert({
-        name: lead.company,
+        name: company,
         domain: companyDomain,
         plan_type: 'free_skills_gap',
         max_employees: 10,
@@ -91,51 +91,101 @@ serve(async (req) => {
       .single();
 
     if (companyError) {
-      logSanitizedError(companyError, {
-        requestId,
-        functionName: 'complete-skills-gap-signup',
-        metadata: { context: 'create_company' }
-      });
+      console.error('Company creation error:', companyError);
       throw new Error('Failed to create company record');
     }
 
-    // Hash password (using a simple approach - in production, use bcrypt or similar)
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // Check if auth user already exists
+    const { data: existingAuthUser, error: authCheckError } = await supabase.auth.admin.getUserByEmail(lead.email);
 
-    // Create user record
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .insert({
+    let authUser;
+    
+    if (existingAuthUser.user) {
+      // User exists in auth, check if they can be used for skills gap
+      if (existingAuthUser.user.email === 'kubilay.karakas@lxera.ai') {
+        // Super admin can test skills gap flow
+        authUser = existingAuthUser.user;
+      } else {
+        // Regular user exists, cannot create duplicate
+        await supabase
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+        throw new Error('User already exists with this email');
+      }
+    } else {
+      // Create new auth user
+      const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
         email: lead.email,
-        password_hash,
-        full_name: lead.name,
-        role: 'company_admin',
-        company_id: company.id,
-        position: lead.role || 'HR Manager',
-        is_active: true,
-        email_verified: true
-      })
-      .select()
+        password: password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: lead.name,
+        }
+      });
+
+      if (authError || !newAuthUser.user) {
+        console.error('Auth user creation error:', authError);
+        
+        // If auth user creation fails, clean up company
+        await supabase
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+          
+        throw new Error('Failed to create authentication account');
+      }
+      
+      authUser = newAuthUser.user;
+    }
+
+    // Check if profile user already exists
+    const { data: existingUser, error: userCheckError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', lead.email)
       .single();
 
-    if (userError) {
-      logSanitizedError(userError, {
-        requestId,
-        functionName: 'complete-skills-gap-signup',
-        metadata: { context: 'create_user' }
-      });
-      
-      // If user creation fails, clean up company
-      await supabase
-        .from('companies')
-        .delete()
-        .eq('id', company.id);
+    let user;
+    
+    if (existingUser) {
+      // User profile exists, use it
+      user = existingUser;
+    } else {
+      // Create new user profile
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: authUser.id,
+          email: lead.email,
+          password_hash: 'supabase_managed',
+          full_name: lead.name,
+          role: 'company_admin',
+          company_id: companyRecord.id,
+          position: role || 'HR Manager',
+          is_active: true,
+          email_verified: true
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('User profile creation error:', userError);
         
-      throw new Error('Failed to create user account');
+        // If user profile creation fails, clean up company and auth user
+        await supabase
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+          
+        if (authUser.id !== existingAuthUser?.user?.id) {
+          await supabase.auth.admin.deleteUser(authUser.id);
+        }
+          
+        throw new Error('Failed to create user profile');
+      }
+      
+      user = newUser;
     }
 
     // Mark session as used
@@ -144,12 +194,17 @@ serve(async (req) => {
       .update({ used_at: new Date().toISOString() })
       .eq('id', session.id);
 
-    // Update lead status to converted
+    // Update lead status to converted and store onboarding data
     await supabase
       .from('skills_gap_leads')
       .update({ 
         status: 'converted',
-        converted_to_user_id: user.id
+        converted_to_user_id: user.id,
+        company: company,
+        role: role,
+        team_size: teamSize,
+        use_case: useCase,
+        heard_about: heardAbout
       })
       .eq('id', lead.id);
 
@@ -165,11 +220,11 @@ serve(async (req) => {
           role: user.role
         },
         company: {
-          id: company.id,
-          name: company.name,
-          plan_type: company.plan_type
+          id: companyRecord.id,
+          name: companyRecord.name,
+          plan_type: companyRecord.plan_type
         },
-        redirectTo: '/admin-login'
+        redirectTo: '/dashboard'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -181,3 +236,36 @@ serve(async (req) => {
     }, getErrorStatusCode(error));
   }
 });
+
+// Error handling utilities
+function createErrorResponse(error, metadata, statusCode = 500) {
+  return new Response(
+    JSON.stringify({
+      error: error.message || 'Internal server error',
+      success: false,
+      requestId: metadata.requestId
+    }),
+    {
+      status: statusCode,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    }
+  );
+}
+
+function logSanitizedError(error, metadata) {
+  console.error('Edge function error:', {
+    message: error?.message,
+    code: error?.code,
+    ...metadata
+  });
+}
+
+function getErrorStatusCode(error) {
+  // Map specific error types to HTTP status codes
+  if (error.message?.includes('already exists')) return 409;
+  if (error.message?.includes('not found')) return 404;
+  if (error.message?.includes('unauthorized')) return 401;
+  if (error.message?.includes('forbidden')) return 403;
+  if (error.message?.includes('Invalid') || error.message?.includes('required')) return 400;
+  return 500;
+}

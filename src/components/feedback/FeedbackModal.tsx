@@ -145,7 +145,6 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
       const { error } = await supabase
         .from('tickets')
         .insert({
-          ticket_type: formData.type,
           first_name: userProfile.full_name.split(' ')[0] || 'User',
           last_name: userProfile.full_name.split(' ').slice(1).join(' ') || '',
           email: userProfile.email,
@@ -154,8 +153,6 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
           message: `${formData.title}\n\n${formData.description}`,
           priority: formData.priority,
           source: 'Platform Dashboard',
-          status: 'new',
-          metadata: metadata,
         });
 
       if (error) {
@@ -199,7 +196,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <selectedTypeIcon className="h-5 w-5" />
+            {React.createElement(selectedTypeIcon, { className: "h-5 w-5" })}
             Platform Feedback
           </DialogTitle>
         </DialogHeader>
@@ -268,7 +265,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
 
           {/* Advanced Options */}
           {showAdvanced && (
-            <div className="space-y-4 p-3 bg-gray-50 rounded-lg border">
+            <div className="space-y-4 p-3 bg-white rounded-lg border border-gray-200">
               {/* Category */}
               <div className="space-y-2">
                 <Label htmlFor="category" className="text-sm">Category</Label>
@@ -313,7 +310,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultType = 'general_
 
           {/* Bug Report Specific Fields */}
           {formData.type === 'bug_report' && showAdvanced && (
-            <div className="space-y-3 p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="space-y-3 p-3 bg-white rounded-lg border border-red-200">
               <h4 className="text-sm font-medium text-red-800">Bug Report Details (Optional)</h4>
               
               <div className="space-y-2">
