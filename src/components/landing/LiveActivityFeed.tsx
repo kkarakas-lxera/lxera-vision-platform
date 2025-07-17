@@ -74,16 +74,16 @@ const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({ onCTAClick }) => {
   }, [mockActivities.length]);
 
   return (
-    <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50">
+    <section className="py-16 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-business-black mb-4">
             Companies discovering gaps right now:
           </h2>
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <Card className="bg-white/80 backdrop-blur-sm border-green-200">
+          <Card className="bg-white/80 backdrop-blur-sm border-future-green/40">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {mockActivities.slice(0, 4).map((activity, index) => (
@@ -91,18 +91,18 @@ const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({ onCTAClick }) => {
                     key={activity.id}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-lg transition-all duration-300",
-                      index === currentActivityIndex ? "bg-green-50 border border-green-200" : "bg-slate-50"
+                      index === currentActivityIndex ? "bg-future-green/20 border border-future-green/40" : "bg-smart-beige/50"
                     )}
                   >
                     <div className={cn(
                       "w-3 h-3 rounded-full",
-                      index === currentActivityIndex ? "bg-green-500 animate-pulse" : "bg-slate-400"
+                      index === currentActivityIndex ? "bg-future-green animate-pulse" : "bg-business-black/40"
                     )} />
                     <div className="flex-1">
-                      <p className="text-sm text-slate-700">
+                      <p className="text-sm text-business-black/80">
                         <span className="font-medium">{activity.company}</span> just {activity.action}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-business-black/60">
                         {formatTimeAgo(activity.timestamp)}
                       </p>
                     </div>
@@ -113,12 +113,12 @@ const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({ onCTAClick }) => {
           </Card>
 
           <div className="text-center mt-8">
-            <p className="text-lg text-slate-600 mb-6">
+            <p className="text-lg text-business-black/70 mb-6">
               This could be you in the next 5 minutes
             </p>
             <Button
               onClick={onCTAClick}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-future-green to-future-green/90 hover:from-future-green/90 hover:to-future-green text-business-black font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Start My Analysis Now
               <ArrowRight className="ml-2 h-4 w-4" />

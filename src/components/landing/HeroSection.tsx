@@ -34,46 +34,46 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           {/* Social Proof Badge */}
-          <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-full px-4 py-2 mb-8">
-            <span className="text-sm font-medium text-blue-800">
+          <div className="inline-flex items-center bg-gradient-to-r from-future-green/20 to-future-green/30 border border-future-green/40 rounded-full px-4 py-2 mb-8">
+            <span className="text-sm font-medium text-business-black">
               🏆 500+ companies have saved $2.3M in wasted training costs this year
             </span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-business-black mb-6 leading-tight">
             Discover What Your Competitors
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-future-green to-future-green/80">
               Already Know About Your Team
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl sm:text-2xl text-slate-600 mb-8 max-w-4xl mx-auto">
+          <p className="text-xl sm:text-2xl text-business-black/70 mb-8 max-w-4xl mx-auto">
             Our AI reveals the exact skills costing you money
             <br className="hidden sm:block" />
-            <span className="text-blue-600 font-semibold">(in under 5 minutes)</span>
+            <span className="text-future-green font-semibold">(in under 5 minutes)</span>
           </p>
 
           {/* Email Capture Form */}
           <form onSubmit={onSubmit} className="max-w-md mx-auto mb-8">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-business-black/40 h-5 w-5" />
                 <Input
                   type="email"
                   placeholder="Enter work email to see your team's gaps"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 text-base border-2 border-slate-300 focus:border-blue-500 focus:ring-0"
+                  className="pl-10 h-12 text-base border-2 border-business-black/20 focus:border-future-green focus:ring-0"
                   required
                 />
               </div>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="h-12 px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="h-12 px-8 bg-gradient-to-r from-future-green to-future-green/90 hover:from-future-green/90 hover:to-future-green text-business-black font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -91,32 +91,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </form>
 
           {/* Trust Indicators */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-slate-600 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-business-black/70 mb-8">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-blue-500" />
+              <Zap className="h-4 w-4 text-future-green" />
               <span>Instant results</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>No setup required</span>
+              <CheckCircle className="h-4 w-4 text-future-green" />
+              <span>No credit card required</span>
             </div>
             <div className="flex items-center gap-2">
-              <Timer className="h-4 w-4 text-orange-500" />
-              <span>Only {spotsRemaining} spots left this month</span>
+              <Timer className="h-4 w-4 text-future-green" />
+              <span>Limited spots available</span>
             </div>
           </div>
 
           {/* Scarcity Indicator */}
-          <Card className="max-w-md mx-auto bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+          <Card className="max-w-md mx-auto bg-gradient-to-r from-future-green/10 to-future-green/20 border-future-green/30">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-orange-800">Analysis spots filling up</span>
-                <Badge variant="destructive" className="bg-red-500">
-                  {spotsRemaining} left
+                <span className="text-sm font-medium text-business-black">Analysis spots filling up</span>
+                <Badge variant="destructive" className="bg-future-green text-business-black">
+                  Limited spots
                 </Badge>
               </div>
               <Progress value={spotsProgress} className="h-2" />
-              <p className="text-xs text-orange-700 mt-2">
+              <p className="text-xs text-business-black/70 mt-2">
                 🔥 3 companies joined in the last hour
               </p>
             </CardContent>
