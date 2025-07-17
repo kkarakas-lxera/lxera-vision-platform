@@ -7,16 +7,26 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { HRISService } from '@/services/hrisService';
 import { toast } from 'sonner';
+import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
 
 export default function CompanySettings() {
   const { userProfile } = useAuth();
   const [hrisConnection, setHrisConnection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
 
   useEffect(() => {
     checkHRISConnection();
+    fetchPermissions();
   }, [userProfile?.company_id]);
+
+  const fetchPermissions = async () => {
+    if (userProfile?.company_id) {
+      const companyPermissions = await getCompanyPermissions(userProfile.company_id);
+      setPermissions(companyPermissions);
+    }
+  };
 
   const checkHRISConnection = async () => {
     if (!userProfile?.company_id) return;
@@ -186,6 +196,66 @@ export default function CompanySettings() {
           )}
         </CardContent>
       </Card>
+
+      {/* Plan & Billing Section */}
+      {permissions?.isSkillsGapUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Plan & Usage
+            </CardTitle>
+            <CardDescription>
+              Manage your subscription and usage limits
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                <div>
+                  <h3 className="font-medium text-blue-900">Skills Gap Analysis Trial</h3>
+                  <p className="text-sm text-blue-700">
+                    You're currently on a free trial with limited features
+                  </p>
+                </div>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  Free Trial
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium text-sm mb-2">Employee Limit</h4>
+                  <p className="text-2xl font-bold text-green-600">{permissions.maxEmployees}</p>
+                  <p className="text-sm text-muted-foreground">employees maximum</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium text-sm mb-2">Course Generation</h4>
+                  <p className="text-2xl font-bold text-orange-600">Locked</p>
+                  <p className="text-sm text-muted-foreground">upgrade to unlock</p>
+                </div>
+              </div>
+
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Ready to unlock full features?</AlertTitle>
+                <AlertDescription>
+                  Upgrade to access unlimited employees, AI course generation, advanced analytics, and more.
+                </AlertDescription>
+              </Alert>
+
+              <div className="flex items-center gap-2">
+                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Upgrade Plan
+                </Button>
+                <Button variant="outline" size="sm">
+                  Contact Sales
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Other Settings Placeholder */}
       <Card>

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { checkEmployeeLimit } from '@/utils/permissions';
 import { OnboardingStepHeader } from './shared/OnboardingStepHeader';
 import { OnboardingStepContainer } from './shared/OnboardingStepContainer';
 import { OnboardingProgressBar } from './shared/OnboardingProgressBar';
@@ -55,10 +56,22 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [employeeLimit, setEmployeeLimit] = useState({ canAdd: true, current: 0, max: 0 });
 
   // Fetch positions on mount
   useEffect(() => {
     fetchPositions();
+  }, [userProfile?.company_id]);
+
+  // Check employee limits
+  useEffect(() => {
+    const checkLimits = async () => {
+      if (userProfile?.company_id) {
+        const limits = await checkEmployeeLimit(userProfile.company_id);
+        setEmployeeLimit(limits);
+      }
+    };
+    checkLimits();
   }, [userProfile?.company_id]);
 
   const fetchPositions = async () => {
@@ -179,6 +192,14 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
 
     try {
       const data = await parseCSV(file);
+      
+      // Check employee limits
+      const potentialEmployees = employeeLimit.current + data.length;
+      if (potentialEmployees > employeeLimit.max) {
+        toast.error(`Cannot import ${data.length} employees. You have ${employeeLimit.current}/${employeeLimit.max} employees. Upgrade your plan to add more.`);
+        return;
+      }
+      
       setCsvData(data);
       
       // Prepare position mappings
@@ -400,6 +421,22 @@ const progressSteps = [
         step={currentStep === 'setup' ? '1 of 3' : currentStep === 'mapping' ? '2 of 3' : '3 of 3'}
         status={currentStep === 'complete' ? 'completed' : 'active'}
       />
+      
+      {/* Employee Limit Display */}
+      {employeeLimit.max > 0 && (
+        <Alert className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Employee Limit</AlertTitle>
+          <AlertDescription>
+            You have {employeeLimit.current} of {employeeLimit.max} employees imported.
+            {!employeeLimit.canAdd && (
+              <span className="text-orange-600 ml-1">
+                Upgrade your plan to add more employees.
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Progress */}
       <OnboardingProgressBar

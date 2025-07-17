@@ -46,6 +46,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
+import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
 
 // Mock skills gap data
 const mockSkillsGapData = {
@@ -109,6 +110,7 @@ export default function CourseGenerationTwoColumn() {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState("stream");
+  const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -121,6 +123,10 @@ export default function CourseGenerationTwoColumn() {
 
     try {
       setLoading(true);
+      
+      // Fetch company permissions
+      const companyPermissions = await getCompanyPermissions(userProfile.company_id);
+      setPermissions(companyPermissions);
       
       // Fetch positions count
       const { data: positionsData, error: posError } = await supabase
@@ -162,6 +168,18 @@ export default function CourseGenerationTwoColumn() {
   };
 
   const getEmptyStateConfig = () => {
+    // Check if user is on skills gap plan (course generation is locked)
+    if (permissions?.isSkillsGapUser) {
+      return {
+        icon: Shield,
+        title: "Course Generation Locked",
+        description: "Upgrade your plan to unlock AI-powered course generation and advanced learning features.",
+        ctaText: "Upgrade Plan",
+        ctaLink: "/dashboard/settings",
+        shouldBlur: true
+      };
+    }
+    
     if (positionsCount === 0) {
       return {
         icon: Target,

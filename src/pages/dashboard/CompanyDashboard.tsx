@@ -27,6 +27,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import MobileMetricsCarousel from '@/components/mobile/company/MobileMetricsCarousel';
 import MobileSkillsHealthCard from '@/components/mobile/company/MobileSkillsHealthCard';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
@@ -98,10 +100,15 @@ export default function CompanyDashboard() {
   // Mobile carousel state for skills gap section
   const [skillsGapActiveIndex, setSkillsGapActiveIndex] = useState(0);
   const skillsGapCarouselRef = useRef<HTMLDivElement>(null);
+  
+  // Permissions and welcome modal state
+  const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchDashboardData();
+      checkPermissions();
 
       // Set up real-time subscriptions
       const employeesSubscription = supabase
@@ -158,6 +165,26 @@ export default function CompanyDashboard() {
       };
     }
   }, [userProfile]);
+
+  const checkPermissions = async () => {
+    if (userProfile?.company_id) {
+      const companyPermissions = await getCompanyPermissions(userProfile.company_id);
+      setPermissions(companyPermissions);
+      
+      // Show welcome modal for skills gap users on first visit
+      if (companyPermissions?.isSkillsGapUser) {
+        const hasSeenWelcome = localStorage.getItem('skills-gap-welcome-seen');
+        if (!hasSeenWelcome) {
+          setShowWelcomeModal(true);
+        }
+      }
+    }
+  };
+
+  const handleWelcomeModalClose = () => {
+    setShowWelcomeModal(false);
+    localStorage.setItem('skills-gap-welcome-seen', 'true');
+  };
 
   const fetchDashboardData = async (isRefresh: boolean = false) => {
     if (!userProfile?.company_id) return;
@@ -1220,6 +1247,65 @@ export default function CompanyDashboard() {
           </Card>
         </div>
       </div>
+      
+      {/* Skills Gap Welcome Modal */}
+      <Dialog open={showWelcomeModal} onOpenChange={handleWelcomeModalClose}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Welcome to Skills Gap Analysis
+            </DialogTitle>
+            <DialogDescription>
+              Get started with your free skills gap analysis in 4 simple steps
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                <div>
+                  <h4 className="font-medium">Create Positions</h4>
+                  <p className="text-sm text-gray-600">Define the roles in your organization</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                <div>
+                  <h4 className="font-medium">Import Employees</h4>
+                  <p className="text-sm text-gray-600">Add up to 10 team members</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                <div>
+                  <h4 className="font-medium">Analyze Skills</h4>
+                  <p className="text-sm text-gray-600">AI-powered CV analysis</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-medium">4</div>
+                <div>
+                  <h4 className="font-medium">View Results</h4>
+                  <p className="text-sm text-gray-600">Get detailed skills gap reports</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-blue-900 mb-2">Free Skills Gap Analysis</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>✓ Up to 10 employees</li>
+                <li>✓ AI-powered skills extraction</li>
+                <li>✓ Detailed gap visualization</li>
+                <li>✓ Export reports</li>
+              </ul>
+            </div>
+            <Button onClick={handleWelcomeModalClose} className="w-full">
+              Get Started
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

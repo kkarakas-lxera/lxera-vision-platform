@@ -81,6 +81,8 @@ const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
 const EarlyAccessSignup = lazy(() => import("./pages/EarlyAccessSignup"));
 const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
 const SkillsGapAnalysisLanding = lazy(() => import("./pages/SkillsGapAnalysisLanding"));
+const SkillsGapSignup = lazy(() => import("./pages/SkillsGapSignup"));
+const SetPassword = lazy(() => import("./pages/SetPassword"));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -117,8 +119,10 @@ const DepartmentSkillsDetail = lazy(() => import("./pages/dashboard/skills/Depar
 
 // Lazy load gamification analytics
 const GamificationAnalytics = lazy(() => import("./pages/dashboard/GamificationAnalytics"));
-const CompanySettings = lazy(() => import("./pages/dashboard/CompanySettings"));
 const HRISCallback = lazy(() => import("./pages/dashboard/HRISCallback"));
+
+// Import CompanySettings directly to fix dynamic import issue
+import CompanySettings from "./pages/dashboard/CompanySettings";
 
 // Lazy load course generation
 const CourseGeneration = lazy(() => import("./pages/dashboard/CourseGenerationTwoColumn"));
@@ -897,6 +901,8 @@ const App = () => {
             <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
             <Route path="/skills-gap-analysis" element={<PageSuspense><SkillsGapAnalysisLanding /></PageSuspense>} />
+            <Route path="/skills-gap-signup" element={<PageSuspense><SkillsGapSignup /></PageSuspense>} />
+            <Route path="/set-password" element={<PageSuspense><SetPassword /></PageSuspense>} />
 
             {/* Protected admin routes */}
             <Route
@@ -940,7 +946,7 @@ const App = () => {
                       <Route path="/skills/department/:department" element={<PageSuspense><DepartmentSkillsDetail /></PageSuspense>} />
                       <Route path="/analytics" element={<PageSuspense><GamificationAnalytics /></PageSuspense>} />
                       <Route path="/course-generation" element={<PageSuspense><CourseGeneration /></PageSuspense>} />
-                      <Route path="/settings" element={<PageSuspense><CompanySettings /></PageSuspense>} />
+                      <Route path="/settings" element={<CompanySettings />} />
                       <Route path="/settings/hris-callback" element={<PageSuspense><HRISCallback /></PageSuspense>} />
                     </Routes>
                   </DashboardLayout>
