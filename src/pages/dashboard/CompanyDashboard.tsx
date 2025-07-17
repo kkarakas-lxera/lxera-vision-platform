@@ -29,6 +29,7 @@ import { toast } from '@/hooks/use-toast';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import MobileMetricsCarousel from '@/components/mobile/company/MobileMetricsCarousel';
 import MobileSkillsHealthCard from '@/components/mobile/company/MobileSkillsHealthCard';
+import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
 import { cn } from '@/lib/utils';
 
 interface DashboardMetrics {
@@ -86,6 +87,7 @@ export default function CompanyDashboard() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [skillsGapData, setSkillsGapData] = useState<SkillGapOverview[]>([]);
   const [skillsHealth, setSkillsHealth] = useState<SkillsHealthData | null>(null);
+  const [positionsCount, setPositionsCount] = useState(0);
   
   // Mobile pull-to-refresh state
   const touchStartY = useRef(0);
@@ -164,6 +166,14 @@ export default function CompanyDashboard() {
       if (!isRefresh) {
         setLoading(true);
       }
+
+      // Fetch positions first to check if any exist
+      const { data: positionsData, count: posCount } = await supabase
+        .from('st_company_positions')
+        .select('id', { count: 'exact' })
+        .eq('company_id', userProfile.company_id);
+      
+      setPositionsCount(posCount || 0);
 
       // Fetch employees first
       const { data: employees, count: employeeCount } = await supabase
@@ -729,13 +739,19 @@ export default function CompanyDashboard() {
           </Button>
         </div>
         
-        {/* Mobile Carousel */}
-        <div className="block md:hidden">
-          <MobileMetricsCarousel metrics={metrics} onCardClick={handleMetricCardClick} />
-        </div>
-        
-        {/* Desktop Grid */}
-        <div className="hidden md:block space-y-4">
+        {/* Metrics Section with Conditional Blur */}
+        <div className="relative">
+          <div className={cn(
+            "transition-all duration-500",
+            positionsCount === 0 && "blur-md pointer-events-none select-none"
+          )}>
+            {/* Mobile Carousel */}
+            <div className="block md:hidden">
+              <MobileMetricsCarousel metrics={metrics} onCardClick={handleMetricCardClick} />
+            </div>
+            
+            {/* Desktop Grid */}
+            <div className="hidden md:block space-y-4">
           {/* First Row - Main Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/employees')}>
@@ -864,21 +880,38 @@ export default function CompanyDashboard() {
             </Card>
           </div>
         </div>
+          </div>
+          
+          {/* Empty State Overlay for No Positions */}
+          {positionsCount === 0 && (
+            <EmptyStateOverlay
+              icon={Target}
+              title="Set Up Positions First"
+              description="Define job positions to start tracking skills gaps and analyzing your team's capabilities"
+              ctaText="Create First Position"
+              ctaLink="/dashboard/positions"
+            />
+          )}
+        </div>
       </div>
 
       {/* Skills Health Score Card */}
       {skillsHealth && (
-        <div>
-          {/* Mobile Skills Health Card */}
-          <div className="block md:hidden">
-            <MobileSkillsHealthCard 
-              skillsHealth={skillsHealth} 
-              onViewDetails={handleSkillsHealthClick}
-            />
-          </div>
-          
-          {/* Desktop Skills Health Card */}
-          <Card className="hidden md:block bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="relative">
+          <div className={cn(
+            "transition-all duration-500",
+            metrics.totalEmployees === 0 && "blur-md pointer-events-none select-none"
+          )}>
+            {/* Mobile Skills Health Card */}
+            <div className="block md:hidden">
+              <MobileSkillsHealthCard 
+                skillsHealth={skillsHealth} 
+                onViewDetails={handleSkillsHealthClick}
+              />
+            </div>
+            
+            {/* Desktop Skills Health Card */}
+            <Card className="hidden md:block bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -936,6 +969,18 @@ export default function CompanyDashboard() {
               </div>
             </CardContent>
           </Card>
+          </div>
+          
+          {/* Empty State Overlay for No Employees */}
+          {metrics.totalEmployees === 0 && (
+            <EmptyStateOverlay
+              icon={Users}
+              title="Import Your Team"
+              description="Add employees to analyze their skills and see your organization's health score"
+              ctaText="Import Employees"
+              ctaLink="/dashboard/onboarding"
+            />
+          )}
         </div>
       )}
 
