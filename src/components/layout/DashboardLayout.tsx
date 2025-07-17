@@ -29,7 +29,6 @@ import {
   HelpCircle,
   FileText,
   Sparkles,
-  Lock,
   Ticket,
   Layout,
   ChartBar,
@@ -122,7 +121,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: isFreeTrial ? '#' : '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator', locked: isFreeTrial },
           { section: 'System', icon: MoreHorizontal },
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-          { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
         ];
       case 'learner':
         return [
@@ -291,7 +289,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                         {sidebarExpanded && (
                           <>
                             <span className="flex-1">{item.label}</span>
-                            <Lock className="h-3 w-3 ml-2" />
+                            <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-orange-100 text-orange-700 rounded">
+                              PREMIUM
+                            </span>
                           </>
                         )}
                       </div>

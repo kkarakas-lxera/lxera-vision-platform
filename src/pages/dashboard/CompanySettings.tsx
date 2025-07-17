@@ -39,7 +39,7 @@ interface TeamMember {
   position?: string;
   department?: string;
   created_at: string;
-  status: 'active' | 'invited' | 'inactive';
+  is_active?: boolean;
 }
 
 interface HRISConnection {
@@ -110,7 +110,7 @@ export default function CompanySettings() {
     setTeamLoading(true);
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .select('*')
         .eq('company_id', userProfile.company_id)
         .neq('role', 'learner')
@@ -131,25 +131,25 @@ export default function CompanySettings() {
   };
 
   const fetchCompanyData = async () => {
-    if (!userProfile?.company_id) return;
+    if (!userProfile?.email) return;
     
     setCompanyLoading(true);
     try {
       const { data, error } = await supabase
-        .from('companies')
+        .from('skills_gap_leads')
         .select('*')
-        .eq('id', userProfile.company_id)
+        .eq('email', userProfile.email)
+        .eq('status', 'converted')
         .single();
 
       if (error) {
         console.error('Error fetching company data:', error);
-        toast.error('Failed to load company data');
+        // Don't show error toast, just set no data
       } else {
         setCompanyData(data);
       }
     } catch (error) {
       console.error('Error fetching company data:', error);
-      toast.error('Failed to load company data');
     } finally {
       setCompanyLoading(false);
     }
@@ -604,7 +604,7 @@ export default function CompanySettings() {
                     <Label className="text-xs text-muted-foreground">Company Name</Label>
                     <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm font-medium">{companyData.name || 'Not set'}</p>
+                      <p className="text-sm font-medium">{companyData.company || 'Not set'}</p>
                     </div>
                   </div>
                   
@@ -612,7 +612,14 @@ export default function CompanySettings() {
                     <Label className="text-xs text-muted-foreground">Team Size</Label>
                     <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm font-medium">{companyData.team_size || 'Not specified'}</p>
+                      <p className="text-sm font-medium">
+                        {companyData.team_size === '1-10' ? '1-10 employees' :
+                         companyData.team_size === '11-50' ? '11-50 employees' :
+                         companyData.team_size === '51-200' ? '51-200 employees' :
+                         companyData.team_size === '201-500' ? '201-500 employees' :
+                         companyData.team_size === '500+' ? '500+ employees' :
+                         companyData.team_size || 'Not specified'}
+                      </p>
                     </div>
                   </div>
                   
@@ -628,7 +635,13 @@ export default function CompanySettings() {
                     <Label className="text-xs text-muted-foreground">Use Case</Label>
                     <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
                       <Target className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm font-medium">{companyData.use_case || 'Not specified'}</p>
+                      <p className="text-sm font-medium">
+                        {companyData.use_case === 'skills_assessment' ? 'Skills Assessment' :
+                         companyData.use_case === 'learning_development' ? 'Learning & Development' :
+                         companyData.use_case === 'talent_management' ? 'Talent Management' :
+                         companyData.use_case === 'workforce_planning' ? 'Workforce Planning' :
+                         companyData.use_case || 'Not specified'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -779,14 +792,12 @@ export default function CompanySettings() {
                         <Badge 
                           variant="outline" 
                           className={`text-xs ${
-                            member.status === 'active' 
+                            member.is_active !== false 
                               ? 'bg-green-50 text-green-700 border-green-200' 
-                              : member.status === 'invited'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
                               : 'bg-gray-50 text-gray-700 border-gray-200'
                           }`}
                         >
-                          {member.status || 'Active'}
+                          {member.is_active !== false ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
                     </div>
