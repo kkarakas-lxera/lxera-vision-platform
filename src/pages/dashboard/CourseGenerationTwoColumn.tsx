@@ -38,9 +38,14 @@ import {
   Gauge,
   Network,
   Hash,
-  HardDrive
+  HardDrive,
+  Building2,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
 
 // Mock skills gap data
 const mockSkillsGapData = {
@@ -84,6 +89,7 @@ interface AgentMetrics {
 }
 
 export default function CourseGenerationTwoColumn() {
+  const { userProfile } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(-1);
   const [activities, setActivities] = useState<AgentActivity[]>([]);
@@ -97,8 +103,102 @@ export default function CourseGenerationTwoColumn() {
     cpuUsage: 0
   });
   const [selectedActivity, setSelectedActivity] = useState<AgentActivity | null>(null);
+  const [positionsCount, setPositionsCount] = useState(0);
+  const [employeesCount, setEmployeesCount] = useState(0);
+  const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState("stream");
+
+  useEffect(() => {
+    if (userProfile?.company_id) {
+      fetchData();
+    }
+  }, [userProfile?.company_id]);
+
+  const fetchData = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      setLoading(true);
+      
+      // Fetch positions count
+      const { data: positionsData, error: posError } = await supabase
+        .from('st_company_positions')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+      
+      if (posError) {
+        console.error('Error fetching positions:', posError);
+        setPositionsCount(0);
+      } else {
+        setPositionsCount(positionsData?.length || 0);
+      }
+
+      // Fetch employees count
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
+        .select('id, skills_last_analyzed')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        setEmployeesCount(0);
+        setAnalyzedEmployeesCount(0);
+      } else {
+        const empCount = employeesData?.length || 0;
+        const analyzedCount = employeesData?.filter(emp => emp.skills_last_analyzed).length || 0;
+        setEmployeesCount(empCount);
+        setAnalyzedEmployeesCount(analyzedCount);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setPositionsCount(0);
+      setEmployeesCount(0);
+      setAnalyzedEmployeesCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEmptyStateConfig = () => {
+    if (positionsCount === 0) {
+      return {
+        icon: Target,
+        title: "No Positions Created",
+        description: "Create positions first to enable AI course generation based on skill gaps.",
+        ctaText: "Create Your First Position",
+        ctaLink: "/dashboard/positions",
+        shouldBlur: true
+      };
+    }
+    
+    if (employeesCount === 0) {
+      return {
+        icon: Users,
+        title: "No Employees Imported",
+        description: "Import employees to analyze their skills and generate personalized courses.",
+        ctaText: "Import Employees",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    if (analyzedEmployeesCount === 0) {
+      return {
+        icon: TrendingUp,
+        title: "No Skills Analyzed",
+        description: "Analyze employee skills to identify gaps and generate targeted courses.",
+        ctaText: "Analyze Skills",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    return {
+      shouldBlur: false
+    };
+  };
 
   const phases = [
     {
@@ -443,6 +543,19 @@ export default function CourseGenerationTwoColumn() {
     })));
   };
 
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-8rem)] flex flex-col">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const emptyStateConfig = getEmptyStateConfig();
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
       {/* Header */}
@@ -472,6 +585,14 @@ export default function CourseGenerationTwoColumn() {
           )}
         </Button>
       </div>
+
+      {/* Main Content with Conditional Blur */}
+      <div className="relative flex-1">
+        <div className={cn(
+          "transition-all duration-500 h-full",
+          emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
+        )}>
+          <div className="flex-1 flex gap-4 h-full">
 
       {/* Two-column layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 overflow-hidden">
@@ -795,6 +916,19 @@ export default function CourseGenerationTwoColumn() {
             </CardContent>
           </Card>
         </div>
+          </div>
+        </div>
+
+        {/* Empty State Overlay */}
+        {emptyStateConfig.shouldBlur && (
+          <EmptyStateOverlay
+            icon={emptyStateConfig.icon}
+            title={emptyStateConfig.title}
+            description={emptyStateConfig.description}
+            ctaText={emptyStateConfig.ctaText}
+            ctaLink={emptyStateConfig.ctaLink}
+          />
+        )}
       </div>
 
       {/* Course Completion Modal */}

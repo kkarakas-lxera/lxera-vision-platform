@@ -41,7 +41,9 @@ import {
   Clock,
   AlertCircle,
   Eye,
-  Building2
+  Building2,
+  Target,
+  TrendingUp
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
@@ -104,6 +106,8 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
   const [selectedModule, setSelectedModule] = useState<ModuleContent | null>(null);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
   const [positionsCount, setPositionsCount] = useState(0);
+  const [employeesCount, setEmployeesCount] = useState(0);
+  const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
 
   // Use propCompanyId if provided, otherwise use userProfile.company_id
   const companyId = propCompanyId || userProfile?.company_id;
@@ -131,12 +135,30 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         setPositionsCount(0);
       } else {
         const posCount = positionsData?.length || 0;
-        console.log('Positions count:', posCount);
         setPositionsCount(posCount);
+      }
+
+      // Fetch employees count
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
+        .select('id, skills_last_analyzed')
+        .eq('company_id', companyId);
+
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        setEmployeesCount(0);
+        setAnalyzedEmployeesCount(0);
+      } else {
+        const empCount = employeesData?.length || 0;
+        const analyzedCount = employeesData?.filter(emp => emp.skills_last_analyzed).length || 0;
+        setEmployeesCount(empCount);
+        setAnalyzedEmployeesCount(analyzedCount);
       }
     } catch (error) {
       console.error('Error fetching positions:', error);
       setPositionsCount(0);
+      setEmployeesCount(0);
+      setAnalyzedEmployeesCount(0);
     }
   };
 
@@ -479,6 +501,45 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
     return badge;
   };
 
+  const getEmptyStateConfig = () => {
+    if (positionsCount === 0) {
+      return {
+        icon: Target,
+        title: "No Positions Created",
+        description: "Create positions first to enable course assignments and track employee learning progress.",
+        ctaText: "Create Your First Position",
+        ctaLink: "/dashboard/positions",
+        shouldBlur: true
+      };
+    }
+    
+    if (employeesCount === 0) {
+      return {
+        icon: Users,
+        title: "No Employees Imported",
+        description: "Import employees to start assigning courses and tracking their progress.",
+        ctaText: "Import Employees",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    if (analyzedEmployeesCount === 0) {
+      return {
+        icon: TrendingUp,
+        title: "No Skills Analyzed",
+        description: "Analyze employee skills first to generate personalized course recommendations.",
+        ctaText: "Analyze Skills",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    return {
+      shouldBlur: false
+    };
+  };
+
   const filteredAssignments = getFilteredAssignments();
 
   if (!companyId) {
@@ -554,23 +615,27 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className={cn(
-              "transition-all duration-500",
-              positionsCount === 0 && "blur-md pointer-events-none select-none"
-            )}>
-              {assignments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">No course assignments yet</p>
-                  <p>Course assignments will appear here once employees are assigned to courses.</p>
-                </div>
-              ) : filteredAssignments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No course assignments found matching your filters</p>
-                </div>
-              ) : (
-                <Table>
+            {(() => {
+              const emptyStateConfig = getEmptyStateConfig();
+              return (
+                <>
+                  <div className={cn(
+                    "transition-all duration-500",
+                    emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
+                  )}>
+                    {assignments.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium mb-2">No course assignments yet</p>
+                        <p>Course assignments will appear here once employees are assigned to courses.</p>
+                      </div>
+                    ) : filteredAssignments.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No course assignments found matching your filters</p>
+                      </div>
+                    ) : (
+                      <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
@@ -704,20 +769,23 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                   </TableRow>
                 ))}
               </TableBody>
-                </Table>
-              )}
-            </div>
+                      </Table>
+                    )}
+                  </div>
 
-            {/* Empty State Overlay */}
-            {positionsCount === 0 && (
-              <EmptyStateOverlay
-                icon={Building2}
-                title="No Positions Created"
-                description="Create positions first to enable course assignments and track employee learning progress."
-                ctaText="Create Your First Position"
-                ctaLink="/dashboard/positions"
-              />
-            )}
+                  {/* Empty State Overlay */}
+                  {emptyStateConfig.shouldBlur && (
+                    <EmptyStateOverlay
+                      icon={emptyStateConfig.icon}
+                      title={emptyStateConfig.title}
+                      description={emptyStateConfig.description}
+                      ctaText={emptyStateConfig.ctaText}
+                      ctaLink={emptyStateConfig.ctaLink}
+                    />
+                  )}
+                </>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
