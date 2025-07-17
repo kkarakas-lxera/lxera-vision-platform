@@ -704,9 +704,15 @@ export default function CompanyDashboard() {
     return <SkillsGapOnboardingFlow />;
   }
 
+  // Check if user is on free trial
+  const isFreeTrialUser = userProfile?.companies?.plan_type === 'free_skills_gap';
+
   return (
     <div 
-      className="space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen"
+      className={cn(
+        "space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen",
+        isFreeTrialUser && "bg-gradient-to-br from-slate-50 via-indigo-50 to-white"
+      )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -728,7 +734,10 @@ export default function CompanyDashboard() {
       )}
 
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className={cn(
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
+        isFreeTrialUser && "bg-white/60 backdrop-blur-sm border border-indigo-100 rounded-lg p-4 shadow-sm"
+      )}>
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Welcome back, {userProfile?.full_name}
@@ -760,7 +769,10 @@ export default function CompanyDashboard() {
           <Button 
             variant="outline"
             size="sm"
-            className="h-10 sm:h-9 justify-start font-normal"
+            className={cn(
+              "h-10 sm:h-9 justify-start font-normal",
+              isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
+            )}
             onClick={() => navigate('/dashboard/positions')}
           >
             <Target className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -771,7 +783,10 @@ export default function CompanyDashboard() {
           <Button 
             variant="outline"
             size="sm"
-            className="h-10 sm:h-9 justify-start font-normal"
+            className={cn(
+              "h-10 sm:h-9 justify-start font-normal",
+              isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
+            )}
             onClick={() => navigate('/dashboard/onboarding')}
           >
             <Upload className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -782,7 +797,10 @@ export default function CompanyDashboard() {
           <Button 
             variant="outline"
             size="sm"
-            className="h-10 sm:h-9 justify-start font-normal"
+            className={cn(
+              "h-10 sm:h-9 justify-start font-normal",
+              isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
+            )}
             onClick={() => navigate('/dashboard/employees')}
           >
             <BarChart3 className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -793,7 +811,10 @@ export default function CompanyDashboard() {
           <Button 
             variant="outline"
             size="sm"
-            className="h-10 sm:h-9 justify-start font-normal"
+            className={cn(
+              "h-10 sm:h-9 justify-start font-normal",
+              isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
+            )}
             onClick={() => navigate('/dashboard/courses')}
           >
             <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -807,7 +828,10 @@ export default function CompanyDashboard() {
           <FeedbackButton 
             variant="outline" 
             size="sm" 
-            className="h-9 w-full"
+            className={cn(
+              "h-9 w-full",
+              isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
+            )}
             defaultType="general_feedback"
           >
             Share Feedback
@@ -838,14 +862,21 @@ export default function CompanyDashboard() {
           )}>
             {/* Mobile Carousel */}
             <div className="block md:hidden">
-              <MobileMetricsCarousel metrics={metrics} onCardClick={handleMetricCardClick} />
+              <MobileMetricsCarousel 
+                metrics={metrics} 
+                onCardClick={handleMetricCardClick} 
+                isFreeTrialUser={isFreeTrialUser}
+              />
             </div>
             
             {/* Desktop Grid */}
             <div className="hidden md:block space-y-4">
           {/* First Row - Main Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/employees')}>
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+            )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -862,7 +893,10 @@ export default function CompanyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/onboarding')}>
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+            )} onClick={() => navigate('/dashboard/onboarding')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -880,7 +914,10 @@ export default function CompanyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/skills')}>
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+            )} onClick={() => navigate('/dashboard/skills')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -895,7 +932,10 @@ export default function CompanyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/skills')}>
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+            )} onClick={() => navigate('/dashboard/skills')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -915,7 +955,8 @@ export default function CompanyDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className={cn(
               "hover:shadow-md transition-shadow cursor-pointer",
-              metrics.positionsWithGaps > 0 && "border-orange-200"
+              metrics.positionsWithGaps > 0 && "border-orange-200",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
             )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -935,7 +976,8 @@ export default function CompanyDashboard() {
 
             <Card className={cn(
               "hover:shadow-md transition-shadow cursor-pointer",
-              metrics.criticalGaps > 0 && "border-red-200"
+              metrics.criticalGaps > 0 && "border-red-200",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
             )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -953,7 +995,10 @@ export default function CompanyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/dashboard/courses')}>
+            <Card className={cn(
+              "hover:shadow-md transition-shadow cursor-pointer",
+              isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+            )} onClick={() => navigate('/dashboard/courses')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -998,15 +1043,22 @@ export default function CompanyDashboard() {
               <MobileSkillsHealthCard 
                 skillsHealth={skillsHealth} 
                 onViewDetails={handleSkillsHealthClick}
+                isFreeTrialUser={isFreeTrialUser}
               />
             </div>
             
             {/* Desktop Skills Health Card */}
-            <Card className="hidden md:block bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <Card className={cn(
+              "hidden md:block bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+              isFreeTrialUser && "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200"
+            )}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <BrainCircuit className="h-5 w-5 text-blue-600" />
+                  <BrainCircuit className={cn(
+                    "h-5 w-5 text-blue-600",
+                    isFreeTrialUser && "text-indigo-600"
+                  )} />
                   <CardTitle className="text-lg">Skills Health Score</CardTitle>
                 </div>
                 <Badge variant="outline" className="text-lg font-semibold">
@@ -1040,7 +1092,10 @@ export default function CompanyDashboard() {
                 </div>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-blue-200">
+              <div className={cn(
+                "mt-4 pt-4 border-t border-blue-200",
+                isFreeTrialUser && "border-indigo-200"
+              )}>
                 <p className="text-sm text-muted-foreground mb-2">
                   Analysis Coverage: {skillsHealth.analyzedCount} of {skillsHealth.totalCount} employees
                 </p>
@@ -1051,6 +1106,9 @@ export default function CompanyDashboard() {
                   <Button 
                     variant="default" 
                     size="sm"
+                    className={cn(
+                      isFreeTrialUser && "bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800"
+                    )}
                     onClick={() => navigate('/dashboard/skills')}
                   >
                     View Detailed Analytics
@@ -1080,7 +1138,9 @@ export default function CompanyDashboard() {
         {/* Mobile Layout */}
         <div className="block lg:hidden space-y-4">
           {/* Recent Activity - Mobile */}
-          <Card>
+          <Card className={cn(
+            isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+          )}>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -1128,7 +1188,9 @@ export default function CompanyDashboard() {
           </Card>
 
           {/* Skills Gap Overview - Mobile */}
-          <Card>
+          <Card className={cn(
+            isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+          )}>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
@@ -1222,7 +1284,10 @@ export default function CompanyDashboard() {
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-3 gap-6">
           {/* Recent Activity - Desktop */}
-          <Card className="lg:col-span-2">
+          <Card className={cn(
+            "lg:col-span-2",
+            isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+          )}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Recent Activity</CardTitle>
@@ -1255,7 +1320,9 @@ export default function CompanyDashboard() {
           </Card>
 
           {/* Skills Gap Overview - Desktop */}
-          <Card>
+          <Card className={cn(
+            isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
+          )}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Position Skills Coverage</CardTitle>

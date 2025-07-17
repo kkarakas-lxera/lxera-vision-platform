@@ -45,9 +45,10 @@ interface MobileMetricsCarouselProps {
     criticalGaps: number;
   };
   onCardClick?: (cardId: string) => void;
+  isFreeTrialUser?: boolean;
 }
 
-const MobileMetricsCarousel: React.FC<MobileMetricsCarouselProps> = ({ metrics, onCardClick }) => {
+const MobileMetricsCarousel: React.FC<MobileMetricsCarouselProps> = ({ metrics, onCardClick, isFreeTrialUser = false }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -186,7 +187,8 @@ const MobileMetricsCarousel: React.FC<MobileMetricsCarouselProps> = ({ metrics, 
               <Card
                 className={cn(
                   "h-full cursor-pointer active:scale-95 transition-transform",
-                  card.highlight && "border-orange-200"
+                  card.highlight && "border-orange-200",
+                  isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
                 )}
                 onClick={() => handleCardClick(card.id)}
               >

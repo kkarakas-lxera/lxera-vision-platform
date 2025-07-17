@@ -25,9 +25,10 @@ interface SkillsHealthData {
 interface MobileSkillsHealthCardProps {
   skillsHealth: SkillsHealthData;
   onViewDetails: () => void;
+  isFreeTrialUser?: boolean;
 }
 
-const MobileSkillsHealthCard: React.FC<MobileSkillsHealthCardProps> = ({ skillsHealth, onViewDetails }) => {
+const MobileSkillsHealthCard: React.FC<MobileSkillsHealthCardProps> = ({ skillsHealth, onViewDetails, isFreeTrialUser = false }) => {
   const getGradeColor = (grade: string) => {
     switch (grade) {
       case 'A+':
@@ -64,12 +65,21 @@ const MobileSkillsHealthCard: React.FC<MobileSkillsHealthCardProps> = ({ skillsH
   const analysisProgress = skillsHealth.totalCount > 0 ? (skillsHealth.analyzedCount / skillsHealth.totalCount) * 100 : 0;
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+    <Card className={cn(
+      "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm",
+      isFreeTrialUser && "bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200"
+    )}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600/10 rounded-lg">
-              <BrainCircuit className="h-6 w-6 text-blue-600" />
+            <div className={cn(
+              "p-2 bg-blue-600/10 rounded-lg",
+              isFreeTrialUser && "bg-indigo-600/10"
+            )}>
+              <BrainCircuit className={cn(
+                "h-6 w-6 text-blue-600",
+                isFreeTrialUser && "text-indigo-600"
+              )} />
             </div>
             <div>
               <CardTitle className="text-lg font-semibold">Skills Health</CardTitle>
@@ -190,7 +200,10 @@ const MobileSkillsHealthCard: React.FC<MobileSkillsHealthCardProps> = ({ skillsH
         {/* Action Button */}
         <Button 
           onClick={onViewDetails}
-          className="w-full"
+          className={cn(
+            "w-full",
+            isFreeTrialUser && "bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800"
+          )}
           size="lg"
         >
           View Detailed Analytics
