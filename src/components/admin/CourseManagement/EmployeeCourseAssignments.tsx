@@ -120,14 +120,23 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
     if (!companyId) return;
 
     try {
-      const { count } = await supabase
+      const { data: positionsData, error } = await supabase
         .from('st_company_positions')
-        .select('id', { count: 'exact' })
+        .select('id')
         .eq('company_id', companyId);
       
-      setPositionsCount(count || 0);
+      if (error) {
+        console.error('Error fetching positions:', error);
+        // Set to 0 to show blur effect if we can't fetch positions
+        setPositionsCount(0);
+      } else {
+        const posCount = positionsData?.length || 0;
+        console.log('Positions count:', posCount);
+        setPositionsCount(posCount);
+      }
     } catch (error) {
-      console.error('Error fetching positions count:', error);
+      console.error('Error fetching positions:', error);
+      setPositionsCount(0);
     }
   };
 

@@ -95,12 +95,20 @@ const EmployeesPage = () => {
       setLoading(true);
       
       // First fetch positions to check if any exist
-      const { count: posCount } = await supabase
+      const { data: positionsData, error: posError } = await supabase
         .from('st_company_positions')
-        .select('id', { count: 'exact' })
+        .select('id')
         .eq('company_id', userProfile.company_id);
       
-      setPositionsCount(posCount || 0);
+      if (posError) {
+        console.error('Error fetching positions:', posError);
+        // Set to 0 to show blur effect if we can't fetch positions
+        setPositionsCount(0);
+      } else {
+        const posCount = positionsData?.length || 0;
+        console.log('Positions count:', posCount);
+        setPositionsCount(posCount);
+      }
 
       const { data, error } = await supabase
         .from('v_company_employees')
@@ -226,6 +234,22 @@ const EmployeesPage = () => {
         <div>
           <h1 className="text-2xl font-bold">Employees</h1>
           <p className="text-muted-foreground">Manage your team and track their learning progress</p>
+          {/* Debug indicator - remove later */}
+          <div className="text-xs text-gray-500 mt-1">
+            Debug: positionsCount = {positionsCount}, companyId = {userProfile?.company_id}
+            <button 
+              onClick={() => setPositionsCount(0)} 
+              className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded"
+            >
+              Force Blur
+            </button>
+            <button 
+              onClick={() => setPositionsCount(1)} 
+              className="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded"
+            >
+              Remove Blur
+            </button>
+          </div>
         </div>
         
       </div>

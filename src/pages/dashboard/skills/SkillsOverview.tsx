@@ -59,12 +59,20 @@ export default function SkillsOverview() {
 
     try {
       // First fetch positions to check if any exist
-      const { count: posCount } = await supabase
+      const { data: positionsData, error: posError } = await supabase
         .from('st_company_positions')
-        .select('id', { count: 'exact' })
+        .select('id')
         .eq('company_id', userProfile.company_id);
       
-      setPositionsCount(posCount || 0);
+      if (posError) {
+        console.error('Error fetching positions:', posError);
+        // Set to 0 to show blur effect if we can't fetch positions
+        setPositionsCount(0);
+      } else {
+        const posCount = positionsData?.length || 0;
+        console.log('Positions count:', posCount);
+        setPositionsCount(posCount);
+      }
 
       // Fetch department summaries
       const { data: deptData } = await supabase
