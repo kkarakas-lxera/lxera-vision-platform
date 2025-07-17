@@ -19,6 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { parseGapSeverity, parseSkillsArray } from '@/utils/typeGuards';
 import type { CriticalSkillsGap } from '@/types/common';
+import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
+import { cn } from '@/lib/utils';
 
 interface DepartmentSummary {
   department: string;
@@ -44,6 +46,7 @@ export default function SkillsOverview() {
     totalModerateGaps: 0,
     departmentsCount: 0
   });
+  const [positionsCount, setPositionsCount] = useState(0);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -55,6 +58,14 @@ export default function SkillsOverview() {
     if (!userProfile?.company_id) return;
 
     try {
+      // First fetch positions to check if any exist
+      const { count: posCount } = await supabase
+        .from('st_company_positions')
+        .select('id', { count: 'exact' })
+        .eq('company_id', userProfile.company_id);
+      
+      setPositionsCount(posCount || 0);
+
       // Fetch department summaries
       const { data: deptData } = await supabase
         .from('v_department_skills_summary')
@@ -179,8 +190,14 @@ export default function SkillsOverview() {
         <p className="text-gray-600 mt-1">Monitor your organization's skill development and identify gaps</p>
       </div>
 
-      {/* Overall Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Main Content with Conditional Blur */}
+      <div className="relative">
+        <div className={cn(
+          "space-y-6 transition-all duration-500",
+          positionsCount === 0 && "blur-md pointer-events-none select-none"
+        )}>
+          {/* Overall Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -349,7 +366,19 @@ export default function SkillsOverview() {
           </CardContent>
         </Card>
       </div>
+        </div>
 
+        {/* Empty State Overlay */}
+        {positionsCount === 0 && (
+          <EmptyStateOverlay
+            icon={Target}
+            title="No Positions Created"
+            description="Start by creating positions to define skill requirements for your organization."
+            ctaText="Create Your First Position"
+            ctaLink="/dashboard/positions"
+          />
+        )}
+      </div>
     </div>
   );
 }

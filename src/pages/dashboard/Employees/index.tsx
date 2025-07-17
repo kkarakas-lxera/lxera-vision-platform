@@ -17,11 +17,14 @@ import {
   BookOpen,
   TrendingUp,
   AlertCircle,
-  Filter
+  Filter,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
+import { cn } from '@/lib/utils';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +80,7 @@ const EmployeesPage = () => {
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
   const [departments, setDepartments] = useState<string[]>([]);
   const [positions, setPositions] = useState<string[]>([]);
+  const [positionsCount, setPositionsCount] = useState(0);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -89,6 +93,15 @@ const EmployeesPage = () => {
 
     try {
       setLoading(true);
+      
+      // First fetch positions to check if any exist
+      const { count: posCount } = await supabase
+        .from('st_company_positions')
+        .select('id', { count: 'exact' })
+        .eq('company_id', userProfile.company_id);
+      
+      setPositionsCount(posCount || 0);
+
       const { data, error } = await supabase
         .from('v_company_employees')
         .select('*')
@@ -217,8 +230,14 @@ const EmployeesPage = () => {
         
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Main Content with Conditional Blur */}
+      <div className="relative">
+        <div className={cn(
+          "space-y-6 transition-all duration-500",
+          positionsCount === 0 && "blur-md pointer-events-none select-none"
+        )}>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
@@ -469,6 +488,19 @@ const EmployeesPage = () => {
           </div>
         </CardContent>
       </Card>
+        </div>
+
+        {/* Empty State Overlay */}
+        {positionsCount === 0 && (
+          <EmptyStateOverlay
+            icon={Building2}
+            title="No Positions Created"
+            description="Create positions first to define roles and skill requirements for your employees."
+            ctaText="Create Your First Position"
+            ctaLink="/dashboard/positions"
+          />
+        )}
+      </div>
 
       {/* Modals */}
 

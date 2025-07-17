@@ -40,7 +40,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Eye
+  Eye,
+  Building2
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
@@ -50,6 +51,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
+import { cn } from '@/lib/utils';
 
 interface EmployeeAssignment {
   assignment_id: string;
@@ -100,16 +103,33 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
   const [departments, setDepartments] = useState<string[]>([]);
   const [selectedModule, setSelectedModule] = useState<ModuleContent | null>(null);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
+  const [positionsCount, setPositionsCount] = useState(0);
 
   // Use propCompanyId if provided, otherwise use userProfile.company_id
   const companyId = propCompanyId || userProfile?.company_id;
 
   useEffect(() => {
     if (companyId) {
+      fetchPositionsCount();
       fetchAssignments();
       fetchDepartments();
     }
   }, [companyId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchPositionsCount = async () => {
+    if (!companyId) return;
+
+    try {
+      const { count } = await supabase
+        .from('st_company_positions')
+        .select('id', { count: 'exact' })
+        .eq('company_id', companyId);
+      
+      setPositionsCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching positions count:', error);
+    }
+  };
 
   const fetchDepartments = async () => {
     if (!companyId) return;
@@ -524,19 +544,24 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
           </div>
         </CardHeader>
         <CardContent>
-          {assignments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No course assignments yet</p>
-              <p>Course assignments will appear here once employees are assigned to courses.</p>
-            </div>
-          ) : filteredAssignments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No course assignments found matching your filters</p>
-            </div>
-          ) : (
-            <Table>
+          <div className="relative">
+            <div className={cn(
+              "transition-all duration-500",
+              positionsCount === 0 && "blur-md pointer-events-none select-none"
+            )}>
+              {assignments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">No course assignments yet</p>
+                  <p>Course assignments will appear here once employees are assigned to courses.</p>
+                </div>
+              ) : filteredAssignments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No course assignments found matching your filters</p>
+                </div>
+              ) : (
+                <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
@@ -670,8 +695,21 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          )}
+                </Table>
+              )}
+            </div>
+
+            {/* Empty State Overlay */}
+            {positionsCount === 0 && (
+              <EmptyStateOverlay
+                icon={Building2}
+                title="No Positions Created"
+                description="Create positions first to enable course assignments and track employee learning progress."
+                ctaText="Create Your First Position"
+                ctaLink="/dashboard/positions"
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
 
