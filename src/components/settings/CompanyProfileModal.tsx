@@ -54,6 +54,7 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
         console.error('Error fetching skills gap lead:', error);
         setError('Unable to load company profile data');
       } else if (data) {
+        console.log('Skills gap lead data:', data); // Debug log
         setLeadData(data);
       } else {
         setError('No company profile data found');
@@ -126,7 +127,7 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
           ) : leadData ? (
             <>
               {/* Company Information */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
                   Company Information
@@ -144,7 +145,7 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
               </div>
 
               {/* Contact Information */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Contact Information
@@ -172,7 +173,7 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
               </div>
 
               {/* Usage Information */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                   <Target className="h-4 w-4" />
                   Usage Information
@@ -180,11 +181,15 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="text-xs text-gray-500">Primary Use Case</label>
-                    <p className="text-sm font-medium text-gray-900">{formatUseCase(leadData.use_case)}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {leadData.use_case ? formatUseCase(leadData.use_case) : 'Not specified'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">How They Found Us</label>
-                    <p className="text-sm font-medium text-gray-900">{formatHeardAbout(leadData.heard_about)}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {leadData.heard_about ? formatHeardAbout(leadData.heard_about) : 'Not specified'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Member Since</label>
