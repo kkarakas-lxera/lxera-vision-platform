@@ -23,9 +23,12 @@ serve(async (req) => {
   }
 
   const requestId = crypto.randomUUID();
+  console.log(`[${requestId}] Request received`);
   
   try {
-    const { token, password, company, role, teamSize, useCase, heardAbout }: CompleteSignupPayload = await req.json();
+    const payload = await req.json();
+    console.log(`[${requestId}] Payload parsed:`, JSON.stringify(payload));
+    const { token, password, company, role, teamSize, useCase, heardAbout }: CompleteSignupPayload = payload;
 
     if (!token || !password) {
       throw new Error('Token and password are required');
@@ -41,9 +44,16 @@ serve(async (req) => {
     }
 
     // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${requestId}] Missing environment variables`);
+      throw new Error('Server configuration error');
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log(`[${requestId}] Supabase client created`);
 
     // Verify token and get lead data
     const { data: session, error: sessionError } = await supabase
@@ -58,9 +68,11 @@ serve(async (req) => {
       .single();
 
     if (sessionError || !session) {
-      console.error('Session verification error:', sessionError);
+      console.error(`[${requestId}] Session verification error:`, sessionError);
+      console.error(`[${requestId}] Token used:`, token);
       throw new Error('Invalid or expired token');
     }
+    console.log(`[${requestId}] Session verified successfully`);
 
     const lead = session.skills_gap_leads;
 
@@ -96,16 +108,30 @@ serve(async (req) => {
       .single();
 
     if (companyError) {
-      console.error('Company creation error:', companyError);
-      throw new Error('Failed to create company record');
+      console.error(`[${requestId}] Company creation error:`, companyError);
+      console.error(`[${requestId}] Company creation details:`, { name: company, domain: companyDomain });
+      throw new Error(`Failed to create company record: ${companyError.message || 'Unknown error'}`);
     }
 
     // Check if auth user already exists
-    const { data: existingAuthUser, error: authCheckError } = await supabase.auth.admin.getUserByEmail(lead.email);
+    console.log(`[${requestId}] Checking for existing auth user: ${lead.email}`);
+    let existingAuthUser;
+    let authCheckError;
+    
+    try {
+      const authCheckResult = await supabase.auth.admin.getUserByEmail(lead.email);
+      existingAuthUser = authCheckResult.data;
+      authCheckError = authCheckResult.error;
+    } catch (e) {
+      console.error(`[${requestId}] Auth check exception:`, e);
+      authCheckError = e;
+    }
+    
+    console.log(`[${requestId}] Auth user check result:`, { exists: !!existingAuthUser?.user, error: authCheckError });
 
     let authUser;
     
-    if (existingAuthUser.user) {
+    if (existingAuthUser?.user) {
       // User exists in auth, check if they can be used for skills gap
       if (existingAuthUser.user.email === 'kubilay.karakas@lxera.ai') {
         // Super admin can test skills gap flow
@@ -130,7 +156,8 @@ serve(async (req) => {
       });
 
       if (authError || !newAuthUser.user) {
-        console.error('Auth user creation error:', authError);
+        console.error(`[${requestId}] Auth user creation error:`, authError);
+        console.error(`[${requestId}] Auth creation details:`, { email: lead.email });
         
         // If auth user creation fails, clean up company
         await supabase
@@ -145,11 +172,12 @@ serve(async (req) => {
     }
 
     // Check if profile user already exists
-    const { data: existingUser, error: userCheckError } = await supabase
+    const { data: existingUsers, error: userCheckError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', lead.email)
-      .single();
+      .eq('email', lead.email);
+    
+    const existingUser = existingUsers && existingUsers.length > 0 ? existingUsers[0] : null;
 
     let user;
     
@@ -175,7 +203,12 @@ serve(async (req) => {
         .single();
 
       if (userError) {
-        console.error('User profile creation error:', userError);
+        console.error(`[${requestId}] User profile creation error:`, userError);
+        console.error(`[${requestId}] User creation details:`, { 
+          id: authUser.id, 
+          email: lead.email, 
+          company_id: companyRecord.id 
+        });
         
         // If user profile creation fails, clean up company and auth user
         await supabase
@@ -235,6 +268,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error(`[${requestId}] Error occurred:`, error);
+    console.error(`[${requestId}] Error stack:`, error.stack);
     return createErrorResponse(error, {
       requestId,
       functionName: 'complete-skills-gap-signup'
@@ -243,10 +278,17 @@ serve(async (req) => {
 });
 
 // Error handling utilities
-function createErrorResponse(error, metadata, statusCode = 500) {
+function createErrorResponse(error: any, metadata: any, statusCode = 500) {
+  const errorMessage = error?.message || error?.toString() || 'Internal server error';
+  console.error(`[${metadata.requestId}] Creating error response:`, {
+    message: errorMessage,
+    statusCode,
+    errorType: error?.constructor?.name
+  });
+  
   return new Response(
     JSON.stringify({
-      error: error.message || 'Internal server error',
+      error: errorMessage,
       success: false,
       requestId: metadata.requestId
     }),
@@ -257,7 +299,7 @@ function createErrorResponse(error, metadata, statusCode = 500) {
   );
 }
 
-function logSanitizedError(error, metadata) {
+function logSanitizedError(error: any, metadata: any) {
   console.error('Edge function error:', {
     message: error?.message,
     code: error?.code,
@@ -265,12 +307,13 @@ function logSanitizedError(error, metadata) {
   });
 }
 
-function getErrorStatusCode(error) {
+function getErrorStatusCode(error: any) {
+  const message = error?.message || '';
   // Map specific error types to HTTP status codes
-  if (error.message?.includes('already exists')) return 409;
-  if (error.message?.includes('not found')) return 404;
-  if (error.message?.includes('unauthorized')) return 401;
-  if (error.message?.includes('forbidden')) return 403;
-  if (error.message?.includes('Invalid') || error.message?.includes('required')) return 400;
+  if (message.includes('already exists')) return 409;
+  if (message.includes('not found')) return 404;
+  if (message.includes('unauthorized')) return 401;
+  if (message.includes('forbidden')) return 403;
+  if (message.includes('Invalid') || message.includes('required')) return 400;
   return 500;
 }
