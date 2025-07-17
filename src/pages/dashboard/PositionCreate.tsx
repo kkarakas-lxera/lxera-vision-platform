@@ -161,24 +161,34 @@ export default function PositionCreate() {
       setLoadingMessages(prev => ({ ...prev, [positionIndex]: message }));
     };
 
+    // Declare timer variables outside try block for cleanup
+    let progressTimeouts: NodeJS.Timeout[] = [];
+    let progressInterval: NodeJS.Timer | null = null;
+
     try {
       updateProgress(10, '🔍 Searching skills database...');
       
-      // Simulate real API stages with actual timing
-      const progressInterval = setInterval(() => {
+      // Stage 1: Database search simulation
+      progressTimeouts.push(setTimeout(() => updateProgress(25, '🤖 AI analyzing position requirements...'), 800));
+      
+      // Stage 2: AI processing simulation
+      progressTimeouts.push(setTimeout(() => updateProgress(45, '📊 Categorizing and scoring skills...'), 1500));
+      
+      // Stage 3: Almost done
+      progressTimeouts.push(setTimeout(() => updateProgress(70, '⚡ Finalizing recommendations...'), 2500));
+      
+      // Progressive increment until API completes
+      progressInterval = setInterval(() => {
         setProcessingProgress(prev => {
           const current = prev[positionIndex] || 0;
-          if (current < 75) {
-            return { ...prev, [positionIndex]: current + 5 };
+          if (current < 85 && current >= 70) {
+            return { ...prev, [positionIndex]: current + 2 };
           }
           return prev;
         });
-      }, 200);
+      }, 500);
 
-      setTimeout(() => updateProgress(30, '🤖 AI analyzing position requirements...'), 500);
-      setTimeout(() => updateProgress(50, '📊 Categorizing and scoring skills...'), 1200);
-      setTimeout(() => updateProgress(75, '⚡ Finalizing recommendations...'), 2000);
-
+      // Make the actual API call
       const { data, error } = await supabase.functions.invoke('suggest-position-skills-enhanced', {
         body: {
           position_title: position.position_title,
@@ -188,7 +198,13 @@ export default function PositionCreate() {
         }
       });
 
-      clearInterval(progressInterval);
+      // Clean up all timers immediately when API completes
+      progressTimeouts.forEach(timeout => clearTimeout(timeout));
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      
+      // Set completion immediately
       updateProgress(100, '✅ Complete!');
 
       if (error) throw error;
@@ -226,8 +242,16 @@ export default function PositionCreate() {
       }
     } catch (error) {
       console.error('Error generating skills for position:', error);
+      
+      // Clean up timers on error too
+      progressTimeouts.forEach(timeout => clearTimeout(timeout));
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      
       setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'error' }));
       setLoadingMessages(prev => ({ ...prev, [positionIndex]: '' }));
+      setProcessingProgress(prev => ({ ...prev, [positionIndex]: 0 }));
     }
   };
 
