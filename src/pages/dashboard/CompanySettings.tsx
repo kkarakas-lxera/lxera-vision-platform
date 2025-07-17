@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle, ArrowLeft, Bug, Lightbulb, MessageCircle, Send, X, ChevronLeft } from 'lucide-react';
+import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle, ArrowLeft, Bug, Lightbulb, MessageCircle, Send, X, ChevronLeft, Briefcase, Target } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { HRISService } from '@/services/hrisService';
 import { toast } from 'sonner';
 import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyProfileModal } from '@/components/settings/CompanyProfileModal';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,6 +69,8 @@ export default function CompanySettings() {
   const [currentView, setCurrentView] = useState<ViewType>('main');
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
+  const [companyData, setCompanyData] = useState<any>(null);
+  const [companyLoading, setCompanyLoading] = useState(false);
   const [formData, setFormData] = useState<FeedbackFormData>({
     type: 'general_feedback',
     title: '',
@@ -88,6 +91,9 @@ export default function CompanySettings() {
   useEffect(() => {
     if (currentView === 'team-members' && userProfile?.company_id) {
       fetchTeamMembers();
+    }
+    if (currentView === 'company-profile' && userProfile?.company_id) {
+      fetchCompanyData();
     }
   }, [currentView, userProfile?.company_id]);
 
@@ -121,6 +127,31 @@ export default function CompanySettings() {
       toast.error('Failed to load team members');
     } finally {
       setTeamLoading(false);
+    }
+  };
+
+  const fetchCompanyData = async () => {
+    if (!userProfile?.company_id) return;
+    
+    setCompanyLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', userProfile.company_id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching company data:', error);
+        toast.error('Failed to load company data');
+      } else {
+        setCompanyData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching company data:', error);
+      toast.error('Failed to load company data');
+    } finally {
+      setCompanyLoading(false);
     }
   };
 
@@ -349,7 +380,6 @@ export default function CompanySettings() {
             </div>
           </CardContent>
         </Card>
-        </div>
       )}
 
       {/* Support Section - Platform Feedback */}
@@ -537,191 +567,90 @@ export default function CompanySettings() {
             </CardContent>
           </Card>
       )}
-        {currentView === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Plan & Billing Section - Left Side */}
-            {permissions?.isSkillsGapUser && (
-              <Card className="overflow-hidden">
-                <CardHeader className="py-3 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-muted-foreground" />
-                      <CardTitle className="text-base">Plan & Usage</CardTitle>
-                    </div>
-                    <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                      Free Trial
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
-                        <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
-                      </div>
-                      <Sparkles className="h-4 w-4 text-amber-600" />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 rounded-md p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Users className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-muted-foreground">Employee Limit</span>
-                      </div>
-                      <p className="text-lg font-semibold text-foreground">{permissions.maxEmployees}</p>
-                      <p className="text-xs text-muted-foreground">maximum</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-md p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Zap className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-muted-foreground">AI Features</span>
-                      </div>
-                      <p className="text-lg font-semibold text-orange-600">Locked</p>
-                      <p className="text-xs text-muted-foreground">upgrade to unlock</p>
-                    </div>
-                  </div>
 
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
-                    <p className="text-xs text-indigo-700">
-                      Unlock unlimited employees, AI course generation, and advanced analytics
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="bg-primary hover:bg-primary/90">
-                      Upgrade Plan
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Contact Sales
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-          {/* HRIS Integration Section - Right Side */}
+      {/* Company Profile Section */}
+      {currentView === 'company-profile' && (
         <Card className="overflow-hidden">
           <CardHeader className="py-3 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-base">HR System Integration</CardTitle>
-              </div>
-              {hrisConnection && (
-                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                  Connected
-                </Badge>
-              )}
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Company Profile</CardTitle>
             </div>
             <CardDescription className="text-xs mt-1">
-              Automated employee data synchronization
+              View and manage your company information
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4">
-            {loading ? (
-              <div className="animate-pulse space-y-3">
-                <div className="h-8 bg-gray-100 rounded w-full"></div>
-                <div className="h-16 bg-gray-100 rounded w-full"></div>
-              </div>
-            ) : hrisConnection ? (
-              <div className="space-y-3">
-                <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-green-900">Connected to {hrisConnection.provider}</p>
-                      <p className="text-xs text-green-700 mt-1">
-                        Syncing employee data since {new Date(hrisConnection.connected_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
+            {companyLoading ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-full" />
                 </div>
-              
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                  <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{hrisConnection.provider}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Last synced: {hrisConnection.last_sync ? new Date(hrisConnection.last_sync).toLocaleString() : 'Never'}
-                      </p>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              </div>
+            ) : companyData ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Company Name</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">{companyData.name || 'Not set'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={checkHRISConnection}
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Refresh
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={disconnectHRIS}
-                      disabled={disconnecting}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Disconnect
-                    </Button>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Team Size</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">{companyData.team_size || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Industry</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">{companyData.industry || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Use Case</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+                      <Target className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">{companyData.use_case || 'Not specified'}</p>
+                    </div>
                   </div>
                 </div>
 
-                {hrisConnection.sync_status && (
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <div className="text-xs bg-gray-50 rounded-md p-2">
-                      <span className="text-muted-foreground">Employees synced</span>
-                      <p className="font-semibold text-foreground">{hrisConnection.sync_status.employees_synced || 0}</p>
-                    </div>
-                    <div className="text-xs bg-gray-50 rounded-md p-2">
-                      <span className="text-muted-foreground">Status</span>
-                      <p className="font-semibold text-foreground">{hrisConnection.sync_status.last_error || 'Healthy'}</p>
-                    </div>
-                  </div>
-                )}
+                <div className="pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCompanyProfileOpen(true)}
+                  >
+                    Edit Company Profile
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="text-center py-2">
-                  <p className="text-sm text-muted-foreground">Connect your HRIS for automated employee sync</p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => connectHRIS('bamboohr')}
-                    className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
-                  >
-                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
-                    <span className="text-xs text-foreground">BambooHR</span>
-                  </button>
-                  <button
-                    onClick={() => connectHRIS('workday')}
-                    className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
-                  >
-                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
-                    <span className="text-xs text-foreground">Workday</span>
-                  </button>
-                  <button
-                    onClick={() => connectHRIS('adp')}
-                    className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
-                  >
-                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
-                    <span className="text-xs text-foreground">ADP</span>
-                  </button>
-                </div>
-                
-                <p className="text-xs text-muted-foreground text-center">
-                  Need a different HRIS? <a href="#" className="text-primary hover:text-primary/90">Contact support</a>
-                </p>
+              <div className="text-center py-8">
+                <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No company data found</p>
               </div>
             )}
           </CardContent>
         </Card>
-        </div>
-        )}
+      )}
 
         {/* Billing Section */}
         {currentView === 'billing' && permissions?.isSkillsGapUser && (
@@ -729,10 +658,6 @@ export default function CompanySettings() {
             <CardHeader className="py-3 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ArrowLeft 
-                    className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" 
-                    onClick={() => setCurrentView('overview')}
-                  />
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <CardTitle className="text-base">Billing & Plan</CardTitle>
                 </div>
@@ -740,7 +665,7 @@ export default function CompanySettings() {
                   Free Trial
                 </Badge>
               </div>
-              <CardDescription className="text-xs mt-1 ml-8">
+              <CardDescription className="text-xs mt-1">
                 Manage your subscription and billing details
               </CardDescription>
             </CardHeader>
@@ -797,14 +722,10 @@ export default function CompanySettings() {
           <Card className="overflow-hidden">
             <CardHeader className="py-3 border-b">
               <div className="flex items-center gap-2">
-                <ArrowLeft 
-                  className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" 
-                  onClick={() => setCurrentView('overview')}
-                />
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <CardTitle className="text-base">Team Members</CardTitle>
               </div>
-              <CardDescription className="text-xs mt-1 ml-8">
+              <CardDescription className="text-xs mt-1">
                 Manage your company team members and their roles
               </CardDescription>
             </CardHeader>
