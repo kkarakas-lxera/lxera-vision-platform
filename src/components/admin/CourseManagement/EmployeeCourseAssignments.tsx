@@ -30,20 +30,20 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BookOpen, 
-  Search,
-  FileDown,
-  User,
-  Users,
-  Building,
-  Target,
-  ChevronRight,
-  CheckCircle,
-  Clock,
   AlertCircle,
-  Eye,
+  BookOpen, 
+  Building,
   Building2,
-  TrendingUp
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Eye,
+  FileDown,
+  Search,
+  Target,
+  TrendingUp,
+  User,
+  Users
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
