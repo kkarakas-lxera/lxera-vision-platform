@@ -32,7 +32,7 @@ interface OnboardingStep {
 
 export default function SkillsGapOnboardingFlow() {
   const navigate = useNavigate();
-  const { userProfile } = useAuth();
+  const { userProfile, user } = useAuth();
   const [steps, setSteps] = useState<OnboardingStep[]>([
     {
       id: 'define_positions',
@@ -74,6 +74,7 @@ export default function SkillsGapOnboardingFlow() {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [companyData, setCompanyData] = useState<any>(null);
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -83,6 +84,16 @@ export default function SkillsGapOnboardingFlow() {
     if (!userProfile?.company_id) return;
 
     try {
+      // Fetch company data
+      const { data: company } = await supabase
+        .from('companies')
+        .select('subscription_tier')
+        .eq('id', userProfile.company_id)
+        .single();
+      
+      if (company) {
+        setCompanyData(company);
+      }
       // Check if positions exist
       const { count: positionCount } = await supabase
         .from('st_company_positions')
@@ -158,44 +169,70 @@ export default function SkillsGapOnboardingFlow() {
           </div>
         </div>
 
-        {/* Progress and Help Section - Side by Side */}
-        <div className="mb-6 grid gap-4 md:grid-cols-2">
+        {/* Progress, User Info, and Help Section - Three Columns */}
+        <div className="mb-6 grid gap-3 grid-cols-1 md:grid-cols-3">
           {/* Setup Progress - Smaller */}
-          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-2">
+          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-business-black">
                   Setup Progress
                 </span>
                 <span className="text-xs font-medium text-business-black/70">
-                  {completedSteps} of {steps.length}
+                  {completedSteps}/{steps.length}
                 </span>
               </div>
-              <div className="w-full bg-future-green/20 rounded-full h-1.5">
+              <div className="w-full bg-future-green/20 rounded-full h-1">
                 <div
-                  className="bg-gradient-to-r from-future-green to-future-green/80 h-1.5 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-future-green to-future-green/80 h-1 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </CardContent>
           </Card>
 
+          {/* User Info & Plan */}
+          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <div className="text-xs font-medium text-business-black">
+                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+                  </div>
+                  <div className="text-xs text-business-black/70">
+                    {companyData?.subscription_tier === 'trial' ? 'Free Trial' : 
+                     companyData?.subscription_tier === 'premium' ? 'Premium Plan' : 
+                     'Free Plan'}
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white"
+                  onClick={() => navigate('/dashboard/settings')}
+                >
+                  Upgrade
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Help Section - Minimalistic */}
-          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm">
-            <CardContent className="p-3">
+          <Card className="border-future-green/30 bg-white backdrop-blur-sm">
+            <CardContent className="p-2">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-future-green/20 rounded-lg">
-                  <Sparkles className="h-3.5 w-3.5 text-future-green" />
+                <div className="p-1 bg-future-green/20 rounded-lg">
+                  <Sparkles className="h-3 w-3 text-future-green" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-business-black text-xs mb-1">
-                    Need Help Getting Started?
+                    Need Help?
                   </h3>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green/10">
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" className="h-5 px-1.5 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white">
                       Tutorial
                     </Button>
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green/10">
+                    <Button variant="outline" size="sm" className="h-5 px-1.5 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white">
                       Support
                     </Button>
                   </div>
@@ -212,7 +249,7 @@ export default function SkillsGapOnboardingFlow() {
               key={step.id}
               className={cn(
                 "relative overflow-hidden transition-all duration-200 bg-white/60 backdrop-blur-sm",
-                step.completed && "bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige border-future-green/30",
+                step.completed && "bg-white border-future-green/30",
                 !step.completed && index === currentStep && "border-future-green/50 shadow-lg bg-white/80",
                 !step.completed && index > currentStep && "opacity-60 border-future-green/20"
               )}
@@ -262,7 +299,7 @@ export default function SkillsGapOnboardingFlow() {
                   variant={step.completed ? "outline" : "default"}
                   className={cn(
                     "w-full",
-                    step.completed && "border-future-green/30 text-future-green hover:bg-future-green/10",
+                    step.completed && "border-future-green/30 text-future-green hover:bg-future-green hover:text-white",
                     !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-gradient-to-r from-future-green to-future-green/80 hover:from-future-green/90 hover:to-future-green/70 text-business-black"
                   )}
                 >
@@ -278,6 +315,15 @@ export default function SkillsGapOnboardingFlow() {
                     </>
                   )}
                 </Button>
+                {/* Current Step Indicator */}
+                {!step.completed && index === currentStep && (
+                  <div className="mt-2 text-center">
+                    <div className="inline-flex items-center gap-1 text-xs text-future-green font-medium">
+                      <Circle className="h-1.5 w-1.5 fill-current" />
+                      Current Step
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
