@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, ChevronLeft } from 'lucide-react';
+import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,10 @@ interface SkillSelection {
   skill_name: string;
   proficiency_level: number;
   description?: string;
+  reason?: string;
+  source?: 'database' | 'ai';
+  category?: 'essential' | 'important';
+  skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
 }
 
 interface PositionData {
@@ -50,6 +54,9 @@ export default function PositionCreate() {
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<Record<number, 'pending' | 'processing' | 'completed' | 'error'>>({});
   const [expandedPositions, setExpandedPositions] = useState<Set<number>>(new Set([0]));
+  const [loadingMessages, setLoadingMessages] = useState<{[key: number]: string}>({});
+  const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
+  const [groupedSkills, setGroupedSkills] = useState<{[key: number]: {[group: string]: any[]}}>({});
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const descriptionEndRef = useRef<HTMLDivElement>(null);
   const [hasScrolledDescription, setHasScrolledDescription] = useState(false);
@@ -132,8 +139,26 @@ export default function PositionCreate() {
     if (!position.position_title) return;
 
     setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'processing' }));
-
+    
+    // Progressive loading messages
+    setLoadingMessages(prev => ({ ...prev, [positionIndex]: '🔍 Searching skills database...' }));
+    
     try {
+      // Update message after 1 second
+      setTimeout(() => {
+        setLoadingMessages(prev => ({ ...prev, [positionIndex]: '🤖 AI analyzing position requirements...' }));
+      }, 1000);
+      
+      // Update message after 2 seconds
+      setTimeout(() => {
+        setLoadingMessages(prev => ({ ...prev, [positionIndex]: '📊 Categorizing skills by expertise...' }));
+      }, 2000);
+      
+      // Update message after 3 seconds
+      setTimeout(() => {
+        setLoadingMessages(prev => ({ ...prev, [positionIndex]: '⚡ Finalizing recommendations...' }));
+      }, 3000);
+
       const { data, error } = await supabase.functions.invoke('suggest-position-skills-enhanced', {
         body: {
           position_title: position.position_title,
@@ -152,8 +177,16 @@ export default function PositionCreate() {
           proficiency_level: skill.proficiency_level === 'basic' ? 1 :
                             skill.proficiency_level === 'intermediate' ? 2 :
                             skill.proficiency_level === 'advanced' ? 3 : 4,
-          description: skill.description
+          description: skill.description,
+          reason: skill.reason,
+          source: skill.source,
+          category: skill.category,
+          skill_group: skill.skill_group || categorizeSkill(skill.skill_name)
         }));
+
+        // Group skills by category
+        const grouped = groupSkillsByCategory(newSkills);
+        setGroupedSkills(prev => ({ ...prev, [positionIndex]: grouped }));
 
         setPositions(prev => {
           const newPositions = [...prev];
@@ -166,11 +199,75 @@ export default function PositionCreate() {
         });
 
         setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'completed' }));
+        setLoadingMessages(prev => ({ ...prev, [positionIndex]: '' }));
       }
     } catch (error) {
       console.error('Error generating skills for position:', error);
       setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'error' }));
+      setLoadingMessages(prev => ({ ...prev, [positionIndex]: '' }));
     }
+  };
+
+  const categorizeSkill = (skillName: string): string => {
+    const name = skillName.toLowerCase();
+    
+    if (name.includes('leadership') || name.includes('management') || name.includes('team') || name.includes('mentor')) {
+      return 'leadership';
+    }
+    if (name.includes('communication') || name.includes('collaboration') || name.includes('problem') || name.includes('analytical')) {
+      return 'soft';
+    }
+    if (name.includes('programming') || name.includes('development') || name.includes('coding') || name.includes('software')) {
+      return 'technical';
+    }
+    if (name.includes('tool') || name.includes('platform') || name.includes('software') || name.includes('system')) {
+      return 'tools';
+    }
+    
+    return 'industry';
+  };
+
+  const groupSkillsByCategory = (skills: SkillSelection[]) => {
+    const groups: {[key: string]: SkillSelection[]} = {};
+    
+    skills.forEach(skill => {
+      const group = skill.skill_group || categorizeSkill(skill.skill_name);
+      if (!groups[group]) {
+        groups[group] = [];
+      }
+      groups[group].push(skill);
+    });
+    
+    return groups;
+  };
+
+  const getGroupIcon = (group: string) => {
+    switch (group) {
+      case 'technical': return '⚙️';
+      case 'soft': return '🤝';
+      case 'leadership': return '👑';
+      case 'tools': return '🛠️';
+      case 'industry': return '🏢';
+      default: return '📝';
+    }
+  };
+
+  const getGroupLabel = (group: string) => {
+    switch (group) {
+      case 'technical': return 'Technical Skills';
+      case 'soft': return 'Soft Skills';
+      case 'leadership': return 'Leadership Skills';
+      case 'tools': return 'Tools & Platforms';
+      case 'industry': return 'Industry Knowledge';
+      default: return 'Other Skills';
+    }
+  };
+
+  const toggleSkillExpanded = (skillId: string) => {
+    setExpandedSkills(prev => ({
+      ...prev,
+      [skillId]: !prev[skillId]
+    }));
   };
 
   const startBatchProcessing = async () => {
@@ -775,11 +872,13 @@ export default function PositionCreate() {
                         <div className="border-t bg-white p-4">
                           {status === 'processing' && (
                             <div className="text-center py-8">
-                              <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                              <p className="text-muted-foreground">AI is analyzing {position.position_title} requirements...</p>
-                              <div className="mt-2 max-w-md mx-auto">
-                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                  <div className="h-full bg-blue-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                              <div className="flex items-center justify-center p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 mb-4">
+                                <div className="text-center">
+                                  <div className="animate-spin h-8 w-8 border-3 border-purple-500 border-t-transparent rounded-full mx-auto mb-3" />
+                                  <p className="text-sm font-medium text-purple-700 mb-1">
+                                    {loadingMessages[index] || '🔍 Analyzing your position...'}
+                                  </p>
+                                  <p className="text-xs text-purple-600">This usually takes 15-30 seconds</p>
                                 </div>
                               </div>
                               <Button 
@@ -809,9 +908,11 @@ export default function PositionCreate() {
                           {(status === 'completed' || skillCount > 0) && (
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
-                                <h4 className="font-medium">
-                                  🤖 AI + Database found {skillCount} skills for {position.position_title}
-                                </h4>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-purple-700">
+                                    🤖 AI + Database found {skillCount} skills
+                                  </span>
+                                </div>
                                 <div className="flex gap-2">
                                   <Button
                                     variant="default"
@@ -833,43 +934,139 @@ export default function PositionCreate() {
                                 </div>
                               </div>
 
-                              {/* Skills Grid */}
-                              <div className="grid grid-cols-2 gap-2">
-                                {position.required_skills.map(skill => (
-                                  <div key={skill.skill_id} className="flex items-center justify-between p-2 border rounded">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium">{skill.skill_name}</span>
-                                      <div className="flex">
-                                        {[1, 2, 3, 4, 5].map(level => (
-                                          <div
-                                            key={level}
-                                            className={`w-2 h-2 rounded-full mr-1 ${
-                                              level <= skill.proficiency_level ? 'bg-primary' : 'bg-gray-200'
-                                            }`}
-                                          />
-                                        ))}
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">({skill.proficiency_level})</span>
+                              {/* Grouped Skills Display */}
+                              <div className="space-y-4">
+                                {groupedSkills[index] ? Object.entries(groupedSkills[index]).map(([group, skills]) => (
+                                  <div key={group} className="space-y-2">
+                                    <div className="flex items-center gap-2 py-2 border-b border-gray-200">
+                                      <span className="text-lg">{getGroupIcon(group)}</span>
+                                      <h5 className="font-medium text-sm text-gray-700">{getGroupLabel(group)}</h5>
+                                      <span className="text-xs text-gray-500">({skills.length})</span>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setPositions(prev => {
-                                          const newPositions = [...prev];
-                                          newPositions[index] = {
-                                            ...newPositions[index],
-                                            required_skills: newPositions[index].required_skills.filter(s => s.skill_id !== skill.skill_id)
-                                          };
-                                          return newPositions;
-                                        });
-                                      }}
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {skills.map(skill => (
+                                        <div key={skill.skill_id} className="border rounded-lg p-3 bg-white hover:shadow-sm transition-shadow">
+                                          <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1">
+                                              <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-medium">{skill.skill_name}</span>
+                                                {skill.source && (
+                                                  <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                                                    {skill.source === 'database' ? '🗄️ DB' : '🤖 AI'}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              
+                                              <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex items-center gap-1">
+                                                  {[1, 2, 3, 4, 5].map(level => (
+                                                    <div
+                                                      key={level}
+                                                      className={`w-2 h-2 rounded-full ${
+                                                        level <= skill.proficiency_level ? 'bg-purple-500' : 'bg-gray-200'
+                                                      }`}
+                                                    />
+                                                  ))}
+                                                  <span className="text-xs text-gray-600 ml-1">
+                                                    Level {skill.proficiency_level}
+                                                  </span>
+                                                </div>
+                                                {skill.category && (
+                                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                                    skill.category === 'essential' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                                  }`}>
+                                                    {skill.category}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              
+                                              {skill.description && (
+                                                <p className="text-xs text-gray-600 mb-2">{skill.description}</p>
+                                              )}
+                                              
+                                              {skill.reason && (
+                                                <button
+                                                  onClick={() => toggleSkillExpanded(skill.skill_id)}
+                                                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                                                >
+                                                  {expandedSkills[skill.skill_id] ? (
+                                                    <ChevronLeft className="h-3 w-3 rotate-90" />
+                                                  ) : (
+                                                    <ChevronLeft className="h-3 w-3" />
+                                                  )}
+                                                  Why this skill?
+                                                </button>
+                                              )}
+                                              
+                                              {expandedSkills[skill.skill_id] && skill.reason && (
+                                                <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800 italic">
+                                                  {skill.reason}
+                                                </div>
+                                              )}
+                                            </div>
+                                            
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                setPositions(prev => {
+                                                  const newPositions = [...prev];
+                                                  newPositions[index] = {
+                                                    ...newPositions[index],
+                                                    required_skills: newPositions[index].required_skills.filter(s => s.skill_id !== skill.skill_id)
+                                                  };
+                                                  return newPositions;
+                                                });
+                                              }}
+                                              className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                                            >
+                                              <X className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                ))}
+                                )) : (
+                                  // Fallback: simple list if grouping fails
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {position.required_skills.map(skill => (
+                                      <div key={skill.skill_id} className="flex items-center justify-between p-2 border rounded">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium">{skill.skill_name}</span>
+                                          <div className="flex">
+                                            {[1, 2, 3, 4, 5].map(level => (
+                                              <div
+                                                key={level}
+                                                className={`w-2 h-2 rounded-full mr-1 ${
+                                                  level <= skill.proficiency_level ? 'bg-primary' : 'bg-gray-200'
+                                                }`}
+                                              />
+                                            ))}
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">({skill.proficiency_level})</span>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setPositions(prev => {
+                                              const newPositions = [...prev];
+                                              newPositions[index] = {
+                                                ...newPositions[index],
+                                                required_skills: newPositions[index].required_skills.filter(s => s.skill_id !== skill.skill_id)
+                                              };
+                                              return newPositions;
+                                            });
+                                          }}
+                                          className="h-6 w-6 p-0"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Manual Add */}

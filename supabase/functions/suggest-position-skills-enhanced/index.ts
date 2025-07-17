@@ -15,6 +15,7 @@ interface SkillSuggestion {
   source: 'database' | 'ai';
   relevance_score?: number;
   reason?: string;
+  skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
 }
 
 serve(async (req) => {
@@ -119,6 +120,7 @@ For each skill, provide:
 - proficiency_level: "basic", "intermediate", "advanced", or "expert"
 - description: One sentence explaining the skill
 - reason: Why this skill is relevant for this position
+- skill_group: "technical", "soft", "leadership", "tools", or "industry"
 
 Consider:
 - Technical skills specific to ${position_title}
@@ -284,8 +286,9 @@ For each skill number, provide:
 - category: "essential" or "important"
 - proficiency_level: "basic", "intermediate", "advanced", or "expert"
 - reason: One sentence why this skill matters for this position
+- skill_group: "technical", "soft", "leadership", "tools", or "industry"
 
-Return as JSON object with "categorizations" array containing objects with: skill_index, category, proficiency_level, reason`
+Return as JSON object with "categorizations" array containing objects with: skill_index, category, proficiency_level, reason, skill_group`
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -324,7 +327,8 @@ Return as JSON object with "categorizations" array containing objects with: skil
             ...skill,
             category: categorization.category || skill.category,
             proficiency_level: categorization.proficiency_level || skill.proficiency_level,
-            reason: categorization.reason
+            reason: categorization.reason,
+            skill_group: categorization.skill_group
           }
         }
         return skill
