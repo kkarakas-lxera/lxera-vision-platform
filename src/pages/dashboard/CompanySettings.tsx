@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle, ArrowLeft, Bug, Lightbulb, MessageCircle, Send, X } from 'lucide-react';
+import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle, ArrowLeft, Bug, Lightbulb, MessageCircle, Send, X, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,9 +30,34 @@ interface FeedbackFormData {
   browser_info?: string;
 }
 
+interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  position?: string;
+  department?: string;
+  created_at: string;
+  status: 'active' | 'invited' | 'inactive';
+}
+
+interface HRISConnection {
+  id: string;
+  company_id: string;
+  provider: string;
+  connected_at: string;
+  last_sync?: string;
+  sync_status?: {
+    employees_synced: number;
+    last_error?: string;
+  };
+}
+
+type ViewType = 'main' | 'company-profile' | 'team-members' | 'billing' | 'support';
+
 export default function CompanySettings() {
   const { userProfile } = useAuth();
-  const [hrisConnection, setHrisConnection] = useState<any>(null);
+  const [hrisConnection, setHrisConnection] = useState<HRISConnection | null>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
   const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
@@ -40,6 +65,9 @@ export default function CompanySettings() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [currentView, setCurrentView] = useState<ViewType>('main');
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState(false);
   const [formData, setFormData] = useState<FeedbackFormData>({
     type: 'general_feedback',
     title: '',
@@ -57,10 +85,42 @@ export default function CompanySettings() {
     fetchPermissions();
   }, [userProfile?.company_id]);
 
+  useEffect(() => {
+    if (currentView === 'team-members' && userProfile?.company_id) {
+      fetchTeamMembers();
+    }
+  }, [currentView, userProfile?.company_id]);
+
   const fetchPermissions = async () => {
     if (userProfile?.company_id) {
       const companyPermissions = await getCompanyPermissions(userProfile.company_id);
       setPermissions(companyPermissions);
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    if (!userProfile?.company_id) return;
+    
+    setTeamLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('company_id', userProfile.company_id)
+        .neq('role', 'learner')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching team members:', error);
+        toast.error('Failed to load team members');
+      } else {
+        setTeamMembers(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      toast.error('Failed to load team members');
+    } finally {
+      setTeamLoading(false);
     }
   };
 
@@ -213,14 +273,41 @@ export default function CompanySettings() {
     }
   };
 
+  const navigateToSection = (section: ViewType) => {
+    setCurrentView(section);
+    if (section === 'support') {
+      setShowFeedback(true);
+    } else {
+      setShowFeedback(false);
+    }
+  };
+
+  const BackButton = () => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        setCurrentView('main');
+        setShowFeedback(false);
+      }}
+      className="mb-4"
+    >
+      <ChevronLeft className="h-4 w-4 mr-1" />
+      Back to Settings
+    </Button>
+  );
+
   return (
     <div className="p-4 max-w-5xl mx-auto">
+      {currentView !== 'main' && <BackButton />}
+      
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage your company settings and integrations</p>
       </div>
 
-      <div className="space-y-4">
+      {currentView === 'main' && (
+        <div className="space-y-4">
         {/* Quick Actions */}
         <Card className="overflow-hidden">
           <CardHeader className="py-3 border-b">
@@ -232,23 +319,29 @@ export default function CompanySettings() {
           <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <button 
-                onClick={() => setCompanyProfileOpen(true)}
+                onClick={() => navigateToSection('company-profile')}
                 className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
               >
                 <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
                 <span className="text-xs text-foreground">Company Profile</span>
               </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+              <button 
+                onClick={() => navigateToSection('team-members')}
+                className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
+              >
                 <Users className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
                 <span className="text-xs text-foreground">Team Members</span>
               </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+              <button 
+                onClick={() => navigateToSection('billing')}
+                className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
+              >
                 <CreditCard className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
                 <span className="text-xs text-foreground">Billing</span>
               </button>
               <button 
-                onClick={() => setShowFeedback(!showFeedback)}
-                className={`p-3 text-center hover:bg-gray-50 rounded-md transition-colors group ${showFeedback ? 'bg-gray-50' : ''}`}
+                onClick={() => navigateToSection('support')}
+                className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
               >
                 <HelpCircle className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
                 <span className="text-xs text-foreground">Support</span>
@@ -256,24 +349,16 @@ export default function CompanySettings() {
             </div>
           </CardContent>
         </Card>
+        </div>
+      )}
 
-        {/* Platform Feedback Form - Shown when Support is clicked */}
-        {showFeedback && (
+      {/* Support Section - Platform Feedback */}
+      {currentView === 'support' && (
           <Card className="overflow-hidden">
             <CardHeader className="py-3 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  <CardTitle className="text-base">Platform Feedback</CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFeedback(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Platform Feedback</CardTitle>
               </div>
               <CardDescription className="text-xs mt-1">
                 Share your thoughts, report issues, or suggest improvements
@@ -451,71 +536,70 @@ export default function CompanySettings() {
               </form>
             </CardContent>
           </Card>
-        )}
-
-        {/* Plan & Billing and HRIS Integration Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Plan & Billing Section - Left Side */}
-          {permissions?.isSkillsGapUser && (
-            <Card className="overflow-hidden">
-              <CardHeader className="py-3 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-base">Plan & Usage</CardTitle>
-                  </div>
-                  <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                    Free Trial
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
+      )}
+        {currentView === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Plan & Billing Section - Left Side */}
+            {permissions?.isSkillsGapUser && (
+              <Card className="overflow-hidden">
+                <CardHeader className="py-3 border-b">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
-                      <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <CardTitle className="text-base">Plan & Usage</CardTitle>
                     </div>
-                    <Sparkles className="h-4 w-4 text-amber-600" />
+                    <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                      Free Trial
+                    </Badge>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-gray-50 rounded-md p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Users className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-muted-foreground">Employee Limit</span>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
+                        <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
+                      </div>
+                      <Sparkles className="h-4 w-4 text-amber-600" />
                     </div>
-                    <p className="text-lg font-semibold text-foreground">{permissions.maxEmployees}</p>
-                    <p className="text-xs text-muted-foreground">maximum</p>
                   </div>
-                  <div className="bg-gray-50 rounded-md p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Zap className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-muted-foreground">AI Features</span>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-gray-50 rounded-md p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Users className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-muted-foreground">Employee Limit</span>
+                      </div>
+                      <p className="text-lg font-semibold text-foreground">{permissions.maxEmployees}</p>
+                      <p className="text-xs text-muted-foreground">maximum</p>
                     </div>
-                    <p className="text-lg font-semibold text-orange-600">Locked</p>
-                    <p className="text-xs text-muted-foreground">upgrade to unlock</p>
+                    <div className="bg-gray-50 rounded-md p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Zap className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-muted-foreground">AI Features</span>
+                      </div>
+                      <p className="text-lg font-semibold text-orange-600">Locked</p>
+                      <p className="text-xs text-muted-foreground">upgrade to unlock</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
-                  <p className="text-xs text-indigo-700">
-                    Unlock unlimited employees, AI course generation, and advanced analytics
-                  </p>
-                </div>
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
+                    <p className="text-xs text-indigo-700">
+                      Unlock unlimited employees, AI course generation, and advanced analytics
+                    </p>
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
-                    Upgrade Plan
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Contact Sales
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="bg-primary hover:bg-primary/90">
+                      Upgrade Plan
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Contact Sales
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           {/* HRIS Integration Section - Right Side */}
         <Card className="overflow-hidden">
@@ -637,6 +721,159 @@ export default function CompanySettings() {
           </CardContent>
         </Card>
         </div>
+        )}
+
+        {/* Billing Section */}
+        {currentView === 'billing' && permissions?.isSkillsGapUser && (
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ArrowLeft 
+                    className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" 
+                    onClick={() => setCurrentView('overview')}
+                  />
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-base">Billing & Plan</CardTitle>
+                </div>
+                <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                  Free Trial
+                </Badge>
+              </div>
+              <CardDescription className="text-xs mt-1 ml-8">
+                Manage your subscription and billing details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
+                  </div>
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 rounded-md p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="h-3 w-3 text-gray-500" />
+                    <span className="text-xs text-muted-foreground">Employee Limit</span>
+                  </div>
+                  <p className="text-lg font-semibold text-foreground">{permissions.maxEmployees}</p>
+                  <p className="text-xs text-muted-foreground">maximum</p>
+                </div>
+                <div className="bg-gray-50 rounded-md p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="h-3 w-3 text-gray-500" />
+                    <span className="text-xs text-muted-foreground">AI Features</span>
+                  </div>
+                  <p className="text-lg font-semibold text-orange-600">Locked</p>
+                  <p className="text-xs text-muted-foreground">upgrade to unlock</p>
+                </div>
+              </div>
+
+              <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
+                <p className="text-xs text-indigo-700">
+                  Unlock unlimited employees, AI course generation, and advanced analytics
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button size="sm" className="bg-primary hover:bg-primary/90">
+                  Upgrade Plan
+                </Button>
+                <Button variant="outline" size="sm">
+                  Contact Sales
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Team Members Section */}
+        {currentView === 'team-members' && (
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3 border-b">
+              <div className="flex items-center gap-2">
+                <ArrowLeft 
+                  className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" 
+                  onClick={() => setCurrentView('overview')}
+                />
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Team Members</CardTitle>
+              </div>
+              <CardDescription className="text-xs mt-1 ml-8">
+                Manage your company team members and their roles
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              {teamLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="flex items-center justify-between p-3 bg-gray-100 rounded-md">
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                          <div className="h-3 bg-gray-200 rounded w-48"></div>
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-20"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : teamMembers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">No team members found</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-indigo-700">
+                            {member.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{member.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-xs font-medium text-foreground capitalize">{member.role || 'Team Member'}</p>
+                          {member.position && <p className="text-xs text-muted-foreground">{member.position}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Joined</p>
+                          <p className="text-xs font-medium text-foreground">
+                            {new Date(member.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            member.status === 'active' 
+                              ? 'bg-green-50 text-green-700 border-green-200' 
+                              : member.status === 'invited'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          {member.status || 'Active'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Company Profile Modal */}

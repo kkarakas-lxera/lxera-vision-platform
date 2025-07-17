@@ -13,7 +13,11 @@ import {
   CheckCircle2,
   ArrowRight,
   Circle,
-  Sparkles
+  Sparkles,
+  Activity,
+  Target,
+  HelpCircle,
+  MessageCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +37,6 @@ interface OnboardingStep {
 export default function SkillsGapOnboardingFlow() {
   const navigate = useNavigate();
   const { userProfile, user } = useAuth();
-  const [animateIn, setAnimateIn] = useState(false);
   const [steps, setSteps] = useState<OnboardingStep[]>([
     {
       id: 'define_positions',
@@ -79,8 +82,6 @@ export default function SkillsGapOnboardingFlow() {
 
   useEffect(() => {
     checkOnboardingStatus();
-    // Trigger animation on mount
-    setTimeout(() => setAnimateIn(true), 100);
   }, [userProfile]);
 
   const checkOnboardingStatus = async () => {
@@ -157,178 +158,180 @@ export default function SkillsGapOnboardingFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white p-4 md:p-6 font-inter">
-      <div className={cn(
-        "max-w-6xl mx-auto transition-all duration-1000 ease-out",
-        animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-      )}>
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className={cn(
-            "text-3xl md:text-4xl font-semibold text-gray-900 mb-3 font-inter tracking-tight transition-all duration-700 delay-100",
-            animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}>
-            Welcome to the new era of Learning and Development
-          </h1>
-          <p className={cn(
-            "text-lg text-gray-600 font-normal font-inter transition-all duration-700 delay-200",
-            animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}>
-            Follow these steps to analyze your team's skills and identify gaps
-          </p>
-          <div className={cn(
-            "mt-4 inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200 transition-all duration-700 delay-300 shadow-sm hover:shadow-md",
-            animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          )}>
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Current plan: Free Trial
-          </div>
-        </div>
+    <div className="p-4 max-w-5xl mx-auto font-inter">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Skills Gap Analysis Setup</h1>
+        <p className="text-sm text-muted-foreground mt-1">Complete these steps to analyze your team's skills</p>
+      </div>
 
-        {/* Progress and Help Section - Side by Side */}
-        <div className={cn(
-          "mb-6 grid gap-3 grid-cols-1 md:grid-cols-2 transition-all duration-700 delay-400",
-          animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        )}>
-          {/* Setup Progress - Smaller */}
-          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-business-black font-inter">
-                  Setup Progress
-                </span>
-                <span className="text-xs font-medium text-business-black/70 font-inter">
-                  {completedSteps}/{steps.length}
-                </span>
-              </div>
-              <div className="w-full bg-future-green/20 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-future-green to-future-green/80 h-1.5 rounded-full transition-all duration-700 ease-out relative"
-                  style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Help Section - Minimalistic */}
-          <Card className="border-future-green/30 bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
-            <CardContent className="p-3">
+      <div className="space-y-4">
+        {/* Progress Overview */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-3 border-b">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-future-green/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                  <Sparkles className="h-3.5 w-3.5 text-future-green" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-business-black text-xs mb-1 font-inter">
-                    Need Help?
-                  </h3>
-                  <div className="flex gap-1.5">
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white font-inter font-medium transition-all duration-200">
-                      Tutorial
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs border-future-green/30 text-business-black hover:bg-future-green hover:text-white font-inter font-medium transition-all duration-200">
-                      Support
-                    </Button>
-                  </div>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Setup Progress</CardTitle>
+              </div>
+              <Badge className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                {completedSteps} of {steps.length} Complete
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <Progress value={progress} className="h-2" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Get started with your skills gap analysis</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                    <HelpCircle className="h-3 w-3 mr-1" />
+                    Help
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Steps */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, index) => (
-            <Card
-              key={step.id}
-              className={cn(
-                "relative overflow-hidden transition-all duration-500 bg-white/60 backdrop-blur-sm hover:shadow-xl group",
-                step.completed && "bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige border-future-green/30",
-                !step.completed && index === currentStep && "border-future-green/50 shadow-lg bg-white/80 scale-105",
-                !step.completed && index > currentStep && "opacity-60 border-future-green/20",
-                animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              )}
-              style={{
-                transitionDelay: `${500 + index * 100}ms`
-              }}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+        {/* Setup Steps */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-3 border-b">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Setup Steps</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              {steps.map((step, index) => (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "flex items-center gap-4 p-3 rounded-md border transition-colors",
+                    step.completed && "bg-green-50 border-green-200",
+                    !step.completed && index === currentStep && "bg-blue-50 border-blue-200",
+                    !step.completed && index > currentStep && "bg-gray-50 border-gray-200 opacity-60"
+                  )}
+                >
                   <div className={cn(
-                    "p-2 rounded-lg transition-all duration-300",
-                    step.completed ? "bg-future-green/20" : "bg-future-green/10",
-                    index === currentStep && !step.completed && "bg-future-green/15",
-                    "group-hover:scale-110"
+                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                    step.completed && "bg-green-100 text-green-600",
+                    !step.completed && index === currentStep && "bg-blue-100 text-blue-600",
+                    !step.completed && index > currentStep && "bg-gray-100 text-gray-400"
                   )}>
                     {step.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-future-green animate-pulse" />
+                      <CheckCircle2 className="h-5 w-5" />
                     ) : (
-                      <div className={cn(
-                        "text-future-green/50 transition-colors duration-300",
-                        index === currentStep && "text-future-green animate-pulse"
-                      )}>
+                      <div className="text-muted-foreground">
                         {step.icon}
                       </div>
                     )}
                   </div>
-                  <Badge 
-                    variant={step.completed ? "default" : "secondary"}
-                    className={cn(
-                      step.completed && "bg-future-green text-business-black",
-                      !step.completed && index === currentStep && "bg-future-green text-business-black",
-                      !step.completed && index > currentStep && "bg-future-green/20 text-future-green"
-                    )}
-                  >
-                    Step {index + 1}
-                  </Badge>
-                </div>
-                <CardTitle className={cn(
-                  "text-lg mt-3 font-inter font-semibold",
-                  step.completed ? "text-business-black" : "text-business-black/70",
-                  index === currentStep && !step.completed && "text-business-black"
-                )}>{step.title}</CardTitle>
-                <CardDescription className="text-sm font-inter font-normal">
-                  {step.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Button
-                  onClick={() => navigate(step.route)}
-                  disabled={!step.completed && index > currentStep && !(index === 3 && currentStep === 3)}
-                  variant={step.completed ? "outline" : "default"}
-                  className={cn(
-                    "w-full font-inter font-medium transition-all duration-300",
-                    step.completed && "border-future-green/30 text-future-green hover:bg-future-green hover:text-white",
-                    !step.completed && (index === currentStep || (index === 3 && currentStep === 3)) && "bg-gradient-to-r from-future-green to-future-green/80 hover:from-future-green/90 hover:to-future-green/70 text-business-black hover:shadow-lg"
-                  )}
-                >
-                  {step.completed ? (
-                    <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Completed
-                    </>
-                  ) : (
-                    <>
-                      {step.action}
-                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                    </>
-                  )}
-                </Button>
-                {/* Current Step Indicator */}
-                {!step.completed && index === currentStep && (
-                  <div className="mt-2 text-center">
-                    <div className="inline-flex items-center gap-1 text-xs text-future-green font-medium font-inter animate-pulse">
-                      <Circle className="h-1.5 w-1.5 fill-current animate-pulse" />
-                      Current Step
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className={cn(
+                        "font-medium text-sm",
+                        step.completed && "text-green-800",
+                        !step.completed && index === currentStep && "text-blue-900",
+                        !step.completed && index > currentStep && "text-gray-600"
+                      )}>
+                        {step.title}
+                      </h3>
+                      {index === currentStep && !step.completed && (
+                        <Badge variant="outline" className="text-xs">
+                          Current
+                        </Badge>
+                      )}
                     </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {step.description}
+                    </p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  
+                  <Button
+                    onClick={() => navigate(step.route)}
+                    disabled={!step.completed && index > currentStep && !(index === 3 && currentStep === 3)}
+                    variant={step.completed ? "ghost" : "default"}
+                    size="sm"
+                    className="flex-shrink-0"
+                  >
+                    {step.completed ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        View
+                      </>
+                    ) : (
+                      <>
+                        {step.action}
+                        <ArrowRight className="h-3 w-3 ml-1" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Quick Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3 border-b">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Trial Features</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <span className="text-xs">Analyze up to 10 employees</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <span className="text-xs">AI-powered skills extraction</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <span className="text-xs">Detailed gap visualization</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <span className="text-xs">Export reports to CSV</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3 border-b">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Need Help?</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Get assistance with your skills gap analysis setup
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    View Tutorial
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Users className="h-3 w-3 mr-1" />
+                    Contact Support
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
