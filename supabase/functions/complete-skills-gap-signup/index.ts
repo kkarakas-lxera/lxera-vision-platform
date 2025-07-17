@@ -30,11 +30,22 @@ serve(async (req) => {
     console.log(`[${requestId}] Payload parsed:`, JSON.stringify(payload));
     const { token, password, company, role, teamSize, useCase, heardAbout }: CompleteSignupPayload = payload;
 
+    console.log(`[${requestId}] Extracted values:`, {
+      token: !!token,
+      password: !!password,
+      company: company || 'UNDEFINED',
+      role: role || 'UNDEFINED',
+      teamSize: teamSize || 'UNDEFINED',
+      useCase: useCase || 'UNDEFINED',
+      heardAbout: heardAbout || 'UNDEFINED'
+    });
+
     if (!token || !password) {
       throw new Error('Token and password are required');
     }
 
     if (!company || !role) {
+      console.error(`[${requestId}] Missing required fields:`, { company: company || 'null', role: role || 'null' });
       throw new Error('Company and role are required');
     }
 
