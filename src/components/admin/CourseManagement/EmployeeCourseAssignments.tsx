@@ -116,7 +116,6 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
     if (companyId) {
       fetchPositionsCount();
       fetchAssignments();
-      fetchDepartments();
     }
   }, [companyId]);
 
@@ -162,24 +161,6 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
     }
   };
 
-  const fetchDepartments = async () => {
-    if (!companyId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('departments')
-        .select('code, name')
-        .eq('company_id', companyId)
-        .order('name');
-
-      if (error) throw error;
-      
-      const deptCodes = data?.map(d => d.code) || [];
-      setDepartments(deptCodes);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
 
   const fetchAssignments = async () => {
     if (!companyId) {
@@ -241,14 +222,9 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
       
       const usersMap = new Map(usersData?.map(u => [u.id, u]) || []);
 
-      // Batch fetch departments
-      const { data: deptsData } = await supabase
-        .from('departments')
-        .select('code, name')
-        .eq('company_id', companyId)
-        .in('code', departmentCodes);
-      
-      const deptsMap = new Map(deptsData?.map(d => [d.code, d]) || []);
+      // Extract unique departments directly from assignment data
+      const uniqueDepartments = [...new Set(departmentCodes.filter(Boolean))].sort();
+      setDepartments(uniqueDepartments);
 
       // Batch fetch course plans if any
       let plansMap = new Map();
@@ -275,7 +251,6 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
       // Transform the data without additional queries
       const transformedAssignments = assignmentsData.map((assignment) => {
         const user = usersMap.get(assignment.employees.user_id);
-        const dept = deptsMap.get(assignment.employees.department);
         const plan = plansMap.get(assignment.plan_id);
         const course = coursesMap.get(assignment.course_id);
 
@@ -341,7 +316,7 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
           employee_name: user?.full_name || 'Unknown Employee',
           employee_email: user?.email || 'No Email',
           department_code: assignment.employees.department || 'N/A',
-          department_name: dept?.name || 'Unknown Department',
+          department_name: assignment.employees.department || 'Unknown Department',
           plan_id: assignment.plan_id,
           course_title: courseTitle,
           skills_gap_percentage: skillsGapPercentage,
