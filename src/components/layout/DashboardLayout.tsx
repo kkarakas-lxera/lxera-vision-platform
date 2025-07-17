@@ -296,7 +296,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                         )}
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="right">
+                    <TooltipContent side="right" className="bg-amber-50 border-amber-200 text-amber-800">
                       <p>{tooltipContent}</p>
                     </TooltipContent>
                   </Tooltip>

@@ -437,7 +437,14 @@ export default function PositionCreate() {
                 <span className="text-sm font-medium">
                   {index + 1}.
                 </span>
-                <span className="text-sm truncate">
+                <span 
+                  className="text-sm truncate cursor-pointer hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    switchToPosition(index);
+                    setCurrentStep(1);
+                  }}
+                >
                   {position.position_title || 'Untitled Position'}
                 </span>
                 {position.position_title && position.required_skills.length > 0 && (
@@ -586,7 +593,10 @@ export default function PositionCreate() {
                   <div>
                     <h4 className="font-medium">AI-Powered Skill Suggestions</h4>
                     <p className="text-sm text-muted-foreground">
-                      Get intelligent skill recommendations based on the position details
+                      {!positionData.position_title 
+                        ? "Enter a position title to get AI-powered suggestions"
+                        : "Get intelligent skill recommendations based on the position details"
+                      }
                     </p>
                   </div>
                 </div>
@@ -594,7 +604,7 @@ export default function PositionCreate() {
                   variant="default"
                   size="sm"
                   onClick={() => setShowAISuggestions(true)}
-                  disabled={loadingSuggestions}
+                  disabled={loadingSuggestions || !positionData.position_title}
                 >
                   {loadingSuggestions ? 'Loading...' : 'Get Suggestions'}
                 </Button>
@@ -602,14 +612,16 @@ export default function PositionCreate() {
 
               {showAISuggestions && (
                 <AISkillSuggestions
-                  positionData={{
-                    position_title: positionData.position_title,
-                    position_level: positionData.position_level,
-                    department: positionData.department,
-                    description: positionData.description
-                  }}
-                  onAcceptSuggestions={handleAISuggestions}
-                  onClose={() => setShowAISuggestions(false)}
+                  positionTitle={positionData.position_title}
+                  positionDescription={positionData.description}
+                  positionLevel={positionData.position_level}
+                  department={positionData.department}
+                  onAddSkill={addSkill}
+                  existingSkills={positionData.required_skills.map(skill => ({
+                    skill_id: skill.skill_id,
+                    skill_name: skill.skill_name
+                  }))}
+                  onSuggestionsLoaded={handleAISuggestions}
                 />
               )}
 

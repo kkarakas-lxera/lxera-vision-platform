@@ -153,7 +153,7 @@ export default function SkillsGapOnboardingFlow() {
           <p className="text-lg text-gray-600">
             Follow these steps to analyze your team's skills and identify gaps
           </p>
-          <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+          <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
             Current plan: Free Trial
           </div>
         </div>
