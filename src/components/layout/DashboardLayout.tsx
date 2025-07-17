@@ -163,16 +163,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
       {/* Sidebar - Hidden on mobile */}
       {!isMobile && (
         <div className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-smart-beige via-future-green/10 to-smart-beige shadow-2xl transition-all duration-300 ease-in-out backdrop-blur-md border-r border-future-green/20",
           sidebarExpanded ? "w-64" : "w-16"
         )}>
-        <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
+        {/* Background overlay for additional depth */}
+        <div className="absolute inset-0 bg-gradient-to-br from-future-green/5 via-transparent to-business-black/5" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-future-green/8 rounded-full blur-2xl" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-lxera-blue/8 rounded-full blur-2xl" />
+        <div className="relative flex h-16 items-center justify-between border-b border-future-green/20 px-4 bg-white/80 backdrop-blur-sm">
           {sidebarExpanded && (
             <div className="flex items-center">
               <img
                 src="/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png"
                 alt="LXERA logo"
-                className="h-8 object-contain brightness-0 invert"
+                className="h-8 object-contain"
                 draggable={false}
                 width={100}
                 height={32}
@@ -185,13 +189,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+            className="h-8 w-8 text-business-black/80 hover:text-business-black hover:bg-future-green/20"
           >
             {sidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
         </div>
         
-        <nav className="mt-6 px-2">
+        <nav className="relative mt-6 px-2">
           <div className="space-y-2">
             {navigationItems.map((item, index) => {
               // Track current section for expand/collapse
@@ -214,28 +218,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                 return (
                   <div key={`section-${index}`} className={cn(
                     "pt-4 pb-2",
-                    index !== 0 && "mt-4 border-t border-slate-800"
+                    index !== 0 && "mt-4 border-t border-future-green/20"
                   )}>
                     {sidebarExpanded ? (
                       <button
                         onClick={() => toggleSection(item.section)}
-                        className="flex items-center justify-between px-3 gap-2 w-full hover:bg-slate-800/50 rounded-md py-1 transition-colors"
+                        className="flex items-center justify-between px-3 gap-2 w-full hover:bg-white/60 rounded-md py-1 transition-colors backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-2">
-                          {SectionIcon && <SectionIcon className="h-3 w-3 text-slate-500" />}
-                          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          {SectionIcon && <SectionIcon className="h-3 w-3 text-business-black/70" />}
+                          <h3 className="text-xs font-semibold text-business-black/80 uppercase tracking-wider">
                             {item.section}
                           </h3>
                         </div>
                         {isExpanded ? (
-                          <ChevronDown className="h-3 w-3 text-slate-500" />
+                          <ChevronDown className="h-3 w-3 text-business-black/70" />
                         ) : (
-                          <ChevronRight className="h-3 w-3 text-slate-500" />
+                          <ChevronRight className="h-3 w-3 text-business-black/70" />
                         )}
                       </button>
                     ) : (
                       <div className="flex justify-center">
-                        {SectionIcon && <SectionIcon className="h-4 w-4 text-slate-500" />}
+                        {SectionIcon && <SectionIcon className="h-4 w-4 text-business-black/70" />}
                       </div>
                     )}
                   </div>
@@ -254,7 +258,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                     variant="ghost"
                     className={cn(
                       "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group w-full justify-start",
-                      "text-slate-300 hover:bg-slate-800 hover:text-white",
+                      "text-business-black/80 hover:bg-white/60 hover:text-business-black backdrop-blur-sm",
                       !sidebarExpanded && "justify-center"
                     )}
                     title={!sidebarExpanded ? item.label : undefined}
@@ -272,7 +276,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                     key={item.href}
                     className={cn(
                       "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
-                      "text-slate-500 bg-slate-800/30",
+                      "text-business-black/50 bg-gray-200/40 backdrop-blur-sm",
                       !sidebarExpanded && "justify-center"
                     )}
                     title={!sidebarExpanded ? `${item.label} (Locked)` : undefined}
@@ -295,8 +299,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   className={cn(
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group",
                     isActive
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white",
+                      ? "bg-gradient-to-r from-business-black to-future-green text-white shadow-lg"
+                      : "text-business-black/80 hover:bg-white/60 hover:text-business-black backdrop-blur-sm",
                     !sidebarExpanded && "justify-center"
                   )}
                   title={!sidebarExpanded ? item.label : undefined}

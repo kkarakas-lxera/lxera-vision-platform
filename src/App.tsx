@@ -80,6 +80,7 @@ const Glossary = lazy(() => import("./pages/resources/Glossary"));
 const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
 const EarlyAccessSignup = lazy(() => import("./pages/EarlyAccessSignup"));
 const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
+const SkillsGapAnalysisLanding = lazy(() => import("./pages/SkillsGapAnalysisLanding"));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -895,6 +896,7 @@ const App = () => {
             <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />
             <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
+            <Route path="/skills-gap-analysis" element={<PageSuspense><SkillsGapAnalysisLanding /></PageSuspense>} />
 
             {/* Protected admin routes */}
             <Route
