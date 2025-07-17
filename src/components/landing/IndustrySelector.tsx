@@ -29,7 +29,7 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
   ];
 
   return (
-    <section className="py-12 bg-gradient-to-br from-smart-beige via-future-green/5 to-smart-beige">
+    <section className="py-12 bg-gradient-to-br from-white via-future-green/5 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-business-black mb-4">
@@ -52,8 +52,8 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
                 variant="outline"
                 className={`h-auto p-6 flex flex-col items-center gap-3 transition-all duration-300 ${
                   isSelected 
-                    ? 'bg-future-green/20 border-future-green text-business-black' 
-                    : 'bg-white hover:bg-future-green/10 border-business-black/20 text-business-black hover:border-future-green'
+                    ? 'bg-future-green/20 border-future-green border-2 text-business-black' 
+                    : 'bg-white hover:bg-future-green/10 border-business-black/30 text-business-black hover:border-future-green'
                 }`}
               >
                 <IconComponent className={`h-8 w-8 ${industry.color}`} />

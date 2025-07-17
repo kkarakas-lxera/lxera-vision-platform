@@ -36,7 +36,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Your Competitors Are Already Ahead
           </h2>
-          <p className="text-xl text-smart-beige/80 mb-8">
+          <p className="text-xl text-white/90 mb-8">
             While you're reading this, <span className="text-future-green font-semibold">23 companies</span> just discovered their skills gaps with LXERA
           </p>
 
@@ -44,13 +44,13 @@ const FinalCTA: React.FC<FinalCTAProps> = ({
           <form id="email-form" onSubmit={onSubmit} className="max-w-md mx-auto mb-8">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-smart-beige/60 h-5 w-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                 <Input
                   type="email"
                   placeholder="Enter work email to join them"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 text-base bg-smart-beige/10 border-smart-beige/20 text-white placeholder:text-smart-beige/60 focus:border-future-green focus:ring-0"
+                  className="pl-10 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-future-green focus:ring-0"
                   required
                 />
               </div>
@@ -61,7 +61,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-business-black border-t-transparent rounded-full animate-spin mr-2" />
                     Analyzing...
                   </div>
                 ) : (
@@ -75,7 +75,7 @@ const FinalCTA: React.FC<FinalCTAProps> = ({
           </form>
 
           {/* Trust Indicators */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-smart-beige/80 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-white/90 mb-8">
             <div className="flex items-center gap-2">
               <Timer className="h-4 w-4 text-future-green" />
               <span>Limited spots available</span>
@@ -96,17 +96,17 @@ const FinalCTA: React.FC<FinalCTAProps> = ({
               <h3 className="text-lg font-bold text-future-green mb-2">
                 🔥 LAST CHANCE FOR JANUARY
               </h3>
-              <p className="text-sm text-smart-beige/80 mb-4">
+              <p className="text-sm text-white/90 mb-4">
                 Analysis spots are filling up fast
               </p>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-smart-beige/80">Limited spots available</span>
+                <span className="text-sm text-white/90">Limited spots available</span>
                 <Badge variant="destructive" className="bg-future-green text-business-black">
                   Limited spots
                 </Badge>
               </div>
               <Progress value={spotsProgress} className="h-2" />
-              <p className="text-xs text-smart-beige/60 mt-2">
+              <p className="text-xs text-white/80 mt-2">
                 ⚡ 3 companies joined in the last hour
               </p>
             </CardContent>

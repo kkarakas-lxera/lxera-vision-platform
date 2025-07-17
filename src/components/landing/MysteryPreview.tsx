@@ -9,59 +9,99 @@ import { cn } from '@/lib/utils';
 interface MysteryPreviewProps {
   spotsRemaining: number;
   selectedIndustry: string;
+  onIndustrySelect: (industry: string) => void;
 }
 
-const MysteryPreview: React.FC<MysteryPreviewProps> = ({ spotsRemaining, selectedIndustry }) => {
+const MysteryPreview: React.FC<MysteryPreviewProps> = ({ spotsRemaining, selectedIndustry, onIndustrySelect }) => {
   const [showPreview, setShowPreview] = useState(false);
 
-  const getIndustrySpecificGaps = (industry: string) => {
-    const industryGaps = {
-      'Technology': [
-        { skill: 'React Server Components', gap: 78 },
-        { skill: 'Performance Optimization', gap: 65 },
-        { skill: 'Advanced TypeScript', gap: 52 }
-      ],
-      'Healthcare': [
-        { skill: 'HIPAA Compliance', gap: 82 },
-        { skill: 'Data Security', gap: 71 },
-        { skill: 'Healthcare Analytics', gap: 58 }
-      ],
-      'Finance': [
-        { skill: 'Risk Management', gap: 75 },
-        { skill: 'Regulatory Compliance', gap: 68 },
-        { skill: 'Financial Analytics', gap: 63 }
-      ],
-      'Manufacturing': [
-        { skill: 'Lean Manufacturing', gap: 71 },
-        { skill: 'Quality Control', gap: 66 },
-        { skill: 'Supply Chain Management', gap: 59 }
-      ],
-      'Education': [
-        { skill: 'Digital Learning', gap: 73 },
-        { skill: 'Student Analytics', gap: 67 },
-        { skill: 'Educational Technology', gap: 61 }
-      ],
-      'Retail': [
-        { skill: 'Customer Experience', gap: 77 },
-        { skill: 'E-commerce', gap: 69 },
-        { skill: 'Inventory Management', gap: 56 }
-      ]
+  const getIndustrySpecificData = (industry: string) => {
+    const industryData = {
+      'Technology': {
+        gaps: [
+          { skill: 'React Server Components', gap: 78 },
+          { skill: 'Performance Optimization', gap: 65 },
+          { skill: 'Advanced TypeScript', gap: 52 }
+        ],
+        impact: { employees: 34, savings: '$127K' }
+      },
+      'Healthcare': {
+        gaps: [
+          { skill: 'HIPAA Compliance', gap: 82 },
+          { skill: 'Data Security', gap: 71 },
+          { skill: 'Healthcare Analytics', gap: 58 }
+        ],
+        impact: { employees: 28, savings: '$165K' }
+      },
+      'Finance': {
+        gaps: [
+          { skill: 'Risk Management', gap: 75 },
+          { skill: 'Regulatory Compliance', gap: 68 },
+          { skill: 'Financial Analytics', gap: 63 }
+        ],
+        impact: { employees: 42, savings: '$198K' }
+      },
+      'Manufacturing': {
+        gaps: [
+          { skill: 'Lean Manufacturing', gap: 71 },
+          { skill: 'Quality Control', gap: 66 },
+          { skill: 'Supply Chain Management', gap: 59 }
+        ],
+        impact: { employees: 56, savings: '$234K' }
+      },
+      'Education': {
+        gaps: [
+          { skill: 'Digital Learning', gap: 73 },
+          { skill: 'Student Analytics', gap: 67 },
+          { skill: 'Educational Technology', gap: 61 }
+        ],
+        impact: { employees: 23, savings: '$89K' }
+      },
+      'Retail': {
+        gaps: [
+          { skill: 'Customer Experience', gap: 77 },
+          { skill: 'E-commerce', gap: 69 },
+          { skill: 'Inventory Management', gap: 56 }
+        ],
+        impact: { employees: 38, savings: '$156K' }
+      }
     };
-    return industryGaps[industry] || industryGaps['Technology'];
+    return industryData[industry] || industryData['Technology'];
   };
 
-  const mockGaps = getIndustrySpecificGaps(selectedIndustry);
+  const currentData = getIndustrySpecificData(selectedIndustry);
+  const industries = ['Technology', 'Healthcare', 'Finance', 'Manufacturing', 'Education', 'Retail'];
 
   return (
-    <section className="py-16 bg-gradient-to-br from-smart-beige via-smart-beige/95 to-smart-beige">
+    <section className="py-16 bg-gradient-to-br from-white via-future-green/5 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-business-black mb-4">
-            See What We Found About {selectedIndustry} Teams
+          <h2 className="text-3xl sm:text-4xl font-bold text-business-black mb-6">
+            See What We Found About{' '}
+            <span className="text-future-green">{selectedIndustry}</span> Teams
           </h2>
-          <p className="text-xl text-business-black/70 max-w-3xl mx-auto">
+          <p className="text-xl text-business-black/70 max-w-3xl mx-auto mb-6">
             {selectedIndustry} companies are missing these critical skills
           </p>
+          
+          {/* Inline Industry Selector */}
+          <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+            {industries.map((industry) => (
+              <Button
+                key={industry}
+                onClick={() => onIndustrySelect(industry)}
+                variant="outline"
+                size="sm"
+                className={`text-sm transition-all duration-200 ${
+                  selectedIndustry === industry
+                    ? 'bg-future-green text-business-black border-future-green hover:bg-future-green/90'
+                    : 'bg-white text-business-black/70 border-business-black/20 hover:bg-future-green/10 hover:text-business-black hover:border-future-green'
+                }`}
+              >
+                {industry}
+              </Button>
+            ))}
+          </div>
         </div>
 
         <div className="max-w-4xl mx-auto">
@@ -79,7 +119,7 @@ const MysteryPreview: React.FC<MysteryPreviewProps> = ({ spotsRemaining, selecte
                   </div>
                   
                   <div className="space-y-4">
-                    {mockGaps.map((gap, index) => (
+                    {currentData.gaps.map((gap, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-business-black/80">{gap.skill}</span>
                         <div className="flex items-center gap-3">
@@ -92,7 +132,7 @@ const MysteryPreview: React.FC<MysteryPreviewProps> = ({ spotsRemaining, selecte
                   
                   <div className="bg-future-green/10 p-4 rounded-lg">
                     <p className="text-sm text-business-black">
-                      <strong>Impact:</strong> 34 employees affected • $127K potential savings
+                      <strong>Impact:</strong> {currentData.impact.employees} employees affected • {currentData.impact.savings} potential savings
                     </p>
                   </div>
                 </div>

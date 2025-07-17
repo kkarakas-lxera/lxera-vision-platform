@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import HeroSection from '@/components/landing/HeroSection';
-import IndustrySelector from '@/components/landing/IndustrySelector';
 import MysteryPreview from '@/components/landing/MysteryPreview';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import FinalCTA from '@/components/landing/FinalCTA';
@@ -35,8 +34,8 @@ const SkillsGapAnalysisLanding = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Navigate to early access signup with email prefilled
-    navigate(`/early-access-signup?email=${encodeURIComponent(email)}&source=skills-gap-landing`);
+    // Navigate to skills gap signup (dedicated funnel, not early access)
+    navigate(`/skills-gap-signup?email=${encodeURIComponent(email)}&source=skills-gap-landing`);
     
     setIsLoading(false);
   };
@@ -45,9 +44,9 @@ const SkillsGapAnalysisLanding = () => {
   const spotsProgress = ((100 - spotsRemaining) / 100) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige">
+    <div className="min-h-screen bg-gradient-to-br from-white via-future-green/5 to-white">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-future-green/20 sticky top-0 z-50">
+      <nav className="bg-white/95 backdrop-blur-md border-b border-future-green/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo />
@@ -64,7 +63,7 @@ const SkillsGapAnalysisLanding = () => {
                 onClick={() => navigate('/early-access-signup')}
                 className="hidden sm:inline-flex"
               >
-                Request Demo
+                Start Free Analysis
               </Button>
             </div>
           </div>
@@ -84,11 +83,6 @@ const SkillsGapAnalysisLanding = () => {
       {/* Mystery Preview Section */}
       <MysteryPreview 
         spotsRemaining={spotsRemaining}
-        selectedIndustry={selectedIndustry}
-      />
-
-      {/* Industry Selector */}
-      <IndustrySelector 
         selectedIndustry={selectedIndustry}
         onIndustrySelect={setSelectedIndustry}
       />
