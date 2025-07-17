@@ -916,6 +916,7 @@ export default function CourseGenerationTwoColumn() {
             </CardContent>
           </Card>
         </div>
+      </div>
           </div>
         </div>
 
