@@ -83,13 +83,24 @@ const EmployeesPage = () => {
   const [positionsCount, setPositionsCount] = useState(0);
 
   useEffect(() => {
+    console.log('useEffect triggered, userProfile:', userProfile);
     if (userProfile?.company_id) {
+      console.log('Calling fetchEmployees from useEffect');
       fetchEmployees();
     }
   }, [userProfile]);
 
+  // Debug: Monitor positionsCount changes
+  useEffect(() => {
+    console.log('positionsCount state changed to:', positionsCount);
+  }, [positionsCount]);
+
   const fetchEmployees = async () => {
     if (!userProfile?.company_id) return;
+
+    console.log('fetchEmployees called, company_id:', userProfile.company_id);
+
+    let calculatedPositionsCount = 0;
 
     try {
       setLoading(true);
@@ -103,12 +114,15 @@ const EmployeesPage = () => {
       if (posError) {
         console.error('Error fetching positions:', posError);
         // Set to 0 to show blur effect if we can't fetch positions
-        setPositionsCount(0);
+        calculatedPositionsCount = 0;
       } else {
-        const posCount = positionsData?.length || 0;
-        console.log('Positions count:', posCount);
-        setPositionsCount(posCount);
+        calculatedPositionsCount = positionsData?.length || 0;
+        console.log('Positions count calculated:', calculatedPositionsCount);
       }
+      
+      // Update state with the calculated count
+      console.log('Setting positionsCount to:', calculatedPositionsCount);
+      setPositionsCount(calculatedPositionsCount);
 
       const { data, error } = await supabase
         .from('v_company_employees')
@@ -138,7 +152,9 @@ const EmployeesPage = () => {
       console.error('Error fetching employees:', error);
       toast.error('Failed to load employees');
     } finally {
+      console.log('Setting loading to false. Calculated positionsCount:', calculatedPositionsCount);
       setLoading(false);
+      console.log('Loading set to false. Final positionsCount should be:', calculatedPositionsCount);
     }
   };
 
