@@ -325,15 +325,6 @@ export default function PositionCreate() {
     return `(${elapsed.toFixed(1)}s)`;
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return '✅';
-      case 'processing': return '🔄';
-      case 'error': return '❌';
-      default: return '⏳';
-    }
-  };
-
   const startBatchProcessing = async () => {
     const positionsToProcess = positions
       .map((_, index) => index)
