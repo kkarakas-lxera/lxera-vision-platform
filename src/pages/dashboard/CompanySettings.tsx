@@ -1,15 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle } from 'lucide-react';
+import { Settings, Link2, Building2, CheckCircle, AlertCircle, RefreshCw, Zap, Users, Sparkles, CreditCard, HelpCircle, ArrowLeft, Bug, Lightbulb, MessageCircle, Send, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { HRISService } from '@/services/hrisService';
 import { toast } from 'sonner';
 import { getCompanyPermissions, type CompanyPermissions } from '@/utils/permissions';
 import { Separator } from '@/components/ui/separator';
 import { CompanyProfileModal } from '@/components/settings/CompanyProfileModal';
+import { supabase } from '@/integrations/supabase/client';
+
+type FeedbackType = 'bug_report' | 'feature_request' | 'general_feedback';
+
+interface FeedbackFormData {
+  type: FeedbackType;
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
+  category: string;
+  steps_to_reproduce?: string;
+  expected_behavior?: string;
+  actual_behavior?: string;
+  browser_info?: string;
+}
 
 export default function CompanySettings() {
   const { userProfile } = useAuth();
@@ -18,6 +37,20 @@ export default function CompanySettings() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [permissions, setPermissions] = useState<CompanyPermissions | null>(null);
   const [companyProfileOpen, setCompanyProfileOpen] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [formData, setFormData] = useState<FeedbackFormData>({
+    type: 'general_feedback',
+    title: '',
+    description: '',
+    priority: 'medium',
+    category: '',
+    steps_to_reproduce: '',
+    expected_behavior: '',
+    actual_behavior: '',
+    browser_info: typeof window !== 'undefined' ? navigator.userAgent : '',
+  });
 
   useEffect(() => {
     checkHRISConnection();
@@ -50,7 +83,7 @@ export default function CompanySettings() {
     
     setDisconnecting(true);
     try {
-      await HRISService.disconnect(userProfile.company_id);
+      // TODO: Implement HRIS disconnect functionality
       setHrisConnection(null);
       toast.success('HRIS disconnected successfully');
     } catch (error) {
@@ -71,64 +104,372 @@ export default function CompanySettings() {
     }
   };
 
+  const feedbackTypes = [
+    {
+      value: 'bug_report' as const,
+      label: 'Bug Report',
+      icon: Bug,
+      description: 'Report a problem or issue with the platform',
+      color: 'bg-red-50 text-red-700 border-red-200',
+    },
+    {
+      value: 'feature_request' as const,
+      label: 'Feature Request',
+      icon: Lightbulb,
+      description: 'Suggest a new feature or improvement',
+      color: 'bg-blue-50 text-blue-700 border-blue-200',
+    },
+    {
+      value: 'general_feedback' as const,
+      label: 'General Feedback',
+      icon: MessageCircle,
+      description: 'Share your thoughts or suggestions',
+      color: 'bg-green-50 text-green-700 border-green-200',
+    },
+  ];
+
+  const categories = {
+    bug_report: [
+      'User Interface',
+      'Data Processing',
+      'Authentication',
+      'Performance',
+      'Integration',
+      'Other',
+    ],
+    feature_request: [
+      'Dashboard',
+      'Employee Management',
+      'Skills Analysis',
+      'Course Management',
+      'Reporting',
+      'Integration',
+      'Other',
+    ],
+    general_feedback: [
+      'User Experience',
+      'Performance',
+      'Design',
+      'Documentation',
+      'Support',
+      'Other',
+    ],
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!userProfile) {
+      toast.error('Please log in to submit feedback');
+      return;
+    }
+
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error('Please provide both a title and description for your feedback');
+      return;
+    }
+
+    setFeedbackLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .insert({
+          first_name: userProfile.full_name.split(' ')[0] || 'User',
+          last_name: userProfile.full_name.split(' ').slice(1).join(' ') || '',
+          email: userProfile.email,
+          company: userProfile.company_id || 'Unknown',
+          job_title: userProfile.role || 'User',
+          message: `${formData.title}\n\n${formData.description}`,
+          priority: formData.priority,
+          source: 'Platform Dashboard Settings',
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Feedback submitted successfully! We\'ll review it and get back to you soon.');
+
+      // Reset form
+      setFormData({
+        type: 'general_feedback',
+        title: '',
+        description: '',
+        priority: 'medium',
+        category: '',
+        steps_to_reproduce: '',
+        expected_behavior: '',
+        actual_behavior: '',
+        browser_info: typeof window !== 'undefined' ? navigator.userAgent : '',
+      });
+      setShowAdvanced(false);
+      setShowFeedback(false);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast.error('There was an error submitting your feedback. Please try again.');
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-lg font-semibold text-gray-900">Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your company settings and integrations</p>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage your company settings and integrations</p>
       </div>
 
       <div className="space-y-4">
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
+        <Card className="overflow-hidden">
+          <CardHeader className="py-3 border-b">
             <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4 text-gray-500" />
-              <h2 className="text-sm font-medium text-gray-900">Quick Actions</h2>
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Quick Actions</CardTitle>
             </div>
-          </div>
-          <div className="p-4">
+          </CardHeader>
+          <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <button 
                 onClick={() => setCompanyProfileOpen(true)}
                 className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group"
               >
-                <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Company Profile</span>
+                <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                <span className="text-xs text-foreground">Company Profile</span>
               </button>
               <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <Users className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Team Members</span>
+                <Users className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                <span className="text-xs text-foreground">Team Members</span>
               </button>
               <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <CreditCard className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Billing</span>
+                <CreditCard className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                <span className="text-xs text-foreground">Billing</span>
               </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <HelpCircle className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Support</span>
+              <button 
+                onClick={() => setShowFeedback(!showFeedback)}
+                className={`p-3 text-center hover:bg-gray-50 rounded-md transition-colors group ${showFeedback ? 'bg-gray-50' : ''}`}
+              >
+                <HelpCircle className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                <span className="text-xs text-foreground">Support</span>
               </button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        {/* Platform Feedback Form - Shown when Support is clicked */}
+        {showFeedback && (
+          <Card className="overflow-hidden">
+            <CardHeader className="py-3 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-base">Platform Feedback</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFeedback(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription className="text-xs mt-1">
+                Share your thoughts, report issues, or suggest improvements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                {/* Feedback Type Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Feedback Type</Label>
+                  <div className="flex gap-2">
+                    {feedbackTypes.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <button
+                          key={type.value}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, type: type.value, category: '' }))}
+                          className={`flex-1 p-2 rounded-lg border text-center transition-colors ${
+                            formData.type === type.value
+                              ? type.color
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 mx-auto mb-1" />
+                          <div className="text-xs font-medium">{type.label}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Brief summary of your feedback"
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Detailed description of your feedback"
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                {/* Show More Options Button */}
+                {!showAdvanced && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(true)}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    + More options (category, priority)
+                  </button>
+                )}
+
+                {/* Advanced Options */}
+                {showAdvanced && (
+                  <div className="space-y-4 p-3 bg-white rounded-lg border border-gray-200">
+                    {/* Category */}
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-sm">Category</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories[formData.type].map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Priority */}
+                    <div className="space-y-2">
+                      <Label htmlFor="priority" className="text-sm">Priority</Label>
+                      <Select
+                        value={formData.priority}
+                        onValueChange={(value: 'low' | 'medium' | 'high') => 
+                          setFormData(prev => ({ ...prev, priority: value }))
+                        }
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bug Report Specific Fields */}
+                {formData.type === 'bug_report' && showAdvanced && (
+                  <div className="space-y-3 p-3 bg-white rounded-lg border border-red-200">
+                    <h4 className="text-sm font-medium text-red-800">Bug Report Details (Optional)</h4>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="steps" className="text-sm">Steps to Reproduce</Label>
+                      <Textarea
+                        id="steps"
+                        value={formData.steps_to_reproduce}
+                        onChange={(e) => setFormData(prev => ({ ...prev, steps_to_reproduce: e.target.value }))}
+                        placeholder="1. Go to...&#10;2. Click on...&#10;3. Expected result..."
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="expected" className="text-sm">Expected Behavior</Label>
+                      <Textarea
+                        id="expected"
+                        value={formData.expected_behavior}
+                        onChange={(e) => setFormData(prev => ({ ...prev, expected_behavior: e.target.value }))}
+                        placeholder="What should have happened?"
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="actual" className="text-sm">Actual Behavior</Label>
+                      <Textarea
+                        id="actual"
+                        value={formData.actual_behavior}
+                        onChange={(e) => setFormData(prev => ({ ...prev, actual_behavior: e.target.value }))}
+                        placeholder="What actually happened?"
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Actions */}
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowFeedback(false)}
+                    disabled={feedbackLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={feedbackLoading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {feedbackLoading ? 'Submitting...' : 'Submit Feedback'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Plan & Billing and HRIS Integration Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Plan & Billing Section - Left Side */}
           {permissions?.isSkillsGapUser && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100">
+            <Card className="overflow-hidden">
+              <CardHeader className="py-3 border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-gray-500" />
-                    <h2 className="text-sm font-medium text-gray-900">Plan & Usage</h2>
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-base">Plan & Usage</CardTitle>
                   </div>
                   <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
                     Free Trial
                   </Badge>
                 </div>
-              </div>
-              <div className="p-4 space-y-3">
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -143,18 +484,18 @@ export default function CompanySettings() {
                   <div className="bg-gray-50 rounded-md p-3">
                     <div className="flex items-center gap-2 mb-1">
                       <Users className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-gray-600">Employee Limit</span>
+                      <span className="text-xs text-muted-foreground">Employee Limit</span>
                     </div>
-                    <p className="text-lg font-semibold text-gray-900">{permissions.maxEmployees}</p>
-                    <p className="text-xs text-gray-500">maximum</p>
+                    <p className="text-lg font-semibold text-foreground">{permissions.maxEmployees}</p>
+                    <p className="text-xs text-muted-foreground">maximum</p>
                   </div>
                   <div className="bg-gray-50 rounded-md p-3">
                     <div className="flex items-center gap-2 mb-1">
                       <Zap className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-gray-600">AI Features</span>
+                      <span className="text-xs text-muted-foreground">AI Features</span>
                     </div>
                     <p className="text-lg font-semibold text-orange-600">Locked</p>
-                    <p className="text-xs text-gray-500">upgrade to unlock</p>
+                    <p className="text-xs text-muted-foreground">upgrade to unlock</p>
                   </div>
                 </div>
 
@@ -165,24 +506,24 @@ export default function CompanySettings() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button size="sm" className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700">
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
                     Upgrade Plan
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button variant="outline" size="sm">
                     Contact Sales
                   </Button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* HRIS Integration Section - Right Side */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
+        <Card className="overflow-hidden">
+          <CardHeader className="py-3 border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-gray-500" />
-                <h2 className="text-sm font-medium text-gray-900">HR System Integration</h2>
+                <Link2 className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">HR System Integration</CardTitle>
               </div>
               {hrisConnection && (
                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
@@ -190,11 +531,11 @@ export default function CompanySettings() {
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <CardDescription className="text-xs mt-1">
               Automated employee data synchronization
-            </p>
-          </div>
-          <div className="p-4">
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4">
             {loading ? (
               <div className="animate-pulse space-y-3">
                 <div className="h-8 bg-gray-100 rounded w-full"></div>
@@ -216,10 +557,10 @@ export default function CompanySettings() {
               
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                   <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-gray-500" />
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{hrisConnection.provider}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-foreground">{hrisConnection.provider}</p>
+                      <p className="text-xs text-muted-foreground">
                         Last synced: {hrisConnection.last_sync ? new Date(hrisConnection.last_sync).toLocaleString() : 'Never'}
                       </p>
                     </div>
@@ -229,7 +570,6 @@ export default function CompanySettings() {
                       variant="ghost" 
                       size="sm" 
                       onClick={checkHRISConnection}
-                      className="h-8 text-xs"
                     >
                       <RefreshCw className="h-3 w-3 mr-1" />
                       Refresh
@@ -239,7 +579,7 @@ export default function CompanySettings() {
                       size="sm" 
                       onClick={disconnectHRIS}
                       disabled={disconnecting}
-                      className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       Disconnect
                     </Button>
@@ -249,12 +589,12 @@ export default function CompanySettings() {
                 {hrisConnection.sync_status && (
                   <div className="grid grid-cols-2 gap-2 mt-3">
                     <div className="text-xs bg-gray-50 rounded-md p-2">
-                      <span className="text-gray-500">Employees synced</span>
-                      <p className="font-semibold text-gray-900">{hrisConnection.sync_status.employees_synced || 0}</p>
+                      <span className="text-muted-foreground">Employees synced</span>
+                      <p className="font-semibold text-foreground">{hrisConnection.sync_status.employees_synced || 0}</p>
                     </div>
                     <div className="text-xs bg-gray-50 rounded-md p-2">
-                      <span className="text-gray-500">Status</span>
-                      <p className="font-semibold text-gray-900">{hrisConnection.sync_status.last_error || 'Healthy'}</p>
+                      <span className="text-muted-foreground">Status</span>
+                      <p className="font-semibold text-foreground">{hrisConnection.sync_status.last_error || 'Healthy'}</p>
                     </div>
                   </div>
                 )}
@@ -262,7 +602,7 @@ export default function CompanySettings() {
             ) : (
               <div className="space-y-3">
                 <div className="text-center py-2">
-                  <p className="text-sm text-gray-600">Connect your HRIS for automated employee sync</p>
+                  <p className="text-sm text-muted-foreground">Connect your HRIS for automated employee sync</p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
@@ -270,32 +610,32 @@ export default function CompanySettings() {
                     onClick={() => connectHRIS('bamboohr')}
                     className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
                   >
-                    <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                    <span className="text-xs text-gray-700">BambooHR</span>
+                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                    <span className="text-xs text-foreground">BambooHR</span>
                   </button>
                   <button
                     onClick={() => connectHRIS('workday')}
                     className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
                   >
-                    <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                    <span className="text-xs text-gray-700">Workday</span>
+                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                    <span className="text-xs text-foreground">Workday</span>
                   </button>
                   <button
                     onClick={() => connectHRIS('adp')}
                     className="p-3 border border-gray-200 rounded-md hover:border-gray-300 hover:bg-gray-50 transition-colors text-center group"
                   >
-                    <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                    <span className="text-xs text-gray-700">ADP</span>
+                    <Building2 className="h-5 w-5 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                    <span className="text-xs text-foreground">ADP</span>
                   </button>
                 </div>
                 
-                <p className="text-xs text-gray-500 text-center">
-                  Need a different HRIS? <a href="#" className="text-indigo-600 hover:text-indigo-700">Contact support</a>
+                <p className="text-xs text-muted-foreground text-center">
+                  Need a different HRIS? <a href="#" className="text-primary hover:text-primary/90">Contact support</a>
                 </p>
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         </div>
       </div>
 

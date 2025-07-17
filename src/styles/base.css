@@ -264,9 +264,29 @@
   }
 }
 
-/* Dashboard theme override to ensure white backgrounds */
+/* Dashboard theme override to ensure white backgrounds and consistent Inter font */
 .dashboard-theme {
   --background: 0 0% 100%; /* white */
   --muted: 0 0% 100%;
   --secondary: 0 0% 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Ensure all dashboard elements use Inter */
+.dashboard-theme *,
+.dashboard-theme h1,
+.dashboard-theme h2,
+.dashboard-theme h3,
+.dashboard-theme h4,
+.dashboard-theme h5,
+.dashboard-theme h6,
+.dashboard-theme p,
+.dashboard-theme span,
+.dashboard-theme div,
+.dashboard-theme button,
+.dashboard-theme input,
+.dashboard-theme textarea,
+.dashboard-theme select,
+.dashboard-theme label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }

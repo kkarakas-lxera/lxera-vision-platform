@@ -710,7 +710,7 @@ export default function CompanyDashboard() {
   return (
     <div 
       className={cn(
-        "space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen",
+        "font-inter space-y-4 md:space-y-6 p-4 md:p-6 max-w-7xl mx-auto min-h-screen",
         isFreeTrialUser && "bg-gradient-to-br from-slate-50 via-indigo-50 to-white"
       )}
       onTouchStart={handleTouchStart}
@@ -739,10 +739,10 @@ export default function CompanyDashboard() {
         isFreeTrialUser && "bg-white/60 backdrop-blur-sm border border-indigo-100 rounded-lg p-4 shadow-sm"
       )}>
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl md:text-3xl font-semibold font-inter text-foreground">
             Welcome back, {userProfile?.full_name}
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground">
+          <p className="text-sm md:text-base font-normal font-inter text-muted-foreground">
             Here's what's happening with your team's skills development
           </p>
         </div>
@@ -755,7 +755,7 @@ export default function CompanyDashboard() {
       {/* Quick Actions */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-medium text-foreground">Quick Actions</h2>
+          <h2 className="text-base font-semibold text-foreground">Quick Actions</h2>
           <FeedbackButton 
             variant="outline" 
             size="sm" 
@@ -842,7 +842,7 @@ export default function CompanyDashboard() {
       {/* Key Metrics */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-medium text-foreground">Key Metrics</h2>
+          <h2 className="text-base font-semibold text-foreground">Key Metrics</h2>
           <Button 
             variant="ghost" 
             size="sm"
@@ -879,7 +879,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Total Employees
                   </CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -887,7 +887,7 @@ export default function CompanyDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs font-medium text-muted-foreground mt-1">
                   {metrics.employeesWithCVs} with CVs uploaded
                 </p>
               </CardContent>
@@ -899,7 +899,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/onboarding')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     CV Analysis
                   </CardTitle>
                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -920,7 +920,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/skills')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Skills Match
                   </CardTitle>
                   <Target className="h-4 w-4 text-muted-foreground" />
@@ -938,7 +938,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/skills')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Career Readiness
                   </CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -960,7 +960,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Positions with Gaps
                   </CardTitle>
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -981,7 +981,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/employees')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Critical Gaps
                   </CardTitle>
                   <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -1001,7 +1001,7 @@ export default function CompanyDashboard() {
             )} onClick={() => navigate('/dashboard/courses')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
                     Active Learning
                   </CardTitle>
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
@@ -1059,7 +1059,7 @@ export default function CompanyDashboard() {
                     "h-5 w-5 text-blue-600",
                     isFreeTrialUser && "text-indigo-600"
                   )} />
-                  <CardTitle className="text-lg">Skills Health Score</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Skills Health Score</CardTitle>
                 </div>
                 <Badge variant="outline" className="text-lg font-semibold">
                   Grade: {skillsHealth.grade}
@@ -1069,7 +1069,7 @@ export default function CompanyDashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Overall Match</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Overall Match</p>
                   <p className="text-2xl font-bold">
                     {skillsHealth.overallScore}%
                     {skillsHealth.trend > 0 && (
@@ -1080,12 +1080,12 @@ export default function CompanyDashboard() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Gap Reduction</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Gap Reduction</p>
                   <p className="text-2xl font-bold">+18%</p>
                   <p className="text-xs text-muted-foreground">(90 days)</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Critical Skills</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Critical Skills</p>
                   <p className="text-2xl font-bold">
                     {skillsHealth.criticalGaps} urgent
                   </p>
@@ -1096,11 +1096,11 @@ export default function CompanyDashboard() {
                 "mt-4 pt-4 border-t border-blue-200",
                 isFreeTrialUser && "border-indigo-200"
               )}>
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="text-sm font-medium text-muted-foreground mb-2">
                   Analysis Coverage: {skillsHealth.analyzedCount} of {skillsHealth.totalCount} employees
                 </p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm">
+                  <p className="text-sm font-normal">
                     Top gaps: Review skills analysis for targeted training
                   </p>
                   <Button 
@@ -1143,7 +1143,7 @@ export default function CompanyDashboard() {
           )}>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Activity className="h-4 w-4" />
                   Recent Activity
                 </CardTitle>
@@ -1193,7 +1193,7 @@ export default function CompanyDashboard() {
           )}>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
+                <CardTitle className="text-lg font-semibold">Position Skills Coverage</CardTitle>
                 <Button 
                   size="sm" 
                   variant="ghost"
@@ -1219,7 +1219,7 @@ export default function CompanyDashboard() {
                           <Card key={index} className="flex-shrink-0 w-64 snap-center p-4 bg-muted/30 border-0">
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm truncate mr-2">{item.position}</span>
+                                <span className="font-semibold text-sm truncate mr-2">{item.position}</span>
                                 <span className={cn(
                                   "font-bold text-lg",
                                   item.coverage >= 80 ? 'text-green-600' : 
@@ -1290,7 +1290,7 @@ export default function CompanyDashboard() {
           )}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
@@ -1325,7 +1325,7 @@ export default function CompanyDashboard() {
           )}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Position Skills Coverage</CardTitle>
+                <CardTitle className="text-lg font-semibold">Position Skills Coverage</CardTitle>
                 <Button 
                   size="sm" 
                   variant="ghost"
@@ -1342,7 +1342,7 @@ export default function CompanyDashboard() {
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <div>
-                          <span className="font-medium">{item.position}</span>
+                          <span className="font-semibold">{item.position}</span>
                           <span className="text-xs text-muted-foreground ml-2">
                             ({item.employeesInPosition} employees)
                           </span>
@@ -1383,7 +1383,7 @@ export default function CompanyDashboard() {
       <Dialog open={showWelcomeModal} onOpenChange={handleWelcomeModalClose}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 font-bold">
               <Target className="h-5 w-5 text-blue-600" />
               Welcome to Skills Gap Analysis
             </DialogTitle>

@@ -165,11 +165,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
 
   return (
     <TooltipProvider>
-    <div className="min-h-screen bg-white dashboard-theme">
+    <div className="min-h-screen bg-white dashboard-theme font-inter">
       {/* Sidebar - Hidden on mobile */}
       {!isMobile && (
         <div className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 bg-slate-900 shadow-xl transition-all duration-300 ease-in-out font-inter",
           sidebarExpanded ? "w-64" : "w-16"
         )}>
         <div className="flex h-16 items-center justify-between border-b border-slate-700 px-4">
@@ -333,7 +333,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         isMobile && "pb-16" // Add padding bottom for mobile navigation
       )}>
         {/* Header */}
-        <div className="flex h-16 items-center justify-between bg-white px-4 md:px-6 shadow-sm">
+        <div className="flex h-16 items-center justify-between bg-white px-4 md:px-6 shadow-sm font-inter">
           <div className="flex items-center space-x-4">
             {isMobile && (
               <div className="flex items-center space-x-3">
@@ -351,7 +351,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
               </div>
             )}
             {!isMobile && (
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 font-inter">
                 {userProfile?.role === 'super_admin' && 'Super Admin'}
                 {userProfile?.role === 'company_admin' && 'Company Admin'}
                 {userProfile?.role === 'learner' && 'Learner Portal'}
@@ -398,7 +398,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
         </div>
 
         {/* Page content */}
-        <main className={cn("p-6", isMobile && "p-4")}>
+        <main className={cn("p-6 font-inter", isMobile && "p-4")}>
           {children}
         </main>
       </div>
