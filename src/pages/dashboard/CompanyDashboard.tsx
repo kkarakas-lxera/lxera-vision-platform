@@ -176,24 +176,40 @@ export default function CompanyDashboard() {
     }
 
     try {
-      // Check if skills gap analysis has been completed
-      const { count: analyzedCount } = await supabase
+      // For free trial users, check if they have at least:
+      // 1. Some positions created
+      // 2. Some employees added
+      // 3. Some skills analysis done
+      
+      const { count: positionCount } = await supabase
+        .from('st_company_positions')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', userProfile.company_id);
+
+      const { count: employeeCount } = await supabase
         .from('employees')
         .select('*', { count: 'exact', head: true })
-        .eq('company_id', userProfile.company_id)
-        .not('cv_analysis', 'is', null);
+        .eq('company_id', userProfile.company_id);
 
-      // Check if gap analysis results exist
+      // Check if gap analysis results exist by joining with employees table
       const { count: gapCount } = await supabase
-        .from('employee_skills_profile')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', userProfile.company_id)
-        .not('gap_analysis', 'is', null);
+        .from('st_employee_skills_profile')
+        .select(`
+          *,
+          employees!inner(company_id)
+        `, { count: 'exact', head: true })
+        .eq('employees.company_id', userProfile.company_id);
 
-      setOnboardingComplete((analyzedCount && analyzedCount > 0) || (gapCount && gapCount > 0));
+      // Consider onboarding complete if they have positions and employees, even if not analyzed yet
+      // This allows them to see the dashboard and continue the process
+      const hasBasicSetup = (positionCount && positionCount > 0) && (employeeCount && employeeCount > 0);
+      const hasAnalysis = gapCount && gapCount > 0;
+      
+      setOnboardingComplete(hasBasicSetup || hasAnalysis);
     } catch (error) {
       console.error('Error checking onboarding status:', error);
-      setOnboardingComplete(false);
+      // Default to showing dashboard on error to avoid blocking users
+      setOnboardingComplete(true);
     }
   };
 

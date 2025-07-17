@@ -61,7 +61,7 @@ export default function CompanySettings() {
 
   const connectHRIS = async (provider: string) => {
     try {
-      const authUrl = await HRISService.initiateConnection(userProfile?.company_id!, provider);
+      const authUrl = await HRISService.initiateOAuth(userProfile?.company_id!, provider);
       window.location.href = authUrl;
     } catch (error) {
       console.error('Error connecting HRIS:', error);
@@ -77,7 +77,101 @@ export default function CompanySettings() {
       </div>
 
       <div className="space-y-4">
-        {/* HRIS Integration Section */}
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-gray-500" />
+              <h2 className="text-sm font-medium text-gray-900">Quick Actions</h2>
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+                <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
+                <span className="text-xs text-gray-700">Company Profile</span>
+              </button>
+              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+                <Users className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
+                <span className="text-xs text-gray-700">Team Members</span>
+              </button>
+              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+                <CreditCard className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
+                <span className="text-xs text-gray-700">Billing</span>
+              </button>
+              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
+                <HelpCircle className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
+                <span className="text-xs text-gray-700">Support</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Plan & Billing and HRIS Integration Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Plan & Billing Section - Left Side */}
+          {permissions?.isSkillsGapUser && (
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-gray-500" />
+                    <h2 className="text-sm font-medium text-gray-900">Plan & Usage</h2>
+                  </div>
+                  <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                    Free Trial
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
+                      <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
+                    </div>
+                    <Sparkles className="h-4 w-4 text-amber-600" />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-gray-50 rounded-md p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Users className="h-3 w-3 text-gray-500" />
+                      <span className="text-xs text-gray-600">Employee Limit</span>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900">{permissions.maxEmployees}</p>
+                    <p className="text-xs text-gray-500">maximum</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-md p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Zap className="h-3 w-3 text-gray-500" />
+                      <span className="text-xs text-gray-600">AI Features</span>
+                    </div>
+                    <p className="text-lg font-semibold text-orange-600">Locked</p>
+                    <p className="text-xs text-gray-500">upgrade to unlock</p>
+                  </div>
+                </div>
+
+                <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
+                  <p className="text-xs text-indigo-700">
+                    Unlock unlimited employees, AI course generation, and advanced analytics
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button size="sm" className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700">
+                    Upgrade Plan
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    Contact Sales
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* HRIS Integration Section - Right Side */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -197,97 +291,6 @@ export default function CompanySettings() {
             )}
           </div>
         </div>
-
-        {/* Plan & Billing Section */}
-        {permissions?.isSkillsGapUser && (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-gray-500" />
-                  <h2 className="text-sm font-medium text-gray-900">Plan & Usage</h2>
-                </div>
-                <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                  Free Trial
-                </Badge>
-              </div>
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-md p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-amber-900">Skills Gap Analysis Trial</p>
-                    <p className="text-xs text-amber-700 mt-0.5">Limited features available</p>
-                  </div>
-                  <Sparkles className="h-4 w-4 text-amber-600" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 rounded-md p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Users className="h-3 w-3 text-gray-500" />
-                    <span className="text-xs text-gray-600">Employee Limit</span>
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900">{permissions.maxEmployees}</p>
-                  <p className="text-xs text-gray-500">maximum</p>
-                </div>
-                <div className="bg-gray-50 rounded-md p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="h-3 w-3 text-gray-500" />
-                    <span className="text-xs text-gray-600">AI Features</span>
-                  </div>
-                  <p className="text-lg font-semibold text-orange-600">Locked</p>
-                  <p className="text-xs text-gray-500">upgrade to unlock</p>
-                </div>
-              </div>
-
-              <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
-                <p className="text-xs text-indigo-700">
-                  Unlock unlimited employees, AI course generation, and advanced analytics
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button size="sm" className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700">
-                  Upgrade Plan
-                </Button>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  Contact Sales
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4 text-gray-500" />
-              <h2 className="text-sm font-medium text-gray-900">Quick Actions</h2>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Company Profile</span>
-              </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <Users className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Team Members</span>
-              </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <CreditCard className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Billing</span>
-              </button>
-              <button className="p-3 text-center hover:bg-gray-50 rounded-md transition-colors group">
-                <HelpCircle className="h-5 w-5 text-gray-400 mx-auto mb-1 group-hover:text-gray-600" />
-                <span className="text-xs text-gray-700">Support</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

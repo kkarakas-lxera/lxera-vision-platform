@@ -45,6 +45,7 @@ import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { MobileAdminNavigation, MobileCompanyNavigation, MobileLearnerNavigation } from '@/components/mobile/navigation';
 import MobileHamburgerMenu from '@/components/mobile/navigation/MobileHamburgerMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -162,6 +163,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   };
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-white dashboard-theme">
       {/* Sidebar - Hidden on mobile */}
       {!isMobile && (
@@ -270,24 +272,33 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
               
               // Handle locked items for early access
               if (item.locked) {
+                const tooltipContent = isEarlyAccess 
+                  ? "Available in full version" 
+                  : "Upgrade to unlock this feature";
+                
                 return (
-                  <div
-                    key={item.href}
-                    className={cn(
-                      "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
-                      "text-slate-500 bg-slate-800/50",
-                      !sidebarExpanded && "justify-center"
-                    )}
-                    title={!sidebarExpanded ? `${item.label} (Locked)` : undefined}
-                  >
-                    <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
-                    {sidebarExpanded && (
-                      <>
-                        <span className="flex-1">{item.label}</span>
-                        <Lock className="h-3 w-3 ml-2" />
-                      </>
-                    )}
-                  </div>
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
+                          "text-slate-500 bg-slate-800/50",
+                          !sidebarExpanded && "justify-center"
+                        )}
+                      >
+                        <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
+                        {sidebarExpanded && (
+                          <>
+                            <span className="flex-1">{item.label}</span>
+                            <Lock className="h-3 w-3 ml-2" />
+                          </>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{tooltipContent}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 );
               }
               
@@ -394,6 +405,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
 
       {/* Mobile navigation is now handled by MobileHamburgerMenu in the header */}
     </div>
+    </TooltipProvider>
   );
 };
 

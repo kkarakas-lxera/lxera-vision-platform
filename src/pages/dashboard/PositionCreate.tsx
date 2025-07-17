@@ -138,7 +138,7 @@ export default function PositionCreate() {
     setLoadingSkills(true);
     try {
       const { data, error } = await supabase
-        .from('esco_skills')
+        .from('st_skills_taxonomy')
         .select('skill_id, skill_name, description')
         .order('skill_name');
 
