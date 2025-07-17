@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
-          { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+          { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
           { section: 'Learning Platform', icon: School },
           { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
           { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator' },

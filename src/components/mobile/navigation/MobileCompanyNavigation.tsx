@@ -51,7 +51,7 @@ const MobileCompanyNavigation: React.FC<MobileCompanyNavigationProps> = ({
   const secondaryItems: NavigationItem[] = [
     { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
     { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
-    { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
     { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
   ];
 

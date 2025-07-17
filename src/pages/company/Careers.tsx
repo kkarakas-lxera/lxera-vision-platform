@@ -6,50 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, Users, Heart, Zap, Target, ArrowRight } from "lucide-react";
 
 const Careers = () => {
-  const openRoles = [
-    {
-      title: "Senior AI/ML Engineer",
-      department: "Engineering",
-      location: "San Francisco, CA / Remote",
-      type: "Full-time",
-      description: "Join our AI team to build the next generation of personalized learning experiences."
-    },
-    {
-      title: "Product Manager - Learning Analytics",
-      department: "Product",
-      location: "San Francisco, CA / Remote", 
-      type: "Full-time",
-      description: "Drive product strategy for our analytics and insights platform."
-    },
-    {
-      title: "UX/UI Designer",
-      department: "Design",
-      location: "San Francisco, CA / Remote",
-      type: "Full-time",
-      description: "Design intuitive and engaging learning experiences for global audiences."
-    },
-    {
-      title: "Learning Science Researcher",
-      department: "Research",
-      location: "Remote",
-      type: "Full-time",
-      description: "Research and implement evidence-based learning methodologies."
-    },
-    {
-      title: "Customer Success Manager",
-      department: "Customer Success",
-      location: "New York, NY / Remote",
-      type: "Full-time",
-      description: "Help enterprise clients maximize their learning outcomes with LXERA."
-    },
-    {
-      title: "Sales Development Representative",
-      department: "Sales",
-      location: "San Francisco, CA",
-      type: "Full-time",
-      description: "Generate qualified leads and build relationships with potential clients."
-    }
-  ];
+  const openRoles = [];
 
   const benefits = [
     {
@@ -100,8 +57,11 @@ const Careers = () => {
             We're building a team of passionate innovators who believe in the power of learning 
             to transform organizations and unlock human potential.
           </p>
-          <Button className="bg-future-green text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105">
-            View Open Positions
+          <Button 
+            onClick={() => window.open('https://www.linkedin.com/company/lxera', '_blank')}
+            className="bg-future-green text-business-black font-semibold px-8 py-3 rounded-xl text-lg transition-all duration-300 hover:scale-105"
+          >
+            Join Our Talent Network
           </Button>
         </div>
       </section>
@@ -114,41 +74,8 @@ const Careers = () => {
               Open Positions
             </h2>
             <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              Find your perfect role and help us revolutionize workplace learning
+              We currently don't have any openings. Please check back later or join our talent network below.
             </p>
-          </div>
-          
-          <div className="space-y-6">
-            {openRoles.map((role, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-business-black">{role.title}</h3>
-                        <Badge variant="secondary" className="bg-future-green/10 text-future-green">
-                          {role.department}
-                        </Badge>
-                      </div>
-                      <p className="text-business-black/70 mb-4">{role.description}</p>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-business-black/60">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {role.location}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {role.type}
-                        </div>
-                      </div>
-                    </div>
-                    <Button className="bg-business-black text-white font-medium rounded-xl transition-all duration-300 hover:scale-105">
-                      Apply Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
@@ -217,7 +144,7 @@ const Careers = () => {
             Ready to Make an Impact?
           </h2>
           <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
-            Don't see the perfect role? We're always looking for exceptional talent to join our mission.
+            We're always looking for exceptional talent to join our mission. Be the first to know when we have new openings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 

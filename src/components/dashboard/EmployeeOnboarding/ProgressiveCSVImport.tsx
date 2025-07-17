@@ -451,41 +451,44 @@ const progressSteps = [
               </AlertDescription>
             </Alert>
 
-            {/* Collapsible Example Data */}
-            <Collapsible>
-              <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-black hover:text-white transition-colors">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    <span className="text-sm font-medium">View Example CSV Data</span>
+            {/* Buttons Row */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Collapsible Example Data */}
+              <Collapsible>
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-black hover:text-white transition-colors h-full">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span className="text-sm font-medium">View Example</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4" />
                   </div>
-                  <ChevronDown className="h-4 w-4" />
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-2 p-4 bg-gray-50 rounded-lg border">
-                  <div className="text-xs font-mono text-gray-700 space-y-1">
-                    <div className="font-semibold text-gray-800">Example CSV format:</div>
-                    <div className="bg-white p-2 rounded border font-mono text-xs">
-                      name,email,department,position,position_code,manager_email<br/>
-                      John Smith,john.smith@company.com,Engineering,Senior Developer,ENG_SR_DEV,jane.doe@company.com<br/>
-                      Jane Doe,jane.doe@company.com,Operations,Project Manager,OPS_PM,<br/>
-                      Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,john.smith@company.com
+                </CollapsibleTrigger>
+                <CollapsibleContent className="absolute z-10 left-0 right-0 mt-1">
+                  <div className="mt-2 p-4 bg-gray-50 rounded-lg border shadow-lg">
+                    <div className="text-xs font-mono text-gray-700 space-y-1">
+                      <div className="font-semibold text-gray-800">Example CSV format:</div>
+                      <div className="bg-white p-2 rounded border font-mono text-xs overflow-x-auto">
+                        name,email,department,position,position_code,manager_email<br/>
+                        John Smith,john.smith@company.com,Engineering,Senior Developer,ENG_SR_DEV,jane.doe@company.com<br/>
+                        Jane Doe,jane.doe@company.com,Operations,Project Manager,OPS_PM,<br/>
+                        Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,john.smith@company.com
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+                </CollapsibleContent>
+              </Collapsible>
 
-            {/* Download Template Button */}
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full border-green-200 bg-green-50 hover:bg-green-100 text-green-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download CSV Template
-            </Button>
+              {/* Download Template Button */}
+              <Button
+                variant="outline"
+                onClick={downloadTemplate}
+                className="border-green-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-700 h-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
+              </Button>
+            </div>
 
             {/* File Upload */}
             <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
@@ -507,6 +510,7 @@ const progressSteps = [
                 className="hidden" 
                 accept=".csv"
                 onChange={handleFileUpload}
+                aria-label="Upload CSV file"
               />
             </div>
           </div>

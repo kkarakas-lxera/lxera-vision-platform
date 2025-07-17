@@ -190,7 +190,7 @@ const MobileHamburgerMenu: React.FC<MobileHamburgerMenuProps> = ({
             items: [
               { href: '/dashboard/courses', icon: BookOpen, label: 'Courses', description: 'Learning content' },
               { href: '/dashboard/course-generation', icon: Sparkles, label: 'AI Course Generator', description: 'Create courses with AI' },
-              { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics', description: 'Learning analytics' },
+              { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine', description: 'Gamification system' },
             ]
           },
           {

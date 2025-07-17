@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,9 @@ import { PlayerAnalytics } from '@/components/dashboard/gamification/PlayerAnaly
 import { ActivityAnalytics } from '@/components/dashboard/gamification/ActivityAnalytics';
 
 export default function GamificationAnalytics() {
+  useEffect(() => {
+    document.title = 'Game Engine System - LXERA';
+  }, []);
   return (
     <div className="space-y-8 p-6">
       {/* Header Section */}
