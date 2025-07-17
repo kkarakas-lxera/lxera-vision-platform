@@ -48,36 +48,13 @@ export default function SkillsOverview() {
   });
   const [positionsCount, setPositionsCount] = useState(0);
   const [employeesCount, setEmployeesCount] = useState(0);
-  const [companyName, setCompanyName] = useState<string>('');
   const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
 
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchSkillsOverview();
     }
-    if (userProfile?.email && !userProfile?.companies?.name) {
-      fetchCompanyName();
-    }
-  }, [userProfile?.company_id, userProfile?.email]);
-
-  const fetchCompanyName = async () => {
-    if (!userProfile?.email) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('skills_gap_leads')
-        .select('company')
-        .eq('email', userProfile.email)
-        .eq('status', 'converted')
-        .single();
-
-      if (data && !error) {
-        setCompanyName(data.company);
-      }
-    } catch (error) {
-      console.error('Error fetching company name:', error);
-    }
-  };
+  }, [userProfile?.company_id]);
 
   const fetchSkillsOverview = async () => {
     if (!userProfile?.company_id) return;
@@ -276,31 +253,6 @@ export default function SkillsOverview() {
 
   return (
     <div className="space-y-6">
-      {/* User Info Bar */}
-      <div className="bg-white border-b px-6 py-3 -mx-6 -mt-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-indigo-700">
-                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{userProfile?.full_name || 'User'}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  {userProfile?.companies?.name || companyName || 'Company'}
-                </p>
-              </div>
-            </div>
-          </div>
-          <Badge className="bg-amber-50 text-amber-700 border-amber-200">
-            Free Trial
-          </Badge>
-        </div>
-      </div>
-
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Skills Overview</h1>
