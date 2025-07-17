@@ -81,26 +81,16 @@ const EmployeesPage = () => {
   const [departments, setDepartments] = useState<string[]>([]);
   const [positions, setPositions] = useState<string[]>([]);
   const [positionsCount, setPositionsCount] = useState(0);
+  const [employeesCount, setEmployeesCount] = useState(0);
 
   useEffect(() => {
-    console.log('useEffect triggered, company_id:', userProfile?.company_id);
     if (userProfile?.company_id) {
-      console.log('Calling fetchEmployees from useEffect');
       fetchEmployees();
     }
   }, [userProfile?.company_id]);
 
-  // Debug: Monitor positionsCount changes
-  useEffect(() => {
-    console.log('positionsCount state changed to:', positionsCount);
-  }, [positionsCount]);
-
   const fetchEmployees = async () => {
     if (!userProfile?.company_id) return;
-
-    console.log('fetchEmployees called, company_id:', userProfile.company_id);
-
-    let calculatedPositionsCount = 0;
 
     try {
       setLoading(true);
@@ -113,16 +103,10 @@ const EmployeesPage = () => {
       
       if (posError) {
         console.error('Error fetching positions:', posError);
-        // Set to 0 to show blur effect if we can't fetch positions
-        calculatedPositionsCount = 0;
+        setPositionsCount(0);
       } else {
-        calculatedPositionsCount = positionsData?.length || 0;
-        console.log('Positions count calculated:', calculatedPositionsCount);
+        setPositionsCount(positionsData?.length || 0);
       }
-      
-      // Update state with the calculated count
-      console.log('Setting positionsCount to:', calculatedPositionsCount);
-      setPositionsCount(calculatedPositionsCount);
 
       const { data, error } = await supabase
         .from('v_company_employees')
@@ -132,6 +116,7 @@ const EmployeesPage = () => {
 
       if (error) throw error;
       setEmployees(data || []);
+      setEmployeesCount(data?.length || 0);
       
       // Extract unique departments and positions
       if (data) {
@@ -152,9 +137,7 @@ const EmployeesPage = () => {
       console.error('Error fetching employees:', error);
       toast.error('Failed to load employees');
     } finally {
-      console.log('Setting loading to false. Calculated positionsCount:', calculatedPositionsCount);
       setLoading(false);
-      console.log('Loading set to false. Final positionsCount should be:', calculatedPositionsCount);
     }
   };
 
@@ -210,6 +193,34 @@ const EmployeesPage = () => {
     setPositionFilter('all');
   };
 
+  const getEmptyStateConfig = () => {
+    if (positionsCount === 0) {
+      return {
+        icon: Building2,
+        title: "No Positions Created",
+        description: "Create positions first to define roles and skill requirements for your employees.",
+        ctaText: "Create Your First Position",
+        ctaLink: "/dashboard/positions",
+        shouldBlur: true
+      };
+    }
+    
+    if (employeesCount === 0) {
+      return {
+        icon: Users,
+        title: "No Employees Imported",
+        description: "Import your first employees to start building your team directory.",
+        ctaText: "Import Employees",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    return {
+      shouldBlur: false
+    };
+  };
+
   const getSkillsStatus = (employee: Employee) => {
     if (!employee.skills_last_analyzed) {
       return { status: 'not-analyzed', color: 'bg-gray-100 text-gray-800', text: 'Not Analyzed' };
@@ -250,34 +261,22 @@ const EmployeesPage = () => {
         <div>
           <h1 className="text-2xl font-bold">Employees</h1>
           <p className="text-muted-foreground">Manage your team and track their learning progress</p>
-          {/* Debug indicator - remove later */}
-          <div className="text-xs text-gray-500 mt-1">
-            Debug: positionsCount = {positionsCount}, companyId = {userProfile?.company_id}
-            <button 
-              onClick={() => setPositionsCount(0)} 
-              className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded"
-            >
-              Force Blur
-            </button>
-            <button 
-              onClick={() => setPositionsCount(1)} 
-              className="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded"
-            >
-              Remove Blur
-            </button>
-          </div>
         </div>
         
       </div>
 
       {/* Main Content with Conditional Blur */}
       <div className="relative">
-        <div className={cn(
-          "space-y-6 transition-all duration-500",
-          positionsCount === 0 && "blur-md pointer-events-none select-none"
-        )}>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {(() => {
+          const emptyStateConfig = getEmptyStateConfig();
+          return (
+            <>
+              <div className={cn(
+                "space-y-6 transition-all duration-500",
+                emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
+              )}>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
@@ -528,18 +527,21 @@ const EmployeesPage = () => {
           </div>
         </CardContent>
       </Card>
-        </div>
+              </div>
 
-        {/* Empty State Overlay */}
-        {positionsCount === 0 && (
-          <EmptyStateOverlay
-            icon={Building2}
-            title="No Positions Created"
-            description="Create positions first to define roles and skill requirements for your employees."
-            ctaText="Create Your First Position"
-            ctaLink="/dashboard/positions"
-          />
-        )}
+              {/* Empty State Overlay */}
+              {emptyStateConfig.shouldBlur && (
+                <EmptyStateOverlay
+                  icon={emptyStateConfig.icon}
+                  title={emptyStateConfig.title}
+                  description={emptyStateConfig.description}
+                  ctaText={emptyStateConfig.ctaText}
+                  ctaLink={emptyStateConfig.ctaLink}
+                />
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Modals */}

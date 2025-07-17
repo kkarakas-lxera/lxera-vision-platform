@@ -47,6 +47,8 @@ export default function SkillsOverview() {
     departmentsCount: 0
   });
   const [positionsCount, setPositionsCount] = useState(0);
+  const [employeesCount, setEmployeesCount] = useState(0);
+  const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -72,6 +74,24 @@ export default function SkillsOverview() {
         const posCount = positionsData?.length || 0;
         console.log('Positions count:', posCount);
         setPositionsCount(posCount);
+      }
+
+      // Fetch employees count
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
+        .select('id, skills_last_analyzed')
+        .eq('company_id', userProfile.company_id);
+
+      if (employeesError) {
+        console.error('Error fetching employees:', employeesError);
+        setEmployeesCount(0);
+        setAnalyzedEmployeesCount(0);
+      } else {
+        const empCount = employeesData?.length || 0;
+        const analyzedCount = employeesData?.filter(emp => emp.skills_last_analyzed).length || 0;
+        console.log('Employees count:', empCount, 'Analyzed:', analyzedCount);
+        setEmployeesCount(empCount);
+        setAnalyzedEmployeesCount(analyzedCount);
       }
 
       // Fetch department summaries
@@ -174,6 +194,45 @@ export default function SkillsOverview() {
     }
   };
 
+  const getEmptyStateConfig = () => {
+    if (positionsCount === 0) {
+      return {
+        icon: Target,
+        title: "No Positions Created",
+        description: "Start by creating positions to define skill requirements for your organization.",
+        ctaText: "Create Your First Position",
+        ctaLink: "/dashboard/positions",
+        shouldBlur: true
+      };
+    }
+    
+    if (employeesCount === 0) {
+      return {
+        icon: Users,
+        title: "No Employees Imported",
+        description: "Import employees to start analyzing their skills and identifying gaps.",
+        ctaText: "Import Employees",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    if (analyzedEmployeesCount === 0) {
+      return {
+        icon: TrendingUp,
+        title: "No Skills Analyzed",
+        description: "Upload CVs and run skills analysis to see your team's skill gaps.",
+        ctaText: "Analyze Skills",
+        ctaLink: "/dashboard/employees",
+        shouldBlur: true
+      };
+    }
+    
+    return {
+      shouldBlur: false
+    };
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -190,6 +249,8 @@ export default function SkillsOverview() {
     );
   }
 
+  const emptyStateConfig = getEmptyStateConfig();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -202,7 +263,7 @@ export default function SkillsOverview() {
       <div className="relative">
         <div className={cn(
           "space-y-6 transition-all duration-500",
-          positionsCount === 0 && "blur-md pointer-events-none select-none"
+          emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
         )}>
           {/* Overall Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -377,13 +438,13 @@ export default function SkillsOverview() {
         </div>
 
         {/* Empty State Overlay */}
-        {positionsCount === 0 && (
+        {emptyStateConfig.shouldBlur && (
           <EmptyStateOverlay
-            icon={Target}
-            title="No Positions Created"
-            description="Start by creating positions to define skill requirements for your organization."
-            ctaText="Create Your First Position"
-            ctaLink="/dashboard/positions"
+            icon={emptyStateConfig.icon}
+            title={emptyStateConfig.title}
+            description={emptyStateConfig.description}
+            ctaText={emptyStateConfig.ctaText}
+            ctaLink={emptyStateConfig.ctaLink}
           />
         )}
       </div>
