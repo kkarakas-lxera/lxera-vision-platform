@@ -36,7 +36,8 @@ import {
   School,
   MoreHorizontal,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  TrendingUp
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -114,7 +115,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },
-          { href: '/dashboard/skills-gap', icon: Target, label: 'Skills Gap Analysis' },
+          { href: '/dashboard/skills-gap', icon: TrendingUp, label: 'Skills Gap Analysis' },
           { href: isFreeTrial ? '#' : '/dashboard/analytics', icon: BarChart3, label: 'Game Engine', locked: isFreeTrial },
           { section: 'Learning Platform', icon: School },
           { href: isFreeTrial ? '#' : '/dashboard/courses', icon: BookOpen, label: 'Courses', locked: isFreeTrial },
@@ -255,7 +256,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
               if (item.action === 'feedback') {
                 return (
                   <FeedbackButton
-                    key={item.href}
+                    key={`${item.href}-${index}`}
                     variant="ghost"
                     className={cn(
                       "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group w-full justify-start",
@@ -277,7 +278,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   : "Upgrade to unlock this feature";
                 
                 return (
-                  <Tooltip key={item.href}>
+                  <Tooltip key={`${item.href}-${index}`}>
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
@@ -304,7 +305,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
               
               return (
                 <Link
-                  key={item.href}
+                  key={`${item.href}-${index}`}
                   to={item.href}
                   className={cn(
                     "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group",
@@ -386,7 +387,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />

@@ -189,9 +189,10 @@ export default function CompanyDashboard() {
       // Store positions count for later use
       setPositionsCount(positionCount || 0);
 
-      // If no positions exist, don't show onboarding flow - show empty state instead
+      // For trial users, show onboarding flow even if no positions exist
+      // This allows them to complete the setup process
       if (!positionCount || positionCount === 0) {
-        setOnboardingComplete(true);
+        setOnboardingComplete(false);
         return;
       }
 

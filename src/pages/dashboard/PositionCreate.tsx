@@ -52,7 +52,7 @@ export default function PositionCreate() {
   const descriptionEndRef = useRef<HTMLDivElement>(null);
   const [hasScrolledDescription, setHasScrolledDescription] = useState(false);
 
-  const [positionData, setPositionData] = useState<PositionData>({
+  const [positions, setPositions] = useState<PositionData[]>([{
     position_title: '',
     position_code: '',
     position_level: '',
@@ -62,13 +62,56 @@ export default function PositionCreate() {
     ai_suggestions: [],
     admin_approved: false,
     description_fully_read: false
-  });
+  }]);
+  const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
+  
+  const positionData = positions[currentPositionIndex];
+  const setPositionData = (data: PositionData | ((prev: PositionData) => PositionData)) => {
+    setPositions(prev => {
+      const newPositions = [...prev];
+      if (typeof data === 'function') {
+        newPositions[currentPositionIndex] = data(newPositions[currentPositionIndex]);
+      } else {
+        newPositions[currentPositionIndex] = data;
+      }
+      return newPositions;
+    });
+  };
 
   const steps = [
     { number: 1, title: 'Basic Information', description: 'Position details' },
     { number: 2, title: 'Add Required Skills', description: 'Define skill requirements' },
     { number: 3, title: 'Confirmation', description: 'Review and confirm' }
   ];
+
+  const addNewPosition = () => {
+    const newPosition: PositionData = {
+      position_title: '',
+      position_code: '',
+      position_level: positionData.position_level || '',
+      department: positionData.department || '',
+      description: '',
+      required_skills: [],
+      ai_suggestions: [],
+      admin_approved: false,
+      description_fully_read: false
+    };
+    setPositions(prev => [...prev, newPosition]);
+    setCurrentPositionIndex(positions.length);
+    setCurrentStep(1);
+  };
+
+  const switchToPosition = (index: number) => {
+    setCurrentPositionIndex(index);
+  };
+
+  const removePosition = (index: number) => {
+    if (positions.length === 1) return;
+    setPositions(prev => prev.filter((_, i) => i !== index));
+    if (currentPositionIndex >= index && currentPositionIndex > 0) {
+      setCurrentPositionIndex(currentPositionIndex - 1);
+    }
+  };
 
   useEffect(() => {
     fetchSkills();
@@ -252,45 +295,46 @@ export default function PositionCreate() {
 
     setIsLoading(true);
     try {
-      // Prepare the skills data for insertion
-      const skillsData = positionData.required_skills.map(skill => ({
-        skill_id: skill.skill_id,
-        skill_name: skill.skill_name,
-        proficiency_level: skill.proficiency_level,
-        is_mandatory: true
-      }));
+      const positionsToInsert = positions.map(position => {
+        const skillsData = position.required_skills.map(skill => ({
+          skill_id: skill.skill_id,
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency_level,
+          is_mandatory: true
+        }));
 
-      const aiSuggestionsData = positionData.ai_suggestions?.map(skill => ({
-        skill_id: skill.skill_id,
-        skill_name: skill.skill_name,
-        proficiency_level: skill.proficiency_level || 3,
-        is_mandatory: false
-      })) || [];
+        const aiSuggestionsData = position.ai_suggestions?.map(skill => ({
+          skill_id: skill.skill_id,
+          skill_name: skill.skill_name,
+          proficiency_level: skill.proficiency_level || 3,
+          is_mandatory: false
+        })) || [];
 
-      const { error } = await supabase
-        .from('st_company_positions')
-        .insert({
+        return {
           company_id: userProfile.company_id,
-          position_code: positionData.position_code,
-          position_title: positionData.position_title,
-          position_level: positionData.position_level,
-          department: positionData.department,
-          description: positionData.description,
+          position_code: position.position_code,
+          position_title: position.position_title,
+          position_level: position.position_level,
+          department: position.department,
+          description: position.description,
           required_skills: skillsData,
           nice_to_have_skills: [],
           ai_suggestions: aiSuggestionsData,
           is_template: false
-        });
+        };
+      });
+
+      const { error } = await supabase
+        .from('st_company_positions')
+        .insert(positionsToInsert);
 
       if (error) throw error;
 
-      toast.success('Position created successfully!');
-      
-      // Navigate back to positions page
+      toast.success(`${positions.length} position${positions.length > 1 ? 's' : ''} created successfully!`);
       navigate('/dashboard/positions');
     } catch (error) {
-      console.error('Error creating position:', error);
-      toast.error('Failed to create position');
+      console.error('Error creating positions:', error);
+      toast.error('Failed to create positions');
     } finally {
       setIsLoading(false);
     }
@@ -320,10 +364,18 @@ export default function PositionCreate() {
           Back to Positions
         </Button>
         
-        <h1 className="text-2xl font-bold text-foreground">Create New Position</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Define the requirements for a new position in your organization
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Create Positions</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Position {currentPositionIndex + 1} of {positions.length}
+            </p>
+          </div>
+          <Button onClick={addNewPosition} variant="outline" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Position
+          </Button>
+        </div>
       </div>
 
       {/* Progress Steps */}
@@ -367,6 +419,48 @@ export default function PositionCreate() {
           ))}
         </div>
       </div>
+
+      {/* Position Navigation */}
+      {positions.length > 1 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            {positions.map((position, index) => (
+              <div
+                key={index}
+                onClick={() => switchToPosition(index)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer min-w-0 ${
+                  index === currentPositionIndex
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <span className="text-sm font-medium">
+                  {index + 1}.
+                </span>
+                <span className="text-sm truncate">
+                  {position.position_title || 'Untitled Position'}
+                </span>
+                {position.position_title && position.required_skills.length > 0 && (
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                )}
+                {positions.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePosition(index);
+                    }}
+                    className="h-4 w-4 p-0 hover:bg-red-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <Card>
@@ -621,88 +715,87 @@ export default function PositionCreate() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">Review Position Details</h3>
+                <h3 className="text-lg font-medium mb-4">Review All Positions ({positions.length})</h3>
                 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Position Title</p>
-                      <p className="font-medium">{positionData.position_title}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Position Code</p>
-                      <p className="font-medium">{positionData.position_code}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Level</p>
-                      <p className="font-medium capitalize">{positionData.position_level}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-medium capitalize">{positionData.department}</p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Description</p>
-                    <p className="text-sm whitespace-pre-wrap">{positionData.description}</p>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Required Skills ({positionData.required_skills.length})
-                    </p>
-                    <div className="space-y-2">
-                      {positionData.required_skills.map(skill => (
-                        <div key={skill.skill_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <span className="text-sm font-medium">{skill.skill_name}</span>
-                          <Badge variant="secondary">
-                            Level {skill.proficiency_level}
-                          </Badge>
+                <div className="space-y-6">
+                  {positions.map((position, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium">Position {index + 1}: {position.position_title}</h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setCurrentPositionIndex(index);
+                            setCurrentStep(1);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Position Code</p>
+                          <p className="font-medium">{position.position_code}</p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {positionData.ai_suggestions && positionData.ai_suggestions.length > 0 && (
-                    <>
-                      <Separator />
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          AI Suggested Skills ({positionData.ai_suggestions.length})
-                        </p>
-                        <div className="space-y-2">
-                          {positionData.ai_suggestions.map((skill, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                              <span className="text-sm font-medium">{skill.skill_name}</span>
-                              <Badge variant="outline">Suggested</Badge>
-                            </div>
-                          ))}
+                        <div>
+                          <p className="text-sm text-muted-foreground">Level</p>
+                          <p className="font-medium capitalize">{position.position_level}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Department</p>
+                          <p className="font-medium capitalize">{position.department}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Required Skills</p>
+                          <p className="font-medium">{position.required_skills.length} skills</p>
                         </div>
                       </div>
-                    </>
-                  )}
+                      
+                      {position.description && (
+                        <div className="mb-4">
+                          <p className="text-sm text-muted-foreground mb-2">Description</p>
+                          <p className="text-sm line-clamp-3">{position.description}</p>
+                        </div>
+                      )}
+                      
+                      {position.required_skills.length > 0 && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Skills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {position.required_skills.slice(0, 6).map(skill => (
+                              <Badge key={skill.skill_id} variant="outline" className="text-xs">
+                                {skill.skill_name}
+                              </Badge>
+                            ))}
+                            {position.required_skills.length > 6 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{position.required_skills.length - 6} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
 
                 <Alert className="mt-6 bg-white">
                   <Lightbulb className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-2">
-                      <p>By creating this position, you confirm that:</p>
+                      <p>By creating these positions, you confirm that:</p>
                       <div className="flex items-start gap-2">
                         <Checkbox
                           id="admin_approved"
-                          checked={positionData.admin_approved}
-                          onCheckedChange={(checked) => 
-                            setPositionData({ ...positionData, admin_approved: checked as boolean })
-                          }
+                          checked={positions.every(p => p.admin_approved)}
+                          onCheckedChange={(checked) => {
+                            setPositions(prev => prev.map(p => ({ ...p, admin_approved: checked as boolean })));
+                          }}
                         />
                         <Label htmlFor="admin_approved" className="text-sm cursor-pointer">
-                          The position details and skill requirements have been reviewed and approved
+                          All position details and skill requirements have been reviewed and approved
                         </Label>
                       </div>
                     </div>
@@ -731,9 +824,12 @@ export default function PositionCreate() {
             ) : (
               <Button
                 onClick={handleSave}
-                disabled={isLoading || !positionData.admin_approved}
+                disabled={isLoading || !positions.every(p => p.admin_approved)}
               >
-                {isLoading ? 'Creating...' : 'Create Position'}
+                {isLoading 
+                  ? 'Creating...' 
+                  : `Create ${positions.length} Position${positions.length > 1 ? 's' : ''}`
+                }
               </Button>
             )}
           </div>
