@@ -1,27 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  ArrowRight, 
-  Mail, 
-  Target, 
-  DollarSign, 
-  Clock, 
-  Users, 
-  TrendingUp,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  Zap,
-  Timer,
-  LinkedinIcon
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import HeroSection from '@/components/landing/HeroSection';
 import IndustrySelector from '@/components/landing/IndustrySelector';
@@ -29,23 +8,6 @@ import MysteryPreview from '@/components/landing/MysteryPreview';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import FinalCTA from '@/components/landing/FinalCTA';
 
-interface LiveActivityItem {
-  id: string;
-  company: string;
-  location: string;
-  action: string;
-  timestamp: Date;
-}
-
-interface TestimonialItem {
-  id: string;
-  name: string;
-  title: string;
-  company: string;
-  content: string;
-  savings?: string;
-  photo?: string;
-}
 
 const SkillsGapAnalysisLanding = () => {
   const navigate = useNavigate();
@@ -54,83 +16,6 @@ const SkillsGapAnalysisLanding = () => {
   const [spotsRemaining, setSpotsRemaining] = useState(47);
   const [selectedIndustry, setSelectedIndustry] = useState('Technology');
 
-  // Mock data for testimonials
-  const testimonials: TestimonialItem[] = [
-    {
-      id: '1',
-      name: 'Sarah Chen',
-      title: 'VP Engineering',
-      company: 'TechCorp',
-      content: 'We had no idea 73% of our developers were missing React Server Components skills. LXERA\'s AI found gaps that saved us $180K in productivity losses.',
-      savings: '$180K'
-    },
-    {
-      id: '2',
-      name: 'Mike Johnson',
-      title: 'Chief People Officer',
-      company: 'ScaleUp Inc',
-      content: 'The AI revealed skill gaps in 5 minutes that would have taken our HR team 3 months to identify manually.',
-      savings: '$347K'
-    },
-    {
-      id: '3',
-      name: 'Lisa Wang',
-      title: 'Director of Learning & Development',
-      company: 'GrowthCo',
-      content: 'Found 12 critical gaps across 200 employees in minutes. This would have been impossible manually.',
-      savings: '$89K'
-    }
-  ];
-
-  // Mock live activity data
-  const mockActivities: LiveActivityItem[] = [
-    {
-      id: '1',
-      company: 'Tech company in Austin',
-      location: 'Austin, TX',
-      action: 'found 15 critical skill gaps',
-      timestamp: new Date(Date.now() - 2 * 60 * 1000)
-    },
-    {
-      id: '2',
-      company: 'Manufacturing firm',
-      location: 'Detroit, MI',
-      action: 'saved $89K in training costs',
-      timestamp: new Date(Date.now() - 8 * 60 * 1000)
-    },
-    {
-      id: '3',
-      company: 'SaaS startup',
-      location: 'San Francisco, CA',
-      action: 'identified critical React gaps',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000)
-    },
-    {
-      id: '4',
-      company: 'Healthcare organization',
-      location: 'Boston, MA',
-      action: 'found 23 skill mismatches',
-      timestamp: new Date(Date.now() - 22 * 60 * 1000)
-    },
-    {
-      id: '5',
-      company: 'Financial services',
-      location: 'New York, NY',
-      action: 'cut training time by 60%',
-      timestamp: new Date(Date.now() - 35 * 60 * 1000)
-    }
-  ];
-
-  // Simulate live activity updates
-  useEffect(() => {
-    setLiveActivities(mockActivities);
-    
-    const interval = setInterval(() => {
-      setCurrentActivityIndex((prev) => (prev + 1) % mockActivities.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Simulate spots decreasing
   useEffect(() => {
@@ -156,12 +41,6 @@ const SkillsGapAnalysisLanding = () => {
     setIsLoading(false);
   };
 
-  const formatTimeAgo = (timestamp: Date) => {
-    const minutes = Math.floor((Date.now() - timestamp.getTime()) / 60000);
-    if (minutes < 1) return 'just now';
-    if (minutes === 1) return '1 minute ago';
-    return `${minutes} minutes ago`;
-  };
 
   const spotsProgress = ((100 - spotsRemaining) / 100) * 100;
 
