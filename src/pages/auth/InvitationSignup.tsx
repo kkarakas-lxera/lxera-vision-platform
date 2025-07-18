@@ -58,14 +58,17 @@ const InvitationSignup = () => {
             completed_at,
             employees!inner (
               id,
-              email,
-              full_name,
+              user_id,
               company_id,
               position,
               department,
               companies!inner (
                 id,
                 name
+              ),
+              users!left (
+                email,
+                full_name
               )
             )
           `)
@@ -92,11 +95,38 @@ const InvitationSignup = () => {
           return;
         }
 
+        // Get employee data - handle both cases: with user account and without (CSV import)
+        const employee = invitation.employees;
+        let email = '';
+        let fullName = '';
+
+        if (employee.users?.email) {
+          // Employee has a user account
+          email = employee.users.email;
+          fullName = employee.users.full_name;
+        } else {
+          // Employee was imported via CSV - get data from import session
+          const { data: importData } = await supabase
+            .from('st_import_session_items')
+            .select('employee_email, employee_name')
+            .eq('employee_id', employee.id)
+            .single();
+
+          if (importData) {
+            email = importData.employee_email;
+            fullName = importData.employee_name;
+          } else {
+            setError('Unable to retrieve employee information. Please contact your administrator.');
+            setIsValidating(false);
+            return;
+          }
+        }
+
         // Check if user already exists
         const { data: existingUser, error: userError } = await supabase
           .from('users')
           .select('id, email')
-          .eq('email', invitation.employees.email)
+          .eq('email', email)
           .single();
 
         if (!userError && existingUser) {
@@ -106,11 +136,10 @@ const InvitationSignup = () => {
         }
 
         // Set employee data
-        const employee = invitation.employees;
         setEmployeeData({
           id: employee.id,
-          email: employee.email,
-          full_name: employee.full_name,
+          email: email,
+          full_name: fullName,
           company_id: employee.company_id,
           company_name: employee.companies.name,
           position: employee.position,
