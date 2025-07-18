@@ -393,9 +393,8 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
                   }`}
                 />
               ))}
-              <span className="ml-2 text-sm font-medium">{stats.total}/10</span>
+              <span className="ml-2 text-sm font-medium">{10 - stats.total} remaining</span>
             </div>
-            <p className="text-xs text-muted-foreground">Trial: 10 employees</p>
           </div>
         </div>
       );
@@ -426,7 +425,7 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
                   }`}
                 />
               ))}
-              <span className="ml-2 text-sm font-medium">{stats.total}/10</span>
+              <span className="ml-2 text-sm font-medium">{10 - stats.total} remaining</span>
             </div>
           </div>
         </div>
@@ -492,7 +491,7 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
                   }`}
                 />
               ))}
-              <span className="ml-2 text-sm font-medium">10/10</span>
+              <span className="ml-2 text-sm font-medium">0 remaining</span>
             </div>
           </div>
         </div>
@@ -557,7 +556,7 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
                   className={`w-2 h-2 rounded-full bg-blue-600`}
                 />
               ))}
-              <span className="ml-2 text-sm font-medium">10/10</span>
+              <span className="ml-2 text-sm font-medium">0 remaining</span>
             </div>
             <p className="text-xs text-muted-foreground">Ready to import</p>
           </div>
@@ -589,7 +588,7 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
                 />
               ))}
               <span className="ml-2 text-sm font-medium">
-                {Math.floor((importProgress / 100) * selectedEmployees.length)}/10
+                {10 - Math.floor((importProgress / 100) * selectedEmployees.length)} remaining
               </span>
             </div>
           </div>
@@ -627,9 +626,8 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="w-2 h-2 rounded-full bg-blue-600" />
               ))}
-              <span className="ml-2 text-sm font-medium">10/10</span>
+              <span className="ml-2 text-sm font-medium">0 remaining</span>
             </div>
-            <p className="text-xs text-muted-foreground">Trial limit reached</p>
           </div>
         </div>
       );
@@ -660,7 +658,7 @@ Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,jo
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="w-2 h-2 rounded-full bg-blue-600" />
               ))}
-              <span className="ml-2 text-sm font-medium">10/10</span>
+              <span className="ml-2 text-sm font-medium">0 remaining</span>
             </div>
             <p className="text-xs text-muted-foreground">Trial full</p>
           </div>

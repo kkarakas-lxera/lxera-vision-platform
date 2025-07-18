@@ -63,7 +63,7 @@ export default function SkillsGapOnboardingFlow() {
       description: 'Invite employees to complete profiles',
       icon: <Send className="h-5 w-5" />,
       action: 'Send',
-      route: '/dashboard/employees',
+      route: '/dashboard/onboarding/invite',
       completed: false
     },
     {
@@ -126,12 +126,18 @@ export default function SkillsGapOnboardingFlow() {
         .select('*', { count: 'exact', head: true })
         .eq('company_id', userProfile.company_id);
 
-      // Check if any employee has a user_id (indicating invites were sent)
-      const { count: invitedCount } = await supabase
+      // Check if any invitations have been sent
+      const { data: employees } = await supabase
         .from('employees')
+        .select('id')
+        .eq('company_id', userProfile.company_id);
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+      
+      const { count: invitedCount } = await supabase
+        .from('profile_invitations')
         .select('*', { count: 'exact', head: true })
-        .eq('company_id', userProfile.company_id)
-        .not('user_id', 'is', null);
+        .in('employee_id', employeeIds);
 
       const updatedSteps = [...steps];
       let newCurrentStep = 0;
