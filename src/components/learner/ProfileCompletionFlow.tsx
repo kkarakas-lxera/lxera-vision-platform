@@ -213,7 +213,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       // Get employee data
       const { data: employee } = await supabase
         .from('employees')
-        .select('*, companies!inner(name)')
+        .select('*, companies(name)')
         .eq('id', employeeId)
         .single();
 
