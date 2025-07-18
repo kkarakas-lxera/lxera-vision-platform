@@ -65,6 +65,8 @@ interface Employee {
   skills_match_score: number | null;
   career_readiness_score: number | null;
   gap_analysis_completed_at: string | null;
+  invitation_status?: 'not_sent' | 'sent' | 'viewed' | 'completed';
+  invitation_sent_at?: string | null;
 }
 
 const EmployeesPage = () => {
@@ -115,8 +117,38 @@ const EmployeesPage = () => {
         .order('full_name');
 
       if (error) throw error;
-      setEmployees(data || []);
-      setEmployeesCount(data?.length || 0);
+      
+      // Fetch invitation data
+      const employeeIds = data?.map(emp => emp.id) || [];
+      const { data: invitationsData } = await supabase
+        .from('profile_invitations')
+        .select('*')
+        .in('employee_id', employeeIds);
+      
+      // Map invitation data to employees
+      const invitationMap = new Map(
+        (invitationsData || []).map(inv => [inv.employee_id, inv])
+      );
+      
+      const employeesWithInvitations = (data || []).map(emp => {
+        const invitation = invitationMap.get(emp.id);
+        let invitationStatus: Employee['invitation_status'] = 'not_sent';
+        
+        if (invitation) {
+          if (invitation.completed_at) invitationStatus = 'completed';
+          else if (invitation.viewed_at) invitationStatus = 'viewed';
+          else if (invitation.sent_at) invitationStatus = 'sent';
+        }
+        
+        return {
+          ...emp,
+          invitation_status: invitationStatus,
+          invitation_sent_at: invitation?.sent_at
+        };
+      });
+      
+      setEmployees(employeesWithInvitations);
+      setEmployeesCount(employeesWithInvitations.length);
       
       // Extract unique departments and positions
       if (data) {
@@ -429,6 +461,7 @@ const EmployeesPage = () => {
                   <th className="text-left p-4">Employee</th>
                   <th className="text-left p-4">Department</th>
                   <th className="text-left p-4">Position</th>
+                  <th className="text-left p-4">Invitation</th>
                   <th className="text-left p-4">CV Status</th>
                   <th className="text-left p-4">Skills Analysis</th>
                   <th className="text-left p-4">Actions</th>
@@ -461,6 +494,20 @@ const EmployeesPage = () => {
                       </td>
                       <td className="p-4">{employee.department || '-'}</td>
                       <td className="p-4">{employee.position || '-'}</td>
+                      <td className="p-4">
+                        {employee.invitation_status === 'completed' && (
+                          <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                        )}
+                        {employee.invitation_status === 'viewed' && (
+                          <Badge className="bg-blue-100 text-blue-800">Viewed</Badge>
+                        )}
+                        {employee.invitation_status === 'sent' && (
+                          <Badge className="bg-yellow-100 text-yellow-800">Sent</Badge>
+                        )}
+                        {employee.invitation_status === 'not_sent' && (
+                          <Badge variant="secondary">Not Sent</Badge>
+                        )}
+                      </td>
                       <td className="p-4">
                         <Badge variant={employee.cv_file_path ? "default" : "secondary"}>
                           {employee.cv_file_path ? 'Uploaded' : 'Not Uploaded'}

@@ -116,56 +116,71 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (!userProfile?.company_id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('st_users')
+      // First fetch employees with their user info
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
         .select(`
           id,
-          full_name,
-          email,
-          st_user_profiles!inner(
-            position_title,
-            cv_uploaded,
-            cv_analyzed,
-            skills_extracted,
-            profile_completed
-          ),
-          profile_invitations(
-            sent_at,
-            viewed_at,
-            completed_at
+          user_id,
+          position,
+          cv_file_path,
+          skills_last_analyzed,
+          cv_analysis_data,
+          profile_complete,
+          users!inner(
+            id,
+            full_name,
+            email,
+            role
           )
         `)
         .eq('company_id', userProfile.company_id)
-        .eq('role', 'learner');
+        .eq('is_active', true)
+        .eq('users.role', 'learner');
 
-      if (error) throw error;
+      if (employeesError) throw employeesError;
 
-      const statuses = (data || []).map(user => {
-        const profile = user.st_user_profiles[0];
-        const invitation = user.profile_invitations?.[0];
+      // Then fetch invitation statuses
+      const employeeIds = employeesData?.map(emp => emp.id) || [];
+      const { data: invitationsData, error: invError } = await supabase
+        .from('profile_invitations')
+        .select('*')
+        .in('employee_id', employeeIds);
+
+      if (invError) console.error('Error fetching invitations:', invError);
+
+      const invitationMap = new Map(
+        (invitationsData || []).map(inv => [inv.employee_id, inv])
+      );
+
+      const statuses = (employeesData || []).map(employee => {
+        const user = employee.users;
+        const invitation = invitationMap.get(employee.id);
         
         let invitationStatus: EmployeeStatus['invitation_status'] = 'not_sent';
         if (invitation?.completed_at) invitationStatus = 'completed';
         else if (invitation?.viewed_at) invitationStatus = 'viewed';
         else if (invitation?.sent_at) invitationStatus = 'sent';
 
+        // Determine CV status based on available data
+        let cvStatus: EmployeeStatus['cv_status'] = 'missing';
+        if (employee.cv_analysis_data || employee.skills_last_analyzed) {
+          cvStatus = 'analyzed';
+        } else if (employee.cv_file_path) {
+          cvStatus = 'uploaded';
+        }
+
         return {
-          id: user.id,
+          id: employee.id,
           name: user.full_name,
           email: user.email,
-          position: profile?.position_title || 'Not Assigned',
-          cv_status: profile?.cv_analyzed 
-            ? 'analyzed' 
-            : profile?.cv_uploaded 
-              ? 'uploaded' 
-              : 'missing',
-          skills_analysis: profile?.skills_extracted 
-            ? 'completed' 
-            : 'pending',
+          position: employee.position || 'Not Assigned',
+          cv_status: cvStatus,
+          skills_analysis: employee.skills_last_analyzed ? 'completed' : 'pending',
           gap_score: undefined,
           invitation_status: invitationStatus,
-          profile_completed: profile?.profile_completed || false,
-          cv_uploaded: profile?.cv_uploaded || false
+          profile_completed: employee.profile_complete || false,
+          cv_uploaded: !!employee.cv_file_path
         };
       });
 

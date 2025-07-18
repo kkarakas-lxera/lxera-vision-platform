@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Send, BarChart3, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,16 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
+import { ImportHistory } from '@/components/dashboard/EmployeeOnboarding/ImportHistory';
 
 export default function OnboardingOverview() {
   const navigate = useNavigate();
-  const { stats, loading } = useOnboarding();
+  const { stats, loading, refreshData } = useOnboarding();
+
+  // Refresh data when component mounts
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   const steps = [
     {
@@ -92,6 +98,9 @@ export default function OnboardingOverview() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Import History */}
+          <ImportHistory />
         </div>
 
         {/* Right Side - Steps and Progress (80%) */}
