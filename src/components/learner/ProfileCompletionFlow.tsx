@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,8 @@ import {
   Wrench,
   Clock,
   Loader2,
-  FileText
+  FileText,
+  Save
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -181,8 +182,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [formData, setFormData] = useState<FormData>({
     currentPosition: '',
@@ -293,26 +297,39 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     setCvAnalyzing(true);
 
     try {
-      // Upload CV
+      // Upload CV to the correct storage bucket
       const { data: cvData, error: uploadError } = await supabase.storage
-        .from('cv-uploads')
+        .from('employee-cvs')
         .upload(`${employeeId}/${Date.now()}-${file.name}`, file);
 
       if (uploadError) throw uploadError;
 
-      // Use the existing CV analysis edge function
+      // Use the comprehensive CV analysis edge function with correct parameters
       const { data: analysisResult, error: analyzeError } = await supabase.functions.invoke('analyze-cv-enhanced', {
         body: { 
-          cvPath: cvData.path,
-          employeeId,
-          extractProfile: true // Request profile data extraction
+          employee_id: employeeId,
+          file_path: cvData.path,
+          source: 'profile_completion',
+          use_template: true // Use company-specific analysis template if available
         }
       });
 
       if (analyzeError) throw analyzeError;
 
+      // Import the analyzed data into profile sections
+      const { error: importError } = await supabase.functions.invoke('import-cv-to-profile', {
+        body: {
+          employeeId
+        }
+      });
+
+      if (importError) {
+        console.warn('CV import to profile failed:', importError);
+        // Don't fail the upload, just warn - user can manually complete
+      }
+
       setCvUploaded(true);
-      toast.success('CV imported successfully! Your information has been pre-filled.');
+      toast.success('CV analyzed and imported successfully! Your information has been pre-filled.');
       
       // Reload data to get imported information
       await loadEmployeeData();
@@ -326,11 +343,16 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   };
 
   const handleNext = async () => {
-    // Save current step data
-    await saveStepData();
-    
-    if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1);
+    try {
+      // Save current step data before proceeding
+      await saveStepData(false);
+      
+      if (currentStep < STEPS.length) {
+        setCurrentStep(currentStep + 1);
+      }
+    } catch (error) {
+      console.error('Error saving step data:', error);
+      toast.error('Failed to save progress. Please try again.');
     }
   };
 
@@ -340,8 +362,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     }
   };
 
-  const saveStepData = async () => {
-    setIsSaving(true);
+  const saveStepData = async (isAutoSave = false) => {
+    if (isAutoSave) {
+      setIsAutoSaving(true);
+    } else {
+      setIsSaving(true);
+    }
+    
     try {
       const step = STEPS[currentStep - 1];
       
@@ -380,11 +407,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           
         case 5: // Skills
         case 6: // Skill Levels
-          const skills = formData.technicalSkills.map(skill => ({
-            name: skill,
-            proficiency: formData.skillLevels[skill] || 'Beginner'
-          }));
-          await EmployeeProfileService.saveSection(employeeId, 'skills', { skills });
+          {
+            const skills = formData.technicalSkills.map(skill => ({
+              name: skill,
+              proficiency: formData.skillLevels[skill] || 'Beginner'
+            }));
+            await EmployeeProfileService.saveSection(employeeId, 'skills', { skills });
+          }
           break;
           
         case 7: // Current Work
@@ -412,13 +441,64 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           }
           break;
       }
+      
+      setLastSaved(new Date());
+      
+      if (isAutoSave) {
+        // Show subtle success indicator for auto-save
+        console.log('Auto-saved profile data');
+      }
     } catch (error) {
       console.error('Error saving step data:', error);
-      toast.error('Failed to save progress');
+      if (!isAutoSave) {
+        toast.error('Failed to save progress');
+      }
     } finally {
-      setIsSaving(false);
+      if (isAutoSave) {
+        setIsAutoSaving(false);
+      } else {
+        setIsSaving(false);
+      }
     }
   };
+
+  // Debounced auto-save function
+  const debouncedAutoSave = useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      saveStepData(true);
+    }, 2000); // Auto-save after 2 seconds of inactivity
+  }, [saveStepData]);
+
+  // Trigger auto-save when form data changes
+  const handleFormChange = useCallback((updater: (prev: FormData) => FormData) => {
+    setFormData(updater);
+    debouncedAutoSave();
+  }, [debouncedAutoSave]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Update the "saved ago" time every minute
+  useEffect(() => {
+    if (!lastSaved) return;
+    
+    const interval = setInterval(() => {
+      // Force re-render to update the time display
+      setLastSaved(prev => prev);
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [lastSaved]);
 
   const renderStepContent = () => {
     const step = STEPS[currentStep - 1];
@@ -552,7 +632,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   variant="outline"
                   onClick={() => {
                     // Add first experience
-                    setFormData(prev => ({
+                    handleFormChange(prev => ({
                       ...prev,
                       workExperience: [{
                         title: '',
@@ -584,7 +664,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setFormData(prev => ({
+                    handleFormChange(prev => ({
                       ...prev,
                       workExperience: [...prev.workExperience, {
                         title: '',
@@ -648,7 +728,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               <Input
                 id="institution"
                 value={formData.institution}
-                onChange={(e) => setFormData(prev => ({ ...prev, institution: e.target.value }))}
+                onChange={(e) => handleFormChange(prev => ({ ...prev, institution: e.target.value }))}
                 className="mt-2"
                 placeholder="e.g. University of Technology"
               />
@@ -661,7 +741,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               <Input
                 id="year"
                 value={formData.graduationYear}
-                onChange={(e) => setFormData(prev => ({ ...prev, graduationYear: e.target.value }))}
+                onChange={(e) => handleFormChange(prev => ({ ...prev, graduationYear: e.target.value }))}
                 className="mt-2"
                 placeholder="e.g. 2020"
                 maxLength={4}
@@ -687,7 +767,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   type="button"
                   variant={formData.technicalSkills.includes(skill) ? 'default' : 'outline'}
                   onClick={() => {
-                    setFormData(prev => ({
+                    handleFormChange(prev => ({
                       ...prev,
                       technicalSkills: prev.technicalSkills.includes(skill)
                         ? prev.technicalSkills.filter(s => s !== skill)
@@ -722,7 +802,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                       type="button"
                       variant={formData.skillLevels[skill] === level ? 'default' : 'outline'}
                       onClick={() => {
-                        setFormData(prev => ({
+                        handleFormChange(prev => ({
                           ...prev,
                           skillLevels: {
                             ...prev.skillLevels,
@@ -758,7 +838,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 className="mt-2 min-h-[120px]"
                 onChange={(e) => {
                   const projects = e.target.value.split('\n').filter(p => p.trim());
-                  setFormData(prev => ({ ...prev, currentProjects: projects }));
+                  handleFormChange(prev => ({ ...prev, currentProjects: projects }));
                 }}
               />
             </div>
@@ -773,7 +853,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                     key={size}
                     type="button"
                     variant={formData.teamSize === size ? 'default' : 'outline'}
-                    onClick={() => setFormData(prev => ({ ...prev, teamSize: size }))}
+                    onClick={() => handleFormChange(prev => ({ ...prev, teamSize: size }))}
                     className={cn(
                       "text-sm",
                       formData.teamSize === size
@@ -797,7 +877,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                     key={role}
                     type="button"
                     variant={formData.roleInTeam === role ? 'default' : 'outline'}
-                    onClick={() => setFormData(prev => ({ ...prev, roleInTeam: role }))}
+                    onClick={() => handleFormChange(prev => ({ ...prev, roleInTeam: role }))}
                     className={cn(
                       "text-sm",
                       formData.roleInTeam === role
@@ -823,7 +903,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   type="button"
                   variant={formData.challenges.includes(challenge) ? 'default' : 'outline'}
                   onClick={() => {
-                    setFormData(prev => ({
+                    handleFormChange(prev => ({
                       ...prev,
                       challenges: prev.challenges.includes(challenge)
                         ? prev.challenges.filter(c => c !== challenge)
@@ -857,12 +937,12 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   variant={formData.growthAreas.includes(area) ? 'default' : 'outline'}
                   onClick={() => {
                     if (formData.growthAreas.includes(area)) {
-                      setFormData(prev => ({
+                      handleFormChange(prev => ({
                         ...prev,
                         growthAreas: prev.growthAreas.filter(a => a !== area)
                       }));
                     } else if (formData.growthAreas.length < 5) {
-                      setFormData(prev => ({
+                      handleFormChange(prev => ({
                         ...prev,
                         growthAreas: [...prev.growthAreas, area]
                       }));
@@ -914,7 +994,31 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
             <span className="font-medium">Step {currentStep} of {STEPS.length}</span>
-            <span>{Math.round(progress)}% complete</span>
+            <div className="flex items-center gap-3">
+              {/* Auto-save status indicator */}
+              <div className="flex items-center gap-1 text-xs">
+                {isAutoSaving ? (
+                  <>
+                    <Save className="h-3 w-3 text-blue-600 animate-pulse" />
+                    <span className="text-blue-600">Saving...</span>
+                  </>
+                ) : lastSaved ? (
+                  <>
+                    <Check className="h-3 w-3 text-green-600" />
+                    <span className="text-green-600">
+                      {(() => {
+                        const timeDiff = Date.now() - lastSaved.getTime();
+                        const minutes = Math.round(timeDiff / 60000);
+                        if (minutes < 1) return 'Just saved';
+                        if (minutes === 1) return 'Saved 1m ago';
+                        return `Saved ${minutes}m ago`;
+                      })()} 
+                    </span>
+                  </>
+                ) : null}
+              </div>
+              <span>{Math.round(progress)}% complete</span>
+            </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1">
             <div
@@ -972,7 +1076,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   onClick={async () => {
                     if (currentStep === STEPS.length) {
                       // Final step - complete profile
-                      await saveStepData();
+                      await saveStepData(false);
                       onComplete();
                     } else {
                       handleNext();

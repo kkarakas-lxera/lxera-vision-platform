@@ -22,31 +22,43 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get CV analysis data
-    const { data: employee, error: fetchError } = await supabase
-      .from('employees')
-      .select('cv_analysis_data')
-      .eq('id', employeeId)
+    // Get CV analysis data from the enhanced skills profile
+    const { data: skillsProfile, error: fetchError } = await supabase
+      .from('st_employee_skills_profile')
+      .select('*')
+      .eq('employee_id', employeeId)
       .single();
 
-    if (fetchError || !employee?.cv_analysis_data) {
+    if (fetchError || !skillsProfile) {
       throw new Error('No CV analysis data found');
     }
 
-    const cvData = employee.cv_analysis_data;
+    // Also get the raw CV extracted data from employees table
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('cv_extracted_data')
+      .eq('id', employeeId)
+      .single();
+
+    const cvData = employee?.cv_extracted_data || {};
+    const skillsData = skillsProfile;
     const importResults = {
       sectionsImported: [],
       errors: []
     };
 
-    // Import basic info
-    if (cvData.basicInfo) {
+    // Import basic info - derive from skills profile summary
+    if (skillsData.cv_summary) {
       const { error } = await supabase
         .from('employee_profile_sections')
         .upsert({
           employee_id: employeeId,
           section_name: 'basic_info',
-          data: cvData.basicInfo,
+          data: {
+            summary: skillsData.cv_summary,
+            experienceYears: skillsData.experience_years || 0,
+            educationLevel: skillsData.education_level
+          },
           is_complete: false, // User needs to verify
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });
@@ -59,13 +71,13 @@ serve(async (req) => {
     }
 
     // Import work experience
-    if (cvData.workExperience && cvData.workExperience.length > 0) {
+    if (cvData.work_experience && cvData.work_experience.length > 0) {
       const { error } = await supabase
         .from('employee_profile_sections')
         .upsert({
           employee_id: employeeId,
           section_name: 'work_experience',
-          data: { experiences: cvData.workExperience },
+          data: { experiences: cvData.work_experience },
           is_complete: false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });
@@ -77,17 +89,17 @@ serve(async (req) => {
       }
 
       // Also populate current work if the person has a current job
-      const currentJob = cvData.workExperience.find(job => job.isCurrent);
+      const currentJob = cvData.work_experience.find(job => job.isCurrent || job.current);
       if (currentJob) {
         await supabase
           .from('employee_current_work')
           .upsert({
             employee_id: employeeId,
             project_name: `Current Role at ${currentJob.company}`,
-            role_in_project: currentJob.title,
-            description: currentJob.description,
+            role_in_project: currentJob.title || currentJob.position,
+            description: currentJob.description || currentJob.responsibilities,
             technologies: currentJob.technologies || [],
-            start_date: currentJob.startDate,
+            start_date: currentJob.startDate || currentJob.start_date,
             is_primary: true,
             status: 'active'
           }, { onConflict: 'employee_id,project_name' });
@@ -113,14 +125,18 @@ serve(async (req) => {
       }
     }
 
-    // Import skills
-    if (cvData.skills && cvData.skills.length > 0) {
+    // Import skills from enhanced analysis
+    if (skillsData.extracted_skills && skillsData.extracted_skills.length > 0) {
       const { error } = await supabase
         .from('employee_profile_sections')
         .upsert({
           employee_id: employeeId,
           section_name: 'skills',
-          data: { skills: cvData.skills },
+          data: { 
+            skills: skillsData.extracted_skills,
+            technicalSkills: skillsData.technical_skills || [],
+            softSkills: skillsData.soft_skills || []
+          },
           is_complete: false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });
@@ -152,13 +168,13 @@ serve(async (req) => {
     }
 
     // Import languages
-    if (cvData.languages && cvData.languages.length > 0) {
+    if (skillsData.languages && skillsData.languages.length > 0) {
       const { error } = await supabase
         .from('employee_profile_sections')
         .upsert({
           employee_id: employeeId,
           section_name: 'languages',
-          data: { languages: cvData.languages },
+          data: { languages: skillsData.languages },
           is_complete: false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });
