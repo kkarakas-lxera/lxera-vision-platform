@@ -214,6 +214,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
+  const [cvAnalysisStatus, setCvAnalysisStatus] = useState<string>('');
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Position skills state
@@ -513,6 +514,9 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     }
 
     setCvAnalyzing(true);
+    setCvAnalysisStatus('Uploading CV...');
+    
+    let realtimeChannel: any = null;
 
     try {
       // Upload CV to the correct storage bucket
@@ -522,40 +526,88 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         .upload(uploadPath, file);
 
       if (uploadError) throw uploadError;
+      
+      setCvAnalysisStatus('CV uploaded successfully. Starting analysis...');
 
-      // Use the comprehensive CV analysis edge function with correct parameters
+      // Call the edge function to start analysis
       const { data: analysisResult, error: analyzeError } = await supabase.functions.invoke('analyze-cv-enhanced', {
         body: { 
           employee_id: employeeId,
           file_path: cvData.path,
           source: 'profile_completion',
-          use_template: true // Use company-specific analysis template if available
+          use_template: true
         }
       });
 
       if (analyzeError) throw analyzeError;
-
-      // Import the analyzed data into profile sections
-      const { error: importError } = await supabase.functions.invoke('import-cv-to-profile', {
-        body: {
-          employeeId
-        }
-      });
-
-      if (importError) {
-        console.warn('CV import to profile failed:', importError);
-        // Don't fail the upload, just warn - user can manually complete
-      }
-
-      setCvUploaded(true);
-      toast.success('CV analyzed and imported successfully! Your information has been pre-filled.');
       
-      // Reload data to get imported information
-      await loadEmployeeData();
+      // Get the session ID from the response
+      const sessionId = analysisResult.session_id;
+      
+      // Subscribe to realtime updates for this analysis session
+      realtimeChannel = supabase
+        .channel(`cv-analysis-${sessionId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cv_analysis_status',
+            filter: `session_id=eq.${sessionId}`
+          },
+          (payload) => {
+            if (payload.new) {
+              const { status, progress, message } = payload.new as any;
+              setCvAnalysisStatus(message || status);
+              
+              // If analysis is completed, proceed with import
+              if (status === 'completed') {
+                importCVData();
+              }
+            }
+          }
+        )
+        .subscribe();
+      
+      // Function to import CV data
+      const importCVData = async () => {
+        setCvAnalysisStatus('Importing data into your profile...');
+        
+        const { error: importError } = await supabase.functions.invoke('import-cv-to-profile', {
+          body: {
+            employeeId
+          }
+        });
+
+        if (importError) {
+          console.warn('CV import to profile failed:', importError);
+        }
+        
+        setCvAnalysisStatus('Finalizing...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        setCvUploaded(true);
+        setCvAnalysisStatus('');
+        toast.success('CV analyzed and imported successfully! Your information has been pre-filled.');
+        
+        // Reload data to get imported information
+        await loadEmployeeData();
+        
+        // Cleanup realtime subscription
+        if (realtimeChannel) {
+          await supabase.removeChannel(realtimeChannel);
+        }
+      };
       
     } catch (error) {
       console.error('CV upload error:', error);
+      setCvAnalysisStatus('');
       toast.error('Failed to process CV. You can continue manually.');
+      
+      // Cleanup realtime subscription on error
+      if (realtimeChannel) {
+        await supabase.removeChannel(realtimeChannel);
+      }
     } finally {
       setCvAnalyzing(false);
     }
@@ -826,7 +878,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               {cvAnalyzing ? (
                 <div className="space-y-3">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                  <p className="text-sm text-gray-600">Analyzing your CV...</p>
+                  <p className="text-sm text-gray-600 font-medium">{cvAnalysisStatus || 'Processing...'}</p>
+                  <p className="text-xs text-gray-500">This may take up to a minute</p>
                 </div>
               ) : cvUploaded ? (
                 <div className="space-y-3">

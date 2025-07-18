@@ -18,6 +18,7 @@ serve(async (req) => {
 
   const startTime = Date.now()
   const requestId = crypto.randomUUID()
+  const sessionId = crypto.randomUUID() // For tracking this specific analysis session
   
   try {
     const { employee_id, file_path, source, session_item_id, use_template } = await req.json()
@@ -41,6 +42,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // Helper function to update analysis status
+    const updateStatus = async (status: string, progress: number, message?: string) => {
+      await supabase
+        .from('cv_analysis_status')
+        .upsert({
+          employee_id,
+          session_id: sessionId,
+          status,
+          progress,
+          message,
+          metadata: { 
+            source,
+            file_path,
+            request_id: requestId 
+          }
+        }, {
+          onConflict: 'employee_id,session_id'
+        })
+    }
+    
+    // Initial status
+    await updateStatus('initializing', 0, 'Starting CV analysis...')
 
     // Get employee and company information
     const { data: employee, error: empError } = await supabase
@@ -92,6 +116,7 @@ serve(async (req) => {
     }
 
     // Extract CV text
+    await updateStatus('downloading', 10, 'Downloading CV file...')
     const cvContent = null
     let cvText = ''
     
@@ -103,6 +128,8 @@ serve(async (req) => {
     if (downloadError) {
       throw new Error(`Failed to download CV: ${downloadError.message}`)
     }
+    
+    await updateStatus('extracting_text', 20, 'Extracting text from document...')
 
     // Extract text based on file type
     const fileName = file_path.split('/').pop() || ''
@@ -145,6 +172,8 @@ serve(async (req) => {
     if (!cvText || cvText.trim().length < 50) {
       throw new Error('CV content is too short or empty')
     }
+    
+    await updateStatus('analyzing', 40, 'AI analyzing skills and experience...')
 
     // Enhanced prompt using template or default
     const systemPrompt = analysisTemplate?.system_prompt || 
@@ -205,6 +234,8 @@ serve(async (req) => {
     }
 
     const analysisResult = JSON.parse(completion.data.choices[0].message?.content || '{}')
+    
+    await updateStatus('processing', 60, 'Processing analysis results...')
     
     // Track token usage
     const tokensUsed = completion.data.usage?.total_tokens || 0
@@ -281,6 +312,8 @@ serve(async (req) => {
       }
     }
 
+    await updateStatus('storing', 80, 'Storing analysis results...')
+    
     // Store enhanced analysis results
     const profileData = {
       employee_id: employee_id,
@@ -359,6 +392,8 @@ serve(async (req) => {
       .eq('id', employee_id)
 
     const analysisTime = Date.now() - startTime
+    
+    await updateStatus('completed', 100, 'Analysis completed successfully')
 
     return new Response(
       JSON.stringify({ 
@@ -366,6 +401,7 @@ serve(async (req) => {
         message: 'CV analyzed successfully',
         employee_id,
         file_path,
+        session_id: sessionId, // Include session ID for frontend tracking
         skills_extracted: extractedSkills.length,
         match_score: matchScore,
         analysis_time_ms: analysisTime,
