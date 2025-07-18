@@ -127,41 +127,38 @@ export default function OnboardingOverview() {
               const isFirstStep = index === 0;
               const showWelcomeMessage = isFirstStep && stats.total === 0;
 
-              // Special welcome card for first step when no team members imported
+              // Special welcome state for first step when no team members imported
               if (showWelcomeMessage) {
                 return (
-                  <Card 
+                  <div
                     key={step.number}
-                    className="overflow-hidden"
+                    className="flex items-center gap-4 p-4 rounded-md border border-blue-200 bg-blue-50"
                   >
-                    <CardHeader className="py-3 border-b">
-                      <CardTitle className="text-base">Ready to Get Started?</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 text-center">
-                      <div className="mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Users className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Begin by importing your team members to start the onboarding process.
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <Button 
-                          onClick={() => navigate('/dashboard/onboarding/import')}
-                          className="w-full"
-                        >
-                          <Users className="h-4 w-4 mr-2" />
-                          Import Team Members
-                        </Button>
-                        
-                        <p className="text-xs text-muted-foreground">
-                          Takes less than 5 minutes to get started
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm text-blue-900">
+                        {step.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {step.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Ready to begin? Takes less than 5 minutes
+                      </p>
+                    </div>
+                    
+                    <Button
+                      onClick={() => navigate(step.route)}
+                      size="sm"
+                      className="flex-shrink-0"
+                    >
+                      Get Started
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </div>
                 );
               }
 
