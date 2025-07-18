@@ -58,7 +58,7 @@ serve(async (req) => {
       .select(`
         id,
         users!inner(
-          id as user_id,
+          id,
           email,
           full_name
         )
@@ -71,7 +71,8 @@ serve(async (req) => {
     const employees = employeeData?.map(emp => ({
       id: emp.id,
       email: emp.users.email,
-      full_name: emp.users.full_name
+      full_name: emp.users.full_name,
+      user_id: emp.users.id
     })) || []
 
     const results = []
