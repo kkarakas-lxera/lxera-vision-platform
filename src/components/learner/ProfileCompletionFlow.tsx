@@ -281,10 +281,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         .select(`
           *, 
           companies(name),
-          st_company_positions!employees_position_fkey(
+          st_company_positions!employees_current_position_id_fkey(
             id,
             position_title,
             position_code,
+            department,
             required_skills
           ),
           st_employee_skills_profile(
@@ -296,10 +297,15 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
 
       if (employee) {
         setEmployeeData(employee); // Store for later use
+        
+        // Use position title and department from linked position if available
+        const currentPosition = employee.st_company_positions?.position_title || employee.position || '';
+        const department = employee.st_company_positions?.department || employee.department || '';
+        
         setFormData(prev => ({
           ...prev,
-          currentPosition: employee.position || '',
-          department: employee.department || ''
+          currentPosition,
+          department
         }));
         
         // Load position skills if available
@@ -803,46 +809,46 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       case 1: // Current Role
         return (
           <div className="space-y-6">
-            <div>
-              <Label htmlFor="position" className="text-base font-medium text-gray-900 mb-2">
-                Current Position
-              </Label>
-              <Input
-                id="position"
-                value={formData.currentPosition}
-                onChange={(e) => setFormData(prev => ({ ...prev, currentPosition: e.target.value }))}
-                className="mt-2"
-                placeholder="e.g. Senior Software Engineer"
-              />
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-4">
+                Please confirm your assigned position details are correct:
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Current Position
+                  </Label>
+                  <div className="mt-1 p-3 bg-white rounded-md border border-gray-200">
+                    <p className="text-gray-900 font-medium">
+                      {formData.currentPosition || 'Not assigned'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Department
+                  </Label>
+                  <div className="mt-1 p-3 bg-white rounded-md border border-gray-200">
+                    <p className="text-gray-900 font-medium">
+                      {formData.department || 'Not assigned'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {(!formData.currentPosition || !formData.department) && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    Your position details haven't been assigned yet. Please contact your HR administrator.
+                  </p>
+                </div>
+              )}
             </div>
             
             <div>
-              <Label htmlFor="department" className="text-base font-medium text-gray-900 mb-2">
-                Department
-              </Label>
-              <Select
-                value={formData.department}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select your department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Engineering">Engineering</SelectItem>
-                  <SelectItem value="Product">Product</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Sales">Sales</SelectItem>
-                  <SelectItem value="HR">Human Resources</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label className="text-base font-medium text-gray-900 mb-2">
+              <Label htmlFor="timeInRole" className="text-base font-medium text-gray-900 mb-2">
                 Time in current role
               </Label>
               <div className="grid grid-cols-5 gap-2 mt-2">
