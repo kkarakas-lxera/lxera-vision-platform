@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +21,6 @@ interface EmployeeData {
 }
 
 const InvitationSignup = () => {
-  const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -187,7 +185,15 @@ const InvitationSignup = () => {
 
     try {
       // Step 1: Create Supabase auth user
-      const { error: signUpError } = await signUp(employeeData.email, password, employeeData.full_name);
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: employeeData.email,
+        password: password,
+        options: {
+          data: {
+            full_name: employeeData.full_name,
+          }
+        }
+      });
       
       if (signUpError) {
         setError(signUpError.message);
@@ -195,7 +201,13 @@ const InvitationSignup = () => {
         return;
       }
 
-      // Step 2: Sign in to get the user session
+      if (!signUpData.user) {
+        setError('Failed to create user account.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 2: Sign in to get the user session (required after signUp)
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: employeeData.email,
         password: password
@@ -203,15 +215,16 @@ const InvitationSignup = () => {
       
       if (signInError || !signInData.user) {
         console.error('Error signing in after signup:', signInError);
-        setError('Account created but failed to sign in. Please try logging in manually.');
-        setIsLoading(false);
+        setError('Account created successfully! Please sign in to complete your profile.');
+        // Navigate to login with success message
+        navigate(`/admin-login?redirect=/learner/profile&token=${invitationToken}&message=account-created`);
         return;
       }
       
       const authUser = signInData.user;
       
       // Wait a moment for auth trigger to create user profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Update the automatically created user profile with company info
       const { error: userUpdateError } = await supabase
