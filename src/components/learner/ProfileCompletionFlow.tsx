@@ -547,34 +547,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
 
       if (analyzeError) throw analyzeError;
       
-      // Get the session ID from the response
-      const sessionId = analysisResult.session_id;
-      
-      // Subscribe to realtime updates for this analysis session
-      realtimeChannel = supabase
-        .channel(`cv-analysis-${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'cv_analysis_status',
-            filter: `session_id=eq.${sessionId}`
-          },
-          (payload) => {
-            if (payload.new) {
-              const { status, progress, message } = payload.new as any;
-              setCvAnalysisStatus(message || status);
-              
-              // If analysis is completed, proceed with import
-              if (status === 'completed') {
-                importCVData();
-              }
-            }
-          }
-        )
-        .subscribe();
-      
       // Function to import CV data
       const importCVData = async () => {
         setCvAnalysisStatus('Importing data into your profile...');
@@ -604,6 +576,45 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           await supabase.removeChannel(realtimeChannel);
         }
       };
+      
+      // Get the session ID from the response
+      const sessionId = analysisResult?.session_id;
+      
+      // If we have a session ID, subscribe to realtime updates
+      if (sessionId) {
+        realtimeChannel = supabase
+          .channel(`cv-analysis-${sessionId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'cv_analysis_status',
+              filter: `session_id=eq.${sessionId}`
+            },
+            (payload) => {
+              if (payload.new) {
+                const { status, progress, message } = payload.new as any;
+                setCvAnalysisStatus(message || status);
+                
+                // If analysis is completed, proceed with import
+                if (status === 'completed') {
+                  importCVData();
+                }
+              }
+            }
+          )
+          .subscribe();
+      }
+      
+      // If analysis was successful but no session ID (backwards compatibility)
+      // or if the edge function completed immediately
+      if (analysisResult?.success && (!sessionId || analysisResult?.skills_extracted)) {
+        // Wait a moment for any final processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Proceed with import directly
+        await importCVData();
+      }
       
     } catch (error) {
       console.error('CV upload error:', error);

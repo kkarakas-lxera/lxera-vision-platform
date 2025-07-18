@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
-import { PDFExtract } from 'https://esm.sh/pdf-extract@1.0.12'
 import * as mammoth from 'https://esm.sh/mammoth@1.6.0'
 import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
@@ -45,22 +44,30 @@ serve(async (req) => {
     
     // Helper function to update analysis status
     const updateStatus = async (status: string, progress: number, message?: string) => {
-      await supabase
-        .from('cv_analysis_status')
-        .upsert({
-          employee_id,
-          session_id: sessionId,
-          status,
-          progress,
-          message,
-          metadata: { 
-            source,
-            file_path,
-            request_id: requestId 
-          }
-        }, {
-          onConflict: 'employee_id,session_id'
-        })
+      try {
+        const { error } = await supabase
+          .from('cv_analysis_status')
+          .upsert({
+            employee_id,
+            session_id: sessionId,
+            status,
+            progress,
+            message,
+            metadata: { 
+              source,
+              file_path,
+              request_id: requestId 
+            }
+          }, {
+            onConflict: 'employee_id,session_id'
+          })
+        
+        if (error) {
+          console.error('Failed to update status:', error)
+        }
+      } catch (err) {
+        console.error('Status update error:', err)
+      }
     }
     
     // Initial status
