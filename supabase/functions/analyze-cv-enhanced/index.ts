@@ -7,6 +7,7 @@ import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, ge
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 serve(async (req) => {
@@ -454,11 +455,22 @@ serve(async (req) => {
       })
     }
     
-    return createErrorResponse(error, {
+    const errorResponse = createErrorResponse(error, {
       requestId,
       functionName: 'analyze-cv-enhanced',
       employeeId: employee_id
     }, getErrorStatusCode(error))
+    
+    // Ensure CORS headers are included in error responses
+    const headers = new Headers(errorResponse.headers)
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      headers.set(key, value)
+    })
+    
+    return new Response(errorResponse.body, {
+      status: errorResponse.status,
+      headers
+    })
   }
 })
 
