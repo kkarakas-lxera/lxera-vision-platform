@@ -191,7 +191,9 @@ const InvitationSignup = () => {
         options: {
           data: {
             full_name: employeeData.full_name,
-          }
+          },
+          // Skip email confirmation since they came from an invitation email
+          emailRedirectTo: window.location.origin
         }
       });
       
@@ -236,6 +238,20 @@ const InvitationSignup = () => {
           email_verified: true
         })
         .eq('id', authUser.id);
+        
+      // Also mark the auth user's email as confirmed since they came from an invitation
+      // This requires a server-side function or edge function to update auth.users
+      const { error: confirmEmailError } = await supabase.functions.invoke('confirm-invitation-email', {
+        body: { 
+          userId: authUser.id,
+          invitationToken: invitationToken
+        }
+      });
+      
+      if (confirmEmailError) {
+        console.error('Error confirming email:', confirmEmailError);
+        // Don't fail the signup process for this
+      }
 
       if (userUpdateError) {
         console.error('Error updating user profile:', userUpdateError);
