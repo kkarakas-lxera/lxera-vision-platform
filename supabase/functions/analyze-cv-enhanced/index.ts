@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
+import OpenAI from 'https://esm.sh/openai@4.28.0'
 import * as mammoth from 'https://esm.sh/mammoth@1.6.0'
 import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
@@ -19,9 +19,12 @@ serve(async (req) => {
   const startTime = Date.now()
   const requestId = crypto.randomUUID()
   const sessionId = crypto.randomUUID() // For tracking this specific analysis session
+  let employee_id: string | undefined // Declare at function scope
   
   try {
-    const { employee_id, file_path, source, session_item_id, use_template } = await req.json()
+    const body = await req.json()
+    employee_id = body.employee_id
+    const { file_path, source, session_item_id, use_template } = body
     
     
     // Initialize OpenAI
@@ -30,8 +33,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not configured')
     }
     
-    const configuration = new Configuration({ apiKey: openaiApiKey })
-    const openai = new OpenAIApi(configuration)
+    const openai = new OpenAI({ apiKey: openaiApiKey })
 
     // Validate required parameters
     if (!employee_id || !file_path) {
@@ -222,7 +224,7 @@ serve(async (req) => {
     const temperature = analysisTemplate?.parameters?.temperature || 0.3
     
     try {
-      completion = await openai.createChatCompletion({
+      completion = await openai.chat.completions.create({
         model: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -241,13 +243,13 @@ serve(async (req) => {
       throw new Error(`Failed to analyze CV: ${openaiError.message}`)
     }
 
-    const analysisResult = JSON.parse(completion.data.choices[0].message?.content || '{}')
+    const analysisResult = JSON.parse(completion.choices[0].message?.content || '{}')
     
     await updateStatus('processing', 60, 'Processing analysis results...')
     
     // Track token usage
-    const tokensUsed = completion.data.usage?.total_tokens || 0
-    const costEstimate = calculateCost(completion.data.usage)
+    const tokensUsed = completion.usage?.total_tokens || 0
+    const costEstimate = calculateCost(completion.usage)
     
     await supabase
       .from('st_llm_usage_metrics')
@@ -255,8 +257,8 @@ serve(async (req) => {
         company_id: employee.company_id,
         service_type: 'cv_analysis',
         model_used: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
-        input_tokens: completion.data.usage?.prompt_tokens || 0,
-        output_tokens: completion.data.usage?.completion_tokens || 0,
+        input_tokens: completion.usage?.prompt_tokens || 0,
+        output_tokens: completion.usage?.completion_tokens || 0,
         cost_estimate: costEstimate,
         duration_ms: Date.now() - startTime,
         success: true,
