@@ -59,7 +59,10 @@ export class EmployeeProfileService {
         section_name: sectionName,
         data,
         is_complete: isComplete,
-        completed_at: isComplete ? new Date().toISOString() : null
+        completed_at: isComplete ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'employee_id,section_name'
       });
 
     if (error) throw error;

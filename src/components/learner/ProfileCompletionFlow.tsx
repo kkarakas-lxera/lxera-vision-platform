@@ -78,7 +78,7 @@ const STEPS = [
   },
   {
     id: 2,
-    title: "Upload Your CV (Optional)",
+    title: "Upload Your CV",
     subtitle: "Save time by letting us extract your experience",
     icon: FileText,
     fields: ['cv']
@@ -985,11 +985,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                     'Saving...'
                   ) : currentStep === STEPS.length ? (
                     'Complete Setup'
-                  ) : currentStep === 2 && !cvUploaded ? (
-                    <>
-                      Skip for now
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </>
                   ) : (
                     <>
                       Continue
