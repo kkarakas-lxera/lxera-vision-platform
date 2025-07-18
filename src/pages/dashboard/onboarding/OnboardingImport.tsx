@@ -26,7 +26,7 @@ export default function OnboardingImport() {
   const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
   const [selectionMethod, setSelectionMethod] = useState<'first' | 'last' | 'manual'>('first');
   const [defaultPosition, setDefaultPosition] = useState<string>('');
-  const [positions, setPositions] = useState<any[]>([]);
+  const [positions, setPositions] = useState<{ id: string; position_code: string; position_title: string }[]>([]);
   const [importProgress, setImportProgress] = useState(0);
   const [needsPositionAssignment, setNeedsPositionAssignment] = useState<any[]>([]);
 
@@ -41,8 +41,9 @@ export default function OnboardingImport() {
     try {
       const { data, error } = await supabase
         .from('st_company_positions')
-        .select('id, title')
-        .eq('company_id', userProfile.company_id);
+        .select('id, position_code, position_title')
+        .eq('company_id', userProfile.company_id)
+        .order('position_title');
       
       if (error) throw error;
       setPositions(data || []);
@@ -64,8 +65,19 @@ export default function OnboardingImport() {
     Papa.parse(file, {
       header: true,
       complete: (results) => {
+        // Check for required columns
+        const requiredColumns = ['name', 'email'];
+        const headers = Object.keys(results.data[0] || {});
+        const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+        
+        if (missingColumns.length > 0) {
+          toast.error(`Missing required columns: ${missingColumns.join(', ')}`);
+          setImportState('initial');
+          return;
+        }
+        
         const validEmployees = results.data.filter((row: any) => 
-          row.email && row.first_name && row.last_name
+          row.email && row.name
         );
         
         setParsedData(validEmployees);
@@ -85,7 +97,10 @@ export default function OnboardingImport() {
   };
 
   const checkPositionAssignment = (employees: any[]) => {
-    const needsPosition = employees.filter(emp => !emp.position || emp.position.trim() === '');
+    const needsPosition = employees.filter(emp => 
+      (!emp.position || emp.position.trim() === '') && 
+      (!emp.position_code || emp.position_code.trim() === '')
+    );
     
     if (needsPosition.length > 0) {
       setNeedsPositionAssignment(needsPosition);
@@ -106,10 +121,10 @@ export default function OnboardingImport() {
   };
 
   const downloadTemplate = () => {
-    const csvContent = `first_name,last_name,email,position,manager_email
-John,Smith,john.smith@company.com,Software Engineer,manager@company.com
-Sarah,Johnson,sarah.johnson@company.com,Product Manager,
-Mike,Williams,mike.williams@company.com,Designer,sarah.johnson@company.com`;
+    const csvContent = `name,email,department,position,position_code,manager_email
+John Smith,john.smith@company.com,Engineering,Senior Developer,ENG_SR_DEV,jane.doe@company.com
+Jane Doe,jane.doe@company.com,Operations,Project Manager,OPS_PM,
+Mike Johnson,mike.johnson@company.com,Engineering,Junior Developer,ENG_JR_DEV,john.smith@company.com`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -129,35 +144,105 @@ Mike,Williams,mike.williams@company.com,Designer,sarah.johnson@company.com`;
     try {
       // Create import session
       const { data: session, error: sessionError } = await supabase
-        .from('employee_import_sessions')
+        .from('st_import_sessions')
         .insert({
           company_id: userProfile?.company_id,
-          file_name: selectedFile?.name || 'manual_import',
+          import_type: 'employee_onboarding',
           total_employees: employeesToImport.length,
-          status: 'processing'
+          processed: 0,
+          successful: 0,
+          failed: 0,
+          status: 'processing',
+          created_by: userProfile?.id,
+          active_position_id: defaultPosition || null
         })
         .select()
         .single();
 
       if (sessionError) throw sessionError;
 
+      let successful = 0;
+      let failed = 0;
+
       // Import employees with progress tracking
       for (let i = 0; i < employeesToImport.length; i++) {
         const employee = employeesToImport[i];
         
-        const { error: empError } = await supabase
-          .from('employees')
-          .insert({
-            company_id: userProfile?.company_id,
-            email: employee.email,
-            first_name: employee.first_name,
-            last_name: employee.last_name,
-            position: employee.position || defaultPosition,
-            import_session_id: session.id
-          });
+        try {
+          // Determine position
+          let positionId = defaultPosition || null;
+          let positionCode = employee.position_code || employee.position || 'Unassigned';
+          
+          // If we have a position ID from dropdown, get its code
+          if (defaultPosition) {
+            const pos = positions.find(p => p.id === defaultPosition);
+            if (pos) {
+              positionCode = pos.position_code || pos.position_title;
+            }
+          }
 
-        if (empError) {
-          console.error('Error importing employee:', empError);
+          // Check if user exists
+          const { data: checkResult } = await supabase
+            .rpc('check_user_exists_by_email', { p_email: employee.email });
+
+          let userId = checkResult?.[0]?.user_exists ? checkResult[0].user_id : null;
+
+          if (!userId) {
+            // Create new user
+            const { data: newUserId, error: userError } = await supabase
+              .rpc('create_company_user', {
+                p_email: employee.email,
+                p_password_hash: '$2b$12$LQv3c1yqBwWFcZPMtS.4K.6P8vU6OxZdHJ5QKG8vY.7JZu9Z1QY6m',
+                p_full_name: employee.name,
+                p_role: 'learner'
+              });
+
+            if (userError) throw userError;
+            userId = newUserId;
+          }
+
+          // Create or update employee record
+          const { error: employeeError } = await supabase
+            .from('employees')
+            .upsert({
+              user_id: userId,
+              company_id: userProfile?.company_id,
+              department: employee.department || 'General',
+              position: positionCode,
+              current_position_id: positionId,
+              target_position_id: positionId,
+              is_active: true
+            });
+
+          if (employeeError) throw employeeError;
+
+          // Create import session item
+          await supabase
+            .from('st_import_session_items')
+            .insert({
+              import_session_id: session.id,
+              employee_email: employee.email,
+              employee_name: employee.name,
+              current_position_code: positionCode,
+              target_position_code: positionCode,
+              status: 'completed',
+              employee_id: userId
+            });
+
+          successful++;
+        } catch (error) {
+          console.error(`Failed to process ${employee.email}:`, error);
+          failed++;
+          
+          await supabase
+            .from('st_import_session_items')
+            .insert({
+              import_session_id: session.id,
+              employee_email: employee.email,
+              employee_name: employee.name,
+              status: 'failed',
+              error_message: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
 
         setImportProgress(((i + 1) / employeesToImport.length) * 100);
@@ -165,8 +250,14 @@ Mike,Williams,mike.williams@company.com,Designer,sarah.johnson@company.com`;
 
       // Update session status
       await supabase
-        .from('employee_import_sessions')
-        .update({ status: 'completed' })
+        .from('st_import_sessions')
+        .update({
+          processed: successful + failed,
+          successful,
+          failed,
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
         .eq('id', session.id);
 
       await refreshData();
@@ -273,14 +364,17 @@ Mike,Williams,mike.williams@company.com,Designer,sarah.johnson@company.com`;
               type="file"
               accept=".csv"
               onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              id="csv-upload"
             />
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 hover:border-gray-400 transition-colors">
               <div className="space-y-2">
                 <Upload className="h-8 w-8 mx-auto text-gray-400" />
                 <p className="text-base font-medium">Drop your CSV here</p>
                 <p className="text-sm text-muted-foreground">or</p>
-                <Button variant="outline" size="sm">Browse files</Button>
+                <label htmlFor="csv-upload">
+                  <Button variant="outline" size="sm" className="pointer-events-none">Browse files</Button>
+                </label>
               </div>
             </div>
           </div>
@@ -426,7 +520,7 @@ Mike,Williams,mike.williams@company.com,Designer,sarah.johnson@company.com`;
                     <SelectContent>
                       {positions.map((position) => (
                         <SelectItem key={position.id} value={position.id}>
-                          {position.title}
+                          {position.position_title}
                         </SelectItem>
                       ))}
                     </SelectContent>
