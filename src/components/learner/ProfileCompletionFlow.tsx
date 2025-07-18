@@ -979,7 +979,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                     }
                   }}
                   disabled={isSaving}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
                 >
                   {isSaving ? (
                     'Saving...'
