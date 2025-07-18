@@ -71,7 +71,8 @@ serve(async (req) => {
     // Send reminder emails
     for (const invitation of pendingEmployees) {
       try {
-        const profileUrl = `${Deno.env.get('PUBLIC_APP_URL')}/learner/profile?token=${invitation.invitation_token}`;
+        const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || Deno.env.get('PUBLIC_APP_URL') || 'https://www.lxera.ai';
+        const profileUrl = `${siteUrl}/login?redirect=/learner/profile&token=${invitation.invitation_token}`;
         
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -80,59 +81,80 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'Lxera Platform <noreply@lxera.com>',
+            from: 'LXERA Team <hello@lxera.ai>',
             to: invitation.employees.users.email,
             subject: `Reminder: Complete Your Profile at ${invitation.employees.companies.name}`,
             html: `
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #f59e0b; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                    .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-                    .button { display: inline-block; background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-                    .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #6b7280; }
-                    .highlight { background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; }
-                  </style>
-                </head>
-                <body>
-                  <div class="container">
-                    <div class="header">
-                      <h1>Don't Miss Out on Your Learning Journey!</h1>
+            <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%); padding: 40px 20px;">
+                <div style="background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                  <!-- Header -->
+                  <div style="text-align: center; padding: 40px 40px 30px; border-bottom: 1px solid #f0f0f0;">
+                    <img src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" alt="LXERA" style="height: 60px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                    <div style="color: #666; font-size: 14px; font-weight: 500; letter-spacing: 0.5px;">Beyond Learning</div>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div style="padding: 40px;">
+                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Don't Miss Out on Your Learning Journey!</h1>
+                    <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
+                      Hi ${invitation.employees.users.full_name}, your profile is waiting!
+                    </p>
+                    
+                    <div style="background: #FEF3C7; border: 2px solid #F59E0B; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                      <p style="color: #191919; font-size: 15px; margin: 0 0 10px 0; font-weight: 600;">
+                        ⏰ Your profile invitation expires soon!
+                      </p>
+                      <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">
+                        Complete your profile now to unlock personalized learning recommendations tailored to your career goals.
+                      </p>
                     </div>
-                    <div class="content">
-                      <p>Hi ${invitation.employees.users.full_name},</p>
-                      
-                      <div class="highlight">
-                        <strong>⏰ Your profile invitation expires soon!</strong>
-                        <p>Complete your profile now to unlock personalized learning recommendations tailored to your career goals.</p>
-                      </div>
-                      
-                      <p>By completing your profile, you'll get:</p>
-                      <ul>
-                        <li>🎯 Personalized course recommendations</li>
-                        <li>📊 Skills gap analysis</li>
-                        <li>🚀 Career development insights</li>
-                        <li>🏆 Track your learning achievements</li>
-                      </ul>
-                      
-                      <p><strong>Pro tip:</strong> You can import your LinkedIn profile in just one click!</p>
-                      
-                      <center>
-                        <a href="${profileUrl}" class="button">Complete Your Profile Now</a>
-                      </center>
-                      
-                      <p style="margin-top: 30px; font-size: 14px;">This is a friendly reminder. Your invitation link will expire soon.</p>
+                    
+                    <h3 style="color: #191919; margin-top: 30px;">By completing your profile, you'll get:</h3>
+                    <ul style="list-style: none; padding: 0; margin: 20px 0;">
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        🎯 Personalized course recommendations
+                      </li>
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        📊 Skills gap analysis
+                      </li>
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        🚀 Career development insights
+                      </li>
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        🏆 Track your learning achievements
+                      </li>
+                    </ul>
+                    
+                    <div style="background: #7AE5C6; color: #191919; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; font-size: 14px;">
+                      💡 <strong>Pro tip:</strong> You can import your LinkedIn profile in just one click!
                     </div>
-                    <div class="footer">
-                      <p>If you have any questions, please contact your HR team.</p>
-                      <p>&copy; 2024 Lxera Platform. All rights reserved.</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${profileUrl}" 
+                         style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                        Complete Your Profile Now
+                      </a>
+                      <p style="margin-top: 15px; color: #999; font-size: 14px;">This is a friendly reminder. Your invitation link will expire soon.</p>
                     </div>
                   </div>
-                </body>
-              </html>
+                  
+                  <!-- Footer -->
+                  <div style="padding: 30px 40px; border-top: 1px solid #f0f0f0; text-align: center;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Follow us for updates and insights:</p>
+                    <div style="margin: 20px 0;">
+                      <a href="https://www.linkedin.com/company/lxera" style="display: inline-block; background: #0077B5; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px;">
+                        🔗 Follow on LinkedIn
+                      </a>
+                    </div>
+                    <p style="color: #666; font-size: 13px; margin: 20px 0 10px;">
+                      Beyond Learning | <a href="https://www.lxera.ai" style="color: #666; text-decoration: none;">www.lxera.ai</a>
+                    </p>
+                    <p style="color: #999; font-size: 13px; margin: 0;">© 2025 LXERA. All rights reserved.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             `
           }),
         });

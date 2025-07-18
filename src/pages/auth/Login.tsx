@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, ArrowRight, AlertCircle } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { motion } from 'framer-motion';
 
@@ -15,17 +15,30 @@ const Login = () => {
   const { user, userProfile, signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Get redirect path and token from URL parameters
+  const redirectPath = searchParams.get('redirect');
+  const invitationToken = searchParams.get('token');
+
   // Redirect if already logged in
   useEffect(() => {
     if (user && userProfile) {
       const from = (location.state as any)?.from?.pathname;
-      if (from) {
+      
+      // Check for redirect parameter first
+      if (redirectPath) {
+        // Add token to the redirect path if available
+        const finalPath = invitationToken 
+          ? `${redirectPath}?token=${invitationToken}`
+          : redirectPath;
+        navigate(finalPath);
+      } else if (from) {
         navigate(from);
       } else {
         // Redirect based on role
@@ -44,7 +57,7 @@ const Login = () => {
         }
       }
     }
-  }, [user, userProfile, navigate, location]);
+  }, [user, userProfile, navigate, location, redirectPath, invitationToken]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +92,15 @@ const Login = () => {
             Sign in to your admin account
           </p>
         </div>
+
+        {invitationToken && (
+          <Alert className="bg-future-green/10 border-future-green/30">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please sign in to complete your profile setup
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-md hover:shadow-3xl transition-shadow duration-300">
           <CardHeader className="pb-4 bg-gradient-to-br from-future-green/5 to-transparent">
