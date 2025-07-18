@@ -22,6 +22,8 @@ import {
   triggerHapticFeedback
 } from '@/utils/touchOptimization';
 import { cn } from '@/lib/utils';
+import { useProfileCompletion } from '@/hooks/useProfileCompletion';
+import ProfileCompletionFlow from '@/components/learner/ProfileCompletionFlow';
 
 interface CourseAssignment {
   id: string;
@@ -58,6 +60,7 @@ interface ActivityItem {
 export default function LearnerDashboard() {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
+  const profileCompletion = useProfileCompletion();
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<CourseAssignment[]>([]);
   const [streak, setStreak] = useState<LearningStreak>({ current_streak: 0, last_learning_date: null });
@@ -286,11 +289,26 @@ export default function LearnerDashboard() {
     }
   };
 
-  if (loading) {
+  // Handle profile completion redirect
+  const handleProfileComplete = () => {
+    window.location.reload(); // Reload to refresh profile completion status
+  };
+
+  if (loading || profileCompletion.isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  // Show profile completion flow if profile is not complete
+  if (!profileCompletion.isComplete && profileCompletion.employeeId) {
+    return (
+      <ProfileCompletionFlow
+        employeeId={profileCompletion.employeeId}
+        onComplete={handleProfileComplete}
+      />
     );
   }
 

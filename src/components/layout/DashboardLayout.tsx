@@ -46,6 +46,7 @@ import { MobileAdminNavigation, MobileCompanyNavigation, MobileLearnerNavigation
 import MobileHamburgerMenu from '@/components/mobile/navigation/MobileHamburgerMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -58,6 +59,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   const authContext = useAuth();
   const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
+  const profileCompletion = useProfileCompletion();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     // Load from localStorage or default to all expanded
@@ -122,6 +124,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];
       case 'learner':
+        // Show only My Profile tab if profile is incomplete
+        if (!profileCompletion.isComplete && !profileCompletion.isLoading) {
+          return [
+            { href: '/learner/profile', icon: Users, label: 'My Profile' },
+          ];
+        }
         return [
           { href: '/learner', icon: Home, label: 'Dashboard' },
           { href: '/learner/courses', icon: BookOpen, label: 'My Courses' },

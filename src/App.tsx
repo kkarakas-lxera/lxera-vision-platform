@@ -34,6 +34,9 @@ import Login from "./pages/auth/Login";
 import EarlyAccessLogin from "./pages/auth/EarlyAccessLogin";
 import AuthCallback from "./pages/auth/AuthCallback";
 
+// Lazy load auth pages
+const InvitationSignup = lazy(() => import("./pages/auth/InvitationSignup"));
+
 // Lazy load public/marketing pages
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Solutions = lazy(() => import("./pages/Solutions"));
@@ -100,6 +103,7 @@ const CourseViewer = lazy(() => import("./pages/learner/CourseViewer"));
 const CourseOverview = lazy(() => import("./pages/learner/CourseOverview"));
 const MyCourses = lazy(() => import("./pages/learner/MyCourses"));
 const ProfileBuilder = lazy(() => import("./pages/learner/ProfileBuilder"));
+const LearnerProfile = lazy(() => import("./pages/learner/LearnerProfile"));
 
 // Lazy load company dashboard pages
 const CompanyDashboard = lazy(() => import("./pages/dashboard/CompanyDashboard"));
@@ -894,6 +898,7 @@ const App = () => {
             {/* Auth routes */}
             <Route path="/login" element={<EarlyAccessLogin />} />
             <Route path="/admin-login" element={<Login />} />
+            <Route path="/signup/invitation" element={<PageSuspense><InvitationSignup /></PageSuspense>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Onboarding routes */}
@@ -968,7 +973,7 @@ const App = () => {
                         <Routes>
                           <Route path="/" element={<PageSuspense><LearnerDashboard /></PageSuspense>} />
                           <Route path="/courses" element={<PageSuspense><MyCourses /></PageSuspense>} />
-                          <Route path="/profile" element={<PageSuspense><ProfileBuilder /></PageSuspense>} />
+                          <Route path="/profile" element={<PageSuspense><LearnerProfile /></PageSuspense>} />
                           <Route path="/certificates" element={<PageSuspense><div>My Certificates - Coming Soon</div></PageSuspense>} />
                         </Routes>
                       </DashboardLayout>

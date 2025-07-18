@@ -148,20 +148,23 @@ serve(async (req) => {
                     
                     <div style="background: #EFEFE3; padding: 20px; border-radius: 8px; margin: 20px 0;">
                       <p style="color: #191919; font-size: 15px; margin: 0; line-height: 1.6;">
-                        You've been invited to complete your professional profile and upload your CV. This will help us understand your skills and create personalized learning paths just for you.
+                        You've been invited to create your account and complete your professional profile. Upload your CV and we'll help you identify skills and create personalized learning paths just for you.
                       </p>
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="${siteUrl}/admin-login?redirect=/learner/profile&token=${invitationToken}" 
+                      <a href="${siteUrl}/signup/invitation?token=${invitationToken}" 
                          style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                        Complete Your Profile
+                        Create Account & Complete Profile
                       </a>
                       <p style="margin-top: 15px; color: #999; font-size: 14px;">⏱️ This link expires in 30 days</p>
                     </div>
 
                     <h3 style="color: #191919; margin-top: 40px;">What you'll need to do:</h3>
                     <ul style="list-style: none; padding: 0; margin: 20px 0;">
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        ✓ Create your account with a secure password
+                      </li>
                       <li style="padding: 12px 0; color: #666; font-size: 15px;">
                         ✓ Upload your CV/Resume
                       </li>

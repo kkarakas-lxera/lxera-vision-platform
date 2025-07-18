@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ProfileSection {
-  name: 'basic_info' | 'work_experience' | 'education' | 'skills' | 'certifications' | 'languages' | 'projects';
+  name: 'basic_info' | 'work_experience' | 'education' | 'skills' | 'certifications' | 'languages' | 'projects' | 'current_work' | 'daily_tasks' | 'tools_technologies';
   isComplete: boolean;
   completedAt?: string;
   data?: any;
@@ -104,6 +104,10 @@ export class EmployeeProfileService {
       .eq('invitation_token', token);
 
     if (error) throw error;
+  }
+
+  static async saveSection(employeeId: string, sectionName: ProfileSection['name'], data: any): Promise<void> {
+    await this.updateProfileSection(employeeId, sectionName, data, true);
   }
 
   static async completeProfile(employeeId: string): Promise<void> {
