@@ -52,6 +52,10 @@ serve(async (req) => {
     
     const resend = new Resend(resendApiKey)
 
+    // Get PUBLIC_SITE_URL with fallback
+    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai'
+    console.log('Using site URL:', siteUrl)
+
     // Get employee details with user information
     const { data: employeeData, error: employeesError } = await supabaseAdmin
       .from('employees')
@@ -66,6 +70,8 @@ serve(async (req) => {
       .in('id', employee_ids)
 
     if (employeesError) throw employeesError
+
+    console.log(`Found ${employeeData?.length || 0} employees to invite`)
 
     // Transform data to match expected format
     const employees = employeeData?.map(emp => ({
@@ -83,20 +89,40 @@ serve(async (req) => {
         // Generate invitation token
         const invitationToken = crypto.randomUUID()
         
-        // Create or update invitation record
-        const { error: inviteError } = await supabaseAdmin
+        // Check if invitation already exists
+        const { data: existingInvite } = await supabaseAdmin
           .from('profile_invitations')
-          .upsert({
-            employee_id: employee.id,
-            invitation_token: invitationToken,
-            sent_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
-            reminder_count: 0
-          }, {
-            onConflict: 'employee_id'
-          })
+          .select('id')
+          .eq('employee_id', employee.id)
+          .single()
 
-        if (inviteError) throw inviteError
+        if (existingInvite) {
+          // Update existing invitation
+          const { error: updateError } = await supabaseAdmin
+            .from('profile_invitations')
+            .update({
+              invitation_token: invitationToken,
+              sent_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+              reminder_count: 0
+            })
+            .eq('id', existingInvite.id)
+
+          if (updateError) throw updateError
+        } else {
+          // Create new invitation
+          const { error: insertError } = await supabaseAdmin
+            .from('profile_invitations')
+            .insert({
+              employee_id: employee.id,
+              invitation_token: invitationToken,
+              sent_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+              reminder_count: 0
+            })
+
+          if (insertError) throw insertError
+        }
 
         // Send email via Resend SDK
         const { data: emailData, error: emailError } = await resend.emails.send({
@@ -109,7 +135,7 @@ serve(async (req) => {
               <p>Hi ${employee.full_name},</p>
               <p>You've been invited to complete your professional profile and upload your CV to help us understand your skills and create personalized learning paths.</p>
               <div style="margin: 30px 0;">
-                <a href="${Deno.env.get('PUBLIC_SITE_URL')}/learner/profile?token=${invitationToken}" 
+                <a href="${siteUrl}/learner/profile?token=${invitationToken}" 
                    style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                   Complete Your Profile
                 </a>
@@ -135,6 +161,8 @@ serve(async (req) => {
           console.error('Resend error:', emailError)
           throw new Error(`Email sending failed: ${emailError.message}`)
         }
+
+        console.log(`Email sent successfully to ${employee.email} with ID: ${emailData?.id}`)
 
         results.push({
           employee_id: employee.id,

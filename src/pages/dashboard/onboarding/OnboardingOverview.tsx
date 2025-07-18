@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { QuickActions } from '@/components/dashboard/EmployeeOnboarding/QuickActions';
-import { ImportHistory } from '@/components/dashboard/EmployeeOnboarding/ImportHistory';
+import ActivityLog from '@/components/dashboard/EmployeeOnboarding/ActivityLog';
 
 export default function OnboardingOverview() {
   const navigate = useNavigate();
@@ -99,8 +99,8 @@ export default function OnboardingOverview() {
             </CardContent>
           </Card>
           
-          {/* Import History */}
-          <ImportHistory />
+          {/* Activity Log */}
+          <ActivityLog />
         </div>
 
         {/* Right Side - Steps and Progress (80%) */}
