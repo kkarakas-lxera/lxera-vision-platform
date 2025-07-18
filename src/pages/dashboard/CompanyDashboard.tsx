@@ -201,6 +201,24 @@ export default function CompanyDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('company_id', userProfile.company_id);
 
+      // Check if any invitations have been sent
+      let hasInvitations = false;
+      if (employeeCount && employeeCount > 0) {
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('company_id', userProfile.company_id);
+        
+        const employeeIds = employees?.map(e => e.id) || [];
+        
+        const { count: invitationCount } = await supabase
+          .from('profile_invitations')
+          .select('*', { count: 'exact', head: true })
+          .in('employee_id', employeeIds);
+        
+        hasInvitations = invitationCount && invitationCount > 0;
+      }
+
       // Check if gap analysis results exist by joining with employees table
       const { count: gapCount } = await supabase
         .from('st_employee_skills_profile')
@@ -213,13 +231,14 @@ export default function CompanyDashboard() {
       // For skills gap trial users, onboarding is only complete when they have:
       // 1. Positions created
       // 2. Employees added
-      // 3. At least one skills analysis done (gap analysis exists)
+      // 3. Invitations sent
+      // 4. At least one skills analysis done (gap analysis exists)
       const hasPositions = positionCount && positionCount > 0;
       const hasEmployees = employeeCount && employeeCount > 0;
       const hasAnalysis = gapCount && gapCount > 0;
       
       // Only show dashboard if they have completed the full flow including analysis
-      setOnboardingComplete(hasPositions && hasEmployees && hasAnalysis);
+      setOnboardingComplete(hasPositions && hasEmployees && hasInvitations && hasAnalysis);
     } catch (error) {
       console.error('Error checking onboarding status:', error);
       // Default to showing dashboard on error to avoid blocking users

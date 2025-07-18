@@ -83,6 +83,10 @@ export default function SkillsGapOnboardingFlow() {
 
   useEffect(() => {
     checkOnboardingStatus();
+    // Re-check status when component becomes visible again
+    const handleFocus = () => checkOnboardingStatus();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [userProfile]);
 
   const checkOnboardingStatus = async () => {

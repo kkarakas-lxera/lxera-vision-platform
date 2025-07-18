@@ -73,12 +73,15 @@ export default function ActivityLog() {
         .select(`
           *,
           employees!inner(
+            id,
+            company_id,
             users!inner(
               email,
               full_name
             )
           )
         `)
+        .eq('employees.company_id', userProfile.company_id)
         .order('sent_at', { ascending: false })
         .limit(10);
 
@@ -87,7 +90,7 @@ export default function ActivityLog() {
           id: `invite-${inv.id}`,
           type: 'invitation',
           title: 'Invitation Sent',
-          description: `Sent to ${inv.employees.users.email}`,
+          description: `Sent to ${inv.employees.users.full_name} (${inv.employees.users.email})`,
           timestamp: inv.sent_at,
           status: inv.completed_at ? 'success' : 'pending',
           metadata: inv

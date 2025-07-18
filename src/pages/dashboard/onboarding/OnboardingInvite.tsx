@@ -78,7 +78,7 @@ export default function OnboardingInvite() {
       setSelectedEmployees(employeeList.map(e => e.id)); // Select all by default
       
       // If all are already invited, show success state
-      if (stats.total > 0 && employeeList.length === 0) {
+      if (stats.total > 0 && employeeList.length === 0 && invitedIds.size > 0) {
         setInviteState('success');
       }
     } catch (error) {
@@ -370,7 +370,7 @@ export default function OnboardingInvite() {
             <div>
               <h2 className="text-xl font-medium mb-2">Sent!</h2>
               <p className="text-2xl font-bold">
-                {stats.total} invitation{stats.total !== 1 ? 's' : ''} delivered
+                {stats.total - stats.notInvited} invitation{stats.total - stats.notInvited !== 1 ? 's' : ''} delivered
               </p>
             </div>
             
