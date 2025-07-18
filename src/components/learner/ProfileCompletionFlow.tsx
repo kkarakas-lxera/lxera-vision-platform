@@ -232,49 +232,85 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       // Get existing profile sections
       const sections = await EmployeeProfileService.getProfileSections(employeeId);
       
-      // Pre-fill from existing data
+      // Pre-fill from existing data and determine current step
+      let lastCompletedStep = 0;
+      const restoredFormData: any = {};
+      
       sections.forEach(section => {
         if (section.data) {
           // Handle different section types
           switch (section.name) {
             case 'basic_info':
-              // Basic info handled above
+              if (section.data.position || section.data.department) {
+                restoredFormData.currentPosition = section.data.position || '';
+                restoredFormData.department = section.data.department || '';
+                restoredFormData.timeInRole = section.data.timeInRole || '';
+                lastCompletedStep = Math.max(lastCompletedStep, 1);
+              }
               break;
             case 'work_experience':
               if (section.data.experience) {
-                setFormData(prev => ({
-                  ...prev,
-                  workExperience: section.data.experience
-                }));
+                restoredFormData.workExperience = section.data.experience;
+                lastCompletedStep = Math.max(lastCompletedStep, 3);
               }
               break;
             case 'education':
               if (section.data.education?.length > 0) {
                 const edu = section.data.education[0];
-                setFormData(prev => ({
-                  ...prev,
-                  highestDegree: edu.degree || '',
-                  fieldOfStudy: edu.field || '',
-                  institution: edu.institution || '',
-                  graduationYear: edu.graduationYear || ''
-                }));
+                restoredFormData.highestDegree = edu.degree || '';
+                restoredFormData.fieldOfStudy = edu.field || '';
+                restoredFormData.institution = edu.institution || '';
+                restoredFormData.graduationYear = edu.graduationYear || '';
+                lastCompletedStep = Math.max(lastCompletedStep, 4);
               }
               break;
             case 'skills':
               if (section.data.skills) {
-                setFormData(prev => ({
-                  ...prev,
-                  technicalSkills: section.data.skills.map((s: any) => s.name),
-                  skillLevels: section.data.skills.reduce((acc: any, s: any) => {
-                    acc[s.name] = s.proficiency;
-                    return acc;
-                  }, {})
-                }));
+                restoredFormData.technicalSkills = section.data.skills.map((s: any) => s.name);
+                restoredFormData.skillLevels = section.data.skills.reduce((acc: any, s: any) => {
+                  acc[s.name] = s.proficiency;
+                  return acc;
+                }, {});
+                lastCompletedStep = Math.max(lastCompletedStep, 6);
+              }
+              break;
+            case 'current_work':
+              if (section.data.projects || section.data.teamSize || section.data.role) {
+                restoredFormData.currentProjects = section.data.projects || '';
+                restoredFormData.teamSize = section.data.teamSize || '';
+                restoredFormData.roleInTeam = section.data.role || '';
+                lastCompletedStep = Math.max(lastCompletedStep, 7);
+              }
+              break;
+            case 'daily_tasks':
+              if (section.data.challenges) {
+                restoredFormData.challenges = section.data.challenges;
+                lastCompletedStep = Math.max(lastCompletedStep, 8);
+              }
+              break;
+            case 'tools_technologies':
+              if (section.data.growthAreas) {
+                restoredFormData.growthAreas = section.data.growthAreas;
+                lastCompletedStep = Math.max(lastCompletedStep, 9);
               }
               break;
           }
         }
       });
+
+      // Restore form data
+      if (Object.keys(restoredFormData).length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          ...restoredFormData
+        }));
+      }
+
+      // Restore step position - go to next step after last completed
+      if (lastCompletedStep > 0) {
+        const nextStep = Math.min(lastCompletedStep + 1, STEPS.length);
+        setCurrentStep(nextStep);
+      }
     } catch (error) {
       console.error('Error loading employee data:', error);
       toast.error('Failed to load your profile data');
