@@ -65,10 +65,6 @@ const InvitationSignup = () => {
               companies!inner (
                 id,
                 name
-              ),
-              users!left (
-                email,
-                full_name
               )
             )
           `)
@@ -100,11 +96,21 @@ const InvitationSignup = () => {
         let email = '';
         let fullName = '';
 
-        if (employee.users?.email) {
-          // Employee has a user account
-          email = employee.users.email;
-          fullName = employee.users.full_name;
-        } else {
+        if (employee.user_id) {
+          // Employee has a user account - fetch user data separately
+          const { data: userData } = await supabase
+            .from('users')
+            .select('email, full_name')
+            .eq('id', employee.user_id)
+            .single();
+
+          if (userData) {
+            email = userData.email;
+            fullName = userData.full_name;
+          }
+        }
+        
+        if (!email || !fullName) {
           // Employee was imported via CSV - get data from import session
           const { data: importData } = await supabase
             .from('st_import_session_items')
