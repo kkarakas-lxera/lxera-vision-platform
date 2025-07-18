@@ -210,12 +210,16 @@ export default function CompanyDashboard() {
         `, { count: 'exact', head: true })
         .eq('employees.company_id', userProfile.company_id);
 
-      // Consider onboarding complete if they have positions and employees, even if not analyzed yet
-      // This allows them to see the dashboard and continue the process
-      const hasBasicSetup = (positionCount && positionCount > 0) && (employeeCount && employeeCount > 0);
+      // For skills gap trial users, onboarding is only complete when they have:
+      // 1. Positions created
+      // 2. Employees added
+      // 3. At least one skills analysis done (gap analysis exists)
+      const hasPositions = positionCount && positionCount > 0;
+      const hasEmployees = employeeCount && employeeCount > 0;
       const hasAnalysis = gapCount && gapCount > 0;
       
-      setOnboardingComplete(hasBasicSetup || hasAnalysis);
+      // Only show dashboard if they have completed the full flow including analysis
+      setOnboardingComplete(hasPositions && hasEmployees && hasAnalysis);
     } catch (error) {
       console.error('Error checking onboarding status:', error);
       // Default to showing dashboard on error to avoid blocking users

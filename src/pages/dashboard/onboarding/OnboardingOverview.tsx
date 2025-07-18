@@ -106,8 +106,8 @@ export default function OnboardingOverview() {
         {/* Right Side - Steps and Progress (80%) */}
         <div className="lg:col-span-4 space-y-4">
 
-          {/* Quick Actions */}
-          {(stats.total > 0 || stats.withCV > 0 || stats.analyzed > 0) && (
+          {/* Quick Actions - Only show when meaningful actions are available */}
+          {(stats.total >= 10 || stats.withCV > 0 || stats.analyzed > 0) && (
             <QuickActions
               onAddEmployees={() => navigate('/dashboard/onboarding/import')}
               onUploadCVs={() => navigate('/dashboard/onboarding/invite')}
