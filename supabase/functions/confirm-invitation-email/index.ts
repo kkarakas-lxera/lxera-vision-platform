@@ -30,28 +30,52 @@ serve(async (req) => {
       }
     )
 
-    // Verify the invitation token is valid and belongs to this user
+    // Verify the invitation token is valid
     const { data: invitation, error: invitationError } = await supabaseAdmin
       .from('profile_invitations')
       .select('employee_id, employees!inner(user_id)')
       .eq('invitation_token', invitationToken)
       .single()
 
-    if (invitationError || !invitation || invitation.employees.user_id !== userId) {
+    if (invitationError || !invitation) {
+      throw new Error('Invalid invitation token')
+    }
+
+    // The employee might not have a user_id yet during signup, so we'll link them now
+    if (!invitation.employees.user_id) {
+      const { error: linkError } = await supabaseAdmin
+        .from('employees')
+        .update({ user_id: userId })
+        .eq('id', invitation.employee_id)
+      
+      if (linkError) {
+        console.error('Error linking employee to user:', linkError)
+        throw new Error('Failed to link employee to user')
+      }
+    } else if (invitation.employees.user_id !== userId) {
       throw new Error('Invalid invitation token')
     }
 
     // Update auth.users to confirm email
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    console.log('Attempting to confirm email for user:', userId)
+    const { data: updateResult, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
       { 
         email_confirmed_at: new Date().toISOString()
       }
     )
 
+    console.log('Update result:', updateResult)
+    console.log('Update error:', updateError)
+
     if (updateError) {
       console.error('Error confirming email:', updateError)
       throw updateError
+    }
+
+    if (!updateResult.user) {
+      console.error('No user returned from update')
+      throw new Error('Failed to update user')
     }
 
     // Mark invitation as completed
