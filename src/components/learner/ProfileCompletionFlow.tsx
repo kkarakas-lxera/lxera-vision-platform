@@ -547,6 +547,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
 
       if (analyzeError) throw analyzeError;
       
+      console.log('CV Analysis Response:', analysisResult);
+      
       // Function to import CV data
       const importCVData = async () => {
         setCvAnalysisStatus('Importing data into your profile...');
@@ -571,8 +573,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         // Reload data to get imported information
         await loadEmployeeData();
         
-        // Cleanup realtime subscription
+        // Cleanup realtime subscription and timeout
         if (realtimeChannel) {
+          if (realtimeChannel.timeout) {
+            clearTimeout(realtimeChannel.timeout);
+          }
           await supabase.removeChannel(realtimeChannel);
         }
       };
@@ -582,6 +587,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       
       // If we have a session ID, subscribe to realtime updates
       if (sessionId) {
+        console.log('Subscribing to realtime updates for session:', sessionId);
+        
+        // Flag to track if import has been called
+        let importCalled = false;
+        
         realtimeChannel = supabase
           .channel(`cv-analysis-${sessionId}`)
           .on(
@@ -593,26 +603,37 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               filter: `session_id=eq.${sessionId}`
             },
             (payload) => {
+              console.log('Realtime update received:', payload);
               if (payload.new) {
                 const { status, progress, message } = payload.new as any;
                 setCvAnalysisStatus(message || status);
                 
                 // If analysis is completed, proceed with import
-                if (status === 'completed') {
+                if (status === 'completed' && !importCalled) {
+                  importCalled = true;
                   importCVData();
                 }
               }
             }
           )
-          .subscribe();
-      }
-      
-      // If analysis was successful but no session ID (backwards compatibility)
-      // or if the edge function completed immediately
-      if (analysisResult?.success && (!sessionId || analysisResult?.skills_extracted)) {
-        // Wait a moment for any final processing
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // Proceed with import directly
+          .subscribe((status) => {
+            console.log('Realtime subscription status:', status);
+          });
+        
+        // Wait for realtime updates or timeout after 30 seconds
+        const timeout = setTimeout(async () => {
+          if (!importCalled) {
+            console.log('Realtime timeout - proceeding with import');
+            importCalled = true;
+            await importCVData();
+          }
+        }, 30000);
+        
+        // Store timeout for cleanup
+        realtimeChannel.timeout = timeout;
+      } else if (analysisResult?.success) {
+        // No session ID, proceed immediately
+        console.log('No session ID - proceeding with import immediately');
         await importCVData();
       }
       
@@ -621,8 +642,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       setCvAnalysisStatus('');
       toast.error('Failed to process CV. You can continue manually.');
       
-      // Cleanup realtime subscription on error
+      // Cleanup realtime subscription and timeout on error
       if (realtimeChannel) {
+        if (realtimeChannel.timeout) {
+          clearTimeout(realtimeChannel.timeout);
+        }
         await supabase.removeChannel(realtimeChannel);
       }
     } finally {
