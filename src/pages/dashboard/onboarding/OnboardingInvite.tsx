@@ -128,8 +128,14 @@ export default function OnboardingInvite() {
         toast.success(`Successfully sent ${selectedEmployees.length} invitations`);
       }
 
+      // Add a small delay to ensure database is updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       await refreshData();
       setInviteState('success');
+      
+      // Fetch fresh data to update the display
+      await fetchEmployees();
       
       // Auto-navigate after 2 seconds if we have CVs
       if (stats.withCV > 0 || stats.analyzed > 0) {
