@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Gap Analysis Report - TechCorp Inc.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Cover Page */
+        .cover-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+            margin-bottom: 60px;
+            page-break-after: always;
+        }
+        
+        .logo {
+            width: 180px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+            margin-bottom: 60px;
+        }
+        
+        .cover-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            color: #4a5568;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        .cover-meta {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .cover-meta-item {
+            text-align: left;
+        }
+        
+        .cover-meta-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #718096;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .cover-meta-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        /* Page Sections */
+        .page-section {
+            background: white;
+            margin-bottom: 60px;
+            page-break-inside: avoid;
+        }
+        
+        .section-header {
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .section-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 700;
+            margin-right: 16px;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a202c;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .section-description {
+            color: #4a5568;
+            margin-top: 8px;
+            margin-left: 56px;
+            font-size: 16px;
+        }
+        
+        /* KPI Dashboard */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .kpi-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 1px solid #e2e8f0;
+            padding: 28px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        
+        .kpi-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kpi-value.critical {
+            background: linear-gradient(135deg, #f56565 0%, #ed64a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kpi-value.warning {
+            background: linear-gradient(135deg, #ed8936 0%, #f6ad55 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kpi-label {
+            font-size: 14px;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .kpi-change {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: #c6f6d5;
+            color: #276749;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .kpi-change.negative {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+        
+        /* Alert Box */
+        .alert-box {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border-left: 4px solid #fc8181;
+            padding: 24px 28px;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+        
+        .alert-title {
+            font-weight: 700;
+            color: #742a2a;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .alert-text {
+            color: #9b2c2c;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* Skills Heatmap */
+        .heatmap-container {
+            background: #f7fafc;
+            padding: 32px;
+            border-radius: 12px;
+            margin: 32px 0;
+        }
+        
+        .heatmap-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #2d3748;
+        }
+        
+        .heatmap-legend {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .heatmap-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .heatmap-legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: 150px repeat(8, 1fr);
+            gap: 4px;
+            font-size: 14px;
+        }
+        
+        .heatmap-header {
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: center;
+            background: #2d3748;
+            color: white;
+            border-radius: 4px;
+        }
+        
+        .heatmap-row-header {
+            font-weight: 600;
+            padding: 12px;
+            text-align: right;
+            background: #4a5568;
+            color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .heatmap-cell {
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 4px;
+            font-weight: 600;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .heatmap-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s;
+        }
+        
+        .heatmap-cell:hover::before {
+            transform: translateX(0);
+        }
+        
+        .heat-critical { background: #e53e3e; }
+        .heat-high { background: #dd6b20; }
+        .heat-medium { background: #d69e2e; }
+        .heat-low { background: #38a169; }
+        .heat-none { background: #38b2ac; }
+        
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .data-table thead {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .data-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 15px;
+        }
+        
+        .data-table tbody tr {
+            background: white;
+            transition: background 0.2s;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f7fafc;
+        }
+        
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Progress Bars */
+        .skill-item {
+            margin-bottom: 20px;
+        }
+        
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .skill-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .skill-percentage {
+            font-weight: 700;
+            color: #4a5568;
+        }
+        
+        .skill-bar {
+            height: 28px;
+            background: #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            transition: width 1s ease-out;
+        }
+        
+        .skill-fill.critical {
+            background: linear-gradient(90deg, #fc8181 0%, #f56565 100%);
+        }
+        
+        .skill-fill.warning {
+            background: linear-gradient(90deg, #f6ad55 0%, #ed8936 100%);
+        }
+        
+        /* Chart Containers */
+        .chart-container {
+            background: #f7fafc;
+            padding: 32px;
+            border-radius: 12px;
+            margin: 32px 0;
+        }
+        
+        .chart-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #2d3748;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+        
+        /* Action Cards */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        
+        .action-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 28px;
+            transition: all 0.3s;
+        }
+        
+        .action-card:hover {
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(102,126,234,0.1);
+        }
+        
+        .action-priority {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #bee3f8;
+            color: #2c5282;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        
+        .action-priority.high {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+        
+        .action-priority.medium {
+            background: #feebc8;
+            color: #7b341e;
+        }
+        
+        .action-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        
+        .action-description {
+            color: #4a5568;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .action-metrics {
+            display: flex;
+            gap: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .action-metric {
+            flex: 1;
+        }
+        
+        .action-metric-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .action-metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        /* Footer */
+        .report-footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .footer-logo {
+            width: 120px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .heatmap-grid {
+                font-size: 12px;
+                grid-template-columns: 100px repeat(8, 1fr);
+            }
+            
+            .cover-meta {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .page-section {
+                page-break-inside: avoid;
+            }
+            
+            .cover-page {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="cover-page">
+        <div class="logo">LXERA</div>
+        <h1 class="cover-title">Skills Gap Analysis Report</h1>
+        <h2 class="cover-subtitle">Workforce Intelligence & Strategic Recommendations</h2>
+        
+        <div class="cover-meta">
+            <div class="cover-meta-item">
+                <div class="cover-meta-label">Company</div>
+                <div class="cover-meta-value">TechCorp Inc.</div>
+            </div>
+            <div class="cover-meta-item">
+                <div class="cover-meta-label">Report Date</div>
+                <div class="cover-meta-value">January 18, 2025</div>
+            </div>
+            <div class="cover-meta-item">
+                <div class="cover-meta-label">Analysis Period</div>
+                <div class="cover-meta-value">Q4 2024</div>
+            </div>
+            <div class="cover-meta-item">
+                <div class="cover-meta-label">Employees Analyzed</div>
+                <div class="cover-meta-value">127 / 150</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Executive Summary -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <h2 class="section-title">Executive Summary</h2>
+                <p class="section-description">Critical findings and immediate action items</p>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value critical">23</div>
+                    <div class="kpi-label">Critical Skills Gaps</div>
+                    <span class="kpi-change negative">↑ 15% vs last quarter</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">43%</div>
+                    <div class="kpi-label">Average Skills Match</div>
+                    <span class="kpi-change negative">↓ 5% vs target</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value warning">$2.3M</div>
+                    <div class="kpi-label">Annual Impact</div>
+                    <span class="kpi-change negative">Productivity Loss</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">87</div>
+                    <div class="kpi-label">Employees Need Training</div>
+                    <span class="kpi-change">69% of workforce</span>
+                </div>
+            </div>
+            
+            <div class="alert-box">
+                <div class="alert-title">⚠️ Critical Business Impact</div>
+                <div class="alert-text">
+                    Your organization faces significant skills gaps in cloud computing (77% gap), data analytics (65% gap), and AI/ML capabilities (89% gap). These gaps are causing project delays, increased contractor costs, and limiting digital transformation initiatives. Immediate action is required to maintain competitive advantage.
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Heatmap -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <h2 class="section-title">Skills Coverage Heatmap</h2>
+                <p class="section-description">Position-by-skill analysis showing coverage percentages</p>
+            </div>
+            
+            <div class="heatmap-container">
+                <h3 class="heatmap-title">Skills Coverage by Position</h3>
+                
+                <div class="heatmap-legend">
+                    <div class="heatmap-legend-item">
+                        <div class="heatmap-legend-color heat-critical"></div>
+                        <span>Critical Gap (0-20%)</span>
+                    </div>
+                    <div class="heatmap-legend-item">
+                        <div class="heatmap-legend-color heat-high"></div>
+                        <span>High Gap (21-40%)</span>
+                    </div>
+                    <div class="heatmap-legend-item">
+                        <div class="heatmap-legend-color heat-medium"></div>
+                        <span>Medium Gap (41-60%)</span>
+                    </div>
+                    <div class="heatmap-legend-item">
+                        <div class="heatmap-legend-color heat-low"></div>
+                        <span>Low Gap (61-80%)</span>
+                    </div>
+                    <div class="heatmap-legend-item">
+                        <div class="heatmap-legend-color heat-none"></div>
+                        <span>Adequate (81-100%)</span>
+                    </div>
+                </div>
+                
+                <div class="heatmap-grid">
+                    <div></div>
+                    <div class="heatmap-header">Python</div>
+                    <div class="heatmap-header">AWS/Cloud</div>
+                    <div class="heatmap-header">React</div>
+                    <div class="heatmap-header">Docker</div>
+                    <div class="heatmap-header">SQL</div>
+                    <div class="heatmap-header">Agile</div>
+                    <div class="heatmap-header">AI/ML</div>
+                    <div class="heatmap-header">Security</div>
+                    
+                    <div class="heatmap-row-header">Senior Developer</div>
+                    <div class="heatmap-cell heat-critical">12%</div>
+                    <div class="heatmap-cell heat-critical">8%</div>
+                    <div class="heatmap-cell heat-medium">45%</div>
+                    <div class="heatmap-cell heat-high">34%</div>
+                    <div class="heatmap-cell heat-low">78%</div>
+                    <div class="heatmap-cell heat-none">89%</div>
+                    <div class="heatmap-cell heat-critical">5%</div>
+                    <div class="heatmap-cell heat-high">23%</div>
+                    
+                    <div class="heatmap-row-header">Data Analyst</div>
+                    <div class="heatmap-cell heat-low">67%</div>
+                    <div class="heatmap-cell heat-high">23%</div>
+                    <div class="heatmap-cell heat-critical">12%</div>
+                    <div class="heatmap-cell heat-critical">8%</div>
+                    <div class="heatmap-cell heat-none">92%</div>
+                    <div class="heatmap-cell heat-medium">56%</div>
+                    <div class="heatmap-cell heat-high">34%</div>
+                    <div class="heatmap-cell heat-critical">15%</div>
+                    
+                    <div class="heatmap-row-header">DevOps Engineer</div>
+                    <div class="heatmap-cell heat-medium">45%</div>
+                    <div class="heatmap-cell heat-low">78%</div>
+                    <div class="heatmap-cell heat-high">23%</div>
+                    <div class="heatmap-cell heat-none">89%</div>
+                    <div class="heatmap-cell heat-low">67%</div>
+                    <div class="heatmap-cell heat-none">84%</div>
+                    <div class="heatmap-cell heat-critical">12%</div>
+                    <div class="heatmap-cell heat-medium">56%</div>
+                    
+                    <div class="heatmap-row-header">Product Manager</div>
+                    <div class="heatmap-cell heat-high">34%</div>
+                    <div class="heatmap-cell heat-medium">45%</div>
+                    <div class="heatmap-cell heat-high">23%</div>
+                    <div class="heatmap-cell heat-critical">12%</div>
+                    <div class="heatmap-cell heat-low">67%</div>
+                    <div class="heatmap-cell heat-none">95%</div>
+                    <div class="heatmap-cell heat-high">28%</div>
+                    <div class="heatmap-cell heat-medium">41%</div>
+                    
+                    <div class="heatmap-row-header">UX Designer</div>
+                    <div class="heatmap-cell heat-critical">8%</div>
+                    <div class="heatmap-cell heat-critical">15%</div>
+                    <div class="heatmap-cell heat-low">72%</div>
+                    <div class="heatmap-cell heat-critical">5%</div>
+                    <div class="heatmap-cell heat-medium">45%</div>
+                    <div class="heatmap-cell heat-none">87%</div>
+                    <div class="heatmap-cell heat-critical">3%</div>
+                    <div class="heatmap-cell heat-high">19%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Department Analysis -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">3</span>
+                <h2 class="section-title">Department Analysis</h2>
+                <p class="section-description">Skills gaps breakdown by department</p>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Employees</th>
+                        <th>Analyzed</th>
+                        <th>Avg Match</th>
+                        <th>Critical Gaps</th>
+                        <th>Est. Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Engineering</strong></td>
+                        <td>45</td>
+                        <td>42 (93%)</td>
+                        <td><span style="color: #e53e3e; font-weight: 700;">38%</span></td>
+                        <td>12</td>
+                        <td>$980,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Data & Analytics</strong></td>
+                        <td>23</td>
+                        <td>21 (91%)</td>
+                        <td><span style="color: #dd6b20; font-weight: 700;">45%</span></td>
+                        <td>8</td>
+                        <td>$520,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Product</strong></td>
+                        <td>18</td>
+                        <td>18 (100%)</td>
+                        <td><span style="color: #d69e2e; font-weight: 700;">52%</span></td>
+                        <td>5</td>
+                        <td>$340,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Design</strong></td>
+                        <td>15</td>
+                        <td>14 (93%)</td>
+                        <td><span style="color: #38a169; font-weight: 700;">67%</span></td>
+                        <td>3</td>
+                        <td>$180,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Operations</strong></td>
+                        <td>26</td>
+                        <td>23 (88%)</td>
+                        <td><span style="color: #d69e2e; font-weight: 700;">49%</span></td>
+                        <td>6</td>
+                        <td>$280,000</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Top Missing Skills by Department</h3>
+                <div class="chart-wrapper">
+                    <canvas id="departmentSkillsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Progress Bars -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">4</span>
+                <h2 class="section-title">Critical Skills Analysis</h2>
+                <p class="section-description">Organization-wide skills coverage for critical competencies</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 40px;">
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #2d3748;">Technical Skills</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Python Programming</span>
+                            <span class="skill-percentage">23%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill critical" style="width: 23%;">Critical Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">AWS/Cloud Computing</span>
+                            <span class="skill-percentage">12%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill critical" style="width: 12%;">Critical Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">React/Frontend</span>
+                            <span class="skill-percentage">45%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill warning" style="width: 45%;">Medium Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Docker/Containerization</span>
+                            <span class="skill-percentage">34%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill warning" style="width: 34%;">High Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">SQL/Database</span>
+                            <span class="skill-percentage">78%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: 78%;">Adequate</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #2d3748;">Soft Skills & Methodologies</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Agile/Scrum</span>
+                            <span class="skill-percentage">67%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: 67%;">Low Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Project Management</span>
+                            <span class="skill-percentage">56%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill warning" style="width: 56%;">Medium Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Data Analysis</span>
+                            <span class="skill-percentage">41%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill warning" style="width: 41%;">High Gap</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Communication</span>
+                            <span class="skill-percentage">82%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: 82%;">Strong</div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">Leadership</span>
+                            <span class="skill-percentage">38%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill warning" style="width: 38%;">High Gap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Intelligence -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">5</span>
+                <h2 class="section-title">Market Intelligence</h2>
+                <p class="section-description">Regional talent market analysis and competitive landscape</p>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value">487</div>
+                    <div class="kpi-label">Open Positions</div>
+                    <span class="kpi-change">Requiring your missing skills</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">+$42K</div>
+                    <div class="kpi-label">Salary Premium</div>
+                    <span class="kpi-change">For Python developers</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">67</div>
+                    <div class="kpi-label">Days to Hire</div>
+                    <span class="kpi-change negative">↑ 23 days vs avg</span>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">78%</div>
+                    <div class="kpi-label">Market Demand</div>
+                    <span class="kpi-change">Jobs requiring Python</span>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Skills Demand vs. Your Coverage</h3>
+                <div class="chart-wrapper">
+                    <canvas id="marketDemandChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financial Impact -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">6</span>
+                <h2 class="section-title">Financial Impact Analysis</h2>
+                <p class="section-description">Quantifying the cost of skills gaps</p>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Annual Cost Breakdown</h3>
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="financialImpactChart"></canvas>
+                </div>
+            </div>
+            
+            <table class="data-table" style="margin-top: 40px;">
+                <thead>
+                    <tr>
+                        <th>Impact Category</th>
+                        <th>Description</th>
+                        <th>Annual Cost</th>
+                        <th>Calculation Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Productivity Loss</strong></td>
+                        <td>Reduced output due to skill gaps</td>
+                        <td style="color: #e53e3e; font-weight: 700;">$1,200,000</td>
+                        <td>87 employees × $75K avg × 20% impact</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Extended Hiring</strong></td>
+                        <td>Longer time-to-fill positions</td>
+                        <td style="color: #dd6b20; font-weight: 700;">$540,000</td>
+                        <td>10 positions × 45 extra days × $1,200/day</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Contractor Premium</strong></td>
+                        <td>External talent costs</td>
+                        <td style="color: #dd6b20; font-weight: 700;">$380,000</td>
+                        <td>5,000 hours × $75 premium/hour</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Project Delays</strong></td>
+                        <td>Missed deadlines and opportunities</td>
+                        <td style="color: #d69e2e; font-weight: 700;">$180,000</td>
+                        <td>3 projects × $60K opportunity cost</td>
+                    </tr>
+                    <tr style="background: #f7fafc; font-weight: 700;">
+                        <td><strong>TOTAL IMPACT</strong></td>
+                        <td>Combined annual cost</td>
+                        <td style="color: #e53e3e; font-size: 18px;">$2,300,000</td>
+                        <td>Sum of all categories</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Action Plan -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">7</span>
+                <h2 class="section-title">Strategic Action Plan</h2>
+                <p class="section-description">Prioritized recommendations with ROI projections</p>
+            </div>
+            
+            <div class="action-grid">
+                <div class="action-card">
+                    <span class="action-priority high">High Priority</span>
+                    <h3 class="action-title">Python Bootcamp</h3>
+                    <p class="action-description">
+                        Intensive 4-week Python training for 45 developers. Focus on practical applications, data analysis, and automation. Include hands-on projects from your actual codebase.
+                    </p>
+                    <div class="action-metrics">
+                        <div class="action-metric">
+                            <div class="action-metric-label">Investment</div>
+                            <div class="action-metric-value">$67,500</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">Timeline</div>
+                            <div class="action-metric-value">30 days</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">ROI</div>
+                            <div class="action-metric-value">5.2x</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <span class="action-priority high">High Priority</span>
+                    <h3 class="action-title">AWS Certification Program</h3>
+                    <p class="action-description">
+                        Comprehensive AWS Solutions Architect certification path for 30 engineers. Includes training materials, lab access, and exam vouchers. Critical for cloud migration projects.
+                    </p>
+                    <div class="action-metrics">
+                        <div class="action-metric">
+                            <div class="action-metric-label">Investment</div>
+                            <div class="action-metric-value">$45,000</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">Timeline</div>
+                            <div class="action-metric-value">90 days</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">ROI</div>
+                            <div class="action-metric-value">8.4x</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <span class="action-priority medium">Medium Priority</span>
+                    <h3 class="action-title">Data Analytics Upskilling</h3>
+                    <p class="action-description">
+                        Build data literacy across all departments. Focus on SQL, basic Python for data analysis, and visualization tools. Enable data-driven decision making.
+                    </p>
+                    <div class="action-metrics">
+                        <div class="action-metric">
+                            <div class="action-metric-label">Investment</div>
+                            <div class="action-metric-value">$89,000</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">Timeline</div>
+                            <div class="action-metric-value">120 days</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">ROI</div>
+                            <div class="action-metric-value">3.8x</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <span class="action-priority medium">Medium Priority</span>
+                    <h3 class="action-title">Leadership Development</h3>
+                    <p class="action-description">
+                        Develop next generation of technical leaders. Focus on team management, strategic thinking, and technical leadership. Critical for succession planning.
+                    </p>
+                    <div class="action-metrics">
+                        <div class="action-metric">
+                            <div class="action-metric-label">Investment</div>
+                            <div class="action-metric-value">$56,000</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">Timeline</div>
+                            <div class="action-metric-value">180 days</div>
+                        </div>
+                        <div class="action-metric">
+                            <div class="action-metric-label">ROI</div>
+                            <div class="action-metric-value">2.9x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-box" style="background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%); border-color: #48bb78; margin-top: 40px;">
+                <div class="alert-title" style="color: #276749;">💡 Quick Win Opportunity</div>
+                <div class="alert-text" style="color: #22543d;">
+                    Start with Python training for immediate impact. 3 critical projects worth $1.2M are currently blocked due to Python skill gaps. Training 45 developers will unblock these projects within 30 days, delivering immediate ROI while building momentum for larger initiatives.
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Metrics -->
+        <section class="page-section">
+            <div class="section-header">
+                <span class="section-number">8</span>
+                <h2 class="section-title">Success Metrics & Timeline</h2>
+                <p class="section-description">Key performance indicators to track progress</p>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Projected Skills Improvement Timeline</h3>
+                <div class="chart-wrapper">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #2d3748;">Monthly Tracking KPIs</h3>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Skills Coverage</div>
+                        <div class="kpi-value" style="font-size: 32px;">Target: 75%</div>
+                        <span class="kpi-change">Current: 43%</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Training Completion</div>
+                        <div class="kpi-value" style="font-size: 32px;">Track Monthly</div>
+                        <span class="kpi-change">Courses completed</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Certification Rate</div>
+                        <div class="kpi-value" style="font-size: 32px;">Target: 60%</div>
+                        <span class="kpi-change">Current: 12%</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Project Velocity</div>
+                        <div class="kpi-value" style="font-size: 32px;">+25% Goal</div>
+                        <span class="kpi-change">Delivery speed</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <div class="report-footer">
+            <div class="footer-logo">LXERA</div>
+            <p>This report contains confidential information. Distribution is limited to authorized personnel only.</p>
+            <p style="margin-top: 8px;">Generated on January 18, 2025 | © 2025 LXERA. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // Department Skills Chart
+        const ctx1 = document.getElementById('departmentSkillsChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: ['Engineering', 'Data & Analytics', 'Product', 'Design', 'Operations'],
+                datasets: [
+                    {
+                        label: 'Python',
+                        data: [23, 67, 34, 8, 31],
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    },
+                    {
+                        label: 'Cloud/AWS',
+                        data: [12, 45, 56, 15, 67],
+                        backgroundColor: 'rgba(237, 137, 54, 0.8)',
+                    },
+                    {
+                        label: 'Data Analysis',
+                        data: [34, 89, 67, 45, 56],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    },
+                    {
+                        label: 'Agile',
+                        data: [78, 67, 89, 91, 84],
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: false
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Market Demand Chart
+        const ctx2 = document.getElementById('marketDemandChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'radar',
+            data: {
+                labels: ['Python', 'AWS/Cloud', 'React', 'Docker', 'Kubernetes', 'AI/ML', 'Security', 'Data Science'],
+                datasets: [
+                    {
+                        label: 'Market Demand',
+                        data: [78, 82, 71, 67, 63, 89, 74, 85],
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(239, 68, 68, 1)'
+                    },
+                    {
+                        label: 'Your Coverage',
+                        data: [23, 12, 45, 34, 8, 5, 23, 31],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(102, 126, 234, 1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Financial Impact Chart
+        const ctx3 = document.getElementById('financialImpactChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                labels: ['Productivity Loss', 'Extended Hiring', 'Contractor Premium', 'Project Delays'],
+                datasets: [{
+                    data: [1200000, 540000, 380000, 180000],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(237, 137, 54, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(251, 191, 36, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            },
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map((label, i) => {
+                                        const value = data.datasets[0].data[i];
+                                        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return {
+                                            text: `${label}: $${(value/1000000).toFixed(1)}M (${percentage}%)`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return label + ': $' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Timeline Chart
+        const ctx4 = document.getElementById('timelineChart').getContext('2d');
+        new Chart(ctx4, {
+            type: 'line',
+            data: {
+                labels: ['Current', 'Month 1', 'Month 2', 'Month 3', 'Month 6', 'Month 9', 'Month 12'],
+                datasets: [
+                    {
+                        label: 'Overall Skills Match',
+                        data: [43, 48, 54, 61, 72, 78, 85],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Critical Skills Coverage',
+                        data: [23, 31, 42, 55, 68, 75, 82],
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Target',
+                        data: [75, 75, 75, 75, 75, 75, 75],
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderDash: [5, 5],
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

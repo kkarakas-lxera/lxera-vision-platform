@@ -195,18 +195,23 @@ const InvitationSignup = () => {
         return;
       }
 
-      // Step 2: Wait a moment for auth trigger to create user profile, then update it
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Step 2: Sign in to get the user session
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: employeeData.email,
+        password: password
+      });
       
-      // Get the created user from auth
-      const { data: { user: authUser }, error: authUserError } = await supabase.auth.getUser();
-      
-      if (authUserError || !authUser) {
-        console.error('Error getting auth user:', authUserError);
-        setError('Failed to retrieve user account. Please contact support.');
+      if (signInError || !signInData.user) {
+        console.error('Error signing in after signup:', signInError);
+        setError('Account created but failed to sign in. Please try logging in manually.');
         setIsLoading(false);
         return;
       }
+      
+      const authUser = signInData.user;
+      
+      // Wait a moment for auth trigger to create user profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Update the automatically created user profile with company info
       const { error: userUpdateError } = await supabase
@@ -250,16 +255,9 @@ const InvitationSignup = () => {
         // Don't fail for this - it's not critical
       }
 
-      // Step 5: Auto sign in and redirect to profile completion
-      const { error: signInError } = await signIn(employeeData.email, password);
-      
-      if (signInError) {
-        // If auto sign-in fails, redirect to login with success message
-        navigate(`/admin-login?redirect=/learner/profile&token=${invitationToken}&message=account-created`);
-      } else {
-        // Success! Redirect to profile builder
-        navigate('/learner/profile');
-      }
+      // Step 5: Already signed in, redirect to profile completion
+      // Success! Redirect to profile builder
+      navigate('/learner/profile');
 
     } catch (error) {
       console.error('Signup error:', error);
