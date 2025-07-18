@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Building2, Users, Briefcase, Target, Info, X } from 'lucide-react';
+import { Building2, Users, Briefcase, Target, Info, X, Edit2, Save, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface SkillsGapLead {
   id: string;
@@ -29,6 +33,9 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
   const [loading, setLoading] = useState(true);
   const [leadData, setLeadData] = useState<SkillsGapLead | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<SkillsGapLead | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && userProfile?.email) {
@@ -56,6 +63,7 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
       } else if (data) {
         console.log('Skills gap lead data:', data); // Debug log
         setLeadData(data);
+        setEditData(data);
       } else {
         setError('No company profile data found');
       }
@@ -100,14 +108,76 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
     return sourceMap[source] || source;
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditData(leadData);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditData(leadData);
+  };
+
+  const handleSave = async () => {
+    if (!editData || !leadData) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('skills_gap_leads')
+        .update({
+          company: editData.company,
+          name: editData.name,
+          role: editData.role,
+          team_size: editData.team_size,
+          use_case: editData.use_case,
+          heard_about: editData.heard_about
+        })
+        .eq('id', editData.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setLeadData(editData);
+      setIsEditing(false);
+      toast.success('Company profile updated successfully');
+    } catch (err) {
+      console.error('Error saving company profile:', err);
+      toast.error('Failed to update company profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Company Profile
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Company Profile
+            </DialogTitle>
+            {leadData && !isEditing && (
+              <Button size="sm" variant="outline" onClick={handleEdit}>
+                <Edit2 className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            )}
+            {isEditing && (
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={handleCancel}>
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  <Save className="h-4 w-4 mr-1" />
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -135,11 +205,37 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-gray-500">Company Name</label>
-                    <p className="text-sm font-medium text-gray-900">{leadData.company}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editData?.company || ''}
+                        onChange={(e) => setEditData(editData ? {...editData, company: e.target.value} : null)}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">{leadData.company}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Team Size</label>
-                    <p className="text-sm font-medium text-gray-900">{formatTeamSize(leadData.team_size)}</p>
+                    {isEditing ? (
+                      <Select
+                        value={editData?.team_size || ''}
+                        onValueChange={(value) => setEditData(editData ? {...editData, team_size: value} : null)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="500+">500+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">{formatTeamSize(leadData.team_size)}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -153,7 +249,15 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-gray-500">Contact Name</label>
-                    <p className="text-sm font-medium text-gray-900">{leadData.name}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editData?.name || ''}
+                        onChange={(e) => setEditData(editData ? {...editData, name: e.target.value} : null)}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">{leadData.name}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Email</label>
@@ -161,7 +265,15 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Role</label>
-                    <p className="text-sm font-medium text-gray-900">{leadData.role}</p>
+                    {isEditing ? (
+                      <Input
+                        value={editData?.role || ''}
+                        onChange={(e) => setEditData(editData ? {...editData, role: e.target.value} : null)}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">{leadData.role}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Account Status</label>
@@ -181,15 +293,51 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="text-xs text-gray-500">Primary Use Case</label>
-                    <p className="text-sm font-medium text-gray-900">
-                      {leadData.use_case ? formatUseCase(leadData.use_case) : 'Not specified'}
-                    </p>
+                    {isEditing ? (
+                      <Select
+                        value={editData?.use_case || ''}
+                        onValueChange={(value) => setEditData(editData ? {...editData, use_case: value} : null)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select use case" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="skills_assessment">Skills Assessment</SelectItem>
+                          <SelectItem value="learning_development">Learning & Development</SelectItem>
+                          <SelectItem value="talent_management">Talent Management</SelectItem>
+                          <SelectItem value="workforce_planning">Workforce Planning</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">
+                        {leadData.use_case ? formatUseCase(leadData.use_case) : 'Not specified'}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">How They Found Us</label>
-                    <p className="text-sm font-medium text-gray-900">
-                      {leadData.heard_about ? formatHeardAbout(leadData.heard_about) : 'Not specified'}
-                    </p>
+                    {isEditing ? (
+                      <Select
+                        value={editData?.heard_about || ''}
+                        onValueChange={(value) => setEditData(editData ? {...editData, heard_about: value} : null)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="search">Search Engine</SelectItem>
+                          <SelectItem value="social_media">Social Media</SelectItem>
+                          <SelectItem value="referral">Referral</SelectItem>
+                          <SelectItem value="linkedin">LinkedIn</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">
+                        {leadData.heard_about ? formatHeardAbout(leadData.heard_about) : 'Not specified'}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-gray-500">Member Since</label>
@@ -205,18 +353,20 @@ export function CompanyProfileModal({ open, onOpenChange }: CompanyProfileModalP
               </div>
 
               {/* Additional Information */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Skills Gap Analysis Account</p>
-                    <p className="text-xs">
-                      This company profile was created during the Skills Gap Analysis signup process. 
-                      To update company information, please contact support.
-                    </p>
+              {!isEditing && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Skills Gap Analysis Account</p>
+                      <p className="text-xs">
+                        This company profile was created during the Skills Gap Analysis signup process. 
+                        Click Edit above to update company information.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           ) : null}
         </div>

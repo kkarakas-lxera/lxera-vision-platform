@@ -259,7 +259,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                     className={cn(
                       "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group w-full justify-start",
                       "text-slate-300 hover:bg-slate-700 hover:text-white",
-                      !sidebarExpanded && "justify-center"
+                      !sidebarExpanded && "justify-center",
+                      currentSection && sidebarExpanded && "ml-4"
                     )}
                     title={!sidebarExpanded ? item.label : undefined}
                   >
@@ -282,7 +283,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                         className={cn(
                           "flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-all duration-200 group cursor-not-allowed",
                           "text-slate-500 bg-slate-800/50",
-                          !sidebarExpanded && "justify-center"
+                          !sidebarExpanded && "justify-center",
+                          currentSection && sidebarExpanded && "ml-4"
                         )}
                       >
                         <Icon className={cn("h-4 w-4", sidebarExpanded && "mr-2")} />
@@ -312,7 +314,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                     isActive
                       ? "bg-slate-800 text-white"
                       : "text-slate-300 hover:bg-slate-700 hover:text-white",
-                    !sidebarExpanded && "justify-center"
+                    !sidebarExpanded && "justify-center",
+                    // Add left margin for items within a section when sidebar is expanded
+                    currentSection && sidebarExpanded && "ml-4"
                   )}
                   title={!sidebarExpanded ? item.label : undefined}
                 >
@@ -370,25 +374,45 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">{userProfile?.full_name}</p>
-                    {userProfile?.companies?.plan_type === 'free_skills_gap' && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                        Free Trial
-                      </span>
-                    )}
+              <DropdownMenuContent align="end" className="w-64">
+                <div className="px-3 py-3">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{userProfile?.full_name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{userProfile?.email}</p>
+                    </div>
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Company</p>
+                          <p className="text-sm font-medium text-gray-900 mt-0.5">
+                            {userProfile?.companies?.name || 'Company'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Plan</p>
+                          <span className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5",
+                            userProfile?.companies?.plan_type === 'free_skills_gap' 
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-indigo-100 text-indigo-800"
+                          )}>
+                            {userProfile?.companies?.plan_type === 'free_skills_gap' ? 'Free Trial' : 'Premium'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">{userProfile?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard/settings" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>

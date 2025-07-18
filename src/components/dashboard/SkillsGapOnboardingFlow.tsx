@@ -54,7 +54,7 @@ export default function SkillsGapOnboardingFlow() {
       description: 'Upload your employee list',
       icon: <Users className="h-5 w-5" />,
       action: 'Import',
-      route: '/dashboard/employees/add',
+      route: '/dashboard/onboarding/import',
       completed: false
     },
     {
@@ -175,34 +175,6 @@ export default function SkillsGapOnboardingFlow() {
 
   return (
     <div className="p-4 max-w-5xl mx-auto font-inter">
-      {/* User Info Bar */}
-      <div className="bg-white border rounded-lg px-4 py-3 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-indigo-700">
-                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{userProfile?.full_name || 'User'}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  {companyData?.company || userProfile?.companies?.name || 'Company'}
-                </p>
-              </div>
-            </div>
-          </div>
-          <Badge className={cn(
-            companyData?.subscription_tier === 'premium' 
-              ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
-              : "bg-amber-50 text-amber-700 border-amber-200"
-          )}>
-            {companyData?.subscription_tier === 'premium' ? 'Premium' : 'Free Trial'}
-          </Badge>
-        </div>
-      </div>
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Skills Gap Analysis Setup</h1>
