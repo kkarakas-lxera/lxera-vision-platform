@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Send, Mail, CheckCircle, Check, RefreshCw, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Send, Mail, CheckCircle, Check, RefreshCw, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,65 +13,92 @@ import { toast } from 'sonner';
 
 type InviteState = 'initial' | 'sending' | 'success';
 
+interface EmployeeToInvite {
+  id: string;
+  name: string;
+  email: string;
+  position?: string;
+}
+
 export default function OnboardingInvite() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const { stats, loading, refreshData } = useOnboarding();
   const [inviteState, setInviteState] = useState<InviteState>('initial');
-  const [notInvitedCount, setNotInvitedCount] = useState(0);
+  const [employeesToInvite, setEmployeesToInvite] = useState<EmployeeToInvite[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [showEmployeeList, setShowEmployeeList] = useState(false);
 
   useEffect(() => {
-    // Calculate employees not yet invited
-    const notInvited = stats.total - (stats.pending + stats.completed);
-    setNotInvitedCount(notInvited);
-    
-    // If all are already invited, show success state
-    if (stats.total > 0 && notInvited === 0) {
-      setInviteState('success');
-    }
-  }, [stats]);
+    fetchEmployeesToInvite();
+  }, [stats, userProfile]);
 
-  const sendAllInvitations = async () => {
-    setInviteState('sending');
-    
+  const fetchEmployeesToInvite = async () => {
+    if (!userProfile?.company_id) return;
+
     try {
       // Get employees without invitations
       const { data: employees, error: fetchError } = await supabase
         .from('employees')
         .select(`
           id,
+          position,
           users!inner(
             id,
             email,
             full_name
           )
         `)
-        .eq('company_id', userProfile?.company_id)
+        .eq('company_id', userProfile.company_id)
         .eq('is_active', true);
 
       if (fetchError) throw fetchError;
 
-      // Filter employees without invitations
+      // Check existing invitations
       const employeeIds = employees?.map(e => e.id) || [];
       
-      // Check existing invitations
       const { data: existingInvites } = await supabase
         .from('profile_invitations')
         .select('employee_id')
         .in('employee_id', employeeIds);
       
       const invitedIds = new Set(existingInvites?.map(i => i.employee_id) || []);
-      const toInvite = employeeIds.filter(id => !invitedIds.has(id));
+      
+      // Filter out already invited employees
+      const notInvited = employees?.filter(emp => !invitedIds.has(emp.id)) || [];
+      
+      const employeeList = notInvited.map(emp => ({
+        id: emp.id,
+        name: emp.users.full_name,
+        email: emp.users.email,
+        position: emp.position || undefined
+      }));
 
-      if (toInvite.length === 0) {
+      setEmployeesToInvite(employeeList);
+      setSelectedEmployees(employeeList.map(e => e.id)); // Select all by default
+      
+      // If all are already invited, show success state
+      if (stats.total > 0 && employeeList.length === 0) {
         setInviteState('success');
-        return;
       }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
 
-      // Send invitations
+  const sendInvitations = async () => {
+    if (selectedEmployees.length === 0) {
+      toast.error('Please select at least one employee');
+      return;
+    }
+
+    setInviteState('sending');
+    
+    try {
+      // Send invitations for selected employees only
       const { data, error } = await supabase.functions.invoke('send-profile-invitations', {
         body: {
-          employee_ids: toInvite,
+          employee_ids: selectedEmployees,
           company_id: userProfile?.company_id
         }
       });
@@ -79,7 +107,7 @@ export default function OnboardingInvite() {
 
       await refreshData();
       setInviteState('success');
-      toast.success(`Successfully sent ${toInvite.length} invitations`);
+      toast.success(`Successfully sent ${selectedEmployees.length} invitations`);
       
       // Auto-navigate after 2 seconds if we have CVs
       if (stats.withCV > 0 || stats.analyzed > 0) {
@@ -91,6 +119,22 @@ export default function OnboardingInvite() {
       console.error('Error sending invitations:', error);
       toast.error('Failed to send invitations');
       setInviteState('initial');
+    }
+  };
+
+  const toggleEmployeeSelection = (employeeId: string) => {
+    setSelectedEmployees(prev => 
+      prev.includes(employeeId) 
+        ? prev.filter(id => id !== employeeId)
+        : [...prev, employeeId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedEmployees.length === employeesToInvite.length) {
+      setSelectedEmployees([]);
+    } else {
+      setSelectedEmployees(employeesToInvite.map(e => e.id));
     }
   };
 
@@ -211,22 +255,87 @@ export default function OnboardingInvite() {
     switch (inviteState) {
       case 'initial':
         return (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-6 w-full max-w-md">
             <h2 className="text-xl font-medium">Send profile invitations</h2>
             
             <div className="space-y-2">
-              <div className="text-4xl font-bold">{notInvitedCount}</div>
+              <div className="text-4xl font-bold">{selectedEmployees.length}</div>
               <p className="text-base text-muted-foreground">
-                team member{notInvitedCount !== 1 ? 's' : ''} ready to invite
+                team member{selectedEmployees.length !== 1 ? 's' : ''} selected
               </p>
+              {employeesToInvite.length > selectedEmployees.length && (
+                <p className="text-sm text-muted-foreground">
+                  {employeesToInvite.length - selectedEmployees.length} not selected
+                </p>
+              )}
             </div>
+
+            {/* Employee preview */}
+            {!showEmployeeList && employeesToInvite.length > 0 && (
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEmployeeList(true)}
+                  className="text-xs"
+                >
+                  Review recipients ({employeesToInvite.length})
+                </Button>
+              </div>
+            )}
+
+            {/* Employee list */}
+            {showEmployeeList && (
+              <div className="space-y-3">
+                <div className="max-h-60 overflow-y-auto border rounded-lg p-3 text-left">
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={selectedEmployees.length === employeesToInvite.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                      <span className="text-sm font-medium">Select all</span>
+                    </label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowEmployeeList(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {employeesToInvite.map(employee => (
+                      <label
+                        key={employee.id}
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={selectedEmployees.includes(employee.id)}
+                          onCheckedChange={() => toggleEmployeeSelection(employee.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{employee.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{employee.email}</p>
+                          {employee.position && (
+                            <p className="text-xs text-muted-foreground">{employee.position}</p>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             
             <Button 
               size="lg"
-              onClick={sendAllInvitations}
+              onClick={sendInvitations}
               className="min-w-[200px]"
+              disabled={selectedEmployees.length === 0}
             >
-              Send All Invitations
+              Send {selectedEmployees.length} Invitation{selectedEmployees.length !== 1 ? 's' : ''}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
             
@@ -246,7 +355,7 @@ export default function OnboardingInvite() {
             </div>
             
             <p className="text-base text-muted-foreground">
-              Delivering to {notInvitedCount} team member{notInvitedCount !== 1 ? 's' : ''}
+              Delivering to {selectedEmployees.length} team member{selectedEmployees.length !== 1 ? 's' : ''}
             </p>
           </div>
         );
