@@ -327,3 +327,74 @@ INSERT INTO auth.users (
     'phone_verified', false
   )
 );
+```
+
+### Supabase Storage RLS Policy Issue - TO authenticated Required
+**Problem**: Employee CV uploads failing with "new row violates row-level security policy" error despite seemingly correct RLS policies.
+
+**Discovery Date**: January 2025
+
+**Root Cause**: Supabase Storage API requires specific role configuration - policies must use `TO authenticated` instead of `TO public` for authenticated operations.
+
+**Debugging Journey**:
+1. Initial complex policies with nested queries and role checks - Failed
+2. Simplified to `WITH CHECK (true)` - Still failed with `TO public`
+3. Systematic testing revealed `TO authenticated` requirement
+4. Any column reference (even `bucket_id = 'employee-cvs'`) initially failed
+5. Found working pattern: `TO authenticated WITH CHECK (bucket_id = 'employee-cvs' AND auth.uid() = ...)`
+
+**Failed Approaches**:
+```sql
+-- ❌ Failed - TO public role
+CREATE POLICY "allow_all_test" 
+ON storage.objects 
+FOR INSERT 
+TO public 
+WITH CHECK (true);
+
+-- ❌ Failed - Complex nested queries
+CREATE POLICY "employees_upload_own_cvs" 
+ON storage.objects 
+FOR INSERT 
+TO public 
+WITH CHECK (
+  bucket_id = 'employee-cvs' AND
+  EXISTS (
+    SELECT 1 FROM get_user_auth_data() auth_data
+    WHERE auth_data.role = 'learner'
+    -- Complex logic here
+  )
+);
+```
+
+**Working Solution**:
+```sql
+-- ✅ Working - TO authenticated with proper checks
+CREATE POLICY "employee_cvs_insert_authenticated" 
+ON storage.objects 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (
+    bucket_id = 'employee-cvs' AND
+    auth.uid() = (
+        SELECT user_id 
+        FROM employees 
+        WHERE id::text = split_part(name, '/', 1)
+    )
+);
+```
+
+**Key Learnings**:
+1. **Storage API Auth Context**: Different from regular database operations - requires `TO authenticated`
+2. **Role Specification Critical**: `TO public` fails even with `WITH CHECK (true)`
+3. **Auth Context Propagation**: Storage API evaluates policies differently than database queries
+4. **Column References**: Work only with `TO authenticated` role
+
+**Testing Methodology**:
+1. Started with most permissive policy: `TO public WITH CHECK (true)` - Failed
+2. Changed only role: `TO authenticated WITH CHECK (true)` - Worked
+3. Added constraints incrementally to find working pattern
+4. Cleaned test data between each attempt to ensure fresh state
+
+**Final Pattern for Storage Policies**:
+Always use `TO authenticated` for storage.objects policies when dealing with authenticated operations, regardless of the complexity of the CHECK clause.

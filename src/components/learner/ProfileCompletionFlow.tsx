@@ -232,6 +232,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       // Get existing profile sections
       const sections = await EmployeeProfileService.getProfileSections(employeeId);
       
+      console.log('Profile sections loaded:', sections);
+      
       // Pre-fill from existing data and determine current step
       let lastCompletedStep = 0;
       const restoredFormData: any = {};
@@ -245,33 +247,95 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 restoredFormData.currentPosition = section.data.position || '';
                 restoredFormData.department = section.data.department || '';
                 restoredFormData.timeInRole = section.data.timeInRole || '';
-                lastCompletedStep = Math.max(lastCompletedStep, 1);
+                // Only count as completed if the section is marked complete
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 1);
+                }
               }
               break;
             case 'work_experience':
-              if (section.data.experience) {
+              if (section.data.experiences) {
+                // Map CV imported data to form structure
+                restoredFormData.workExperience = section.data.experiences.map((exp: any) => ({
+                  title: exp.position || '',
+                  company: exp.company || '',
+                  duration: exp.dates || '',
+                  description: exp.key_achievements?.join('\n') || ''
+                }));
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 3);
+                }
+              } else if (section.data.experience) {
                 restoredFormData.workExperience = section.data.experience;
-                lastCompletedStep = Math.max(lastCompletedStep, 3);
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 3);
+                }
               }
               break;
             case 'education':
               if (section.data.education?.length > 0) {
                 const edu = section.data.education[0];
-                restoredFormData.highestDegree = edu.degree || '';
-                restoredFormData.fieldOfStudy = edu.field || '';
-                restoredFormData.institution = edu.institution || '';
-                restoredFormData.graduationYear = edu.graduationYear || '';
-                lastCompletedStep = Math.max(lastCompletedStep, 4);
+                // Handle CV imported data structure
+                if (edu.degree && edu.institution) {
+                  // Extract degree type and field from the degree string
+                  const degreeStr = edu.degree || '';
+                  let degreeType = '';
+                  let field = '';
+                  
+                  if (degreeStr.includes('MSc') || degreeStr.includes('Master')) {
+                    degreeType = 'Master';
+                    field = degreeStr.replace(/MSc|Master|Master's|Degree|,/g, '').trim();
+                  } else if (degreeStr.includes('BSc') || degreeStr.includes('Bachelor')) {
+                    degreeType = 'Bachelor';
+                    field = degreeStr.replace(/BSc|Bachelor|Bachelor's|Degree|,/g, '').trim();
+                  } else if (degreeStr.includes('PhD') || degreeStr.includes('Doctor')) {
+                    degreeType = 'PhD';
+                    field = degreeStr.replace(/PhD|Doctor|Doctorate|,/g, '').trim();
+                  } else {
+                    degreeType = 'Other';
+                    field = degreeStr;
+                  }
+                  
+                  restoredFormData.highestDegree = degreeType;
+                  restoredFormData.fieldOfStudy = field;
+                  restoredFormData.institution = edu.institution || '';
+                  // Extract year from dates if available
+                  const yearMatch = edu.dates?.match(/\b(19|20)\d{2}\b/);
+                  restoredFormData.graduationYear = yearMatch ? yearMatch[0] : '';
+                } else {
+                  // Handle manually entered data
+                  restoredFormData.highestDegree = edu.degree || '';
+                  restoredFormData.fieldOfStudy = edu.field || '';
+                  restoredFormData.institution = edu.institution || '';
+                  restoredFormData.graduationYear = edu.graduationYear || '';
+                }
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 4);
+                }
               }
               break;
             case 'skills':
               if (section.data.skills) {
-                restoredFormData.technicalSkills = section.data.skills.map((s: any) => s.name);
-                restoredFormData.skillLevels = section.data.skills.reduce((acc: any, s: any) => {
-                  acc[s.name] = s.proficiency;
-                  return acc;
-                }, {});
-                lastCompletedStep = Math.max(lastCompletedStep, 6);
+                // Handle CV imported skills structure
+                if (section.data.skills[0]?.skill_name) {
+                  // CV imported structure
+                  const technicalSkills = section.data.technicalSkills || section.data.skills.filter((s: any) => s.category === 'technical' || s.category === 'tool');
+                  restoredFormData.technicalSkills = technicalSkills.map((s: any) => s.skill_name);
+                  restoredFormData.skillLevels = technicalSkills.reduce((acc: any, s: any) => {
+                    acc[s.skill_name] = s.proficiency_level?.toString() || '3';
+                    return acc;
+                  }, {});
+                } else {
+                  // Manual entry structure
+                  restoredFormData.technicalSkills = section.data.skills.map((s: any) => s.name);
+                  restoredFormData.skillLevels = section.data.skills.reduce((acc: any, s: any) => {
+                    acc[s.name] = s.proficiency;
+                    return acc;
+                  }, {});
+                }
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 6);
+                }
               }
               break;
             case 'current_work':
@@ -279,19 +343,25 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 restoredFormData.currentProjects = section.data.projects || '';
                 restoredFormData.teamSize = section.data.teamSize || '';
                 restoredFormData.roleInTeam = section.data.role || '';
-                lastCompletedStep = Math.max(lastCompletedStep, 7);
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 7);
+                }
               }
               break;
             case 'daily_tasks':
               if (section.data.challenges) {
                 restoredFormData.challenges = section.data.challenges;
-                lastCompletedStep = Math.max(lastCompletedStep, 8);
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 8);
+                }
               }
               break;
             case 'tools_technologies':
               if (section.data.growthAreas) {
                 restoredFormData.growthAreas = section.data.growthAreas;
-                lastCompletedStep = Math.max(lastCompletedStep, 9);
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 9);
+                }
               }
               break;
           }
