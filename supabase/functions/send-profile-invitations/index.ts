@@ -43,13 +43,27 @@ serve(async (req) => {
 
     if (companyError) throw companyError
 
-    // Get employee details
-    const { data: employees, error: employeesError } = await supabaseAdmin
-      .from('st_users')
-      .select('id, email, full_name')
+    // Get employee details with user information
+    const { data: employeeData, error: employeesError } = await supabaseAdmin
+      .from('employees')
+      .select(`
+        id,
+        users!inner(
+          id as user_id,
+          email,
+          full_name
+        )
+      `)
       .in('id', employee_ids)
 
     if (employeesError) throw employeesError
+
+    // Transform data to match expected format
+    const employees = employeeData?.map(emp => ({
+      id: emp.id,
+      email: emp.users.email,
+      full_name: emp.users.full_name
+    })) || []
 
     const results = []
     const errors = []
