@@ -333,11 +333,35 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     setCvAnalyzing(true);
 
     try {
+      // Get current auth session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('=== CV Upload Debug ===');
+      console.log('1. Auth session:', {
+        user: session?.user?.id,
+        email: session?.user?.email,
+        role: session?.user?.role,
+        hasToken: !!session?.access_token,
+        tokenExpiry: session?.expires_at
+      });
+      
+      // Log employee and file details
+      const uploadPath = `${employeeId}/${Date.now()}-${file.name}`;
+      console.log('2. Upload details:', {
+        employeeId,
+        bucketName: 'employee-cvs',
+        uploadPath,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+
       // Upload CV to the correct storage bucket
+      console.log('3. Attempting storage upload...');
       const { data: cvData, error: uploadError } = await supabase.storage
         .from('employee-cvs')
-        .upload(`${employeeId}/${Date.now()}-${file.name}`, file);
+        .upload(uploadPath, file);
 
+      console.log('4. Upload result:', { cvData, uploadError });
       if (uploadError) throw uploadError;
 
       // Use the comprehensive CV analysis edge function with correct parameters
