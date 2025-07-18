@@ -341,7 +341,15 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         email: session?.user?.email,
         role: session?.user?.role,
         hasToken: !!session?.access_token,
-        tokenExpiry: session?.expires_at
+        tokenExpiry: session?.expires_at,
+        tokenPreview: session?.access_token?.substring(0, 20) + '...'
+      });
+      
+      // Check Supabase client auth
+      const authHeaders = supabase.storage.from('employee-cvs');
+      console.log('1b. Storage client headers:', {
+        hasAuthHeader: !!(authHeaders as any).headers?.Authorization,
+        authHeaderPreview: (authHeaders as any).headers?.Authorization?.substring(0, 30) + '...'
       });
       
       // Log employee and file details
