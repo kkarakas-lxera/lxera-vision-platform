@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Resend } from "https://esm.sh/resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,6 +43,14 @@ serve(async (req) => {
       .single()
 
     if (companyError) throw companyError
+
+    // Initialize Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    
+    const resend = new Resend(resendApiKey)
 
     // Get employee details with user information
     const { data: employeeData, error: employeesError } = await supabaseAdmin
@@ -88,45 +97,42 @@ serve(async (req) => {
 
         if (inviteError) throw inviteError
 
-        // Send email via Resend (or your email service)
-        const emailResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'LXERA Platform <noreply@lxera.ai>',
-            to: employee.email,
-            subject: `Complete your profile at ${company.name}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2>Welcome to ${company.name}!</h2>
-                <p>Hi ${employee.full_name},</p>
-                <p>You've been invited to complete your professional profile and upload your CV to help us understand your skills and create personalized learning paths.</p>
-                <div style="margin: 30px 0;">
-                  <a href="${Deno.env.get('PUBLIC_SITE_URL')}/learner/profile?token=${invitationToken}" 
-                     style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                    Complete Your Profile
-                  </a>
-                </div>
-                <p>This link will expire in 30 days.</p>
-                <p>What you'll need to do:</p>
-                <ul>
-                  <li>Upload your CV/Resume</li>
-                  <li>Review and update your profile information</li>
-                  <li>Confirm your skills and experience</li>
-                </ul>
-                <p>If you have any questions, please contact your HR department.</p>
-                <p>Best regards,<br>The ${company.name} Team</p>
+        // Send email via Resend SDK
+        const { data: emailData, error: emailError } = await resend.emails.send({
+          from: 'LXERA Team <hello@lxera.ai>',
+          to: employee.email,
+          subject: `Complete your profile at ${company.name}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>Welcome to ${company.name}!</h2>
+              <p>Hi ${employee.full_name},</p>
+              <p>You've been invited to complete your professional profile and upload your CV to help us understand your skills and create personalized learning paths.</p>
+              <div style="margin: 30px 0;">
+                <a href="${Deno.env.get('PUBLIC_SITE_URL')}/learner/profile?token=${invitationToken}" 
+                   style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                  Complete Your Profile
+                </a>
               </div>
-            `
-          })
+              <p>This link will expire in 30 days.</p>
+              <p>What you'll need to do:</p>
+              <ul>
+                <li>Upload your CV/Resume</li>
+                <li>Review and update your profile information</li>
+                <li>Confirm your skills and experience</li>
+              </ul>
+              <p>If you have any questions, please contact your HR department.</p>
+              <p>Best regards,<br>The ${company.name} Team</p>
+            </div>
+          `,
+          tags: [
+            { name: 'category', value: 'profile_invitation' },
+            { name: 'company_id', value: company_id }
+          ]
         })
 
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text()
-          throw new Error(`Email sending failed: ${errorText}`)
+        if (emailError) {
+          console.error('Resend error:', emailError)
+          throw new Error(`Email sending failed: ${emailError.message}`)
         }
 
         results.push({
@@ -160,7 +166,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in send-profile-invitations:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.toString(),
+        stack: error.stack
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
