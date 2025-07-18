@@ -75,7 +75,7 @@ export default function ActivityLog() {
           employees!inner(
             id,
             company_id,
-            users!inner(
+            users!left(
               email,
               full_name
             )
@@ -86,11 +86,14 @@ export default function ActivityLog() {
         .limit(10);
 
       invitations?.forEach(inv => {
+        const user = inv.employees?.users;
         items.push({
           id: `invite-${inv.id}`,
           type: 'invitation',
           title: 'Invitation Sent',
-          description: `Sent to ${inv.employees.users.full_name} (${inv.employees.users.email})`,
+          description: user 
+            ? `Sent to ${user.full_name} (${user.email})`
+            : `Sent to employee ${inv.employee_id}`,
           timestamp: inv.sent_at,
           status: inv.completed_at ? 'success' : 'pending',
           metadata: inv
@@ -104,7 +107,7 @@ export default function ActivityLog() {
           id,
           profile_completion_date,
           cv_uploaded_at,
-          users!inner(
+          users!left(
             email,
             full_name
           )
@@ -115,11 +118,14 @@ export default function ActivityLog() {
         .limit(5);
 
       profileUpdates?.forEach(emp => {
+        const user = emp.users;
+        const userName = user?.full_name || 'Employee';
+        
         items.push({
           id: `profile-${emp.id}`,
           type: 'profile_complete',
           title: 'Profile Completed',
-          description: `${emp.users.full_name} completed their profile`,
+          description: `${userName} completed their profile`,
           timestamp: emp.profile_completion_date,
           status: 'success',
           metadata: emp
@@ -130,7 +136,7 @@ export default function ActivityLog() {
             id: `cv-${emp.id}`,
             type: 'cv_upload',
             title: 'CV Uploaded',
-            description: `${emp.users.full_name} uploaded their CV`,
+            description: `${userName} uploaded their CV`,
             timestamp: emp.cv_uploaded_at,
             status: 'success',
             metadata: emp

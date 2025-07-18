@@ -105,9 +105,31 @@ export default function OnboardingInvite() {
 
       if (error) throw error;
 
+      // Check if we have detailed results
+      if (data && typeof data === 'object') {
+        const { sent = 0, failed = 0, errors = [] } = data;
+        
+        if (failed > 0 && errors.length > 0) {
+          // Show detailed error information
+          console.error('Failed invitations:', errors);
+          toast.error(`${failed} invitation(s) failed. Check console for details.`);
+          
+          // Show individual errors
+          errors.slice(0, 3).forEach((err: any) => {
+            toast.error(`Failed for ${err.email}: ${err.error}`);
+          });
+        }
+        
+        if (sent > 0) {
+          toast.success(`Successfully sent ${sent} invitation(s)`);
+        }
+      } else {
+        // Fallback for simple success
+        toast.success(`Successfully sent ${selectedEmployees.length} invitations`);
+      }
+
       await refreshData();
       setInviteState('success');
-      toast.success(`Successfully sent ${selectedEmployees.length} invitations`);
       
       // Auto-navigate after 2 seconds if we have CVs
       if (stats.withCV > 0 || stats.analyzed > 0) {
@@ -117,7 +139,7 @@ export default function OnboardingInvite() {
       }
     } catch (error) {
       console.error('Error sending invitations:', error);
-      toast.error('Failed to send invitations');
+      toast.error(`Failed to send invitations: ${error.message || 'Unknown error'}`);
       setInviteState('initial');
     }
   };

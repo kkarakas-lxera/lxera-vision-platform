@@ -209,9 +209,9 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
       
       if (allUniquePositions.length > 0) {
         const mappings: PositionMapping[] = allUniquePositions.map(pos => {
-          // Try to find matching position
+          // Try to find matching position (case-insensitive)
           const match = positions.find(p => 
-            p.position_code === pos || 
+            p.position_code.toLowerCase() === pos?.toLowerCase() || 
             p.position_title.toLowerCase() === pos?.toLowerCase()
           );
           
@@ -297,9 +297,30 @@ export function ProgressiveCSVImport({ onImportComplete, existingSessions = [] }
             positionId = positionMap.get(row.position)!;
             const pos = positions.find(p => p.id === positionId);
             positionCode = pos?.position_code || row.position_code;
-          } else if (defaultPositionId) {
-            const pos = positions.find(p => p.id === defaultPositionId);
-            positionCode = pos?.position_code || row.position_code;
+          } else {
+            // Try automatic matching by position code or title
+            const matchByCode = positions.find(p => 
+              p.position_code.toLowerCase() === row.position_code?.toLowerCase()
+            );
+            const matchByTitle = positions.find(p => 
+              p.position_title.toLowerCase() === row.position?.toLowerCase()
+            );
+            
+            if (matchByCode) {
+              positionId = matchByCode.id;
+              positionCode = matchByCode.position_code;
+            } else if (matchByTitle) {
+              positionId = matchByTitle.id;
+              positionCode = matchByTitle.position_code;
+            } else if (defaultPositionId) {
+              // Fall back to default position if no match found
+              const pos = positions.find(p => p.id === defaultPositionId);
+              positionCode = pos?.position_code || row.position_code;
+            } else {
+              // No match found and no default - position will be unassigned
+              positionId = null;
+              positionCode = row.position_code || row.position || 'Unassigned';
+            }
           }
 
           // Check if user exists
@@ -587,7 +608,16 @@ const progressSteps = [
           <Alert className="bg-blue-50 border-blue-200">
             <Sparkles className="h-4 w-4" />
             <AlertDescription className="text-blue-800">
-              We found positions in your CSV. Map them to your existing positions or skip to use the default.
+              {(() => {
+                const autoMatchedCount = positionMappings.filter(m => m.mappedPositionId !== 'skip').length;
+                if (autoMatchedCount === positionMappings.length) {
+                  return `All ${autoMatchedCount} positions were automatically matched! Review the mappings below.`;
+                } else if (autoMatchedCount > 0) {
+                  return `We automatically matched ${autoMatchedCount} of ${positionMappings.length} positions. Please map the remaining positions or skip to use the default.`;
+                } else {
+                  return `We found ${positionMappings.length} positions in your CSV. Please map them to your existing positions or skip to use the default.`;
+                }
+              })()}
             </AlertDescription>
           </Alert>
 
@@ -596,26 +626,43 @@ const progressSteps = [
               <Target className="h-4 w-4 text-blue-600" />
               <h3 className="text-sm font-medium">Position Mapping</h3>
             </div>
-            {positionMappings.map((mapping, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-4 border rounded-lg bg-gray-50">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{mapping.csvPosition}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {mapping.employeeCount} employee{mapping.employeeCount > 1 ? 's' : ''}
-                  </p>
-                </div>
-                <Select
-                  value={mapping.mappedPositionId}
-                  onValueChange={(value) => {
-                    const updated = [...positionMappings];
-                    updated[idx].mappedPositionId = value;
-                    setPositionMappings(updated);
-                  }}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+            {positionMappings.map((mapping, idx) => {
+              const isAutoMatched = mapping.mappedPositionId !== 'skip';
+              const matchedPosition = positions.find(p => p.id === mapping.mappedPositionId);
+              
+              return (
+                <div key={idx} className={cn(
+                  "flex items-center gap-3 p-4 border rounded-lg",
+                  isAutoMatched ? "bg-green-50 border-green-200" : "bg-gray-50"
+                )}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">{mapping.csvPosition}</p>
+                      {isAutoMatched && (
+                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                          Auto-matched
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {mapping.employeeCount} employee{mapping.employeeCount > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <Select
+                    value={mapping.mappedPositionId}
+                    onValueChange={(value) => {
+                      const updated = [...positionMappings];
+                      updated[idx].mappedPositionId = value;
+                      setPositionMappings(updated);
+                    }}
+                  >
+                    <SelectTrigger className={cn(
+                      "w-[200px]",
+                      isAutoMatched && "border-green-300"
+                    )}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                     <SelectItem value="skip">Use Default Position</SelectItem>
                     {positions.map(pos => (
                       <SelectItem key={pos.id} value={pos.id}>
@@ -632,6 +679,17 @@ const progressSteps = [
             Import {csvData.length} Employees
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
+          {(() => {
+            const unmappedCount = positionMappings.filter(m => m.mappedPositionId === 'skip').length;
+            if (unmappedCount > 0 && !defaultPositionId) {
+              return (
+                <p className="text-xs text-amber-600 text-center mt-2">
+                  ⚠️ {unmappedCount} position{unmappedCount > 1 ? 's' : ''} will not be assigned. Consider selecting a default position above.
+                </p>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
 

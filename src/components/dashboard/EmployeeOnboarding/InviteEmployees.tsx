@@ -45,24 +45,26 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
     try {
       // Fetch employees with invitation status
       const { data, error } = await supabase
-        .from('st_users')
+        .from('employees')
         .select(`
           id,
-          full_name,
-          email,
-          st_user_profiles!inner(
-            position_title,
-            cv_uploaded,
-            profile_completed
+          user_id,
+          position,
+          department,
+          profile_complete,
+          profile_completion_date,
+          cv_uploaded_at,
+          users!left(
+            full_name,
+            email
           ),
-          profile_invitations(
+          profile_invitations!left(
             sent_at,
             viewed_at,
             completed_at
           )
         `)
         .eq('company_id', userProfile.company_id)
-        .eq('role', 'learner')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -70,7 +72,7 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
       // Transform data
       const transformedEmployees = (data || []).map(emp => {
         const invitation = emp.profile_invitations?.[0];
-        const profile = emp.st_user_profiles[0];
+        const user = emp.users;
         
         let status: Employee['invitation_status'] = 'not_sent';
         if (invitation?.completed_at) status = 'completed';
@@ -79,13 +81,13 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
 
         return {
           id: emp.id,
-          full_name: emp.full_name,
-          email: emp.email,
-          position_title: profile?.position_title,
+          full_name: user?.full_name || 'Unknown',
+          email: user?.email || 'No email',
+          position_title: emp.position,
           invitation_status: status,
           invitation_sent_at: invitation?.sent_at,
-          profile_completed: profile?.profile_completed || false,
-          cv_uploaded: profile?.cv_uploaded || false
+          profile_completed: emp.profile_complete || false,
+          cv_uploaded: !!emp.cv_uploaded_at
         };
       });
 
