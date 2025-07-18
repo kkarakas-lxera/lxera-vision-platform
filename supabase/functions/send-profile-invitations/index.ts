@@ -153,7 +153,7 @@ serve(async (req) => {
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="${siteUrl}/login?redirect=/learner/profile&token=${invitationToken}" 
+                      <a href="${siteUrl}/admin-login?redirect=/learner/profile&token=${invitationToken}" 
                          style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
                         Complete Your Profile
                       </a>

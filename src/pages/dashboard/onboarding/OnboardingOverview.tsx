@@ -27,7 +27,8 @@ export default function OnboardingOverview() {
       icon: Users,
       completed: stats.total > 0,
       route: "/dashboard/onboarding/import",
-      stat: `${stats.total} team members imported`
+      stat: `${stats.total} team members imported`,
+      action: "Import"
     },
     {
       number: 2,
@@ -36,7 +37,10 @@ export default function OnboardingOverview() {
       icon: Send,
       completed: stats.withCV > 0 || stats.analyzed > 0,
       route: "/dashboard/onboarding/invite",
-      stat: `${stats.completed} completed profiles`
+      stat: stats.pending > 0 || stats.completed > 0 
+        ? `${stats.pending + stats.completed} invitations sent`
+        : `${stats.notInvited} employees to invite`,
+      action: "Send Invites"
     },
     {
       number: 3,
@@ -45,12 +49,11 @@ export default function OnboardingOverview() {
       icon: BarChart3,
       completed: stats.analyzed > 0,
       route: "/dashboard/onboarding/analysis",
-      stat: `${stats.analyzed} analyzed CVs`
+      stat: `${stats.analyzed} analyzed CVs`,
+      action: "Analyze"
     }
   ];
 
-  const completedSteps = steps.filter(s => s.completed).length;
-  const overallProgress = (completedSteps / steps.length) * 100;
 
   if (loading) {
     return (
