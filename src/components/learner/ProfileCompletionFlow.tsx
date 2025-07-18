@@ -47,8 +47,14 @@ interface FormData {
     description: string;
   }>;
   
-  // Education
-  highestDegree: string;
+  // Education - now supports multiple entries
+  education: Array<{
+    degree: string;
+    fieldOfStudy: string;
+    institution: string;
+    graduationYear: string;
+  }>;
+  highestDegree: string; // Keep for backward compatibility
   fieldOfStudy: string;
   institution: string;
   graduationYear: string;
@@ -100,15 +106,15 @@ const STEPS = [
   },
   {
     id: 5,
-    title: "Technical Skills",
-    subtitle: "Select all skills you currently use",
+    title: "Confirm Your Skills",
+    subtitle: "Select skills relevant to your position",
     icon: Brain,
     fields: ['technicalSkills']
   },
   {
     id: 6,
-    title: "Rate Your Expertise",
-    subtitle: "How would you rate your proficiency?",
+    title: "Assess Your Proficiency",
+    subtitle: "Rate your skill levels for gap analysis",
     icon: Target,
     fields: ['skillLevels']
   },
@@ -135,18 +141,15 @@ const STEPS = [
   }
 ];
 
-const TECHNICAL_SKILLS = [
-  // Programming Languages
-  'Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'Go', 'Ruby', 'PHP', 'Swift', 'Kotlin',
-  // Frameworks
-  'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Spring', '.NET', 'Express',
-  // Databases
-  'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Oracle', 'SQL Server',
-  // Cloud & DevOps
-  'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Jenkins', 'Git', 'CI/CD',
-  // Other
-  'Machine Learning', 'Data Analysis', 'System Design', 'Microservices', 'REST APIs', 'GraphQL'
-];
+// Skills will be loaded from position requirements
+interface PositionSkill {
+  skill_id: string;
+  skill_name: string;
+  is_mandatory: boolean;
+  proficiency_level: number;
+  cv_matched?: boolean;
+  selected?: boolean;
+}
 
 const CHALLENGES = [
   'Keeping up with new technologies',
@@ -178,6 +181,31 @@ const GROWTH_AREAS = [
   'Agile Methodologies'
 ];
 
+// Fuzzy skill matching function
+const skillsMatch = (skill1: string, skill2: string): boolean => {
+  const normalize = (str: string) => str.toLowerCase()
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+    
+  const s1 = normalize(skill1);
+  const s2 = normalize(skill2);
+  
+  // Exact match
+  if (s1 === s2) return true;
+  
+  // Contains match
+  if (s1.includes(s2) || s2.includes(s1)) return true;
+  
+  // Word overlap
+  const words1 = s1.split(' ');
+  const words2 = s2.split(' ');
+  const commonWords = words1.filter(w => words2.includes(w));
+  
+  // If more than 50% words match, consider it a match
+  return commonWords.length >= Math.min(words1.length, words2.length) * 0.5;
+};
+
 export default function ProfileCompletionFlow({ employeeId, onComplete }: ProfileCompletionFlowProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -188,11 +216,18 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Position skills state
+  const [positionSkills, setPositionSkills] = useState<PositionSkill[]>([]);
+  const [additionalSkills, setAdditionalSkills] = useState<string[]>([]);
+  const [cvExtractedSkills, setCvExtractedSkills] = useState<any[]>([]);
+  const [employeeData, setEmployeeData] = useState<any>(null);
+  
   const [formData, setFormData] = useState<FormData>({
     currentPosition: '',
     department: '',
     timeInRole: '',
     workExperience: [],
+    education: [],
     highestDegree: '',
     fieldOfStudy: '',
     institution: '',
@@ -209,24 +244,84 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   useEffect(() => {
     loadEmployeeData();
   }, [employeeId]);
+  
+  // Match CV skills with position requirements when both are loaded
+  useEffect(() => {
+    if (positionSkills.length > 0 && cvExtractedSkills.length > 0) {
+      const matchedSkills = positionSkills.map(posSkill => {
+        const cvMatch = cvExtractedSkills.find(cvSkill => 
+          skillsMatch(cvSkill.skill_name, posSkill.skill_name)
+        );
+        
+        return {
+          ...posSkill,
+          cv_matched: !!cvMatch,
+          selected: !!cvMatch // Auto-select if found in CV
+        };
+      });
+      
+      setPositionSkills(matchedSkills);
+      
+      // Update form data with selected skills
+      const selectedSkills = matchedSkills
+        .filter(s => s.selected)
+        .map(s => s.skill_name);
+      setFormData(prev => ({ ...prev, technicalSkills: selectedSkills }));
+    }
+  }, [cvExtractedSkills]); // Only run when CV skills are loaded
 
   const loadEmployeeData = async () => {
     try {
       setIsLoading(true);
       
-      // Get employee data
+      // Get employee data with position info
       const { data: employee } = await supabase
         .from('employees')
-        .select('*, companies(name)')
+        .select(`
+          *, 
+          companies(name),
+          st_company_positions!employees_position_fkey(
+            id,
+            position_title,
+            position_code,
+            required_skills
+          ),
+          st_employee_skills_profile(
+            extracted_skills
+          )
+        `)
         .eq('id', employeeId)
         .single();
 
       if (employee) {
+        setEmployeeData(employee); // Store for later use
         setFormData(prev => ({
           ...prev,
           currentPosition: employee.position || '',
           department: employee.department || ''
         }));
+        
+        // Load position skills if available
+        if (employee.st_company_positions?.required_skills) {
+          setPositionSkills(employee.st_company_positions.required_skills);
+        } else if (employee.position) {
+          // Try to find position by code if not linked
+          const { data: position } = await supabase
+            .from('st_company_positions')
+            .select('required_skills')
+            .eq('position_code', employee.position)
+            .eq('company_id', employee.company_id)
+            .single();
+            
+          if (position?.required_skills) {
+            setPositionSkills(position.required_skills);
+          }
+        }
+        
+        // Load CV extracted skills
+        if (employee.st_employee_skills_profile?.[0]?.extracted_skills) {
+          setCvExtractedSkills(employee.st_employee_skills_profile[0].extracted_skills);
+        }
       }
 
       // Get existing profile sections
@@ -274,41 +369,58 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               break;
             case 'education':
               if (section.data.education?.length > 0) {
-                const edu = section.data.education[0];
-                // Handle CV imported data structure
-                if (edu.degree && edu.institution) {
-                  // Extract degree type and field from the degree string
-                  const degreeStr = edu.degree || '';
-                  let degreeType = '';
-                  let field = '';
-                  
-                  if (degreeStr.includes('MSc') || degreeStr.includes('Master')) {
-                    degreeType = 'Master';
-                    field = degreeStr.replace(/MSc|Master|Master's|Degree|,/g, '').trim();
-                  } else if (degreeStr.includes('BSc') || degreeStr.includes('Bachelor')) {
-                    degreeType = 'Bachelor';
-                    field = degreeStr.replace(/BSc|Bachelor|Bachelor's|Degree|,/g, '').trim();
-                  } else if (degreeStr.includes('PhD') || degreeStr.includes('Doctor')) {
-                    degreeType = 'PhD';
-                    field = degreeStr.replace(/PhD|Doctor|Doctorate|,/g, '').trim();
+                // Load all education entries
+                restoredFormData.education = section.data.education.map((edu: any) => {
+                  // Handle CV imported data structure
+                  if (edu.degree && edu.institution && !edu.field) {
+                    // Extract degree type and field from the degree string
+                    const degreeStr = edu.degree || '';
+                    let degreeType = '';
+                    let field = '';
+                    
+                    if (degreeStr.includes('MSc') || degreeStr.includes('Master')) {
+                      degreeType = 'Master';
+                      field = degreeStr.replace(/MSc|Master|Master's|Degree|,/g, '').trim();
+                    } else if (degreeStr.includes('BSc') || degreeStr.includes('Bachelor')) {
+                      degreeType = 'Bachelor';
+                      field = degreeStr.replace(/BSc|Bachelor|Bachelor's|Degree|,/g, '').trim();
+                    } else if (degreeStr.includes('PhD') || degreeStr.includes('Doctor')) {
+                      degreeType = 'PhD';
+                      field = degreeStr.replace(/PhD|Doctor|Doctorate|,/g, '').trim();
+                    } else {
+                      degreeType = 'Other';
+                      field = degreeStr;
+                    }
+                    
+                    // Extract year from dates if available
+                    const yearMatch = edu.dates?.match(/\b(19|20)\d{2}\b/);
+                    
+                    return {
+                      degree: degreeType,
+                      fieldOfStudy: field,
+                      institution: edu.institution || '',
+                      graduationYear: yearMatch ? yearMatch[0] : ''
+                    };
                   } else {
-                    degreeType = 'Other';
-                    field = degreeStr;
+                    // Handle manually entered data
+                    return {
+                      degree: edu.degree || '',
+                      fieldOfStudy: edu.field || edu.fieldOfStudy || '',
+                      institution: edu.institution || '',
+                      graduationYear: edu.graduationYear || ''
+                    };
                   }
-                  
-                  restoredFormData.highestDegree = degreeType;
-                  restoredFormData.fieldOfStudy = field;
-                  restoredFormData.institution = edu.institution || '';
-                  // Extract year from dates if available
-                  const yearMatch = edu.dates?.match(/\b(19|20)\d{2}\b/);
-                  restoredFormData.graduationYear = yearMatch ? yearMatch[0] : '';
-                } else {
-                  // Handle manually entered data
-                  restoredFormData.highestDegree = edu.degree || '';
-                  restoredFormData.fieldOfStudy = edu.field || '';
-                  restoredFormData.institution = edu.institution || '';
-                  restoredFormData.graduationYear = edu.graduationYear || '';
+                });
+                
+                // Also set the first education entry to backward compatibility fields
+                if (restoredFormData.education.length > 0) {
+                  const firstEdu = restoredFormData.education[0];
+                  restoredFormData.highestDegree = firstEdu.degree;
+                  restoredFormData.fieldOfStudy = firstEdu.fieldOfStudy;
+                  restoredFormData.institution = firstEdu.institution;
+                  restoredFormData.graduationYear = firstEdu.graduationYear;
                 }
+                
                 if (section.isComplete) {
                   lastCompletedStep = Math.max(lastCompletedStep, 4);
                 }
@@ -502,24 +614,49 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           break;
           
         case 4: // Education
+          // Save all education entries
+          const educationData = formData.education.length > 0 
+            ? formData.education.map(edu => ({
+                degree: edu.degree,
+                field: edu.fieldOfStudy,
+                institution: edu.institution,
+                graduationYear: edu.graduationYear
+              }))
+            : [{
+                degree: formData.highestDegree,
+                field: formData.fieldOfStudy,
+                institution: formData.institution,
+                graduationYear: formData.graduationYear
+              }];
+          
           await EmployeeProfileService.saveSection(employeeId, 'education', {
-            education: [{
-              degree: formData.highestDegree,
-              field: formData.fieldOfStudy,
-              institution: formData.institution,
-              graduationYear: formData.graduationYear
-            }]
+            education: educationData
           });
           break;
           
         case 5: // Skills
         case 6: // Skill Levels
           {
-            const skills = formData.technicalSkills.map(skill => ({
-              name: skill,
-              proficiency: formData.skillLevels[skill] || 'Beginner'
-            }));
-            await EmployeeProfileService.saveSection(employeeId, 'skills', { skills });
+            // Save skills with proficiency levels and position context
+            const skills = formData.technicalSkills.map(skillName => {
+              const positionSkill = positionSkills.find(ps => ps.skill_name === skillName);
+              const proficiencyLevel = parseInt(formData.skillLevels[skillName] || '3');
+              
+              return {
+                name: skillName,
+                proficiency: proficiencyLevel.toString(),
+                proficiency_level: proficiencyLevel,
+                is_position_required: !!positionSkill,
+                required_level: positionSkill?.proficiency_level || null,
+                gap_score: positionSkill ? Math.max(0, positionSkill.proficiency_level - proficiencyLevel) : null
+              };
+            });
+            
+            await EmployeeProfileService.saveSection(employeeId, 'skills', { 
+              skills,
+              position_id: employeeData?.current_position_id || null,
+              assessment_date: new Date().toISOString()
+            });
           }
           break;
           
@@ -755,17 +892,120 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               </div>
             ) : (
               <>
-                {formData.workExperience.map((exp, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-900">{exp.title || 'New Position'}</h4>
-                    <p className="text-sm text-gray-600">
-                      {exp.company || 'Company'} • {exp.duration || 'Duration'}
-                    </p>
-                    {exp.description && (
-                      <p className="text-sm text-gray-700 mt-2">{exp.description}</p>
-                    )}
-                  </div>
-                ))}
+                {/* Sort work experience by date (most recent first) */}
+                {[...formData.workExperience]
+                  .sort((a, b) => {
+                    // Check if either duration contains "Present" or "Current"
+                    const aIsPresent = a.duration.toLowerCase().includes('present') || a.duration.toLowerCase().includes('current');
+                    const bIsPresent = b.duration.toLowerCase().includes('present') || b.duration.toLowerCase().includes('current');
+                    
+                    if (aIsPresent && !bIsPresent) return -1;
+                    if (!aIsPresent && bIsPresent) return 1;
+                    if (aIsPresent && bIsPresent) return 0;
+                    
+                    // Extract years from duration strings
+                    const aYears = a.duration.match(/\b(19|20)\d{2}\b/g) || [];
+                    const bYears = b.duration.match(/\b(19|20)\d{2}\b/g) || [];
+                    
+                    const aMaxYear = aYears.length > 0 ? Math.max(...aYears.map(Number)) : 0;
+                    const bMaxYear = bYears.length > 0 ? Math.max(...bYears.map(Number)) : 0;
+                    
+                    return bMaxYear - aMaxYear;
+                  })
+                  .map((exp, index) => {
+                    const originalIndex = formData.workExperience.indexOf(exp);
+                    return (
+                      <div key={originalIndex} className="p-4 border border-gray-200 rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="text-sm font-medium text-gray-900">Position {index + 1}</h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              handleFormChange(prev => ({
+                                ...prev,
+                                workExperience: prev.workExperience.filter((_, i) => i !== originalIndex)
+                              }));
+                            }}
+                            className="text-red-600 hover:text-red-700 -mt-1 -mr-2"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor={`title-${originalIndex}`} className="text-xs text-gray-600">
+                              Job Title
+                            </Label>
+                            <Input
+                              id={`title-${originalIndex}`}
+                              value={exp.title}
+                              onChange={(e) => {
+                                const newExperience = [...formData.workExperience];
+                                newExperience[originalIndex].title = e.target.value;
+                                handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
+                              }}
+                              placeholder="e.g. Senior Developer"
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`company-${originalIndex}`} className="text-xs text-gray-600">
+                              Company
+                            </Label>
+                            <Input
+                              id={`company-${originalIndex}`}
+                              value={exp.company}
+                              onChange={(e) => {
+                                const newExperience = [...formData.workExperience];
+                                newExperience[originalIndex].company = e.target.value;
+                                handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
+                              }}
+                              placeholder="e.g. Tech Corp"
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor={`duration-${originalIndex}`} className="text-xs text-gray-600">
+                            Duration
+                          </Label>
+                          <Input
+                            id={`duration-${originalIndex}`}
+                            value={exp.duration}
+                            onChange={(e) => {
+                              const newExperience = [...formData.workExperience];
+                              newExperience[originalIndex].duration = e.target.value;
+                              handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
+                            }}
+                            placeholder="e.g. Jan 2020 - Present"
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor={`description-${originalIndex}`} className="text-xs text-gray-600">
+                            Key Achievements / Responsibilities
+                          </Label>
+                          <Textarea
+                            id={`description-${originalIndex}`}
+                            value={exp.description}
+                            onChange={(e) => {
+                              const newExperience = [...formData.workExperience];
+                              newExperience[originalIndex].description = e.target.value;
+                              handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
+                            }}
+                            placeholder="Describe your key achievements and responsibilities..."
+                            className="mt-1 min-h-[80px]"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 
                 <Button
                   type="button"
@@ -792,144 +1032,346 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         
       case 4: // Education
         return (
-          <div className="space-y-6">
-            <div>
-              <Label className="text-base font-medium text-gray-900 mb-2">
-                Highest Degree
-              </Label>
-              <Select
-                value={formData.highestDegree}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, highestDegree: value }))}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select degree" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High School">High School</SelectItem>
-                  <SelectItem value="Associate">Associate Degree</SelectItem>
-                  <SelectItem value="Bachelor">Bachelor's Degree</SelectItem>
-                  <SelectItem value="Master">Master's Degree</SelectItem>
-                  <SelectItem value="PhD">PhD</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="field" className="text-base font-medium text-gray-900 mb-2">
-                Field of Study
-              </Label>
-              <Input
-                id="field"
-                value={formData.fieldOfStudy}
-                onChange={(e) => setFormData(prev => ({ ...prev, fieldOfStudy: e.target.value }))}
-                className="mt-2"
-                placeholder="e.g. Computer Science"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="institution" className="text-base font-medium text-gray-900 mb-2">
-                Institution
-              </Label>
-              <Input
-                id="institution"
-                value={formData.institution}
-                onChange={(e) => handleFormChange(prev => ({ ...prev, institution: e.target.value }))}
-                className="mt-2"
-                placeholder="e.g. University of Technology"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="year" className="text-base font-medium text-gray-900 mb-2">
-                Graduation Year
-              </Label>
-              <Input
-                id="year"
-                value={formData.graduationYear}
-                onChange={(e) => handleFormChange(prev => ({ ...prev, graduationYear: e.target.value }))}
-                className="mt-2"
-                placeholder="e.g. 2020"
-                maxLength={4}
-              />
-            </div>
-          </div>
-        );
-        
-      case 5: // Technical Skills
-        return (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                placeholder="Search skills..."
-                className="mb-4"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {TECHNICAL_SKILLS.map((skill) => (
+            {formData.education.length === 0 ? (
+              <div className="text-center py-8">
+                <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 mb-4">No education added yet</p>
                 <Button
-                  key={skill}
                   type="button"
-                  variant={formData.technicalSkills.includes(skill) ? 'default' : 'outline'}
+                  variant="outline"
+                  onClick={() => {
+                    // Add first education entry
+                    handleFormChange(prev => ({
+                      ...prev,
+                      education: [{
+                        degree: '',
+                        fieldOfStudy: '',
+                        institution: '',
+                        graduationYear: ''
+                      }]
+                    }));
+                  }}
+                >
+                  Add Your Education
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Sort education by graduation year (most recent first) */}
+                {[...formData.education]
+                  .sort((a, b) => {
+                    const aYear = parseInt(a.graduationYear) || 0;
+                    const bYear = parseInt(b.graduationYear) || 0;
+                    return bYear - aYear;
+                  })
+                  .map((edu, index) => {
+                    const originalIndex = formData.education.indexOf(edu);
+                    return (
+                      <div key={originalIndex} className="p-4 border border-gray-200 rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="text-sm font-medium text-gray-900">Education {index + 1}</h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              handleFormChange(prev => ({
+                                ...prev,
+                                education: prev.education.filter((_, i) => i !== originalIndex)
+                              }));
+                            }}
+                            className="text-red-600 hover:text-red-700 -mt-1 -mr-2"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor={`degree-${originalIndex}`} className="text-xs text-gray-600">
+                              Degree
+                            </Label>
+                            <Select
+                              value={edu.degree}
+                              onValueChange={(value) => {
+                                const newEducation = [...formData.education];
+                                newEducation[originalIndex].degree = value;
+                                handleFormChange(prev => ({ ...prev, education: newEducation }));
+                              }}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select degree" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="High School">High School</SelectItem>
+                                <SelectItem value="Associate">Associate Degree</SelectItem>
+                                <SelectItem value="Bachelor">Bachelor's Degree</SelectItem>
+                                <SelectItem value="Master">Master's Degree</SelectItem>
+                                <SelectItem value="PhD">PhD</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`field-${originalIndex}`} className="text-xs text-gray-600">
+                              Field of Study
+                            </Label>
+                            <Input
+                              id={`field-${originalIndex}`}
+                              value={edu.fieldOfStudy}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[originalIndex].fieldOfStudy = e.target.value;
+                                handleFormChange(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              placeholder="e.g. Computer Science"
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor={`institution-${originalIndex}`} className="text-xs text-gray-600">
+                              Institution
+                            </Label>
+                            <Input
+                              id={`institution-${originalIndex}`}
+                              value={edu.institution}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[originalIndex].institution = e.target.value;
+                                handleFormChange(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              placeholder="e.g. MIT"
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`year-${originalIndex}`} className="text-xs text-gray-600">
+                              Graduation Year
+                            </Label>
+                            <Input
+                              id={`year-${originalIndex}`}
+                              value={edu.graduationYear}
+                              onChange={(e) => {
+                                const newEducation = [...formData.education];
+                                newEducation[originalIndex].graduationYear = e.target.value;
+                                handleFormChange(prev => ({ ...prev, education: newEducation }));
+                              }}
+                              placeholder="e.g. 2020"
+                              maxLength={4}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => {
                     handleFormChange(prev => ({
                       ...prev,
-                      technicalSkills: prev.technicalSkills.includes(skill)
-                        ? prev.technicalSkills.filter(s => s !== skill)
-                        : [...prev.technicalSkills, skill]
+                      education: [...prev.education, {
+                        degree: '',
+                        fieldOfStudy: '',
+                        institution: '',
+                        graduationYear: ''
+                      }]
                     }));
                   }}
-                  className={cn(
-                    "text-sm justify-start",
-                    formData.technicalSkills.includes(skill)
-                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                      : "border-gray-300 hover:border-gray-400"
-                  )}
+                  className="w-full border-gray-300 hover:border-gray-400"
                 >
-                  {formData.technicalSkills.includes(skill) && <Check className="h-4 w-4 mr-2" />}
-                  {skill}
+                  + Add Another Degree
                 </Button>
-              ))}
-            </div>
+              </>
+            )}
+          </div>
+        );
+        
+      case 5: // Position Skills
+        return (
+          <div className="space-y-6">
+            {positionSkills.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No position requirements found. Please contact your administrator.</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700">
+                    Please select all skills that you currently use in your work:
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  {positionSkills.map((skill) => (
+                    <label
+                      key={skill.skill_id}
+                      className={cn(
+                        "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
+                        formData.technicalSkills.includes(skill.skill_name)
+                          ? "border-blue-300 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.technicalSkills.includes(skill.skill_name)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleFormChange(prev => ({
+                              ...prev,
+                              technicalSkills: [...prev.technicalSkills, skill.skill_name]
+                            }));
+                          } else {
+                            handleFormChange(prev => ({
+                              ...prev,
+                              technicalSkills: prev.technicalSkills.filter(s => s !== skill.skill_name)
+                            }));
+                          }
+                        }}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-900">
+                            {skill.skill_name}
+                          </span>
+                          {skill.cv_matched && (
+                            <Badge variant="secondary" className="text-xs">
+                              Found in CV
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                
+                {/* Additional skills input */}
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Add other skills you have
+                  </Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      placeholder="Type a skill and press Enter"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const value = input.value.trim();
+                          if (value && !additionalSkills.includes(value)) {
+                            setAdditionalSkills([...additionalSkills, value]);
+                            handleFormChange(prev => ({
+                              ...prev,
+                              technicalSkills: [...prev.technicalSkills, value]
+                            }));
+                            input.value = '';
+                          }
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                  </div>
+                  {additionalSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {additionalSkills.map((skill) => (
+                        <Badge key={skill} variant="secondary" className="pr-1">
+                          {skill}
+                          <button
+                            onClick={() => {
+                              setAdditionalSkills(additionalSkills.filter(s => s !== skill));
+                              handleFormChange(prev => ({
+                                ...prev,
+                                technicalSkills: prev.technicalSkills.filter(s => s !== skill)
+                              }));
+                            }}
+                            className="ml-2 hover:text-red-600"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         );
         
       case 6: // Skill Levels
         return (
           <div className="space-y-6">
-            {formData.technicalSkills.map((skill, index) => (
-              <div key={skill} className="space-y-2">
-                <h4 className="font-medium text-gray-900">{skill}</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                    <Button
-                      key={level}
-                      type="button"
-                      variant={formData.skillLevels[skill] === level ? 'default' : 'outline'}
-                      onClick={() => {
-                        handleFormChange(prev => ({
-                          ...prev,
-                          skillLevels: {
-                            ...prev.skillLevels,
-                            [skill]: level
-                          }
-                        }));
-                      }}
-                      className={cn(
-                        "text-sm",
-                        formData.skillLevels[skill] === level
-                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                          : "border-gray-300 hover:border-gray-400"
-                      )}
-                    >
-                      {level}
-                    </Button>
-                  ))}
-                </div>
+            {formData.technicalSkills.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>Please select skills in the previous step</p>
               </div>
-            ))}
+            ) : (
+              <>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 mb-2">
+                    How would you rate your proficiency with each skill?
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>1 = Beginner</span>
+                    <span>3 = Competent</span>
+                    <span>5 = Expert</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {formData.technicalSkills.map((skillName) => {
+                    const positionSkill = positionSkills.find(ps => ps.skill_name === skillName);
+                    const currentLevel = parseInt(formData.skillLevels[skillName] || '3');
+                    
+                    return (
+                      <div key={skillName} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-700">
+                            {skillName}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                            min="1"
+                            max="5"
+                            value={currentLevel}
+                            onChange={(e) => {
+                              handleFormChange(prev => ({
+                                ...prev,
+                                skillLevels: {
+                                  ...prev.skillLevels,
+                                  [skillName]: e.target.value
+                                }
+                              }));
+                            }}
+                            className="flex-1"
+                          />
+                          <Badge 
+                            variant={currentLevel >= 4 ? "default" : currentLevel >= 2 ? "secondary" : "outline"}
+                            className="min-w-[60px] text-center"
+                          >
+                            {currentLevel}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+              </>
+            )}
           </div>
         );
         
