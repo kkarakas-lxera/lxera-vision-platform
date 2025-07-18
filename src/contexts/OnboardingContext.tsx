@@ -149,8 +149,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         .order('sent_at', { ascending: false });
 
       if (invError) console.error('Error fetching invitations:', invError);
-      
-      console.log('Fetched invitations:', invitationsData?.length, 'for', employeeIds.length, 'employees');
 
       const invitationMap = new Map(
         (invitationsData || []).map(inv => [inv.employee_id, inv])
