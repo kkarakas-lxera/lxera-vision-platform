@@ -616,8 +616,29 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               }
             }
           )
-          .subscribe((status) => {
+          .subscribe(async (status) => {
             console.log('Realtime subscription status:', status);
+            
+            // Once subscribed, check if analysis is already complete
+            if (status === 'SUBSCRIBED') {
+              const { data: currentStatus } = await supabase
+                .from('cv_analysis_status')
+                .select('status, progress, message')
+                .eq('session_id', sessionId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+                
+              if (currentStatus) {
+                console.log('Current status:', currentStatus);
+                setCvAnalysisStatus(currentStatus.message || currentStatus.status);
+                
+                if (currentStatus.status === 'completed' && !importCalled) {
+                  importCalled = true;
+                  await importCVData();
+                }
+              }
+            }
           });
         
         // Wait for realtime updates or timeout after 30 seconds
