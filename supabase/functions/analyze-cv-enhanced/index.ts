@@ -48,7 +48,9 @@ serve(async (req) => {
     // Helper function to update analysis status
     const updateStatus = async (status: string, progress: number, message?: string) => {
       try {
-        const { error } = await supabase
+        console.log(`Updating status: ${status} (${progress}%) - ${message || ''}`)
+        
+        const { data, error } = await supabase
           .from('cv_analysis_status')
           .upsert({
             employee_id,
@@ -60,16 +62,39 @@ serve(async (req) => {
               source,
               file_path,
               request_id: requestId 
-            }
+            },
+            updated_at: new Date().toISOString()
           }, {
             onConflict: 'employee_id,session_id'
           })
+          .select()
         
         if (error) {
-          console.error('Failed to update status:', error)
+          console.error('Failed to update status:', JSON.stringify(error))
+          // Log to metrics for visibility
+          await supabase
+            .from('st_llm_usage_metrics')
+            .insert({
+              company_id: employee?.company_id || 'unknown',
+              service_type: 'cv_analysis_status_error',
+              model_used: 'none',
+              input_tokens: 0,
+              output_tokens: 0,
+              cost_estimate: 0,
+              duration_ms: 0,
+              success: false,
+              error_code: error.code,
+              metadata: {
+                request_id: requestId,
+                status,
+                error: error.message
+              }
+            })
+        } else {
+          console.log('Status update successful:', data)
         }
       } catch (err) {
-        console.error('Status update error:', err)
+        console.error('Status update exception:', err.message || err)
       }
     }
     
@@ -145,18 +170,25 @@ serve(async (req) => {
     const fileName = file_path.split('/').pop() || ''
     
     if (fileName.toLowerCase().endsWith('.pdf')) {
-      // For PDF extraction, we'll use a simple approach
-      // In production, consider using pdf-parse or similar
       try {
         const arrayBuffer = await fileData.arrayBuffer()
         const uint8Array = new Uint8Array(arrayBuffer)
-        // Basic PDF text extraction (simplified)
+        
+        // Use enhanced PDF extraction
         cvText = await extractTextFromPDF(uint8Array)
+        
+        // Log extraction result
+        console.log(`PDF extraction completed - extracted ${cvText.length} characters`)
+        
+        if (cvText.length < 100) {
+          console.log('First 200 chars:', cvText.substring(0, 200))
+        }
       } catch (pdfError) {
+        console.error('PDF extraction error:', pdfError.message)
         logSanitizedError(pdfError, {
           requestId,
           functionName: 'analyze-cv-enhanced',
-          metadata: { context: 'pdf_extraction' }
+          metadata: { context: 'pdf_extraction', fileName }
         })
         throw new Error('Failed to extract text from PDF')
       }
@@ -180,8 +212,17 @@ serve(async (req) => {
     }
 
     if (!cvText || cvText.trim().length < 50) {
-      throw new Error('CV content is too short or empty')
+      console.error(`CV text extraction failed - only ${cvText.length} characters extracted`)
+      console.log('First 200 chars of extracted text:', cvText.substring(0, 200))
+      
+      // Update status with error
+      await updateStatus('error', 30, 'Failed to extract sufficient text from CV')
+      
+      throw new Error(`CV content is too short or empty (only ${cvText.length} characters extracted)`)
     }
+    
+    // Log successful extraction
+    console.log(`Successfully extracted ${cvText.length} characters from CV`)
     
     await updateStatus('analyzing', 40, 'AI analyzing skills and experience...')
 
@@ -487,33 +528,88 @@ function calculateCost(usage: any): number {
   return inputCost + outputCost
 }
 
-// Simple PDF text extraction (basic implementation)
+// Enhanced PDF text extraction
 async function extractTextFromPDF(pdfData: Uint8Array): Promise<string> {
-  // Convert PDF data to string and extract readable text
-  const pdfString = new TextDecoder('utf-8', { fatal: false }).decode(pdfData)
+  const pdfString = new TextDecoder('latin1').decode(pdfData)
+  let extractedText = ''
   
-  // Basic text extraction - look for text between stream markers
-  const textMatches = pdfString.match(/\(([^)]+)\)/g) || []
-  const extractedText = textMatches
-    .map(match => match.slice(1, -1)) // Remove parentheses
-    .join(' ')
-    .replace(/\\(\d{3})/g, (match, code) => String.fromCharCode(parseInt(code, 8))) // Handle octal codes
-    .replace(/\\/g, '') // Remove escape characters
-  
-  // If basic extraction fails, try to find text in common PDF structures
-  if (extractedText.length < 50) {
-    const streamMatches = pdfString.match(/stream[\s\S]*?endstream/g) || []
-    const streamText = streamMatches
-      .map(stream => {
-        // Try to extract readable text from streams
-        const text = stream.replace(/[^\x20-\x7E\s]/g, ' ') // Keep only printable ASCII
-        return text.trim()
-      })
-      .filter(text => text.length > 10)
-      .join(' ')
+  // Method 1: Extract text from BT...ET blocks (common in PDFs)
+  const textBlocks = pdfString.match(/BT[\s\S]*?ET/g) || []
+  for (const block of textBlocks) {
+    // Extract text within Tj and TJ operators
+    const tjMatches = block.match(/\(((?:[^()\\]|\\.)*)\)\s*Tj/g) || []
+    const tjTexts = tjMatches.map(match => {
+      const text = match.match(/\(((?:[^()\\]|\\.)*)\)/)?.[1] || ''
+      return decodeOctalString(text)
+    })
     
-    return streamText || 'Unable to extract text from PDF'
+    // Handle TJ arrays (text with spacing)
+    const tjArrayMatches = block.match(/\[((?:[^\[\]]*\([^)]*\)[^\[\]]*)*)\]\s*TJ/g) || []
+    for (const arrayMatch of tjArrayMatches) {
+      const strings = arrayMatch.match(/\(([^)]*)\)/g) || []
+      const arrayTexts = strings.map(s => decodeOctalString(s.slice(1, -1)))
+      tjTexts.push(...arrayTexts)
+    }
+    
+    extractedText += tjTexts.join(' ') + ' '
   }
   
-  return extractedText
+  // Method 2: Extract from text streams (for simpler PDFs)
+  if (extractedText.length < 50) {
+    const streamMatches = pdfString.match(/stream([\s\S]*?)endstream/g) || []
+    for (const stream of streamMatches) {
+      // Look for readable ASCII text
+      const readable = stream
+        .replace(/stream|endstream/g, '')
+        .split('')
+        .filter(char => {
+          const code = char.charCodeAt(0)
+          return (code >= 32 && code <= 126) || code === 10 || code === 13
+        })
+        .join('')
+        .replace(/\s+/g, ' ')
+        .trim()
+      
+      if (readable.length > 20) {
+        extractedText += readable + ' '
+      }
+    }
+  }
+  
+  // Method 3: Extract parenthetical strings (legacy format)
+  if (extractedText.length < 50) {
+    const parentheticalMatches = pdfString.match(/\(([^)]+)\)/g) || []
+    const parentheticalText = parentheticalMatches
+      .map(match => decodeOctalString(match.slice(1, -1)))
+      .filter(text => text.length > 2)
+      .join(' ')
+    
+    if (parentheticalText.length > extractedText.length) {
+      extractedText = parentheticalText
+    }
+  }
+  
+  // Clean up the extracted text
+  extractedText = extractedText
+    .replace(/\s+/g, ' ')
+    .replace(/[^\x20-\x7E\n\r]/g, '') // Keep only printable ASCII
+    .trim()
+  
+  console.log(`PDF extraction methods found ${extractedText.length} characters`)
+  
+  return extractedText || 'Unable to extract text from PDF'
+}
+
+// Helper function to decode octal strings in PDFs
+function decodeOctalString(str: string): string {
+  return str
+    .replace(/\\(\d{1,3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
+    .replace(/\\\\/g, '\\')
+    .replace(/\\'/g, "'")
+    .replace(/\\"/g, '"')
+    .replace(/\\\(/g, '(')
+    .replace(/\\\)/g, ')')
 }
