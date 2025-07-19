@@ -223,6 +223,8 @@ serve(async (req) => {
     
     // Log successful extraction
     console.log(`Successfully extracted ${cvText.length} characters from CV`)
+    console.log('First 500 chars of extracted text:', cvText.substring(0, 500))
+    console.log('Last 500 chars of extracted text:', cvText.substring(cvText.length - 500))
     
     await updateStatus('analyzing', 40, 'AI analyzing skills and experience...')
 
@@ -258,6 +260,10 @@ serve(async (req) => {
     `
 
     const prompt = `${promptTemplate}\n\nCV Content:\n${cvText}`
+    
+    console.log('Prompt template being used:', promptTemplate.substring(0, 300) + '...')
+    console.log('Full prompt length:', prompt.length)
+    console.log('CV text length in prompt:', cvText.length)
 
     // Call OpenAI with enhanced prompt
     let completion
@@ -284,7 +290,19 @@ serve(async (req) => {
       throw new Error(`Failed to analyze CV: ${openaiError.message}`)
     }
 
-    const analysisResult = JSON.parse(completion.choices[0].message?.content || '{}')
+    const rawResponse = completion.choices[0].message?.content || '{}'
+    console.log('OpenAI raw response:', rawResponse)
+    console.log('Response length:', rawResponse.length)
+    
+    let analysisResult
+    try {
+      analysisResult = JSON.parse(rawResponse)
+      console.log('Parsed analysis result keys:', Object.keys(analysisResult))
+      console.log('Skills array length:', analysisResult.skills?.length || 0)
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response:', parseError)
+      analysisResult = {}
+    }
     
     await updateStatus('processing', 60, 'Processing analysis results...')
     
