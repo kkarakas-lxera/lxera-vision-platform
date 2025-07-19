@@ -233,30 +233,73 @@ serve(async (req) => {
       'You are an expert HR analyst specializing in technical skill assessment and CV analysis. Extract information accurately and comprehensively.'
     
     const promptTemplate = analysisTemplate?.prompt_template || `
-      Analyze this CV comprehensively and extract the following information:
+      You are analyzing a CV/Resume. Extract ALL skills and technologies mentioned.
       
-      1. Personal Information (name, contact details)
-      2. Professional Summary
-      3. Work Experience (with dates, companies, positions, key achievements)
-      4. Education (degrees, institutions, dates)
-      5. Certifications (name, issuer, date if available)
-      6. Skills:
-         - Technical Skills (programming languages, tools, frameworks, databases)
-         - Soft Skills (leadership, communication, teamwork, etc.)
-         - Domain Knowledge (industry-specific expertise)
-      7. Languages (with proficiency levels)
-      8. Notable Projects or Achievements
-      9. Total years of experience
+      Your response MUST be a valid JSON object with this EXACT structure:
+      {
+        "personal_info": {
+          "name": "Full name from CV",
+          "email": "Email address",
+          "phone": "Phone number"
+        },
+        "summary": "Professional summary or objective from CV",
+        "work_experience": [
+          {
+            "company": "Company name",
+            "position": "Job title",
+            "duration": "Time period",
+            "achievements": ["List of key achievements or responsibilities"]
+          }
+        ],
+        "education": [
+          {
+            "degree": "Degree name",
+            "institution": "School/University name",
+            "year": "Graduation year or period"
+          }
+        ],
+        "certifications": [
+          {
+            "name": "Certification name",
+            "issuer": "Issuing organization",
+            "year": "Year obtained"
+          }
+        ],
+        "skills": [
+          {
+            "skill_name": "EXACT skill name as written in CV",
+            "category": "technical",
+            "proficiency_level": 4,
+            "years_experience": 2,
+            "evidence": "Quote from CV showing this skill",
+            "context": "Where/how this skill was used"
+          }
+        ],
+        "languages": [
+          {
+            "language": "Language name",
+            "proficiency": "Native/Fluent/Intermediate/Basic"
+          }
+        ],
+        "total_experience_years": 8
+      }
       
-      For each skill, provide:
-      - skill_name: The specific skill
-      - category: technical|soft|domain|tool|language
-      - proficiency_level: 1-5 (1=Beginner, 2=Basic, 3=Intermediate, 4=Advanced, 5=Expert)
-      - years_experience: estimated years (can be null)
-      - evidence: specific evidence from CV
-      - context: where/how this skill was used
+      CRITICAL INSTRUCTIONS:
+      1. Extract EVERY technical skill mentioned (programming languages, frameworks, tools, databases, cloud services, etc.)
+      2. Be EXTREMELY thorough - if something looks like a skill or technology, include it
+      3. Use these categories: "technical" for tech skills, "soft" for soft skills, "domain" for industry knowledge
+      4. Estimate proficiency_level: 5=Expert (5+ years), 4=Advanced (3-5 years), 3=Intermediate (1-3 years), 2=Basic (<1 year), 1=Beginner
+      5. Include evidence - quote the exact text from CV that mentions this skill
+      6. If you can't find certain information, use null instead of making it up
       
-      Format the response as a structured JSON object.
+      Common skills to look for:
+      - Programming: Python, JavaScript, Java, C++, Go, Ruby, PHP, Swift, Kotlin, etc.
+      - Frontend: React, Angular, Vue.js, HTML, CSS, Sass, Bootstrap, Tailwind, etc.
+      - Backend: Node.js, Express, Django, Flask, Spring, Rails, Laravel, etc.
+      - Databases: MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch, Oracle, etc.
+      - Cloud: AWS, Azure, GCP, Docker, Kubernetes, Jenkins, CI/CD, etc.
+      - Tools: Git, Jira, Slack, VS Code, IntelliJ, Postman, etc.
+      - Soft Skills: Leadership, Communication, Problem-solving, Teamwork, etc.
     `
 
     const prompt = `${promptTemplate}\n\nCV Content:\n${cvText}`
@@ -340,9 +383,15 @@ serve(async (req) => {
       context?: string;
     }
     
+    // Ensure we have skills array
+    if (!analysisResult.skills || !Array.isArray(analysisResult.skills)) {
+      console.error('No skills array in analysis result')
+      analysisResult.skills = []
+    }
+    
     const extractedSkills = (analysisResult.skills || []).map((skill: AnalysisSkill) => ({
       skill_id: null, // Will be mapped to NESTA taxonomy later
-      skill_name: skill.skill_name || skill.name,
+      skill_name: skill.skill_name || skill.name || '',
       category: skill.category || 'technical',
       proficiency_level: skill.proficiency_level || skill.level || 3,
       years_experience: skill.years_experience,
@@ -350,7 +399,9 @@ serve(async (req) => {
       context: skill.context || '',
       confidence: 0.9, // High confidence for direct extraction
       source: 'cv_analysis'
-    }))
+    })).filter(skill => skill.skill_name && skill.skill_name.length > 0)
+    
+    console.log(`Extracted ${extractedSkills.length} skills from analysis`)
 
     // Calculate initial match score if position exists
     let matchScore = null
@@ -395,7 +446,7 @@ serve(async (req) => {
       analyzed_at: new Date().toISOString(),
       // New enhanced fields
       skills_analysis_version: 2,
-      experience_years: analysisResult.total_experience_years,
+      experience_years: analysisResult.total_experience_years || 0,
       education_level: analysisResult.education?.[0]?.degree || null,
       certifications: analysisResult.certifications || [],
       industry_experience: analysisResult.work_experience?.map((exp: any) => ({
@@ -412,7 +463,8 @@ serve(async (req) => {
         analysis_time_ms: Date.now() - startTime,
         template_used: analysisTemplate?.template_name,
         model_used: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
-        tokens_used: tokensUsed
+        tokens_used: tokensUsed,
+        extraction_method: 'enhanced_pymupdf_pattern'
       }
     }
 
@@ -444,8 +496,8 @@ serve(async (req) => {
         .eq('id', session_item_id)
     }
 
-    // Update employee record
-    await supabase
+    // Update employee record with extracted data
+    const { error: employeeUpdateError } = await supabase
       .from('employees')
       .update({
         cv_file_path: file_path,
@@ -454,11 +506,17 @@ serve(async (req) => {
           education: analysisResult.education || [],
           certifications: analysisResult.certifications || [],
           languages: analysisResult.languages || [],
-          total_experience_years: analysisResult.total_experience_years || 0
+          total_experience_years: analysisResult.total_experience_years || 0,
+          personal_info: analysisResult.personal_info || {},
+          skills_count: extractedSkills.length
         },
         skills_last_analyzed: new Date().toISOString()
       })
       .eq('id', employee_id)
+    
+    if (employeeUpdateError) {
+      console.error('Failed to update employee record:', employeeUpdateError)
+    }
 
     const analysisTime = Date.now() - startTime
     
@@ -546,76 +604,192 @@ function calculateCost(usage: any): number {
   return inputCost + outputCost
 }
 
-// Enhanced PDF text extraction
+// Enhanced PDF text extraction following PyMuPDF4LLM pattern
 async function extractTextFromPDF(pdfData: Uint8Array): Promise<string> {
   const pdfString = new TextDecoder('latin1').decode(pdfData)
-  let extractedText = ''
   
-  // Method 1: Extract text from BT...ET blocks (common in PDFs)
-  const textBlocks = pdfString.match(/BT[\s\S]*?ET/g) || []
-  for (const block of textBlocks) {
-    // Extract text within Tj and TJ operators
-    const tjMatches = block.match(/\(((?:[^()\\]|\\.)*)\)\s*Tj/g) || []
-    const tjTexts = tjMatches.map(match => {
-      const text = match.match(/\(((?:[^()\\]|\\.)*)\)/)?.[1] || ''
-      return decodeOctalString(text)
-    })
-    
-    // Handle TJ arrays (text with spacing)
-    const tjArrayMatches = block.match(/\[((?:[^\[\]]*\([^)]*\)[^\[\]]*)*)\]\s*TJ/g) || []
-    for (const arrayMatch of tjArrayMatches) {
-      const strings = arrayMatch.match(/\(([^)]*)\)/g) || []
-      const arrayTexts = strings.map(s => decodeOctalString(s.slice(1, -1)))
-      tjTexts.push(...arrayTexts)
-    }
-    
-    extractedText += tjTexts.join(' ') + ' '
+  // Extract all text objects with their positions
+  interface TextObject {
+    text: string
+    x?: number
+    y?: number
+    fontSize?: number
   }
   
-  // Method 2: Extract from text streams (for simpler PDFs)
-  if (extractedText.length < 50) {
-    const streamMatches = pdfString.match(/stream([\s\S]*?)endstream/g) || []
-    for (const stream of streamMatches) {
-      // Look for readable ASCII text
-      const readable = stream
-        .replace(/stream|endstream/g, '')
-        .split('')
-        .filter(char => {
-          const code = char.charCodeAt(0)
-          return (code >= 32 && code <= 126) || code === 10 || code === 13
-        })
-        .join('')
-        .replace(/\s+/g, ' ')
-        .trim()
+  const textObjects: TextObject[] = []
+  
+  // Parse all objects in the PDF
+  const objectMatches = pdfString.match(/\d+\s+\d+\s+obj[\s\S]*?endobj/g) || []
+  
+  for (const obj of objectMatches) {
+    // Skip if not a content stream
+    if (!obj.includes('stream')) continue
+    
+    // Extract the stream content
+    const streamMatch = obj.match(/stream\s*([\s\S]*?)\s*endstream/)
+    if (!streamMatch) continue
+    
+    const streamContent = streamMatch[1]
+    let currentX = 0
+    let currentY = 0
+    let currentFontSize = 12
+    
+    // Parse text positioning and extraction commands
+    const commands = streamContent.split(/\s+/)
+    
+    for (let i = 0; i < commands.length; i++) {
+      const cmd = commands[i]
       
-      if (readable.length > 20) {
-        extractedText += readable + ' '
+      // Text positioning (Td, TD, Tm)
+      if (cmd === 'Td' && i >= 2) {
+        currentX += parseFloat(commands[i-2]) || 0
+        currentY += parseFloat(commands[i-1]) || 0
+      } else if (cmd === 'Tm' && i >= 6) {
+        currentX = parseFloat(commands[i-2]) || 0
+        currentY = parseFloat(commands[i-1]) || 0
+      }
+      
+      // Font size (Tf)
+      if (cmd === 'Tf' && i >= 2) {
+        currentFontSize = parseFloat(commands[i-1]) || 12
+      }
+      
+      // Text extraction (Tj)
+      if (cmd === 'Tj' && i >= 1) {
+        const textMatch = commands[i-1].match(/^\((.*)\)$/)
+        if (textMatch) {
+          const text = decodeOctalString(textMatch[1])
+          if (text.trim()) {
+            textObjects.push({
+              text,
+              x: currentX,
+              y: currentY,
+              fontSize: currentFontSize
+            })
+          }
+        }
+      }
+      
+      // Text array extraction (TJ)
+      if (cmd === 'TJ' && i >= 1) {
+        // Find the array in the original stream content
+        const tjIndex = streamContent.indexOf(commands[i-1])
+        const arrayMatch = streamContent.substring(tjIndex).match(/^\[(.*?)\]/)
+        if (arrayMatch) {
+          const arrayContent = arrayMatch[1]
+          const textMatches = arrayContent.match(/\([^)]*\)/g) || []
+          const texts = textMatches.map(m => decodeOctalString(m.slice(1, -1)))
+          const combinedText = texts.join('').trim()
+          if (combinedText) {
+            textObjects.push({
+              text: combinedText,
+              x: currentX,
+              y: currentY,
+              fontSize: currentFontSize
+            })
+          }
+        }
       }
     }
   }
   
-  // Method 3: Extract parenthetical strings (legacy format)
-  if (extractedText.length < 50) {
-    const parentheticalMatches = pdfString.match(/\(([^)]+)\)/g) || []
-    const parentheticalText = parentheticalMatches
-      .map(match => decodeOctalString(match.slice(1, -1)))
-      .filter(text => text.length > 2)
-      .join(' ')
+  // If structured extraction found text, organize it
+  if (textObjects.length > 0) {
+    // Sort by Y position (top to bottom) then X position (left to right)
+    textObjects.sort((a, b) => {
+      const yDiff = (b.y || 0) - (a.y || 0) // PDF Y coordinates are bottom-up
+      if (Math.abs(yDiff) > 5) return yDiff
+      return (a.x || 0) - (b.x || 0)
+    })
     
-    if (parentheticalText.length > extractedText.length) {
-      extractedText = parentheticalText
+    // Group text objects into lines based on Y position
+    const lines: string[] = []
+    let currentLine: string[] = []
+    let lastY = textObjects[0]?.y || 0
+    
+    for (const obj of textObjects) {
+      const yDiff = Math.abs((obj.y || 0) - lastY)
+      
+      // New line if Y position changes significantly
+      if (yDiff > 5 && currentLine.length > 0) {
+        lines.push(currentLine.join(' '))
+        currentLine = []
+      }
+      
+      currentLine.push(obj.text)
+      lastY = obj.y || 0
+    }
+    
+    if (currentLine.length > 0) {
+      lines.push(currentLine.join(' '))
+    }
+    
+    const structuredText = lines.join('\n')
+    console.log(`Structured extraction found ${structuredText.length} characters in ${lines.length} lines`)
+    
+    if (structuredText.length > 100) {
+      return cleanExtractedText(structuredText)
     }
   }
   
-  // Clean up the extracted text
-  extractedText = extractedText
-    .replace(/\s+/g, ' ')
-    .replace(/[^\x20-\x7E\n\r]/g, '') // Keep only printable ASCII
+  // Fallback: Enhanced pattern matching for text content
+  let extractedText = ''
+  
+  // Method 1: Extract from BT...ET blocks with better handling
+  const btBlocks = pdfString.match(/BT[\s\S]*?ET/g) || []
+  for (const block of btBlocks) {
+    // Extract all text showing operations
+    const textOps = block.match(/\(((?:[^()\\]|\\[\\()]|\\[0-7]{1,3})*)\)\s*Tj/g) || []
+    const tjTexts = textOps.map(op => {
+      const match = op.match(/\(((?:[^()\\]|\\[\\()]|\\[0-7]{1,3})*)\)/)
+      return match ? decodeOctalString(match[1]) : ''
+    }).filter(t => t.trim())
+    
+    // Extract from TJ arrays
+    const tjArrays = block.match(/\[((?:[^\[\]]*\([^)]*\)[^\[\]]*)*)\]\s*TJ/g) || []
+    for (const array of tjArrays) {
+      const strings = array.match(/\(([^)]*)\)/g) || []
+      const arrayTexts = strings.map(s => decodeOctalString(s.slice(1, -1))).filter(t => t.trim())
+      tjTexts.push(...arrayTexts)
+    }
+    
+    if (tjTexts.length > 0) {
+      extractedText += tjTexts.join(' ') + '\n'
+    }
+  }
+  
+  // Method 2: Direct text pattern extraction
+  if (extractedText.length < 100) {
+    const directTextMatches = pdfString.match(/\(([^)]+)\)/g) || []
+    const directTexts = directTextMatches
+      .map(match => decodeOctalString(match.slice(1, -1)))
+      .filter(text => {
+        // Filter out non-text content
+        const cleaned = text.trim()
+        return cleaned.length > 2 && /[a-zA-Z]/.test(cleaned)
+      })
+    
+    if (directTexts.length > 0) {
+      extractedText = directTexts.join(' ')
+    }
+  }
+  
+  console.log(`Fallback extraction found ${extractedText.length} characters`)
+  
+  return cleanExtractedText(extractedText) || 'Unable to extract text from PDF'
+}
+
+// Clean and normalize extracted text
+function cleanExtractedText(text: string): string {
+  return text
+    // Fix common OCR/extraction issues
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .replace(/(\w)-\s+(\w)/g, '$1$2') // Fix word breaks
+    .replace(/([.!?])\s*([A-Z])/g, '$1\n\n$2') // Add paragraph breaks
+    .replace(/•/g, '\n• ') // Format bullet points
+    .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars
+    .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
     .trim()
-  
-  console.log(`PDF extraction methods found ${extractedText.length} characters`)
-  
-  return extractedText || 'Unable to extract text from PDF'
 }
 
 // Helper function to decode octal strings in PDFs
