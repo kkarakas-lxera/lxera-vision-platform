@@ -164,16 +164,13 @@ serve(async (req) => {
 
     // Convert file to base64 for OpenAI
     const arrayBuffer = await fileData.arrayBuffer()
-    const base64File = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
     
-    // Determine file type
+    // Get file details
     const fileName = file_path.split('/').pop() || ''
     const fileExtension = fileName.split('.').pop()?.toLowerCase() || 'pdf'
-    const mimeType = fileExtension === 'pdf' ? 'application/pdf' : 
-                     fileExtension === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
-                     'text/plain'
     
-    console.log(`Processing ${fileName} (${mimeType}) - ${arrayBuffer.byteLength} bytes`)
+    console.log(`Processing ${fileName} - ${arrayBuffer.byteLength} bytes`)
     
     await updateStatus('analyzing', 30, 'AI analyzing CV content...')
 
@@ -251,10 +248,10 @@ serve(async (req) => {
       - Soft Skills: Leadership, Communication, Problem-solving, Teamwork, etc.
     `
 
-    // Prepare the prompt without CV content (will be sent as file)
+    // Prepare the prompt (CV will be sent as file)
     const prompt = promptTemplate
     
-    console.log('Using OpenAI file upload for CV analysis')
+    console.log('Using OpenAI PDF file analysis')
     console.log('File size:', arrayBuffer.byteLength, 'bytes')
 
     // Call OpenAI with file upload
@@ -263,7 +260,7 @@ serve(async (req) => {
     const temperature = analysisTemplate?.parameters?.temperature || 0.3
     
     try {
-      // Create messages with file attachment
+      // Create messages with PDF file attachment using the correct format
       const messages = [
         { 
           role: 'system' as const, 
@@ -273,36 +270,36 @@ serve(async (req) => {
           role: 'user' as const, 
           content: [
             {
-              type: 'text' as const,
-              text: prompt
+              type: 'file' as const,
+              file: {
+                filename: fileName,
+                file_data: `data:application/pdf;base64,${base64String}`
+              }
             },
             {
-              type: 'image_url' as const,
-              image_url: {
-                url: `data:${mimeType};base64,${base64File}`,
-                detail: 'high' as const
-              }
+              type: 'text' as const,
+              text: prompt
             }
           ]
         }
       ]
       
       completion = await openai.chat.completions.create({
-        model: 'gpt-4o', // Using GPT-4 Vision for document analysis
+        model: 'gpt-4o', // GPT-4o supports PDF files
         messages,
         temperature,
         max_tokens: maxTokens,
         response_format: { type: 'json_object' }
       })
       
-      console.log('OpenAI file analysis completed')
+      console.log('OpenAI PDF analysis completed')
       console.log('Tokens used:', completion.usage?.total_tokens)
       
     } catch (openaiError) {
       logSanitizedError(openaiError, {
         requestId,
         functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'openai_file_upload_error' }
+        metadata: { context: 'openai_pdf_analysis_error' }
       })
       throw new Error(`Failed to analyze CV: ${openaiError.message}`)
     }
