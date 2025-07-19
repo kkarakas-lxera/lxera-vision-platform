@@ -522,7 +522,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     setCvAnalyzing(true);
     setCvAnalysisStatus('Uploading CV...');
     
-    let realtimeChannel: any = null;
 
     try {
       // Upload CV to the correct storage bucket
@@ -549,14 +548,12 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       
       console.log('CV Analysis Response:', analysisResult);
       
-      // Function to import CV data
-      const importCVData = async () => {
+      // Import CV data after successful analysis
+      if (analysisResult?.success) {
         setCvAnalysisStatus('Importing data into your profile...');
         
         const { error: importError } = await supabase.functions.invoke('import-cv-to-profile', {
-          body: {
-            employeeId
-          }
+          body: { employeeId }
         });
 
         if (importError) {
@@ -572,90 +569,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         
         // Reload data to get imported information
         await loadEmployeeData();
-        
-        // Cleanup realtime subscription and timeout
-        if (realtimeChannel) {
-          if (realtimeChannel.timeout) {
-            clearTimeout(realtimeChannel.timeout);
-          }
-          await supabase.removeChannel(realtimeChannel);
-        }
-      };
-      
-      // Get the session ID from the response
-      const sessionId = analysisResult?.session_id;
-      
-      // If we have a session ID, subscribe to realtime updates
-      if (sessionId) {
-        console.log('Subscribing to realtime updates for session:', sessionId);
-        
-        // Flag to track if import has been called
-        let importCalled = false;
-        
-        realtimeChannel = supabase
-          .channel(`cv-analysis-${sessionId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'cv_analysis_status',
-              filter: `session_id=eq.${sessionId}`
-            },
-            (payload) => {
-              console.log('Realtime update received:', payload);
-              if (payload.new) {
-                const { status, progress, message } = payload.new as any;
-                setCvAnalysisStatus(message || status);
-                
-                // If analysis is completed, proceed with import
-                if (status === 'completed' && !importCalled) {
-                  importCalled = true;
-                  importCVData();
-                }
-              }
-            }
-          )
-          .subscribe(async (status) => {
-            console.log('Realtime subscription status:', status);
-            
-            // Once subscribed, check if analysis is already complete
-            if (status === 'SUBSCRIBED') {
-              const { data: currentStatus } = await supabase
-                .from('cv_analysis_status')
-                .select('status, progress, message')
-                .eq('session_id', sessionId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-                
-              if (currentStatus) {
-                console.log('Current status:', currentStatus);
-                setCvAnalysisStatus(currentStatus.message || currentStatus.status);
-                
-                if (currentStatus.status === 'completed' && !importCalled) {
-                  importCalled = true;
-                  await importCVData();
-                }
-              }
-            }
-          });
-        
-        // Wait for realtime updates or timeout after 30 seconds
-        const timeout = setTimeout(async () => {
-          if (!importCalled) {
-            console.log('Realtime timeout - proceeding with import');
-            importCalled = true;
-            await importCVData();
-          }
-        }, 30000);
-        
-        // Store timeout for cleanup
-        realtimeChannel.timeout = timeout;
-      } else if (analysisResult?.success) {
-        // No session ID, proceed immediately
-        console.log('No session ID - proceeding with import immediately');
-        await importCVData();
       }
       
     } catch (error) {

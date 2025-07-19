@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import OpenAI from 'https://esm.sh/openai@4.28.0'
-import * as mammoth from 'https://esm.sh/mammoth@1.6.0'
 import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
@@ -150,12 +149,9 @@ serve(async (req) => {
         .eq('id', session_item_id)
     }
 
-    // Extract CV text
-    await updateStatus('downloading', 10, 'Downloading CV file...')
-    const cvContent = null
-    let cvText = ''
-    
     // Download CV from storage
+    await updateStatus('downloading', 10, 'Downloading CV file...')
+    
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('employee-cvs')
       .download(file_path)
@@ -164,69 +160,22 @@ serve(async (req) => {
       throw new Error(`Failed to download CV: ${downloadError.message}`)
     }
     
-    await updateStatus('extracting_text', 20, 'Extracting text from document...')
+    await updateStatus('uploading_to_ai', 20, 'Uploading CV to AI for analysis...')
 
-    // Extract text based on file type
+    // Convert file to base64 for OpenAI
+    const arrayBuffer = await fileData.arrayBuffer()
+    const base64File = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    
+    // Determine file type
     const fileName = file_path.split('/').pop() || ''
+    const fileExtension = fileName.split('.').pop()?.toLowerCase() || 'pdf'
+    const mimeType = fileExtension === 'pdf' ? 'application/pdf' : 
+                     fileExtension === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
+                     'text/plain'
     
-    if (fileName.toLowerCase().endsWith('.pdf')) {
-      try {
-        const arrayBuffer = await fileData.arrayBuffer()
-        const uint8Array = new Uint8Array(arrayBuffer)
-        
-        // Use enhanced PDF extraction
-        cvText = await extractTextFromPDF(uint8Array)
-        
-        // Log extraction result
-        console.log(`PDF extraction completed - extracted ${cvText.length} characters`)
-        
-        if (cvText.length < 100) {
-          console.log('First 200 chars:', cvText.substring(0, 200))
-        }
-      } catch (pdfError) {
-        console.error('PDF extraction error:', pdfError.message)
-        logSanitizedError(pdfError, {
-          requestId,
-          functionName: 'analyze-cv-enhanced',
-          metadata: { context: 'pdf_extraction', fileName }
-        })
-        throw new Error('Failed to extract text from PDF')
-      }
-    } else if (fileName.toLowerCase().endsWith('.docx')) {
-      // For DOCX files
-      try {
-        const arrayBuffer = await fileData.arrayBuffer()
-        const result = await mammoth.extractRawText({ arrayBuffer })
-        cvText = result.value
-      } catch (docxError) {
-        logSanitizedError(docxError, {
-          requestId,
-          functionName: 'analyze-cv-enhanced',
-          metadata: { context: 'docx_extraction' }
-        })
-        throw new Error('Failed to extract text from DOCX')
-      }
-    } else {
-      // Assume text file
-      cvText = await fileData.text()
-    }
-
-    if (!cvText || cvText.trim().length < 50) {
-      console.error(`CV text extraction failed - only ${cvText.length} characters extracted`)
-      console.log('First 200 chars of extracted text:', cvText.substring(0, 200))
-      
-      // Update status with error
-      await updateStatus('error', 30, 'Failed to extract sufficient text from CV')
-      
-      throw new Error(`CV content is too short or empty (only ${cvText.length} characters extracted)`)
-    }
+    console.log(`Processing ${fileName} (${mimeType}) - ${arrayBuffer.byteLength} bytes`)
     
-    // Log successful extraction
-    console.log(`Successfully extracted ${cvText.length} characters from CV`)
-    console.log('First 500 chars of extracted text:', cvText.substring(0, 500))
-    console.log('Last 500 chars of extracted text:', cvText.substring(cvText.length - 500))
-    
-    await updateStatus('analyzing', 40, 'AI analyzing skills and experience...')
+    await updateStatus('analyzing', 30, 'AI analyzing CV content...')
 
     // Enhanced prompt using template or default
     const systemPrompt = analysisTemplate?.system_prompt || 
@@ -302,33 +251,58 @@ serve(async (req) => {
       - Soft Skills: Leadership, Communication, Problem-solving, Teamwork, etc.
     `
 
-    const prompt = `${promptTemplate}\n\nCV Content:\n${cvText}`
+    // Prepare the prompt without CV content (will be sent as file)
+    const prompt = promptTemplate
     
-    console.log('Prompt template being used:', promptTemplate.substring(0, 300) + '...')
-    console.log('Full prompt length:', prompt.length)
-    console.log('CV text length in prompt:', cvText.length)
+    console.log('Using OpenAI file upload for CV analysis')
+    console.log('File size:', arrayBuffer.byteLength, 'bytes')
 
-    // Call OpenAI with enhanced prompt
+    // Call OpenAI with file upload
     let completion
-    const maxTokens = analysisTemplate?.parameters?.max_tokens || 3000
+    const maxTokens = analysisTemplate?.parameters?.max_tokens || 4000
     const temperature = analysisTemplate?.parameters?.temperature || 0.3
     
     try {
+      // Create messages with file attachment
+      const messages = [
+        { 
+          role: 'system' as const, 
+          content: systemPrompt 
+        },
+        { 
+          role: 'user' as const, 
+          content: [
+            {
+              type: 'text' as const,
+              text: prompt
+            },
+            {
+              type: 'image_url' as const,
+              image_url: {
+                url: `data:${mimeType};base64,${base64File}`,
+                detail: 'high' as const
+              }
+            }
+          ]
+        }
+      ]
+      
       completion = await openai.chat.completions.create({
-        model: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
+        model: 'gpt-4o', // Using GPT-4 Vision for document analysis
+        messages,
         temperature,
         max_tokens: maxTokens,
         response_format: { type: 'json_object' }
       })
+      
+      console.log('OpenAI file analysis completed')
+      console.log('Tokens used:', completion.usage?.total_tokens)
+      
     } catch (openaiError) {
       logSanitizedError(openaiError, {
         requestId,
         functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'openai_api_error' }
+        metadata: { context: 'openai_file_upload_error' }
       })
       throw new Error(`Failed to analyze CV: ${openaiError.message}`)
     }
@@ -358,7 +332,7 @@ serve(async (req) => {
       .insert({
         company_id: employee.company_id,
         service_type: 'cv_analysis',
-        model_used: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
+        model_used: 'gpt-4o',
         input_tokens: completion.usage?.prompt_tokens || 0,
         output_tokens: completion.usage?.completion_tokens || 0,
         cost_estimate: costEstimate,
@@ -367,7 +341,8 @@ serve(async (req) => {
         metadata: {
           request_id: requestId,
           employee_id,
-          template_used: analysisTemplate?.template_name
+          template_used: analysisTemplate?.template_name,
+          file_upload: true
         }
       })
 
@@ -459,12 +434,12 @@ serve(async (req) => {
       languages: analysisResult.languages || [],
       projects_summary: analysisResult.projects?.map((p: any) => p.name).join(', ') || null,
       analysis_metadata: {
-        cv_length: cvText.length,
+        file_size_bytes: arrayBuffer.byteLength,
         analysis_time_ms: Date.now() - startTime,
         template_used: analysisTemplate?.template_name,
-        model_used: analysisTemplate?.parameters?.model || 'gpt-4-turbo-preview',
+        model_used: 'gpt-4o',
         tokens_used: tokensUsed,
-        extraction_method: 'enhanced_pymupdf_pattern'
+        extraction_method: 'openai_file_upload'
       }
     }
 
@@ -594,214 +569,12 @@ serve(async (req) => {
 })
 
 function calculateCost(usage: any): number {
-  // GPT-4 Turbo pricing (as of 2024)
-  const inputCostPer1k = 0.01
-  const outputCostPer1k = 0.03
+  // GPT-4o pricing (as of 2024)
+  const inputCostPer1k = 0.005  // $5 per 1M input tokens
+  const outputCostPer1k = 0.015 // $15 per 1M output tokens
   
   const inputCost = (usage?.prompt_tokens || 0) / 1000 * inputCostPer1k
   const outputCost = (usage?.completion_tokens || 0) / 1000 * outputCostPer1k
   
   return inputCost + outputCost
-}
-
-// Enhanced PDF text extraction following PyMuPDF4LLM pattern
-async function extractTextFromPDF(pdfData: Uint8Array): Promise<string> {
-  const pdfString = new TextDecoder('latin1').decode(pdfData)
-  
-  // Extract all text objects with their positions
-  interface TextObject {
-    text: string
-    x?: number
-    y?: number
-    fontSize?: number
-  }
-  
-  const textObjects: TextObject[] = []
-  
-  // Parse all objects in the PDF
-  const objectMatches = pdfString.match(/\d+\s+\d+\s+obj[\s\S]*?endobj/g) || []
-  
-  for (const obj of objectMatches) {
-    // Skip if not a content stream
-    if (!obj.includes('stream')) continue
-    
-    // Extract the stream content
-    const streamMatch = obj.match(/stream\s*([\s\S]*?)\s*endstream/)
-    if (!streamMatch) continue
-    
-    const streamContent = streamMatch[1]
-    let currentX = 0
-    let currentY = 0
-    let currentFontSize = 12
-    
-    // Parse text positioning and extraction commands
-    const commands = streamContent.split(/\s+/)
-    
-    for (let i = 0; i < commands.length; i++) {
-      const cmd = commands[i]
-      
-      // Text positioning (Td, TD, Tm)
-      if (cmd === 'Td' && i >= 2) {
-        currentX += parseFloat(commands[i-2]) || 0
-        currentY += parseFloat(commands[i-1]) || 0
-      } else if (cmd === 'Tm' && i >= 6) {
-        currentX = parseFloat(commands[i-2]) || 0
-        currentY = parseFloat(commands[i-1]) || 0
-      }
-      
-      // Font size (Tf)
-      if (cmd === 'Tf' && i >= 2) {
-        currentFontSize = parseFloat(commands[i-1]) || 12
-      }
-      
-      // Text extraction (Tj)
-      if (cmd === 'Tj' && i >= 1) {
-        const textMatch = commands[i-1].match(/^\((.*)\)$/)
-        if (textMatch) {
-          const text = decodeOctalString(textMatch[1])
-          if (text.trim()) {
-            textObjects.push({
-              text,
-              x: currentX,
-              y: currentY,
-              fontSize: currentFontSize
-            })
-          }
-        }
-      }
-      
-      // Text array extraction (TJ)
-      if (cmd === 'TJ' && i >= 1) {
-        // Find the array in the original stream content
-        const tjIndex = streamContent.indexOf(commands[i-1])
-        const arrayMatch = streamContent.substring(tjIndex).match(/^\[(.*?)\]/)
-        if (arrayMatch) {
-          const arrayContent = arrayMatch[1]
-          const textMatches = arrayContent.match(/\([^)]*\)/g) || []
-          const texts = textMatches.map(m => decodeOctalString(m.slice(1, -1)))
-          const combinedText = texts.join('').trim()
-          if (combinedText) {
-            textObjects.push({
-              text: combinedText,
-              x: currentX,
-              y: currentY,
-              fontSize: currentFontSize
-            })
-          }
-        }
-      }
-    }
-  }
-  
-  // If structured extraction found text, organize it
-  if (textObjects.length > 0) {
-    // Sort by Y position (top to bottom) then X position (left to right)
-    textObjects.sort((a, b) => {
-      const yDiff = (b.y || 0) - (a.y || 0) // PDF Y coordinates are bottom-up
-      if (Math.abs(yDiff) > 5) return yDiff
-      return (a.x || 0) - (b.x || 0)
-    })
-    
-    // Group text objects into lines based on Y position
-    const lines: string[] = []
-    let currentLine: string[] = []
-    let lastY = textObjects[0]?.y || 0
-    
-    for (const obj of textObjects) {
-      const yDiff = Math.abs((obj.y || 0) - lastY)
-      
-      // New line if Y position changes significantly
-      if (yDiff > 5 && currentLine.length > 0) {
-        lines.push(currentLine.join(' '))
-        currentLine = []
-      }
-      
-      currentLine.push(obj.text)
-      lastY = obj.y || 0
-    }
-    
-    if (currentLine.length > 0) {
-      lines.push(currentLine.join(' '))
-    }
-    
-    const structuredText = lines.join('\n')
-    console.log(`Structured extraction found ${structuredText.length} characters in ${lines.length} lines`)
-    
-    if (structuredText.length > 100) {
-      return cleanExtractedText(structuredText)
-    }
-  }
-  
-  // Fallback: Enhanced pattern matching for text content
-  let extractedText = ''
-  
-  // Method 1: Extract from BT...ET blocks with better handling
-  const btBlocks = pdfString.match(/BT[\s\S]*?ET/g) || []
-  for (const block of btBlocks) {
-    // Extract all text showing operations
-    const textOps = block.match(/\(((?:[^()\\]|\\[\\()]|\\[0-7]{1,3})*)\)\s*Tj/g) || []
-    const tjTexts = textOps.map(op => {
-      const match = op.match(/\(((?:[^()\\]|\\[\\()]|\\[0-7]{1,3})*)\)/)
-      return match ? decodeOctalString(match[1]) : ''
-    }).filter(t => t.trim())
-    
-    // Extract from TJ arrays
-    const tjArrays = block.match(/\[((?:[^\[\]]*\([^)]*\)[^\[\]]*)*)\]\s*TJ/g) || []
-    for (const array of tjArrays) {
-      const strings = array.match(/\(([^)]*)\)/g) || []
-      const arrayTexts = strings.map(s => decodeOctalString(s.slice(1, -1))).filter(t => t.trim())
-      tjTexts.push(...arrayTexts)
-    }
-    
-    if (tjTexts.length > 0) {
-      extractedText += tjTexts.join(' ') + '\n'
-    }
-  }
-  
-  // Method 2: Direct text pattern extraction
-  if (extractedText.length < 100) {
-    const directTextMatches = pdfString.match(/\(([^)]+)\)/g) || []
-    const directTexts = directTextMatches
-      .map(match => decodeOctalString(match.slice(1, -1)))
-      .filter(text => {
-        // Filter out non-text content
-        const cleaned = text.trim()
-        return cleaned.length > 2 && /[a-zA-Z]/.test(cleaned)
-      })
-    
-    if (directTexts.length > 0) {
-      extractedText = directTexts.join(' ')
-    }
-  }
-  
-  console.log(`Fallback extraction found ${extractedText.length} characters`)
-  
-  return cleanExtractedText(extractedText) || 'Unable to extract text from PDF'
-}
-
-// Clean and normalize extracted text
-function cleanExtractedText(text: string): string {
-  return text
-    // Fix common OCR/extraction issues
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .replace(/(\w)-\s+(\w)/g, '$1$2') // Fix word breaks
-    .replace(/([.!?])\s*([A-Z])/g, '$1\n\n$2') // Add paragraph breaks
-    .replace(/•/g, '\n• ') // Format bullet points
-    .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars
-    .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
-    .trim()
-}
-
-// Helper function to decode octal strings in PDFs
-function decodeOctalString(str: string): string {
-  return str
-    .replace(/\\(\d{1,3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .replace(/\\\\/g, '\\')
-    .replace(/\\'/g, "'")
-    .replace(/\\"/g, '"')
-    .replace(/\\\(/g, '(')
-    .replace(/\\\)/g, ')')
 }
