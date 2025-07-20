@@ -23,8 +23,11 @@ interface WorkExperienceSectionProps {
 }
 
 export default function WorkExperienceSection({ data, onSave, saving }: WorkExperienceSectionProps) {
+  // Data from database comes directly as an array or null
+  const initialExperiences = data || [];
+    
   const [experiences, setExperiences] = useState<WorkExperience[]>(
-    Array.isArray(data) ? data : []
+    Array.isArray(initialExperiences) ? initialExperiences : []
   );
   const [showForm, setShowForm] = useState(experiences.length === 0);
   const [currentExperience, setCurrentExperience] = useState<WorkExperience>({
@@ -73,10 +76,10 @@ export default function WorkExperienceSection({ data, onSave, saving }: WorkExpe
                   <h4 className="font-medium">{exp.title}</h4>
                   <p className="text-sm text-gray-600">{exp.company}</p>
                   <p className="text-sm text-gray-500">
-                    {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                    {exp.startDate} - {exp.current ? 'Present' : (exp.endDate || 'Unknown')}
                   </p>
                   {exp.description && (
-                    <p className="text-sm mt-2">{exp.description}</p>
+                    <p className="text-sm mt-2 whitespace-pre-line">{exp.description}</p>
                   )}
                 </div>
                 <Button

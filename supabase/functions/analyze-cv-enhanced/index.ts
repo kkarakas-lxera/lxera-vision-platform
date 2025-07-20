@@ -192,9 +192,16 @@ serve(async (req) => {
         "work_experience": [
           {
             "company": "Company name",
-            "position": "Job title",
-            "duration": "Time period",
-            "achievements": ["List of key achievements or responsibilities"]
+            "title": "Job title/position",
+            "position": "Job title/position (same as title)",
+            "startDate": "Start date in YYYY-MM format",
+            "endDate": "End date in YYYY-MM format (null if current)",
+            "current": false,
+            "duration": "Time period as string (e.g. '2020-2023')",
+            "description": "Combined description of role, responsibilities and achievements",
+            "responsibilities": ["List of key responsibilities"],
+            "achievements": ["List of key achievements"],
+            "technologies": ["List of technologies used in this role"]
           }
         ],
         "education": [
@@ -237,6 +244,14 @@ serve(async (req) => {
       4. Estimate proficiency_level: 5=Expert (5+ years), 4=Advanced (3-5 years), 3=Intermediate (1-3 years), 2=Basic (<1 year), 1=Beginner
       5. Include evidence - quote the exact text from CV that mentions this skill
       6. If you can't find certain information, use null instead of making it up
+      
+      FOR WORK EXPERIENCE:
+      - Extract exact dates when available and convert to YYYY-MM format for startDate/endDate
+      - If only years are given (e.g., "2020-2023"), use YYYY-01 format (e.g., "2020-01", "2023-12")
+      - Set "current" to true and "endDate" to null if it's their current position
+      - Combine all responsibilities and achievements into a single "description" field
+      - Keep separate arrays for "responsibilities" and "achievements" for detailed analysis
+      - Extract any technologies/tools mentioned for each role into "technologies" array
       
       Common skills to look for:
       - Programming: Python, JavaScript, Java, C++, Go, Ruby, PHP, Swift, Kotlin, etc.

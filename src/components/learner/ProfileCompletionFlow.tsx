@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
+import WhatsNewSection from '@/pages/learner/profileSections/WhatsNewSection';
 
 interface ProfileCompletionFlowProps {
   employeeId: string;
@@ -60,9 +61,10 @@ interface FormData {
   institution: string;
   graduationYear: string;
   
-  // Skills
-  technicalSkills: string[];
-  skillLevels: Record<string, string>;
+  // What's New
+  recentCertifications: string[];
+  languages: string[];
+  recentSkills: string[];
   
   // Current Work
   currentProjects: string[];
@@ -107,50 +109,33 @@ const STEPS = [
   },
   {
     id: 5,
-    title: "Confirm Your Skills",
-    subtitle: "Select skills relevant to your position",
+    title: "What's New Since Your CV?",
+    subtitle: "Recent certifications, languages, and skills",
     icon: Brain,
-    fields: ['technicalSkills']
+    fields: ['recentCertifications', 'languages', 'recentSkills']
   },
   {
     id: 6,
-    title: "Assess Your Proficiency",
-    subtitle: "Rate your skill levels for gap analysis",
-    icon: Target,
-    fields: ['skillLevels']
-  },
-  {
-    id: 7,
     title: "Current Projects",
     subtitle: "What are you working on?",
     icon: Wrench,
     fields: ['currentProjects', 'teamSize', 'roleInTeam']
   },
   {
-    id: 8,
+    id: 7,
     title: "Professional Challenges",
     subtitle: "What challenges do you face?",
     icon: Clock,
     fields: ['challenges']
   },
   {
-    id: 9,
+    id: 8,
     title: "Growth Opportunities",
     subtitle: "Which areas would help you excel?",
     icon: Target,
     fields: ['growthAreas']
   }
 ];
-
-// Skills will be loaded from position requirements
-interface PositionSkill {
-  skill_id: string;
-  skill_name: string;
-  is_mandatory: boolean;
-  proficiency_level: number;
-  cv_matched?: boolean;
-  selected?: boolean;
-}
 
 const CHALLENGES = [
   'Keeping up with new technologies',
@@ -182,30 +167,6 @@ const GROWTH_AREAS = [
   'Agile Methodologies'
 ];
 
-// Fuzzy skill matching function
-const skillsMatch = (skill1: string, skill2: string): boolean => {
-  const normalize = (str: string) => str.toLowerCase()
-    .replace(/[^a-z0-9]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-    
-  const s1 = normalize(skill1);
-  const s2 = normalize(skill2);
-  
-  // Exact match
-  if (s1 === s2) return true;
-  
-  // Contains match
-  if (s1.includes(s2) || s2.includes(s1)) return true;
-  
-  // Word overlap
-  const words1 = s1.split(' ');
-  const words2 = s2.split(' ');
-  const commonWords = words1.filter(w => words2.includes(w));
-  
-  // If more than 50% words match, consider it a match
-  return commonWords.length >= Math.min(words1.length, words2.length) * 0.5;
-};
 
 export default function ProfileCompletionFlow({ employeeId, onComplete }: ProfileCompletionFlowProps) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -219,9 +180,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Position skills state
-  const [positionSkills, setPositionSkills] = useState<PositionSkill[]>([]);
-  const [additionalSkills, setAdditionalSkills] = useState<string[]>([]);
-  const [cvExtractedSkills, setCvExtractedSkills] = useState<any[]>([]);
   const [employeeData, setEmployeeData] = useState<any>(null);
   
   const [formData, setFormData] = useState<FormData>({
@@ -234,8 +192,9 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     fieldOfStudy: '',
     institution: '',
     graduationYear: '',
-    technicalSkills: [],
-    skillLevels: {},
+    recentCertifications: [],
+    languages: [],
+    recentSkills: [],
     currentProjects: [],
     teamSize: '',
     roleInTeam: '',
@@ -246,31 +205,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   useEffect(() => {
     loadEmployeeData();
   }, [employeeId]);
-  
-  // Match CV skills with position requirements when both are loaded
-  useEffect(() => {
-    if (positionSkills.length > 0 && cvExtractedSkills.length > 0) {
-      const matchedSkills = positionSkills.map(posSkill => {
-        const cvMatch = cvExtractedSkills.find(cvSkill => 
-          skillsMatch(cvSkill.skill_name, posSkill.skill_name)
-        );
-        
-        return {
-          ...posSkill,
-          cv_matched: !!cvMatch,
-          selected: !!cvMatch // Auto-select if found in CV
-        };
-      });
-      
-      setPositionSkills(matchedSkills);
-      
-      // Update form data with selected skills
-      const selectedSkills = matchedSkills
-        .filter(s => s.selected)
-        .map(s => s.skill_name);
-      setFormData(prev => ({ ...prev, technicalSkills: selectedSkills }));
-    }
-  }, [cvExtractedSkills]); // Only run when CV skills are loaded
 
   const loadEmployeeData = async () => {
     try {
@@ -321,15 +255,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
             .eq('company_id', employee.company_id)
             .single();
             
-          if (position?.required_skills) {
-            setPositionSkills(position.required_skills);
-          }
         }
         
-        // Load CV extracted skills
-        if (employee.st_employee_skills_profile?.[0]?.extracted_skills) {
-          setCvExtractedSkills(employee.st_employee_skills_profile[0].extracted_skills);
-        }
       }
 
       // Get existing profile sections
@@ -434,27 +361,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 }
               }
               break;
-            case 'skills':
-              if (section.data.skills) {
-                // Handle CV imported skills structure
-                if (section.data.skills[0]?.skill_name) {
-                  // CV imported structure
-                  const technicalSkills = section.data.technicalSkills || section.data.skills.filter((s: any) => s.category === 'technical' || s.category === 'tool');
-                  restoredFormData.technicalSkills = technicalSkills.map((s: any) => s.skill_name);
-                  restoredFormData.skillLevels = technicalSkills.reduce((acc: any, s: any) => {
-                    acc[s.skill_name] = s.proficiency_level?.toString() || '3';
-                    return acc;
-                  }, {});
-                } else {
-                  // Manual entry structure
-                  restoredFormData.technicalSkills = section.data.skills.map((s: any) => s.name);
-                  restoredFormData.skillLevels = section.data.skills.reduce((acc: any, s: any) => {
-                    acc[s.name] = s.proficiency;
-                    return acc;
-                  }, {});
-                }
+            case 'recent_updates':
+              if (section.data) {
+                restoredFormData.recentCertifications = section.data.certifications || [];
+                restoredFormData.languages = section.data.languages || [];
+                restoredFormData.recentSkills = section.data.skills || [];
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 6);
+                  lastCompletedStep = Math.max(lastCompletedStep, 5);
                 }
               }
               break;
@@ -464,7 +377,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 restoredFormData.teamSize = section.data.teamSize || '';
                 restoredFormData.roleInTeam = section.data.role || '';
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 7);
+                  lastCompletedStep = Math.max(lastCompletedStep, 6);
                 }
               }
               break;
@@ -472,7 +385,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               if (section.data.challenges) {
                 restoredFormData.challenges = section.data.challenges;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 8);
+                  lastCompletedStep = Math.max(lastCompletedStep, 7);
                 }
               }
               break;
@@ -480,7 +393,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               if (section.data.growthAreas) {
                 restoredFormData.growthAreas = section.data.growthAreas;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 9);
+                  lastCompletedStep = Math.max(lastCompletedStep, 8);
                 }
               }
               break;
@@ -662,33 +575,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           });
           break;
           
-        case 5: // Skills
-        case 6: // Skill Levels
-          {
-            // Save skills with proficiency levels and position context
-            const skills = formData.technicalSkills.map(skillName => {
-              const positionSkill = positionSkills.find(ps => ps.skill_name === skillName);
-              const proficiencyLevel = parseInt(formData.skillLevels[skillName] || '3');
-              
-              return {
-                name: skillName,
-                proficiency: proficiencyLevel.toString(),
-                proficiency_level: proficiencyLevel,
-                is_position_required: !!positionSkill,
-                required_level: positionSkill?.proficiency_level || null,
-                gap_score: positionSkill ? Math.max(0, positionSkill.proficiency_level - proficiencyLevel) : null
-              };
-            });
-            
-            await EmployeeProfileService.saveSection(employeeId, 'skills', { 
-              skills,
-              position_id: employeeData?.current_position_id || null,
-              assessment_date: new Date().toISOString()
-            });
-          }
-          break;
           
-        case 7: // Current Work
+        case 6: // Current Work
           await EmployeeProfileService.saveSection(employeeId, 'current_work', {
             projects: formData.currentProjects,
             teamSize: formData.teamSize,
@@ -696,13 +584,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           });
           break;
           
-        case 8: // Challenges
+        case 7: // Challenges
           await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
             challenges: formData.challenges
           });
           break;
           
-        case 9: // Growth Areas
+        case 8: // Growth Areas
           await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
             growthAreas: formData.growthAreas
           });
@@ -1224,187 +1112,25 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 5: // Position Skills
+      case 5: // What's New
         return (
-          <div className="space-y-6">
-            {positionSkills.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No position requirements found. Please contact your administrator.</p>
-              </div>
-            ) : (
-              <>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700">
-                    Please select all skills that you currently use in your work:
-                  </p>
-                </div>
-                
-                <div className="space-y-3">
-                  {positionSkills.map((skill) => (
-                    <label
-                      key={skill.skill_id}
-                      className={cn(
-                        "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
-                        formData.technicalSkills.includes(skill.skill_name)
-                          ? "border-blue-300 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.technicalSkills.includes(skill.skill_name)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            handleFormChange(prev => ({
-                              ...prev,
-                              technicalSkills: [...prev.technicalSkills, skill.skill_name]
-                            }));
-                          } else {
-                            handleFormChange(prev => ({
-                              ...prev,
-                              technicalSkills: prev.technicalSkills.filter(s => s !== skill.skill_name)
-                            }));
-                          }
-                        }}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-900">
-                            {skill.skill_name}
-                          </span>
-                          {skill.cv_matched && (
-                            <Badge variant="secondary" className="text-xs">
-                              Found in CV
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                
-                {/* Additional skills input */}
-                <div className="border-t pt-4">
-                  <Label className="text-sm font-medium text-gray-700">
-                    Add other skills you have
-                  </Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input
-                      placeholder="Type a skill and press Enter"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const input = e.currentTarget;
-                          const value = input.value.trim();
-                          if (value && !additionalSkills.includes(value)) {
-                            setAdditionalSkills([...additionalSkills, value]);
-                            handleFormChange(prev => ({
-                              ...prev,
-                              technicalSkills: [...prev.technicalSkills, value]
-                            }));
-                            input.value = '';
-                          }
-                        }
-                      }}
-                      className="flex-1"
-                    />
-                  </div>
-                  {additionalSkills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {additionalSkills.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="pr-1">
-                          {skill}
-                          <button
-                            onClick={() => {
-                              setAdditionalSkills(additionalSkills.filter(s => s !== skill));
-                              handleFormChange(prev => ({
-                                ...prev,
-                                technicalSkills: prev.technicalSkills.filter(s => s !== skill)
-                              }));
-                            }}
-                            className="ml-2 hover:text-red-600"
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          <WhatsNewSection
+            formData={{
+              recentCertifications: formData.recentCertifications,
+              languages: formData.languages,
+              recentSkills: formData.recentSkills
+            }}
+            onChange={(data) => {
+              handleFormChange(prev => ({
+                ...prev,
+                ...data
+              }));
+            }}
+          />
         );
         
-      case 6: // Skill Levels
-        return (
-          <div className="space-y-6">
-            {formData.technicalSkills.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>Please select skills in the previous step</p>
-              </div>
-            ) : (
-              <>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 mb-2">
-                    How would you rate your proficiency with each skill?
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>1 = Beginner</span>
-                    <span>3 = Competent</span>
-                    <span>5 = Expert</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  {formData.technicalSkills.map((skillName) => {
-                    const positionSkill = positionSkills.find(ps => ps.skill_name === skillName);
-                    const currentLevel = parseInt(formData.skillLevels[skillName] || '3');
-                    
-                    return (
-                      <div key={skillName} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-700">
-                            {skillName}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="range"
-                            min="1"
-                            max="5"
-                            value={currentLevel}
-                            onChange={(e) => {
-                              handleFormChange(prev => ({
-                                ...prev,
-                                skillLevels: {
-                                  ...prev.skillLevels,
-                                  [skillName]: e.target.value
-                                }
-                              }));
-                            }}
-                            className="flex-1"
-                          />
-                          <Badge 
-                            variant={currentLevel >= 4 ? "default" : currentLevel >= 2 ? "secondary" : "outline"}
-                            className="min-w-[60px] text-center"
-                          >
-                            {currentLevel}
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-              </>
-            )}
-          </div>
-        );
         
-      case 7: // Current Projects
+      case 6: // Current Projects
         return (
           <div className="space-y-6">
             <div>
@@ -1471,7 +1197,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 8: // Challenges
+      case 7: // Challenges
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1503,7 +1229,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 9: // Growth Areas
+      case 8: // Growth Areas
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">Select up to 5 priorities</p>

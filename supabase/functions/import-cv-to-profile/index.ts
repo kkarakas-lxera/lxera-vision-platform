@@ -72,12 +72,31 @@ serve(async (req) => {
 
     // Import work experience
     if (cvData.work_experience && cvData.work_experience.length > 0) {
+      // Transform work experience data to match the expected format
+      const transformedExperiences = cvData.work_experience.map((job: any) => ({
+        id: crypto.randomUUID(),
+        title: job.title || job.position || '',
+        company: job.company || '',
+        startDate: job.startDate || job.start_date || '',
+        endDate: job.current ? null : (job.endDate || job.end_date || ''),
+        current: job.current || false,
+        description: job.description || 
+                    (job.responsibilities && job.achievements ? 
+                      `Responsibilities:\n${Array.isArray(job.responsibilities) ? job.responsibilities.join('\n') : job.responsibilities}\n\nAchievements:\n${Array.isArray(job.achievements) ? job.achievements.join('\n') : job.achievements}` :
+                      (job.responsibilities ? (Array.isArray(job.responsibilities) ? job.responsibilities.join('\n') : job.responsibilities) : 
+                       (job.achievements ? (Array.isArray(job.achievements) ? job.achievements.join('\n') : job.achievements) : ''))),
+        duration: job.duration || '',
+        technologies: job.technologies || [],
+        responsibilities: job.responsibilities || [],
+        achievements: job.achievements || []
+      }));
+
       const { error } = await supabase
         .from('employee_profile_sections')
         .upsert({
           employee_id: employeeId,
           section_name: 'work_experience',
-          data: { experiences: cvData.work_experience },
+          data: transformedExperiences, // This is already an array, which is what WorkExperienceSection expects
           is_complete: false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });
@@ -89,7 +108,7 @@ serve(async (req) => {
       }
 
       // Also populate current work if the person has a current job
-      const currentJob = cvData.work_experience.find(job => job.isCurrent || job.current);
+      const currentJob = cvData.work_experience.find((job: any) => job.current === true);
       if (currentJob) {
         await supabase
           .from('employee_current_work')
@@ -97,7 +116,10 @@ serve(async (req) => {
             employee_id: employeeId,
             project_name: `Current Role at ${currentJob.company}`,
             role_in_project: currentJob.title || currentJob.position,
-            description: currentJob.description || currentJob.responsibilities,
+            description: currentJob.description || 
+                        (currentJob.responsibilities ? 
+                          (Array.isArray(currentJob.responsibilities) ? currentJob.responsibilities.join('\n') : currentJob.responsibilities) : 
+                          ''),
             technologies: currentJob.technologies || [],
             start_date: currentJob.startDate || currentJob.start_date,
             is_primary: true,
