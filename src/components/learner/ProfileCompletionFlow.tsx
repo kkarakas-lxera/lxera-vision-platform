@@ -225,6 +225,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       if (employee) {
         setEmployeeData(employee); // Store for later use
         
+        // Check if CV has been uploaded
+        if (employee.cv_file_path || employee.cv_uploaded_at) {
+          setCvUploaded(true);
+        }
+        
         // Use position title and department from linked position if available
         const currentPosition = employee.st_company_positions?.position_title || employee.position || '';
         const department = employee.st_company_positions?.department || employee.department || '';
@@ -729,7 +734,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         return (
           <div className="space-y-4">
             {/* CV Delete/Re-upload Option */}
-            {cvUploaded && (
+            {(cvUploaded || employeeData?.cv_file_path) && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3">

@@ -298,7 +298,7 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
                 </div>
                 
                 {/* Question and buttons section */}
-                <div className="mt-auto pb-4">
+                <div className="border-t pt-4 pb-4">
                   <p className="text-gray-600 text-center mb-4 px-4">
                     {currentIndex < 5 
                       ? "How comfortable are you with this?"
@@ -318,44 +318,44 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
                       variant="outline"
                       onClick={() => handleValidation(0)}
                       className={cn(
-                        "p-3 border-2 hover:border-red-500 transition-colors",
-                        "flex flex-col items-center gap-1"
+                        "h-20 border-2 hover:border-red-500 transition-colors",
+                        "flex flex-col items-center justify-center gap-1"
                       )}
                     >
-                      <div className="text-xl">❌</div>
+                      <div className="text-2xl">❌</div>
                       <div className="text-xs">None</div>
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleValidation(1)}
                       className={cn(
-                        "p-3 border-2 hover:border-yellow-500 transition-colors",
-                        "flex flex-col items-center gap-1"
+                        "h-20 border-2 hover:border-yellow-500 transition-colors",
+                        "flex flex-col items-center justify-center gap-1"
                       )}
                     >
-                      <div className="text-xl">🟡</div>
+                      <div className="text-2xl">🟡</div>
                       <div className="text-xs">Learning</div>
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleValidation(2)}
                       className={cn(
-                        "p-3 border-2 hover:border-green-500 transition-colors",
-                        "flex flex-col items-center gap-1"
+                        "h-20 border-2 hover:border-green-500 transition-colors",
+                        "flex flex-col items-center justify-center gap-1"
                       )}
                     >
-                      <div className="text-xl">🟢</div>
+                      <div className="text-2xl">🟢</div>
                       <div className="text-xs">Using</div>
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleValidation(3)}
                       className={cn(
-                        "p-3 border-2 hover:border-purple-500 transition-colors",
-                        "flex flex-col items-center gap-1"
+                        "h-20 border-2 hover:border-purple-500 transition-colors",
+                        "flex flex-col items-center justify-center gap-1"
                       )}
                     >
-                      <div className="text-xl">⭐</div>
+                      <div className="text-2xl">⭐</div>
                       <div className="text-xs">Expert</div>
                     </Button>
                   </div>
@@ -379,7 +379,7 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
       </div>
       
       {/* Navigation buttons */}
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex justify-center items-center mt-6">
         <Button
           variant="ghost"
           onClick={() => {
@@ -394,18 +394,9 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
           Previous
         </Button>
         
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 mx-4">
           Swipe or tap to rate
         </span>
-        
-        <Button
-          variant="ghost"
-          onClick={() => handleValidation(-1)} // Skip skill
-          className="text-gray-600"
-        >
-          Skip
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
       </div>
     </div>
   );
