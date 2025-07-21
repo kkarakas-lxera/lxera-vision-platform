@@ -14,6 +14,8 @@ interface SkillForValidation {
   is_from_position: boolean;
   is_from_cv: boolean;
   priority: number;
+  description?: string;
+  areas_of_use?: string[];
 }
 
 serve(async (req) => {
@@ -69,12 +71,15 @@ serve(async (req) => {
       employee.st_company_positions?.nice_to_have_skills || [],
       cvResults?.extracted_skills || []
     )
+    
+    // Add descriptions and areas of use
+    const enrichedSkills = await enrichSkillsWithDescriptions(validationSkills)
 
     // Return ordered list (max 30)
     return new Response(
       JSON.stringify({ 
-        skills: validationSkills.slice(0, 30),
-        total: validationSkills.length,
+        skills: enrichedSkills.slice(0, 30),
+        total: enrichedSkills.length,
         position_title: employee.st_company_positions?.position_title || employee.position
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -206,4 +211,134 @@ function similarityMatch(str1: string, str2: string): number {
   }
   
   return 0
+}
+
+async function enrichSkillsWithDescriptions(skills: SkillForValidation[]): Promise<SkillForValidation[]> {
+  // Add contextual descriptions for common skills
+  const skillDescriptions: Record<string, { description: string; areas: string[] }> = {
+    // Programming Languages
+    'python': {
+      description: 'High-level programming language known for simplicity and versatility',
+      areas: ['Data Science', 'Web Development', 'Automation', 'Machine Learning', 'DevOps']
+    },
+    'javascript': {
+      description: 'Dynamic programming language essential for web development',
+      areas: ['Frontend Development', 'Backend (Node.js)', 'Mobile Apps', 'Desktop Apps', 'Real-time Applications']
+    },
+    'typescript': {
+      description: 'Typed superset of JavaScript that compiles to plain JavaScript',
+      areas: ['Enterprise Applications', 'Large-scale Projects', 'Type-safe Development', 'Modern Web Apps']
+    },
+    'java': {
+      description: 'Object-oriented programming language for enterprise applications',
+      areas: ['Enterprise Software', 'Android Development', 'Web Services', 'Microservices', 'Big Data']
+    },
+    
+    // Frameworks
+    'react': {
+      description: 'JavaScript library for building user interfaces',
+      areas: ['Single Page Applications', 'Component-based UIs', 'Mobile Apps (React Native)', 'Progressive Web Apps']
+    },
+    'angular': {
+      description: 'TypeScript-based framework for building web applications',
+      areas: ['Enterprise Web Apps', 'Progressive Web Apps', 'Cross-platform Development', 'Large-scale Applications']
+    },
+    'vue': {
+      description: 'Progressive JavaScript framework for building UIs',
+      areas: ['Interactive Web Interfaces', 'Single Page Applications', 'Component Libraries', 'Rapid Prototyping']
+    },
+    
+    // Backend
+    'node.js': {
+      description: 'JavaScript runtime for server-side development',
+      areas: ['REST APIs', 'Real-time Apps', 'Microservices', 'Command Line Tools', 'Serverless Functions']
+    },
+    'express': {
+      description: 'Minimal and flexible Node.js web application framework',
+      areas: ['RESTful APIs', 'Web Applications', 'Middleware Development', 'Server-side Routing']
+    },
+    
+    // Databases
+    'sql': {
+      description: 'Language for managing and querying relational databases',
+      areas: ['Data Analysis', 'Database Design', 'Report Generation', 'Data Migration', 'Performance Optimization']
+    },
+    'postgresql': {
+      description: 'Advanced open-source relational database',
+      areas: ['Complex Queries', 'Data Integrity', 'JSON Storage', 'Full-text Search', 'Geospatial Data']
+    },
+    'mongodb': {
+      description: 'NoSQL database for flexible, document-based storage',
+      areas: ['Real-time Analytics', 'Content Management', 'IoT Applications', 'Mobile Apps', 'Catalogs']
+    },
+    
+    // Cloud & DevOps
+    'aws': {
+      description: 'Amazon Web Services cloud computing platform',
+      areas: ['Cloud Infrastructure', 'Serverless Computing', 'Storage Solutions', 'Machine Learning', 'Container Orchestration']
+    },
+    'docker': {
+      description: 'Platform for developing, shipping, and running applications in containers',
+      areas: ['Microservices', 'CI/CD Pipelines', 'Development Environments', 'Application Deployment', 'Cloud Migration']
+    },
+    'kubernetes': {
+      description: 'Container orchestration platform for automating deployment and scaling',
+      areas: ['Container Management', 'Auto-scaling', 'Service Discovery', 'Load Balancing', 'Rolling Updates']
+    },
+    
+    // Soft Skills
+    'project management': {
+      description: 'Planning, executing, and closing projects successfully',
+      areas: ['Team Coordination', 'Resource Planning', 'Risk Management', 'Stakeholder Communication', 'Timeline Management']
+    },
+    'leadership': {
+      description: 'Ability to guide, inspire, and influence teams',
+      areas: ['Team Building', 'Strategic Planning', 'Decision Making', 'Conflict Resolution', 'Mentoring']
+    },
+    'communication': {
+      description: 'Effectively conveying information and ideas',
+      areas: ['Presentations', 'Technical Writing', 'Client Relations', 'Team Collaboration', 'Stakeholder Management']
+    },
+    'agile': {
+      description: 'Iterative approach to project management and software development',
+      areas: ['Sprint Planning', 'Daily Standups', 'Retrospectives', 'User Stories', 'Continuous Improvement']
+    },
+    'problem solving': {
+      description: 'Analyzing issues and developing effective solutions',
+      areas: ['Root Cause Analysis', 'Critical Thinking', 'Creative Solutions', 'Decision Making', 'Process Improvement']
+    }
+  }
+  
+  return skills.map(skill => {
+    const normalizedName = skill.skill_name.toLowerCase()
+    let enrichedSkill = { ...skill }
+    
+    // Check for exact match
+    if (skillDescriptions[normalizedName]) {
+      enrichedSkill.description = skillDescriptions[normalizedName].description
+      enrichedSkill.areas_of_use = skillDescriptions[normalizedName].areas
+    } else {
+      // Check for partial matches
+      for (const [key, value] of Object.entries(skillDescriptions)) {
+        if (normalizedName.includes(key) || key.includes(normalizedName)) {
+          enrichedSkill.description = value.description
+          enrichedSkill.areas_of_use = value.areas
+          break
+        }
+      }
+    }
+    
+    // If no description found, generate a generic one based on category
+    if (!enrichedSkill.description) {
+      if (skill.is_from_position) {
+        enrichedSkill.description = `Key skill required for your current position`
+        enrichedSkill.areas_of_use = ['Role-specific Tasks', 'Team Collaboration', 'Project Delivery']
+      } else {
+        enrichedSkill.description = `Skill identified from your professional experience`
+        enrichedSkill.areas_of_use = ['Professional Development', 'Career Growth', 'Cross-functional Work']
+      }
+    }
+    
+    return enrichedSkill
+  })
 }

@@ -15,6 +15,8 @@ interface SkillCard {
   order: number;
   is_from_position: boolean;
   is_from_cv: boolean;
+  description?: string;
+  areas_of_use?: string[];
 }
 
 interface SkillsValidationCardsProps {
@@ -251,28 +253,65 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
               transition={{ duration: 0.3 }}
               className="absolute inset-0"
             >
-              <Card className="bg-white rounded-2xl shadow-lg p-8 h-full flex flex-col items-center justify-center">
-                <div className="text-4xl mb-4">
-                  {getSkillEmoji(currentSkill.skill_name)}
+              <Card className="bg-white rounded-2xl shadow-lg p-6 h-full flex flex-col">
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="text-4xl mb-3">
+                    {getSkillEmoji(currentSkill.skill_name)}
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2 text-center">
+                    {currentSkill.skill_name}
+                  </h2>
+                  
+                  {currentSkill.description && (
+                    <p className="text-sm text-gray-600 text-center mb-3 px-4">
+                      {currentSkill.description}
+                    </p>
+                  )}
+                  
+                  {currentSkill.areas_of_use && currentSkill.areas_of_use.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 text-center mb-2">Common areas:</p>
+                      <div className="flex flex-wrap justify-center gap-1.5 px-4">
+                        {currentSkill.areas_of_use.slice(0, 4).map((area, idx) => (
+                          <span 
+                            key={idx}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
+                          >
+                            {area}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <p className="text-gray-600 text-center mb-3 px-4">
+                    {currentIndex < 5 
+                      ? "How comfortable are you with this?"
+                      : currentIndex < 10
+                      ? "What's your level with this one?"
+                      : currentIndex < 15
+                      ? "Rate your experience here"
+                      : currentIndex < 20
+                      ? "How about this skill?"
+                      : "Almost done! Your level with this?"
+                    }
+                  </p>
+                  
+                  <div className="flex gap-2 text-xs text-gray-500">
+                    {currentSkill.is_from_cv && (
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Found in CV
+                      </span>
+                    )}
+                    {currentSkill.is_from_position && (
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Position requirement
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {currentSkill.skill_name}
-                </h2>
-                <p className="text-gray-600 text-center mb-8">
-                  {currentIndex < 5 
-                    ? "How comfortable are you with this?"
-                    : currentIndex < 10
-                    ? "What's your level with this one?"
-                    : currentIndex < 15
-                    ? "Rate your experience here"
-                    : currentIndex < 20
-                    ? "How about this skill?"
-                    : "Almost done! Your level with this?"
-                  }
-                </p>
-                {currentSkill.is_from_cv && (
-                  <p className="text-xs text-gray-500">Found in your CV ✓</p>
-                )}
               </Card>
             </motion.div>
           )}
