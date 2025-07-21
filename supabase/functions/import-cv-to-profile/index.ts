@@ -96,7 +96,7 @@ serve(async (req) => {
         .upsert({
           employee_id: employeeId,
           section_name: 'work_experience',
-          data: transformedExperiences, // This is already an array, which is what WorkExperienceSection expects
+          data: { experiences: transformedExperiences }, // Wrap in object to match expected format
           is_complete: false,
           updated_at: new Date().toISOString()
         }, { onConflict: 'employee_id,section_name' });

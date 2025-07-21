@@ -47,6 +47,9 @@ interface FormData {
     company: string;
     duration: string;
     description: string;
+    responsibilities?: string[];
+    achievements?: string[];
+    technologies?: string[];
   }>;
   
   // Education - now supports multiple entries
@@ -257,19 +260,30 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               }
               break;
             case 'work_experience':
-              if (section.data.experiences) {
-                // Map CV imported data to form structure
-                restoredFormData.workExperience = section.data.experiences.map((exp: any) => ({
-                  title: exp.position || '',
-                  company: exp.company || '',
-                  duration: exp.dates || '',
-                  description: exp.key_achievements?.join('\n') || ''
-                }));
-                if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 2);
-                }
+              // Handle both formats: array directly or object with experiences property
+              let experiences = [];
+              if (Array.isArray(section.data)) {
+                // New format from import-cv-to-profile: data is directly an array
+                experiences = section.data;
+              } else if (section.data.experiences) {
+                // Old format: data.experiences
+                experiences = section.data.experiences;
               } else if (section.data.experience) {
-                restoredFormData.workExperience = section.data.experience;
+                // Another old format: data.experience
+                experiences = section.data.experience;
+              }
+              
+              if (experiences.length > 0) {
+                // Map CV imported data to form structure
+                restoredFormData.workExperience = experiences.map((exp: any) => ({
+                  title: exp.position || exp.title || '',
+                  company: exp.company || '',
+                  duration: exp.dates || exp.duration || '',
+                  description: exp.description || exp.key_achievements?.join('\n') || '',
+                  responsibilities: exp.responsibilities || exp.key_responsibilities || [],
+                  achievements: exp.achievements || exp.key_achievements || [],
+                  technologies: exp.technologies || []
+                }));
                 if (section.isComplete) {
                   lastCompletedStep = Math.max(lastCompletedStep, 2);
                 }
@@ -682,7 +696,10 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                         title: '',
                         company: '',
                         duration: '',
-                        description: ''
+                        description: '',
+                        responsibilities: [],
+                        achievements: [],
+                        technologies: []
                       }]
                     }));
                   }}
@@ -787,9 +804,57 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                           />
                         </div>
                         
+                        {/* Show extracted CV data if available */}
+                        {(exp.responsibilities?.length > 0 || exp.achievements?.length > 0 || exp.technologies?.length > 0) && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                            <p className="text-xs font-medium text-blue-900">Extracted from your CV:</p>
+                            
+                            {exp.responsibilities?.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Responsibilities:</p>
+                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-0.5">
+                                  {exp.responsibilities.map((resp, idx) => (
+                                    <li key={idx}>{resp}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {exp.achievements?.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Key Achievements:</p>
+                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-0.5">
+                                  {exp.achievements.map((ach, idx) => (
+                                    <li key={idx}>{ach}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {exp.technologies?.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Technologies Used:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {exp.technologies.map((tech, idx) => (
+                                    <span 
+                                      key={idx}
+                                      className="px-2 py-0.5 bg-white text-xs text-gray-700 rounded-full border border-gray-200"
+                                    >
+                                      {tech}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
                         <div>
                           <Label htmlFor={`description-${originalIndex}`} className="text-xs text-gray-600">
-                            Key Achievements / Responsibilities
+                            {(exp.responsibilities?.length > 0 || exp.achievements?.length > 0) 
+                              ? 'Additional Notes (Optional)' 
+                              : 'Key Achievements / Responsibilities'
+                            }
                           </Label>
                           <Textarea
                             id={`description-${originalIndex}`}
@@ -799,7 +864,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                               newExperience[originalIndex].description = e.target.value;
                               handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
                             }}
-                            placeholder="Describe your key achievements and responsibilities..."
+                            placeholder={
+                              (exp.responsibilities?.length > 0 || exp.achievements?.length > 0)
+                                ? "Add any additional notes or context..."
+                                : "Describe your key achievements and responsibilities..."
+                            }
                             className="mt-1 min-h-[80px]"
                           />
                         </div>
@@ -817,7 +886,10 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                         title: '',
                         company: '',
                         duration: '',
-                        description: ''
+                        description: '',
+                        responsibilities: [],
+                        achievements: [],
+                        technologies: []
                       }]
                     }));
                   }}
