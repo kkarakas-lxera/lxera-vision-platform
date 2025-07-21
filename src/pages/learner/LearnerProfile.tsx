@@ -10,8 +10,8 @@ export default function LearnerProfile() {
   const profileCompletion = useProfileCompletion();
 
   const handleProfileComplete = () => {
-    // Navigate to dashboard after profile completion
-    navigate('/learner');
+    // Don't navigate - the ProfileCompletionFlow will show success screen
+    console.log('Profile completed successfully');
   };
 
   if (profileCompletion.isLoading) {
@@ -32,22 +32,12 @@ export default function LearnerProfile() {
     );
   }
 
-  // Show profile view for completed profiles
+  // Show profile completion flow even for completed profiles
+  // This allows them to see the success screen and edit their profile
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>My Profile</CardTitle>
-          <CardDescription>
-            Your profile is complete! You can view and edit your information here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Profile viewing and editing functionality coming soon...
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <ProfileCompletionFlow
+      employeeId={profileCompletion.employeeId || ''}
+      onComplete={handleProfileComplete}
+    />
   );
 }
