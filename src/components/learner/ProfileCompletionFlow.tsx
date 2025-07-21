@@ -172,6 +172,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
   const [cvAnalysisStatus, setCvAnalysisStatus] = useState<string>('');
+  const [cvAnalysisStep, setCvAnalysisStep] = useState(0);
+  const messageIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Position skills state
@@ -196,6 +198,22 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
 
   useEffect(() => {
     loadEmployeeData();
+  }, [employeeId]);
+  
+  // Check if CV was uploaded when profile sections are loaded
+  useEffect(() => {
+    const checkCVStatus = async () => {
+      const sections = await EmployeeProfileService.getProfileSections(employeeId);
+      const hasWorkExperience = sections.some(s => s.name === 'work_experience' && s.data && Object.keys(s.data).length > 0);
+      const hasEducation = sections.some(s => s.name === 'education' && s.data && Object.keys(s.data).length > 0);
+      
+      // If we have work experience or education data, CV was likely uploaded
+      if (hasWorkExperience || hasEducation) {
+        setCvUploaded(true);
+      }
+    };
+    
+    checkCVStatus();
   }, [employeeId]);
 
   const loadEmployeeData = async () => {
@@ -427,8 +445,28 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     }
 
     setCvAnalyzing(true);
-    setCvAnalysisStatus('Uploading CV...');
+    setCvAnalysisStatus('Starting upload...');
+    setCvAnalysisStep(0);
     
+    // Start the engaging messages
+    const messages = [
+      '📤 Uploading your CV securely...',
+      '🔍 Reading your professional journey...',
+      '🧠 AI analyzing your experience and skills...',
+      '💡 Extracting key achievements...',
+      '🎯 Identifying your expertise areas...',
+      '📊 Mapping skills to industry standards...',
+      '✨ Almost done! Finalizing your profile...'
+    ];
+    
+    let messageIndex = 0;
+    setCvAnalysisStatus(messages[0]);
+    
+    messageIntervalRef.current = setInterval(() => {
+      messageIndex = (messageIndex + 1) % messages.length;
+      setCvAnalysisStatus(messages[messageIndex]);
+      setCvAnalysisStep(messageIndex);
+    }, 15000); // Change message every 15 seconds
 
     try {
       // Upload CV to the correct storage bucket
@@ -484,6 +522,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       toast.error('Failed to process CV. You can continue manually.');
     } finally {
       setCvAnalyzing(false);
+      // Clear the message interval
+      if (messageIntervalRef.current) {
+        clearInterval(messageIntervalRef.current);
+        messageIntervalRef.current = null;
+      }
     }
   };
 
@@ -689,15 +732,51 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               </div>
               
               {cvAnalyzing ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                  <p className="text-sm text-gray-600 font-medium">{cvAnalysisStatus || 'Processing...'}</p>
-                  <p className="text-xs text-gray-500">This may take up to a minute</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-800 font-medium">{cvAnalysisStatus || 'Processing...'}</p>
+                    <p className="text-xs text-gray-500">This usually takes 30-60 seconds</p>
+                  </div>
+                  
+                  {/* Progress dots */}
+                  <div className="flex justify-center space-x-2">
+                    {[0, 1, 2, 3, 4, 5, 6].map((index) => (
+                      <div
+                        key={index}
+                        className={cn(
+                          "h-2 w-2 rounded-full transition-all duration-500",
+                          index <= cvAnalysisStep
+                            ? "bg-primary scale-110"
+                            : "bg-gray-300"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500 italic">
+                      {cvAnalysisStep < 2 && "Securing your data..."}
+                      {cvAnalysisStep >= 2 && cvAnalysisStep < 4 && "Our AI is working hard..."}
+                      {cvAnalysisStep >= 4 && cvAnalysisStep < 6 && "Finding your unique strengths..."}
+                      {cvAnalysisStep >= 6 && "Finalizing your profile..."}
+                    </p>
+                  </div>
                 </div>
               ) : cvUploaded ? (
                 <div className="space-y-3">
                   <Check className="h-8 w-8 mx-auto text-green-600" />
                   <p className="text-sm text-gray-600">CV imported successfully!</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeleteCV}
+                    className="mt-2"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Upload Different CV
+                  </Button>
                 </div>
               ) : (
                 <>
