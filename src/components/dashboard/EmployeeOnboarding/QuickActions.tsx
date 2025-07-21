@@ -59,47 +59,41 @@ export function QuickActions({
 
   return (
     <Card className="overflow-hidden h-full">
-      <CardHeader className="py-3 border-b">
+      <CardHeader className="py-2.5 border-b">
         <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-base">Quick Actions</CardTitle>
+          <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+          <CardTitle className="text-sm">Quick Actions</CardTitle>
         </div>
-        <CardDescription className="text-xs mt-1">
-          Common onboarding tasks
-        </CardDescription>
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 gap-3">
+      <CardContent className="p-3">
+        <div className="grid grid-cols-2 gap-2">
           {actions.map((action, index) => {
             const Icon = action.icon;
             return (
-              <div
+              <Button
                 key={index}
-                className={`relative ${!action.enabled ? 'opacity-50' : ''}`}
+                variant="outline"
+                size="sm"
+                onClick={action.action}
+                disabled={!action.enabled}
+                className={`h-auto py-2.5 px-3 flex items-center gap-2 justify-start ${
+                  !action.enabled ? 'opacity-50' : ''
+                } ${action.primary && action.enabled ? 'border-primary' : ''}`}
               >
-                <Button
-                  variant={action.primary ? "default" : "outline"}
-                  onClick={action.action}
-                  disabled={!action.enabled}
-                  className="w-full h-auto flex flex-col items-center justify-center p-4 space-y-2"
-                >
-                  <Icon className="h-5 w-5" />
-                  <div className="space-y-0.5 text-center">
-                    <div className="font-medium text-sm">{action.title}</div>
-                    <div className="text-xs text-muted-foreground">{action.description}</div>
-                  </div>
-                </Button>
-              </div>
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <div className="text-left">
+                  <div className="text-xs font-medium">{action.title}</div>
+                  <div className="text-xs text-muted-foreground">{action.description}</div>
+                </div>
+              </Button>
             );
           })}
         </div>
 
-        {/* Helpful tip - more subtle */}
-        <div className="mt-4 p-2.5 bg-muted/50 rounded-md">
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium">Tip:</span> Start with position selection for accurate skills analysis
-          </p>
-        </div>
+        {/* Simplified tip */}
+        <p className="text-xs text-muted-foreground mt-3 text-center">
+          Start with position selection for accurate analysis
+        </p>
       </CardContent>
     </Card>
   );

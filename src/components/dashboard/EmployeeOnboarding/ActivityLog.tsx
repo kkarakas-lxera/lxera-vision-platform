@@ -186,17 +186,17 @@ export default function ActivityLog() {
   if (loading) {
     return (
       <Card className="overflow-hidden h-full">
-        <CardHeader className="py-3 border-b">
+        <CardHeader className="py-2.5 border-b">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground animate-pulse" />
-            <CardTitle className="text-base">Activity Log</CardTitle>
+            <Activity className="h-3.5 w-3.5 text-muted-foreground animate-pulse" />
+            <CardTitle className="text-sm">Activity Log</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="p-4 space-y-3">
+          <div className="p-3 space-y-2">
             {[1, 2, 3].map(i => (
               <div key={i} className="animate-pulse">
-                <div className="h-12 bg-gray-100 rounded" />
+                <div className="h-10 bg-gray-100 rounded" />
               </div>
             ))}
           </div>
@@ -207,29 +207,25 @@ export default function ActivityLog() {
 
   return (
     <Card className="overflow-hidden h-full">
-      <CardHeader className="py-3 border-b">
+      <CardHeader className="py-2.5 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Activity Log</CardTitle>
+            <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+            <CardTitle className="text-sm">Activity Log</CardTitle>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={fetchActivities}
             disabled={refreshing}
-            className="h-7 text-xs"
+            className="h-6 px-2 text-xs"
           >
-            <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        <CardDescription className="text-xs mt-1">
-          Recent onboarding activities
-        </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[280px]">
+        <ScrollArea className="h-[220px]">
           {activities.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
               <Activity className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -239,27 +235,21 @@ export default function ActivityLog() {
           ) : (
             <div className="divide-y">
               {activities.map((activity) => (
-                <div key={activity.id} className="p-3 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
-                      {getActivityIcon(activity.type)}
+                <div key={activity.id} className="px-3 py-2 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex items-start gap-2">
+                    <div className={`p-1.5 rounded-full ${getStatusColor(activity.status)}`}>
+                      {React.cloneElement(getActivityIcon(activity.type), { className: 'h-3 w-3' })}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate">{activity.title}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {activity.type.replace('_', ' ')}
-                        </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium truncate">{activity.title}</p>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">
                         {activity.description}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                        </p>
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -85,21 +85,6 @@ export default function WhatsNewSection({ formData, onChange }: WhatsNewSectionP
           🎓 Any new certifications?
         </Label>
         
-        {formData.recentCertifications.map((cert, index) => (
-          <div key={index} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-md">
-            <span className="flex-1 text-sm">{cert}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeCertification(index)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        
         <div className="flex gap-2">
           <Input
             placeholder="e.g. AWS Certified, PMP, Scrum..."
@@ -118,6 +103,21 @@ export default function WhatsNewSection({ formData, onChange }: WhatsNewSectionP
             Add
           </Button>
         </div>
+        
+        {formData.recentCertifications.map((cert, index) => (
+          <div key={index} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-md">
+            <span className="flex-1 text-sm">{cert}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeCertification(index)}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
       </div>
 
       {/* Languages */}
@@ -166,21 +166,6 @@ export default function WhatsNewSection({ formData, onChange }: WhatsNewSectionP
           🛠️ New skills or tools?
         </Label>
         
-        {formData.recentSkills.map((skill, index) => (
-          <div key={index} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-md">
-            <span className="flex-1 text-sm">{skill}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeSkill(index)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        
         <div className="flex gap-2">
           <Input
             placeholder="e.g. Kubernetes, TypeScript..."
@@ -199,6 +184,21 @@ export default function WhatsNewSection({ formData, onChange }: WhatsNewSectionP
             Add
           </Button>
         </div>
+        
+        {formData.recentSkills.map((skill, index) => (
+          <div key={index} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-md">
+            <span className="flex-1 text-sm">{skill}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeSkill(index)}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );
