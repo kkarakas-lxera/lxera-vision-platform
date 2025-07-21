@@ -132,35 +132,7 @@ const STEPS = [
   }
 ];
 
-const CHALLENGES = [
-  'Keeping up with new technologies',
-  'Scaling applications',
-  'Code quality and best practices',
-  'System architecture decisions',
-  'Performance optimization',
-  'Security implementation',
-  'Legacy code maintenance',
-  'Team collaboration',
-  'Time management',
-  'Stakeholder communication',
-  'Project planning',
-  'Documentation'
-];
-
-const GROWTH_AREAS = [
-  'Cloud Architecture (AWS/Azure)',
-  'Kubernetes & Container Orchestration',
-  'Machine Learning & AI',
-  'Blockchain Technology',
-  'Advanced Database Design',
-  'Microservices Architecture',
-  'Mobile Development',
-  'Technical Leadership',
-  'System Design & Architecture',
-  'Project Management',
-  'DevOps Practices',
-  'Agile Methodologies'
-];
+// Removed hardcoded arrays - using full AI generation
 
 
 export default function ProfileCompletionFlow({ employeeId, onComplete }: ProfileCompletionFlowProps) {
@@ -600,8 +572,12 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       await saveStepData(false);
       
       // Generate personalized suggestions after completing step 5
-      if (currentStep === 5 && !personalizedSuggestions) {
-        await generatePersonalizedSuggestions();
+      if (currentStep === 5) {
+        if (!personalizedSuggestions) {
+          await generatePersonalizedSuggestions();
+        }
+        // Wait a bit to ensure suggestions are ready
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
       
       if (currentStep < STEPS.length) {
@@ -745,7 +721,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     return () => clearInterval(interval);
   }, [lastSaved]);
 
-  const generatePersonalizedSuggestions = async () => {
+  const generatePersonalizedSuggestions = async (retryCount = 0) => {
     try {
       setIsGeneratingSuggestions(true);
       
@@ -778,15 +754,64 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           growthAreas: []
         }));
         
-        toast.success('Personalized suggestions created for you!');
+        toast.success('Your personalized career roadmap is ready!');
+      } else {
+        throw new Error('Invalid response from AI');
       }
     } catch (error) {
       console.error('Error generating suggestions:', error);
-      // Fallback to default suggestions
-      toast.info('Using standard suggestions');
+      
+      // Retry logic
+      if (retryCount < 2) {
+        toast.info('Taking a bit longer... retrying');
+        setTimeout(() => generatePersonalizedSuggestions(retryCount + 1), 2000);
+      } else {
+        // Final fallback - generate basic suggestions based on position
+        generateFallbackSuggestions();
+      }
     } finally {
       setIsGeneratingSuggestions(false);
     }
+  };
+  
+  const generateFallbackSuggestions = () => {
+    // Basic fallback based on position/role
+    const basicChallenges = [
+      `Improving efficiency in ${formData.currentProjects[0] || 'current projects'}`,
+      `Collaborating effectively with ${formData.teamSize || 'the team'}`,
+      'Staying updated with industry best practices',
+      'Balancing technical work with communication',
+      'Managing time across multiple priorities',
+      'Building deeper expertise in core technologies',
+      'Contributing to team knowledge sharing',
+      'Improving code quality and documentation',
+      'Understanding business impact of technical decisions',
+      'Developing problem-solving strategies',
+      'Building resilience and adaptability',
+      'Enhancing stakeholder communication'
+    ];
+    
+    const basicGrowthAreas: string[] = [
+      'Advanced technical skills in your domain',
+      'Leadership and mentoring abilities',
+      'Project management fundamentals',
+      'Cloud and infrastructure knowledge',
+      'Data analysis and insights',
+      'Security best practices',
+      'Performance optimization techniques',
+      'Testing and quality assurance',
+      'Communication and presentation skills',
+      'Strategic thinking and planning',
+      'Innovation and creative problem solving',
+      'Cross-functional collaboration'
+    ];
+    
+    setPersonalizedSuggestions({
+      challenges: basicChallenges,
+      growthAreas: basicGrowthAreas
+    });
+    
+    toast.info('Created suggestions based on your role');
   };
 
   const renderStepContent = () => {
@@ -1299,10 +1324,14 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           <SkillsValidationCards
             employeeId={employeeId}
             onComplete={async () => {
-              // Generate personalized suggestions before advancing to step 6
-              if (currentStep === 4) {
-                await generatePersonalizedSuggestions();
+              // Save skills validation data
+              await saveStepData(false);
+              
+              // Start generating suggestions early
+              if (!personalizedSuggestions && !isGeneratingSuggestions) {
+                generatePersonalizedSuggestions();
               }
+              
               // Auto-advance to next step
               if (currentStep < STEPS.length) {
                 setCurrentStep(currentStep + 1);
@@ -1380,104 +1409,137 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         );
         
       case 6: // Challenges
-        const challengesList = personalizedSuggestions?.challenges || CHALLENGES;
+        if (!personalizedSuggestions?.challenges) {
+          return (
+            <div className="text-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+              <p className="text-gray-600">Analyzing your profile to create personalized challenges...</p>
+              <p className="text-sm text-gray-500 mt-2">This takes about 10-15 seconds</p>
+            </div>
+          );
+        }
         
         return (
           <div className="space-y-4">
-            {isGeneratingSuggestions ? (
-              <div className="text-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-                <p className="text-gray-600">Creating personalized challenges based on your profile...</p>
-              </div>
-            ) : (
-              <>
-                {personalizedSuggestions && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-blue-900 font-medium">🎯 Personalized for your role</p>
-                    <p className="text-xs text-blue-700 mt-1">These challenges are based on your position, experience, and current projects</p>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {challengesList.map((challenge) => (
-                <Button
-                  key={challenge}
-                  type="button"
-                  variant={formData.challenges.includes(challenge) ? 'default' : 'outline'}
-                  onClick={() => {
-                    handleFormChange(prev => ({
-                      ...prev,
-                      challenges: prev.challenges.includes(challenge)
-                        ? prev.challenges.filter(c => c !== challenge)
-                        : [...prev.challenges, challenge]
-                    }));
-                  }}
-                  className={cn(
-                    "text-sm justify-start",
-                    formData.challenges.includes(challenge)
-                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                      : "border-gray-300 hover:border-gray-400"
-                  )}
-                >
-                  {formData.challenges.includes(challenge) && <Check className="h-4 w-4 mr-2" />}
-                  {challenge}
-                </Button>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900 font-medium">🎯 Your personalized challenges</p>
+              <p className="text-xs text-blue-700 mt-1">Based on your role as {formData.roleInTeam || 'team member'}</p>
+            </div>
+            
+            {/* Mobile-optimized vertical list */}
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {personalizedSuggestions.challenges.map((challenge, index) => (
+                <div key={challenge} className="relative">
+                  <Button
+                    type="button"
+                    variant={formData.challenges.includes(challenge) ? 'default' : 'outline'}
+                    onClick={() => {
+                      handleFormChange(prev => ({
+                        ...prev,
+                        challenges: prev.challenges.includes(challenge)
+                          ? prev.challenges.filter(c => c !== challenge)
+                          : [...prev.challenges, challenge]
+                      }));
+                    }}
+                    className={cn(
+                      "w-full justify-between p-4 h-auto",
+                      "text-left text-sm leading-relaxed",
+                      formData.challenges.includes(challenge)
+                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <span className="flex items-start gap-3 pr-2">
+                      <span className="text-lg flex-shrink-0">
+                        {index < 3 ? '🔥' : index < 6 ? '⚡' : index < 9 ? '🎯' : '💡'}
+                      </span>
+                      <span className="flex-1 break-words">{challenge}</span>
+                    </span>
+                    {formData.challenges.includes(challenge) && (
+                      <Check className="h-5 w-5 flex-shrink-0 ml-2" />
+                    )}
+                  </Button>
+                </div>
               ))}
             </div>
-              </>
-            )}
+            
+            <div className="text-center text-sm text-gray-600 mt-4">
+              Selected: {formData.challenges.length} challenges
+            </div>
           </div>
         );
         
       case 7: // Growth Areas
-        const growthAreasList = personalizedSuggestions?.growthAreas || GROWTH_AREAS;
+        if (!personalizedSuggestions?.growthAreas) {
+          return (
+            <div className="text-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+              <p className="text-gray-600">Identifying growth opportunities for your career...</p>
+              <p className="text-sm text-gray-500 mt-2">Almost done!</p>
+            </div>
+          );
+        }
         
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600 mb-4">Select up to 5 priorities</p>
-            {personalizedSuggestions && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-green-900 font-medium">🌱 Growth areas tailored to your career path</p>
-                <p className="text-xs text-green-700 mt-1">Based on your skills gap and industry trends</p>
-              </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {growthAreasList.map((area) => (
-                <Button
-                  key={area}
-                  type="button"
-                  variant={formData.growthAreas.includes(area) ? 'default' : 'outline'}
-                  onClick={() => {
-                    if (formData.growthAreas.includes(area)) {
-                      handleFormChange(prev => ({
-                        ...prev,
-                        growthAreas: prev.growthAreas.filter(a => a !== area)
-                      }));
-                    } else if (formData.growthAreas.length < 5) {
-                      handleFormChange(prev => ({
-                        ...prev,
-                        growthAreas: [...prev.growthAreas, area]
-                      }));
-                    } else {
-                      toast.error('You can select up to 5 growth areas');
-                    }
-                  }}
-                  className={cn(
-                    "text-sm justify-start",
-                    formData.growthAreas.includes(area)
-                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                      : "border-gray-300 hover:border-gray-400",
-                    !formData.growthAreas.includes(area) && formData.growthAreas.length >= 5 && "opacity-50 cursor-not-allowed"
-                  )}
-                  disabled={!formData.growthAreas.includes(area) && formData.growthAreas.length >= 5}
-                >
-                  {formData.growthAreas.includes(area) && <Check className="h-4 w-4 mr-2" />}
-                  {area}
-                </Button>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-900 font-medium">🌱 Your growth roadmap</p>
+              <p className="text-xs text-green-700 mt-1">Prioritize up to 5 areas for maximum impact</p>
+            </div>
+            
+            {/* Mobile-optimized card stack */}
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {personalizedSuggestions.growthAreas.map((area, index) => (
+                <div key={area} className="relative">
+                  <Button
+                    type="button"
+                    variant={formData.growthAreas.includes(area) ? 'default' : 'outline'}
+                    onClick={() => {
+                      if (formData.growthAreas.includes(area)) {
+                        handleFormChange(prev => ({
+                          ...prev,
+                          growthAreas: prev.growthAreas.filter(a => a !== area)
+                        }));
+                      } else if (formData.growthAreas.length < 5) {
+                        handleFormChange(prev => ({
+                          ...prev,
+                          growthAreas: [...prev.growthAreas, area]
+                        }));
+                      } else {
+                        toast.error('You can select up to 5 growth areas');
+                      }
+                    }}
+                    className={cn(
+                      "w-full justify-between p-4 h-auto",
+                      "text-left text-sm leading-relaxed",
+                      formData.growthAreas.includes(area)
+                        ? "bg-green-600 text-white border-green-600 hover:bg-green-700"
+                        : "bg-white border-gray-200 hover:border-gray-300",
+                      !formData.growthAreas.includes(area) && formData.growthAreas.length >= 5 && "opacity-50 cursor-not-allowed"
+                    )}
+                    disabled={!formData.growthAreas.includes(area) && formData.growthAreas.length >= 5}
+                  >
+                    <span className="flex items-start gap-3 pr-2">
+                      <span className="text-lg flex-shrink-0">
+                        {index < 3 ? '🚀' : index < 6 ? '📈' : index < 9 ? '🎓' : '✨'}
+                      </span>
+                      <span className="flex-1 break-words">{area}</span>
+                    </span>
+                    {formData.growthAreas.includes(area) && (
+                      <Check className="h-5 w-5 flex-shrink-0 ml-2" />
+                    )}
+                  </Button>
+                </div>
               ))}
             </div>
-            <p className="text-sm text-gray-500">
-              Selected: {formData.growthAreas.length} of 5
-            </p>
+            
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Selected priorities</span>
+                <span className="text-sm font-medium">{formData.growthAreas.length} of 5</span>
+              </div>
+              <Progress value={(formData.growthAreas.length / 5) * 100} className="mt-2 h-2" />
+            </div>
           </div>
         );
         
