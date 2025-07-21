@@ -152,6 +152,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   } | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Debug effect
+  useEffect(() => {
+    console.log('Profile completion state:', { isCompleted, currentStep, STEPS_LENGTH: STEPS.length });
+  }, [isCompleted, currentStep]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
@@ -684,6 +689,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       if (!isAutoSave) {
         toast.error('Failed to save progress');
       }
+      throw error; // Re-throw to be caught by button handler
     } finally {
       if (isAutoSave) {
         setIsAutoSaving(false);
@@ -1681,6 +1687,204 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     );
   }
 
+  // Success completion screen
+  if (isCompleted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white rounded-lg shadow-lg p-8 text-center"
+          >
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-green-600" />
+            </div>
+            
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Congratulations! 🎉
+            </h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Your professional profile is complete
+            </p>
+            
+            <div className="bg-blue-50 rounded-lg p-6 mb-8">
+              <h2 className="text-lg font-semibold text-blue-900 mb-2">
+                What happens next?
+              </h2>
+              <ul className="text-sm text-blue-800 space-y-2 text-left max-w-md mx-auto">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Your manager will receive your skills analysis</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Personalized learning paths will be created for you</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>You'll be notified when courses are assigned</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => setShowPreview(true)}
+                variant="outline"
+                className="gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                Preview My Profile
+              </Button>
+              <Button
+                onClick={() => setIsCompleted(false)}
+                variant="outline"
+                className="gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit Profile
+              </Button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-6">
+              You can always update your profile later from your dashboard
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Profile preview modal
+  if (showPreview) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Your Professional Profile</h2>
+              <Button
+                onClick={() => setShowPreview(false)}
+                variant="ghost"
+                size="sm"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Work Experience */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Work Experience
+                </h3>
+                <div className="space-y-3">
+                  {formData.workExperience.map((exp, idx) => (
+                    <div key={idx} className="border-l-2 border-gray-200 pl-4">
+                      <h4 className="font-medium">{exp.title}</h4>
+                      <p className="text-sm text-gray-600">{exp.company} • {exp.duration}</p>
+                      {exp.responsibilities?.length > 0 && (
+                        <ul className="text-sm text-gray-500 mt-2 list-disc list-inside">
+                          {exp.responsibilities.slice(0, 3).map((resp, i) => (
+                            <li key={i}>{resp}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Education
+                </h3>
+                <div className="space-y-3">
+                  {formData.education.map((edu, idx) => (
+                    <div key={idx} className="border-l-2 border-gray-200 pl-4">
+                      <h4 className="font-medium">{edu.degree} in {edu.fieldOfStudy}</h4>
+                      <p className="text-sm text-gray-600">{edu.institution} • {edu.graduationYear}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Current Role */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Current Role
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm"><strong>Team Size:</strong> {formData.teamSize}</p>
+                  <p className="text-sm"><strong>Role:</strong> {formData.roleInTeam}</p>
+                  <p className="text-sm mt-2"><strong>Current Projects:</strong></p>
+                  <ul className="text-sm text-gray-600 list-disc list-inside mt-1">
+                    {formData.currentProjects.map((project, idx) => (
+                      <li key={idx}>{project}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              {/* Challenges */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Professional Challenges
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {formData.challenges.map((challenge, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {challenge}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Growth Areas */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Growth Priorities
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {formData.growthAreas.map((area, idx) => (
+                    <Badge key={idx} className="bg-green-100 text-green-800 text-xs">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 justify-end mt-8">
+              <Button
+                onClick={() => {
+                  setShowPreview(false);
+                  setIsCompleted(false);
+                }}
+                variant="outline"
+              >
+                Edit Profile
+              </Button>
+              <Button
+                onClick={() => setShowPreview(false)}
+              >
+                Back to Success
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -1768,16 +1972,31 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
 
                 <Button
                   onClick={async () => {
-                    if (currentStep === STEPS.length) {
-                      // Final step - complete profile
-                      await saveStepData(false);
-                      setIsCompleted(true);
-                    } else {
-                      handleNext();
+                    try {
+                      if (currentStep === STEPS.length) {
+                        // Final step - complete profile
+                        console.log('Completing profile...');
+                        console.log('Growth areas selected:', formData.growthAreas.length);
+                        await saveStepData(false);
+                        console.log('Profile saved and marked as complete');
+                        // Note: completeProfile is already called in saveStepData for step 7
+                        console.log('Setting isCompleted to true');
+                        setIsCompleted(true);
+                        console.log('isCompleted set, should show success screen');
+                      } else {
+                        handleNext();
+                      }
+                    } catch (error) {
+                      console.error('Error completing profile:', error);
+                      toast.error('Failed to complete profile. Please try again.');
                     }
                   }}
                   disabled={isSaving}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+                  className={cn(
+                    "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2",
+                    currentStep === 7 && formData.growthAreas.length === 0 && "opacity-50 cursor-not-allowed"
+                  )}
+                  title={currentStep === 7 && formData.growthAreas.length === 0 ? "Please select at least one growth area" : ""}
                 >
                   {isSaving ? (
                     'Saving...'
