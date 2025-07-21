@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      // If user is a learner, fetch employee data
+      // If user is a learner, fetch employee data with company info
       if (data.role === 'learner') {
         const { data: employeeData } = await supabase
           .from('employees')
@@ -101,9 +101,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             position,
             department,
             current_position_id,
+            company_id,
             st_company_positions!employees_current_position_id_fkey (
               position_title,
               department
+            ),
+            companies!employees_company_id_fkey (
+              id,
+              name,
+              plan_type
             )
           `)
           .eq('user_id', userId)
@@ -111,6 +117,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (employeeData) {
           data.employee = employeeData;
+          // Override the companies data with the employee's company data
+          if (employeeData.companies) {
+            data.companies = employeeData.companies;
+          }
         }
       }
 

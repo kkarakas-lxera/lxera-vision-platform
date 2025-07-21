@@ -174,7 +174,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   
   // Position skills state
   const [employeeData, setEmployeeData] = useState<any>(null);
-  const [positionSkills, setPositionSkills] = useState<any[]>([]);
   
   const [formData, setFormData] = useState<FormData>({
     currentPosition: '',
@@ -237,22 +236,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           department
         }));
         
-        // Load position skills if available
-        if (employee.st_company_positions?.required_skills) {
-          setPositionSkills(employee.st_company_positions.required_skills);
-        } else if (employee.position) {
-          // Try to find position by code if not linked
-          const { data: position } = await supabase
-            .from('st_company_positions')
-            .select('required_skills')
-            .eq('position_code', employee.position)
-            .eq('company_id', employee.company_id)
-            .single();
-            
-          if (position?.required_skills) {
-            setPositionSkills(position.required_skills);
-          }
-        }
+        // Position skills loading removed - not being used in the component
         
       }
 
@@ -374,7 +358,10 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               break;
             case 'skills':
               if (section.data?.skills) {
-                restoredFormData.recentSkills = section.data.skills;
+                // Extract skill names from objects if needed
+                restoredFormData.recentSkills = section.data.skills.map((skill: any) => 
+                  typeof skill === 'string' ? skill : skill.name || ''
+                ).filter((name: string) => name);
                 if (section.isComplete) {
                   lastCompletedStep = Math.max(lastCompletedStep, 4);
                 }
