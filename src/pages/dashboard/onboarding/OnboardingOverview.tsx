@@ -72,67 +72,72 @@ export default function OnboardingOverview() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto space-y-4">
-      {/* Main Two-Sided Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Left Side - Team Overview (20%) */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card className="overflow-hidden">
-            <CardHeader className="py-3 border-b">
-              <CardTitle className="text-base">Team Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Team Members</p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
-                  <p className="text-xs text-muted-foreground">Pending Invites</p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-md border border-green-200">
-                  <p className="text-2xl font-bold text-green-800">{stats.completed}</p>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                </div>
-                <div className="text-center p-3 bg-blue-50 rounded-md border border-blue-200">
-                  <p className="text-2xl font-bold text-blue-900">{stats.analyzed}</p>
-                  <p className="text-xs text-muted-foreground">Analyzed CVs</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Activity Log */}
-          <ActivityLog />
-        </div>
+      {/* Team Overview Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-xs text-muted-foreground">Team Members</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
+              <p className="text-xs text-muted-foreground">Pending Invites</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden border-green-200 bg-green-50/50">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-800">{stats.completed}</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden border-blue-200 bg-blue-50/50">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-900">{stats.analyzed}</p>
+              <p className="text-xs text-muted-foreground">Analyzed CVs</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Right Side - Steps and Progress (80%) */}
-        <div className="lg:col-span-4 space-y-4">
+      {/* Quick Actions and Activity Log Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Quick Actions - Only show when meaningful actions are available */}
+        {(stats.total >= 10 || stats.withCV > 0 || stats.analyzed > 0) && (
+          <QuickActions
+            onAddEmployees={() => navigate('/dashboard/onboarding/import')}
+            onUploadCVs={() => navigate('/dashboard/onboarding/invite')}
+            onAnalyzeSkills={() => navigate('/dashboard/onboarding/invite')}
+            onExportReport={() => navigate('/dashboard/onboarding/analysis')}
+            hasEmployees={stats.total > 0}
+            hasEmployeesWithCVs={stats.withCV > 0}
+            hasEmployeesWithAnalysis={stats.analyzed > 0}
+          />
+        )}
+        
+        {/* Activity Log */}
+        <ActivityLog />
+      </div>
 
-          {/* Quick Actions - Only show when meaningful actions are available */}
-          {(stats.total >= 10 || stats.withCV > 0 || stats.analyzed > 0) && (
-            <QuickActions
-              onAddEmployees={() => navigate('/dashboard/onboarding/import')}
-              onUploadCVs={() => navigate('/dashboard/onboarding/invite')}
-              onAnalyzeSkills={() => navigate('/dashboard/onboarding/invite')}
-              onExportReport={() => navigate('/dashboard/onboarding/analysis')}
-              hasEmployees={stats.total > 0}
-              hasEmployeesWithCVs={stats.withCV > 0}
-              hasEmployeesWithAnalysis={stats.analyzed > 0}
-            />
-          )}
-
-          {/* Step Cards */}
-          <Card className="overflow-hidden">
-            <CardHeader className="py-3 border-b">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-base">Setup Steps</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {steps.map((step, index) => {
+      {/* Step Cards */}
+      <Card className="overflow-hidden">
+        <CardHeader className="py-3 border-b">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base">Setup Steps</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            {steps.map((step, index) => {
               const Icon = step.icon;
               const isCompleted = step.completed;
               const canAccess = index === 0 || steps[index - 1].completed;
@@ -247,9 +252,6 @@ export default function OnboardingOverview() {
               </div>
             </CardContent>
           </Card>
-
-        </div>
-      </div>
     </div>
   );
 }

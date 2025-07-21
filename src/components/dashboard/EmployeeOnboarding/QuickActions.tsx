@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Users, BarChart3, Download, Plus, FileSpreadsheet } from 'lucide-react';
+import { Upload, Users, BarChart3, Download, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -26,73 +26,78 @@ export function QuickActions({
     {
       icon: Users,
       title: 'Add Employees',
-      description: 'Import team members via CSV',
+      description: 'Import via CSV',
       action: onAddEmployees,
       enabled: true,
-      variant: 'default' as const
+      primary: true
     },
     {
       icon: Upload,
       title: 'Upload CVs',
-      description: 'Bulk upload employee resumes',
+      description: 'Bulk upload resumes',
       action: onUploadCVs,
       enabled: hasEmployees,
-      variant: 'default' as const
+      primary: false
     },
     {
       icon: BarChart3,
       title: 'Analyze Skills',
-      description: 'Run AI-powered gap analysis',
+      description: 'AI gap analysis',
       action: onAnalyzeSkills,
       enabled: hasEmployeesWithCVs,
-      variant: 'default' as const
+      primary: false
     },
     {
       icon: Download,
       title: 'Export Report',
-      description: 'Download skills gap report',
+      description: 'Download CSV',
       action: onExportReport,
       enabled: hasEmployeesWithAnalysis,
-      variant: 'outline' as const
+      primary: false
     }
   ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          Quick Actions
-        </CardTitle>
-        <CardDescription>
-          Common tasks for employee onboarding
+    <Card className="overflow-hidden h-full">
+      <CardHeader className="py-3 border-b">
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-base">Quick Actions</CardTitle>
+        </div>
+        <CardDescription className="text-xs mt-1">
+          Common onboarding tasks
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-2 gap-3">
           {actions.map((action, index) => {
             const Icon = action.icon;
             return (
-              <Button
+              <div
                 key={index}
-                variant={action.variant}
-                size="sm"
-                onClick={action.action}
-                disabled={!action.enabled}
-                className="h-auto flex-col gap-2 py-3"
+                className={`relative ${!action.enabled ? 'opacity-50' : ''}`}
               >
-                <Icon className="h-4 w-4" />
-                <span className="text-xs">{action.title}</span>
-              </Button>
+                <Button
+                  variant={action.primary ? "default" : "outline"}
+                  onClick={action.action}
+                  disabled={!action.enabled}
+                  className="w-full h-auto flex flex-col items-center justify-center p-4 space-y-2"
+                >
+                  <Icon className="h-5 w-5" />
+                  <div className="space-y-0.5 text-center">
+                    <div className="font-medium text-sm">{action.title}</div>
+                    <div className="text-xs text-muted-foreground">{action.description}</div>
+                  </div>
+                </Button>
+              </div>
             );
           })}
         </div>
 
-        {/* Helpful tips */}
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-800">
-            <strong>Tip:</strong> Start by selecting a position in Step 1, then import employees. 
-            This ensures accurate skills gap analysis.
+        {/* Helpful tip - more subtle */}
+        <div className="mt-4 p-2.5 bg-muted/50 rounded-md">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium">Tip:</span> Start with position selection for accurate skills analysis
           </p>
         </div>
       </CardContent>

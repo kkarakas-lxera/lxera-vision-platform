@@ -185,7 +185,7 @@ export default function ActivityLog() {
 
   if (loading) {
     return (
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden h-full">
         <CardHeader className="py-3 border-b">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-muted-foreground animate-pulse" />
@@ -206,7 +206,7 @@ export default function ActivityLog() {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden h-full">
       <CardHeader className="py-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default function ActivityLog() {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[280px]">
           {activities.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
               <Activity className="h-8 w-8 mx-auto mb-2 text-gray-300" />
