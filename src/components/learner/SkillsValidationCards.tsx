@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -137,11 +137,14 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
     const skill = skills[currentIndex];
     if (!skill) return;
     
-    // Update local state
-    setValidations(prev => ({
-      ...prev,
-      [skill.skill_name]: level
-    }));
+    // If level is -1, it means skip
+    if (level >= 0) {
+      // Update local state
+      setValidations(prev => ({
+        ...prev,
+        [skill.skill_name]: level
+      }));
+    }
     
     // Move to next
     if (currentIndex < skills.length - 1) {
@@ -242,7 +245,7 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
       </AnimatePresence>
       
       {/* Card Stack */}
-      <div className="relative h-[400px]" {...handlers}>
+      <div className="relative h-[500px]" {...handlers}>
         <AnimatePresence mode="wait">
           {currentSkill && (
             <motion.div
@@ -284,7 +287,19 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
                     </div>
                   )}
                   
-                  <p className="text-gray-600 text-center mb-3 px-4">
+                  <div className="flex gap-2 text-xs text-gray-500 mt-2">
+                    {currentSkill.is_from_cv && (
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Found in CV
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Question and buttons section */}
+                <div className="mt-auto pb-4">
+                  <p className="text-gray-600 text-center mb-4 px-4">
                     {currentIndex < 5 
                       ? "How comfortable are you with this?"
                       : currentIndex < 10
@@ -297,19 +312,52 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
                     }
                   </p>
                   
-                  <div className="flex gap-2 text-xs text-gray-500">
-                    {currentSkill.is_from_cv && (
-                      <span className="flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        Found in CV
-                      </span>
-                    )}
-                    {currentSkill.is_from_position && (
-                      <span className="flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        Position requirement
-                      </span>
-                    )}
+                  {/* Action buttons */}
+                  <div className="grid grid-cols-4 gap-2 px-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleValidation(0)}
+                      className={cn(
+                        "p-3 border-2 hover:border-red-500 transition-colors",
+                        "flex flex-col items-center gap-1"
+                      )}
+                    >
+                      <div className="text-xl">❌</div>
+                      <div className="text-xs">None</div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleValidation(1)}
+                      className={cn(
+                        "p-3 border-2 hover:border-yellow-500 transition-colors",
+                        "flex flex-col items-center gap-1"
+                      )}
+                    >
+                      <div className="text-xl">🟡</div>
+                      <div className="text-xs">Learning</div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleValidation(2)}
+                      className={cn(
+                        "p-3 border-2 hover:border-green-500 transition-colors",
+                        "flex flex-col items-center gap-1"
+                      )}
+                    >
+                      <div className="text-xl">🟢</div>
+                      <div className="text-xs">Using</div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleValidation(3)}
+                      className={cn(
+                        "p-3 border-2 hover:border-purple-500 transition-colors",
+                        "flex flex-col items-center gap-1"
+                      )}
+                    >
+                      <div className="text-xl">⭐</div>
+                      <div className="text-xs">Expert</div>
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -330,57 +378,35 @@ export default function SkillsValidationCards({ employeeId, onComplete }: Skills
         )}
       </div>
       
-      {/* Action buttons */}
-      <div className="grid grid-cols-4 gap-2 mt-8">
+      {/* Navigation buttons */}
+      <div className="flex justify-between items-center mt-6">
         <Button
-          variant="outline"
-          onClick={() => handleValidation(0)}
-          className={cn(
-            "p-4 border-2 hover:border-red-500 transition-colors",
-            "flex flex-col items-center gap-1"
-          )}
+          variant="ghost"
+          onClick={() => {
+            if (currentIndex > 0) {
+              setCurrentIndex(currentIndex - 1);
+            }
+          }}
+          disabled={currentIndex === 0}
+          className="text-gray-600"
         >
-          <div className="text-2xl">❌</div>
-          <div className="text-xs">None</div>
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
         </Button>
+        
+        <span className="text-sm text-gray-500">
+          Swipe or tap to rate
+        </span>
+        
         <Button
-          variant="outline"
-          onClick={() => handleValidation(1)}
-          className={cn(
-            "p-4 border-2 hover:border-yellow-500 transition-colors",
-            "flex flex-col items-center gap-1"
-          )}
+          variant="ghost"
+          onClick={() => handleValidation(-1)} // Skip skill
+          className="text-gray-600"
         >
-          <div className="text-2xl">🟡</div>
-          <div className="text-xs">Learning</div>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => handleValidation(2)}
-          className={cn(
-            "p-4 border-2 hover:border-green-500 transition-colors",
-            "flex flex-col items-center gap-1"
-          )}
-        >
-          <div className="text-2xl">🟢</div>
-          <div className="text-xs">Using</div>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => handleValidation(3)}
-          className={cn(
-            "p-4 border-2 hover:border-purple-500 transition-colors",
-            "flex flex-col items-center gap-1"
-          )}
-        >
-          <div className="text-2xl">⭐</div>
-          <div className="text-xs">Expert</div>
+          Skip
+          <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
-      
-      <p className="text-center text-sm text-gray-500 mt-4">
-        Quick tap below ↓
-      </p>
     </div>
   );
 }

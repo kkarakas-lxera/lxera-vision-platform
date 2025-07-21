@@ -22,7 +22,9 @@ import {
   Clock,
   Loader2,
   FileText,
-  Save
+  Save,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -480,6 +482,51 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     }
   };
 
+  const handleDeleteCV = async () => {
+    // Confirm with user
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your CV data? This will remove all imported information including work experience, education, and skills. This action cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+    
+    setIsLoading(true);
+    setCvAnalysisStatus('Deleting CV data...');
+    
+    try {
+      // Call the delete edge function
+      const { error } = await supabase.functions.invoke('delete-cv-data', {
+        body: { employee_id: employeeId }
+      });
+      
+      if (error) throw error;
+      
+      // Reset local state
+      setCvUploaded(false);
+      setCvAnalyzing(false);
+      setCvAnalysisStatus('');
+      
+      // Clear form data that was imported from CV
+      setFormData(prev => ({
+        ...prev,
+        workExperience: [],
+        education: [],
+        // Keep other fields that user might have manually entered
+      }));
+      
+      // Navigate back to Step 1
+      setCurrentStep(1);
+      
+      toast.success('CV data deleted successfully. You can now upload a new CV.');
+    } catch (error) {
+      console.error('Error deleting CV data:', error);
+      toast.error('Failed to delete CV data. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setCvAnalysisStatus('');
+    }
+  };
+
   const handleNext = async () => {
     try {
       // Save current step data before proceeding
@@ -681,6 +728,34 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       case 2: // Work Experience
         return (
           <div className="space-y-4">
+            {/* CV Delete/Re-upload Option */}
+            {cvUploaded && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-900">
+                        Want to upload a different CV?
+                      </p>
+                      <p className="text-xs text-amber-700 mt-1">
+                        This will delete all CV-imported data and let you start fresh.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeleteCV}
+                    className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete CV
+                  </Button>
+                </div>
+              </div>
+            )}
             {formData.workExperience.length === 0 ? (
               <div className="text-center py-8">
                 <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-3" />
