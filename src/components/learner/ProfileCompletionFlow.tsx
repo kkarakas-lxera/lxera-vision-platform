@@ -168,6 +168,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [personalizedSuggestions, setPersonalizedSuggestions] = useState<{
+    challenges: string[];
+    growthAreas: string[];
+  } | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
@@ -419,6 +424,20 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           ...restoredFormData
         }));
       }
+      
+      // Load personalized suggestions if they exist
+      const { data: suggestions } = await supabase
+        .from('employee_profile_suggestions')
+        .select('challenges, growth_areas')
+        .eq('employee_id', employeeId)
+        .single();
+        
+      if (suggestions) {
+        setPersonalizedSuggestions({
+          challenges: suggestions.challenges || [],
+          growthAreas: suggestions.growth_areas || []
+        });
+      }
 
       // Restore step position - go to next step after last completed
       if (lastCompletedStep > 0) {
@@ -580,6 +599,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       // Save current step data before proceeding
       await saveStepData(false);
       
+      // Generate personalized suggestions after completing step 5
+      if (currentStep === 5 && !personalizedSuggestions) {
+        await generatePersonalizedSuggestions();
+      }
+      
       if (currentStep < STEPS.length) {
         setCurrentStep(currentStep + 1);
       }
@@ -720,6 +744,50 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     
     return () => clearInterval(interval);
   }, [lastSaved]);
+
+  const generatePersonalizedSuggestions = async () => {
+    try {
+      setIsGeneratingSuggestions(true);
+      
+      // Prepare step data including current projects, team size, and role
+      const stepData = {
+        currentProjects: formData.currentProjects,
+        teamSize: formData.teamSize,
+        roleInTeam: formData.roleInTeam
+      };
+      
+      const { data, error } = await supabase.functions.invoke('generate-profile-suggestions', {
+        body: { 
+          employee_id: employeeId,
+          step_data: stepData
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.challenges && data?.growthAreas) {
+        setPersonalizedSuggestions({
+          challenges: data.challenges,
+          growthAreas: data.growthAreas
+        });
+        
+        // Update form data with personalized suggestions
+        handleFormChange(prev => ({
+          ...prev,
+          challenges: [],
+          growthAreas: []
+        }));
+        
+        toast.success('Personalized suggestions created for you!');
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      // Fallback to default suggestions
+      toast.info('Using standard suggestions');
+    } finally {
+      setIsGeneratingSuggestions(false);
+    }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -1230,7 +1298,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         return (
           <SkillsValidationCards
             employeeId={employeeId}
-            onComplete={() => {
+            onComplete={async () => {
+              // Generate personalized suggestions before advancing to step 6
+              if (currentStep === 4) {
+                await generatePersonalizedSuggestions();
+              }
               // Auto-advance to next step
               if (currentStep < STEPS.length) {
                 setCurrentStep(currentStep + 1);
@@ -1308,10 +1380,25 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         );
         
       case 6: // Challenges
+        const challengesList = personalizedSuggestions?.challenges || CHALLENGES;
+        
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {CHALLENGES.map((challenge) => (
+            {isGeneratingSuggestions ? (
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+                <p className="text-gray-600">Creating personalized challenges based on your profile...</p>
+              </div>
+            ) : (
+              <>
+                {personalizedSuggestions && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-900 font-medium">🎯 Personalized for your role</p>
+                    <p className="text-xs text-blue-700 mt-1">These challenges are based on your position, experience, and current projects</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {challengesList.map((challenge) => (
                 <Button
                   key={challenge}
                   type="button"
@@ -1336,15 +1423,25 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 </Button>
               ))}
             </div>
+              </>
+            )}
           </div>
         );
         
       case 7: // Growth Areas
+        const growthAreasList = personalizedSuggestions?.growthAreas || GROWTH_AREAS;
+        
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">Select up to 5 priorities</p>
+            {personalizedSuggestions && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-green-900 font-medium">🌱 Growth areas tailored to your career path</p>
+                <p className="text-xs text-green-700 mt-1">Based on your skills gap and industry trends</p>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {GROWTH_AREAS.map((area) => (
+              {growthAreasList.map((area) => (
                 <Button
                   key={area}
                   type="button"
