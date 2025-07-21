@@ -81,55 +81,48 @@ interface FormData {
 const STEPS = [
   {
     id: 1,
-    title: "Confirm Your Current Role",
-    subtitle: "Let's make sure we have your position details correct",
-    icon: Briefcase,
-    fields: ['currentPosition', 'department', 'timeInRole']
-  },
-  {
-    id: 2,
     title: "Upload Your CV",
     subtitle: "Save time by letting us extract your experience",
     icon: FileText,
     fields: ['cv']
   },
   {
-    id: 3,
+    id: 2,
     title: "Work Experience",
     subtitle: "Tell us about your professional journey",
     icon: Briefcase,
     fields: ['workExperience']
   },
   {
-    id: 4,
+    id: 3,
     title: "Education Background",
     subtitle: "Your educational qualifications",
     icon: GraduationCap,
     fields: ['highestDegree', 'fieldOfStudy', 'institution', 'graduationYear']
   },
   {
-    id: 5,
+    id: 4,
     title: "What's New Since Your CV?",
     subtitle: "Recent certifications, languages, and skills",
     icon: Brain,
     fields: ['recentCertifications', 'languages', 'recentSkills']
   },
   {
-    id: 6,
+    id: 5,
     title: "Current Projects",
     subtitle: "What are you working on?",
     icon: Wrench,
     fields: ['currentProjects', 'teamSize', 'roleInTeam']
   },
   {
-    id: 7,
+    id: 6,
     title: "Professional Challenges",
     subtitle: "What challenges do you face?",
     icon: Clock,
     fields: ['challenges']
   },
   {
-    id: 8,
+    id: 7,
     title: "Growth Opportunities",
     subtitle: "Which areas would help you excel?",
     icon: Target,
@@ -181,6 +174,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   
   // Position skills state
   const [employeeData, setEmployeeData] = useState<any>(null);
+  const [positionSkills, setPositionSkills] = useState<any[]>([]);
   
   const [formData, setFormData] = useState<FormData>({
     currentPosition: '',
@@ -255,6 +249,9 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
             .eq('company_id', employee.company_id)
             .single();
             
+          if (position?.required_skills) {
+            setPositionSkills(position.required_skills);
+          }
         }
         
       }
@@ -278,9 +275,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 restoredFormData.department = section.data.department || '';
                 restoredFormData.timeInRole = section.data.timeInRole || '';
                 // Only count as completed if the section is marked complete
-                if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 1);
-                }
+                // Skip basic_info step count as we removed step 1
               }
               break;
             case 'work_experience':
@@ -293,12 +288,12 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                   description: exp.key_achievements?.join('\n') || ''
                 }));
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 3);
+                  lastCompletedStep = Math.max(lastCompletedStep, 2);
                 }
               } else if (section.data.experience) {
                 restoredFormData.workExperience = section.data.experience;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 3);
+                  lastCompletedStep = Math.max(lastCompletedStep, 2);
                 }
               }
               break;
@@ -357,17 +352,31 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 }
                 
                 if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 3);
+                }
+              }
+              break;
+            case 'certifications':
+              if (section.data?.certifications) {
+                restoredFormData.recentCertifications = section.data.certifications;
+                if (section.isComplete) {
                   lastCompletedStep = Math.max(lastCompletedStep, 4);
                 }
               }
               break;
-            case 'recent_updates':
-              if (section.data) {
-                restoredFormData.recentCertifications = section.data.certifications || [];
-                restoredFormData.languages = section.data.languages || [];
-                restoredFormData.recentSkills = section.data.skills || [];
+            case 'languages':
+              if (section.data?.languages) {
+                restoredFormData.languages = section.data.languages;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 5);
+                  lastCompletedStep = Math.max(lastCompletedStep, 4);
+                }
+              }
+              break;
+            case 'skills':
+              if (section.data?.skills) {
+                restoredFormData.recentSkills = section.data.skills;
+                if (section.isComplete) {
+                  lastCompletedStep = Math.max(lastCompletedStep, 4);
                 }
               }
               break;
@@ -377,7 +386,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 restoredFormData.teamSize = section.data.teamSize || '';
                 restoredFormData.roleInTeam = section.data.role || '';
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 6);
+                  lastCompletedStep = Math.max(lastCompletedStep, 5);
                 }
               }
               break;
@@ -385,7 +394,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               if (section.data.challenges) {
                 restoredFormData.challenges = section.data.challenges;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 7);
+                  lastCompletedStep = Math.max(lastCompletedStep, 6);
                 }
               }
               break;
@@ -393,7 +402,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               if (section.data.growthAreas) {
                 restoredFormData.growthAreas = section.data.growthAreas;
                 if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 8);
+                  lastCompletedStep = Math.max(lastCompletedStep, 7);
                 }
               }
               break;
@@ -489,14 +498,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
       console.error('CV upload error:', error);
       setCvAnalysisStatus('');
       toast.error('Failed to process CV. You can continue manually.');
-      
-      // Cleanup realtime subscription and timeout on error
-      if (realtimeChannel) {
-        if (realtimeChannel.timeout) {
-          clearTimeout(realtimeChannel.timeout);
-        }
-        await supabase.removeChannel(realtimeChannel);
-      }
     } finally {
       setCvAnalyzing(false);
     }
@@ -530,31 +531,15 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     }
     
     try {
-      const step = STEPS[currentStep - 1];
-      
       // Map step data to profile sections
       switch (currentStep) {
-        case 1: // Current Role
-          await EmployeeProfileService.saveSection(employeeId, 'basic_info', {
-            position: formData.currentPosition,
-            department: formData.department,
-            timeInRole: formData.timeInRole
-          });
-          
-          // Also update the employees table with time_in_role
-          await supabase
-            .from('employees')
-            .update({ time_in_role: formData.timeInRole })
-            .eq('id', employeeId);
-          break;
-          
-        case 3: // Work Experience
+        case 2: // Work Experience
           await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
             experience: formData.workExperience
           });
           break;
           
-        case 4: // Education
+        case 3: // Education
           // Save all education entries
           const educationData = formData.education.length > 0 
             ? formData.education.map(edu => ({
@@ -575,8 +560,26 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           });
           break;
           
+        case 4: // What's New Since Your CV
+          // Save certifications, languages, and skills separately
+          if (formData.recentCertifications.length > 0) {
+            await EmployeeProfileService.saveSection(employeeId, 'certifications', {
+              certifications: formData.recentCertifications
+            });
+          }
+          if (formData.languages.length > 0) {
+            await EmployeeProfileService.saveSection(employeeId, 'languages', {
+              languages: formData.languages
+            });
+          }
+          if (formData.recentSkills.length > 0) {
+            await EmployeeProfileService.saveSection(employeeId, 'skills', {
+              skills: formData.recentSkills
+            });
+          }
+          break;
           
-        case 6: // Current Work
+        case 5: // Current Work
           await EmployeeProfileService.saveSection(employeeId, 'current_work', {
             projects: formData.currentProjects,
             teamSize: formData.teamSize,
@@ -584,13 +587,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           });
           break;
           
-        case 7: // Challenges
+        case 6: // Challenges
           await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
             challenges: formData.challenges
           });
           break;
           
-        case 8: // Growth Areas
+        case 7: // Growth Areas
           await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
             growthAreas: formData.growthAreas
           });
@@ -661,77 +664,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   }, [lastSaved]);
 
   const renderStepContent = () => {
-    const step = STEPS[currentStep - 1];
-    
     switch (currentStep) {
-      case 1: // Current Role
-        return (
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-4">
-                Please confirm your assigned position details are correct:
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Current Position
-                  </Label>
-                  <div className="mt-1 p-3 bg-white rounded-md border border-gray-200">
-                    <p className="text-gray-900 font-medium">
-                      {formData.currentPosition || 'Not assigned'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Department
-                  </Label>
-                  <div className="mt-1 p-3 bg-white rounded-md border border-gray-200">
-                    <p className="text-gray-900 font-medium">
-                      {formData.department || 'Not assigned'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {(!formData.currentPosition || !formData.department) && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-sm text-yellow-800">
-                    Your position details haven't been assigned yet. Please contact your HR administrator.
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="timeInRole" className="text-base font-medium text-gray-900 mb-2">
-                Time in current role
-              </Label>
-              <div className="grid grid-cols-5 gap-2 mt-2">
-                {['< 6 months', '6m - 1y', '1-3 years', '3-5 years', '5+ years'].map((option) => (
-                  <Button
-                    key={option}
-                    type="button"
-                    variant={formData.timeInRole === option ? 'default' : 'outline'}
-                    onClick={() => setFormData(prev => ({ ...prev, timeInRole: option }))}
-                    className={cn(
-                      "text-sm",
-                      formData.timeInRole === option
-                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                        : "border-gray-300 hover:border-gray-400"
-                    )}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 2: // CV Upload
+      case 1: // CV Upload
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -781,7 +715,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 3: // Work Experience
+      case 2: // Work Experience
         return (
           <div className="space-y-4">
             {formData.workExperience.length === 0 ? (
@@ -947,7 +881,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 4: // Education
+      case 3: // Education
         return (
           <div className="space-y-4">
             {formData.education.length === 0 ? (
@@ -1112,7 +1046,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 5: // What's New
+      case 4: // What's New
         return (
           <WhatsNewSection
             formData={{
@@ -1130,7 +1064,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         );
         
         
-      case 6: // Current Projects
+      case 5: // Current Projects
         return (
           <div className="space-y-6">
             <div>
@@ -1197,7 +1131,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 7: // Challenges
+      case 6: // Challenges
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1229,7 +1163,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 8: // Growth Areas
+      case 7: // Growth Areas
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">Select up to 5 priorities</p>

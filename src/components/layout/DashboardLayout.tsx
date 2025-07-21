@@ -388,6 +388,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                       <p className="text-sm font-semibold text-gray-900">{userProfile?.full_name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{userProfile?.email}</p>
                     </div>
+                    
+                    {/* Show position and department for learners */}
+                    {userProfile?.role === 'learner' && userProfile?.employee && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <div className="space-y-2">
+                          {(userProfile.employee.st_company_positions?.position_title || userProfile.employee.position) && (
+                            <div>
+                              <p className="text-xs text-gray-500">Position</p>
+                              <p className="text-sm font-medium text-gray-900 mt-0.5">
+                                {userProfile.employee.st_company_positions?.position_title || userProfile.employee.position}
+                              </p>
+                            </div>
+                          )}
+                          {(userProfile.employee.st_company_positions?.department || userProfile.employee.department) && (
+                            <div>
+                              <p className="text-xs text-gray-500">Department</p>
+                              <p className="text-sm font-medium text-gray-900 mt-0.5">
+                                {userProfile.employee.st_company_positions?.department || userProfile.employee.department}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="pt-2 border-t border-gray-100">
                       <div className="flex items-center justify-between">
                         <div>
@@ -396,17 +421,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
                             {userProfile?.companies?.name || 'Company'}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Plan</p>
-                          <span className={cn(
-                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5",
-                            userProfile?.companies?.plan_type === 'free_skills_gap' 
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-indigo-100 text-indigo-800"
-                          )}>
-                            {userProfile?.companies?.plan_type === 'free_skills_gap' ? 'Free Trial' : 'Premium'}
-                          </span>
-                        </div>
+                        {userProfile?.role !== 'learner' && (
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Plan</p>
+                            <span className={cn(
+                              "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5",
+                              userProfile?.companies?.plan_type === 'free_skills_gap' 
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-indigo-100 text-indigo-800"
+                            )}>
+                              {userProfile?.companies?.plan_type === 'free_skills_gap' ? 'Free Trial' : 'Premium'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

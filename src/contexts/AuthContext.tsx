@@ -17,6 +17,16 @@ interface UserProfile {
     name: string;
     plan_type: string;
   };
+  employee?: {
+    id: string;
+    position?: string;
+    department?: string;
+    current_position_id?: string;
+    st_company_positions?: {
+      position_title: string;
+      department: string;
+    };
+  };
 }
 
 interface AuthContextType {
@@ -81,6 +91,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!data) {
         return null;
       }
+
+      // If user is a learner, fetch employee data
+      if (data.role === 'learner') {
+        const { data: employeeData } = await supabase
+          .from('employees')
+          .select(`
+            id,
+            position,
+            department,
+            current_position_id,
+            st_company_positions!employees_current_position_id_fkey (
+              position_title,
+              department
+            )
+          `)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (employeeData) {
+          data.employee = employeeData;
+        }
+      }
+
       return data as UserProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
