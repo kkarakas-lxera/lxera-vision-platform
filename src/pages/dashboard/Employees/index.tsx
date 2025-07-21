@@ -18,7 +18,8 @@ import {
   TrendingUp,
   AlertCircle,
   Filter,
-  Building2
+  Building2,
+  CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import CourseGenerationModal from '@/pages/dashboard/Courses/CourseGenerationModal';
 
 interface Employee {
@@ -71,6 +78,13 @@ interface Employee {
   completed_sections?: number;
   total_sections?: number;
   last_profile_update?: string | null;
+  section_details?: {
+    work_experience: boolean;
+    education: boolean;
+    current_work: boolean;
+    daily_tasks: boolean;
+    tools_technologies: boolean;
+  };
 }
 
 const EmployeesPage = () => {
@@ -328,6 +342,7 @@ const EmployeesPage = () => {
   }
 
   return (
+    <TooltipProvider>
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -529,19 +544,82 @@ const EmployeesPage = () => {
                       <td className="p-4">{employee.department || '-'}</td>
                       <td className="p-4">{employee.position || '-'}</td>
                       <td className="p-4">
-                        {employee.profile_complete ? (
-                          <Badge className="bg-green-100 text-green-800">
-                            Complete
-                          </Badge>
-                        ) : employee.completed_sections && employee.total_sections ? (
-                          <Badge className="bg-yellow-100 text-yellow-800">
-                            {employee.completed_sections}/{employee.total_sections} Complete
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            Not Started
-                          </Badge>
-                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="inline-block">
+                              {employee.profile_complete ? (
+                                <Badge className="bg-green-100 text-green-800 cursor-help">
+                                  Complete
+                                </Badge>
+                              ) : employee.completed_sections && employee.total_sections ? (
+                                <Badge className="bg-yellow-100 text-yellow-800 cursor-help">
+                                  {employee.completed_sections}/{employee.total_sections} Complete
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="cursor-help">
+                                  Not Started
+                                </Badge>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs p-3">
+                            <div className="space-y-1 text-sm">
+                              <p className="font-semibold mb-2">Profile Sections:</p>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  {employee.section_details?.work_experience ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span className={employee.section_details?.work_experience ? 'text-green-600' : 'text-gray-500'}>
+                                    Work Experience
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {employee.section_details?.education ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span className={employee.section_details?.education ? 'text-green-600' : 'text-gray-500'}>
+                                    Education
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {employee.section_details?.current_work ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span className={employee.section_details?.current_work ? 'text-green-600' : 'text-gray-500'}>
+                                    Current Projects
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {employee.section_details?.daily_tasks ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span className={employee.section_details?.daily_tasks ? 'text-green-600' : 'text-gray-500'}>
+                                    Challenges
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {employee.section_details?.tools_technologies ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span className={employee.section_details?.tools_technologies ? 'text-green-600' : 'text-gray-500'}>
+                                    Growth Areas
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </td>
                       <td className="p-4">
                         {employee.invitation_status === 'completed' && (
@@ -670,6 +748,7 @@ const EmployeesPage = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </TooltipProvider>
   );
 };
 
