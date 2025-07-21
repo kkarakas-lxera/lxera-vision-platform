@@ -350,7 +350,10 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
               break;
             case 'languages':
               if (section.data?.languages) {
-                restoredFormData.languages = section.data.languages;
+                // Extract language names from objects if needed
+                restoredFormData.languages = section.data.languages.map((lang: any) => 
+                  typeof lang === 'string' ? lang : lang.language || ''
+                ).filter((name: string) => name);
                 if (section.isComplete) {
                   lastCompletedStep = Math.max(lastCompletedStep, 4);
                 }
