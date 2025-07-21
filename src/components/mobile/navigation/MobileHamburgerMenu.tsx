@@ -204,11 +204,9 @@ const MobileHamburgerMenu: React.FC<MobileHamburgerMenuProps> = ({
       case 'learner':
         return [
           {
-            title: 'Learning',
+            title: 'Profile',
             items: [
-              { href: '/learner', icon: Home, label: 'Dashboard', description: 'Learning dashboard' },
-              { href: '/learner/courses', icon: BookOpen, label: 'My Courses', description: 'Available courses' },
-              { href: '/learner/certificates', icon: GraduationCap, label: 'Certificates', description: 'My achievements' },
+              { href: '/learner/profile', icon: Users, label: 'My Profile', description: 'View and edit profile' },
             ]
           }
         ];

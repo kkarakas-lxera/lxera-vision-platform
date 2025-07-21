@@ -41,7 +41,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       case 'company_admin':
         return <Navigate to="/dashboard" replace />;
       case 'learner':
-        return <Navigate to="/learner" replace />;
+        return <Navigate to="/learner/profile" replace />;
       default:
         return <Navigate to="/login" replace />;
     }

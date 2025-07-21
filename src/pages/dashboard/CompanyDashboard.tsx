@@ -44,6 +44,8 @@ interface DashboardMetrics {
   analyzedCVs: number;
   positionsWithGaps: number;
   criticalGaps: number;
+  profilesComplete: number;
+  profilesInProgress: number;
 }
 
 interface SkillsHealthData {
@@ -85,7 +87,9 @@ export default function CompanyDashboard() {
     employeesWithCVs: 0,
     analyzedCVs: 0,
     positionsWithGaps: 0,
-    criticalGaps: 0
+    criticalGaps: 0,
+    profilesComplete: 0,
+    profilesInProgress: 0
   });
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [skillsGapData, setSkillsGapData] = useState<SkillGapOverview[]>([]);
@@ -316,6 +320,12 @@ export default function CompanyDashboard() {
       const avgReadiness = skillsProfiles?.length
         ? skillsProfiles.reduce((acc, profile) => acc + (profile.career_readiness_score || 0), 0) / skillsProfiles.length
         : 0;
+      
+      // Count profile completion status
+      const profilesComplete = employees?.filter((e: any) => e.profile_complete).length || 0;
+      const profilesInProgress = employees?.filter((e: any) => 
+        !e.profile_complete && e.completed_sections && e.completed_sections > 0
+      ).length || 0;
 
       // Fetch active learning paths through employees join
       const { data: activeAssignments } = await supabase
@@ -381,7 +391,9 @@ export default function CompanyDashboard() {
         employeesWithCVs,
         analyzedCVs,
         positionsWithGaps,
-        criticalGaps
+        criticalGaps,
+        profilesComplete,
+        profilesInProgress
       });
 
       // Calculate Skills Health Score
@@ -911,8 +923,13 @@ export default function CompanyDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalEmployees}</div>
                 <p className="text-xs font-medium text-muted-foreground mt-1">
-                  {metrics.employeesWithCVs} with CVs uploaded
+                  {metrics.profilesComplete} profiles complete
                 </p>
+                {metrics.profilesInProgress > 0 && (
+                  <p className="text-xs font-medium text-amber-600 mt-0.5">
+                    {metrics.profilesInProgress} in progress
+                  </p>
+                )}
               </CardContent>
             </Card>
 

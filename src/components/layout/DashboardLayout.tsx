@@ -124,17 +124,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
         ];
       case 'learner':
-        // Show only My Profile tab if profile is incomplete
-        if (!profileCompletion.isComplete && !profileCompletion.isLoading) {
-          return [
-            { href: '/learner/profile', icon: Users, label: 'My Profile' },
-          ];
-        }
+        // Learners only see My Profile - whether complete or incomplete
         return [
-          { href: '/learner', icon: Home, label: 'Dashboard' },
-          { href: '/learner/courses', icon: BookOpen, label: 'My Courses' },
           { href: '/learner/profile', icon: Users, label: 'My Profile' },
-          { href: '/learner/certificates', icon: GraduationCap, label: 'Certificates' },
         ];
       default:
         return [];

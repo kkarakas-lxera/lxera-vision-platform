@@ -67,6 +67,10 @@ interface Employee {
   gap_analysis_completed_at: string | null;
   invitation_status?: 'not_sent' | 'sent' | 'viewed' | 'completed';
   invitation_sent_at?: string | null;
+  profile_complete?: boolean;
+  completed_sections?: number;
+  total_sections?: number;
+  last_profile_update?: string | null;
 }
 
 const EmployeesPage = () => {
@@ -88,6 +92,42 @@ const EmployeesPage = () => {
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchEmployees();
+      
+      // Set up real-time subscription for employee updates
+      const channel = supabase
+        .channel('employee-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'employees',
+            filter: `company_id=eq.${userProfile.company_id}`,
+          },
+          (payload) => {
+            console.log('Employee update:', payload);
+            // Refresh the employee list when changes occur
+            fetchEmployees();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'employee_profile_sections',
+          },
+          (payload) => {
+            console.log('Profile section update:', payload);
+            // Refresh when profile sections change
+            fetchEmployees();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userProfile?.company_id]);
 
@@ -351,21 +391,14 @@ const EmployeesPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Avg Match Score</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Profiles Complete</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">
-                {employees.filter(e => e.skills_match_score !== null).length > 0
-                  ? Math.round(
-                      employees
-                        .filter(e => e.skills_match_score !== null)
-                        .reduce((sum, e) => sum + (e.skills_match_score || 0), 0) /
-                      employees.filter(e => e.skills_match_score !== null).length
-                    )
-                  : 0}%
+                {employees.filter(e => e.profile_complete).length}
               </span>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -461,6 +494,7 @@ const EmployeesPage = () => {
                   <th className="text-left p-4">Employee</th>
                   <th className="text-left p-4">Department</th>
                   <th className="text-left p-4">Position</th>
+                  <th className="text-left p-4">Profile Status</th>
                   <th className="text-left p-4">Invitation</th>
                   <th className="text-left p-4">CV Status</th>
                   <th className="text-left p-4">Skills Analysis</th>
@@ -494,6 +528,21 @@ const EmployeesPage = () => {
                       </td>
                       <td className="p-4">{employee.department || '-'}</td>
                       <td className="p-4">{employee.position || '-'}</td>
+                      <td className="p-4">
+                        {employee.profile_complete ? (
+                          <Badge className="bg-green-100 text-green-800">
+                            Complete
+                          </Badge>
+                        ) : employee.completed_sections && employee.total_sections ? (
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            {employee.completed_sections}/{employee.total_sections} Complete
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Not Started
+                          </Badge>
+                        )}
+                      </td>
                       <td className="p-4">
                         {employee.invitation_status === 'completed' && (
                           <Badge className="bg-green-100 text-green-800">Completed</Badge>

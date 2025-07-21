@@ -36,57 +36,14 @@ interface MoreMenuItem {
 
 const navItems: NavItem[] = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: Home,
-    path: '/learner'
-  },
-  {
-    id: 'courses',
-    label: 'Courses',
-    icon: BookOpen,
-    path: '/learner/courses'
-  },
-  {
-    id: 'progress',
-    label: 'Progress',
-    icon: TrendingUp,
-    path: '/learner/progress'
-  },
-  {
-    id: 'certificates',
-    label: 'Certificates',
-    icon: Award,
-    path: '/learner/certificates'
+    id: 'profile',
+    label: 'My Profile',
+    icon: User,
+    path: '/learner/profile'
   }
 ];
 
-const moreMenuItems: MoreMenuItem[] = [
-  {
-    id: 'profile',
-    label: 'Profile',
-    icon: User,
-    path: '/learner/profile'
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: Settings,
-    path: '/learner/settings'
-  },
-  {
-    id: 'help',
-    label: 'Help',
-    icon: HelpCircle,
-    path: '/learner/help'
-  },
-  {
-    id: 'feedback',
-    label: 'Feedback',
-    icon: MessageSquare,
-    path: '/learner/feedback'
-  }
-];
+const moreMenuItems: MoreMenuItem[] = [];
 
 export function MobileLearnerNavigation() {
   const location = useLocation();
@@ -181,57 +138,9 @@ export function MobileLearnerNavigation() {
             );
           })}
 
-          {/* More Button */}
-          <button
-            onClick={() => setIsMoreMenuOpen(true)}
-            className="flex flex-col items-center justify-center py-2 px-3 min-h-[48px] min-w-[48px] flex-1 transition-all duration-200 relative group"
-          >
-            <div className="active:scale-95 transition-transform duration-100">
-              <MoreHorizontal 
-                className={cn(
-                  "h-5 w-5 transition-colors",
-                  isMoreMenuOpen ? "text-primary" : "text-gray-500 group-hover:text-gray-700"
-                )}
-              />
-            </div>
-            <span 
-              className={cn(
-                "text-xs mt-1 transition-colors",
-                isMoreMenuOpen ? "text-primary font-medium" : "text-gray-500 group-hover:text-gray-700"
-              )}
-            >
-              More
-            </span>
-          </button>
         </div>
       </nav>
 
-      {/* More Menu Sheet */}
-      <Sheet open={isMoreMenuOpen} onOpenChange={setIsMoreMenuOpen}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-          <SheetHeader>
-            <SheetTitle>More Options</SheetTitle>
-          </SheetHeader>
-          <div className="grid gap-2 py-4">
-            {moreMenuItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-
-              return (
-                <Button
-                  key={item.id}
-                  variant={active ? "secondary" : "ghost"}
-                  className="w-full justify-start h-12"
-                  onClick={() => handleNavigation(item.path)}
-                >
-                  <Icon className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{item.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }
