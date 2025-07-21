@@ -24,7 +24,12 @@ import {
   FileText,
   Save,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Pencil,
+  X,
+  Users,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -145,6 +150,8 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     challenges: string[];
     growthAreas: string[];
   } | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvAnalyzing, setCvAnalyzing] = useState(false);
@@ -411,8 +418,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         });
       }
 
-      // Restore step position - go to next step after last completed
-      if (lastCompletedStep > 0) {
+      // Check if profile is already completed
+      if (lastCompletedStep >= STEPS.length) {
+        setIsCompleted(true);
+      } else if (lastCompletedStep > 0) {
+        // Restore step position - go to next step after last completed
         const nextStep = Math.min(lastCompletedStep + 1, STEPS.length);
         setCurrentStep(nextStep);
       }
@@ -1419,53 +1429,113 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           );
         }
         
+        // Progressive disclosure - show 3 initially, +2 for each selection
+        const selectedCount = formData.challenges.length;
+        const visibleCount = Math.min(3 + (selectedCount * 2), personalizedSuggestions.challenges.length);
+        const visibleChallenges = personalizedSuggestions.challenges.slice(0, visibleCount);
+        const hasMore = visibleCount < personalizedSuggestions.challenges.length;
+        
         return (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900 font-medium">🎯 Your personalized challenges</p>
-              <p className="text-xs text-blue-700 mt-1">Based on your role as {formData.roleInTeam || 'team member'}</p>
+              <p className="text-sm text-blue-900 font-medium">🎯 What challenges are you facing?</p>
+              <p className="text-xs text-blue-700 mt-1">Select what resonates with you</p>
             </div>
             
-            {/* Mobile-optimized vertical list */}
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {personalizedSuggestions.challenges.map((challenge, index) => (
-                <div key={challenge} className="relative">
-                  <Button
-                    type="button"
-                    variant={formData.challenges.includes(challenge) ? 'default' : 'outline'}
-                    onClick={() => {
-                      handleFormChange(prev => ({
-                        ...prev,
-                        challenges: prev.challenges.includes(challenge)
-                          ? prev.challenges.filter(c => c !== challenge)
-                          : [...prev.challenges, challenge]
-                      }));
-                    }}
-                    className={cn(
-                      "w-full justify-between p-4 h-auto",
-                      "text-left text-sm leading-relaxed",
-                      formData.challenges.includes(challenge)
-                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                    )}
+            {/* Progressive reveal list */}
+            <div className="space-y-3">
+              <AnimatePresence mode="popLayout">
+                {visibleChallenges.map((challenge, index) => (
+                  <motion.div
+                    key={challenge}
+                    initial={{ opacity: 0, y: 20, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -20, height: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
-                    <span className="flex items-start gap-3 pr-2">
-                      <span className="text-lg flex-shrink-0">
-                        {index < 3 ? '🔥' : index < 6 ? '⚡' : index < 9 ? '🎯' : '💡'}
-                      </span>
-                      <span className="flex-1 break-words">{challenge}</span>
-                    </span>
-                    {formData.challenges.includes(challenge) && (
-                      <Check className="h-5 w-5 flex-shrink-0 ml-2" />
-                    )}
-                  </Button>
-                </div>
-              ))}
+                    <Card 
+                      className={cn(
+                        "p-4 cursor-pointer transition-all duration-200",
+                        "hover:shadow-md border-2",
+                        formData.challenges.includes(challenge)
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      )}
+                      onClick={() => {
+                        handleFormChange(prev => ({
+                          ...prev,
+                          challenges: prev.challenges.includes(challenge)
+                            ? prev.challenges.filter(c => c !== challenge)
+                            : [...prev.challenges, challenge]
+                        }));
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                          formData.challenges.includes(challenge)
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100"
+                        )}>
+                          {formData.challenges.includes(challenge) ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <span className="text-sm font-medium">{index + 1}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm leading-relaxed",
+                            formData.challenges.includes(challenge)
+                              ? "text-blue-900 font-medium"
+                              : "text-gray-700"
+                          )}>
+                            {challenge}
+                          </p>
+                          {formData.challenges.includes(challenge) && (
+                            <p className="text-xs text-blue-600 mt-1">✓ Selected</p>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              
+              {hasMore && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-3"
+                >
+                  <p className="text-sm text-gray-500">
+                    {selectedCount === 0 
+                      ? "Select a challenge to see more options"
+                      : `${personalizedSuggestions.challenges.length - visibleCount} more challenges available`
+                    }
+                  </p>
+                  <div className="flex justify-center gap-1 mt-2">
+                    {Array.from({ length: Math.ceil(personalizedSuggestions.challenges.length / 3) }).map((_, i) => (
+                      <div 
+                        key={i}
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          i * 3 < visibleCount ? "bg-blue-600" : "bg-gray-300"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
             
-            <div className="text-center text-sm text-gray-600 mt-4">
-              Selected: {formData.challenges.length} challenges
-            </div>
+            {formData.challenges.length > 0 && (
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-sm font-medium text-gray-700">
+                  {formData.challenges.length} challenge{formData.challenges.length !== 1 ? 's' : ''} selected
+                </p>
+              </div>
+            )}
           </div>
         );
         
@@ -1480,57 +1550,108 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           );
         }
         
+        // Progressive disclosure - show 3 initially, +1 for each selection up to 5 selections
+        const growthSelectedCount = formData.growthAreas.length;
+        const growthVisibleCount = Math.min(
+          3 + growthSelectedCount, 
+          personalizedSuggestions.growthAreas.length,
+          8 // Cap at 8 visible to keep it manageable
+        );
+        const visibleGrowthAreas = personalizedSuggestions.growthAreas.slice(0, growthVisibleCount);
+        const growthHasMore = growthVisibleCount < personalizedSuggestions.growthAreas.length;
+        
         return (
           <div className="space-y-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-900 font-medium">🌱 Your growth roadmap</p>
-              <p className="text-xs text-green-700 mt-1">Prioritize up to 5 areas for maximum impact</p>
+              <p className="text-sm text-green-900 font-medium">🌱 Where do you want to grow?</p>
+              <p className="text-xs text-green-700 mt-1">Choose up to 5 areas to focus on</p>
             </div>
             
-            {/* Mobile-optimized card stack */}
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {personalizedSuggestions.growthAreas.map((area, index) => (
-                <div key={area} className="relative">
-                  <Button
-                    type="button"
-                    variant={formData.growthAreas.includes(area) ? 'default' : 'outline'}
-                    onClick={() => {
-                      if (formData.growthAreas.includes(area)) {
-                        handleFormChange(prev => ({
-                          ...prev,
-                          growthAreas: prev.growthAreas.filter(a => a !== area)
-                        }));
-                      } else if (formData.growthAreas.length < 5) {
-                        handleFormChange(prev => ({
-                          ...prev,
-                          growthAreas: [...prev.growthAreas, area]
-                        }));
-                      } else {
-                        toast.error('You can select up to 5 growth areas');
-                      }
-                    }}
-                    className={cn(
-                      "w-full justify-between p-4 h-auto",
-                      "text-left text-sm leading-relaxed",
-                      formData.growthAreas.includes(area)
-                        ? "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                        : "bg-white border-gray-200 hover:border-gray-300",
-                      !formData.growthAreas.includes(area) && formData.growthAreas.length >= 5 && "opacity-50 cursor-not-allowed"
-                    )}
-                    disabled={!formData.growthAreas.includes(area) && formData.growthAreas.length >= 5}
+            {/* Progressive reveal list */}
+            <div className="space-y-3">
+              <AnimatePresence mode="popLayout">
+                {visibleGrowthAreas.map((area, index) => (
+                  <motion.div
+                    key={area}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
                   >
-                    <span className="flex items-start gap-3 pr-2">
-                      <span className="text-lg flex-shrink-0">
-                        {index < 3 ? '🚀' : index < 6 ? '📈' : index < 9 ? '🎓' : '✨'}
-                      </span>
-                      <span className="flex-1 break-words">{area}</span>
-                    </span>
-                    {formData.growthAreas.includes(area) && (
-                      <Check className="h-5 w-5 flex-shrink-0 ml-2" />
-                    )}
-                  </Button>
-                </div>
-              ))}
+                    <Card 
+                      className={cn(
+                        "p-4 cursor-pointer transition-all duration-200",
+                        "hover:shadow-md border-2",
+                        formData.growthAreas.includes(area)
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-gray-300 bg-white",
+                        !formData.growthAreas.includes(area) && formData.growthAreas.length >= 5 && "opacity-50 cursor-not-allowed"
+                      )}
+                      onClick={() => {
+                        if (formData.growthAreas.includes(area)) {
+                          handleFormChange(prev => ({
+                            ...prev,
+                            growthAreas: prev.growthAreas.filter(a => a !== area)
+                          }));
+                        } else if (formData.growthAreas.length < 5) {
+                          handleFormChange(prev => ({
+                            ...prev,
+                            growthAreas: [...prev.growthAreas, area]
+                          }));
+                        } else {
+                          toast.error('You can select up to 5 growth areas');
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                          formData.growthAreas.includes(area)
+                            ? "bg-green-600 text-white"
+                            : formData.growthAreas.length >= 5
+                            ? "bg-gray-100 text-gray-400"
+                            : "bg-gray-100"
+                        )}>
+                          {formData.growthAreas.includes(area) ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <span className="text-sm font-medium">
+                              {formData.growthAreas.length >= 5 ? '🔒' : index + 1}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm leading-relaxed",
+                            formData.growthAreas.includes(area)
+                              ? "text-green-900 font-medium"
+                              : formData.growthAreas.length >= 5
+                              ? "text-gray-400"
+                              : "text-gray-700"
+                          )}>
+                            {area}
+                          </p>
+                          {formData.growthAreas.includes(area) && (
+                            <p className="text-xs text-green-600 mt-1">✓ Selected priority</p>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              
+              {growthHasMore && formData.growthAreas.length < 5 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-3"
+                >
+                  <p className="text-sm text-gray-500">
+                    Select more to reveal additional growth opportunities
+                  </p>
+                </motion.div>
+              )}
             </div>
             
             <div className="bg-gray-50 rounded-lg p-3">
@@ -1650,7 +1771,7 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                     if (currentStep === STEPS.length) {
                       // Final step - complete profile
                       await saveStepData(false);
-                      onComplete();
+                      setIsCompleted(true);
                     } else {
                       handleNext();
                     }
