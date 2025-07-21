@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
-import WhatsNewSection from '@/pages/learner/profileSections/WhatsNewSection';
+import SkillsValidationCards from '@/components/learner/SkillsValidationCards';
 
 interface ProfileCompletionFlowProps {
   employeeId: string;
@@ -61,10 +61,7 @@ interface FormData {
   institution: string;
   graduationYear: string;
   
-  // What's New
-  recentCertifications: string[];
-  languages: string[];
-  recentSkills: string[];
+  // Skills validation is now handled separately
   
   // Current Work
   currentProjects: string[];
@@ -102,10 +99,10 @@ const STEPS = [
   },
   {
     id: 4,
-    title: "What's New Since Your CV?",
-    subtitle: "Recent certifications, languages, and skills",
+    title: "Skills Review",
+    subtitle: "Quick validation of your expertise",
     icon: Brain,
-    fields: ['recentCertifications', 'languages', 'recentSkills']
+    fields: [] // No form fields needed
   },
   {
     id: 5,
@@ -185,9 +182,6 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     fieldOfStudy: '',
     institution: '',
     graduationYear: '',
-    recentCertifications: [],
-    languages: [],
-    recentSkills: [],
     currentProjects: [],
     teamSize: '',
     roleInTeam: '',
@@ -340,34 +334,13 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                 }
               }
               break;
+            // Skills validation is now handled separately in Step 4
             case 'certifications':
-              if (section.data?.certifications) {
-                restoredFormData.recentCertifications = section.data.certifications;
-                if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 4);
-                }
-              }
-              break;
             case 'languages':
-              if (section.data?.languages) {
-                // Extract language names from objects if needed
-                restoredFormData.languages = section.data.languages.map((lang: any) => 
-                  typeof lang === 'string' ? lang : lang.language || ''
-                ).filter((name: string) => name);
-                if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 4);
-                }
-              }
-              break;
             case 'skills':
-              if (section.data?.skills) {
-                // Extract skill names from objects if needed
-                restoredFormData.recentSkills = section.data.skills.map((skill: any) => 
-                  typeof skill === 'string' ? skill : skill.name || ''
-                ).filter((name: string) => name);
-                if (section.isComplete) {
-                  lastCompletedStep = Math.max(lastCompletedStep, 4);
-                }
+              // These are now handled by SkillsValidationCards component
+              if (section.isComplete) {
+                lastCompletedStep = Math.max(lastCompletedStep, 4);
               }
               break;
             case 'current_work':
@@ -550,23 +523,9 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           });
           break;
           
-        case 4: // What's New Since Your CV
-          // Save certifications, languages, and skills separately
-          if (formData.recentCertifications.length > 0) {
-            await EmployeeProfileService.saveSection(employeeId, 'certifications', {
-              certifications: formData.recentCertifications
-            });
-          }
-          if (formData.languages.length > 0) {
-            await EmployeeProfileService.saveSection(employeeId, 'languages', {
-              languages: formData.languages
-            });
-          }
-          if (formData.recentSkills.length > 0) {
-            await EmployeeProfileService.saveSection(employeeId, 'skills', {
-              skills: formData.recentSkills
-            });
-          }
+        case 4: // Skills Review
+          // Skills are now validated through SkillsValidationCards component
+          // No need to save here as it's handled by the component
           break;
           
         case 5: // Current Work
@@ -1036,19 +995,15 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
           </div>
         );
         
-      case 4: // What's New
+      case 4: // Skills Review
         return (
-          <WhatsNewSection
-            formData={{
-              recentCertifications: formData.recentCertifications,
-              languages: formData.languages,
-              recentSkills: formData.recentSkills
-            }}
-            onChange={(data) => {
-              handleFormChange(prev => ({
-                ...prev,
-                ...data
-              }));
+          <SkillsValidationCards
+            employeeId={employeeId}
+            onComplete={() => {
+              // Auto-advance to next step
+              if (currentStep < STEPS.length) {
+                setCurrentStep(currentStep + 1);
+              }
             }}
           />
         );

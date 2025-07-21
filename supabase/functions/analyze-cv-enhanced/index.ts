@@ -421,52 +421,29 @@ serve(async (req) => {
 
     await updateStatus('storing', 80, 'Storing analysis results...')
     
-    // Store enhanced analysis results
-    const profileData = {
-      employee_id: employee_id,
-      cv_file_path: file_path,
-      cv_summary: analysisResult.summary || analysisResult.professional_summary || '',
-      extracted_skills: extractedSkills,
-      current_position_id: employee.current_position_id,
-      target_position_id: employee.target_position_id,
-      skills_match_score: matchScore,
-      analyzed_at: new Date().toISOString(),
-      // New enhanced fields
-      skills_analysis_version: 2,
-      experience_years: analysisResult.total_experience_years || 0,
-      education_level: analysisResult.education?.[0]?.degree || null,
-      certifications: analysisResult.certifications || [],
-      industry_experience: analysisResult.work_experience?.map((exp: any) => ({
-        company: exp.company,
-        industry: exp.industry || 'Unknown',
-        years: exp.duration || 0
-      })) || [],
-      soft_skills: extractedSkills.filter(s => s.category === 'soft'),
-      technical_skills: extractedSkills.filter(s => s.category === 'technical'),
-      languages: analysisResult.languages || [],
-      projects_summary: analysisResult.projects?.map((p: any) => p.name).join(', ') || null,
-      analysis_metadata: {
-        file_size_bytes: arrayBuffer.byteLength,
-        analysis_time_ms: Date.now() - startTime,
-        template_used: analysisTemplate?.template_name,
-        model_used: 'gpt-4o',
-        tokens_used: tokensUsed,
-        extraction_method: 'openai_file_upload'
-      }
-    }
+    // Store results in temporary cv_analysis_results table
+    const { error: cvResultsError } = await supabase
+      .from('cv_analysis_results')
+      .upsert({
+        employee_id: employee_id,
+        extracted_skills: extractedSkills,
+        work_experience: analysisResult.work_experience || [],
+        education: analysisResult.education || [],
+        analysis_status: 'completed',
+        analyzed_at: new Date().toISOString()
+      }, { onConflict: 'employee_id' })
 
-    const { error: profileError } = await supabase
-      .from('st_employee_skills_profile')
-      .upsert(profileData, { onConflict: 'employee_id' })
-
-    if (profileError) {
-      logSanitizedError(profileError, {
+    if (cvResultsError) {
+      logSanitizedError(cvResultsError, {
         requestId,
         functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'skills_profile_storage' }
+        metadata: { context: 'cv_results_storage' }
       })
-      throw profileError
+      throw cvResultsError
     }
+    
+    // Note: We no longer update st_employee_skills_profile here
+    // This will be done after skills validation in Step 4
 
     // Update session item if provided
     if (session_item_id) {
