@@ -227,10 +227,10 @@ export default function ActivityLog() {
       <CardContent className="p-0">
         <ScrollArea className="h-[220px]">
           {activities.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
-              <Activity className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <div className="p-6 text-center text-xs text-muted-foreground">
+              <Activity className="h-6 w-6 mx-auto mb-2 text-gray-300" />
               <p>No activities yet</p>
-              <p className="text-xs mt-1">Import employees to see activity</p>
+              <p className="text-xs mt-0.5">Import employees to see activity</p>
             </div>
           ) : (
             <div className="divide-y">
