@@ -72,39 +72,36 @@ export default function OnboardingOverview() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto space-y-4">
-      {/* Main Three-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Side - Team Overview (2 columns) */}
-        <div className="lg:col-span-2">
-          <Card className="overflow-hidden">
-            <CardHeader className="py-3 border-b">
-              <CardTitle className="text-base">Team Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="text-center p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Team Members</p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
-                  <p className="text-xs text-muted-foreground">Pending Invites</p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-md border border-green-200">
-                  <p className="text-2xl font-bold text-green-800">{stats.completed}</p>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                </div>
-                <div className="text-center p-3 bg-blue-50 rounded-md border border-blue-200">
-                  <p className="text-2xl font-bold text-blue-900">{stats.analyzed}</p>
-                  <p className="text-xs text-muted-foreground">Analyzed CVs</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Team Overview - Compact Horizontal Layout */}
+      <Card className="overflow-hidden">
+        <CardHeader className="py-2 px-4 border-b">
+          <CardTitle className="text-sm">Team Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="text-center p-2 bg-gray-50 rounded border border-gray-200">
+              <p className="text-xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-xs text-muted-foreground">Members</p>
+            </div>
+            <div className="text-center p-2 bg-gray-50 rounded border border-gray-200">
+              <p className="text-xl font-bold text-foreground">{stats.pending}</p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded border border-green-200">
+              <p className="text-xl font-bold text-green-800">{stats.completed}</p>
+              <p className="text-xs text-muted-foreground">Complete</p>
+            </div>
+            <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+              <p className="text-xl font-bold text-blue-900">{stats.analyzed}</p>
+              <p className="text-xs text-muted-foreground">Analyzed</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Middle - Quick Actions (5 columns) */}
-        <div className="lg:col-span-5">
+      {/* Quick Actions and Activity Log Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
           {(stats.total >= 10 || stats.withCV > 0 || stats.analyzed > 0) && (
             <QuickActions
               onAddEmployees={() => navigate('/dashboard/onboarding/import')}
@@ -118,8 +115,8 @@ export default function OnboardingOverview() {
           )}
         </div>
 
-        {/* Right Side - Activity Log (5 columns) */}
-        <div className="lg:col-span-5">
+        {/* Activity Log */}
+        <div>
           <ActivityLog />
         </div>
       </div>
