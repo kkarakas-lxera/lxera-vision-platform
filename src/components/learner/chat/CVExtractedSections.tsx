@@ -555,39 +555,39 @@ export default function CVExtractedSections({
                         </Button>
                       )}
                     </div>
-                    <AnimatePresence>
-                      {expandedEducation.has(index) && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pl-6 space-y-1">
-                            {edu.fieldOfStudy && (
-                              <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
-                            )}
-                            <p className="text-sm text-gray-600">{edu.institution}</p>
-                            <p className="text-xs text-gray-500">{edu.year}</p>
-                            {edu.gpa && (
-                              <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>
-                            )}
-                            {edu.achievements && edu.achievements.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-xs font-medium text-gray-600 mb-1">Achievements:</p>
-                                <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
-                                  {edu.achievements.map((achievement, idx) => (
-                                    <li key={idx}>{achievement}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   )}
+                  <AnimatePresence>
+                    {expandedEducation.has(index) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-6 space-y-1">
+                          {edu.fieldOfStudy && (
+                            <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
+                          )}
+                          <p className="text-sm text-gray-600">{edu.institution}</p>
+                          <p className="text-xs text-gray-500">{edu.year}</p>
+                          {edu.gpa && (
+                            <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>
+                          )}
+                          {edu.achievements && edu.achievements.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-gray-600 mb-1">Achievements:</p>
+                              <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
+                                {edu.achievements.map((achievement, idx) => (
+                                  <li key={idx}>{achievement}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               ))}
             </AnimatePresence>
