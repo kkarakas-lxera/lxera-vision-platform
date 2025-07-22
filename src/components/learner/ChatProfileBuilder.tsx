@@ -268,6 +268,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         if (lastStep > 0) {
           setCurrentStep(lastStep);
+          setMaxStepReached(prev => Math.max(prev, lastStep)); // Ensure maxStepReached is updated
           // Reinitialize the current step UI after CV data is loaded
           setTimeout(() => {
             // Check if we need to wait for CV data to be loaded
@@ -1349,6 +1350,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'current_work':
+        setShowDynamicMessage(false); // Hide dynamic message to avoid duplication
         addBotMessage("Tell me about your current work. What size team do you work with?", 0, 1000);
         showQuickReplies([
           { label: "Working alone", value: "Working alone" },
@@ -1359,6 +1361,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'challenges':
+        setShowDynamicMessage(false); // Hide dynamic message to avoid duplication
         if (!personalizedSuggestions) {
           addBotMessage("Let me think about some challenges professionals in your role might face...", 0, 1000);
           generatePersonalizedSuggestions();
@@ -1368,6 +1371,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'growth':
+        setShowDynamicMessage(false); // Hide dynamic message to avoid duplication
         if (!personalizedSuggestions) {
           addBotMessage("Preparing growth opportunities based on your profile...", 0, 1000);
           generatePersonalizedSuggestions();
