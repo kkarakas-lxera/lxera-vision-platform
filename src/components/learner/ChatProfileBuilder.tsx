@@ -119,6 +119,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [builderState, setBuilderState] = useState<ProfileBuilderState | null>(null);
   const [navigatingTo, setNavigatingTo] = useState<number | null>(null);
   const [showDynamicMessage, setShowDynamicMessage] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -238,6 +239,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         setMessages(formattedMessages);
         
+        // Check if we need to recreate missing quick replies
+        const lastBotMessage = recentMessages.find(msg => msg.message_type === 'bot');
+        if (lastBotMessage?.content?.includes('How does that sound?')) {
+          // Recreate the initial quick replies
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Let's start! 🚀", value: "start", points: 50, variant: 'primary' },
+              { label: "Tell me more", value: "more_info" },
+              { label: "What rewards?", value: "rewards" }
+            ]);
+          }, 500);
+        }
+        
         // Resume from last step if available
         const lastStep = recentMessages.reduce((maxStep, msg) => {
           const msgStep = msg.step ? parseInt(msg.step) : 0;
@@ -314,9 +328,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Clear all messages from database
       await ChatMessageService.deleteMessagesByEmployee(employeeId);
       
+      // Clear saved profile builder state
+      await ProfileBuilderStateService.clearState(employeeId);
+      
       // Reset all state
       setMessages([]);
       setCurrentStep(0);
+      setMaxStepReached(0); // Reset max step reached
       setPoints(0);
       setStreak(0);
       setCvUploaded(false);
@@ -327,6 +345,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setCurrentWorkExperience({});
       setIsLoading(false);
       setIsTyping(false);
+      setShowDynamicMessage(false); // Reset dynamic message
+      setNavigatingTo(null); // Reset navigation state
+      setCvAnalysisComplete(false); // Reset CV analysis state
+      setBuilderState(null); // Clear builder state
+      setIsInitializing(false); // Reset initialization flag
       setFormData({
         currentPosition: employeeData?.st_company_positions?.position_title || '',
         department: employeeData?.st_company_positions?.department || '',
@@ -365,6 +388,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const initializeChat = () => {
+    // Prevent duplicate initialization
+    if (isInitializing) return;
+    setIsInitializing(true);
+    
     addBotMessage(
       `Hey ${employeeData?.full_name || 'there'}! 👋 I'm Lexie, your AI profile assistant. Ready to build your professional profile together? It's like a quest where you unlock rewards along the way!`,
       0,
@@ -384,6 +411,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           { label: "Tell me more", value: "more_info" },
           { label: "What rewards?", value: "rewards" }
         ]);
+        setIsInitializing(false); // Reset initialization flag after completion
       }, 1200);
     }, 2000);
   };
