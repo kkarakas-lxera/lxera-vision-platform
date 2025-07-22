@@ -8,6 +8,8 @@ import QuickReplyButtons from './chat/QuickReplyButtons';
 import ChatInput from './chat/ChatInput';
 import GameProgress from './chat/GameProgress';
 import TypingIndicator from './chat/TypingIndicator';
+import FileDropZone from './chat/FileDropZone';
+import CVSummaryCard from './chat/CVSummaryCard';
 import SkillsValidationCards from './SkillsValidationCards';
 import CourseOutlineReward from './CourseOutlineReward';
 import { Trophy, Zap, Upload, Clock } from 'lucide-react';
@@ -85,6 +87,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [employeeData, setEmployeeData] = useState<any>(null);
   const [cvUploaded, setCvUploaded] = useState(false);
   const [currentWorkExperience, setCurrentWorkExperience] = useState<any>({});
+  const [waitingForCVUpload, setWaitingForCVUpload] = useState(false);
+  const [cvExtractedData, setCvExtractedData] = useState<any>(null);
+  const [showCVSummary, setShowCVSummary] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -264,9 +269,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const handleFileUpload = async (file: File) => {
-    if (currentStep === 1) {
-      // CV Upload
-      addUserMessage("📄 Uploading CV...");
+    if (currentStep === 1 || waitingForCVUpload) {
+      // CV Upload - handleCVUpload will show the upload message
       await handleCVUpload(file);
     }
   };
@@ -351,26 +355,38 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     setTimeout(() => {
       showQuickReplies([
         { label: "📤 Upload CV", value: "upload_cv", points: 200, variant: 'primary' },
-        { label: "✍️ Enter manually", value: "manual_entry", points: 100 },
-        { label: "Skip for now", value: "skip_cv" }
+        { label: "✍️ Enter manually", value: "manual_entry", points: 100 }
       ]);
     }, 2000);
   };
 
   const handleCVUploadResponse = (response: string) => {
     if (response === 'upload_cv') {
-      addBotMessage("Perfect! You can drag and drop your CV or click the paperclip icon below to upload it.", 0, 500);
-    } else if (response === 'manual_entry' || response === 'skip_cv') {
-      moveToNextStep();
+      setWaitingForCVUpload(true);
+      addBotMessage("Perfect! Please use the paperclip icon below to select your CV file (PDF, DOC, or DOCX).", 0, 500);
+      // Don't move to next step - wait for actual file upload
+    } else if (response === 'manual_entry') {
+      setWaitingForCVUpload(false);
+      addBotMessage("No problem! Let's build your profile step by step. 📝", 100);
+      setTimeout(() => moveToNextStep(), 1500);
     }
   };
 
   const handleCVUpload = async (file: File) => {
+    // Reset waiting state
+    setWaitingForCVUpload(false);
     setIsLoading(true);
-    addBotMessage("Analyzing your CV... This usually takes 30-60 seconds. 🔍", 0, 500);
+    
+    // Show upload progress
+    addUserMessage(`📄 Uploading ${file.name}...`);
+    
+    // Add some engaging messages during the process
+    setTimeout(() => {
+      addBotMessage("Great! I'm receiving your CV now... 📥", 0, 800);
+    }, 500);
     
     try {
-      // Reuse existing CV upload logic
+      // Upload the file
       const uploadPath = `${employeeId}/${Date.now()}-${file.name}`;
       const { data: cvData, error: uploadError } = await supabase.storage
         .from('employee-cvs')
@@ -378,6 +394,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       if (uploadError) throw uploadError;
 
+      // Show analysis progress
+      setTimeout(() => {
+        addBotMessage("Analyzing your CV... This usually takes 30-60 seconds. 🔍", 0, 1000);
+      }, 2000);
+      
+      setTimeout(() => {
+        addBotMessage("Extracting your work experience and skills... 💼", 0, 1000);
+      }, 4000);
+
+      // Analyze the CV
       const { data: analysisResult, error: analyzeError } = await supabase.functions.invoke('analyze-cv-enhanced', {
         body: { 
           employee_id: employeeId,
@@ -388,39 +414,54 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       if (analyzeError) throw analyzeError;
 
+      // Success!
       addAchievement(ACHIEVEMENTS.CV_UPLOADED);
       setCvUploaded(true);
-      addBotMessage(
-        "Excellent! I've extracted your information. Let me show you what I found...",
-        150,
-        1500
-      );
       
-      // Import CV data to profile
-      await supabase.functions.invoke('import-cv-to-profile', {
-        body: { employeeId }
-      });
+      // Store extracted data
+      if (analysisResult?.extractedData) {
+        setCvExtractedData(analysisResult.extractedData);
+      }
       
-      // Reload data to get imported information
-      await loadEmployeeData();
+      setTimeout(() => {
+        addBotMessage(
+          "Excellent! I've successfully extracted your information. Let me show you what I found... ✨",
+          150,
+          1000
+        );
+      }, 6000);
       
-      // Move to next step
-      setTimeout(() => moveToNextStep(), 2000);
+      // Show CV summary after messages
+      setTimeout(() => {
+        setShowCVSummary(true);
+        setIsLoading(false);
+      }, 7500);
       
     } catch (error) {
       console.error('CV upload error:', error);
+      setIsLoading(false);
       addBotMessage(
-        "Hmm, I had trouble reading your CV. No worries, we can enter the information together!",
+        "Hmm, I had trouble reading your CV. No worries, we can enter the information together! 💪",
         0,
         1000
       );
-      setTimeout(() => moveToNextStep(), 1500);
-    } finally {
-      setIsLoading(false);
+      setTimeout(() => moveToNextStep(), 2000);
     }
   };
 
   const handleWorkExperience = (response: string) => {
+    // Handle verification responses
+    if (response === 'confirm_experience') {
+      addBotMessage("Perfect! Your work experience looks great. 👍", 50);
+      setTimeout(() => moveToNextStep(), 1500);
+      return;
+    } else if (response === 'edit_experience') {
+      // Clear current experience to re-enter
+      setFormData(prev => ({ ...prev, workExperience: [] }));
+      addBotMessage("No problem! Let's update this. What's your correct job title?", 0);
+      return;
+    }
+    
     // Store current work experience being built
     if (!currentWorkExperience.title) {
       setCurrentWorkExperience({ title: response });
@@ -435,43 +476,87 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         { label: "5+ years", value: "5+ years" }
       ]);
     } else if (!currentWorkExperience.duration) {
-      setCurrentWorkExperience(prev => ({ ...prev, duration: response }));
+      const newExperience = { ...currentWorkExperience, duration: response };
       setFormData(prev => ({
         ...prev,
-        workExperience: [...prev.workExperience, currentWorkExperience]
+        workExperience: [...prev.workExperience, newExperience]
       }));
+      setCurrentWorkExperience({});
       saveStepData(true);
       
-      addBotMessage("Great! Would you like to add another work experience?", 100);
+      addBotMessage("Excellent! Would you like to add another position?", 100);
       showQuickReplies([
-        { label: "Add another", value: "add_more" },
-        { label: "Continue", value: "continue", variant: 'primary' }
+        { label: "Add another position", value: "add_more" },
+        { label: "Continue to education", value: "continue", variant: 'primary' }
       ]);
     } else if (response === 'add_more') {
       setCurrentWorkExperience({});
-      addBotMessage("What's the role title?", 0);
+      addBotMessage("What's the role title for this position?", 0);
     } else if (response === 'continue') {
       moveToNextStep();
     }
   };
 
   const handleEducation = (response: string) => {
-    // Handle education responses
-    if (!formData.education.length) {
-      addBotMessage("What's your highest degree?", 0);
-      showQuickReplies([
-        { label: "High School", value: "High School" },
-        { label: "Bachelor's", value: "Bachelor" },
-        { label: "Master's", value: "Master" },
-        { label: "PhD", value: "PhD" },
-        { label: "Other", value: "Other" }
-      ]);
-    } else {
+    // Handle verification responses
+    if (response === 'confirm_education') {
+      addBotMessage("Great! Your education details are confirmed. 🎓", 50);
+      setTimeout(() => moveToNextStep(), 1500);
+      return;
+    } else if (response === 'edit_education') {
+      setFormData(prev => ({ ...prev, education: [] }));
+      addBotMessage("Let's update your education. What's your degree?", 0);
+      setTimeout(() => {
+        showQuickReplies([
+          { label: "High School", value: "High School" },
+          { label: "Bachelor's", value: "Bachelor" },
+          { label: "Master's", value: "Master" },
+          { label: "PhD", value: "PhD" },
+          { label: "Other", value: "Other" }
+        ]);
+      }, 1000);
+      return;
+    } else if (response === 'add_more_education') {
+      addBotMessage("What additional degree do you have?", 0);
+      setTimeout(() => {
+        showQuickReplies([
+          { label: "Bachelor's", value: "Bachelor" },
+          { label: "Master's", value: "Master" },
+          { label: "PhD", value: "PhD" },
+          { label: "Certificate", value: "Certificate" }
+        ]);
+      }, 1000);
+      return;
+    }
+    
+    // Build education entry
+    if (!formData.education.length || !formData.education[formData.education.length - 1]?.degree) {
+      // Starting new education entry
+      const newEducation = { degree: response, institution: '', year: '' };
       setFormData(prev => ({
         ...prev,
-        highestDegree: response
+        education: [...prev.education, newEducation]
       }));
-      moveToNextStep();
+      addBotMessage("Which institution did you attend?", 50);
+    } else if (!formData.education[formData.education.length - 1].institution) {
+      // Update institution
+      setFormData(prev => {
+        const updated = [...prev.education];
+        updated[updated.length - 1].institution = response;
+        return { ...prev, education: updated };
+      });
+      addBotMessage("What year did you graduate?", 50);
+    } else {
+      // Update year and save
+      setFormData(prev => {
+        const updated = [...prev.education];
+        updated[updated.length - 1].year = response;
+        return { ...prev, education: updated };
+      });
+      saveStepData(true);
+      
+      addBotMessage("Perfect! Your education is recorded. 📚", 100);
+      setTimeout(() => moveToNextStep(), 1500);
     }
   };
 
@@ -543,34 +628,52 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
     switch (stepData.name) {
       case 'work_experience':
-        if (formData.workExperience.length > 0 && cvUploaded) {
+        if (formData.workExperience.length > 0) {
+          // Show existing experience for verification
+          const exp = formData.workExperience[0];
           addBotMessage(
-            `I see you have experience as ${formData.workExperience[0].title} at ${formData.workExperience[0].company}. Anything else you'd like to add?`,
+            `Let me confirm your work experience:\n\n📋 ${exp.title} at ${exp.company}\n${exp.duration ? `⏱️ ${exp.duration}` : ''}\n\nIs this correct?`,
             0,
             1000
           );
-          showQuickReplies([
-            { label: "Add more experience", value: "add_more" },
-            { label: "Looks good, continue", value: "continue", variant: 'primary' }
-          ]);
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Yes, that's correct", value: "confirm_experience", variant: 'primary' },
+              { label: "Edit this position", value: "edit_experience" },
+              { label: "Add another position", value: "add_more" }
+            ]);
+          }, 1500);
         } else {
           addBotMessage("Let's talk about your work experience. What's your current or most recent job title?", 0, 1000);
         }
         break;
 
       case 'education':
-        if (formData.education.length > 0 && cvUploaded) {
+        if (formData.education.length > 0) {
+          const edu = formData.education[0];
           addBotMessage(
-            `I found your ${formData.education[0].degree} from ${formData.education[0].institution}. Is this your highest degree?`,
+            `Let me confirm your education:\n\n🎓 ${edu.degree}\n🏫 ${edu.institution}\n${edu.year ? `📅 ${edu.year}` : ''}\n\nIs this correct?`,
             0,
             1000
           );
-          showQuickReplies([
-            { label: "Yes, that's correct", value: "continue", variant: 'primary' },
-            { label: "No, let me update", value: "update" }
-          ]);
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Yes, that's correct", value: "confirm_education", variant: 'primary' },
+              { label: "Edit this education", value: "edit_education" },
+              { label: "Add another degree", value: "add_more_education" }
+            ]);
+          }, 1500);
         } else {
-          handleEducation('');
+          addBotMessage("Now let's talk about your education. What's your highest degree?", 0, 1000);
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "High School", value: "High School" },
+              { label: "Bachelor's", value: "Bachelor" },
+              { label: "Master's", value: "Master" },
+              { label: "PhD", value: "PhD" },
+              { label: "Other", value: "Other" }
+            ]);
+          }, 1500);
         }
         break;
 
@@ -800,6 +903,48 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }, 2500);
   };
 
+  const handleCVSummaryConfirm = async () => {
+    setShowCVSummary(false);
+    
+    // Import CV data to profile
+    await supabase.functions.invoke('import-cv-to-profile', {
+      body: { employeeId }
+    });
+    
+    // Reload data to get imported information
+    await loadEmployeeData();
+    
+    addBotMessage("Great! I've saved all your information. Let's continue building your profile! 🚀", 100);
+    
+    // Move to next step
+    setTimeout(() => moveToNextStep(), 1500);
+  };
+
+  const handleCVSummaryEdit = (section: string) => {
+    setShowCVSummary(false);
+    addBotMessage(`No problem! Let's update your ${section} information together. What would you like to change?`, 0);
+    
+    // Handle editing based on section
+    switch(section) {
+      case 'experience':
+        setCurrentStep(2);
+        initiateStep(2);
+        break;
+      case 'education':
+        setCurrentStep(3);
+        initiateStep(3);
+        break;
+      case 'skills':
+        setCurrentStep(4);
+        initiateStep(4);
+        break;
+      default:
+        // For personal info, we continue with work experience
+        setCurrentStep(2);
+        initiateStep(2);
+    }
+  };
+
   // Render completed state
   if (isCompleted && courseOutline) {
     return (
@@ -835,17 +980,36 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         {isTyping && <TypingIndicator />}
         
+        {/* Show file drop zone when waiting for CV upload */}
+        {waitingForCVUpload && !isLoading && (
+          <FileDropZone 
+            onFileSelect={handleCVUpload}
+            isLoading={isLoading}
+          />
+        )}
+        
+        {/* Show CV summary after extraction */}
+        {showCVSummary && cvExtractedData && (
+          <CVSummaryCard
+            extractedData={cvExtractedData}
+            onConfirm={handleCVSummaryConfirm}
+            onEdit={handleCVSummaryEdit}
+          />
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
       <ChatInput
         onSend={handleTextInput}
-        onFileUpload={currentStep === 1 ? handleFileUpload : undefined}
+        onFileUpload={(currentStep === 1 || waitingForCVUpload) ? handleFileUpload : undefined}
         disabled={isLoading || isTyping}
         isLoading={isLoading}
         placeholder={
-          currentStep === 1 ? "Type or upload your CV..." : "Type your response..."
+          waitingForCVUpload ? "Upload your CV using the area above..." : 
+          currentStep === 1 ? "Type or upload your CV..." : 
+          "Type your response..."
         }
       />
     </div>
