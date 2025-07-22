@@ -112,6 +112,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [currentWorkIndex, setCurrentWorkIndex] = useState(0);
   const [showRestartDialog, setShowRestartDialog] = useState(false);
   const [showNavigationMenu, setShowNavigationMenu] = useState(false);
+  const [cvAnalysisComplete, setCvAnalysisComplete] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -736,6 +737,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         type: 'system',
         content: (
           <CVAnalysisProgress 
+            forceComplete={cvAnalysisComplete}
             onComplete={() => {
               console.log('CV analysis progress completed');
             }}
@@ -784,7 +786,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Reload full employee data and wait for state updates
         await loadEmployeeData();
         
-        // Success!
+        // Success! Force complete the progress animation
+        setCvAnalysisComplete(true);
         addAchievement(ACHIEVEMENTS.CV_UPLOADED);
         setCvUploaded(true);
         
@@ -1189,7 +1192,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
     switch (stepData.name) {
       case 'work_experience':
-        if (formData.workExperience.length > 0) {
+        // If we have CV extracted data, show the CV sections component
+        if (cvExtractedData && (cvExtractedData.work_experience?.length > 0 || cvExtractedData.education?.length > 0)) {
+          addBotMessage("Let's review your extracted information. You can edit individual entries or accept entire sections. 📝", 100);
+          setTimeout(() => {
+            handleCVSummaryConfirmWithData(cvExtractedData);
+          }, 1000);
+        } else if (formData.workExperience.length > 0) {
           // Reset index to start from first entry
           setCurrentWorkIndex(0);
           // Show first experience for verification
@@ -1212,7 +1221,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'education':
-        if (formData.education.length > 0) {
+        // If we have CV extracted data, show the CV sections component
+        if (cvExtractedData && (cvExtractedData.work_experience?.length > 0 || cvExtractedData.education?.length > 0)) {
+          addBotMessage("Let's review your extracted information. You can edit individual entries or accept entire sections. 📝", 100);
+          setTimeout(() => {
+            handleCVSummaryConfirmWithData(cvExtractedData);
+          }, 1000);
+        } else if (formData.education.length > 0) {
           // Reset index to start from first entry
           setCurrentEducationIndex(0);
           const edu = formData.education[0];

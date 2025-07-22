@@ -98,33 +98,7 @@ export default function CVExtractedSections({
     languages: false
   });
   
-  // Initialize expanded states for items with content
-  useEffect(() => {
-    // Expand work items that have additional content
-    const workIndexes = new Set<number>();
-    workData.forEach((work, index) => {
-      if (work.description || 
-          (work.responsibilities && work.responsibilities.length > 0) || 
-          (work.achievements && work.achievements.length > 0) ||
-          (work.technologies && work.technologies.length > 0)) {
-        workIndexes.add(index);
-      }
-    });
-    if (workIndexes.size > 0) {
-      setExpandedWork(workIndexes);
-    }
-    
-    // Expand education items that have additional content
-    const eduIndexes = new Set<number>();
-    educationData.forEach((edu, index) => {
-      if (edu.fieldOfStudy || edu.gpa || (edu.achievements && edu.achievements.length > 0)) {
-        eduIndexes.add(index);
-      }
-    });
-    if (eduIndexes.size > 0) {
-      setExpandedEducation(eduIndexes);
-    }
-  }, []);
+  // Keep all sections collapsed by default - users can expand if they want to see details
 
   const handleWorkEdit = (index: number) => {
     setEditingWork(index);

@@ -111,21 +111,30 @@ export default function ChatSkillsReview({ employeeId, onComplete }: ChatSkillsR
         employee_id: employeeId,
         skill_name: skill.skill_name,
         skill_id: skill.skill_id,
-        proficiency_level: skill.proficiency_level || 2,
+        proficiency_level: Math.min(Math.max(skill.proficiency_level || 2, 0), 3), // Ensure 0-3 range
         validation_order: index,
-        is_from_position: skill.is_from_position,
-        is_from_cv: skill.is_from_cv
+        is_from_position: skill.is_from_position || false,
+        is_from_cv: skill.is_from_cv || false
       }));
       
+      console.log('Saving skills validation entries:', entries);
+      
       // Save to database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('employee_skills_validation')
         .upsert(entries, { 
           onConflict: 'employee_id,skill_name',
           ignoreDuplicates: false 
-        });
+        })
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Skills validation upsert error:', error);
+        console.error('Failed entries:', entries);
+        throw error;
+      }
+      
+      console.log('Skills validation success:', data);
       
       toast.success('Skills confirmed!');
       setTimeout(onComplete, 500);

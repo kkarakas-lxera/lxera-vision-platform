@@ -4,6 +4,8 @@ import { Check, Loader2 } from 'lucide-react';
 
 interface CVAnalysisProgressProps {
   onComplete?: () => void;
+  onDataReady?: () => void;
+  forceComplete?: boolean;
 }
 
 const ANALYSIS_STEPS = [
@@ -14,7 +16,7 @@ const ANALYSIS_STEPS = [
   { id: 5, label: "⚡ Analyzing skills", duration: 5000 }
 ];
 
-export default function CVAnalysisProgress({ onComplete }: CVAnalysisProgressProps) {
+export default function CVAnalysisProgress({ onComplete, onDataReady, forceComplete }: CVAnalysisProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
@@ -40,6 +42,19 @@ export default function CVAnalysisProgress({ onComplete }: CVAnalysisProgressPro
       }, totalTime - 500);
     });
   }, [onComplete]);
+
+  // Handle force complete from parent
+  useEffect(() => {
+    if (forceComplete) {
+      // Complete all remaining steps immediately
+      setCurrentStep(ANALYSIS_STEPS.length);
+      setCompletedSteps(new Set(ANALYSIS_STEPS.map(step => step.id)));
+      
+      setTimeout(() => {
+        onComplete?.();
+      }, 500);
+    }
+  }, [forceComplete, onComplete]);
 
   return (
     <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
