@@ -94,6 +94,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const conversationStartTime = useRef<Date>(new Date());
+  const currentStepRef = useRef(currentStep);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentStepRef.current = currentStep;
+  }, [currentStep]);
   
   // Form Data (reusing existing structure)
   const [formData, setFormData] = useState<FormData>({
@@ -282,7 +288,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
     
     autoSaveTimeoutRef.current = setTimeout(() => {
-      if (currentStep > 0 && currentStep <= STEPS.length) {
+      const step = currentStepRef.current;
+      if (step > 0 && step <= STEPS.length) {
         saveStepData(true);
       }
     }, 2000);
@@ -296,8 +303,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Process responses based on current step
   const processUserResponse = (response: string) => {
+    const step = currentStepRef.current;
+    
     // Initial conversation
-    if (currentStep === 0) {
+    if (step === 0) {
       if (response === 'start') {
         addAchievement(ACHIEVEMENTS.QUICK_START);
         startStep1();
@@ -310,7 +319,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
 
     // Handle actual profile steps
-    const stepName = STEPS[currentStep - 1]?.name;
+    const stepName = STEPS[step - 1]?.name;
     
     switch (stepName) {
       case 'cv_upload':
@@ -613,10 +622,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Navigation
   const moveToNextStep = () => {
-    if (currentStep < STEPS.length) {
+    const step = currentStepRef.current;
+    if (step < STEPS.length) {
       setCurrentStep(prev => prev + 1);
       saveStepData(true); // Auto-save
-      initiateStep(currentStep + 1);
+      initiateStep(step + 1);
     } else {
       completeProfile();
     }
@@ -747,9 +757,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         });
         
         // Show appropriate content based on current step
-        if (currentStep === 6) {
+        const step = currentStepRef.current;
+        if (step === 6) {
           setTimeout(() => showChallenges(), 1000);
-        } else if (currentStep === 7) {
+        } else if (step === 7) {
           setTimeout(() => showGrowthAreas(), 1000);
         }
       }
@@ -804,10 +815,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Save data (reuse existing logic)
   const saveStepData = async (isAutoSave = false) => {
-    if (currentStep === 0 || currentStep > STEPS.length) return;
+    const step = currentStepRef.current;
+    if (step === 0 || step > STEPS.length) return;
     
     try {
-      const stepName = STEPS[currentStep - 1].name;
+      const stepName = STEPS[step - 1].name;
       
       switch (stepName) {
         case 'work_experience':
