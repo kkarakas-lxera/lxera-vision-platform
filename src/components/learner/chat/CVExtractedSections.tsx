@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Edit2, Save, X, Briefcase, GraduationCap, Plus, ChevronRight, ChevronDown, Award, Globe, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -97,6 +97,34 @@ export default function CVExtractedSections({
     certifications: false,
     languages: false
   });
+  
+  // Initialize expanded states for items with content
+  useEffect(() => {
+    // Expand work items that have additional content
+    const workIndexes = new Set<number>();
+    workData.forEach((work, index) => {
+      if (work.description || 
+          (work.responsibilities && work.responsibilities.length > 0) || 
+          (work.achievements && work.achievements.length > 0) ||
+          (work.technologies && work.technologies.length > 0)) {
+        workIndexes.add(index);
+      }
+    });
+    if (workIndexes.size > 0) {
+      setExpandedWork(workIndexes);
+    }
+    
+    // Expand education items that have additional content
+    const eduIndexes = new Set<number>();
+    educationData.forEach((edu, index) => {
+      if (edu.fieldOfStudy || edu.gpa || (edu.achievements && edu.achievements.length > 0)) {
+        eduIndexes.add(index);
+      }
+    });
+    if (eduIndexes.size > 0) {
+      setExpandedEducation(eduIndexes);
+    }
+  }, []);
 
   const handleWorkEdit = (index: number) => {
     setEditingWork(index);
@@ -175,6 +203,32 @@ export default function CVExtractedSections({
   const parseResponsibilities = (text: string): string[] => {
     return text.split('\n').filter(line => line.trim()).map(line => line.trim());
   };
+
+  // Check if we have any data to display
+  const hasData = workData.length > 0 || educationData.length > 0 || certData.length > 0 || langData.length > 0;
+  
+  if (!hasData) {
+    return (
+      <div className="space-y-3 max-w-2xl text-center py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-gray-600"
+        >
+          <p className="mb-2">I couldn't extract detailed information from your CV.</p>
+          <p className="text-xs">This is normal! We'll gather your information through our conversation instead.</p>
+        </motion.div>
+        <Button
+          size="sm"
+          variant="default"
+          onClick={() => onComplete()}
+          className="mt-4"
+        >
+          Continue Building Profile
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 max-w-2xl">

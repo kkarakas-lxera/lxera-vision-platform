@@ -110,6 +110,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [currentEducationIndex, setCurrentEducationIndex] = useState(0);
   const [currentWorkIndex, setCurrentWorkIndex] = useState(0);
   const [showRestartDialog, setShowRestartDialog] = useState(false);
+  const [showNavigationMenu, setShowNavigationMenu] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -184,6 +185,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         const { total } = await ChatMessageService.getAllMessages(employeeId, 0, 1);
         setHasMoreMessages(total > 10);
         
+        // Check if CV has been uploaded from chat history
+        const cvUploadMessage = recentMessages.find(msg => 
+          msg.content?.includes('📄 Uploading') || 
+          msg.metadata?.componentType === 'CVExtractedSections'
+        );
+        if (cvUploadMessage) {
+          setCvUploaded(true);
+        }
+        
         // Convert saved messages to app format
         const formattedMessages: Message[] = recentMessages.map(msg => {
           // Handle special system messages that need component restoration
@@ -215,19 +225,33 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         setMessages(formattedMessages);
         
-        // Restore CV data if it was in the messages
-        const cvMessage = recentMessages.find(msg => 
-          msg.metadata?.componentType === 'CVExtractedSections'
-        );
-        if (cvMessage?.metadata?.extractedData) {
-          setCvExtractedData(cvMessage.metadata.extractedData);
-          setCvUploaded(true);
-        }
-        
         // Resume from last step if available
-        const lastMessage = recentMessages[recentMessages.length - 1];
-        if (lastMessage.step) {
-          setCurrentStep(lastMessage.step as any);
+        const lastStep = recentMessages.reduce((maxStep, msg) => {
+          const msgStep = msg.step ? parseInt(msg.step) : 0;
+          return msgStep > maxStep ? msgStep : maxStep;
+        }, 0);
+        
+        if (lastStep > 0) {
+          setCurrentStep(lastStep);
+          // Reinitialize the current step UI after CV data is loaded
+          setTimeout(() => {
+            // Check if we need to wait for CV data to be loaded
+            if (cvUploaded && (!cvExtractedData || Object.keys(cvExtractedData).length === 0)) {
+              // Wait a bit more for CV data to load from employee table
+              setTimeout(() => initiateStep(lastStep), 1000);
+            } else {
+              initiateStep(lastStep);
+            }
+          }, 500);
+        } else {
+          // Check if we're in the middle of CV upload
+          const hasUploadMessage = recentMessages.some(msg => 
+            msg.content?.includes('Upload CV') || msg.content?.includes('paperclip icon')
+          );
+          if (hasUploadMessage && !cvUploaded) {
+            setWaitingForCVUpload(true);
+            setCurrentStep(1);
+          }
         }
       } else {
         // No history, start fresh
@@ -400,6 +424,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Load CV extracted data if available
         if (employee.cv_extracted_data) {
           setCvExtractedData(employee.cv_extracted_data);
+          setCvUploaded(true);
           console.log('Loaded CV extracted data from employee:', employee.cv_extracted_data);
           
           // Update form data with CV data - handle both old and new formats
@@ -702,9 +727,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Show upload progress
     addUserMessage(`📄 Uploading ${file.name}...`);
     
-    // Add some engaging messages during the process
+    // Show single comprehensive progress message
     setTimeout(() => {
-      addBotMessage("Great! I'm receiving your CV now... 📥", 0, 800);
+      addBotMessage(
+        "Great! I'm analyzing your CV now. This usually takes 30-60 seconds...\n\n" +
+        "📥 Uploading document\n" +
+        "🔍 Extracting information\n" +
+        "💼 Processing work experience\n" +
+        "🎓 Identifying education\n" +
+        "⚡ Analyzing skills\n\n" +
+        "I'll show you everything I find for review!",
+        0,
+        800
+      );
     }, 500);
     
     try {
@@ -715,15 +750,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         .upload(uploadPath, file);
 
       if (uploadError) throw uploadError;
-
-      // Show analysis progress
-      setTimeout(() => {
-        addBotMessage("Analyzing your CV... This usually takes 30-60 seconds. 🔍", 0, 1000);
-      }, 2000);
-      
-      setTimeout(() => {
-        addBotMessage("Extracting your work experience and skills... 💼", 0, 1000);
-      }, 4000);
 
       // Analyze the CV
       const { data: analysisResult, error: analyzeError } = await supabase.functions.invoke('analyze-cv-enhanced', {
@@ -736,21 +762,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       if (analyzeError) throw analyzeError;
 
-      // Success!
-      addAchievement(ACHIEVEMENTS.CV_UPLOADED);
-      setCvUploaded(true);
-      
-      // The edge function stores data in the employee record, not in the response
-      console.log('Analysis result:', analysisResult);
-      
-      setTimeout(() => {
-        addBotMessage(
-          "Excellent! I've successfully extracted your information. Let me show you what I found... ✨",
-          150,
-          1000
-        );
-      }, 6000);
-      
       // Import CV data to profile first
       await supabase.functions.invoke('import-cv-to-profile', {
         body: { employeeId }
@@ -770,18 +781,35 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Reload full employee data
         await loadEmployeeData();
         
+        // Success!
+        addAchievement(ACHIEVEMENTS.CV_UPLOADED);
+        setCvUploaded(true);
+        
+        setTimeout(() => {
+          addBotMessage(
+            "Excellent! I've successfully extracted your information. Let me show you what I found... ✨",
+            150,
+            1000
+          );
+        }, 1000);
+        
         // Show CV sections after messages
         setTimeout(() => {
           setIsLoading(false);
           handleCVSummaryConfirm();
-        }, 7500);
+        }, 2500);
       } else {
         console.log('No CV data found after import');
         // Continue without showing summary
+        addBotMessage(
+          "I've uploaded your CV! Let's continue building your profile together. 💪",
+          100,
+          1000
+        );
         setTimeout(() => {
           setIsLoading(false);
           moveToNextStep();
-        }, 7500);
+        }, 2000);
       }
       
     } catch (error) {
@@ -1439,6 +1467,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const handleCVSummaryConfirm = async () => {
+    // Check if we actually have extracted data
+    if (!cvExtractedData || Object.keys(cvExtractedData).length === 0) {
+      console.log('No CV extracted data available, skipping sections display');
+      addBotMessage("I've processed your CV! Let's continue building your profile together. 💪", 100);
+      setTimeout(() => moveToNextStep(), 1500);
+      return;
+    }
     
     // Show progressive sections display
     addBotMessage("Great! Now let's review your information. You can edit individual entries or accept entire sections. 📝", 100);
