@@ -398,3 +398,229 @@ WITH CHECK (
 
 **Final Pattern for Storage Policies**:
 Always use `TO authenticated` for storage.objects policies when dealing with authenticated operations, regardless of the complexity of the CHECK clause.
+
+## Dashboard Section Comprehensive Documentation
+
+### Dashboard Route Structure
+
+#### Main Routes (Company Admin - `/dashboard/*`)
+```
+/dashboard                     → Company Dashboard (Main Overview)
+├── /dashboard/onboarding/*    → Employee Onboarding Module
+│   ├── /                     → Overview
+│   ├── /import                → Import Employees (CSV/Manual)
+│   ├── /invite                → Send Invitations
+│   └── /analysis              → Skills Gap Analysis
+├── /dashboard/positions       → Position Management
+├── /dashboard/positions/new   → Create New Position
+├── /dashboard/employees       → Employee Directory
+├── /dashboard/employees/:id   → Employee Profile Detail
+├── /dashboard/courses         → Course Management
+├── /dashboard/courses/:id     → Course Details
+├── /dashboard/skills          → Skills Overview
+│   ├── /skills/employees      → Analyzed Employees
+│   ├── /skills/positions      → Position Requirements
+│   └── /skills/department/:dept → Department Skills Detail
+├── /dashboard/analytics       → Gamification Analytics
+├── /dashboard/course-generation → AI Course Generator
+├── /dashboard/settings        → Company Settings
+└── /dashboard/settings/hris-callback → HRIS Integration Callback
+```
+
+### Skills Gap Analysis Funnel (Verified Implementation)
+
+#### Entry Points
+- **Skills Overview Page**: Multiple call-to-action buttons to navigate to analysis features
+- **Onboarding Flow**: Primary guided experience for new users at `/dashboard/onboarding`
+- **Employee Directory**: Actions menu for individual employees
+
+#### Step-by-Step Funnel Process
+
+##### 1. Position Definition Phase
+```typescript
+// User defines required skills for each position
+const positionRequirements = {
+  position_id: string,
+  required_skills: [{
+    skill_name: string,
+    required_level: 1-5, // 1=Beginner, 5=Expert
+    is_mandatory: boolean
+  }],
+  nice_to_have_skills: [{
+    skill_name: string,
+    preferred_level: 1-5
+  }]
+}
+```
+
+##### 2. Employee Import Phase
+```typescript
+// CSV Import Format (only name and email required)
+const csvFormat = {
+  columns: ["name", "email", "department", "position", "position_code", "manager_email"],
+  example: "John Doe,john@company.com,Engineering,Software Engineer,SE001,manager@company.com"
+}
+```
+
+##### 3. CV Collection Phase
+- Bulk CV upload interface with drag-and-drop
+- Formats: PDF, DOC, DOCX
+- Max size: 10MB per file
+- Bulk limit: 50 files at once
+- Storage: `employee-cvs/{employeeId}/{filename}`
+
+##### 4. AI-Powered Analysis Phase
+- Edge Function: `analyze-cv-enhanced`
+- Extracts personal info, work experience, education, skills
+- Uses GPT-4 for analysis
+- Maps skills to NESTA taxonomy
+
+##### 5. Gap Calculation Phase
+```typescript
+// Frontend calculation in SkillsGapAnalysis.tsx
+// Gap Severity Classification based on affected employees:
+// Critical: >50% of employees affected
+// Important: >33% of employees affected
+// Minor: <33% of employees affected
+
+// Match Score: Average of employee skills_match_score from profiles
+// Career Readiness Score: Comes from AI analysis, not calculated
+```
+
+### Employee Profile Building (7-Step Process)
+
+#### Verified 7 Steps:
+1. **Upload Your CV** - Optional AI extraction
+2. **Work Experience** - Professional journey details
+3. **Education Background** - Educational qualifications
+4. **Skills Review** - Quick validation of expertise
+5. **Current Projects** - Current work context
+6. **Professional Challenges** - AI-generated personalized
+7. **Growth Opportunities** - Career development areas
+
+#### Skills Proficiency Levels (0-3, not 0-5):
+- 0: None/Not Applicable (❌)
+- 1: Learning (🟡)
+- 2: Using (🟢)
+- 3: Expert (⭐)
+
+#### Features:
+- Auto-save with 2-second debounce
+- AI-generated suggestions for challenges and growth areas
+- Profile data stored in `employee_profile_sections` table as JSONB
+
+### Skills Page & Inventory (`/dashboard/skills`)
+
+#### Key Metrics Display:
+- Total Employees (analyzed count)
+- Average Skills Match (organization-wide)
+- Skills Gaps (Critical + Moderate breakdown)
+- Active Departments
+
+#### Department Analysis:
+- Department name with employee counts
+- Match percentage with progress bar
+- Critical and moderate gaps count
+- Clickable for detailed view
+
+#### Skills Display:
+- Skills shown without categorization (no Technical/Soft grouping)
+- Color-coded severity badges
+- Number of employees affected per skill
+
+### Employee Directory Features
+
+#### Display Information per Employee:
+- Basic info: Name, email, avatar
+- Position and department
+- Profile completion status with detailed tooltip
+- Invitation status (Not Sent/Sent/Viewed/Completed)
+- CV upload status
+- Skills match score with color coding
+- Actions: View Profile, Deactivate (no bulk delete)
+
+#### Search & Filter:
+- Text search: Name, email, department, position
+- Department filter dropdown
+- Position filter dropdown
+- Real-time filtering
+
+#### Bulk Actions:
+- Select multiple employees
+- Bulk course generation only
+- Individual deactivation (not deletion)
+
+### Onboarding Workflow (3 Steps + Overview Hub)
+
+#### Overview Dashboard (Hub):
+- Statistics display
+- Quick action buttons
+- Recent activity feed
+
+#### Step 1: Import Employees
+- CSV import with only name/email required
+- Manual entry option
+- Import session tracking
+- Position context maintained
+
+#### Step 2: Invite Employees
+- Bulk invitation system
+- CV upload alternative
+- Invitation tracking (sent/viewed/completed)
+
+#### Step 3: Analysis Results
+- Progress indicators
+- Skills gap summary by position
+- Export options (CSV)
+- Suggested next actions
+
+### Verified Database Schema
+
+#### Employee Table Key Fields:
+```typescript
+{
+  id: uuid,
+  user_id: uuid | null,
+  company_id: uuid,
+  email: string,
+  employee_id: string | null,  // Custom ID
+  current_position_id: uuid,
+  target_position_id: uuid | null,
+  department: string,
+  hired_date: date,  // Not hire_date
+  time_in_role: string | null,
+  employee_role: string | null,
+  skill_level: string | null,
+  cv_file_path: string,
+  cv_uploaded_at: timestamp,  // Not cv_upload_date
+  cv_extracted_data: json,
+  cv_analysis_data: json,
+  profile_data: json,
+  profile_complete: boolean,
+  skills_validation_completed: boolean,
+  last_activity: timestamp,  // Not last_active
+  learning_streak: number,
+  courses_completed: number,
+  learning_style: json,
+  key_tools: string[],
+  manager_id: uuid | null,
+  career_goal: string | null,
+  hris_id: string | null,
+  hris_data: json | null
+}
+```
+
+#### Skills Profile Table (`st_employee_skills_profile`):
+- `extracted_skills`: JSONB array of skills
+- `skills_match_score`: Percentage
+- `career_readiness_score`: From AI analysis
+- `gap_analysis_completed_at`: Timestamp
+
+### Key Technical Insights:
+1. Gap calculation happens in frontend, not SQL
+2. Proficiency levels are 0-3, not 0-5
+3. Onboarding is 3 steps with overview hub, not 4 steps
+4. Only name/email required for CSV import
+5. Skills not categorized by type in current implementation
+6. Employees are deactivated, not deleted
+7. Career readiness score comes from AI, not calculated

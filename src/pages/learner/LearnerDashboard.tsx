@@ -23,7 +23,7 @@ import {
 } from '@/utils/touchOptimization';
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
-import ProfileCompletionFlow from '@/components/learner/ProfileCompletionFlow';
+import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
 
 interface CourseAssignment {
   id: string;
@@ -305,7 +305,7 @@ export default function LearnerDashboard() {
   // Show profile completion flow if profile is not complete
   if (!profileCompletion.isComplete && profileCompletion.employeeId) {
     return (
-      <ProfileCompletionFlow
+      <ChatProfileBuilder
         employeeId={profileCompletion.employeeId}
         onComplete={handleProfileComplete}
       />
