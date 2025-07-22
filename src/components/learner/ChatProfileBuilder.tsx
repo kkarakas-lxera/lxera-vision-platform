@@ -759,7 +759,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const startStep1 = () => {
     setCurrentStep(1); // Move to CV upload step
     setMaxStepReached(prev => Math.max(prev, 1));
-    setShowDynamicMessage(true); // Show dynamic message
+    // Don't show dynamic message for initial CV upload step
     addBotMessage(
       "Great! Let's start with the easiest way. Do you have a CV or resume handy? I can extract your information from it to save you time! 📄",
       100,
@@ -1260,8 +1260,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     const stepData = STEPS[step - 1];
     if (!stepData) return;
 
-    // Show dynamic message for main step transitions
-    setShowDynamicMessage(true);
+    // Show dynamic message for main step transitions (except CV upload)
+    if (step > 1) {
+      setShowDynamicMessage(true);
+    }
 
     switch (stepData.name) {
       case 'work_experience':
