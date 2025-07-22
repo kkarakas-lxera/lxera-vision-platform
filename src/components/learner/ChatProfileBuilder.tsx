@@ -214,7 +214,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }
         
         // Convert saved messages to app format
-        const formattedMessages: Message[] = recentMessages.map(msg => {
+        const formattedMessages: Message[] = recentMessages.map((msg: { id?: string; message_type: string; content: string; created_at?: string; metadata?: any; step?: string }) => {
           // Handle special system messages that need component restoration
           if (msg.message_type === 'system' && msg.metadata?.componentType === 'CVExtractedSections') {
             return {
@@ -737,7 +737,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
         
       case 'skills':
-        // Skills handled by component
+        // Handle skills step responses
+        if (response === 'skip_skills') {
+          moveToNextStep();
+        } else if (response === 'review_skills') {
+          // Show skills review component
+          setMessages(prev => [...prev, {
+            id: 'skills-component',
+            type: 'system',
+            content: (
+              <ChatSkillsReview
+                employeeId={employeeId}
+                onComplete={() => {
+                  moveToNextStep();
+                }}
+              />
+            ),
+            timestamp: new Date()
+          }]);
+        }
         break;
         
       case 'current_work':
@@ -1178,10 +1196,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }, 1000);
     } else if (!formData.roleInTeam) {
       setFormData(prev => ({ ...prev, roleInTeam: response }));
-      saveStepData(true); // Save immediately
+      // Ensure state is saved before moving
+      saveStepData(true); // Use await to ensure save completes
       setTimeout(() => {
         moveToNextStep();
-      }, 500); // Small delay to ensure state is saved
+      }, 1000); // Increased timeout
     }
   };
 
@@ -1242,10 +1261,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   // Navigation
-  const moveToNextStep = () => {
+  const moveToNextStep = async () => {
     const step = currentStepRef.current;
     if (step < STEPS.length) {
       console.log(`Moving from step ${step} to step ${step + 1}`);
+      
+      // CRITICAL: Save current state BEFORE moving to next step
+      await saveStepData(true);
       
       // Award milestone points for completing certain steps
       if (step === 2 && !cvUploaded) { // Completed work experience manually
@@ -1256,8 +1278,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         addBotMessage("Skills validated! You're halfway there! 🌟", 100);
       }
       
-      // Clear any system messages (quick replies) when moving steps
-      setMessages(prev => prev.filter(m => m.type !== 'system'));
+      // Clear any system messages and skills components when moving steps
+      setMessages(prev => prev.filter(m => {
+        // Remove system messages and skills component
+        if (m.id === 'skills-component') return false;
+        if (m.type === 'system') return false;
+        return true;
+      }));
       // Clear dynamic message before transition to prevent wrong step message
       setShowDynamicMessage(false);
       
@@ -1265,7 +1292,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setTimeout(() => {
         setCurrentStep(step + 1);
         setMaxStepReached(prev => Math.max(prev, step + 1));
-        saveStepData(true);
         
         // Small delay before initiating new step
         setTimeout(() => {
@@ -1296,7 +1322,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const navigateToStep = (targetStep: number) => {
+  const navigateToStep = async (targetStep: number) => {
     const step = currentStepRef.current;
     
     // Only allow navigation to completed or current steps
@@ -1305,13 +1331,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     console.log(`Navigating from step ${step} to step ${targetStep}`);
     
-    // Close menu
-    setShowNavigationMenu(false);
+    // CRITICAL: Save current state BEFORE navigating away
+    await saveStepData(true);
     
-    // Clear ALL system messages including skills review
+    // CRITICAL: Remove ALL skills components when navigating away from any step
     setMessages(prev => prev.filter(m => {
-      // Remove system messages and any skills components
-      return m.type !== 'system' && m.id !== 'skills-component';
+      // Filter out skills component and system messages that contain React components
+      if (m.id === 'skills-component') return false;
+      if (m.type === 'system' && typeof m.content !== 'string') return false;
+      return true;
     }));
     
     // Clear dynamic message first
@@ -1320,24 +1348,83 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Set navigation state
     setNavigatingTo(targetStep);
     
-    // Only show navigation message for non-skills steps
+    // Only show dynamic message for non-skills steps
     if (targetStep !== 4) {
       setShowDynamicMessage(true);
     }
     
     // Navigate after animation completes
-    setTimeout(() => {
+    setTimeout(async () => {
       setCurrentStep(targetStep);
       setNavigatingTo(null);
-      saveStepData(true);
       
       // Clear dynamic message again before initiating new step
       setShowDynamicMessage(false);
+      
+      // Load saved state for the target step
+      await loadSavedStateForStep(targetStep);
       
       setTimeout(() => {
         initiateStep(targetStep);
       }, 100);
     }, 1500);
+  };
+
+  // New function to load saved state
+  const loadSavedStateForStep = async (step: number) => {
+    if (!employeeId) return;
+    
+    try {
+      const savedState = await ProfileBuilderStateService.loadState(employeeId);
+      if (savedState) {
+        setBuilderState(savedState);
+        
+        // Restore form data for the step
+        if (savedState.formData) {
+          setFormData(savedState.formData);
+        }
+        
+        // Restore CV sections state
+        if (savedState.cvSectionsState) {
+          setCvAcceptedSections(savedState.cvSectionsState.acceptedSections);
+        }
+        
+        // Restore step-specific states
+        switch (step) {
+          case 2: // Work Experience
+            if (savedState.workExperienceState) {
+              setCurrentWorkIndex(savedState.workExperienceState.currentIndex || 0);
+              // Restore other work states as needed
+            }
+            break;
+          case 3: // Education
+            if (savedState.educationState) {
+              setCurrentEducationIndex(savedState.educationState.currentIndex || 0);
+              // Restore other education states
+            }
+            break;
+          case 4: // Skills
+            if (savedState.skillsReviewState) {
+              // Skills state is managed by the ChatSkillsReview component
+              // which loads its own state from the database
+            }
+            break;
+          case 5: // Current Work
+            // Form data for teamSize and roleInTeam already restored above
+            break;
+          case 6: // Challenges
+            // Form data for challenges already restored above
+            break;
+          case 7: // Growth
+            // Form data for growthAreas already restored above
+            break;
+        }
+        
+        console.log(`Restored state for step ${step}`);
+      }
+    } catch (error) {
+      console.error('Failed to load state for step:', error);
+    }
   };
 
   const initiateStep = (step: number) => {
@@ -1360,6 +1447,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
     switch (stepData.name) {
       case 'work_experience':
+        // CRITICAL: Remove any lingering skills components
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         // If we have CV extracted data, show only work experience section
         if (cvExtractedData && cvExtractedData.work_experience?.length > 0) {
           setTimeout(() => {
@@ -1394,6 +1484,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'education':
+        // CRITICAL: Remove any lingering skills components
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         // If we have CV extracted data, show only education section
         if (cvExtractedData && cvExtractedData.education?.length > 0) {
           setTimeout(() => {
@@ -1441,25 +1534,51 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Clear any existing skills review components to prevent duplicates
         setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: 'skills-component',
-            type: 'system',
-            content: (
-              <ChatSkillsReview
-                employeeId={employeeId}
-                onComplete={() => {
-                  moveToNextStep();
-                }}
-              />
-            ),
-            timestamp: new Date()
-          }]);
-        }, 1000);
+        // Check if skills have already been validated
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('skills_validation_completed')
+          .eq('id', employeeId)
+          .single();
+        
+        if (employee?.skills_validation_completed) {
+          // Skills already validated, show confirmation and option to review
+          addBotMessage(
+            "I see you've already validated your skills! Would you like to review them again or continue to the next step?",
+            0,
+            500
+          );
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Review Skills Again", value: "review_skills" },
+              { label: "Continue to Next Step", value: "skip_skills", variant: 'primary' }
+            ]);
+          }, 1000);
+        } else {
+          // Show skills review component
+          setTimeout(() => {
+            setMessages(prev => [...prev, {
+              id: 'skills-component',
+              type: 'system',
+              content: (
+                <ChatSkillsReview
+                  employeeId={employeeId}
+                  onComplete={() => {
+                    moveToNextStep();
+                  }}
+                />
+              ),
+              timestamp: new Date()
+            }]);
+          }, 1000);
+        }
         break;
 
       case 'current_work':
         setShowDynamicMessage(false);
+        // CRITICAL: Remove any lingering skills components
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         // Check if we have existing current work data
         if (formData.teamSize && formData.roleInTeam) {
           addBotMessage(
@@ -1473,6 +1592,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               { label: "Continue to Challenges", value: "continue", variant: 'primary' }
             ]);
           }, 2000);
+        } else if (formData.teamSize && !formData.roleInTeam) {
+          // We have team size but not role - continue from role question
+          addBotMessage("And what's your role in the team?", 0, 500);
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Individual Contributor", value: "Individual Contributor" },
+              { label: "Team Lead", value: "Team Lead" },
+              { label: "Manager", value: "Manager" }
+            ]);
+          }, 1000);
         } else {
           addBotMessage("Tell me about your current work. What size team do you work with?", 0, 1000);
           setTimeout(() => {
@@ -1488,6 +1617,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       case 'challenges':
         setShowDynamicMessage(false);
+        // CRITICAL: Remove any lingering skills components
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         // Check if we have existing challenges selected
         if (formData.challenges && formData.challenges.length > 0) {
           addBotMessage(
@@ -1511,6 +1643,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       case 'growth':
         setShowDynamicMessage(false);
+        // CRITICAL: Remove any lingering skills components
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         // Check if we have existing growth areas selected
         if (formData.growthAreas && formData.growthAreas.length > 0) {
           addBotMessage(
@@ -1624,7 +1759,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         maxStepReached,
         formData,
         lastActivity: new Date().toISOString(),
-        // Add component-specific states as needed
+        // Add component-specific states
+        workExperienceState: {
+          currentIndex: currentWorkIndex,
+          verifiedIndexes: [],
+          editingStates: {}
+        },
+        educationState: {
+          currentIndex: currentEducationIndex,
+          verifiedIndexes: [],
+          editingStates: {}
+        },
+        cvSectionsState: {
+          acceptedSections: cvAcceptedSections,
+          currentSection: 'work'
+        }
       };
       
       await ProfileBuilderStateService.saveState(employeeId, currentBuilderState);
@@ -1973,6 +2122,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     { id: 'speed_demon', ...ACHIEVEMENTS.SPEED_DEMON, unlocked: streak > 2 },
     { id: 'completionist', ...ACHIEVEMENTS.COMPLETIONIST, unlocked: currentStep === STEPS.length }
   ];
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear skills component on component unmount
+      setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50">
