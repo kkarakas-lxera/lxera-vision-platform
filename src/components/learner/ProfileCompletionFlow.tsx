@@ -36,6 +36,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
 import SkillsValidationCards from '@/components/learner/SkillsValidationCards';
+import CountdownTimer from '@/components/learner/CountdownTimer';
+import CourseOutlineReward from '@/components/learner/CourseOutlineReward';
 
 interface ProfileCompletionFlowProps {
   employeeId: string;
@@ -152,6 +154,10 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
   } | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [courseOutline, setCourseOutline] = useState<any>(null);
+  const [generatingCourse, setGeneratingCourse] = useState(false);
+  const [courseGenerationError, setCourseGenerationError] = useState<string | null>(null);
   
   // Debug effect
   useEffect(() => {
@@ -184,6 +190,51 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     challenges: [],
     growthAreas: []
   });
+
+  // Timer expiration handler
+  const handleTimerExpire = useCallback(() => {
+    toast.info('Time\'s up! Don\'t worry, you can still complete your profile at your own pace.', {
+      duration: 5000,
+    });
+  }, []);
+
+  // Generate course outline after profile completion
+  const generateCourseOutline = useCallback(async () => {
+    if (!employeeId) return;
+    
+    setGeneratingCourse(true);
+    setCourseGenerationError(null);
+    
+    try {
+      console.log('Generating course outline for employee:', employeeId);
+      
+      const { data, error } = await supabase.functions.invoke('generate-course-outline', {
+        body: { employee_id: employeeId }
+      });
+      
+      if (error) {
+        console.error('Course outline generation error:', error);
+        setCourseGenerationError('Failed to generate your personalized course outline. Please try again.');
+        return;
+      }
+      
+      if (data && data.success) {
+        console.log('Course outline generated successfully:', data);
+        setCourseOutline(data.courseOutline);
+        toast.success('Your personalized course outline is ready!', {
+          duration: 3000,
+        });
+      } else {
+        console.error('Course outline generation failed:', data);
+        setCourseGenerationError('Failed to generate course outline. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error calling course outline function:', error);
+      setCourseGenerationError('Something went wrong. Please try again.');
+    } finally {
+      setGeneratingCourse(false);
+    }
+  }, [employeeId]);
 
   useEffect(() => {
     loadEmployeeData();
@@ -430,6 +481,11 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         // Restore step position - go to next step after last completed
         const nextStep = Math.min(lastCompletedStep + 1, STEPS.length);
         setCurrentStep(nextStep);
+      }
+      
+      // Start timer if user is actively working on profile (not completed and not on first load)
+      if (!isCompleted && lastCompletedStep >= 0 && !timerStarted) {
+        setTimerStarted(true);
       }
     } catch (error) {
       console.error('Error loading employee data:', error);
@@ -1072,72 +1128,55 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                           />
                         </div>
                         
-                        {/* Show extracted CV data if available */}
-                        {(exp.responsibilities?.length > 0 || exp.achievements?.length > 0 || exp.technologies?.length > 0) && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
-                            <p className="text-xs font-medium text-blue-900">Extracted from your CV:</p>
-                            
-                            {exp.responsibilities?.length > 0 && (
-                              <div>
-                                <p className="text-xs font-medium text-gray-700 mb-1">Responsibilities:</p>
-                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-0.5">
-                                  {exp.responsibilities.map((resp, idx) => (
-                                    <li key={idx}>{resp}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {exp.achievements?.length > 0 && (
-                              <div>
-                                <p className="text-xs font-medium text-gray-700 mb-1">Key Achievements:</p>
-                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-0.5">
-                                  {exp.achievements.map((ach, idx) => (
-                                    <li key={idx}>{ach}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {exp.technologies?.length > 0 && (
-                              <div>
-                                <p className="text-xs font-medium text-gray-700 mb-1">Technologies Used:</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {exp.technologies.map((tech, idx) => (
-                                    <span 
-                                      key={idx}
-                                      className="px-2 py-0.5 bg-white text-xs text-gray-700 rounded-full border border-gray-200"
-                                    >
-                                      {tech}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
                         <div>
                           <Label htmlFor={`description-${originalIndex}`} className="text-xs text-gray-600">
-                            {(exp.responsibilities?.length > 0 || exp.achievements?.length > 0) 
-                              ? 'Additional Notes (Optional)' 
-                              : 'Key Achievements / Responsibilities'
-                            }
+                            Key Achievements / Responsibilities
                           </Label>
                           <Textarea
                             id={`description-${originalIndex}`}
-                            value={exp.description}
+                            value={(() => {
+                              // Merge CV-extracted data with manual description
+                              const parts = [];
+                              
+                              // Add responsibilities if available
+                              if (exp.responsibilities?.length > 0) {
+                                parts.push("Key Responsibilities:");
+                                parts.push(...exp.responsibilities.map(resp => `• ${resp}`));
+                                parts.push("");
+                              }
+                              
+                              // Add achievements if available
+                              if (exp.achievements?.length > 0) {
+                                parts.push("Key Achievements:");
+                                parts.push(...exp.achievements.map(ach => `• ${ach}`));
+                                parts.push("");
+                              }
+                              
+                              // Add technologies if available
+                              if (exp.technologies?.length > 0) {
+                                parts.push("Technologies Used:");
+                                parts.push(`• ${exp.technologies.join(", ")}`);
+                                parts.push("");
+                              }
+                              
+                              // Add manual description at the end
+                              if (exp.description) {
+                                parts.push(exp.description);
+                              }
+                              
+                              return parts.join("\n");
+                            })()}
                             onChange={(e) => {
                               const newExperience = [...formData.workExperience];
                               newExperience[originalIndex].description = e.target.value;
+                              // Clear CV-extracted data since user is now editing manually
+                              newExperience[originalIndex].responsibilities = [];
+                              newExperience[originalIndex].achievements = [];
+                              newExperience[originalIndex].technologies = [];
                               handleFormChange(prev => ({ ...prev, workExperience: newExperience }));
                             }}
-                            placeholder={
-                              (exp.responsibilities?.length > 0 || exp.achievements?.length > 0)
-                                ? "Add any additional notes or context..."
-                                : "Describe your key achievements and responsibilities..."
-                            }
-                            className="mt-1 min-h-[80px]"
+                            placeholder="Describe your key achievements and responsibilities..."
+                            className="mt-1 min-h-[120px]"
                           />
                         </div>
                       </div>
@@ -1687,72 +1726,49 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
     );
   }
 
-  // Success completion screen
+  // Success completion screen with course outline reward
   if (isCompleted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-lg shadow-lg p-8 text-center"
-          >
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
-            </div>
-            
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Congratulations! 🎉
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Your professional profile is complete
-            </p>
-            
-            <div className="bg-blue-50 rounded-lg p-6 mb-8">
-              <h2 className="text-lg font-semibold text-blue-900 mb-2">
-                What happens next?
-              </h2>
-              <ul className="text-sm text-blue-800 space-y-2 text-left max-w-md mx-auto">
-                <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Your manager will receive your skills analysis</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Personalized learning paths will be created for you</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>You'll be notified when courses are assigned</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                onClick={() => setShowPreview(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Preview My Profile
-              </Button>
-              <Button
-                onClick={() => setIsCompleted(false)}
-                variant="outline"
-                className="gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            </div>
-            
-            <p className="text-xs text-gray-500 mt-6">
-              You can always update your profile later from your dashboard
-            </p>
-          </motion.div>
-        </div>
+      <div className="relative">
+        <CourseOutlineReward
+          courseOutline={courseOutline}
+          employeeName={employeeData?.full_name || 'Learner'}
+          loading={generatingCourse}
+          error={courseGenerationError}
+          onViewFullCourse={() => {
+            // TODO: Navigate to full course view when implemented
+            console.log('Navigate to full course');
+          }}
+          onStartCourse={() => {
+            // TODO: Navigate to course enrollment when implemented
+            console.log('Start course enrollment');
+          }}
+          onRetryGeneration={generateCourseOutline}
+        />
+        
+        {/* Additional buttons for profile management */}
+        {!generatingCourse && !courseGenerationError && courseOutline && (
+          <div className="fixed bottom-4 right-4 flex gap-2">
+            <Button
+              onClick={() => setShowPreview(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2 shadow-lg"
+            >
+              <Eye className="h-4 w-4" />
+              View Profile
+            </Button>
+            <Button
+              onClick={() => setIsCompleted(false)}
+              variant="outline"
+              size="sm"
+              className="gap-2 shadow-lg"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -1891,7 +1907,17 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span className="font-medium">Step {currentStep} of {STEPS.length}</span>
+            <div className="flex items-center gap-3">
+              <span className="font-medium">Step {currentStep} of {STEPS.length}</span>
+              {/* Countdown Timer */}
+              {timerStarted && !isCompleted && (
+                <CountdownTimer
+                  duration={300} // 5 minutes
+                  onExpire={handleTimerExpire}
+                  className="text-xs"
+                />
+              )}
+            </div>
             <div className="flex items-center gap-3">
               {/* Auto-save status indicator */}
               <div className="flex items-center gap-1 text-xs">
@@ -1982,7 +2008,9 @@ export default function ProfileCompletionFlow({ employeeId, onComplete }: Profil
                         // Note: completeProfile is already called in saveStepData for step 7
                         console.log('Setting isCompleted to true');
                         setIsCompleted(true);
-                        console.log('isCompleted set, should show success screen');
+                        console.log('isCompleted set, starting course outline generation');
+                        // Generate course outline as reward
+                        await generateCourseOutline();
                       } else {
                         handleNext();
                       }

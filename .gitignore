@@ -88,3 +88,13 @@ scripts/venv/
 .import
 .migration_cache
 .vercel
+
+# Restricted file types - cannot be committed
+*.md
+*.html
+*.sql
+*.js
+*test.*
+*spec.*
+*.example.*
+*.integration-guide.*
