@@ -15,6 +15,7 @@ import CVAnalysisProgress from './chat/CVAnalysisProgress';
 import ProfileProgressSidebar from './chat/ProfileProgressSidebar';
 import ChatSkillsReview from './chat/ChatSkillsReview';
 import ProfileStepMessage from './chat/ProfileStepMessage';
+import SectionConfirmationProgress from './chat/SectionConfirmationProgress';
 import CourseOutlineReward from './CourseOutlineReward';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ const STEPS = [
 ];
 
 const ACHIEVEMENTS = {
-  QUICK_START: { name: "Quick Start", points: 100, icon: <Zap className="h-6 w-6 text-yellow-600" /> },
+  QUICK_START: { name: "Quick Start", points: 50, icon: <Zap className="h-6 w-6 text-yellow-600" /> },
   CV_UPLOADED: { name: "Document Master", points: 200, icon: <Upload className="h-6 w-6 text-blue-600" /> },
   SPEED_DEMON: { name: "Speed Demon", points: 150, icon: <Clock className="h-6 w-6 text-purple-600" /> },
   COMPLETIONIST: { name: "Profile Hero", points: 500, icon: <Trophy className="h-6 w-6 text-gold-600" /> }
@@ -120,6 +121,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [navigatingTo, setNavigatingTo] = useState<number | null>(null);
   const [showDynamicMessage, setShowDynamicMessage] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [sectionsConfirmed, setSectionsConfirmed] = useState<string[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -185,16 +187,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   }, [employeeData, userId]);
 
   // Restore step UI when navigating back with existing data
-  useEffect(() => {
-    if (currentStep > 0 && messages.length > 0 && formData && !isInitializing) {
-      // Small delay to ensure state is properly loaded
-      const timer = setTimeout(() => {
-        initiateStep(currentStep);
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, messages.length, formData, isInitializing]);
+  // Remove this useEffect as it causes infinite loops when initiateStep creates new messages
 
   // Load chat history
   const loadChatHistory = async () => {
@@ -368,6 +361,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setCvAnalysisComplete(false); // Reset CV analysis state
       setBuilderState(null); // Clear builder state
       setIsInitializing(false); // Reset initialization flag
+      setSectionsConfirmed([]); // Reset confirmed sections
       setFormData({
         currentPosition: employeeData?.st_company_positions?.position_title || '',
         department: employeeData?.st_company_positions?.department || '',
@@ -670,15 +664,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const handleQuickReply = (value: string, label: string, option?: any) => {
     addUserMessage(label);
     
-    // Award points if the option has them
-    if (option?.points && option.points > 0) {
-      setPoints(prev => {
-        const newPoints = prev + option.points;
-        savePointsToDatabase(newPoints);
-        return newPoints;
-      });
-    }
-    
+    // Only award points through achievements, not quick replies
     processUserResponse(value);
   };
 
@@ -775,14 +761,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Don't show dynamic message for initial CV upload step
     addBotMessage(
       "Great! Let's start with the easiest way. Do you have a CV or resume handy? I can extract your information from it to save you time! 📄",
-      100,
+      0,
       1000
     );
     
     setTimeout(() => {
       showQuickReplies([
-        { label: "📤 Upload CV", value: "upload_cv", points: 200, variant: 'primary' },
-        { label: "✍️ Enter manually", value: "manual_entry", points: 100 }
+        { label: "📤 Upload CV", value: "upload_cv", points: 0, variant: 'primary' },
+        { label: "✍️ Enter manually", value: "manual_entry", points: 0 }
       ]);
     }, 2000);
   };
@@ -794,7 +780,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Don't move to next step - wait for actual file upload
     } else if (response === 'manual_entry') {
       setWaitingForCVUpload(false);
-      addBotMessage("No problem! Let's build your profile step by step. 📝", 100);
+      addBotMessage("No problem! Let's build your profile step by step. 📝", 0);
       setTimeout(() => moveToNextStep(), 1500);
     }
   };
@@ -872,7 +858,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setTimeout(() => {
           addBotMessage(
             "Excellent! I've successfully extracted your information. Let me show you what I found... ✨",
-            150,
+            0,
             1000
           );
         }, 1000);
@@ -931,7 +917,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }, 1500);
       } else {
         // All verified
-        addBotMessage("Perfect! All your work experiences have been verified. 👍", 100);
+        addBotMessage("Perfect! All your work experiences have been verified. 👍", 0);
         setTimeout(() => moveToNextStep(), 1500);
       }
       return;
@@ -942,12 +928,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       addBotMessage("Let's update this position. What's the correct job title?", 0);
       return;
     } else if (response === 'skip_work_verification') {
-      addBotMessage("No problem! Let's continue to education. 📚", 50);
+      addBotMessage("No problem! Let's continue to education. 📚", 0);
       setTimeout(() => moveToNextStep(), 1500);
       return;
     } else if (response === 'confirm_experience') {
       // Legacy - treat as confirm all
-      addBotMessage("Perfect! Your work experience looks great. 👍", 50);
+      addBotMessage("Perfect! Your work experience looks great. 👍", 0);
       setTimeout(() => moveToNextStep(), 1500);
       return;
     } else if (response === 'edit_experience') {
@@ -962,10 +948,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Editing existing entry
       if (!currentWorkExperience.title) {
         setCurrentWorkExperience(prev => ({ ...prev, title: response }));
-        addBotMessage("And which company is/was this with?", 50);
+        addBotMessage("And which company is/was this with?", 0);
       } else if (!currentWorkExperience.company) {
         setCurrentWorkExperience(prev => ({ ...prev, company: response }));
-        addBotMessage("How long have you been in this role?", 50);
+        addBotMessage("How long have you been in this role?", 0);
         showQuickReplies([
           { label: "Less than 1 year", value: "< 1 year" },
           { label: "1-3 years", value: "1-3 years" },
@@ -1008,7 +994,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             ]);
           }, 1500);
         } else {
-          addBotMessage("Perfect! All your work experiences have been updated. 👍", 100);
+          addBotMessage("Perfect! All your work experiences have been updated. 👍", 0);
           setTimeout(() => moveToNextStep(), 1500);
         }
       }
@@ -1016,10 +1002,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Building new experience
       if (!currentWorkExperience.title) {
         setCurrentWorkExperience({ title: response });
-        addBotMessage("And which company is/was this with?", 50);
+        addBotMessage("And which company is/was this with?", 0);
       } else if (!currentWorkExperience.company) {
         setCurrentWorkExperience(prev => ({ ...prev, company: response }));
-        addBotMessage("How long have you been in this role?", 50);
+        addBotMessage("How long have you been in this role?", 0);
         showQuickReplies([
           { label: "Less than 1 year", value: "< 1 year" },
           { label: "1-3 years", value: "1-3 years" },
@@ -1035,7 +1021,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setCurrentWorkExperience({});
         saveStepData(true);
         
-        addBotMessage("Excellent! Would you like to add another position?", 100);
+        addBotMessage("Excellent! Would you like to add another position?", 0);
         showQuickReplies([
           { label: "Add another position", value: "add_more" },
           { label: "Continue to education", value: "continue", variant: 'primary' }
@@ -1071,7 +1057,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }, 1500);
       } else {
         // All verified
-        addBotMessage("Excellent! All your education details have been verified. 🎓", 100);
+        addBotMessage("Excellent! All your education details have been verified. 🎓", 0);
         setTimeout(() => moveToNextStep(), 1500);
       }
       return;
@@ -1095,12 +1081,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }, 1000);
       return;
     } else if (response === 'skip_education_verification') {
-      addBotMessage("No problem! Let's continue with your skills. 💪", 50);
+      addBotMessage("No problem! Let's continue with your skills. 💪", 0);
       setTimeout(() => moveToNextStep(), 1500);
       return;
     } else if (response === 'confirm_education') {
       // Legacy - treat as confirm all
-      addBotMessage("Great! Your education details are confirmed. 🎓", 50);
+      addBotMessage("Great! Your education details are confirmed. 🎓", 0);
       setTimeout(() => moveToNextStep(), 1500);
       return;
     } else if (response === 'edit_education') {
@@ -1138,7 +1124,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         ...prev,
         education: [...prev.education, newEducation]
       }));
-      addBotMessage("Which institution did you attend?", 50);
+      addBotMessage("Which institution did you attend?", 0);
     } else if (!formData.education[formData.education.length - 1].institution) {
       // Update institution
       setFormData(prev => {
@@ -1146,7 +1132,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         updated[updated.length - 1].institution = response;
         return { ...prev, education: updated };
       });
-      addBotMessage("What year did you graduate?", 50);
+      addBotMessage("What year did you graduate?", 0);
     } else {
       // Update year and save
       setFormData(prev => {
@@ -1156,7 +1142,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       });
       saveStepData(true);
       
-      addBotMessage("Perfect! Your education is recorded. 📚", 100);
+      addBotMessage("Perfect! Your education is recorded. 📚", 0);
       setTimeout(() => moveToNextStep(), 1500);
     }
   };
@@ -1182,7 +1168,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     if (!formData.teamSize) {
       setFormData(prev => ({ ...prev, teamSize: response }));
-      addBotMessage("And what's your role in the team?", 50, 500);
+      addBotMessage("And what's your role in the team?", 0, 500);
       setTimeout(() => {
         showQuickReplies([
           { label: "Individual Contributor", value: "Individual Contributor" },
@@ -1215,7 +1201,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           ...prev,
           challenges: [...prev.challenges, response]
         }));
-        addBotMessage("Good choice! Any other challenges?", 50);
+        addBotMessage("Good choice! Any other challenges?", 0);
       } else if (response === 'continue') {
         moveToNextStep();
       }
@@ -1243,10 +1229,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }));
         
         if (formData.growthAreas.length >= 2) {
-          addBotMessage("Excellent choices! Let me prepare your personalized learning path...", 200);
+          addBotMessage("Excellent choices! Let me prepare your personalized learning path...", 0);
           completeProfile();
         } else {
-          addBotMessage("Great! Pick one or two more areas you'd like to focus on.", 50);
+          addBotMessage("Great! Pick one or two more areas you'd like to focus on.", 0);
         }
       }
     }
@@ -1256,6 +1242,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const moveToNextStep = () => {
     const step = currentStepRef.current;
     if (step < STEPS.length) {
+      // Award milestone points for completing certain steps
+      if (step === 2 && !cvUploaded) { // Completed work experience manually
+        addBotMessage("Great progress! Work experience completed. 🎯", 50);
+      } else if (step === 3) { // Completed education
+        addBotMessage("Education milestone reached! 📚", 50);
+      } else if (step === 4) { // Completed skills
+        addBotMessage("Skills validated! You're halfway there! 🌟", 100);
+      }
+      
       // Clear any system messages (quick replies) when moving steps
       setMessages(prev => prev.filter(m => m.type !== 'system'));
       setCurrentStep(prev => prev + 1);
@@ -1744,13 +1739,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     if (!extractedData || (!hasWorkExperience && !hasEducation && !hasCertifications && !hasLanguages)) {
       console.log('No meaningful CV extracted data available, skipping sections display');
-      addBotMessage("I've processed your CV! Let's continue building your profile together. 💪", 100);
+      addBotMessage("I've processed your CV! Let's continue building your profile together. 💪", 0);
       setTimeout(() => moveToNextStep(), 1500);
       return;
     }
     
     // Show progressive sections display
-    addBotMessage("Great! Now let's review your information. You can edit individual entries or accept entire sections. 📝", 100);
+    addBotMessage("Great! Now let's review your information. You can edit individual entries or accept entire sections. 📝", 0);
+    
+    // Reset confirmed sections for new CV review
+    setSectionsConfirmed([]);
     
     setTimeout(async () => {
       const messageId = 'cv-sections-' + Date.now();
@@ -1794,13 +1792,36 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
   
   const handleSectionAccept = (section: 'work' | 'education' | 'certifications' | 'languages') => {
-    const sectionName = {
-      work: 'Work experience',
-      education: 'Education',
-      certifications: 'Certifications',
-      languages: 'Languages'
-    }[section];
-    addBotMessage(`${sectionName} section confirmed! ✅`, 50);
+    // Add to confirmed sections
+    setSectionsConfirmed(prev => {
+      if (!prev.includes(section)) {
+        return [...prev, section];
+      }
+      return prev;
+    });
+    
+    // Check if we need to show the confirmation progress
+    const confirmationMessageId = 'section-confirmations-' + Date.now();
+    setMessages(prev => {
+      // Remove any existing confirmation progress messages
+      const filtered = prev.filter(m => !m.id.startsWith('section-confirmations-'));
+      
+      // Add new confirmation progress
+      return [...filtered, {
+        id: confirmationMessageId,
+        type: 'system',
+        content: (
+          <SectionConfirmationProgress 
+            confirmedSections={[...sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)}
+            onAllConfirmed={() => {
+              // This will be called when all sections are confirmed
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }];
+    });
+    
     saveStepData(true);
   };
   
@@ -1845,7 +1866,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Clear the sections display
     setMessages(prev => prev.filter(m => !m.id.startsWith('cv-sections-')));
     
-    addBotMessage("Perfect! All your information has been verified and saved. Let's continue with your skills! 🚀", 150);
+    addBotMessage("Perfect! All your information has been verified and saved. Let's continue with your skills! 🚀", 0);
     
     // Move to skills step
     setTimeout(() => {
@@ -1871,7 +1892,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       name: step.name,
       title: step.title,
       status: getStepStatus(step.id),
-      points: index === 0 && cvUploaded ? 200 : index < currentStep ? 100 : 0
+      points: 0 // Points are awarded through achievements only
     }));
   };
 
@@ -2011,7 +2032,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                 size="sm"
                 onClick={() => {
                   setWaitingForCVUpload(false);
-                  addBotMessage("No problem! Let's build your profile together step by step. 💪", 50);
+                  addBotMessage("No problem! Let's build your profile together step by step. 💪", 0);
                   setTimeout(() => {
                     addBotMessage("First, let's talk about your work experience. What's your current or most recent job title?", 0, 500);
                     setCurrentStep(2); // Move to work experience
