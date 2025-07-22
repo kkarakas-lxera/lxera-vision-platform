@@ -200,15 +200,18 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setCvExtractedData(employee.cv_extracted_data);
           console.log('Loaded CV extracted data from employee:', employee.cv_extracted_data);
           
-          // Update form data with CV data
+          // Update form data with CV data - handle both old and new formats
           if (employee.cv_extracted_data.work_experience) {
             setFormData(prev => ({
               ...prev,
               workExperience: employee.cv_extracted_data.work_experience.map((exp: any) => ({
                 title: exp.title || exp.position || '',
                 company: exp.company || '',
-                duration: exp.duration || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
-                description: exp.description || ''
+                duration: exp.duration || exp.dates || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
+                description: exp.description || '',
+                responsibilities: exp.responsibilities || [],
+                achievements: exp.achievements || exp.key_achievements || [],
+                technologies: exp.technologies || []
               }))
             }));
           }

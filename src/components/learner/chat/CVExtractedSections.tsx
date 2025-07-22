@@ -67,7 +67,23 @@ export default function CVExtractedSections({
   const [editingCert, setEditingCert] = useState<number | null>(null);
   const [editingLang, setEditingLang] = useState<number | null>(null);
   
-  const [workData, setWorkData] = useState(extractedData.work_experience || []);
+  // Transform work experience data to handle both formats
+  const transformWorkData = (workExp: any[]): WorkExperience[] => {
+    return workExp.map(exp => ({
+      title: exp.title || exp.position || '',
+      company: exp.company || '',
+      duration: exp.duration || exp.dates || '',
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      current: exp.current,
+      description: exp.description || '',
+      responsibilities: exp.responsibilities || [],
+      achievements: exp.achievements || exp.key_achievements || [],
+      technologies: exp.technologies || []
+    }));
+  };
+
+  const [workData, setWorkData] = useState(transformWorkData(extractedData.work_experience || []));
   const [educationData, setEducationData] = useState(extractedData.education || []);
   const [certData, setCertData] = useState(extractedData.certifications || []);
   const [langData, setLangData] = useState(extractedData.languages || []);
@@ -90,7 +106,7 @@ export default function CVExtractedSections({
   };
 
   const handleWorkCancel = (index: number) => {
-    setWorkData(extractedData.work_experience || []);
+    setWorkData(transformWorkData(extractedData.work_experience || []));
     setEditingWork(null);
   };
 
@@ -245,12 +261,14 @@ export default function CVExtractedSections({
                       />
                       <Textarea
                         placeholder="Responsibilities (one per line)"
-                        value={formatResponsibilities(work.responsibilities || [])}
+                        value={formatResponsibilities(work.responsibilities || work.achievements || [])}
                         onChange={(e) => {
                           const updated = [...workData];
+                          const items = parseResponsibilities(e.target.value);
                           updated[index] = { 
                             ...updated[index], 
-                            responsibilities: parseResponsibilities(e.target.value)
+                            responsibilities: items,
+                            achievements: items // Keep both in sync
                           };
                           setWorkData(updated);
                         }}
@@ -300,12 +318,18 @@ export default function CVExtractedSections({
                         <p className="text-sm text-gray-700 mt-2">{work.description}</p>
                       )}
                       
-                      {work.responsibilities && work.responsibilities.length > 0 && (
+                      {((work.responsibilities && work.responsibilities.length > 0) || 
+                        (work.achievements && work.achievements.length > 0)) && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-gray-600 mb-1">Responsibilities:</p>
+                          <p className="text-xs font-medium text-gray-600 mb-1">
+                            {work.responsibilities && work.responsibilities.length > 0 ? 'Responsibilities:' : 'Key Achievements:'}
+                          </p>
                           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            {work.responsibilities.map((resp, idx) => (
-                              <li key={idx} className="text-xs">{resp}</li>
+                            {(work.responsibilities && work.responsibilities.length > 0 
+                              ? work.responsibilities 
+                              : work.achievements
+                            ).map((item, idx) => (
+                              <li key={idx} className="text-xs">{item}</li>
                             ))}
                           </ul>
                         </div>
