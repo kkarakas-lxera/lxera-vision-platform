@@ -240,8 +240,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setMessages(formattedMessages);
         
         // Check if we need to recreate missing quick replies
-        const lastBotMessage = recentMessages.find(msg => msg.message_type === 'bot');
+        const botMessages = recentMessages.filter(msg => msg.message_type === 'bot');
+        const lastBotMessage = botMessages[botMessages.length - 1]; // Get the last bot message
+        console.log('Quick reply restoration check:', { 
+          lastBotMessage: lastBotMessage?.content, 
+          hasExpectedText: lastBotMessage?.content?.includes('How does that sound?'),
+          currentStep: currentStep
+        });
+        
         if (lastBotMessage?.content?.includes('How does that sound?')) {
+          console.log('Recreating initial quick replies after page refresh');
           // Recreate the initial quick replies
           setTimeout(() => {
             showQuickReplies([
@@ -1789,7 +1797,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         {/* Header with Start Fresh button */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
           <h2 className="text-sm font-medium text-gray-700">Profile Builder Chat</h2>
-          {messages.length > 2 && !isCompleted && (
+          {messages.length >= 2 && !isCompleted && (
             <AlertDialog open={showRestartDialog} onOpenChange={setShowRestartDialog}>
               <AlertDialogTrigger asChild>
                 <Button
