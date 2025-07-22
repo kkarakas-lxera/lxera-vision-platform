@@ -193,7 +193,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         type: 'bot',
         content,
         timestamp: new Date(),
-        points
+        ...(points > 0 && { points }) // Only include points if greater than 0
       };
       
       setMessages(prev => [...prev, message]);
@@ -841,11 +841,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       {/* Input Area */}
       <ChatInput
         onSend={handleTextInput}
-        onFileUpload={currentStep === 2 ? handleFileUpload : undefined}
+        onFileUpload={currentStep === 1 ? handleFileUpload : undefined}
         disabled={isLoading || isTyping}
         isLoading={isLoading}
         placeholder={
-          currentStep === 2 ? "Type or upload your CV..." : "Type your response..."
+          currentStep === 1 ? "Type or upload your CV..." : "Type your response..."
         }
       />
     </div>
