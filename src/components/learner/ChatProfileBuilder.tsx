@@ -1180,9 +1180,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         type: 'system',
         content: (
           <CVExtractedSections
-            personalInfo={cvExtractedData?.personal_info}
-            workExperience={formData.workExperience}
-            education={formData.education}
+            extractedData={cvExtractedData || {}}
             onSectionAccept={handleSectionAccept}
             onSectionUpdate={handleSectionUpdate}
             onComplete={handleAllSectionsComplete}
@@ -1193,16 +1191,45 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }, 1500);
   };
   
-  const handleSectionAccept = (section: 'personal' | 'work' | 'education') => {
-    addBotMessage(`${section === 'personal' ? 'Personal information' : section === 'work' ? 'Work experience' : 'Education'} section confirmed! ✅`, 50);
+  const handleSectionAccept = (section: 'work' | 'education' | 'certifications' | 'languages') => {
+    const sectionName = {
+      work: 'Work experience',
+      education: 'Education',
+      certifications: 'Certifications',
+      languages: 'Languages'
+    }[section];
+    addBotMessage(`${sectionName} section confirmed! ✅`, 50);
     saveStepData(true);
   };
   
-  const handleSectionUpdate = (section: 'personal' | 'work' | 'education', data: any) => {
+  const handleSectionUpdate = (section: 'work' | 'education' | 'certifications' | 'languages', data: any) => {
+    // Update the CV extracted data
+    setCvExtractedData(prev => ({
+      ...prev,
+      [section === 'work' ? 'work_experience' : section]: data
+    }));
+    
+    // Also update form data for work and education
     if (section === 'work') {
-      setFormData(prev => ({ ...prev, workExperience: data }));
+      setFormData(prev => ({ 
+        ...prev, 
+        workExperience: data.map((exp: any) => ({
+          title: exp.title || exp.position || '',
+          company: exp.company || '',
+          duration: exp.duration || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
+          description: exp.description || ''
+        }))
+      }));
     } else if (section === 'education') {
-      setFormData(prev => ({ ...prev, education: data }));
+      setFormData(prev => ({ 
+        ...prev, 
+        education: data.map((edu: any) => ({
+          degree: edu.degree || '',
+          institution: edu.institution || '',
+          year: edu.year || '',
+          fieldOfStudy: edu.fieldOfStudy || ''
+        }))
+      }));
     }
     saveStepData(true);
   };
@@ -1225,30 +1252,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }, 1500);
   };
 
-  const handleCVSummaryEdit = (section: string) => {
-    setShowCVSummary(false);
-    addBotMessage(`No problem! Let's update your ${section} information together. What would you like to change?`, 0);
-    
-    // Handle editing based on section
-    switch(section) {
-      case 'experience':
-        setCurrentStep(2);
-        initiateStep(2);
-        break;
-      case 'education':
-        setCurrentStep(3);
-        initiateStep(3);
-        break;
-      case 'skills':
-        setCurrentStep(4);
-        initiateStep(4);
-        break;
-      default:
-        // For personal info, we continue with work experience
-        setCurrentStep(2);
-        initiateStep(2);
-    }
-  };
 
   // Helper functions for navigation
   const getStepStatus = (stepId: number) => {

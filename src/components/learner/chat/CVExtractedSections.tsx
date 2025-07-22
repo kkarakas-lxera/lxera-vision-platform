@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Edit2, Save, X, Briefcase, GraduationCap, User, Plus } from 'lucide-react';
+import { Check, Edit2, Save, X, Briefcase, GraduationCap, Plus, ChevronRight, Award, Globe, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -10,7 +11,13 @@ interface WorkExperience {
   title: string;
   company: string;
   duration: string;
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
   description?: string;
+  responsibilities?: string[];
+  achievements?: string[];
+  technologies?: string[];
 }
 
 interface Education {
@@ -18,43 +25,59 @@ interface Education {
   institution: string;
   year: string;
   fieldOfStudy?: string;
+  gpa?: string;
+  achievements?: string[];
 }
 
-interface PersonalInfo {
-  name?: string;
-  email?: string;
-  phone?: string;
+interface Certification {
+  name: string;
+  issuer: string;
+  year: string;
+  credentialId?: string;
+}
+
+interface Language {
+  language: string;
+  proficiency: string;
+}
+
+interface ExtractedData {
+  work_experience?: WorkExperience[];
+  education?: Education[];
+  certifications?: Certification[];
+  languages?: Language[];
+  skills?: any[];
 }
 
 interface CVExtractedSectionsProps {
-  personalInfo?: PersonalInfo;
-  workExperience: WorkExperience[];
-  education: Education[];
-  onSectionAccept: (section: 'personal' | 'work' | 'education') => void;
-  onSectionUpdate: (section: 'personal' | 'work' | 'education', data: any) => void;
+  extractedData: ExtractedData;
+  onSectionAccept: (section: 'work' | 'education' | 'certifications' | 'languages') => void;
+  onSectionUpdate: (section: 'work' | 'education' | 'certifications' | 'languages', data: any) => void;
   onComplete: () => void;
 }
 
 export default function CVExtractedSections({
-  personalInfo,
-  workExperience,
-  education,
+  extractedData,
   onSectionAccept,
   onSectionUpdate,
   onComplete
 }: CVExtractedSectionsProps) {
   const [editingWork, setEditingWork] = useState<number | null>(null);
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
-  const [editingPersonal, setEditingPersonal] = useState(false);
+  const [editingCert, setEditingCert] = useState<number | null>(null);
+  const [editingLang, setEditingLang] = useState<number | null>(null);
   
-  const [workData, setWorkData] = useState(workExperience);
-  const [educationData, setEducationData] = useState(education);
-  const [personalData, setPersonalData] = useState(personalInfo || {});
+  const [workData, setWorkData] = useState(extractedData.work_experience || []);
+  const [educationData, setEducationData] = useState(extractedData.education || []);
+  const [certData, setCertData] = useState(extractedData.certifications || []);
+  const [langData, setLangData] = useState(extractedData.languages || []);
   
+  const [currentSection, setCurrentSection] = useState<'work' | 'education' | 'certifications' | 'languages' | 'complete'>('work');
   const [acceptedSections, setAcceptedSections] = useState({
-    personal: false,
     work: false,
-    education: false
+    education: false,
+    certifications: false,
+    languages: false
   });
 
   const handleWorkEdit = (index: number) => {
@@ -67,36 +90,47 @@ export default function CVExtractedSections({
   };
 
   const handleWorkCancel = (index: number) => {
-    setWorkData(workExperience);
+    setWorkData(extractedData.work_experience || []);
     setEditingWork(null);
   };
 
-  const handleEducationEdit = (index: number) => {
-    setEditingEducation(index);
-  };
-
-  const handleEducationSave = (index: number) => {
-    setEditingEducation(null);
-    onSectionUpdate('education', educationData);
-  };
-
-  const handleEducationCancel = (index: number) => {
-    setEducationData(education);
-    setEditingEducation(null);
-  };
-
-  const handleAcceptSection = (section: 'personal' | 'work' | 'education') => {
+  const handleAcceptSection = (section: 'work' | 'education' | 'certifications' | 'languages') => {
     setAcceptedSections(prev => ({ ...prev, [section]: true }));
     onSectionAccept(section);
     
-    // Check if all sections are accepted
-    const newAccepted = { ...acceptedSections, [section]: true };
-    if (newAccepted.personal && newAccepted.work && newAccepted.education) {
+    // Move to next section
+    if (section === 'work') {
+      setCurrentSection('education');
+    } else if (section === 'education') {
+      if (certData.length > 0) {
+        setCurrentSection('certifications');
+      } else if (langData.length > 0) {
+        setCurrentSection('languages');
+      } else {
+        setCurrentSection('complete');
+        setTimeout(() => onComplete(), 500);
+      }
+    } else if (section === 'certifications') {
+      if (langData.length > 0) {
+        setCurrentSection('languages');
+      } else {
+        setCurrentSection('complete');
+        setTimeout(() => onComplete(), 500);
+      }
+    } else if (section === 'languages') {
+      setCurrentSection('complete');
       setTimeout(() => onComplete(), 500);
     }
   };
 
-  const allSectionsAccepted = acceptedSections.personal && acceptedSections.work && acceptedSections.education;
+  const formatResponsibilities = (resp: string[]) => {
+    if (!resp || resp.length === 0) return '';
+    return resp.join('\n');
+  };
+
+  const parseResponsibilities = (text: string): string[] => {
+    return text.split('\n').filter(line => line.trim()).map(line => line.trim());
+  };
 
   return (
     <div className="space-y-4 max-w-2xl">
@@ -105,321 +139,431 @@ export default function CVExtractedSections({
         animate={{ opacity: 1, y: 0 }}
         className="text-sm text-gray-600 mb-4"
       >
-        Review and edit your information below. You can edit individual entries or accept entire sections.
+        Let's review your information step by step. You can edit individual entries or accept the entire section.
       </motion.div>
 
-      {/* Personal Information */}
-      {personalInfo && (
-        <Card className={cn("transition-all", acceptedSections.personal && "border-green-500 bg-green-50/50")}>
+      {/* Progress Indicator */}
+      <div className="flex items-center justify-center space-x-2 mb-6">
+        <div className={cn("flex items-center", currentSection !== 'work' && "opacity-50")}>
+          <Briefcase className="h-4 w-4 mr-1" />
+          <span className="text-xs">Work</span>
+        </div>
+        <ChevronRight className="h-4 w-4 text-gray-400" />
+        <div className={cn("flex items-center", currentSection !== 'education' && "opacity-50")}>
+          <GraduationCap className="h-4 w-4 mr-1" />
+          <span className="text-xs">Education</span>
+        </div>
+        {certData.length > 0 && (
+          <>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <div className={cn("flex items-center", currentSection !== 'certifications' && "opacity-50")}>
+              <Award className="h-4 w-4 mr-1" />
+              <span className="text-xs">Certifications</span>
+            </div>
+          </>
+        )}
+        {langData.length > 0 && (
+          <>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <div className={cn("flex items-center", currentSection !== 'languages' && "opacity-50")}>
+              <Globe className="h-4 w-4 mr-1" />
+              <span className="text-xs">Languages</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Work Experience Section */}
+      {currentSection === 'work' && (
+        <Card className={cn("transition-all", acceptedSections.work && "border-green-500 bg-green-50/50")}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Personal Information
+                <Briefcase className="h-4 w-4" />
+                Work Experience ({workData.length})
               </CardTitle>
-              {!acceptedSections.personal && (
-                <div className="flex gap-2">
-                  {!editingPersonal ? (
-                    <>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingPersonal(true)}>
-                        <Edit2 className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="default" onClick={() => handleAcceptSection('personal')}>
-                        <Check className="h-3 w-3 mr-1" />
-                        Accept
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button size="sm" variant="ghost" onClick={() => {
-                        setPersonalData(personalInfo);
-                        setEditingPersonal(false);
-                      }}>
-                        <X className="h-3 w-3 mr-1" />
-                        Cancel
-                      </Button>
-                      <Button size="sm" variant="default" onClick={() => {
-                        setEditingPersonal(false);
-                        onSectionUpdate('personal', personalData);
-                      }}>
-                        <Save className="h-3 w-3 mr-1" />
-                        Save
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-              {acceptedSections.personal && (
-                <span className="text-xs text-green-600 font-medium">✓ Accepted</span>
+              {!acceptedSections.work && (
+                <Button size="sm" variant="default" onClick={() => handleAcceptSection('work')}>
+                  <Check className="h-3 w-3 mr-1" />
+                  Accept All & Continue
+                </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {editingPersonal ? (
-              <>
-                <Input
-                  placeholder="Name"
-                  value={personalData.name || ''}
-                  onChange={(e) => setPersonalData(prev => ({ ...prev, name: e.target.value }))}
-                />
-                <Input
-                  placeholder="Email"
-                  value={personalData.email || ''}
-                  onChange={(e) => setPersonalData(prev => ({ ...prev, email: e.target.value }))}
-                />
-                <Input
-                  placeholder="Phone"
-                  value={personalData.phone || ''}
-                  onChange={(e) => setPersonalData(prev => ({ ...prev, phone: e.target.value }))}
-                />
-              </>
-            ) : (
-              <div className="text-sm space-y-1">
-                {personalData.name && <p><span className="text-gray-500">Name:</span> {personalData.name}</p>}
-                {personalData.email && <p><span className="text-gray-500">Email:</span> {personalData.email}</p>}
-                {personalData.phone && <p><span className="text-gray-500">Phone:</span> {personalData.phone}</p>}
-              </div>
+          <CardContent className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {workData.map((work, index) => (
+                <motion.div
+                  key={index}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={cn(
+                    "p-4 border rounded-lg bg-white",
+                    editingWork === index && "border-blue-300 bg-blue-50/50"
+                  )}
+                >
+                  {editingWork === index ? (
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Job Title"
+                        value={work.title}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { ...updated[index], title: e.target.value };
+                          setWorkData(updated);
+                        }}
+                      />
+                      <Input
+                        placeholder="Company"
+                        value={work.company}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { ...updated[index], company: e.target.value };
+                          setWorkData(updated);
+                        }}
+                      />
+                      <Input
+                        placeholder="Duration (e.g., 2020-2023)"
+                        value={work.duration}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { ...updated[index], duration: e.target.value };
+                          setWorkData(updated);
+                        }}
+                      />
+                      <Textarea
+                        placeholder="Description"
+                        value={work.description || ''}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { ...updated[index], description: e.target.value };
+                          setWorkData(updated);
+                        }}
+                        rows={3}
+                      />
+                      <Textarea
+                        placeholder="Responsibilities (one per line)"
+                        value={formatResponsibilities(work.responsibilities || [])}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { 
+                            ...updated[index], 
+                            responsibilities: parseResponsibilities(e.target.value)
+                          };
+                          setWorkData(updated);
+                        }}
+                        rows={4}
+                      />
+                      <Input
+                        placeholder="Technologies (comma-separated)"
+                        value={work.technologies?.join(', ') || ''}
+                        onChange={(e) => {
+                          const updated = [...workData];
+                          updated[index] = { 
+                            ...updated[index], 
+                            technologies: e.target.value.split(',').map(t => t.trim()).filter(t => t)
+                          };
+                          setWorkData(updated);
+                        }}
+                      />
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button size="sm" variant="ghost" onClick={() => handleWorkCancel(index)}>
+                          Cancel
+                        </Button>
+                        <Button size="sm" variant="default" onClick={() => handleWorkSave(index)}>
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{work.title}</p>
+                          <p className="text-sm text-gray-600">{work.company}</p>
+                          <p className="text-xs text-gray-500">{work.duration}</p>
+                        </div>
+                        {!acceptedSections.work && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => handleWorkEdit(index)}
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {work.description && (
+                        <p className="text-sm text-gray-700 mt-2">{work.description}</p>
+                      )}
+                      
+                      {work.responsibilities && work.responsibilities.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-gray-600 mb-1">Responsibilities:</p>
+                          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            {work.responsibilities.map((resp, idx) => (
+                              <li key={idx} className="text-xs">{resp}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {work.technologies && work.technologies.length > 0 && (
+                        <div className="mt-2 flex items-center gap-1 flex-wrap">
+                          <Wrench className="h-3 w-3 text-gray-500" />
+                          {work.technologies.map((tech, idx) => (
+                            <span key={idx} className="text-xs bg-gray-100 px-2 py-0.5 rounded">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {!acceptedSections.work && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  const newWork: WorkExperience = { 
+                    title: '', 
+                    company: '', 
+                    duration: '',
+                    responsibilities: [],
+                    technologies: []
+                  };
+                  setWorkData([...workData, newWork]);
+                  setEditingWork(workData.length);
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Position
+              </Button>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Work Experience */}
-      <Card className={cn("transition-all", acceptedSections.work && "border-green-500 bg-green-50/50")}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              Work Experience ({workData.length})
-            </CardTitle>
-            {!acceptedSections.work && (
-              <Button size="sm" variant="default" onClick={() => handleAcceptSection('work')}>
-                <Check className="h-3 w-3 mr-1" />
-                Accept All
-              </Button>
-            )}
-            {acceptedSections.work && (
-              <span className="text-xs text-green-600 font-medium">✓ Accepted</span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {workData.map((work, index) => (
-              <motion.div
-                key={index}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={cn(
-                  "p-3 border rounded-lg bg-white",
-                  editingWork === index && "border-blue-300 bg-blue-50/50"
-                )}
-              >
-                {editingWork === index ? (
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Job Title"
-                      value={work.title}
-                      onChange={(e) => {
-                        const updated = [...workData];
-                        updated[index] = { ...updated[index], title: e.target.value };
-                        setWorkData(updated);
-                      }}
-                    />
-                    <Input
-                      placeholder="Company"
-                      value={work.company}
-                      onChange={(e) => {
-                        const updated = [...workData];
-                        updated[index] = { ...updated[index], company: e.target.value };
-                        setWorkData(updated);
-                      }}
-                    />
-                    <Input
-                      placeholder="Duration"
-                      value={work.duration}
-                      onChange={(e) => {
-                        const updated = [...workData];
-                        updated[index] = { ...updated[index], duration: e.target.value };
-                        setWorkData(updated);
-                      }}
-                    />
-                    <div className="flex justify-end gap-2 pt-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleWorkCancel(index)}>
-                        Cancel
-                      </Button>
-                      <Button size="sm" variant="default" onClick={() => handleWorkSave(index)}>
-                        Save
-                      </Button>
+      {/* Education Section */}
+      {currentSection === 'education' && (
+        <Card className={cn("transition-all", acceptedSections.education && "border-green-500 bg-green-50/50")}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                Education ({educationData.length})
+              </CardTitle>
+              {!acceptedSections.education && (
+                <Button size="sm" variant="default" onClick={() => handleAcceptSection('education')}>
+                  <Check className="h-3 w-3 mr-1" />
+                  Accept All & Continue
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {educationData.map((edu, index) => (
+                <motion.div
+                  key={index}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={cn(
+                    "p-3 border rounded-lg bg-white",
+                    editingEducation === index && "border-blue-300 bg-blue-50/50"
+                  )}
+                >
+                  {editingEducation === index ? (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Degree"
+                        value={edu.degree}
+                        onChange={(e) => {
+                          const updated = [...educationData];
+                          updated[index] = { ...updated[index], degree: e.target.value };
+                          setEducationData(updated);
+                        }}
+                      />
+                      <Input
+                        placeholder="Field of Study"
+                        value={edu.fieldOfStudy || ''}
+                        onChange={(e) => {
+                          const updated = [...educationData];
+                          updated[index] = { ...updated[index], fieldOfStudy: e.target.value };
+                          setEducationData(updated);
+                        }}
+                      />
+                      <Input
+                        placeholder="Institution"
+                        value={edu.institution}
+                        onChange={(e) => {
+                          const updated = [...educationData];
+                          updated[index] = { ...updated[index], institution: e.target.value };
+                          setEducationData(updated);
+                        }}
+                      />
+                      <Input
+                        placeholder="Year"
+                        value={edu.year}
+                        onChange={(e) => {
+                          const updated = [...educationData];
+                          updated[index] = { ...updated[index], year: e.target.value };
+                          setEducationData(updated);
+                        }}
+                      />
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          setEducationData(extractedData.education || []);
+                          setEditingEducation(null);
+                        }}>
+                          Cancel
+                        </Button>
+                        <Button size="sm" variant="default" onClick={() => {
+                          setEditingEducation(null);
+                          onSectionUpdate('education', educationData);
+                        }}>
+                          Save
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">{work.title}</p>
-                      <p className="text-sm text-gray-600">{work.company}</p>
-                      <p className="text-xs text-gray-500">{work.duration}</p>
+                  ) : (
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm">{edu.degree}</p>
+                        {edu.fieldOfStudy && (
+                          <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
+                        )}
+                        <p className="text-sm text-gray-600">{edu.institution}</p>
+                        <p className="text-xs text-gray-500">{edu.year}</p>
+                      </div>
+                      {!acceptedSections.education && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => setEditingEducation(index)}
+                          className="ml-2"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
-                    {!acceptedSections.work && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => handleWorkEdit(index)}
-                        className="ml-2"
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          
-          {!acceptedSections.work && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                const newWork = { title: '', company: '', duration: '' };
-                setWorkData([...workData, newWork]);
-                setEditingWork(workData.length);
-              }}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Position
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Education */}
-      <Card className={cn("transition-all", acceptedSections.education && "border-green-500 bg-green-50/50")}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Education ({educationData.length})
-            </CardTitle>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
             {!acceptedSections.education && (
-              <Button size="sm" variant="default" onClick={() => handleAcceptSection('education')}>
-                <Check className="h-3 w-3 mr-1" />
-                Accept All
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  const newEdu = { degree: '', institution: '', year: '' };
+                  setEducationData([...educationData, newEdu]);
+                  setEditingEducation(educationData.length);
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Education
               </Button>
             )}
-            {acceptedSections.education && (
-              <span className="text-xs text-green-600 font-medium">✓ Accepted</span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {educationData.map((edu, index) => (
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Certifications Section */}
+      {currentSection === 'certifications' && certData.length > 0 && (
+        <Card className={cn("transition-all", acceptedSections.certifications && "border-green-500 bg-green-50/50")}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Certifications ({certData.length})
+              </CardTitle>
+              {!acceptedSections.certifications && (
+                <Button size="sm" variant="default" onClick={() => handleAcceptSection('certifications')}>
+                  <Check className="h-3 w-3 mr-1" />
+                  Accept All & Continue
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {certData.map((cert, index) => (
               <motion.div
                 key={index}
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={cn(
-                  "p-3 border rounded-lg bg-white",
-                  editingEducation === index && "border-blue-300 bg-blue-50/50"
-                )}
+                className="p-3 border rounded-lg bg-white"
               >
-                {editingEducation === index ? (
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Degree"
-                      value={edu.degree}
-                      onChange={(e) => {
-                        const updated = [...educationData];
-                        updated[index] = { ...updated[index], degree: e.target.value };
-                        setEducationData(updated);
-                      }}
-                    />
-                    <Input
-                      placeholder="Institution"
-                      value={edu.institution}
-                      onChange={(e) => {
-                        const updated = [...educationData];
-                        updated[index] = { ...updated[index], institution: e.target.value };
-                        setEducationData(updated);
-                      }}
-                    />
-                    <Input
-                      placeholder="Year"
-                      value={edu.year}
-                      onChange={(e) => {
-                        const updated = [...educationData];
-                        updated[index] = { ...updated[index], year: e.target.value };
-                        setEducationData(updated);
-                      }}
-                    />
-                    <div className="flex justify-end gap-2 pt-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleEducationCancel(index)}>
-                        Cancel
-                      </Button>
-                      <Button size="sm" variant="default" onClick={() => handleEducationSave(index)}>
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">{edu.degree}</p>
-                      <p className="text-sm text-gray-600">{edu.institution}</p>
-                      <p className="text-xs text-gray-500">{edu.year}</p>
-                    </div>
-                    {!acceptedSections.education && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => handleEducationEdit(index)}
-                        className="ml-2"
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">{cert.name}</p>
+                  <p className="text-sm text-gray-600">{cert.issuer}</p>
+                  <p className="text-xs text-gray-500">{cert.year}</p>
+                </div>
               </motion.div>
             ))}
-          </AnimatePresence>
-          
-          {!acceptedSections.education && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                const newEdu = { degree: '', institution: '', year: '' };
-                setEducationData([...educationData, newEdu]);
-                setEditingEducation(educationData.length);
-              }}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Education
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Continue Button */}
-      {allSectionsAccepted && (
+      {/* Languages Section */}
+      {currentSection === 'languages' && langData.length > 0 && (
+        <Card className={cn("transition-all", acceptedSections.languages && "border-green-500 bg-green-50/50")}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Languages ({langData.length})
+              </CardTitle>
+              {!acceptedSections.languages && (
+                <Button size="sm" variant="default" onClick={() => handleAcceptSection('languages')}>
+                  <Check className="h-3 w-3 mr-1" />
+                  Accept All & Continue
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {langData.map((lang, index) => (
+              <motion.div
+                key={index}
+                layout
+                className="p-3 border rounded-lg bg-white flex justify-between items-center"
+              >
+                <span className="font-medium text-sm">{lang.language}</span>
+                <span className="text-sm text-gray-600">{lang.proficiency}</span>
+              </motion.div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Completion State */}
+      {currentSection === 'complete' && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center pt-4"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-8"
         >
-          <Button onClick={onComplete} size="lg" className="gap-2">
-            Continue to Skills Review
-            <Check className="h-4 w-4" />
-          </Button>
+          <div className="mb-4">
+            <Check className="h-12 w-12 text-green-500 mx-auto" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            All sections verified!
+          </h3>
+          <p className="text-sm text-gray-600">
+            Your professional information has been saved. Let's continue to skills review...
+          </p>
         </motion.div>
       )}
     </div>
