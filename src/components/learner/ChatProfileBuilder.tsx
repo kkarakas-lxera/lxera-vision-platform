@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
+import { ChatMessageService } from '@/services/chatMessageService';
 import ChatMessage from './chat/ChatMessage';
 import QuickReplyButtons from './chat/QuickReplyButtons';
 import ChatInput from './chat/ChatInput';
@@ -10,9 +11,10 @@ import TypingIndicator from './chat/TypingIndicator';
 import FileDropZone from './chat/FileDropZone';
 import CVExtractedSections from './chat/CVExtractedSections';
 import ProfileProgressSidebar from './chat/ProfileProgressSidebar';
-import SkillsValidationCards from './SkillsValidationCards';
+import ChatSkillsReview from './chat/ChatSkillsReview';
 import CourseOutlineReward from './CourseOutlineReward';
-import { Trophy, Zap, Upload, Clock } from 'lucide-react';
+import { Trophy, Zap, Upload, Clock, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ChatProfileBuilderProps {
   employeeId: string;
@@ -30,6 +32,7 @@ interface Message {
     description?: string;
     icon?: React.ReactNode;
   };
+  metadata?: any;
 }
 
 interface FormData {
@@ -75,6 +78,9 @@ const ACHIEVEMENTS = {
 export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfileBuilderProps) {
   // State Management
   const [messages, setMessages] = useState<Message[]>([]);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [userId, setUserId] = useState<string>('');
   const [currentStep, setCurrentStep] = useState(0); // Start at 0 for initial greeting
   const [isTyping, setIsTyping] = useState(false);
   const [points, setPoints] = useState(0);
@@ -138,14 +144,91 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   // Initialize conversation
   useEffect(() => {
     loadEmployeeData();
+    loadCurrentUser();
   }, [employeeId]);
+
+  // Load current user
+  const loadCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUserId(user.id);
+    }
+  };
 
   // Start chat after employee data loads
   useEffect(() => {
-    if (employeeData && messages.length === 0) {
+    if (employeeData && userId) {
+      loadChatHistory();
+    }
+  }, [employeeData, userId]);
+
+  // Load chat history
+  const loadChatHistory = async () => {
+    try {
+      const recentMessages = await ChatMessageService.getRecentMessages(employeeId, 10);
+      
+      if (recentMessages.length > 0) {
+        // Check if there are more messages
+        const { total } = await ChatMessageService.getAllMessages(employeeId, 0, 1);
+        setHasMoreMessages(total > 10);
+        
+        // Convert saved messages to app format
+        const formattedMessages: Message[] = recentMessages.map(msg => ({
+          id: msg.id || crypto.randomUUID(),
+          type: msg.message_type as Message['type'],
+          content: msg.content,
+          timestamp: new Date(msg.created_at || Date.now()),
+          metadata: msg.metadata
+        }));
+        
+        setMessages(formattedMessages);
+        
+        // Resume from last step if available
+        const lastMessage = recentMessages[recentMessages.length - 1];
+        if (lastMessage.step) {
+          setCurrentStep(lastMessage.step as any);
+        }
+      } else {
+        // No history, start fresh
+        initializeChat();
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
       initializeChat();
     }
-  }, [employeeData]);
+  };
+
+  // Load more messages
+  const loadMoreMessages = async () => {
+    if (loadingHistory || !hasMoreMessages) return;
+    
+    setLoadingHistory(true);
+    try {
+      const currentCount = messages.length;
+      const { messages: olderMessages, hasMore } = await ChatMessageService.getAllMessages(
+        employeeId,
+        currentCount,
+        20
+      );
+      
+      if (olderMessages.length > 0) {
+        const formattedMessages: Message[] = olderMessages.map(msg => ({
+          id: msg.id || crypto.randomUUID(),
+          type: msg.message_type as Message['type'],
+          content: msg.content,
+          timestamp: new Date(msg.created_at || Date.now()),
+          metadata: msg.metadata
+        }));
+        
+        setMessages(prev => [...formattedMessages, ...prev]);
+        setHasMoreMessages(hasMore);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const initializeChat = () => {
     addBotMessage(
@@ -242,7 +325,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const addBotMessage = (content: string | React.ReactNode, points = 0, delay = 1000) => {
     setIsTyping(true);
     
-    setTimeout(() => {
+    setTimeout(async () => {
       const message: Message = {
         id: Date.now().toString(),
         type: 'bot',
@@ -256,10 +339,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setPoints(prev => prev + points);
       }
       setIsTyping(false);
+      
+      // Auto-save message if it's a string
+      if (userId && typeof content === 'string') {
+        try {
+          await ChatMessageService.saveMessage({
+            employee_id: employeeId,
+            user_id: userId,
+            message_type: 'bot',
+            content,
+            metadata: { points },
+            step: currentStepRef.current
+          });
+        } catch (error) {
+          console.error('Failed to save bot message:', error);
+        }
+      }
     }, delay);
   };
 
-  const addUserMessage = (content: string) => {
+  const addUserMessage = async (content: string) => {
     const message: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -277,6 +376,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }
     }
     setLastResponseTime(new Date());
+    
+    // Auto-save message
+    if (userId) {
+      try {
+        await ChatMessageService.saveMessage({
+          employee_id: employeeId,
+          user_id: userId,
+          message_type: 'user',
+          content,
+          step: currentStepRef.current
+        });
+      } catch (error) {
+        console.error('Failed to save user message:', error);
+      }
+    }
   };
 
   const addAchievement = (achievement: typeof ACHIEVEMENTS.QUICK_START) => {
@@ -951,7 +1065,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             id: 'skills-component',
             type: 'system',
             content: (
-              <SkillsValidationCards
+              <ChatSkillsReview
                 employeeId={employeeId}
                 onComplete={() => {
                   addBotMessage("Awesome skills inventory! 🎯", 200);
@@ -1310,11 +1424,35 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       <div className="flex-1 flex flex-col">
         {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
-        <AnimatePresence>
-          {messages.map((message) => (
-            <ChatMessage key={message.id} {...message} />
-          ))}
-        </AnimatePresence>
+          {/* Load More Messages Button */}
+          {hasMoreMessages && (
+            <div className="flex justify-center mb-4">
+              <Button
+                variant="ghost"
+                onClick={loadMoreMessages}
+                disabled={loadingHistory}
+                className="text-sm"
+              >
+                {loadingHistory ? (
+                  <>
+                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="h-4 w-4 mr-2" />
+                    Load previous messages
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+          
+          <AnimatePresence>
+            {messages.map((message) => (
+              <ChatMessage key={message.id} {...message} />
+            ))}
+          </AnimatePresence>
         
         {isTyping && <TypingIndicator />}
         

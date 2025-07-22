@@ -97,15 +97,6 @@ export default function ProfileProgressSidebar({
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-2xl font-bold text-purple-900">{streak}</p>
-                  <p className="text-xs text-purple-700">Streak</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Timer */}

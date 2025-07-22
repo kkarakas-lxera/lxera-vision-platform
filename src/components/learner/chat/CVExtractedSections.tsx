@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Edit2, Save, X, Briefcase, GraduationCap, Plus, ChevronRight, Award, Globe, Wrench } from 'lucide-react';
+import { Check, Edit2, Save, X, Briefcase, GraduationCap, Plus, ChevronRight, ChevronDown, Award, Globe, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -66,6 +66,8 @@ export default function CVExtractedSections({
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
   const [editingCert, setEditingCert] = useState<number | null>(null);
   const [editingLang, setEditingLang] = useState<number | null>(null);
+  const [expandedWork, setExpandedWork] = useState<Set<number>>(new Set());
+  const [expandedEducation, setExpandedEducation] = useState<Set<number>>(new Set());
   
   // Transform work experience data to handle both formats
   const transformWorkData = (workExp: any[]): WorkExperience[] => {
@@ -98,6 +100,32 @@ export default function CVExtractedSections({
 
   const handleWorkEdit = (index: number) => {
     setEditingWork(index);
+    // Ensure the item is expanded when editing
+    setExpandedWork(prev => new Set(prev).add(index));
+  };
+
+  const toggleWorkExpanded = (index: number) => {
+    setExpandedWork(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleEducationExpanded = (index: number) => {
+    setExpandedEducation(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const handleWorkSave = (index: number) => {
@@ -298,11 +326,25 @@ export default function CVExtractedSections({
                   ) : (
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{work.title}</p>
-                          <p className="text-sm text-gray-600">{work.company}</p>
-                          <p className="text-xs text-gray-500">{work.duration}</p>
-                        </div>
+                        <button
+                          onClick={() => toggleWorkExpanded(index)}
+                          className="flex-1 text-left group"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="mt-1">
+                              {expandedWork.has(index) ? (
+                                <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{work.title}</p>
+                              <p className="text-sm text-gray-600">{work.company}</p>
+                              <p className="text-xs text-gray-500">{work.duration}</p>
+                            </div>
+                          </div>
+                        </button>
                         {!acceptedSections.work && (
                           <Button 
                             size="sm" 
@@ -314,37 +356,51 @@ export default function CVExtractedSections({
                         )}
                       </div>
                       
-                      {work.description && (
-                        <p className="text-sm text-gray-700 mt-2">{work.description}</p>
-                      )}
-                      
-                      {((work.responsibilities && work.responsibilities.length > 0) || 
-                        (work.achievements && work.achievements.length > 0)) && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium text-gray-600 mb-1">
-                            {work.responsibilities && work.responsibilities.length > 0 ? 'Responsibilities:' : 'Key Achievements:'}
-                          </p>
-                          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            {(work.responsibilities && work.responsibilities.length > 0 
-                              ? work.responsibilities 
-                              : work.achievements
-                            ).map((item, idx) => (
-                              <li key={idx} className="text-xs">{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {work.technologies && work.technologies.length > 0 && (
-                        <div className="mt-2 flex items-center gap-1 flex-wrap">
-                          <Wrench className="h-3 w-3 text-gray-500" />
-                          {work.technologies.map((tech, idx) => (
-                            <span key={idx} className="text-xs bg-gray-100 px-2 py-0.5 rounded">
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <AnimatePresence>
+                        {expandedWork.has(index) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-6 space-y-2">
+                              {work.description && (
+                                <p className="text-sm text-gray-700">{work.description}</p>
+                              )}
+                              
+                              {((work.responsibilities && work.responsibilities.length > 0) || 
+                                (work.achievements && work.achievements.length > 0)) && (
+                                <div>
+                                  <p className="text-xs font-medium text-gray-600 mb-1">
+                                    {work.responsibilities && work.responsibilities.length > 0 ? 'Responsibilities:' : 'Key Achievements:'}
+                                  </p>
+                                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    {(work.responsibilities && work.responsibilities.length > 0 
+                                      ? work.responsibilities 
+                                      : work.achievements || []
+                                    ).map((item, idx) => (
+                                      <li key={idx} className="text-xs">{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {work.technologies && work.technologies.length > 0 && (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  <Wrench className="h-3 w-3 text-gray-500" />
+                                  {work.technologies.map((tech, idx) => (
+                                    <span key={idx} className="text-xs bg-gray-100 px-2 py-0.5 rounded">
+                                      {tech}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
                 </motion.div>
@@ -462,25 +518,75 @@ export default function CVExtractedSections({
                     </div>
                   ) : (
                     <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm">{edu.degree}</p>
-                        {edu.fieldOfStudy && (
-                          <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
-                        )}
-                        <p className="text-sm text-gray-600">{edu.institution}</p>
-                        <p className="text-xs text-gray-500">{edu.year}</p>
-                      </div>
+                      <button
+                        onClick={() => toggleEducationExpanded(index)}
+                        className="flex-1 text-left group"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="mt-0.5">
+                            {expandedEducation.has(index) ? (
+                              <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">{edu.degree}</p>
+                            {!expandedEducation.has(index) && (
+                              <>
+                                <p className="text-sm text-gray-600">{edu.institution}</p>
+                                <p className="text-xs text-gray-500">{edu.year}</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </button>
                       {!acceptedSections.education && (
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          onClick={() => setEditingEducation(index)}
+                          onClick={() => {
+                            setEditingEducation(index);
+                            setExpandedEducation(prev => new Set(prev).add(index));
+                          }}
                           className="ml-2"
                         >
                           <Edit2 className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
+                    <AnimatePresence>
+                      {expandedEducation.has(index) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-6 space-y-1">
+                            {edu.fieldOfStudy && (
+                              <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
+                            )}
+                            <p className="text-sm text-gray-600">{edu.institution}</p>
+                            <p className="text-xs text-gray-500">{edu.year}</p>
+                            {edu.gpa && (
+                              <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>
+                            )}
+                            {edu.achievements && edu.achievements.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs font-medium text-gray-600 mb-1">Achievements:</p>
+                                <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
+                                  {edu.achievements.map((achievement, idx) => (
+                                    <li key={idx}>{achievement}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   )}
                 </motion.div>
               ))}
