@@ -1176,9 +1176,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           { label: "Manager", value: "Manager" }
         ]);
       }, 1000);
-    } else {
+    } else if (!formData.roleInTeam) {
       setFormData(prev => ({ ...prev, roleInTeam: response }));
-      moveToNextStep();
+      saveStepData(true); // Save immediately
+      setTimeout(() => {
+        moveToNextStep();
+      }, 500); // Small delay to ensure state is saved
     }
   };
 
@@ -1242,6 +1245,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const moveToNextStep = () => {
     const step = currentStepRef.current;
     if (step < STEPS.length) {
+      console.log(`Moving from step ${step} to step ${step + 1}`);
+      
       // Award milestone points for completing certain steps
       if (step === 2 && !cvUploaded) { // Completed work experience manually
         addBotMessage("Great progress! Work experience completed. 🎯", 50);
@@ -1253,11 +1258,24 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       // Clear any system messages (quick replies) when moving steps
       setMessages(prev => prev.filter(m => m.type !== 'system'));
-      setCurrentStep(prev => prev + 1);
-      setMaxStepReached(prev => Math.max(prev, step + 1)); // Update max reached
-      setShowDynamicMessage(true); // Show dynamic message for step transitions
-      saveStepData(true); // Auto-save
-      initiateStep(step + 1);
+      // Clear dynamic message before transition to prevent wrong step message
+      setShowDynamicMessage(false);
+      
+      // Use setTimeout to ensure state updates happen in order
+      setTimeout(() => {
+        setCurrentStep(step + 1);
+        setMaxStepReached(prev => Math.max(prev, step + 1));
+        saveStepData(true);
+        
+        // Small delay before initiating new step
+        setTimeout(() => {
+          // Only show dynamic message for non-skills steps
+          if (step + 1 !== 4) {
+            setShowDynamicMessage(true);
+          }
+          initiateStep(step + 1);
+        }, 100);
+      }, 50);
     } else {
       completeProfile();
     }
@@ -1285,31 +1303,58 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     if (targetStep < 1 || targetStep > STEPS.length) return;
     if (targetStep > maxStepReached + 1) return; // Can't skip ahead beyond max reached + 1
     
+    console.log(`Navigating from step ${step} to step ${targetStep}`);
+    
     // Close menu
     setShowNavigationMenu(false);
     
-    // Clear system messages
-    setMessages(prev => prev.filter(m => m.type !== 'system'));
+    // Clear ALL system messages including skills review
+    setMessages(prev => prev.filter(m => {
+      // Remove system messages and any skills components
+      return m.type !== 'system' && m.id !== 'skills-component';
+    }));
     
-    // Set navigation state for dynamic message
+    // Clear dynamic message first
+    setShowDynamicMessage(false);
+    
+    // Set navigation state
     setNavigatingTo(targetStep);
-    setShowDynamicMessage(true);
+    
+    // Only show navigation message for non-skills steps
+    if (targetStep !== 4) {
+      setShowDynamicMessage(true);
+    }
     
     // Navigate after animation completes
     setTimeout(() => {
       setCurrentStep(targetStep);
       setNavigatingTo(null);
       saveStepData(true);
-      initiateStep(targetStep);
+      
+      // Clear dynamic message again before initiating new step
+      setShowDynamicMessage(false);
+      
+      setTimeout(() => {
+        initiateStep(targetStep);
+      }, 100);
     }, 1500);
   };
 
   const initiateStep = (step: number) => {
     const stepData = STEPS[step - 1];
     if (!stepData) return;
+    
+    console.log(`Initiating step ${step} (${stepData.name})`);
+    console.log(`Current showDynamicMessage: ${showDynamicMessage}`);
+    console.log(`Current messages count: ${messages.length}`);
 
-    // Show dynamic message for main step transitions (except CV upload)
-    if (step > 1) {
+    // Clear any lingering skills review components when not on skills step
+    if (step !== 4) {
+      setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+    }
+
+    // Show dynamic message for main step transitions (except CV upload and skills)
+    if (step > 1 && step !== 4) {
       setShowDynamicMessage(true);
     }
 
@@ -1392,6 +1437,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'skills':
+        setShowDynamicMessage(false); // Prevent ProfileStepMessage from showing
+        // Clear any existing skills review components to prevent duplicates
+        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        
         setTimeout(() => {
           setMessages(prev => [...prev, {
             id: 'skills-component',
@@ -2003,7 +2052,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           </AnimatePresence>
 
           {/* Dynamic step message - shows during navigation and step transitions */}
-          {showDynamicMessage && currentStep > 0 && (
+          {showDynamicMessage && currentStep > 0 && currentStep !== 4 && (
             <ProfileStepMessage 
               step={currentStep}
               navigatingTo={navigatingTo}
