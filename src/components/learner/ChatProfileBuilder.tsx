@@ -10,6 +10,8 @@ import GameProgress from './chat/GameProgress';
 import TypingIndicator from './chat/TypingIndicator';
 import FileDropZone from './chat/FileDropZone';
 import CVSummaryCard from './chat/CVSummaryCard';
+import NavigationControls from './chat/NavigationControls';
+import NavigationMenu from './chat/NavigationMenu';
 import SkillsValidationCards from './SkillsValidationCards';
 import CourseOutlineReward from './CourseOutlineReward';
 import { Trophy, Zap, Upload, Clock } from 'lucide-react';
@@ -90,6 +92,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [waitingForCVUpload, setWaitingForCVUpload] = useState(false);
   const [cvExtractedData, setCvExtractedData] = useState<any>(null);
   const [showCVSummary, setShowCVSummary] = useState(false);
+  const [showNavigationMenu, setShowNavigationMenu] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,6 +104,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   useEffect(() => {
     currentStepRef.current = currentStep;
   }, [currentStep]);
+
+  // Track elapsed time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - conversationStartTime.current.getTime()) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Form Data (reusing existing structure)
   const [formData, setFormData] = useState<FormData>({
@@ -190,16 +203,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           console.log('Loaded CV extracted data from employee:', employee.cv_extracted_data);
           
           // Update form data with CV data
-          if (employee.cv_extracted_data.experience) {
+          if (employee.cv_extracted_data.work_experience) {
             setFormData(prev => ({
               ...prev,
-              workExperience: employee.cv_extracted_data.experience || []
+              workExperience: employee.cv_extracted_data.work_experience.map((exp: any) => ({
+                title: exp.title || exp.position || '',
+                company: exp.company || '',
+                duration: exp.duration || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
+                description: exp.description || ''
+              }))
             }));
           }
           if (employee.cv_extracted_data.education) {
             setFormData(prev => ({
               ...prev,
-              education: employee.cv_extracted_data.education || []
+              education: employee.cv_extracted_data.education.map((edu: any) => ({
+                degree: edu.degree || '',
+                institution: edu.institution || '',
+                year: edu.year || '',
+                fieldOfStudy: edu.fieldOfStudy || ''
+              }))
             }));
           }
         }
@@ -274,7 +297,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const showQuickReplies = (options: any[]) => {
-    // Quick replies are shown outside messages, managed by state
+    // Clear any existing quick replies first
+    setMessages(prev => prev.filter(m => m.type !== 'system' || !m.id.startsWith('quick-replies-')));
+    
+    // Add new quick replies
     setMessages(prev => [...prev, {
       id: 'quick-replies-' + Date.now(),
       type: 'system',
@@ -670,12 +696,52 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const moveToNextStep = () => {
     const step = currentStepRef.current;
     if (step < STEPS.length) {
+      // Clear any system messages (quick replies) when moving steps
+      setMessages(prev => prev.filter(m => m.type !== 'system'));
       setCurrentStep(prev => prev + 1);
       saveStepData(true); // Auto-save
       initiateStep(step + 1);
     } else {
       completeProfile();
     }
+  };
+
+  const goToPreviousStep = () => {
+    const step = currentStepRef.current;
+    if (step > 1) {
+      // Clear system messages
+      setMessages(prev => prev.filter(m => m.type !== 'system'));
+      setCurrentStep(prev => prev - 1);
+      saveStepData(true);
+      
+      addBotMessage(`Let's go back to ${STEPS[step - 2].title}. 👈`, 0, 500);
+      setTimeout(() => {
+        initiateStep(step - 1);
+      }, 1000);
+    }
+  };
+
+  const navigateToStep = (targetStep: number) => {
+    const step = currentStepRef.current;
+    
+    // Only allow navigation to completed or current steps
+    if (targetStep < 1 || targetStep > STEPS.length) return;
+    if (targetStep > step + 1) return; // Can't skip ahead
+    
+    // Close menu
+    setShowNavigationMenu(false);
+    
+    // Clear system messages
+    setMessages(prev => prev.filter(m => m.type !== 'system'));
+    
+    // Navigate
+    setCurrentStep(targetStep);
+    saveStepData(true);
+    
+    addBotMessage(`Taking you back to ${STEPS[targetStep - 1].title}... 🔄`, 0, 500);
+    setTimeout(() => {
+      initiateStep(targetStep);
+    }, 1000);
   };
 
   const initiateStep = (step: number) => {
@@ -972,10 +1038,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Reload data to get imported information
     await loadEmployeeData();
     
-    addBotMessage("Great! I've saved all your information. Let's continue building your profile! 🚀", 100);
+    addBotMessage("Great! I've saved all your information. Now let's review each section to make sure everything is accurate. 🔍", 100);
     
-    // Move to next step
-    setTimeout(() => moveToNextStep(), 1500);
+    // Move to work experience step for verification
+    setTimeout(() => {
+      setCurrentStep(2); // Work experience step
+      initiateStep(2);
+    }, 1500);
   };
 
   const handleCVSummaryEdit = (section: string) => {
@@ -1003,6 +1072,31 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
+  // Helper functions for navigation
+  const getStepStatus = (stepId: number) => {
+    const step = currentStepRef.current;
+    if (stepId < step) return 'completed';
+    if (stepId === step) return 'current';
+    if (stepId === step + 1) return 'upcoming';
+    return 'locked';
+  };
+
+  const getStepsForMenu = () => {
+    return STEPS.map((step, index) => ({
+      id: step.id,
+      name: step.name,
+      title: step.title,
+      status: getStepStatus(step.id),
+      points: index === 0 && cvUploaded ? 200 : index < currentStep ? 100 : 0
+    }));
+  };
+
+  const formatElapsedTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Render completed state
   if (isCompleted && courseOutline) {
     return (
@@ -1020,12 +1114,35 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      {/* Navigation Controls */}
+      <NavigationControls
+        currentStep={Math.max(1, currentStep)}
+        totalSteps={STEPS.length}
+        canGoBack={currentStep > 1}
+        canSkip={false}
+        onBack={goToPreviousStep}
+        onSkip={() => {}}
+        onMenuClick={() => setShowNavigationMenu(true)}
+        stepName={currentStep > 0 ? STEPS[currentStep - 1]?.title : undefined}
+      />
+      
       {/* Game Progress Header */}
       <GameProgress
         currentStep={Math.max(0, currentStep)}
         totalSteps={STEPS.length}
         points={points}
         streak={streak}
+      />
+
+      {/* Navigation Menu */}
+      <NavigationMenu
+        isOpen={showNavigationMenu}
+        onClose={() => setShowNavigationMenu(false)}
+        steps={getStepsForMenu()}
+        currentStep={currentStep}
+        totalPoints={points}
+        timeSpent={formatElapsedTime(elapsedTime)}
+        onStepClick={navigateToStep}
       />
 
       {/* Chat Messages */}
