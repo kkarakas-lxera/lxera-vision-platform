@@ -177,25 +177,27 @@ export default function CVExtractedSections({
   };
 
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="space-y-3 max-w-2xl">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-sm text-gray-600 mb-4"
+        className="text-xs text-gray-600 mb-3"
       >
-        Let's review your information step by step. You can edit individual entries or accept the entire section.
+        Review your information below. You can edit or accept each section.
       </motion.div>
 
       {/* Progress Indicator */}
-      <div className="flex items-center justify-center space-x-2 mb-6">
-        <div className={cn("flex items-center", currentSection !== 'work' && "opacity-50")}>
-          <Briefcase className="h-4 w-4 mr-1" />
-          <span className="text-xs">Work</span>
+      <div className="flex items-center justify-center space-x-1 mb-4">
+        <div className={cn("flex items-center px-2 py-1 rounded-full text-xs", 
+          currentSection === 'work' ? "bg-blue-100 text-blue-700" : "text-gray-500")}>
+          <Briefcase className="h-3 w-3 mr-1" />
+          <span>Work</span>
         </div>
-        <ChevronRight className="h-4 w-4 text-gray-400" />
-        <div className={cn("flex items-center", currentSection !== 'education' && "opacity-50")}>
-          <GraduationCap className="h-4 w-4 mr-1" />
-          <span className="text-xs">Education</span>
+        <ChevronRight className="h-3 w-3 text-gray-400" />
+        <div className={cn("flex items-center px-2 py-1 rounded-full text-xs", 
+          currentSection === 'education' ? "bg-blue-100 text-blue-700" : "text-gray-500")}>
+          <GraduationCap className="h-3 w-3 mr-1" />
+          <span>Education</span>
         </div>
         {certData.length > 0 && (
           <>
@@ -219,22 +221,22 @@ export default function CVExtractedSections({
 
       {/* Work Experience Section */}
       {currentSection === 'work' && (
-        <Card className={cn("transition-all", acceptedSections.work && "border-green-500 bg-green-50/50")}>
-          <CardHeader className="pb-3">
+        <Card className={cn("transition-all border-0 shadow-sm", acceptedSections.work && "bg-green-50/30")}>
+          <CardHeader className="py-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
+              <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+                <Briefcase className="h-3.5 w-3.5" />
                 Work Experience ({workData.length})
               </CardTitle>
               {!acceptedSections.work && (
-                <Button size="sm" variant="default" onClick={() => handleAcceptSection('work')}>
+                <Button size="sm" variant="default" onClick={() => handleAcceptSection('work')} className="h-7 text-xs">
                   <Check className="h-3 w-3 mr-1" />
-                  Accept All & Continue
+                  Accept All
                 </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 px-4 pb-4">
             <AnimatePresence mode="popLayout">
               {workData.map((work, index) => (
                 <motion.div
@@ -244,7 +246,7 @@ export default function CVExtractedSections({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   className={cn(
-                    "p-4 border rounded-lg bg-white",
+                    "p-3 border rounded-md bg-white",
                     editingWork === index && "border-blue-300 bg-blue-50/50"
                   )}
                 >
@@ -339,9 +341,8 @@ export default function CVExtractedSections({
                               )}
                             </div>
                             <div>
-                              <p className="font-medium">{work.title}</p>
-                              <p className="text-sm text-gray-600">{work.company}</p>
-                              <p className="text-xs text-gray-500">{work.duration}</p>
+                              <p className="font-medium text-sm">{work.title}</p>
+                              <p className="text-xs text-gray-600">{work.company} • {work.duration}</p>
                             </div>
                           </div>
                         </button>
@@ -530,13 +531,10 @@ export default function CVExtractedSections({
                               <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
                             )}
                           </div>
-                          <div className="space-y-1">
+                          <div>
                             <p className="font-medium text-sm">{edu.degree}</p>
                             {!expandedEducation.has(index) && (
-                              <>
-                                <p className="text-sm text-gray-600">{edu.institution}</p>
-                                <p className="text-xs text-gray-500">{edu.year}</p>
-                              </>
+                              <p className="text-xs text-gray-600">{edu.institution} • {edu.year}</p>
                             )}
                           </div>
                         </div>
@@ -565,24 +563,26 @@ export default function CVExtractedSections({
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="pl-6 space-y-1">
+                        <div className="pl-5 space-y-1 mt-2 text-xs text-gray-600">
                           {edu.fieldOfStudy && (
-                            <p className="text-sm text-gray-600">{edu.fieldOfStudy}</p>
+                            <p>{edu.fieldOfStudy}</p>
                           )}
-                          <p className="text-sm text-gray-600">{edu.institution}</p>
-                          <p className="text-xs text-gray-500">{edu.year}</p>
+                          <p>{edu.institution} • {edu.year}</p>
                           {edu.gpa && (
-                            <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>
+                            <p>GPA: {edu.gpa}</p>
                           )}
                           {edu.achievements && edu.achievements.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs font-medium text-gray-600 mb-1">Achievements:</p>
-                              <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
-                                {edu.achievements.map((achievement, idx) => (
-                                  <li key={idx}>{achievement}</li>
-                                ))}
-                              </ul>
-                            </div>
+                            <ul className="space-y-0.5 mt-1">
+                              {edu.achievements.slice(0, 2).map((achievement, idx) => (
+                                <li key={idx} className="flex items-start">
+                                  <span className="text-gray-400 mr-1">•</span>
+                                  <span>{achievement}</span>
+                                </li>
+                              ))}
+                              {edu.achievements.length > 2 && (
+                                <li className="text-gray-500">+{edu.achievements.length - 2} more</li>
+                              )}
+                            </ul>
                           )}
                         </div>
                       </motion.div>

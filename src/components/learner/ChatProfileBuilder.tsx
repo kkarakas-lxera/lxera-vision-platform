@@ -13,8 +13,19 @@ import CVExtractedSections from './chat/CVExtractedSections';
 import ProfileProgressSidebar from './chat/ProfileProgressSidebar';
 import ChatSkillsReview from './chat/ChatSkillsReview';
 import CourseOutlineReward from './CourseOutlineReward';
-import { Trophy, Zap, Upload, Clock, ChevronUp } from 'lucide-react';
+import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ChatProfileBuilderProps {
   employeeId: string;
@@ -98,6 +109,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEducationIndex, setCurrentEducationIndex] = useState(0);
   const [currentWorkIndex, setCurrentWorkIndex] = useState(0);
+  const [showRestartDialog, setShowRestartDialog] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -173,15 +185,44 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setHasMoreMessages(total > 10);
         
         // Convert saved messages to app format
-        const formattedMessages: Message[] = recentMessages.map(msg => ({
-          id: msg.id || crypto.randomUUID(),
-          type: msg.message_type as Message['type'],
-          content: msg.content,
-          timestamp: new Date(msg.created_at || Date.now()),
-          metadata: msg.metadata
-        }));
+        const formattedMessages: Message[] = recentMessages.map(msg => {
+          // Handle special system messages that need component restoration
+          if (msg.message_type === 'system' && msg.metadata?.componentType === 'CVExtractedSections') {
+            return {
+              id: msg.id || crypto.randomUUID(),
+              type: 'system' as Message['type'],
+              content: (
+                <CVExtractedSections
+                  extractedData={msg.metadata.extractedData || {}}
+                  onSectionAccept={handleSectionAccept}
+                  onSectionUpdate={handleSectionUpdate}
+                  onComplete={handleAllSectionsComplete}
+                />
+              ),
+              timestamp: new Date(msg.created_at || Date.now()),
+              metadata: msg.metadata
+            };
+          }
+          
+          return {
+            id: msg.id || crypto.randomUUID(),
+            type: msg.message_type as Message['type'],
+            content: msg.content,
+            timestamp: new Date(msg.created_at || Date.now()),
+            metadata: msg.metadata
+          };
+        });
         
         setMessages(formattedMessages);
+        
+        // Restore CV data if it was in the messages
+        const cvMessage = recentMessages.find(msg => 
+          msg.metadata?.componentType === 'CVExtractedSections'
+        );
+        if (cvMessage?.metadata?.extractedData) {
+          setCvExtractedData(cvMessage.metadata.extractedData);
+          setCvUploaded(true);
+        }
         
         // Resume from last step if available
         const lastMessage = recentMessages[recentMessages.length - 1];
@@ -230,6 +271,61 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
+  const handleStartFresh = async () => {
+    try {
+      // Clear all messages from database
+      await ChatMessageService.deleteMessagesByEmployee(employeeId);
+      
+      // Reset all state
+      setMessages([]);
+      setCurrentStep(0);
+      setPoints(0);
+      setStreak(0);
+      setCvUploaded(false);
+      setCvExtractedData(null);
+      setWaitingForCVUpload(false);
+      setCurrentEducationIndex(0);
+      setCurrentWorkIndex(0);
+      setCurrentWorkExperience({});
+      setIsLoading(false);
+      setIsTyping(false);
+      setFormData({
+        currentPosition: employeeData?.st_company_positions?.position_title || '',
+        department: employeeData?.st_company_positions?.department || '',
+        timeInRole: '',
+        workExperience: [],
+        education: [],
+        currentProjects: [],
+        teamSize: '',
+        roleInTeam: '',
+        challenges: [],
+        growthAreas: []
+      });
+      
+      // Reset points in database
+      await supabase
+        .from('employees')
+        .update({ 
+          profile_builder_points: 0,
+          profile_builder_streak: 0
+        })
+        .eq('id', employeeId);
+      
+      // Close dialog
+      setShowRestartDialog(false);
+      
+      // Start fresh conversation
+      setTimeout(() => {
+        initializeChat();
+      }, 500);
+      
+      toast.success('Starting fresh! Let\'s build your profile together.');
+    } catch (error) {
+      console.error('Error starting fresh:', error);
+      toast.error('Failed to reset. Please try again.');
+    }
+  };
+
   const initializeChat = () => {
     addBotMessage(
       `Hey ${employeeData?.full_name || 'there'}! 👋 I'm Lexie, your AI profile assistant. Ready to build your professional profile together? It's like a quest where you unlock rewards along the way!`,
@@ -252,6 +348,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         ]);
       }, 1200);
     }, 2000);
+  };
+
+  // Save points to database
+  const savePointsToDatabase = async (newPoints: number) => {
+    try {
+      await supabase
+        .from('employees')
+        .update({ 
+          profile_builder_points: newPoints,
+          profile_builder_streak: streak
+        })
+        .eq('id', employeeId);
+    } catch (error) {
+      console.error('Failed to save points:', error);
+    }
   };
 
   // Load existing employee data
@@ -277,6 +388,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           currentPosition: employee.st_company_positions?.position_title || '',
           department: employee.st_company_positions?.department || ''
         }));
+        
+        // Restore points and streak
+        if (employee.profile_builder_points !== null) {
+          setPoints(employee.profile_builder_points);
+        }
+        if (employee.profile_builder_streak !== null) {
+          setStreak(employee.profile_builder_streak);
+        }
         
         // Load CV extracted data if available
         if (employee.cv_extracted_data) {
@@ -336,7 +455,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       setMessages(prev => [...prev, message]);
       if (points > 0) {
-        setPoints(prev => prev + points);
+        setPoints(prev => {
+          const newPoints = prev + points;
+          // Save points to database
+          savePointsToDatabase(newPoints);
+          return newPoints;
+        });
       }
       setIsTyping(false);
       
@@ -370,10 +494,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     // Update streak for quick responses
     if (lastResponseTime && (Date.now() - lastResponseTime.getTime()) < 5000) {
-      setStreak(prev => prev + 1);
-      if (streak > 2) {
-        addAchievement(ACHIEVEMENTS.SPEED_DEMON);
-      }
+      setStreak(prev => {
+        const newStreak = prev + 1;
+        // Save streak to database
+        supabase
+          .from('employees')
+          .update({ profile_builder_streak: newStreak })
+          .eq('id', employeeId)
+          .then(() => {})
+          .catch(err => console.error('Failed to save streak:', err));
+        
+        if (newStreak > 2) {
+          addAchievement(ACHIEVEMENTS.SPEED_DEMON);
+        }
+        return newStreak;
+      });
     }
     setLastResponseTime(new Date());
     
@@ -407,7 +542,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     };
     
     setMessages(prev => [...prev, message]);
-    setPoints(prev => prev + achievement.points);
+    setPoints(prev => {
+      const newPoints = prev + achievement.points;
+      savePointsToDatabase(newPoints);
+      return newPoints;
+    });
     toast.success(`Achievement Unlocked: ${achievement.name}!`);
   };
 
@@ -415,18 +554,31 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Clear any existing quick replies first
     setMessages(prev => prev.filter(m => m.type !== 'system' || !m.id.startsWith('quick-replies-')));
     
+    // Store options for later point processing
+    const optionsMap = new Map(options.map(opt => [opt.value, opt]));
+    
     // Add new quick replies
     setMessages(prev => [...prev, {
       id: 'quick-replies-' + Date.now(),
       type: 'system',
-      content: <QuickReplyButtons options={options} onSelect={handleQuickReply} />,
+      content: <QuickReplyButtons options={options} onSelect={(value, label) => handleQuickReply(value, label, optionsMap.get(value))} />,
       timestamp: new Date()
     }]);
   };
 
   // Handle user interactions
-  const handleQuickReply = (value: string, label: string) => {
+  const handleQuickReply = (value: string, label: string, option?: any) => {
     addUserMessage(label);
+    
+    // Award points if the option has them
+    if (option?.points && option.points > 0) {
+      setPoints(prev => {
+        const newPoints = prev + option.points;
+        savePointsToDatabase(newPoints);
+        return newPoints;
+      });
+    }
+    
     processUserResponse(value);
   };
 
@@ -1291,9 +1443,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Show progressive sections display
     addBotMessage("Great! Now let's review your information. You can edit individual entries or accept entire sections. 📝", 100);
     
-    setTimeout(() => {
+    setTimeout(async () => {
+      const messageId = 'cv-sections-' + Date.now();
       setMessages(prev => [...prev, {
-        id: 'cv-sections-' + Date.now(),
+        id: messageId,
         type: 'system',
         content: (
           <CVExtractedSections
@@ -1303,8 +1456,31 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             onComplete={handleAllSectionsComplete}
           />
         ),
-        timestamp: new Date()
+        timestamp: new Date(),
+        metadata: {
+          componentType: 'CVExtractedSections',
+          extractedData: cvExtractedData
+        }
       }]);
+      
+      // Save the CV sections display to database
+      if (userId && cvExtractedData) {
+        try {
+          await ChatMessageService.saveMessage({
+            employee_id: employeeId,
+            user_id: userId,
+            message_type: 'system',
+            content: 'CV_SECTIONS_DISPLAY',
+            metadata: {
+              componentType: 'CVExtractedSections',
+              extractedData: cvExtractedData
+            },
+            step: currentStepRef.current
+          });
+        } catch (error) {
+          console.error('Failed to save CV sections message:', error);
+        }
+      }
     }, 1500);
   };
   
@@ -1422,6 +1598,40 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     <div className="flex h-screen bg-gray-50">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
+        {/* Header with Start Fresh button */}
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+          <h2 className="text-sm font-medium text-gray-700">Profile Builder Chat</h2>
+          {messages.length > 2 && !isCompleted && (
+            <AlertDialog open={showRestartDialog} onOpenChange={setShowRestartDialog}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                  Start Fresh
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Start Fresh?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear your current conversation and progress. You'll start from the beginning.
+                    Your basic information will be preserved.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleStartFresh}>
+                    Yes, Start Fresh
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+        
         {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           {/* Load More Messages Button */}
@@ -1458,10 +1668,31 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         {/* Show file drop zone when waiting for CV upload */}
         {waitingForCVUpload && !isLoading && (
-          <FileDropZone 
-            onFileSelect={handleCVUpload}
-            isLoading={isLoading}
-          />
+          <>
+            <FileDropZone 
+              onFileSelect={handleCVUpload}
+              isLoading={isLoading}
+            />
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                Having trouble? You can also:
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setWaitingForCVUpload(false);
+                  addBotMessage("No problem! Let's build your profile together step by step. 💪", 50);
+                  setTimeout(() => {
+                    addBotMessage("First, let's talk about your work experience. What's your current or most recent job title?", 0, 500);
+                    setCurrentStep(2); // Move to work experience
+                  }, 1000);
+                }}
+              >
+                Continue without CV
+              </Button>
+            </div>
+          </>
         )}
         
         {/* CV sections are now displayed as system messages */}
