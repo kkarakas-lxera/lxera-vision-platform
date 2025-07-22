@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
 import { ChatMessageService } from '@/services/chatMessageService';
+import { ProfileBuilderStateService, type ProfileBuilderState } from '@/services/profileBuilderStateService';
 import ChatMessage from './chat/ChatMessage';
 import QuickReplyButtons from './chat/QuickReplyButtons';
 import ChatInput from './chat/ChatInput';
@@ -113,6 +114,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [showRestartDialog, setShowRestartDialog] = useState(false);
   const [showNavigationMenu, setShowNavigationMenu] = useState(false);
   const [cvAnalysisComplete, setCvAnalysisComplete] = useState(false);
+  const [builderState, setBuilderState] = useState<ProfileBuilderState | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -185,6 +187,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       if (recentMessages.length > 0) {
         // Check if there are more messages
         const { total } = await ChatMessageService.getAllMessages(employeeId, 0, 1);
+        console.log('Chat history check:', { 
+          recentMessagesLength: recentMessages.length, 
+          totalMessages: total, 
+          hasMore: total > 10 
+        });
         setHasMoreMessages(total > 10);
         
         // Check if CV has been uploaded from chat history
@@ -460,6 +467,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
       // Load existing profile sections
       const sections = await EmployeeProfileService.getProfileSections(employeeId);
+      
+      // Load saved profile builder state
+      const savedState = await ProfileBuilderStateService.loadState(employeeId);
+      if (savedState) {
+        setBuilderState(savedState);
+        // Restore form data if available
+        if (savedState.formData) {
+          setFormData(savedState.formData);
+        }
+      }
+      
       // Process sections and update formData as needed
       
     } catch (error) {
@@ -1192,11 +1210,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
     switch (stepData.name) {
       case 'work_experience':
-        // If we have CV extracted data, show the CV sections component
-        if (cvExtractedData && (cvExtractedData.work_experience?.length > 0 || cvExtractedData.education?.length > 0)) {
-          addBotMessage("Let's review your extracted information. You can edit individual entries or accept entire sections. 📝", 100);
+        // If we have CV extracted data, show only work experience section
+        if (cvExtractedData && cvExtractedData.work_experience?.length > 0) {
+          addBotMessage("Let's review your work experience. You can edit individual entries or accept this section. 📝", 100);
           setTimeout(() => {
-            handleCVSummaryConfirmWithData(cvExtractedData);
+            handleCVSectionSpecific(cvExtractedData, 'work');
           }, 1000);
         } else if (formData.workExperience.length > 0) {
           // Reset index to start from first entry
@@ -1221,11 +1239,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'education':
-        // If we have CV extracted data, show the CV sections component
-        if (cvExtractedData && (cvExtractedData.work_experience?.length > 0 || cvExtractedData.education?.length > 0)) {
-          addBotMessage("Let's review your extracted information. You can edit individual entries or accept entire sections. 📝", 100);
+        // If we have CV extracted data, show only education section
+        if (cvExtractedData && cvExtractedData.education?.length > 0) {
+          addBotMessage("Let's review your education. You can edit individual entries or accept this section. 📝", 100);
           setTimeout(() => {
-            handleCVSummaryConfirmWithData(cvExtractedData);
+            handleCVSectionSpecific(cvExtractedData, 'education');
           }, 1000);
         } else if (formData.education.length > 0) {
           // Reset index to start from first entry
@@ -1391,6 +1409,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     try {
       const stepName = STEPS[step - 1].name;
       
+      // Save comprehensive state
+      const currentBuilderState: ProfileBuilderState = {
+        step,
+        formData,
+        lastActivity: new Date().toISOString(),
+        // Add component-specific states as needed
+      };
+      
+      await ProfileBuilderStateService.saveState(employeeId, currentBuilderState);
+      
       switch (stepName) {
         case 'work_experience':
           await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
@@ -1487,6 +1515,50 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   const handleCVSummaryConfirm = async () => {
     handleCVSummaryConfirmWithData(cvExtractedData);
+  };
+
+  const handleCVSectionSpecific = async (extractedData: any, section: 'work' | 'education') => {
+    // Show CV sections component with specific section focus
+    const messageId = `cv-sections-${section}-` + Date.now();
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <CVExtractedSections
+          extractedData={extractedData}
+          onSectionAccept={handleSectionAccept}
+          onSectionUpdate={handleSectionUpdate}
+          onComplete={handleAllSectionsComplete}
+          initialSection={section} // Pass the specific section to focus on
+        />
+      ),
+      timestamp: new Date(),
+      metadata: {
+        componentType: 'CVExtractedSections',
+        extractedData: extractedData,
+        specificSection: section
+      }
+    }]);
+    
+    // Save the CV sections display to database
+    if (userId && extractedData) {
+      try {
+        await ChatMessageService.saveMessage({
+          employee_id: employeeId,
+          user_id: userId,
+          message_type: 'system',
+          content: `CV_SECTIONS_DISPLAY_${section.toUpperCase()}`,
+          metadata: {
+            componentType: 'CVExtractedSections',
+            extractedData: extractedData,
+            specificSection: section
+          },
+          step: currentStepRef.current
+        });
+      } catch (error) {
+        console.error('Failed to save CV sections message:', error);
+      }
+    }
   };
 
   const handleCVSummaryConfirmWithData = async (extractedData: any) => {
@@ -1705,6 +1777,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
+          {/* Debug info - remove in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-gray-500 text-center mb-2">
+              Messages: {messages.length}, Has more: {hasMoreMessages.toString()}
+            </div>
+          )}
+          
           {/* Load More Messages Button */}
           {hasMoreMessages && (
             <div className="flex justify-center mb-4">

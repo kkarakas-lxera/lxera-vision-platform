@@ -54,13 +54,15 @@ interface CVExtractedSectionsProps {
   onSectionAccept: (section: 'work' | 'education' | 'certifications' | 'languages') => void;
   onSectionUpdate: (section: 'work' | 'education' | 'certifications' | 'languages', data: any) => void;
   onComplete: () => void;
+  initialSection?: 'work' | 'education' | 'certifications' | 'languages';
 }
 
 export default function CVExtractedSections({
   extractedData,
   onSectionAccept,
   onSectionUpdate,
-  onComplete
+  onComplete,
+  initialSection
 }: CVExtractedSectionsProps) {
   const [editingWork, setEditingWork] = useState<number | null>(null);
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
@@ -90,7 +92,7 @@ export default function CVExtractedSections({
   const [certData, setCertData] = useState(extractedData.certifications || []);
   const [langData, setLangData] = useState(extractedData.languages || []);
   
-  const [currentSection, setCurrentSection] = useState<'work' | 'education' | 'certifications' | 'languages' | 'complete'>('work');
+  const [currentSection, setCurrentSection] = useState<'work' | 'education' | 'certifications' | 'languages' | 'complete'>(initialSection || 'work');
   const [acceptedSections, setAcceptedSections] = useState({
     work: false,
     education: false,

@@ -107,15 +107,23 @@ export default function ChatSkillsReview({ employeeId, onComplete }: ChatSkillsR
       const validSkills = skills.filter(s => !removedSkills.has(s.skill_name));
       
       // Prepare validation entries
-      const entries = validSkills.map((skill, index) => ({
-        employee_id: employeeId,
-        skill_name: skill.skill_name,
-        skill_id: skill.skill_id,
-        proficiency_level: Math.min(Math.max(skill.proficiency_level || 2, 0), 3), // Ensure 0-3 range
-        validation_order: index,
-        is_from_position: skill.is_from_position || false,
-        is_from_cv: skill.is_from_cv || false
-      }));
+      const entries = validSkills.map((skill, index) => {
+        // Handle AI-generated skill IDs that are not valid UUIDs
+        let skillId = skill.skill_id;
+        if (skillId && skillId.startsWith('ai_')) {
+          skillId = null; // Set to null for AI-generated skills
+        }
+        
+        return {
+          employee_id: employeeId,
+          skill_name: skill.skill_name,
+          skill_id: skillId,
+          proficiency_level: Math.min(Math.max(skill.proficiency_level || 2, 0), 3), // Ensure 0-3 range
+          validation_order: index,
+          is_from_position: skill.is_from_position || false,
+          is_from_cv: skill.is_from_cv || false
+        };
+      });
       
       console.log('Saving skills validation entries:', entries);
       
