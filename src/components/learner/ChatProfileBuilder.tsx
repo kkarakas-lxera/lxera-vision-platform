@@ -183,6 +183,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           currentPosition: employee.st_company_positions?.position_title || '',
           department: employee.st_company_positions?.department || ''
         }));
+        
+        // Load CV extracted data if available
+        if (employee.cv_extracted_data) {
+          setCvExtractedData(employee.cv_extracted_data);
+          console.log('Loaded CV extracted data from employee:', employee.cv_extracted_data);
+          
+          // Update form data with CV data
+          if (employee.cv_extracted_data.experience) {
+            setFormData(prev => ({
+              ...prev,
+              workExperience: employee.cv_extracted_data.experience || []
+            }));
+          }
+          if (employee.cv_extracted_data.education) {
+            setFormData(prev => ({
+              ...prev,
+              education: employee.cv_extracted_data.education || []
+            }));
+          }
+        }
       }
 
       // Load existing profile sections
@@ -427,10 +447,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       addAchievement(ACHIEVEMENTS.CV_UPLOADED);
       setCvUploaded(true);
       
-      // Store extracted data
-      if (analysisResult?.extractedData) {
-        setCvExtractedData(analysisResult.extractedData);
-      }
+      // The edge function stores data in the employee record, not in the response
+      console.log('Analysis result:', analysisResult);
       
       setTimeout(() => {
         addBotMessage(
@@ -440,11 +458,39 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         );
       }, 6000);
       
-      // Show CV summary after messages
-      setTimeout(() => {
-        setShowCVSummary(true);
-        setIsLoading(false);
-      }, 7500);
+      // Import CV data to profile first
+      await supabase.functions.invoke('import-cv-to-profile', {
+        body: { employeeId }
+      });
+      
+      // Reload data to get imported information including CV extracted data
+      const { data: updatedEmployee } = await supabase
+        .from('employees')
+        .select('cv_extracted_data')
+        .eq('id', employeeId)
+        .single();
+      
+      if (updatedEmployee?.cv_extracted_data) {
+        setCvExtractedData(updatedEmployee.cv_extracted_data);
+        console.log('CV data loaded:', updatedEmployee.cv_extracted_data);
+        
+        // Reload full employee data
+        await loadEmployeeData();
+        
+        // Show CV summary after messages
+        setTimeout(() => {
+          console.log('Setting showCVSummary to true');
+          setShowCVSummary(true);
+          setIsLoading(false);
+        }, 7500);
+      } else {
+        console.log('No CV data found after import');
+        // Continue without showing summary
+        setTimeout(() => {
+          setIsLoading(false);
+          moveToNextStep();
+        }, 7500);
+      }
       
     } catch (error) {
       console.error('CV upload error:', error);
