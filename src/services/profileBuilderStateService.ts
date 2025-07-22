@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface ProfileBuilderState {
   step: number;
+  maxStepReached?: number;
   cvSectionsState?: {
     acceptedSections: {
       work: boolean;

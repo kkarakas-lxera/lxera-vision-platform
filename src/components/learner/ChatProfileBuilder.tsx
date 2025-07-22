@@ -14,6 +14,7 @@ import CVExtractedSections from './chat/CVExtractedSections';
 import CVAnalysisProgress from './chat/CVAnalysisProgress';
 import ProfileProgressSidebar from './chat/ProfileProgressSidebar';
 import ChatSkillsReview from './chat/ChatSkillsReview';
+import ProfileStepMessage from './chat/ProfileStepMessage';
 import CourseOutlineReward from './CourseOutlineReward';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const [currentStep, setCurrentStep] = useState(0); // Start at 0 for initial greeting
+  const [maxStepReached, setMaxStepReached] = useState(0); // Track furthest step reached
   const [isTyping, setIsTyping] = useState(false);
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -115,6 +117,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [showNavigationMenu, setShowNavigationMenu] = useState(false);
   const [cvAnalysisComplete, setCvAnalysisComplete] = useState(false);
   const [builderState, setBuilderState] = useState<ProfileBuilderState | null>(null);
+  const [navigatingTo, setNavigatingTo] = useState<number | null>(null);
+  const [showDynamicMessage, setShowDynamicMessage] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -260,6 +264,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           if (hasUploadMessage && !cvUploaded) {
             setWaitingForCVUpload(true);
             setCurrentStep(1);
+            setMaxStepReached(prev => Math.max(prev, 1));
           }
         }
       } else {
@@ -475,6 +480,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Restore form data if available
         if (savedState.formData) {
           setFormData(savedState.formData);
+        }
+        // Restore max step reached
+        if (savedState.maxStepReached) {
+          setMaxStepReached(savedState.maxStepReached);
         }
       }
       
@@ -713,6 +722,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   // Step handlers
   const startStep1 = () => {
     setCurrentStep(1); // Move to CV upload step
+    setMaxStepReached(prev => Math.max(prev, 1));
+    setShowDynamicMessage(true); // Show dynamic message
     addBotMessage(
       "Great! Let's start with the easiest way. Do you have a CV or resume handy? I can extract your information from it to save you time! 📄",
       100,
@@ -1159,6 +1170,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Clear any system messages (quick replies) when moving steps
       setMessages(prev => prev.filter(m => m.type !== 'system'));
       setCurrentStep(prev => prev + 1);
+      setMaxStepReached(prev => Math.max(prev, step + 1)); // Update max reached
+      setShowDynamicMessage(true); // Show dynamic message for step transitions
       saveStepData(true); // Auto-save
       initiateStep(step + 1);
     } else {
@@ -1186,7 +1199,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     // Only allow navigation to completed or current steps
     if (targetStep < 1 || targetStep > STEPS.length) return;
-    if (targetStep > step + 1) return; // Can't skip ahead
+    if (targetStep > maxStepReached + 1) return; // Can't skip ahead beyond max reached + 1
     
     // Close menu
     setShowNavigationMenu(false);
@@ -1194,25 +1207,30 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Clear system messages
     setMessages(prev => prev.filter(m => m.type !== 'system'));
     
-    // Navigate
-    setCurrentStep(targetStep);
-    saveStepData(true);
+    // Set navigation state for dynamic message
+    setNavigatingTo(targetStep);
+    setShowDynamicMessage(true);
     
-    addBotMessage(`Taking you back to ${STEPS[targetStep - 1].title}... 🔄`, 0, 500);
+    // Navigate after animation completes
     setTimeout(() => {
+      setCurrentStep(targetStep);
+      setNavigatingTo(null);
+      saveStepData(true);
       initiateStep(targetStep);
-    }, 1000);
+    }, 1500);
   };
 
   const initiateStep = (step: number) => {
     const stepData = STEPS[step - 1];
     if (!stepData) return;
 
+    // Show dynamic message for main step transitions
+    setShowDynamicMessage(true);
+
     switch (stepData.name) {
       case 'work_experience':
         // If we have CV extracted data, show only work experience section
         if (cvExtractedData && cvExtractedData.work_experience?.length > 0) {
-          addBotMessage("Let's review your work experience. You can edit individual entries or accept this section. 📝", 100);
           setTimeout(() => {
             handleCVSectionSpecific(cvExtractedData, 'work');
           }, 1000);
@@ -1241,7 +1259,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       case 'education':
         // If we have CV extracted data, show only education section
         if (cvExtractedData && cvExtractedData.education?.length > 0) {
-          addBotMessage("Let's review your education. You can edit individual entries or accept this section. 📝", 100);
           setTimeout(() => {
             handleCVSectionSpecific(cvExtractedData, 'education');
           }, 1000);
@@ -1276,7 +1293,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'skills':
-        addBotMessage("Time for a quick skills review! ⚡", 0, 500);
         setTimeout(() => {
           setMessages(prev => [...prev, {
             id: 'skills-component',
@@ -1285,7 +1301,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               <ChatSkillsReview
                 employeeId={employeeId}
                 onComplete={() => {
-                  addBotMessage("Awesome skills inventory! 🎯", 200);
                   moveToNextStep();
                 }}
               />
@@ -1412,6 +1427,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Save comprehensive state
       const currentBuilderState: ProfileBuilderState = {
         step,
+        maxStepReached,
         formData,
         lastActivity: new Date().toISOString(),
         // Add component-specific states as needed
@@ -1684,6 +1700,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Move to skills step
     setTimeout(() => {
       setCurrentStep(4); // Skills step
+      setMaxStepReached(prev => Math.max(prev, 4));
       initiateStep(4);
     }, 1500);
   };
@@ -1694,7 +1711,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     const step = currentStepRef.current;
     if (stepId < step) return 'completed';
     if (stepId === step) return 'current';
-    if (stepId === step + 1) return 'upcoming';
+    if (stepId <= maxStepReached + 1) return 'upcoming'; // Allow access to previously reached steps + 1
     return 'locked';
   };
 
@@ -1813,6 +1830,18 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               <ChatMessage key={message.id} {...message} />
             ))}
           </AnimatePresence>
+
+          {/* Dynamic step message - shows during navigation and step transitions */}
+          {showDynamicMessage && currentStep > 0 && (
+            <ProfileStepMessage 
+              step={currentStep}
+              navigatingTo={navigatingTo}
+              onNavigationComplete={() => {
+                setNavigatingTo(null);
+              }}
+              forceUpdate={!navigatingTo}
+            />
+          )}
         
         {isTyping && <TypingIndicator />}
         
@@ -1836,6 +1865,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                   setTimeout(() => {
                     addBotMessage("First, let's talk about your work experience. What's your current or most recent job title?", 0, 500);
                     setCurrentStep(2); // Move to work experience
+                    setMaxStepReached(prev => Math.max(prev, 2));
                   }, 1000);
                 }}
               >
