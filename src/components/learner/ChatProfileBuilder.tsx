@@ -19,6 +19,10 @@ import ProfileStepMessage from './chat/ProfileStepMessage';
 import SectionConfirmationProgress from './chat/SectionConfirmationProgress';
 import CourseOutlineReward from './CourseOutlineReward';
 import AIGenerationProgress from './chat/AIGenerationProgress';
+import WorkExperienceForm from './chat/WorkExperienceForm';
+import EducationForm from './chat/EducationForm';
+import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
+import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -2468,7 +2472,103 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               handleCVSectionSpecific(cvExtractedData, 'work');
             }, 1000);
           } else {
-            addBotMessage("Let's talk about your work experience. What's your current or most recent job title?", 0, 1000);
+            // Manual entry - show grouped form
+            addBotMessage("Let's capture your work experience. Fill in your recent positions:", 0, 1000);
+            setTimeout(() => {
+              setMessages(prev => [...prev, {
+                id: 'work-form-' + Date.now(),
+                type: 'system',
+                content: (
+                  <WorkExperienceForm
+                    onComplete={async (workData) => {
+                      // Save basic work data with description field
+                      const workWithDescription = workData.map(w => ({
+                        ...w,
+                        description: ''
+                      }));
+                      setFormData(prev => ({ ...prev, workExperience: workWithDescription }));
+                      
+                      // Clear the form
+                      setMessages(prev => prev.filter(m => !m.id.startsWith('work-form-')));
+                      
+                      // Show AI generation loading
+                      addBotMessage("Great! Now I'll generate detailed responsibilities based on your roles...", 0);
+                      
+                      setTimeout(() => {
+                        const messageId = 'ai-generation-' + Date.now();
+                        setMessages(prev => [...prev, {
+                          id: messageId,
+                          type: 'system',
+                          content: (
+                            <AIResponsibilityGeneration
+                              workExperiences={workData}
+                              onComplete={async () => {
+                                // Clear loading message
+                                setMessages(prev => prev.filter(m => m.id !== messageId));
+                                
+                                // Call edge function to generate responsibilities
+                                try {
+                                  const { data: generated, error } = await supabase.functions.invoke('generate-work-responsibilities', {
+                                    body: { 
+                                      workExperiences: workData,
+                                      employeeId: employeeId
+                                    }
+                                  });
+                                  
+                                  if (error) throw error;
+                                  
+                                  // Show generated details for review
+                                  const detailsMessageId = 'work-details-' + Date.now();
+                                  setMessages(prev => [...prev, {
+                                    id: detailsMessageId,
+                                    type: 'system',
+                                    content: (
+                                      <AIGeneratedWorkDetails
+                                        workData={generated.workExperiences}
+                                        onAccept={(finalData) => {
+                                          // Save final work data with description
+                                          const workWithDesc = finalData.map(w => ({
+                                            title: w.title,
+                                            company: w.company,
+                                            duration: w.duration,
+                                            description: w.responsibilities?.join(' ') || ''
+                                          }));
+                                          setFormData(prev => ({ ...prev, workExperience: workWithDesc }));
+                                          setMessages(prev => prev.filter(m => m.id !== detailsMessageId));
+                                          addBotMessage("Perfect! Your work experience has been captured. 💼", 100);
+                                          setTimeout(() => moveToNextStep(), 1500);
+                                        }}
+                                        onUpdate={(updatedData) => {
+                                          // Update work data without moving forward
+                                          const workWithDesc = updatedData.map(w => ({
+                                            title: w.title,
+                                            company: w.company,
+                                            duration: w.duration,
+                                            description: w.responsibilities?.join(' ') || ''
+                                          }));
+                                          setFormData(prev => ({ ...prev, workExperience: workWithDesc }));
+                                        }}
+                                      />
+                                    ),
+                                    timestamp: new Date()
+                                  }]);
+                                } catch (error) {
+                                  console.error('Failed to generate responsibilities:', error);
+                                  addBotMessage("I had trouble generating suggestions. Let's continue anyway!", 0);
+                                  setTimeout(() => moveToNextStep(), 1500);
+                                }
+                              }}
+                            />
+                          ),
+                          timestamp: new Date()
+                        }]);
+                      }, 1500);
+                    }}
+                  />
+                ),
+                timestamp: new Date()
+              }]);
+            }, 1500);
           }
         } else if (navContext.intent === 'continue_progress') {
           // Returning to continue where they left off
@@ -2570,15 +2670,34 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               handleCVSectionSpecific(cvExtractedData, 'education');
             }, 1000);
           } else {
-            addBotMessage("Now let's talk about your education. What's your highest degree?", 0, 1000);
+            // Manual entry - show grouped form
+            addBotMessage("Let's capture your educational background:", 0, 1000);
             setTimeout(() => {
-              showQuickReplies([
-                { label: "High School", value: "High School" },
-                { label: "Bachelor's", value: "Bachelor" },
-                { label: "Master's", value: "Master" },
-                { label: "PhD", value: "PhD" },
-                { label: "Other", value: "Other" }
-              ]);
+              setMessages(prev => [...prev, {
+                id: 'education-form-' + Date.now(),
+                type: 'system',
+                content: (
+                  <EducationForm
+                    onComplete={(educationData) => {
+                      // Save education data with proper field mapping
+                      const mappedEducation = educationData.map(edu => ({
+                        degree: edu.degree,
+                        fieldOfStudy: edu.fieldOfStudy,
+                        institution: edu.institution,
+                        graduationYear: edu.year
+                      }));
+                      setFormData(prev => ({ ...prev, education: mappedEducation }));
+                      
+                      // Clear the form
+                      setMessages(prev => prev.filter(m => !m.id.startsWith('education-form-')));
+                      
+                      addBotMessage("Great! Your education has been recorded. 🎓", 50);
+                      setTimeout(() => moveToNextStep(), 1500);
+                    }}
+                  />
+                ),
+                timestamp: new Date()
+              }]);
             }, 1500);
           }
         } else {
