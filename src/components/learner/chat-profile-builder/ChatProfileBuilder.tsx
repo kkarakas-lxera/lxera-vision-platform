@@ -109,17 +109,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     formData: any;
   }
 
-  const [smartContext, setSmartContext] = useState<SmartContext>({
-    currentStep: 0,
-    recentInteractions: [],
-    formData: formData
-  });
-
   // Legacy state mapping for backward compatibility - will be gradually phased out
   const currentStepLegacy = navigationState.currentStep;
   const maxStepReachedLegacy = navigationState.maxStepReached;
-  const navigatingTo = navigationState.navigatingTo;
-  const showDynamicMessage = navigationState.showDynamicMessage;
+  const navigatingToLegacy = navigationState.navigatingTo;
+  const showDynamicMessageLegacy = navigationState.showDynamicMessage;
   const isTyping = uiState.isTyping;
   const isLoading = uiState.isLoading;
   const isInitializing = uiState.isInitializing;
@@ -140,7 +134,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const conversationStartTime = useRef<Date>(new Date());
-  const maxStepReachedRef = useRef(maxStepReached);
 
   // Keep refs in sync with state
   useEffect(() => {
