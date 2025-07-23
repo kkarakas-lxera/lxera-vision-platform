@@ -1237,8 +1237,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     maxStepReachedRef
   );
 
-  const smartIntentService = new SmartIntentService();
-
   // Navigate to step - defined early to avoid temporal dead zone
   const navigateToStep = (stepNumber: number) => {
     navigationService.navigateToStep(stepNumber);
@@ -1258,7 +1256,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     addAchievement: messageManager.addAchievement,
     showQuickReplies: messageManager.showQuickReplies,
     moveToNextStep: () => navigationService.moveToNextStep(),
-    analyzeIntent: smartIntentService.analyzeIntent.bind(smartIntentService),
+    analyzeIntent: (input: string) => SmartIntentService.analyzeIntent(input, smartContext, formData),
     executeSmartAction: async (intent: any) => {
       const smartHandlers = new SmartIntentHandlers(stepHandlerContext);
       await smartHandlers.executeSmartAction(intent);
@@ -1602,7 +1600,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         addBotMessage: messageManager.addBotMessage,
         addAchievement: messageManager.addAchievement,
         moveToNextStep: () => navigationService.moveToNextStep(),
-        analyzeIntent: smartIntentService.analyzeIntent.bind(smartIntentService),
+        analyzeIntent: (input: string) => SmartIntentService.analyzeIntent(input, smartContext, formData),
         executeSmartAction: async (intent: any) => {
           const smartHandlers = new SmartIntentHandlers(allHandlersAndSetters);
           await smartHandlers.executeSmartAction(intent);
