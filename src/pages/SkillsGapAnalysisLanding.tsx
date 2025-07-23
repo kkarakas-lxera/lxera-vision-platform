@@ -230,9 +230,9 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </section>
 
-      {/* How It Works - InBold vertical card style */}
+      {/* How It Works - Vertical Accordion Card Component */}
       <section id="how-it-works" className="px-10 py-[100px]">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-[900px] mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <div className="w-2 h-2 rounded-full bg-business-black"></div>
             <h2 className="text-sm uppercase tracking-wider">Here is how it works</h2>
@@ -243,7 +243,8 @@ const SkillsGapAnalysisLanding = () => {
             with AI-powered analysis
           </h2>
           
-          <div className="flex gap-6">
+          {/* Vertical Accordion Cards */}
+          <div className="space-y-4">
             {funnel.map((item, i) => (
               <motion.div
                 key={i}
@@ -251,54 +252,49 @@ const SkillsGapAnalysisLanding = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="flex-1"
               >
                 <Card 
                   className={`
-                    relative overflow-hidden cursor-pointer transition-all duration-500
+                    relative overflow-hidden cursor-pointer transition-all duration-500 rounded-2xl
                     ${expandedStep === i 
                       ? 'bg-business-black text-white border-0' 
-                      : 'bg-white hover:shadow-lg border-2 border-gray-200'
+                      : 'bg-gray-100 hover:bg-gray-200 border-0'
                     }
                   `}
                   onClick={() => setExpandedStep(i)}
                 >
-                  <div className="p-8 h-full">
-                    <div className={`text-[64px] font-bold mb-4 ${
-                      expandedStep === i ? 'text-white' : 'text-future-green'
-                    }`}>
-                      {item.step}
+                  <div className="p-8">
+                    <div className="flex items-start gap-6">
+                      <div className={`text-[72px] font-bold leading-none transition-colors duration-500 ${
+                        expandedStep === i ? 'text-white' : 'text-future-green'
+                      }`}>
+                        {item.step}
+                      </div>
+                      
+                      <div className="flex-1 pt-4">
+                        <h3 className={`text-2xl font-bold transition-colors duration-500 ${
+                          expandedStep === i ? 'text-white' : 'text-business-black'
+                        }`}>
+                          {item.title}
+                        </h3>
+                        
+                        <AnimatePresence mode="wait">
+                          {expandedStep === i && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3, ease: 'easeInOut' }}
+                              className="overflow-hidden"
+                            >
+                              <p className="text-gray-300 leading-relaxed mt-4 text-lg">
+                                {item.description}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
-                    
-                    <h3 className={`text-xl font-bold mb-4 ${
-                      expandedStep === i ? 'text-white' : 'text-business-black'
-                    }`}>
-                      {item.title}
-                    </h3>
-                    
-                    <AnimatePresence mode="wait">
-                      {expandedStep === i && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <p className="text-gray-300 leading-relaxed">
-                            {item.description}
-                          </p>
-                          <p className="text-future-green font-semibold mt-4">
-                            {item.time}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    
-                    {expandedStep !== i && (
-                      <p className="text-sm text-gray-500">
-                        Click to expand
-                      </p>
-                    )}
                   </div>
                 </Card>
               </motion.div>

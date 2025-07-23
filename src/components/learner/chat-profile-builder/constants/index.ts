@@ -25,8 +25,6 @@ const ACHIEVEMENTS: Record<string, Achievement> = {
   COMPLETIONIST: { name: "Profile Hero", points: 500, icon: Trophy, iconClassName: "h-6 w-6 text-gold-600" }
 };
 
-// Enable smart mode for natural language processing
-const ENABLE_SMART_MODE = true;
 
 // UI-related miscellaneous constants consolidated here
 const UI_CONSTANTS = {
@@ -34,4 +32,4 @@ const UI_CONSTANTS = {
   maxRecentInteractions: 5
 };
 
-export { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE, UI_CONSTANTS };
+export { STEPS, ACHIEVEMENTS, UI_CONSTANTS };

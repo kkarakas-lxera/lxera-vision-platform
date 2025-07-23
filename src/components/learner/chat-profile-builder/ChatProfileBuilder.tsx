@@ -43,7 +43,7 @@ import type {
   FormData,
 } from './types';
 import type { EmployeeUpdateExtra } from '@/types/dbTypes';
-import { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE } from './constants';
+import { STEPS, ACHIEVEMENTS } from './constants';
 
 // Import all extracted services and handlers
 import { useProfileBuilderState } from './hooks/useProfileBuilderState';

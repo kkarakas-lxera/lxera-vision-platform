@@ -24,8 +24,6 @@ const ACHIEVEMENTS = {
   COMPLETIONIST: { name: "Profile Hero", points: 500 }
 };
 
-// Enable smart mode for natural language processing
-const ENABLE_SMART_MODE = true;
 
 // Placeholder functions for standalone exports - these are replaced by class methods
 const analyzeIntent = async (input: string): Promise<any> => { return null; };
@@ -75,21 +73,19 @@ let showGrowthAreas: () => void;
 let completeProfile: () => Promise<void>;
 
 export const processUserResponse = async (response: string) => {
-  // When smart mode is enabled, try intent processing for ALL inputs
-  if (ENABLE_SMART_MODE) {
-    console.log('Smart mode enabled, analyzing intent for:', response);
-    
-    // Try smart intent processing first
-    const intent = await analyzeIntent(response);
-    console.log('Intent analysis result:', intent);
-    
-    if (intent && intent.confidence > 0.7) {
-      console.log('Executing smart action for intent:', intent.type);
-      await executeSmartAction(intent);
-      return;
-    } else {
-      console.log('Intent confidence too low or failed, falling back to structured handlers');
-    }
+  // Always analyze intent for ALL inputs
+  console.log('Analyzing intent for:', response);
+  
+  // Try smart intent processing first
+  const intent = await analyzeIntent(response);
+  console.log('Intent analysis result:', intent);
+  
+  if (intent && intent.confidence > 0.7) {
+    console.log('Executing smart action for intent:', intent.type);
+    await executeSmartAction(intent);
+    return;
+  } else {
+    console.log('Intent confidence too low or failed, falling back to structured handlers');
   }
 
   // Fall back to existing handlers
@@ -837,21 +833,19 @@ export class StepProcessors {
   }
 
   processUserResponse = async (response: string) => {
-    // When smart mode is enabled, try intent processing for ALL inputs
-    if (ENABLE_SMART_MODE) {
-      console.log('Smart mode enabled, analyzing intent for:', response);
-      
-      // Try smart intent processing first
-      const intent = await this.context.analyzeIntent(response);
-      console.log('Intent analysis result:', intent);
-      
-      if (intent && intent.confidence > 0.7) {
-        console.log('Executing smart action for intent:', intent.type);
-        await this.context.executeSmartAction(intent);
-        return;
-      } else {
-        console.log('Intent confidence too low or failed, falling back to structured handlers');
-      }
+    // Always analyze intent for ALL inputs
+    console.log('Analyzing intent for:', response);
+    
+    // Try smart intent processing first
+    const intent = await this.context.analyzeIntent(response);
+    console.log('Intent analysis result:', intent);
+    
+    if (intent && intent.confidence > 0.7) {
+      console.log('Executing smart action for intent:', intent.type);
+      await this.context.executeSmartAction(intent);
+      return;
+    } else {
+      console.log('Intent confidence too low or failed, falling back to structured handlers');
     }
 
     // Fall back to existing handlers
