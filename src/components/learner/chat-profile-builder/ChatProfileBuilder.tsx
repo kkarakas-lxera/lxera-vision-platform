@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // Import all types and constants
-import {
+import type {
   StepVisitHistory,
   NavigationContext,
   ChatProfileBuilderProps,
@@ -72,6 +72,34 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     maxStepReached,
     steps: STEPS_DATA
   } = useProfileBuilderState(employeeId);
+
+  // Backward-compatibility helper setters that aren't returned by the hook
+  const setCurrentStep = (step: number) => setNavigationState(prev => ({ ...prev, currentStep: step }));
+  const setMaxStepReached = (val: number) => setNavigationState(prev => ({ ...prev, maxStepReached: val }));
+
+  // UI shortcuts (these already exist but are rarely used standalone)
+  const setIsTyping = (v: boolean) => setUiState(prev => ({ ...prev, isTyping: v }));
+  const setIsLoading = (v: boolean) => setUiState(prev => ({ ...prev, isLoading: v }));
+  const setIsInitializing = (v: boolean) => setUiState(prev => ({ ...prev, isInitializing: v }));
+  const setShowRestartDialog = (v: boolean) => setUiState(prev => ({ ...prev, showRestartDialog: v }));
+  const setHasMoreMessages = (v: boolean) => setUiState(prev => ({ ...prev, hasMoreMessages: v }));
+  const setLoadingHistory = (v: boolean) => setUiState(prev => ({ ...prev, loadingHistory: v }));
+  const setIsGeneratingAI = (v: boolean) => setUiState(prev => ({ ...prev, isGeneratingAI: v }));
+  const setAiGenerationStage = (stage: typeof uiState.aiGenerationStage) => setUiState(prev => ({ ...prev, aiGenerationStage: stage }));
+
+  // Gamification helpers
+  const setPoints = (updater: ((prev: number) => number) | number) =>
+    setGamificationState(prev => ({ ...prev, points: typeof updater === 'function' ? (updater as Function)(prev.points) : updater }));
+  const setStreak = (updater: ((prev: number) => number) | number) =>
+    setGamificationState(prev => ({ ...prev, learningStreak: typeof updater === 'function' ? (updater as Function)(prev.learningStreak) : updater }));
+
+  // CV state helpers
+  const setCvUploaded = (v: boolean) => setCvState(prev => ({ ...prev, cvUploaded: v }));
+  const setWaitingForCVUpload = (v: boolean) => setCvState(prev => ({ ...prev, cvFile: v ? null : prev.cvFile }));
+  const setCvExtractedData = (data: any) => setCvState(prev => ({ ...prev, cvData: data }));
+  const setCvAnalysisComplete = (v: boolean) => setCvState(prev => ({ ...prev, isAnalyzingCV: !v }));
+
+  // The progress-state hook already provides dedicated setters; no extra aliases needed here.
 
   // Original state that wasn't moved to the hook
   const [messages, setMessages] = useState<Message[]>([]);
