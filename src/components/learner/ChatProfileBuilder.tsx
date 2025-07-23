@@ -1012,22 +1012,44 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const handleSmartNavigation = async (entities: any) => {
-    const { target } = entities;
+    const { target, targetStep: requestedStep } = entities;
+    
+    console.log('Smart navigation requested:', { target, requestedStep });
+    
+    // Handle special navigation targets
+    if (target === 'next_step' || target === 'continue') {
+      console.log('Navigation: moving to next step');
+      moveToNextStep();
+      return;
+    }
     
     // Map target to step number
     const stepMap: Record<string, number> = {
       'cv': 1,
       'work': 2,
+      'work_experience': 2,
       'education': 3,
       'skills': 4,
       'current': 5,
+      'current_work': 5,
       'challenges': 6,
       'growth': 7
     };
     
-    const targetStep = stepMap[target] || parseInt(target);
-    if (targetStep && targetStep <= maxStepReached) {
-      navigateToStep(targetStep, 'sidebar');
+    // Check if a specific step was requested (e.g., "Go to Step 6")
+    const targetStepNumber = requestedStep || stepMap[target] || parseInt(target);
+    
+    if (targetStepNumber) {
+      // Allow navigation to the next step even if not reached yet
+      const currentStep = currentStepRef.current;
+      if (targetStepNumber === currentStep + 1) {
+        console.log('Navigation: moving to next step via step number');
+        moveToNextStep();
+      } else if (targetStepNumber <= maxStepReached) {
+        navigateToStep(targetStepNumber, 'sidebar');
+      } else {
+        addBotMessage(`You haven't reached Step ${targetStepNumber} yet. Let's complete the current step first.`, 0, 500);
+      }
     }
   };
 

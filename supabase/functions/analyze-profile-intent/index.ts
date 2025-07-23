@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-/Users/kubilaycenk/Lxera Stable/lxera-vision-platform/supabase/functions/analyze-profile-intent/index.ts  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 interface IntentContext {
@@ -64,9 +64,9 @@ Analyze the user's input and determine:
 Intent types:
 - provide_info: User is giving new information
 - correction: User is correcting something previously entered
-- navigation: User wants to go to a different step or review something
+- navigation: User wants to go to a different step or review something ("Next step", "Go to Step 6", "Continue")
 - bulk_operation: User wants to do something to multiple items
-- question: User is asking for clarification
+- question: User is asking for clarification ("What's the next step?")
 - confirmation: User is confirming something
 - add_item: User wants to add a new item (job, education, etc)
 - remove_item: User wants to remove something
@@ -99,7 +99,11 @@ Examples of expected analysis:
 - "Change the year to 2020" → correction with field: year
 - "Show me my education" → navigation with target: education
 - "Remove the second one" → remove_item with index: 1
-- "I work with 10 people" → provide_info with field: teamSize`;
+- "I work with 10 people" → provide_info with field: teamSize
+- "Next step" → navigation with target: next_step
+- "Let's go to Step 6" → navigation with targetStep: 6, target: challenges
+- "What's the next step?" → question with subject: navigation
+- "Continue" → navigation with target: continue`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -165,5 +169,9 @@ function getStepName(step: number): string {
     'Professional Challenges',
     'Growth Opportunities'
   ];
+  // Handle both 0-based and 1-based indexing
+  if (step >= 1 && step <= steps.length) {
+    return steps[step - 1];
+  }
   return steps[step] || 'Unknown';
 }
