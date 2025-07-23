@@ -1653,7 +1653,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const initiateStep = (step: number, context?: NavigationContext) => {
+  const initiateStep = async (step: number, context?: NavigationContext) => {
     const stepData = STEPS[step - 1];
     if (!stepData) return;
     
