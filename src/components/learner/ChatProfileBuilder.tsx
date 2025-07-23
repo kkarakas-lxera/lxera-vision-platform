@@ -107,6 +107,9 @@ const ACHIEVEMENTS = {
   COMPLETIONIST: { name: "Profile Hero", points: 500, icon: <Trophy className="h-6 w-6 text-gold-600" /> }
 };
 
+// Enable smart mode for natural language processing
+const ENABLE_SMART_MODE = true;
+
 export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfileBuilderProps) {
   // State Management
   const [messages, setMessages] = useState<Message[]>([]);
@@ -832,8 +835,613 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     };
   }, [formData, currentStep]);
 
+  // Smart Intent Context
+  interface SmartContext {
+    currentStep: number;
+    currentFocus?: string;
+    recentInteractions: Array<{
+      type: string;
+      data: any;
+      timestamp: Date;
+    }>;
+    activeUI?: string;
+    formData: any;
+  }
+
+  const [smartContext, setSmartContext] = useState<SmartContext>({
+    currentStep: 0,
+    recentInteractions: [],
+    formData: formData
+  });
+
+  // Update smart context when relevant state changes
+  useEffect(() => {
+    setSmartContext(prev => ({
+      ...prev,
+      currentStep: currentStep,
+      formData: formData
+    }));
+  }, [currentStep, formData]);
+
+  // Smart Intent Engine
+  const analyzeIntent = async (input: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-profile-intent', {
+        body: {
+          input,
+          context: {
+            currentStep: currentStepRef.current,
+            currentFocus: smartContext.currentFocus,
+            recentInteractions: smartContext.recentInteractions.slice(-5),
+            formData: formData,
+            activeUI: smartContext.activeUI
+          },
+          formData
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Intent analysis failed:', error);
+      return null;
+    }
+  };
+
+  // Execute actions based on intent
+  const executeSmartAction = async (intent: any) => {
+    const { type, entities, suggestedAction, naturalResponse } = intent;
+
+    // Add natural response from AI
+    if (naturalResponse) {
+      addBotMessage(naturalResponse, 0, 300);
+    }
+
+    // Track interaction
+    setSmartContext(prev => ({
+      ...prev,
+      recentInteractions: [...prev.recentInteractions, {
+        type,
+        data: entities,
+        timestamp: new Date()
+      }].slice(-10) // Keep last 10 interactions
+    }));
+
+    switch (type) {
+      case 'provide_info':
+        await handleInfoProvision(entities);
+        break;
+      
+      case 'correction':
+        await handleCorrection(entities);
+        break;
+      
+      case 'navigation':
+        await handleSmartNavigation(entities);
+        break;
+      
+      case 'add_item':
+        await handleAddItem(entities);
+        break;
+      
+      case 'remove_item':
+        await handleRemoveItem(entities);
+        break;
+      
+      case 'edit_item':
+        await handleEditItem(entities);
+        break;
+      
+      case 'bulk_operation':
+        await handleBulkOperation(entities);
+        break;
+      
+      case 'review':
+        await handleReviewRequest(entities);
+        break;
+      
+      case 'confirmation':
+        await handleConfirmation(entities);
+        break;
+      
+      default:
+        // Show suggested UI based on action
+        if (suggestedAction?.type === 'show_ui') {
+          showDynamicUI(suggestedAction.params);
+        }
+    }
+  };
+
+  // Smart handlers
+  const handleInfoProvision = async (entities: any) => {
+    const { field, value } = entities;
+    
+    // Update form data based on field
+    if (field && value) {
+      setFormData(prev => ({ ...prev, [field]: value }));
+      await saveStepData(true);
+      
+      // Determine next question or action
+      const nextAction = determineNextAction(field);
+      if (nextAction) {
+        executeNextAction(nextAction);
+      }
+    }
+  };
+
+  const handleCorrection = async (entities: any) => {
+    const { field, value, target } = entities;
+    
+    if (target === 'last_provided_field') {
+      // Correct the most recently provided field
+      const lastInteraction = smartContext.recentInteractions
+        .filter(i => i.type === 'provide_info')
+        .pop();
+      
+      if (lastInteraction?.data?.field) {
+        setFormData(prev => ({ ...prev, [lastInteraction.data.field]: value }));
+        await saveStepData(true);
+      }
+    } else if (field) {
+      // Direct field correction
+      setFormData(prev => ({ ...prev, [field]: value }));
+      await saveStepData(true);
+    }
+  };
+
+  const handleSmartNavigation = async (entities: any) => {
+    const { target } = entities;
+    
+    // Map target to step number
+    const stepMap: Record<string, number> = {
+      'cv': 1,
+      'work': 2,
+      'education': 3,
+      'skills': 4,
+      'current': 5,
+      'challenges': 6,
+      'growth': 7
+    };
+    
+    const targetStep = stepMap[target] || parseInt(target);
+    if (targetStep && targetStep <= maxStepReached) {
+      navigateToStep(targetStep, 'edit_existing');
+    }
+  };
+
+  // Add Item Handler
+  const handleAddItem = async (entities: any) => {
+    const { target } = entities;
+    
+    switch (target) {
+      case 'work_experience':
+      case 'job':
+      case 'position':
+        // Show inline form to add work experience
+        showInlineWorkForm();
+        break;
+        
+      case 'education':
+      case 'degree':
+        // Show inline form to add education
+        showInlineEducationForm();
+        break;
+        
+      case 'skill':
+        // Show skill addition UI
+        showSkillAddition();
+        break;
+    }
+  };
+
+  // Remove Item Handler  
+  const handleRemoveItem = async (entities: any) => {
+    const { target, index } = entities;
+    
+    if (target === 'work_experience' && typeof index === 'number') {
+      setFormData(prev => ({
+        ...prev,
+        workExperience: prev.workExperience.filter((_, i) => i !== index)
+      }));
+      addBotMessage(`Removed work experience #${index + 1}`, 0);
+      await saveStepData(true);
+    } else if (target === 'education' && typeof index === 'number') {
+      setFormData(prev => ({
+        ...prev,
+        education: prev.education.filter((_, i) => i !== index)
+      }));
+      addBotMessage(`Removed education #${index + 1}`, 0);
+      await saveStepData(true);
+    }
+  };
+
+  // Edit Item Handler
+  const handleEditItem = async (entities: any) => {
+    const { target, index } = entities;
+    
+    if (target === 'work_experience' && typeof index === 'number') {
+      // Show inline edit form for specific work experience
+      showEditWorkForm(index);
+    } else if (target === 'education' && typeof index === 'number') {
+      // Show inline edit form for specific education
+      showEditEducationForm(index);
+    }
+  };
+
+  // Bulk Operation Handler
+  const handleBulkOperation = async (entities: any) => {
+    const { operation, target } = entities;
+    
+    if (operation === 'remove_all' && target === 'certifications') {
+      setFormData(prev => ({ ...prev, certifications: [] }));
+      addBotMessage("Removed all certifications", 0);
+      await saveStepData(true);
+    }
+  };
+
+  // Review Request Handler
+  const handleReviewRequest = async (entities: any) => {
+    const { target } = entities;
+    
+    if (target === 'all' || target === 'everything') {
+      // Show complete profile summary
+      showProfileSummary();
+    } else if (target === 'work') {
+      // Show work experience summary
+      showWorkSummary();
+    } else if (target === 'education') {
+      // Show education summary
+      showEducationSummary();
+    }
+  };
+
+  // Confirmation Handler
+  const handleConfirmation = async (entities: any) => {
+    const { target } = entities;
+    
+    if (target === 'current_section') {
+      // Confirm and move to next step
+      moveToNextStep();
+    }
+  };
+
+  // Helper functions for next actions
+  const determineNextAction = (field: string) => {
+    const step = currentStepRef.current;
+    
+    // Determine what question to ask next based on current step and field
+    if (step === 2 && field === 'title') {
+      return { type: 'ask', field: 'company' };
+    } else if (step === 2 && field === 'company') {
+      return { type: 'ask', field: 'duration' };
+    } else if (step === 5 && field === 'teamSize') {
+      return { type: 'ask', field: 'roleInTeam' };
+    }
+    
+    return null;
+  };
+
+  const executeNextAction = (action: any) => {
+    if (action.type === 'ask') {
+      switch (action.field) {
+        case 'company':
+          addBotMessage("And which company is/was this with?", 0, 300);
+          break;
+        case 'duration':
+          addBotMessage("How long have you been in this role?", 0, 300);
+          showQuickReplies([
+            { label: "< 1 year", value: "< 1 year" },
+            { label: "1-3 years", value: "1-3 years" },
+            { label: "3-5 years", value: "3-5 years" },
+            { label: "5+ years", value: "5+ years" }
+          ]);
+          break;
+        case 'roleInTeam':
+          addBotMessage("And what's your role in the team?", 0, 300);
+          showQuickReplies([
+            { label: "Individual Contributor", value: "Individual Contributor" },
+            { label: "Team Lead", value: "Team Lead" },
+            { label: "Manager", value: "Manager" }
+          ]);
+          break;
+      }
+    }
+  };
+
+  // Dynamic UI Display Functions
+  const showDynamicUI = (params: any) => {
+    const { type, data } = params;
+    
+    switch (type) {
+      case 'work_form':
+        showInlineWorkForm();
+        break;
+      case 'education_form':
+        showInlineEducationForm();
+        break;
+      case 'skills_review':
+        showSkillsReview();
+        break;
+      case 'profile_summary':
+        showProfileSummary();
+        break;
+      case 'challenges_selection':
+        showChallengesSelection();
+        break;
+      case 'growth_selection':
+        showGrowthSelection();
+        break;
+      case 'work_summary':
+        showWorkSummary();
+        break;
+      case 'education_summary':
+        showEducationSummary();
+        break;
+      default:
+        console.log('Unknown UI type:', type);
+    }
+  };
+  
+  const showSkillsReview = () => {
+    const skills = formData.skills || [];
+    const messageId = 'skills-review-' + Date.now();
+    
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <div className="max-w-2xl">
+          <div className="text-sm font-medium mb-3">Review Your Skills</div>
+          <div className="text-xs text-gray-600 mb-4">
+            Rate your proficiency level for each skill
+          </div>
+          
+          <div className="space-y-2">
+            {skills.map((skill, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium">{skill.name}</span>
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => {
+                        const updatedSkills = [...skills];
+                        updatedSkills[index] = { ...skill, level };
+                        setFormData(prev => ({ ...prev, skills: updatedSkills }));
+                      }}
+                      className={`px-3 py-1 rounded text-xs transition-colors ${
+                        skill.level === level
+                          ? level === 0 ? 'bg-gray-200 text-gray-700' :
+                            level === 1 ? 'bg-yellow-200 text-yellow-800' :
+                            level === 2 ? 'bg-green-200 text-green-800' :
+                            'bg-blue-200 text-blue-800'
+                          : 'bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {level === 0 ? 'None' : level === 1 ? 'Learning' : level === 2 ? 'Using' : 'Expert'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => {
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              addBotMessage("Great! Your skills have been updated. Let's talk about your current work context.");
+              setCurrentStep(5);
+              setTimeout(() => askCurrentWorkQuestions(), 1000);
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
+          >
+            Continue →
+          </button>
+        </div>
+      ),
+      timestamp: new Date()
+    }]);
+  };
+  
+  const showChallengesSelection = () => {
+    const challenges = formData.suggestedChallenges || [];
+    const messageId = 'challenges-selection-' + Date.now();
+    
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <div className="max-w-2xl">
+          <div className="text-sm font-medium mb-3">Select Professional Challenges</div>
+          <div className="text-xs text-gray-600 mb-4">
+            Choose challenges that resonate with your current role (select at least one)
+          </div>
+          
+          <div className="space-y-2">
+            {challenges.map((challenge, index) => (
+              <label key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.selectedChallenges?.includes(index)}
+                  onChange={(e) => {
+                    const selected = formData.selectedChallenges || [];
+                    if (e.target.checked) {
+                      setFormData(prev => ({
+                        ...prev,
+                        selectedChallenges: [...selected, index]
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        selectedChallenges: selected.filter(i => i !== index)
+                      }));
+                    }
+                  }}
+                  className="mt-1 rounded"
+                />
+                <span className="text-sm">{challenge}</span>
+              </label>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => {
+              if (!formData.selectedChallenges?.length) {
+                addBotMessage("Please select at least one challenge to continue.");
+                return;
+              }
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              addBotMessage("Thanks for sharing! Now let's explore growth opportunities.");
+              showGrowth();
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
+          >
+            Continue →
+          </button>
+        </div>
+      ),
+      timestamp: new Date()
+    }]);
+  };
+  
+  const showGrowthSelection = () => {
+    const growthAreas = formData.suggestedGrowthAreas || [];
+    const messageId = 'growth-selection-' + Date.now();
+    
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <div className="max-w-2xl">
+          <div className="text-sm font-medium mb-3">Select Growth Opportunities</div>
+          <div className="text-xs text-gray-600 mb-4">
+            Choose areas where you'd like to grow (select at least one)
+          </div>
+          
+          <div className="space-y-2">
+            {growthAreas.map((area, index) => (
+              <label key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.selectedGrowthAreas?.includes(index)}
+                  onChange={(e) => {
+                    const selected = formData.selectedGrowthAreas || [];
+                    if (e.target.checked) {
+                      setFormData(prev => ({
+                        ...prev,
+                        selectedGrowthAreas: [...selected, index]
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        selectedGrowthAreas: selected.filter(i => i !== index)
+                      }));
+                    }
+                  }}
+                  className="mt-1 rounded"
+                />
+                <span className="text-sm">{area}</span>
+              </label>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => {
+              if (!formData.selectedGrowthAreas?.length) {
+                addBotMessage("Please select at least one growth area to continue.");
+                return;
+              }
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              completeProfile();
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
+          >
+            Complete Profile →
+          </button>
+        </div>
+      ),
+      timestamp: new Date()
+    }]);
+  };
+
+  const showInlineWorkForm = () => {
+    const messageId = 'inline-work-form-' + Date.now();
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <Card className="border rounded-lg p-4 bg-gray-50">
+          <h3 className="font-medium mb-3">Add Work Experience</h3>
+          <div className="space-y-3">
+            <Input placeholder="Job Title" />
+            <Input placeholder="Company" />
+            <select className="w-full px-3 py-2 border rounded">
+              <option>Duration</option>
+              <option>&lt; 1 year</option>
+              <option>1-3 years</option>
+              <option>3-5 years</option>
+              <option>5+ years</option>
+            </select>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => {
+                // Handle save
+                setMessages(prev => prev.filter(m => m.id !== messageId));
+              }}>Save</Button>
+              <Button size="sm" variant="ghost" onClick={() => {
+                setMessages(prev => prev.filter(m => m.id !== messageId));
+              }}>Cancel</Button>
+            </div>
+          </div>
+        </Card>
+      ),
+      timestamp: new Date()
+    }]);
+  };
+
+  const showInlineEducationForm = () => {
+    // Similar to work form
+  };
+
+  const showEditWorkForm = (index: number) => {
+    // Show edit form for specific work experience
+  };
+
+  const showEditEducationForm = (index: number) => {
+    // Show edit form for specific education
+  };
+
+  const showSkillAddition = () => {
+    // Show skill addition UI
+  };
+
+  const showProfileSummary = () => {
+    // Show complete profile summary
+  };
+
+  const showWorkSummary = () => {
+    // Show work experience summary
+  };
+
+  const showEducationSummary = () => {
+    // Show education summary
+  };
+
   // Process responses based on current step
   const processUserResponse = async (response: string) => {
+    // Enable smart mode for natural language inputs
+    const isNaturalLanguage = !response.includes('_') && response.length > 5;
+    
+    if (isNaturalLanguage || ENABLE_SMART_MODE) {
+      // Try smart intent processing first
+      const intent = await analyzeIntent(response);
+      
+      if (intent && intent.confidence > 0.7) {
+        await executeSmartAction(intent);
+        return;
+      }
+    }
+
+    // Fall back to existing handlers
     const step = currentStepRef.current;
     
     // Initial conversation
@@ -2839,6 +3447,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear skills component on component unmount
+      setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+    };
+  }, []);
+
   // Render completed state
   if (isCompleted && courseOutline) {
     return (
@@ -2861,14 +3477,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     { id: 'speed_demon', ...ACHIEVEMENTS.SPEED_DEMON, unlocked: streak > 2 },
     { id: 'completionist', ...ACHIEVEMENTS.COMPLETIONIST, unlocked: currentStep === STEPS.length }
   ];
-
-  // Add cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Clear skills component on component unmount
-      setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
-    };
-  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50">
