@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Logo from '@/components/Logo';
@@ -10,6 +10,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 const SkillsGapAnalysisLanding = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [expandedStep, setExpandedStep] = useState(0);
 
   const challenges = [
     {
@@ -229,7 +230,7 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </section>
 
-      {/* How It Works - InBold animated card style */}
+      {/* How It Works - InBold vertical card style */}
       <section id="how-it-works" className="px-10 py-[100px]">
         <div className="max-w-[1200px] mx-auto">
           <div className="flex items-center gap-4 mb-8">
@@ -242,50 +243,69 @@ const SkillsGapAnalysisLanding = () => {
             with AI-powered analysis
           </h2>
           
-          <div className="relative">
-            {/* First card - black background */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="relative mb-8"
-            >
-              <Card className="bg-business-black text-white p-12 rounded-3xl border-0 relative z-10">
-                <div className="text-[72px] font-bold mb-6">1</div>
-                <h3 className="text-3xl font-bold mb-4">{funnel[0].title}</h3>
-                <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
-                  {funnel[0].description}
-                </p>
-              </Card>
-            </motion.div>
-            
-            {/* Remaining cards with numbers outside */}
-            <div className="grid grid-cols-1 gap-16 mt-20">
-              {funnel.slice(1).map((item, i) => (
-                <motion.div 
-                  key={i + 1}
-                  initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  className="flex items-start gap-8"
+          <div className="flex gap-6">
+            {funnel.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="flex-1"
+              >
+                <Card 
+                  className={`
+                    relative overflow-hidden cursor-pointer transition-all duration-500
+                    ${expandedStep === i 
+                      ? 'bg-business-black text-white border-0' 
+                      : 'bg-white hover:shadow-lg border-2 border-gray-200'
+                    }
+                  `}
+                  onClick={() => setExpandedStep(i)}
                 >
-                  <div className="text-[120px] font-bold text-future-green leading-none flex-shrink-0">
-                    {item.step}
+                  <div className="p-8 h-full">
+                    <div className={`text-[64px] font-bold mb-4 ${
+                      expandedStep === i ? 'text-white' : 'text-future-green'
+                    }`}>
+                      {item.step}
+                    </div>
+                    
+                    <h3 className={`text-xl font-bold mb-4 ${
+                      expandedStep === i ? 'text-white' : 'text-business-black'
+                    }`}>
+                      {item.title}
+                    </h3>
+                    
+                    <AnimatePresence mode="wait">
+                      {expandedStep === i && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <p className="text-gray-300 leading-relaxed">
+                            {item.description}
+                          </p>
+                          <p className="text-future-green font-semibold mt-4">
+                            {item.time}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    {expandedStep !== i && (
+                      <p className="text-sm text-gray-500">
+                        Click to expand
+                      </p>
+                    )}
                   </div>
-                  <div className="pt-8">
-                    <h3 className="text-3xl font-bold mb-4">{item.title}</h3>
-                    <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">
-                      {item.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                </Card>
+              </motion.div>
+            ))}
           </div>
           
-          <div className="mt-20">
+          <div className="mt-20 text-center">
             <Button 
               onClick={handleGetStarted}
               className="bg-future-green text-business-black px-12 py-5 rounded-full text-lg font-semibold hover:bg-future-green/90 transition-all shadow-lg"
@@ -299,8 +319,9 @@ const SkillsGapAnalysisLanding = () => {
       {/* Results Section */}
       <section className="px-10 py-[100px] bg-gradient-to-b from-smart-beige/50 to-white">
         <div className="max-w-[1200px] mx-auto">
-          <h2 className="text-[48px] font-bold text-center mb-16">
-            Results that speak for themselves
+          <h2 className="text-[48px] font-bold text-center mb-16 leading-tight">
+            Results that speak<br />
+            for themselves
           </h2>
           
           <div className="grid grid-cols-4 gap-8 mb-20">
@@ -368,8 +389,9 @@ const SkillsGapAnalysisLanding = () => {
           <div className="w-2 h-2 rounded-full bg-business-black"></div>
           <h2 className="text-sm uppercase tracking-wider">Success Stories</h2>
         </div>
-        <h2 className="text-[48px] font-bold mb-16">
-          Real results from real companies
+        <h2 className="text-[48px] font-bold mb-16 leading-tight">
+          Real results from<br />
+          real companies
         </h2>
         
         <div className="grid grid-cols-3 gap-8">
@@ -395,8 +417,9 @@ const SkillsGapAnalysisLanding = () => {
           <div className="w-2 h-2 rounded-full bg-business-black"></div>
           <h2 className="text-sm uppercase tracking-wider">FAQ</h2>
         </div>
-        <h2 className="text-[48px] font-bold mb-16">
-          Common questions answered
+        <h2 className="text-[48px] font-bold mb-16 leading-tight">
+          Common questions<br />
+          answered
         </h2>
         
         <div className="max-w-3xl">
@@ -413,7 +436,8 @@ const SkillsGapAnalysisLanding = () => {
       <section className="px-10 py-[100px] bg-gradient-to-br from-business-black to-emerald/90 text-white">
         <div className="max-w-3xl">
           <h2 className="text-[48px] font-bold mb-6 leading-tight">
-            Ready to unlock your organization's hidden potential?
+            Ready to unlock your<br />
+            organization's hidden potential?
           </h2>
           <p className="text-gray-300 mb-12 text-lg leading-relaxed">
             Get a complete skills inventory with rapid analysis. See exactly where your gaps are and what they're costing you.
