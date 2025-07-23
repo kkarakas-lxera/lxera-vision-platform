@@ -28,4 +28,10 @@ const ACHIEVEMENTS: Record<string, Achievement> = {
 // Enable smart mode for natural language processing
 const ENABLE_SMART_MODE = true;
 
-export { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE };
+// UI-related miscellaneous constants consolidated here
+const UI_CONSTANTS = {
+  // Number of past interactions to keep in SmartContext.recentInteractions
+  maxRecentInteractions: 5
+};
+
+export { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE, UI_CONSTANTS };
