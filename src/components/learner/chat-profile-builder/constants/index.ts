@@ -1,5 +1,5 @@
-import React from 'react';
 import { Trophy, Zap, Upload, Clock } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const STEPS = [
   { id: 1, name: 'cv_upload', title: 'CV Upload' },
@@ -11,11 +11,18 @@ const STEPS = [
   { id: 7, name: 'growth', title: 'Growth Areas' }
 ];
 
-const ACHIEVEMENTS = {
-  QUICK_START: { name: "Quick Start", points: 50, icon: <Zap className="h-6 w-6 text-yellow-600" /> },
-  CV_UPLOADED: { name: "Document Master", points: 200, icon: <Upload className="h-6 w-6 text-blue-600" /> },
-  SPEED_DEMON: { name: "Speed Demon", points: 150, icon: <Clock className="h-6 w-6 text-purple-600" /> },
-  COMPLETIONIST: { name: "Profile Hero", points: 500, icon: <Trophy className="h-6 w-6 text-gold-600" /> }
+interface Achievement {
+  name: string;
+  points: number;
+  icon: LucideIcon;
+  iconClassName: string;
+}
+
+const ACHIEVEMENTS: Record<string, Achievement> = {
+  QUICK_START: { name: "Quick Start", points: 50, icon: Zap, iconClassName: "h-6 w-6 text-yellow-600" },
+  CV_UPLOADED: { name: "Document Master", points: 200, icon: Upload, iconClassName: "h-6 w-6 text-blue-600" },
+  SPEED_DEMON: { name: "Speed Demon", points: 150, icon: Clock, iconClassName: "h-6 w-6 text-purple-600" },
+  COMPLETIONIST: { name: "Profile Hero", points: 500, icon: Trophy, iconClassName: "h-6 w-6 text-gold-600" }
 };
 
 // Enable smart mode for natural language processing

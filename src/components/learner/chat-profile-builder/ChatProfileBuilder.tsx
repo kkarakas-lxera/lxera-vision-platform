@@ -346,7 +346,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const addAchievement = (achievement: typeof ACHIEVEMENTS.QUICK_START) => {
+  const addAchievement = (achievement: { name: string; points: number; icon: any; iconClassName: string }) => {
     const message: Message = {
       id: Date.now().toString(),
       type: 'achievement',
@@ -355,7 +355,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       points: achievement.points,
       achievement: {
         title: achievement.name,
-        icon: achievement.icon
+        icon: React.createElement(achievement.icon, { className: achievement.iconClassName })
       }
     };
     
@@ -1731,10 +1731,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Get achievements data
   const achievements = [
-    { id: 'quick_start', ...ACHIEVEMENTS.QUICK_START, unlocked: points >= 50 },
-    { id: 'cv_uploaded', ...ACHIEVEMENTS.CV_UPLOADED, unlocked: cvUploaded },
-    { id: 'speed_demon', ...ACHIEVEMENTS.SPEED_DEMON, unlocked: streak > 2 },
-    { id: 'completionist', ...ACHIEVEMENTS.COMPLETIONIST, unlocked: currentStepLegacy === STEPS.length }
+    { id: 'quick_start', ...ACHIEVEMENTS.QUICK_START, unlocked: points >= 50, icon: React.createElement(ACHIEVEMENTS.QUICK_START.icon, { className: ACHIEVEMENTS.QUICK_START.iconClassName }) },
+    { id: 'cv_uploaded', ...ACHIEVEMENTS.CV_UPLOADED, unlocked: cvUploaded, icon: React.createElement(ACHIEVEMENTS.CV_UPLOADED.icon, { className: ACHIEVEMENTS.CV_UPLOADED.iconClassName }) },
+    { id: 'speed_demon', ...ACHIEVEMENTS.SPEED_DEMON, unlocked: streak > 2, icon: React.createElement(ACHIEVEMENTS.SPEED_DEMON.icon, { className: ACHIEVEMENTS.SPEED_DEMON.iconClassName }) },
+    { id: 'completionist', ...ACHIEVEMENTS.COMPLETIONIST, unlocked: currentStepLegacy === STEPS.length, icon: React.createElement(ACHIEVEMENTS.COMPLETIONIST.icon, { className: ACHIEVEMENTS.COMPLETIONIST.iconClassName }) }
   ];
 
   return (
