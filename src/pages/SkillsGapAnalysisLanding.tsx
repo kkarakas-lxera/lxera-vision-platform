@@ -11,6 +11,25 @@ const SkillsGapAnalysisLanding = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const challenges = [
+    {
+      title: "Can't see who knows what across your organization?",
+      description: "<u>One-third of Americans are digitally illiterate</u> according to Third Way research. Manual skill tracking in spreadsheets leaves critical talent hidden."
+    },
+    {
+      title: "Taking 3-6 months for manual skills audits?",
+      description: "<u>SHRM found that HR teams often procrastinate on skills analysis</u> because traditional methods are overwhelming and time-consuming."
+    },
+    {
+      title: "Generic training with 23% completion rates?",
+      description: "<u>McKinsey reports 87% of companies face skill gaps</u> but most L&D programs fail because they're not personalized to actual needs."
+    },
+    {
+      title: "Losing $1.5M annually to productivity gaps?",
+      description: "<u>InStride research shows skill gaps cost companies millions</u> in decreased productivity, increased turnover, and compliance risks."
+    }
+  ];
+
   const handleGetStarted = () => {
     navigate('/skills-gap-signup?source=skills-gap-landing');
   };
@@ -148,36 +167,65 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </section>
 
-      {/* Problem Section */}
+      {/* Challenges Section - InBold style */}
       <section className="px-10 py-[80px] bg-smart-beige/30">
-        <div className="max-w-[900px] mx-auto text-center">
-          <h2 className="text-[48px] font-bold mb-6">
-            The skills gap crisis is real
-          </h2>
-          <p className="text-xl text-gray-600 mb-16 max-w-[700px] mx-auto">
-            And it's costing you more than you think
-          </p>
-          
-          <div className="grid grid-cols-3 gap-8 mb-16">
-            <div className="text-center">
-              <div className="text-[56px] font-bold text-future-green mb-2">73%</div>
-              <p className="text-gray-600">of employees lack skills needed for their current role</p>
-            </div>
-            <div className="text-center">
-              <div className="text-[56px] font-bold text-lxera-red mb-2">$1.5M</div>
-              <p className="text-gray-600">average annual cost of skills gaps per company</p>
-            </div>
-            <div className="text-center">
-              <div className="text-[56px] font-bold text-emerald mb-2">23%</div>
-              <p className="text-gray-600">completion rate for generic training programs</p>
-            </div>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-2 h-2 rounded-full bg-business-black"></div>
+          <h2 className="text-sm uppercase tracking-wider">Challenges</h2>
+        </div>
+        <h2 className="text-[28px] font-bold mb-12">
+          Do any of these sound similar to you?
+        </h2>
+        
+        <div className="relative">
+          <div className="flex gap-5 transition-transform duration-500 ease-out"
+               style={{ transform: `translateX(-${currentSlide * 420}px)` }}>
+            {challenges.map((challenge, i) => (
+              <div key={i} className="w-[400px] flex-shrink-0">
+                <Card className="p-8 h-full rounded-2xl border-2 border-future-green/20 hover:border-future-green/40 bg-white transition-all hover:shadow-lg">
+                  <h3 className="text-lg font-semibold mb-3">{challenge.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: challenge.description }} />
+                </Card>
+              </div>
+            ))}
           </div>
           
-          <p className="text-lg text-gray-700 font-medium">
-            Manual assessments take months. Generic training doesn't work.
-            <br />
-            <span className="text-business-black font-bold">There's a better way.</span>
-          </p>
+          <div className="flex gap-2 mt-8">
+            <button 
+              onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+              className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              disabled={currentSlide === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button 
+              onClick={() => setCurrentSlide(Math.min(challenges.length - 1, currentSlide + 1))}
+              className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              disabled={currentSlide === challenges.length - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Problem Stats Section */}
+      <section className="px-10 py-[60px]">
+        <div className="max-w-[900px] mx-auto text-center">
+          <div className="grid grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="text-[56px] font-bold text-future-green mb-2">87%</div>
+              <p className="text-gray-600">of companies face skill gaps according to McKinsey</p>
+            </div>
+            <div className="text-center">
+              <div className="text-[56px] font-bold text-lxera-red mb-2">9.3hrs</div>
+              <p className="text-gray-600">per week wasted searching for information</p>
+            </div>
+            <div className="text-center">
+              <div className="text-[56px] font-bold text-emerald mb-2">94%</div>
+              <p className="text-gray-600">would stay longer if companies invested in learning</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -215,8 +263,8 @@ const SkillsGapAnalysisLanding = () => {
             <div className="grid grid-cols-4 gap-8 relative pt-20">
               {funnel.map((item, i) => (
                 <div key={i} className="relative text-center">
-                  <div className="bg-white rounded-full w-[100px] h-[100px] flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg relative z-10">
-                    <span className="text-[36px] font-bold text-future-green">{item.step}</span>
+                  <div className="bg-gradient-to-br from-white to-smart-beige rounded-full w-[100px] h-[100px] flex items-center justify-center mx-auto mb-6 border-4 border-future-green/30 shadow-lg relative z-10">
+                    <span className="text-[36px] font-bold text-business-black">{item.step}</span>
                   </div>
                   <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                   <p className="text-gray-600 text-sm mb-3">{item.description}</p>
