@@ -93,13 +93,14 @@ export class StepHandlers {
           this.context.setMessages(prev => [...prev, {
             id: 'skills-component',
             type: 'system',
-            content: (
-              <this.context.ChatSkillsReview
-                employeeId={this.context.employeeId}
-                onComplete={() => this.context.moveToNextStep()}
-              />
-            ),
-            timestamp: new Date()
+            content: JSON.stringify({
+              type: 'chat_skills_review',
+              employeeId: this.context.employeeId
+            }),
+            timestamp: new Date(),
+            metadata: {
+              componentType: 'ChatSkillsReview'
+            }
           }]);
         }
       },

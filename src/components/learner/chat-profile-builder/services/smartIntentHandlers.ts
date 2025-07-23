@@ -3,18 +3,18 @@ import { FormData, SmartContext } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import React from 'react';
+import type { Dispatch, SetStateAction, MutableRefObject } from 'react';
 
 export interface SmartIntentHandlersContext {
   formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  setFormData: Dispatch<SetStateAction<FormData>>;
   smartContext: SmartContext;
-  setSmartContext: React.Dispatch<React.SetStateAction<SmartContext>>;
-  currentStepRef: React.MutableRefObject<number>;
+  setSmartContext: Dispatch<SetStateAction<SmartContext>>;
+  currentStepRef: MutableRefObject<number>;
   maxStepReached: number;
   messages: any[];
-  setMessages: React.Dispatch<React.SetStateAction<any[]>>;
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
+  setMessages: Dispatch<SetStateAction<any[]>>;
+  setCurrentStep: Dispatch<SetStateAction<number>>;
   saveStepData: (isAutoSave?: boolean) => Promise<void>;
   addBotMessage: (content: string, points?: number, delay?: number) => void;
   showQuickReplies: (replies: Array<{ label: string; value: string }>) => void;
@@ -325,57 +325,18 @@ export class SmartIntentHandlers {
     this.context.setMessages(prev => [...prev, {
       id: messageId,
       type: 'system',
-      content: (
-        <div className="max-w-2xl">
-          <div className="text-sm font-medium mb-3">Review Your Skills</div>
-          <div className="text-xs text-gray-600 mb-4">
-            Rate your proficiency level for each skill
-          </div>
-          
-          <div className="space-y-2">
-            {skills.map((skill, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm font-medium">{skill.name}</span>
-                <div className="flex gap-1">
-                  {[0, 1, 2, 3].map(level => (
-                    <button
-                      key={level}
-                      onClick={() => {
-                        const updatedSkills = [...skills];
-                        updatedSkills[index] = { ...skill, level };
-                        this.context.setFormData(prev => ({ ...prev, skills: updatedSkills }));
-                      }}
-                      className={`px-3 py-1 rounded text-xs transition-colors ${
-                        skill.level === level
-                          ? level === 0 ? 'bg-gray-200 text-gray-700' :
-                            level === 1 ? 'bg-yellow-200 text-yellow-800' :
-                            level === 2 ? 'bg-green-200 text-green-800' :
-                            'bg-blue-200 text-blue-800'
-                          : 'bg-white border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {level === 0 ? 'None' : level === 1 ? 'Learning' : level === 2 ? 'Using' : 'Expert'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <button
-            onClick={() => {
-              this.context.setMessages(prev => prev.filter(m => m.id !== messageId));
-              this.context.addBotMessage("Great! Your skills have been updated. Let's talk about your current work context.");
-              this.context.setCurrentStep(5);
-              setTimeout(() => this.context.askCurrentWorkQuestions(), 1000);
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
-          >
-            Continue →
-          </button>
-        </div>
-      ),
-      timestamp: new Date()
+      content: JSON.stringify({
+        type: 'skills_review_interactive',
+        skills: skills,
+        title: 'Review Your Skills',
+        subtitle: 'Rate your proficiency level for each skill'
+      }),
+      timestamp: new Date(),
+      metadata: {
+        componentType: 'SkillsReviewInteractive',
+        skills: skills,
+        messageId: messageId
+      }
     }]);
   }
 }

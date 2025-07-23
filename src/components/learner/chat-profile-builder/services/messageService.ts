@@ -76,17 +76,10 @@ export class MessageService {
     onReply: (value: string) => void
   ): Message {
     return this.createSystemMessage(
-      <div className="flex flex-wrap gap-2 mt-2">
-        {replies.map((reply, index) => (
-          <button
-            key={index}
-            onClick={() => onReply(reply.value)}
-            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
-          >
-            {reply.label}
-          </button>
-        ))}
-      </div>,
+      JSON.stringify({
+        type: 'quick_reply_buttons',
+        replies: replies
+      }),
       { type: 'quick_reply', replies }
     );
   }
