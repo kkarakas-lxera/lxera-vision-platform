@@ -1258,7 +1258,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     addAchievement: messageManager.addAchievement,
     showQuickReplies: messageManager.showQuickReplies,
     moveToNextStep: () => navigationService.moveToNextStep(),
-    analyzeIntent: smartIntentService.analyzeIntent,
+    analyzeIntent: smartIntentService.analyzeIntent.bind(smartIntentService),
     executeSmartAction: async (intent: any) => {
       const smartHandlers = new SmartIntentHandlers(stepHandlerContext);
       await smartHandlers.executeSmartAction(intent);
@@ -1602,7 +1602,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         addBotMessage: messageManager.addBotMessage,
         addAchievement: messageManager.addAchievement,
         moveToNextStep: () => navigationService.moveToNextStep(),
-        analyzeIntent: smartIntentService.analyzeIntent,
+        analyzeIntent: smartIntentService.analyzeIntent.bind(smartIntentService),
         executeSmartAction: async (intent: any) => {
           const smartHandlers = new SmartIntentHandlers(allHandlersAndSetters);
           await smartHandlers.executeSmartAction(intent);
