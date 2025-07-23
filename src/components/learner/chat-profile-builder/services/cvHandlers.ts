@@ -3,10 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
 import { ChatMessageService } from '@/services/chatMessageService';
 import { ProfileBuilderStateService, type ProfileBuilderState } from '@/services/profileBuilderStateService';
-import CVExtractedSections from '../chat/CVExtractedSections';
-import CVAnalysisProgress from '../chat/CVAnalysisProgress';
-import SectionConfirmationProgress from '../chat/SectionConfirmationProgress';
-import { Trophy, Zap, Upload, Clock } from 'lucide-react';
+// Component imports removed as JSX is no longer used in this file
+// Lucide icon imports removed as they're now referenced by name strings
 
 // Constants
 const STEPS = [

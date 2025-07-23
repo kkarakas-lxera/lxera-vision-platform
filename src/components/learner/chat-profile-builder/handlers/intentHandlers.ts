@@ -1,9 +1,10 @@
 import { FormData, SmartContext } from '../types';
 import { SmartIntentService } from '../services/smartIntentService';
+import type { Dispatch, SetStateAction } from 'react';
 
 export interface IntentHandlerContext {
   formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  setFormData: Dispatch<SetStateAction<FormData>>;
   smartContext: SmartContext;
   currentStep: number;
   maxStepReached: number;

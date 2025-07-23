@@ -30,8 +30,7 @@ export interface StepHandlerContext {
   showInlineWorkForm: () => void;
   showInlineEducationForm: () => void;
   
-  // Components
-  ChatSkillsReview: React.ComponentType<{ employeeId: string; onComplete: () => void }>;
+  // Components - removed as JSX is no longer used
 }
 
 export class StepHandlers {

@@ -1,5 +1,6 @@
 import { Message } from '../types';
 import { MESSAGE_DELAYS } from '../constants';
+import type React from 'react';
 
 export class MessageService {
   static generateMessageId(prefix: string = 'msg'): string {

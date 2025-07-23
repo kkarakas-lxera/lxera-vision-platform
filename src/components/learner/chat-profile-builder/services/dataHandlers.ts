@@ -3,6 +3,7 @@ import { EmployeeProfileService } from '@/services/employeeProfileService';
 import { ChatMessageService } from '@/services/chatMessageService';
 import { ProfileBuilderStateService, type ProfileBuilderState } from '@/services/profileBuilderStateService';
 import { toast } from 'sonner';
+import type React from 'react';
 
 // Types (copied from original file)
 interface Message {

@@ -4,9 +4,7 @@
 import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
-import CVAnalysisProgress from '../chat/CVAnalysisProgress';
-import CVExtractedSections from '../chat/CVExtractedSections';
-import ChatSkillsReview from '../chat/ChatSkillsReview';
+// Component imports removed as JSX is no longer used in this file
 
 // Constants that these functions depend on
 const STEPS = [

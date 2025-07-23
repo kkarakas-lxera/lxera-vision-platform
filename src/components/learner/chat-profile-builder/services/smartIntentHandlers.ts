@@ -1,8 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { FormData, SmartContext } from '../types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+// UI component imports removed as JSX is no longer used in this file
 import type { Dispatch, SetStateAction, MutableRefObject } from 'react';
 
 export interface SmartIntentHandlersContext {

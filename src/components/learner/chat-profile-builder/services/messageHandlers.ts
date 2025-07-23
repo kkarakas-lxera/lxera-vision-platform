@@ -2,8 +2,8 @@ import React from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessageService } from '@/services/chatMessageService';
-import QuickReplyButtons from '../chat/QuickReplyButtons';
-import { Zap, Upload, Clock, Trophy } from 'lucide-react';
+// QuickReplyButtons import removed as JSX is no longer used in this file
+// Lucide icon imports removed as they're now referenced by name strings
 
 interface Message {
   id: string;
