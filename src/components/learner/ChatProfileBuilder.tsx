@@ -23,6 +23,7 @@ import WorkExperienceForm from './chat/WorkExperienceForm';
 import EducationForm from './chat/EducationForm';
 import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
 import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
+import ProfileDataReview from './chat/ProfileDataReview';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -1080,12 +1081,56 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const handleEditItem = async (entities: any) => {
     const { target, index } = entities;
     
-    if (target === 'work_experience' && typeof index === 'number') {
-      // Show inline edit form for specific work experience
-      showEditWorkForm(index);
-    } else if (target === 'education' && typeof index === 'number') {
-      // Show inline edit form for specific education
-      showEditEducationForm(index);
+    // Handle editing work experience
+    if (target === 'work_experience' || target === 'work' || target === 'position') {
+      const editMessageId = 'edit-work-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: editMessageId,
+        type: 'system',
+        content: (
+          <WorkExperienceForm
+            initialData={formData.workExperience}
+            editIndex={index}
+            onComplete={(updatedWork) => {
+              // Ensure description field exists
+              const workWithDescription = updatedWork.map(w => ({
+                ...w,
+                description: w.description || ''
+              }));
+              setFormData(prev => ({ ...prev, workExperience: workWithDescription }));
+              setMessages(prev => prev.filter(m => m.id !== editMessageId));
+              addBotMessage("Your work experience has been updated! ✅", 50);
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }]);
+    } 
+    // Handle editing education
+    else if (target === 'education' || target === 'degree') {
+      const editMessageId = 'edit-edu-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: editMessageId,
+        type: 'system',
+        content: (
+          <EducationForm
+            initialData={formData.education}
+            editIndex={index}
+            onComplete={(updatedEducation) => {
+              const mappedEducation = updatedEducation.map(edu => ({
+                degree: edu.degree,
+                fieldOfStudy: edu.fieldOfStudy,
+                institution: edu.institution,
+                graduationYear: edu.year
+              }));
+              setFormData(prev => ({ ...prev, education: mappedEducation }));
+              setMessages(prev => prev.filter(m => m.id !== editMessageId));
+              addBotMessage("Your education has been updated! ✅", 50);
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }]);
     }
   };
 
@@ -1104,16 +1149,64 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const handleReviewRequest = async (entities: any) => {
     const { target } = entities;
     
-    if (target === 'all' || target === 'everything') {
-      // Show complete profile summary
-      showProfileSummary();
-    } else if (target === 'work') {
-      // Show work experience summary
-      showWorkSummary();
-    } else if (target === 'education') {
-      // Show education summary
-      showEducationSummary();
-    }
+    // Map common targets to section names
+    const targetMap: Record<string, string> = {
+      'work': 'work',
+      'work experience': 'work',
+      'jobs': 'work',
+      'positions': 'work',
+      'education': 'education',
+      'degrees': 'education',
+      'school': 'education',
+      'skills': 'skills',
+      'expertise': 'skills',
+      'challenges': 'challenges',
+      'growth': 'growth',
+      'growth areas': 'growth',
+      'team': 'current_work',
+      'current work': 'current_work',
+      'all': 'all',
+      'everything': 'all',
+      'profile': 'all'
+    };
+    
+    const section = targetMap[target?.toLowerCase()] || 'all';
+    
+    // Show the review UI component
+    const reviewMessageId = 'review-' + Date.now();
+    setMessages(prev => [...prev, {
+      id: reviewMessageId,
+      type: 'system',
+      content: (
+        <ProfileDataReview
+          section={section as any}
+          data={formData}
+          onEdit={(sectionToEdit) => {
+            // Remove review message
+            setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+            
+            // Navigate to that section for editing
+            const stepMap: Record<string, number> = {
+              'work': 2,
+              'education': 3,
+              'skills': 4,
+              'current_work': 5,
+              'challenges': 6,
+              'growth': 7
+            };
+            
+            const targetStep = stepMap[sectionToEdit];
+            if (targetStep) {
+              navigateToStep(targetStep, 'sidebar');
+            }
+          }}
+          onClose={() => {
+            setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+          }}
+        />
+      ),
+      timestamp: new Date()
+    }]);
   };
 
   // Confirmation Handler

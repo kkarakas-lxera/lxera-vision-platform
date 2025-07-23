@@ -9,16 +9,27 @@ interface WorkExperience {
   title: string;
   company: string;
   duration: string;
+  description?: string;
 }
 
 interface WorkExperienceFormProps {
   onComplete: (data: WorkExperience[]) => void;
+  initialData?: any[];
+  editIndex?: number;
 }
 
-export default function WorkExperienceForm({ onComplete }: WorkExperienceFormProps) {
-  const [workData, setWorkData] = useState<WorkExperience[]>([
-    { title: '', company: '', duration: '' }
-  ]);
+export default function WorkExperienceForm({ onComplete, initialData, editIndex }: WorkExperienceFormProps) {
+  const [workData, setWorkData] = useState<WorkExperience[]>(() => {
+    if (initialData && initialData.length > 0) {
+      return initialData.map(item => ({
+        title: item.title || '',
+        company: item.company || '',
+        duration: item.duration || '',
+        description: item.description || ''
+      }));
+    }
+    return [{ title: '', company: '', duration: '', description: '' }];
+  });
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
   
   const toggleExpanded = (index: number) => {
@@ -40,7 +51,7 @@ export default function WorkExperienceForm({ onComplete }: WorkExperienceFormPro
   };
 
   const addWork = () => {
-    setWorkData([...workData, { title: '', company: '', duration: '' }]);
+    setWorkData([...workData, { title: '', company: '', duration: '', description: '' }]);
     setExpandedItems(prev => new Set(prev).add(workData.length));
   };
 

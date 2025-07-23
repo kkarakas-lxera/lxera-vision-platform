@@ -14,13 +14,30 @@ interface Education {
 
 interface EducationFormProps {
   onComplete: (data: Education[]) => void;
+  initialData?: any[];
+  editIndex?: number;
 }
 
-export default function EducationForm({ onComplete }: EducationFormProps) {
-  const [educationData, setEducationData] = useState<Education[]>([
-    { degree: '', fieldOfStudy: '', institution: '', year: '' }
-  ]);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+export default function EducationForm({ onComplete, initialData, editIndex }: EducationFormProps) {
+  const [educationData, setEducationData] = useState<Education[]>(() => {
+    if (initialData && initialData.length > 0) {
+      return initialData.map(item => ({
+        degree: item.degree || '',
+        fieldOfStudy: item.fieldOfStudy || item.field || '',
+        institution: item.institution || item.school || '',
+        year: item.year || item.graduationYear || ''
+      }));
+    }
+    return [{ degree: '', fieldOfStudy: '', institution: '', year: '' }];
+  });
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(() => {
+    // If editing a specific index, expand only that item
+    if (editIndex !== undefined) {
+      return new Set([editIndex]);
+    }
+    // Otherwise expand the first item
+    return new Set([0]);
+  });
   
   const toggleExpanded = (index: number) => {
     setExpandedItems(prev => {
