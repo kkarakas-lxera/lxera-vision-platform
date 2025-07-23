@@ -30,6 +30,18 @@ export interface ProfileBuilderState {
   };
   formData?: any;
   lastActivity: string;
+  // Context-aware navigation tracking
+  stepHistory?: Array<{
+    stepId: number;
+    status: string;
+    firstVisitedAt: string;
+    lastVisitedAt: string;
+    visitCount: number;
+    completedAt?: string;
+    milestoneAwarded: boolean;
+  }>;
+  awardedMilestones?: string[];
+  awardedAchievements?: string[];
 }
 
 export class ProfileBuilderStateService {

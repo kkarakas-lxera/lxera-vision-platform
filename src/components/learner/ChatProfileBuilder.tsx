@@ -31,6 +31,22 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+interface StepVisitHistory {
+  stepId: number;
+  firstVisitedAt: Date;
+  lastVisitedAt: Date;
+  visitCount: number;
+  status: 'not_visited' | 'in_progress' | 'completed' | 'reviewing';
+  completedAt?: Date;
+  milestoneAwarded: boolean;
+  savedState?: any;
+}
+
+interface NavigationContext {
+  source: 'forward_progression' | 'backward_navigation' | 'sidebar_jump' | 'restoration';
+  intent: 'first_visit' | 'continue_progress' | 'review_completed' | 'edit_existing';
+}
+
 interface ChatProfileBuilderProps {
   employeeId: string;
   onComplete: () => void;
@@ -122,6 +138,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [showDynamicMessage, setShowDynamicMessage] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [sectionsConfirmed, setSectionsConfirmed] = useState<string[]>([]);
+  const [cvAcceptedSections, setCvAcceptedSections] = useState({
+    work: false,
+    education: false,
+    certifications: false,
+    languages: false
+  });
+  
+  // Context-aware navigation state
+  const [stepHistory, setStepHistory] = useState<Map<number, StepVisitHistory>>(new Map());
+  const [awardedMilestones, setAwardedMilestones] = useState<Set<string>>(new Set());
+  const [navigationContext, setNavigationContext] = useState<NavigationContext | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1210,6 +1237,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setFormData(prev => ({ ...prev, challenges: [] }));
       showChallenges();
       return;
+    } else if (response === 'add_more_challenges') {
+      // Show additional challenges without resetting
+      showChallenges();
+      return;
     } else if (response === 'continue' && formData.challenges.length > 0) {
       moveToNextStep();
       return;
@@ -1236,6 +1267,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setFormData(prev => ({ ...prev, growthAreas: [] }));
       showGrowthAreas();
       return;
+    } else if (response === 'add_more_growth') {
+      // Show additional growth areas without resetting
+      showGrowthAreas();
+      return;
     } else if (response === 'complete') {
       completeProfile();
       return;
@@ -1260,6 +1295,52 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
+  // Helper function to update step visit history
+  const updateStepHistory = (stepId: number, status: StepVisitHistory['status']) => {
+    setStepHistory(prev => {
+      const newHistory = new Map(prev);
+      const existing = newHistory.get(stepId);
+      
+      if (existing) {
+        existing.status = status;
+        existing.lastVisitedAt = new Date();
+        existing.visitCount += 1;
+        if (status === 'completed' && !existing.completedAt) {
+          existing.completedAt = new Date();
+        }
+      } else {
+        newHistory.set(stepId, {
+          stepId,
+          firstVisitedAt: new Date(),
+          lastVisitedAt: new Date(),
+          visitCount: 1,
+          status,
+          milestoneAwarded: false
+        });
+      }
+      
+      return newHistory;
+    });
+  };
+  
+  // Helper function for idempotent milestone awarding
+  const awardMilestone = (milestoneId: string, points: number, message: string) => {
+    if (awardedMilestones.has(milestoneId)) {
+      console.log(`Milestone ${milestoneId} already awarded, skipping`);
+      return;
+    }
+    
+    addBotMessage(message, points);
+    setAwardedMilestones(prev => new Set(prev).add(milestoneId));
+    
+    // Update step history to mark milestone as awarded
+    const history = stepHistory.get(currentStepRef.current);
+    if (history) {
+      history.milestoneAwarded = true;
+      setStepHistory(new Map(stepHistory));
+    }
+  };
+  
   // Navigation
   const moveToNextStep = async () => {
     const step = currentStepRef.current;
@@ -1269,13 +1350,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // CRITICAL: Save current state BEFORE moving to next step
       await saveStepData(true);
       
-      // Award milestone points for completing certain steps
-      if (step === 2 && !cvUploaded) { // Completed work experience manually
-        addBotMessage("Great progress! Work experience completed. 🎯", 50);
-      } else if (step === 3) { // Completed education
-        addBotMessage("Education milestone reached! 📚", 50);
-      } else if (step === 4) { // Completed skills
-        addBotMessage("Skills validated! You're halfway there! 🌟", 100);
+      // Mark current step as completed
+      updateStepHistory(step, 'completed');
+      
+      // Award milestone points for completing certain steps (idempotent)
+      if (step === 2 && !cvUploaded) {
+        awardMilestone('work_experience_manual', 50, "Great progress! Work experience completed. 🎯");
+      } else if (step === 3) {
+        awardMilestone('education_complete', 50, "Education milestone reached! 📚");
+      } else if (step === 4) {
+        awardMilestone('skills_validated', 100, "Skills validated! You're halfway there! 🌟");
       }
       
       // Clear any system messages and skills components when moving steps
@@ -1295,11 +1379,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         
         // Small delay before initiating new step
         setTimeout(() => {
-          // Only show dynamic message for non-skills steps
+          const context: NavigationContext = {
+            source: 'forward_progression',
+            intent: 'first_visit'
+          };
+          
+          // Update visit history for the new step
+          updateStepHistory(step + 1, 'in_progress');
+          
+          // Only show dynamic message for non-skills steps on first visit
           if (step + 1 !== 4) {
             setShowDynamicMessage(true);
           }
-          initiateStep(step + 1);
+          initiateStep(step + 1, context);
         }, 100);
       }, 50);
     } else {
@@ -1307,22 +1399,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const goToPreviousStep = () => {
+  const goToPreviousStep = async () => {
     const step = currentStepRef.current;
     if (step > 1) {
-      // Clear system messages
-      setMessages(prev => prev.filter(m => m.type !== 'system'));
-      setCurrentStep(prev => prev - 1);
-      saveStepData(true);
+      // Save current state before going back
+      await saveStepData(true);
       
-      addBotMessage(`Let's go back to ${STEPS[step - 2].title}. 👈`, 0, 500);
-      setTimeout(() => {
-        initiateStep(step - 1);
-      }, 1000);
+      // Use navigateToStep with 'back' source for proper context
+      navigateToStep(step - 1, 'back');
     }
   };
 
-  const navigateToStep = async (targetStep: number) => {
+  // Helper to determine navigation intent
+  const determineNavigationIntent = (targetStep: number, history?: StepVisitHistory): NavigationContext['intent'] => {
+    if (!history || history.status === 'not_visited') return 'first_visit';
+    if (history.status === 'in_progress') return 'continue_progress';
+    if (history.status === 'completed') return 'review_completed';
+    return 'edit_existing';
+  };
+  
+  const navigateToStep = async (targetStep: number, source: 'sidebar' | 'progression' | 'back' = 'sidebar') => {
     const step = currentStepRef.current;
     
     // Only allow navigation to completed or current steps
@@ -1334,13 +1430,24 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // CRITICAL: Save current state BEFORE navigating away
     await saveStepData(true);
     
-    // CRITICAL: Remove ALL skills components when navigating away from any step
-    setMessages(prev => prev.filter(m => {
-      // Filter out skills component and system messages that contain React components
-      if (m.id === 'skills-component') return false;
-      if (m.type === 'system' && typeof m.content !== 'string') return false;
-      return true;
-    }));
+    // Determine navigation context
+    const context: NavigationContext = {
+      source: source === 'back' ? 'backward_navigation' : 
+              source === 'sidebar' ? 'sidebar_jump' : 'forward_progression',
+      intent: determineNavigationIntent(targetStep, stepHistory.get(targetStep))
+    };
+    
+    setNavigationContext(context);
+    
+    // Only clear messages if truly needed based on context
+    if (context.intent === 'first_visit' || (targetStep === 4 && context.intent !== 'review_completed')) {
+      setMessages(prev => prev.filter(m => {
+        // Filter out skills component and system messages that contain React components
+        if (m.id === 'skills-component') return false;
+        if (m.type === 'system' && typeof m.content !== 'string') return false;
+        return true;
+      }));
+    }
     
     // Clear dynamic message first
     setShowDynamicMessage(false);
@@ -1348,8 +1455,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Set navigation state
     setNavigatingTo(targetStep);
     
-    // Only show dynamic message for non-skills steps
-    if (targetStep !== 4) {
+    // Only show dynamic message for non-skills steps and first visits
+    if (targetStep !== 4 && context.intent === 'first_visit') {
       setShowDynamicMessage(true);
     }
     
@@ -1364,8 +1471,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Load saved state for the target step
       await loadSavedStateForStep(targetStep);
       
+      // Update visit history
+      updateStepHistory(targetStep, context.intent === 'review_completed' ? 'reviewing' : 'in_progress');
+      
       setTimeout(() => {
-        initiateStep(targetStep);
+        initiateStep(targetStep, context);
       }, 100);
     }, 1500);
   };
@@ -1387,6 +1497,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Restore CV sections state
         if (savedState.cvSectionsState) {
           setCvAcceptedSections(savedState.cvSectionsState.acceptedSections);
+        }
+        
+        // Restore step history
+        if (savedState.stepHistory) {
+          const historyMap = new Map<number, StepVisitHistory>();
+          savedState.stepHistory.forEach(history => {
+            historyMap.set(history.stepId, {
+              ...history,
+              firstVisitedAt: new Date(history.firstVisitedAt),
+              lastVisitedAt: new Date(history.lastVisitedAt),
+              completedAt: history.completedAt ? new Date(history.completedAt) : undefined
+            });
+          });
+          setStepHistory(historyMap);
+        }
+        
+        // Restore awarded milestones
+        if (savedState.awardedMilestones) {
+          setAwardedMilestones(new Set(savedState.awardedMilestones));
         }
         
         // Restore step-specific states
@@ -1427,59 +1556,78 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const initiateStep = (step: number) => {
+  const initiateStep = (step: number, context?: NavigationContext) => {
     const stepData = STEPS[step - 1];
     if (!stepData) return;
     
-    console.log(`Initiating step ${step} (${stepData.name})`);
-    console.log(`Current showDynamicMessage: ${showDynamicMessage}`);
+    // Use default context if not provided (for backward compatibility)
+    const navContext = context || {
+      source: 'forward_progression',
+      intent: determineNavigationIntent(step, stepHistory.get(step))
+    };
+    
+    console.log(`Initiating step ${step} (${stepData.name}) with context:`, navContext);
     console.log(`Current messages count: ${messages.length}`);
 
-    // Clear any lingering skills review components when not on skills step
-    if (step !== 4) {
+    // Clear components only for first visits or when needed
+    if (step !== 4 && navContext.intent === 'first_visit') {
       setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
     }
 
-    // Show dynamic message for main step transitions (except CV upload and skills)
-    if (step > 1 && step !== 4) {
+    // Show dynamic message only for first visits (except CV upload and skills)
+    if (step > 1 && step !== 4 && navContext.intent === 'first_visit') {
       setShowDynamicMessage(true);
     }
 
     switch (stepData.name) {
       case 'work_experience':
-        // CRITICAL: Remove any lingering skills components
-        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        // Clear skills components only on first visit
+        if (navContext.intent === 'first_visit') {
+          setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        }
         
-        // If we have CV extracted data, show only work experience section
-        if (cvExtractedData && cvExtractedData.work_experience?.length > 0) {
-          setTimeout(() => {
-            handleCVSectionSpecific(cvExtractedData, 'work');
-          }, 1000);
-        } else if (formData.workExperience.length > 0) {
-          // We have existing work experience data - show it for review/edit
-          setCurrentWorkIndex(0);
+        // Handle based on navigation context
+        if (navContext.intent === 'first_visit') {
+          // First time visiting this step
+          if (cvExtractedData && cvExtractedData.work_experience?.length > 0) {
+            setTimeout(() => {
+              handleCVSectionSpecific(cvExtractedData, 'work');
+            }, 1000);
+          } else {
+            addBotMessage("Let's talk about your work experience. What's your current or most recent job title?", 0, 1000);
+          }
+        } else if (navContext.intent === 'continue_progress') {
+          // Returning to continue where they left off
+          if (formData.workExperience.length > 0 && currentWorkIndex < formData.workExperience.length) {
+            addBotMessage("Let's continue where we left off with your work experience.", 0, 500);
+            // Resume from current index
+            setTimeout(() => {
+              const exp = formData.workExperience[currentWorkIndex];
+              addBotMessage(
+                `📋 ${exp.title} at ${exp.company}\n${exp.duration ? `⏱️ ${exp.duration}` : ''}\n\nIs this information correct?`,
+                0,
+                1000
+              );
+              showQuickReplies([
+                { label: "Yes, continue", value: "confirm_single_experience" },
+                { label: "Edit this entry", value: "edit_experience" }
+              ]);
+            }, 1000);
+          }
+        } else if (navContext.intent === 'review_completed') {
+          // They completed this step and are reviewing
           addBotMessage(
-            `Welcome back! I see you've already entered ${formData.workExperience.length} work experience${formData.workExperience.length > 1 ? 's' : ''}. Let's review them:`,
+            `Your work experience is complete! You have ${formData.workExperience.length} position${formData.workExperience.length > 1 ? 's' : ''} recorded.`,
             0,
             500
           );
           setTimeout(() => {
-            const exp = formData.workExperience[0];
-            addBotMessage(
-              `📋 ${exp.title} at ${exp.company}\n${exp.duration ? `⏱️ ${exp.duration}` : ''}\n\nWould you like to review/edit these entries or continue to the next step?`,
-              0,
-              1000
-            );
-            setTimeout(() => {
-              showQuickReplies([
-                { label: "Review & Edit", value: "confirm_single_experience" },
-                { label: "Continue to Education", value: "skip_work_verification", variant: 'primary' },
-                { label: "Add Another Position", value: "add_more" }
-              ]);
-            }, 1500);
+            showQuickReplies([
+              { label: "Quick Review", value: "confirm_single_experience" },
+              { label: "Add Another Position", value: "add_more" },
+              { label: "All Good", value: "skip_work_verification", variant: 'primary' }
+            ]);
           }, 1000);
-        } else {
-          addBotMessage("Let's talk about your work experience. What's your current or most recent job title?", 0, 1000);
         }
         break;
 
@@ -1487,122 +1635,196 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // CRITICAL: Remove any lingering skills components
         setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        // If we have CV extracted data, show only education section
-        if (cvExtractedData && cvExtractedData.education?.length > 0) {
-          setTimeout(() => {
-            handleCVSectionSpecific(cvExtractedData, 'education');
-          }, 1000);
-        } else if (formData.education.length > 0) {
-          // We have existing education data - show it for review/edit
+        // Handle based on navigation context
+        if (navContext.intent === 'review_completed') {
+          // User is reviewing already completed education
           setCurrentEducationIndex(0);
           addBotMessage(
-            `Welcome back! I see you've already entered ${formData.education.length} education record${formData.education.length > 1 ? 's' : ''}. Let's review:`,
+            `Welcome back to your education history! You have ${formData.education.length} education record${formData.education.length > 1 ? 's' : ''}. Would you like to review or update them?`,
             0,
             500
           );
           setTimeout(() => {
             const edu = formData.education[0];
             addBotMessage(
-              `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nWould you like to review/edit these entries or continue?`,
+              `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
               0,
               1000
             );
             setTimeout(() => {
               showQuickReplies([
                 { label: "Review & Edit", value: "confirm_single_education" },
-                { label: "Continue to Skills", value: "skip_education_verification", variant: 'primary' },
-                { label: "Add Another Degree", value: "add_more_education" }
+                { label: "Add Another Degree", value: "add_more_education" },
+                { label: "Continue", value: "skip_education_verification", variant: 'primary' }
               ]);
             }, 1500);
           }, 1000);
+        } else if (navContext.intent === 'continue_progress') {
+          // Returning to continue where they left off
+          if (currentEducationIndex > 0 && currentEducationIndex < formData.education.length) {
+            addBotMessage("Let's continue with your education records.", 0, 500);
+            setTimeout(() => {
+              const edu = formData.education[currentEducationIndex];
+              addBotMessage(
+                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nIs this information correct?`,
+                0,
+                1000
+              );
+              setTimeout(() => {
+                showQuickReplies([
+                  { label: "Yes, continue", value: "confirm_single_education", variant: 'primary' },
+                  { label: "Edit this entry", value: "edit_education" },
+                  { label: "Skip to Skills", value: "skip_education_verification" }
+                ]);
+              }, 1500);
+            }, 1000);
+          } else {
+            // Default continue behavior
+            addBotMessage("Let's continue setting up your education. Where did we leave off?", 0, 500);
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Add Education", value: "add_education" },
+                { label: "Review Existing", value: "review_education" },
+                { label: "Continue to Skills", value: "skip_education_verification", variant: 'primary' }
+              ]);
+            }, 1000);
+          }
+        } else if (navContext.intent === 'first_visit') {
+          // First time visiting this step
+          if (cvExtractedData && cvExtractedData.education?.length > 0) {
+            setTimeout(() => {
+              handleCVSectionSpecific(cvExtractedData, 'education');
+            }, 1000);
+          } else {
+            addBotMessage("Now let's talk about your education. What's your highest degree?", 0, 1000);
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "High School", value: "High School" },
+                { label: "Bachelor's", value: "Bachelor" },
+                { label: "Master's", value: "Master" },
+                { label: "PhD", value: "PhD" },
+                { label: "Other", value: "Other" }
+              ]);
+            }, 1500);
+          }
         } else {
-          addBotMessage("Now let's talk about your education. What's your highest degree?", 0, 1000);
-          setTimeout(() => {
-            showQuickReplies([
-              { label: "High School", value: "High School" },
-              { label: "Bachelor's", value: "Bachelor" },
-              { label: "Master's", value: "Master" },
-              { label: "PhD", value: "PhD" },
-              { label: "Other", value: "Other" }
-            ]);
-          }, 1500);
+          // Edit existing - show current data for editing
+          if (formData.education.length > 0) {
+            setCurrentEducationIndex(0);
+            addBotMessage(
+              `Let's update your education records. You have ${formData.education.length} record${formData.education.length > 1 ? 's' : ''}:`,
+              0,
+              500
+            );
+            setTimeout(() => {
+              const edu = formData.education[0];
+              addBotMessage(
+                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
+                0,
+                1000
+              );
+              setTimeout(() => {
+                showQuickReplies([
+                  { label: "Edit This Entry", value: "edit_education" },
+                  { label: "Add Another", value: "add_more_education" },
+                  { label: "Remove This Entry", value: "remove_education" },
+                  { label: "Continue", value: "skip_education_verification", variant: 'primary' }
+                ]);
+              }, 1500);
+            }, 1000);
+          } else {
+            // No existing data - start fresh
+            addBotMessage("Let's add your education background. What's your highest degree?", 0, 1000);
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "High School", value: "High School" },
+                { label: "Bachelor's", value: "Bachelor" },
+                { label: "Master's", value: "Master" },
+                { label: "PhD", value: "PhD" },
+                { label: "Other", value: "Other" }
+              ]);
+            }, 1500);
+          }
         }
         break;
 
       case 'skills':
         setShowDynamicMessage(false); // Prevent ProfileStepMessage from showing
-        // Clear any existing skills review components to prevent duplicates
-        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        // Check if skills have already been validated
-        const { data: employee } = await supabase
-          .from('employees')
-          .select('skills_validation_completed')
-          .eq('id', employeeId)
-          .single();
-        
-        if (employee?.skills_validation_completed) {
-          // Skills already validated, show confirmation and option to review
+        // Handle based on navigation context
+        if (navContext.intent === 'review_completed') {
+          // They already completed skills validation
           addBotMessage(
-            "I see you've already validated your skills! Would you like to review them again or continue to the next step?",
+            "Your skills have been validated! ✅",
             0,
             500
           );
           setTimeout(() => {
             showQuickReplies([
-              { label: "Review Skills Again", value: "review_skills" },
-              { label: "Continue to Next Step", value: "skip_skills", variant: 'primary' }
+              { label: "Quick Review", value: "review_skills" },
+              { label: "Continue", value: "skip_skills", variant: 'primary' }
             ]);
           }, 1000);
         } else {
-          // Show skills review component
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              id: 'skills-component',
-              type: 'system',
-              content: (
-                <ChatSkillsReview
-                  employeeId={employeeId}
-                  onComplete={() => {
-                    moveToNextStep();
-                  }}
-                />
-              ),
-              timestamp: new Date()
-            }]);
-          }, 1000);
+          // First visit or continuing - check database
+          const { data: employee } = await supabase
+            .from('employees')
+            .select('skills_validation_completed')
+            .eq('id', employeeId)
+            .single();
+          
+          if (employee?.skills_validation_completed && navContext.intent !== 'edit_existing') {
+            // Mark as completed in history
+            updateStepHistory(4, 'completed');
+            
+            // Skills already validated, jump to review mode
+            addBotMessage(
+              "I see you've already validated your skills! Would you like to review them or continue?",
+              0,
+              500
+            );
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Review Skills", value: "review_skills" },
+                { label: "Continue", value: "skip_skills", variant: 'primary' }
+              ]);
+            }, 1000);
+          } else {
+            // Clear any existing skills components
+            setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+            
+            // Show skills review component
+            setTimeout(() => {
+              setMessages(prev => [...prev, {
+                id: 'skills-component',
+                type: 'system',
+                content: (
+                  <ChatSkillsReview
+                    employeeId={employeeId}
+                    onComplete={() => {
+                      updateStepHistory(4, 'completed');
+                      moveToNextStep();
+                    }}
+                  />
+                ),
+                timestamp: new Date()
+              }]);
+            }, 1000);
+          }
         }
         break;
 
       case 'current_work':
         setShowDynamicMessage(false);
-        // CRITICAL: Remove any lingering skills components
-        setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        // Check if we have existing current work data
-        if (formData.teamSize && formData.roleInTeam) {
-          addBotMessage(
-            `Welcome back! I see you work with a team of ${formData.teamSize} as a ${formData.roleInTeam}. Would you like to update this information or continue?`,
-            0,
-            1000
-          );
-          setTimeout(() => {
-            showQuickReplies([
-              { label: "Update Team Info", value: "update_team" },
-              { label: "Continue to Challenges", value: "continue", variant: 'primary' }
-            ]);
-          }, 2000);
-        } else if (formData.teamSize && !formData.roleInTeam) {
-          // We have team size but not role - continue from role question
-          addBotMessage("And what's your role in the team?", 0, 500);
-          setTimeout(() => {
-            showQuickReplies([
-              { label: "Individual Contributor", value: "Individual Contributor" },
-              { label: "Team Lead", value: "Team Lead" },
-              { label: "Manager", value: "Manager" }
-            ]);
-          }, 1000);
-        } else {
+        // Clear skills components only on first visit
+        if (navContext.intent === 'first_visit') {
+          setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
+        }
+        
+        // Handle based on navigation context
+        if (navContext.intent === 'first_visit') {
+          // First time on this step
           addBotMessage("Tell me about your current work. What size team do you work with?", 0, 1000);
           setTimeout(() => {
             showQuickReplies([
@@ -1612,6 +1834,43 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               { label: "10+ people", value: "10+ people" }
             ]);
           }, 2000);
+        } else if (navContext.intent === 'continue_progress') {
+          // Continue from where they left off
+          if (formData.teamSize && !formData.roleInTeam) {
+            // They answered team size but not role
+            addBotMessage("Let's continue - what's your role in the team?", 0, 500);
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Individual Contributor", value: "Individual Contributor" },
+                { label: "Team Lead", value: "Team Lead" },
+                { label: "Manager", value: "Manager" }
+              ]);
+            }, 1000);
+          } else if (!formData.teamSize) {
+            // They haven't started yet
+            addBotMessage("Let's continue with your current work. What size team do you work with?", 0, 1000);
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Working alone", value: "Working alone" },
+                { label: "2-5 people", value: "2-5 people" },
+                { label: "6-10 people", value: "6-10 people" },
+                { label: "10+ people", value: "10+ people" }
+              ]);
+            }, 2000);
+          }
+        } else if (navContext.intent === 'review_completed') {
+          // They completed this step and are reviewing
+          addBotMessage(
+            `Your current work info: Team of ${formData.teamSize} as a ${formData.roleInTeam} ✅`,
+            0,
+            500
+          );
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Update Info", value: "update_team" },
+              { label: "Continue", value: "continue", variant: 'primary' }
+            ]);
+          }, 1000);
         }
         break;
 
@@ -1620,24 +1879,68 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // CRITICAL: Remove any lingering skills components
         setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        // Check if we have existing challenges selected
-        if (formData.challenges && formData.challenges.length > 0) {
-          addBotMessage(
-            `Welcome back! You previously selected ${formData.challenges.length} challenge${formData.challenges.length > 1 ? 's' : ''}:\n\n${formData.challenges.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nWould you like to update these or continue?`,
-            0,
-            1000
-          );
-          setTimeout(() => {
-            showQuickReplies([
-              { label: "Update Challenges", value: "update_challenges" },
-              { label: "Continue to Growth Areas", value: "continue", variant: 'primary' }
-            ]);
-          }, 1500);
-        } else if (!personalizedSuggestions) {
+        // Handle based on navigation context
+        if (navContext.intent === 'review_completed') {
+          // User is reviewing already completed challenges
+          if (formData.challenges && formData.challenges.length > 0) {
+            addBotMessage(
+              `You've already identified ${formData.challenges.length} challenge${formData.challenges.length > 1 ? 's' : ''}:\n\n${formData.challenges.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nWould you like to review or update these?`,
+              0,
+              500
+            );
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Update Challenges", value: "update_challenges" },
+                { label: "Keep These", value: "continue", variant: 'primary' },
+                { label: "Add More", value: "add_more_challenges" }
+              ]);
+            }, 1000);
+          } else {
+            // Shouldn't happen, but handle gracefully
+            addBotMessage("Let's identify the challenges you're facing in your role.", 0, 500);
+            if (!personalizedSuggestions) {
+              generatePersonalizedSuggestions();
+            } else {
+              showChallenges();
+            }
+          }
+        } else if (navContext.intent === 'continue_progress') {
+          // They were in the middle of selecting challenges
+          addBotMessage("Let's continue identifying your professional challenges.", 0, 500);
+          if (!personalizedSuggestions) {
+            addBotMessage("Let me prepare some suggestions based on your profile...", 0, 1000);
+            generatePersonalizedSuggestions();
+          } else {
+            showChallenges();
+          }
+        } else if (navContext.intent === 'first_visit') {
+          // First time on this step
           addBotMessage("Let me think about some challenges professionals in your role might face...", 0, 1000);
           generatePersonalizedSuggestions();
         } else {
-          showChallenges();
+          // Edit existing - allow them to change their selections
+          if (formData.challenges && formData.challenges.length > 0) {
+            addBotMessage(
+              `Let's update your professional challenges. Currently selected:\n\n${formData.challenges.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nWhat would you like to do?`,
+              0,
+              500
+            );
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Replace All", value: "update_challenges" },
+                { label: "Add More", value: "add_more_challenges" },
+                { label: "Keep These", value: "continue", variant: 'primary' }
+              ]);
+            }, 1000);
+          } else {
+            // No existing challenges - start selection
+            addBotMessage("Let's identify the challenges you're currently facing.", 0, 500);
+            if (!personalizedSuggestions) {
+              generatePersonalizedSuggestions();
+            } else {
+              showChallenges();
+            }
+          }
         }
         break;
 
@@ -1646,24 +1949,68 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // CRITICAL: Remove any lingering skills components
         setMessages(prev => prev.filter(m => m.id !== 'skills-component'));
         
-        // Check if we have existing growth areas selected
-        if (formData.growthAreas && formData.growthAreas.length > 0) {
-          addBotMessage(
-            `Welcome back! You previously selected ${formData.growthAreas.length} growth area${formData.growthAreas.length > 1 ? 's' : ''}:\n\n${formData.growthAreas.map((g, i) => `${i + 1}. ${g}`).join('\n')}\n\nWould you like to update these or complete your profile?`,
-            0,
-            1000
-          );
-          setTimeout(() => {
-            showQuickReplies([
-              { label: "Update Growth Areas", value: "update_growth" },
-              { label: "Complete Profile", value: "complete", variant: 'primary' }
-            ]);
-          }, 1500);
-        } else if (!personalizedSuggestions) {
+        // Handle based on navigation context
+        if (navContext.intent === 'review_completed') {
+          // User is reviewing already completed growth areas
+          if (formData.growthAreas && formData.growthAreas.length > 0) {
+            addBotMessage(
+              `You've identified ${formData.growthAreas.length} growth area${formData.growthAreas.length > 1 ? 's' : ''}:\n\n${formData.growthAreas.map((g, i) => `${i + 1}. ${g}`).join('\n')}\n\nWould you like to review these before completing your profile?`,
+              0,
+              500
+            );
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Update Areas", value: "update_growth" },
+                { label: "Add More", value: "add_more_growth" },
+                { label: "Complete Profile", value: "complete", variant: 'primary' }
+              ]);
+            }, 1000);
+          } else {
+            // Shouldn't happen, but handle gracefully
+            addBotMessage("Let's identify areas where you'd like to grow professionally.", 0, 500);
+            if (!personalizedSuggestions) {
+              generatePersonalizedSuggestions();
+            } else {
+              showGrowthAreas();
+            }
+          }
+        } else if (navContext.intent === 'continue_progress') {
+          // They were in the middle of selecting growth areas
+          addBotMessage("Let's continue identifying your growth opportunities.", 0, 500);
+          if (!personalizedSuggestions) {
+            addBotMessage("Preparing personalized suggestions...", 0, 1000);
+            generatePersonalizedSuggestions();
+          } else {
+            showGrowthAreas();
+          }
+        } else if (navContext.intent === 'first_visit') {
+          // First time on this step
           addBotMessage("Preparing growth opportunities based on your profile...", 0, 1000);
           generatePersonalizedSuggestions();
         } else {
-          showGrowthAreas();
+          // Edit existing - allow them to change their selections
+          if (formData.growthAreas && formData.growthAreas.length > 0) {
+            addBotMessage(
+              `Let's update your growth areas. Currently selected:\n\n${formData.growthAreas.map((g, i) => `${i + 1}. ${g}`).join('\n')}\n\nWhat would you like to do?`,
+              0,
+              500
+            );
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Replace All", value: "update_growth" },
+                { label: "Add More", value: "add_more_growth" },
+                { label: "Complete Profile", value: "complete", variant: 'primary' }
+              ]);
+            }, 1000);
+          } else {
+            // No existing growth areas - start selection
+            addBotMessage("Let's identify areas where you'd like to grow.", 0, 500);
+            if (!personalizedSuggestions) {
+              generatePersonalizedSuggestions();
+            } else {
+              showGrowthAreas();
+            }
+          }
         }
         break;
     }
@@ -1753,6 +2100,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     try {
       const stepName = STEPS[step - 1].name;
       
+      // Convert step history Map to array for storage
+      const stepHistoryArray = Array.from(stepHistory.entries()).map(([stepId, history]) => ({
+        stepId,
+        status: history.status,
+        firstVisitedAt: history.firstVisitedAt.toISOString(),
+        lastVisitedAt: history.lastVisitedAt.toISOString(),
+        visitCount: history.visitCount,
+        completedAt: history.completedAt?.toISOString(),
+        milestoneAwarded: history.milestoneAwarded
+      }));
+      
       // Save comprehensive state
       const currentBuilderState: ProfileBuilderState = {
         step,
@@ -1773,7 +2131,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         cvSectionsState: {
           acceptedSections: cvAcceptedSections,
           currentSection: 'work'
-        }
+        },
+        // Context-aware navigation tracking
+        stepHistory: stepHistoryArray,
+        awardedMilestones: Array.from(awardedMilestones),
+        awardedAchievements: [] // TODO: Track achievements properly
       };
       
       await ProfileBuilderStateService.saveState(employeeId, currentBuilderState);
@@ -2085,13 +2447,29 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const getStepsForMenu = () => {
-    return STEPS.map((step, index) => ({
-      id: step.id,
-      name: step.name,
-      title: step.title,
-      status: getStepStatus(step.id),
-      points: 0 // Points are awarded through achievements only
-    }));
+    return STEPS.map((step, index) => {
+      const history = stepHistory.get(step.id);
+      let status = getStepStatus(step.id);
+      
+      // Override status based on visit history
+      if (history) {
+        if (history.status === 'completed') {
+          status = 'completed';
+        } else if (history.status === 'in_progress' && step.id !== currentStep) {
+          // Show as upcoming if it was started but not current
+          status = 'upcoming';
+        }
+      }
+      
+      return {
+        id: step.id,
+        name: step.name,
+        title: step.title,
+        status: status,
+        points: history?.milestoneAwarded ? 10 : 0, // Show points if milestone was awarded
+        visitCount: history?.visitCount || 0
+      };
+    });
   };
 
   const formatElapsedTime = (seconds: number) => {
