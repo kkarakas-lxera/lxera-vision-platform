@@ -17,6 +17,7 @@ import ChatSkillsReview from './chat/ChatSkillsReview';
 import ProfileStepMessage from './chat/ProfileStepMessage';
 import SectionConfirmationProgress from './chat/SectionConfirmationProgress';
 import CourseOutlineReward from './CourseOutlineReward';
+import AIGenerationProgress from './chat/AIGenerationProgress';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -149,6 +150,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [stepHistory, setStepHistory] = useState<Map<number, StepVisitHistory>>(new Map());
   const [awardedMilestones, setAwardedMilestones] = useState<Set<string>>(new Set());
   const [navigationContext, setNavigationContext] = useState<NavigationContext | null>(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiGenerationStage, setAiGenerationStage] = useState<'analyzing' | 'generating' | 'finalizing'>('analyzing');
+  const [returnToStep, setReturnToStep] = useState<number | null>(null); // Track where to return after updates
+  const [isUpdatingInfo, setIsUpdatingInfo] = useState(false); // Track if user is updating info
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -825,7 +830,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   }, [formData, currentStep]);
 
   // Process responses based on current step
-  const processUserResponse = (response: string) => {
+  const processUserResponse = async (response: string) => {
     const step = currentStepRef.current;
     
     // Initial conversation
@@ -883,15 +888,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
         
       case 'current_work':
-        handleCurrentWork(response);
+        await handleCurrentWork(response);
         break;
         
       case 'challenges':
-        handleChallenges(response);
+        await handleChallenges(response);
         break;
         
       case 'growth':
-        handleGrowthAreas(response);
+        await handleGrowthAreas(response);
         break;
     }
   };
@@ -1289,8 +1294,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const handleCurrentWork = (response: string) => {
+  const handleCurrentWork = async (response: string) => {
     if (response === 'update_team') {
+      // Store current step to return to it after update
+      setReturnToStep(currentStepRef.current);
+      setIsUpdatingInfo(true);
+      
       // Reset current work data to update
       setFormData(prev => ({ ...prev, teamSize: '', roleInTeam: '' }));
       addBotMessage("Let's update your team information. What size team do you work with?", 0, 500);
@@ -1304,7 +1313,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }, 1500);
       return;
     } else if (response === 'continue') {
-      moveToNextStep();
+      if (isUpdatingInfo && returnToStep !== null) {
+        // Save the update and return to where they came from
+        await saveStepData(true);
+        addBotMessage("Your information has been updated! ✅", 0, 500);
+        
+        setTimeout(() => {
+          setIsUpdatingInfo(false);
+          setReturnToStep(null);
+          navigateToStep(returnToStep, 'sidebar');
+        }, 1000);
+      } else {
+        moveToNextStep();
+      }
       return;
     }
     
@@ -1320,16 +1341,35 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }, 1000);
     } else if (!formData.roleInTeam) {
       setFormData(prev => ({ ...prev, roleInTeam: response }));
-      // Ensure state is saved before moving
-      saveStepData(true); // Use await to ensure save completes
-      setTimeout(() => {
-        moveToNextStep();
-      }, 1000); // Increased timeout
+      await saveStepData(true);
+      
+      if (isUpdatingInfo && returnToStep !== null) {
+        // Show confirmation and return
+        addBotMessage(`Perfect! Your current work info has been updated:\n\nTeam of ${formData.teamSize} as a ${response} ✅`, 0, 500);
+        
+        setTimeout(() => {
+          setIsUpdatingInfo(false);
+          const stepToReturn = returnToStep;
+          setReturnToStep(null);
+          navigateToStep(stepToReturn, 'sidebar');
+        }, 1500);
+      } else {
+        // Normal flow - continue to next step
+        setTimeout(() => {
+          moveToNextStep();
+        }, 1000);
+      }
     }
   };
 
-  const handleChallenges = (response: string) => {
+  const handleChallenges = async (response: string) => {
     if (response === 'update_challenges') {
+      // Store current step if we're updating from a different step
+      if (currentStepRef.current !== 6) {
+        setReturnToStep(currentStepRef.current);
+        setIsUpdatingInfo(true);
+      }
+      
       // Reset challenges and show selection again
       setFormData(prev => ({ ...prev, challenges: [] }));
       showChallenges();
@@ -1339,7 +1379,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       showChallenges();
       return;
     } else if (response === 'continue' && formData.challenges.length > 0) {
-      moveToNextStep();
+      await saveStepData(true);
+      
+      if (isUpdatingInfo && returnToStep !== null) {
+        // Return to where they came from
+        addBotMessage("Your challenges have been updated! ✅", 0, 500);
+        setTimeout(() => {
+          setIsUpdatingInfo(false);
+          const stepToReturn = returnToStep;
+          setReturnToStep(null);
+          navigateToStep(stepToReturn, 'sidebar');
+        }, 1000);
+      } else {
+        moveToNextStep();
+      }
       return;
     }
     
@@ -1351,15 +1404,34 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           ...prev,
           challenges: [...prev.challenges, response]
         }));
+        await saveStepData(true);
         addBotMessage("Good choice! Any other challenges?", 0);
       } else if (response === 'continue') {
-        moveToNextStep();
+        await saveStepData(true);
+        
+        if (isUpdatingInfo && returnToStep !== null) {
+          addBotMessage("Your challenges have been saved! ✅", 0, 500);
+          setTimeout(() => {
+            setIsUpdatingInfo(false);
+            const stepToReturn = returnToStep;
+            setReturnToStep(null);
+            navigateToStep(stepToReturn, 'sidebar');
+          }, 1000);
+        } else {
+          moveToNextStep();
+        }
       }
     }
   };
 
-  const handleGrowthAreas = (response: string) => {
+  const handleGrowthAreas = async (response: string) => {
     if (response === 'update_growth') {
+      // Store current step if we're updating from a different step
+      if (currentStepRef.current !== 7) {
+        setReturnToStep(currentStepRef.current);
+        setIsUpdatingInfo(true);
+      }
+      
       // Reset growth areas and show selection again
       setFormData(prev => ({ ...prev, growthAreas: [] }));
       showGrowthAreas();
@@ -1369,7 +1441,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       showGrowthAreas();
       return;
     } else if (response === 'complete') {
-      completeProfile();
+      await saveStepData(true);
+      
+      if (isUpdatingInfo && returnToStep !== null) {
+        // Return to where they came from first
+        addBotMessage("Your growth areas have been updated! ✅", 0, 500);
+        setTimeout(() => {
+          setIsUpdatingInfo(false);
+          const stepToReturn = returnToStep;
+          setReturnToStep(null);
+          navigateToStep(stepToReturn, 'sidebar');
+        }, 1000);
+      } else {
+        completeProfile();
+      }
       return;
     }
     
@@ -1381,10 +1466,22 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           ...prev,
           growthAreas: [...prev.growthAreas, response]
         }));
+        await saveStepData(true);
         
         if (formData.growthAreas.length >= 2) {
           addBotMessage("Excellent choices! Let me prepare your personalized learning path...", 0);
-          completeProfile();
+          
+          if (isUpdatingInfo && returnToStep !== null) {
+            // Save and return first
+            setTimeout(() => {
+              setIsUpdatingInfo(false);
+              const stepToReturn = returnToStep;
+              setReturnToStep(null);
+              navigateToStep(stepToReturn, 'sidebar');
+            }, 1500);
+          } else {
+            completeProfile();
+          }
         } else {
           addBotMessage("Great! Pick one or two more areas you'd like to focus on.", 0);
         }
@@ -2115,6 +2212,30 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   const generatePersonalizedSuggestions = async () => {
     try {
+      setIsGeneratingAI(true);
+      setAiGenerationStage('analyzing');
+      
+      // Show AI generation progress
+      const currentStep = currentStepRef.current;
+      const stepType = currentStep === 6 ? 'challenges' : 'growth';
+      
+      setMessages(prev => [...prev, {
+        id: 'ai-generation-progress',
+        type: 'system',
+        content: <AIGenerationProgress stage="analyzing" currentStep={stepType} />,
+        timestamp: new Date()
+      }]);
+      
+      // Simulate progress stages
+      setTimeout(() => {
+        setAiGenerationStage('generating');
+        setMessages(prev => prev.map(m => 
+          m.id === 'ai-generation-progress' 
+            ? { ...m, content: <AIGenerationProgress stage="generating" currentStep={stepType} /> }
+            : m
+        ));
+      }, 1000);
+      
       const { data, error } = await supabase.functions.invoke('generate-profile-suggestions', {
         body: { 
           employee_id: employeeId,
@@ -2126,41 +2247,84 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }
       });
       
+      // Update to finalizing stage
+      setAiGenerationStage('finalizing');
+      setMessages(prev => prev.map(m => 
+        m.id === 'ai-generation-progress' 
+          ? { ...m, content: <AIGenerationProgress stage="finalizing" currentStep={stepType} /> }
+          : m
+      ));
+      
       if (data?.challenges && data?.growthAreas) {
         setPersonalizedSuggestions({
           challenges: data.challenges,
           growthAreas: data.growthAreas
         });
         
-        // Show appropriate content based on current step
-        const step = currentStepRef.current;
-        if (step === 6) {
-          setTimeout(() => showChallenges(), 1000);
-        } else if (step === 7) {
-          setTimeout(() => showGrowthAreas(), 1000);
-        }
+        // Remove progress indicator
+        setTimeout(() => {
+          setMessages(prev => prev.filter(m => m.id !== 'ai-generation-progress'));
+          setIsGeneratingAI(false);
+          
+          // Show appropriate content based on current step
+          if (currentStep === 6) {
+            showChallenges();
+          } else if (currentStep === 7) {
+            showGrowthAreas();
+          }
+        }, 500);
+      } else {
+        throw new Error('Invalid response from AI generation');
       }
     } catch (error) {
       console.error('Error generating suggestions:', error);
+      
+      // Remove progress indicator
+      setMessages(prev => prev.filter(m => m.id !== 'ai-generation-progress'));
+      setIsGeneratingAI(false);
+      
       // Fallback suggestions
       setPersonalizedSuggestions({
         challenges: [
           "Keeping up with rapidly changing technology",
           "Balancing technical work with team collaboration",
           "Managing time across multiple projects",
-          "Communicating technical concepts to non-technical stakeholders"
+          "Communicating technical concepts to non-technical stakeholders",
+          "Finding work-life balance in demanding projects"
         ],
         growthAreas: [
           "Leadership and mentoring skills",
           "Advanced technical certifications",
           "Project management methodologies",
-          "Public speaking and presentation skills"
+          "Public speaking and presentation skills",
+          "Strategic thinking and business acumen"
         ]
       });
+      
+      // Show appropriate content
+      setTimeout(() => {
+        const step = currentStepRef.current;
+        if (step === 6) {
+          showChallenges();
+        } else if (step === 7) {
+          showGrowthAreas();
+        }
+      }, 500);
     }
   };
 
   const showChallenges = () => {
+    if (!personalizedSuggestions?.challenges) {
+      console.error('No personalized suggestions available');
+      addBotMessage(
+        "I'm having trouble loading suggestions. Let me try again...",
+        0,
+        500
+      );
+      generatePersonalizedSuggestions();
+      return;
+    }
+    
     addBotMessage(
       "Based on your profile, here are some challenges you might be facing. Select any that resonate with you:",
       0,
@@ -2177,6 +2341,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const showGrowthAreas = () => {
+    if (!personalizedSuggestions?.growthAreas) {
+      console.error('No personalized growth areas available');
+      addBotMessage(
+        "I'm having trouble loading growth suggestions. Let me try again...",
+        0,
+        500
+      );
+      generatePersonalizedSuggestions();
+      return;
+    }
+    
     addBotMessage(
       "Finally, which areas would you like to grow in? Pick 2-3 that excite you most:",
       0,
