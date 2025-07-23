@@ -229,9 +229,9 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </section>
 
-      {/* How It Works - InBold style */}
+      {/* How It Works - InBold animated card style */}
       <section id="how-it-works" className="px-10 py-[100px]">
-        <div className="max-w-[900px] mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <div className="w-2 h-2 rounded-full bg-business-black"></div>
             <h2 className="text-sm uppercase tracking-wider">Here is how it works</h2>
@@ -242,20 +242,47 @@ const SkillsGapAnalysisLanding = () => {
             with AI-powered analysis
           </h2>
           
-          <div className="space-y-16">
-            {funnel.map((item, i) => (
-              <div key={i} className="flex gap-12 items-start">
-                <div className="text-[72px] font-bold text-future-green/20 leading-none flex-shrink-0 w-20">
-                  {item.step}
-                </div>
-                <div className="flex-1 pt-4">
-                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="relative">
+            {/* First card - black background */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="relative mb-8"
+            >
+              <Card className="bg-business-black text-white p-12 rounded-3xl border-0 relative z-10">
+                <div className="text-[72px] font-bold mb-6">1</div>
+                <h3 className="text-3xl font-bold mb-4">{funnel[0].title}</h3>
+                <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
+                  {funnel[0].description}
+                </p>
+              </Card>
+            </motion.div>
+            
+            {/* Remaining cards with numbers outside */}
+            <div className="grid grid-cols-1 gap-16 mt-20">
+              {funnel.slice(1).map((item, i) => (
+                <motion.div 
+                  key={i + 1}
+                  initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className="flex items-start gap-8"
+                >
+                  <div className="text-[120px] font-bold text-future-green leading-none flex-shrink-0">
+                    {item.step}
+                  </div>
+                  <div className="pt-8">
+                    <h3 className="text-3xl font-bold mb-4">{item.title}</h3>
+                    <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">
+                      {item.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
           
           <div className="mt-20">
