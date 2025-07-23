@@ -23,7 +23,7 @@ import {
 } from '@/utils/touchOptimization';
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
-import { ChatProfileBuilder } from '@/components/learner/chat-profile-builder';
+import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
 
 interface CourseAssignment {
   id: string;
