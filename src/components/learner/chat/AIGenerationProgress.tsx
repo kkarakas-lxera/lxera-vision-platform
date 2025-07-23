@@ -1,103 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Loader2, Sparkles } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 
 interface AIGenerationProgressProps {
   stage: 'analyzing' | 'generating' | 'finalizing';
   currentStep: 'challenges' | 'growth';
 }
 
-export default function AIGenerationProgress({ stage, currentStep }: AIGenerationProgressProps) {
-  const stages = {
-    analyzing: {
-      icon: Brain,
-      message: currentStep === 'challenges' 
-        ? "Analyzing your role and experience..." 
-        : "Reviewing your profile and goals...",
-      progress: 33
-    },
-    generating: {
-      icon: Sparkles,
-      message: currentStep === 'challenges'
-        ? "Generating personalized challenges based on your profile..."
-        : "Creating growth opportunities tailored to your career path...",
-      progress: 66
-    },
-    finalizing: {
-      icon: Loader2,
-      message: "Finalizing suggestions...",
-      progress: 90
-    }
-  };
+const GENERATION_STEPS = {
+  challenges: [
+    { id: 1, label: "🧠 Analyzing your role and experience", duration: 3000 },
+    { id: 2, label: "💡 Identifying common challenges", duration: 4000 },
+    { id: 3, label: "🎯 Personalizing suggestions", duration: 3000 }
+  ],
+  growth: [
+    { id: 1, label: "📊 Reviewing your profile and goals", duration: 3000 },
+    { id: 2, label: "🚀 Identifying growth opportunities", duration: 4000 },
+    { id: 3, label: "✨ Tailoring recommendations", duration: 3000 }
+  ]
+};
 
-  const currentStage = stages[stage];
-  const Icon = currentStage.icon;
+export default function AIGenerationProgress({ stage, currentStep }: AIGenerationProgressProps) {
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  
+  const steps = GENERATION_STEPS[currentStep];
+  
+  useEffect(() => {
+    // Map stage to step index
+    const stageToStep = {
+      'analyzing': 1,
+      'generating': 2,
+      'finalizing': 3
+    };
+    
+    const targetStep = stageToStep[stage];
+    setCurrentStepIndex(targetStep);
+    
+    // Mark previous steps as completed
+    const completed = new Set<number>();
+    for (let i = 1; i < targetStep; i++) {
+      completed.add(i);
+    }
+    setCompletedSteps(completed);
+  }, [stage]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200 shadow-sm"
-    >
-      <div className="flex items-center gap-4 mb-4">
-        <motion.div
-          animate={{ rotate: stage === 'generating' ? 360 : 0 }}
-          transition={{ duration: 2, repeat: stage === 'generating' ? Infinity : 0, ease: "linear" }}
-          className="flex-shrink-0"
-        >
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-            <Icon className={`h-6 w-6 ${stage === 'finalizing' ? 'animate-spin' : ''} text-purple-600`} />
-          </div>
-        </motion.div>
-        
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">AI Analysis in Progress</h3>
-          <p className="text-sm text-gray-600">{currentStage.message}</p>
-        </div>
+    <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="text-sm font-medium text-blue-900 mb-3">
+        {currentStep === 'challenges' 
+          ? "Let me think about some challenges professionals in your role might face..."
+          : "Preparing growth opportunities based on your profile..."
+        }
       </div>
-
+      
       <div className="space-y-2">
-        <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-          <motion.div
-            initial={{ width: "0%" }}
-            animate={{ width: `${currentStage.progress}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
-          />
-        </div>
-        
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>Analyzing profile data</span>
-          <span>{currentStage.progress}%</span>
-        </div>
+        {steps.map((step) => {
+          const isActive = currentStepIndex === step.id;
+          const isCompleted = completedSteps.has(step.id);
+          const isUpcoming = currentStepIndex < step.id;
+          
+          return (
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0.3 }}
+              animate={{ 
+                opacity: isUpcoming ? 0.3 : 1,
+                scale: isActive ? 1.02 : 1
+              }}
+              className={`flex items-center gap-3 p-2 rounded transition-all duration-300 ${
+                isActive ? 'bg-blue-100 border border-blue-300' : 
+                isCompleted ? 'bg-green-50' : ''
+              }`}
+            >
+              <div className="flex-shrink-0">
+                {isCompleted ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : isActive ? (
+                  <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                ) : (
+                  <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                )}
+              </div>
+              
+              <span className={`text-sm ${
+                isCompleted ? 'text-green-700 line-through' : 
+                isActive ? 'text-blue-700 font-medium' : 
+                'text-gray-600'
+              }`}>
+                {step.label}
+              </span>
+              
+              {isActive && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: step.duration / 1000, ease: 'linear' }}
+                  className="ml-auto h-1 bg-blue-500 rounded-full"
+                  style={{ maxWidth: '50px' }}
+                />
+              )}
+            </motion.div>
+          );
+        })}
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-4 flex items-center gap-2 text-xs text-gray-500"
-      >
-        <div className="flex gap-1">
-          <motion.div
-            animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-1 h-1 bg-purple-400 rounded-full"
-          />
-          <motion.div
-            animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-            className="w-1 h-1 bg-purple-400 rounded-full"
-          />
-          <motion.div
-            animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay: 1 }}
-            className="w-1 h-1 bg-purple-400 rounded-full"
-          />
-        </div>
-        <span>Powered by AI</span>
-      </motion.div>
-    </motion.div>
+      
+      <div className="text-xs text-gray-600 mt-3">
+        This should only take a few seconds...
+      </div>
+    </div>
   );
 }
