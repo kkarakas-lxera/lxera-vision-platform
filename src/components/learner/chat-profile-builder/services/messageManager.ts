@@ -149,23 +149,13 @@ export class MessageManager {
   };
 
   showQuickReplies = (replies: Array<{ label: string; value: string }>) => {
+    // Store the replies data to be rendered by the component
     const quickReplyMessage: Message = {
       id: 'quick-replies-' + Date.now(),
-      type: 'system',
-      content: (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {replies.map((reply, index) => (
-            <button
-              key={index}
-              onClick={() => this.handleQuickReply(reply.value)}
-              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
-            >
-              {reply.label}
-            </button>
-          ))}
-        </div>
-      ),
-      timestamp: new Date()
+      type: 'quick_replies',
+      content: JSON.stringify(replies), // Store as string, component will parse and render
+      timestamp: new Date(),
+      metadata: { replies }
     };
     
     this.setMessages(prev => [...prev, quickReplyMessage]);

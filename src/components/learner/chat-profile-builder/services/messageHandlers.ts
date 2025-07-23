@@ -246,6 +246,211 @@ const loadMoreMessages = async (
   }
 };
 
+// Interface for MessageHandlers context
+export interface MessageHandlersContext {
+  setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setPoints: React.Dispatch<React.SetStateAction<number>>;
+  savePointsToDatabase: (points: number) => void;
+  userId: string;
+  employeeId: string;
+  currentStepRef: React.MutableRefObject<number>;
+  lastResponseTime: Date | null;
+  setStreak: React.Dispatch<React.SetStateAction<number>>;
+  setLastResponseTime: React.Dispatch<React.SetStateAction<Date | null>>;
+  messages: Message[];
+  loadingHistory: boolean;
+  hasMoreMessages: boolean;
+  setLoadingHistory: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasMoreMessages: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+// MessageHandlers class
+export class MessageHandlers {
+  private context: MessageHandlersContext;
+
+  constructor(context: MessageHandlersContext) {
+    this.context = context;
+  }
+
+  addBotMessage = (content: string | React.ReactNode, points = 0, delay = 1000) => {
+    this.context.setIsTyping(true);
+    
+    setTimeout(async () => {
+      const message: Message = {
+        id: Date.now().toString(),
+        type: 'bot',
+        content,
+        timestamp: new Date(),
+        ...(points > 0 && { points }) // Only include points if greater than 0
+      };
+      
+      this.context.setMessages(prev => [...prev, message]);
+      if (points > 0) {
+        this.context.setPoints(prev => {
+          const newPoints = prev + points;
+          // Save points to database
+          this.context.savePointsToDatabase(newPoints);
+          return newPoints;
+        });
+      }
+      this.context.setIsTyping(false);
+      
+      // Auto-save message if it's a string
+      if (this.context.userId && typeof content === 'string') {
+        try {
+          await ChatMessageService.saveMessage({
+            employee_id: this.context.employeeId,
+            user_id: this.context.userId,
+            message_type: 'bot',
+            content,
+            metadata: { points },
+            step: this.context.currentStepRef.current
+          });
+        } catch (error) {
+          console.error('Failed to save bot message:', error);
+        }
+      }
+    }, delay);
+  };
+
+  addUserMessage = async (content: string) => {
+    const message: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content,
+      timestamp: new Date()
+    };
+    
+    this.context.setMessages(prev => [...prev, message]);
+    
+    // Update streak for quick responses
+    if (this.context.lastResponseTime && (Date.now() - this.context.lastResponseTime.getTime()) < 5000) {
+      this.context.setStreak(prev => {
+        const newStreak = prev + 1;
+        // Save streak to database
+        supabase
+          .from('employees')
+          .update({ profile_builder_streak: newStreak })
+          .eq('id', this.context.employeeId)
+          .then(() => {})
+          .catch(err => console.error('Failed to save streak:', err));
+        
+        if (newStreak > 2) {
+          this.addAchievement(ACHIEVEMENTS.SPEED_DEMON);
+        }
+        return newStreak;
+      });
+    }
+    this.context.setLastResponseTime(new Date());
+    
+    // Auto-save message
+    if (this.context.userId) {
+      try {
+        await ChatMessageService.saveMessage({
+          employee_id: this.context.employeeId,
+          user_id: this.context.userId,
+          message_type: 'user',
+          content,
+          step: this.context.currentStepRef.current
+        });
+      } catch (error) {
+        console.error('Failed to save user message:', error);
+      }
+    }
+  };
+
+  addAchievement = (achievement: typeof ACHIEVEMENTS.QUICK_START) => {
+    const message: Message = {
+      id: Date.now().toString(),
+      type: 'achievement',
+      content: '',
+      timestamp: new Date(),
+      points: achievement.points,
+      achievement: {
+        title: achievement.name,
+        icon: achievement.icon
+      }
+    };
+    
+    this.context.setMessages(prev => [...prev, message]);
+    this.context.setPoints(prev => {
+      const newPoints = prev + achievement.points;
+      this.context.savePointsToDatabase(newPoints);
+      return newPoints;
+    });
+    toast.success(`Achievement Unlocked: ${achievement.name}!`);
+  };
+
+  showQuickReplies = (options: any[], handleQuickReply: (value: string, label: string, option?: any) => void) => {
+    // Clear any existing quick replies first
+    this.context.setMessages(prev => prev.filter(m => m.type !== 'system' || !m.id.startsWith('quick-replies-')));
+    
+    // Store options for later point processing
+    const optionsMap = new Map(options.map(opt => [opt.value, opt]));
+    
+    // Add new quick replies
+    this.context.setMessages(prev => [...prev, {
+      id: 'quick-replies-' + Date.now(),
+      type: 'system',
+      content: <QuickReplyButtons options={options} onSelect={(value, label) => handleQuickReply(value, label, optionsMap.get(value))} />,
+      timestamp: new Date()
+    }]);
+  };
+
+  handleQuickReply = (
+    value: string, 
+    label: string, 
+    option: any | undefined,
+    processUserResponse: (value: string) => void
+  ) => {
+    // Clear quick replies immediately to prevent multiple clicks
+    this.context.setMessages(prev => prev.filter(m => m.type !== 'system' || !m.id.startsWith('quick-replies-')));
+    
+    this.addUserMessage(label);
+    
+    // Only award points through achievements, not quick replies
+    processUserResponse(value);
+  };
+
+  handleTextInput = (message: string, processUserResponse: (message: string) => void) => {
+    this.addUserMessage(message);
+    processUserResponse(message);
+  };
+
+  loadMoreMessages = async () => {
+    if (this.context.loadingHistory || !this.context.hasMoreMessages) return;
+    
+    this.context.setLoadingHistory(true);
+    try {
+      const currentCount = this.context.messages.length;
+      const { messages: olderMessages, hasMore } = await ChatMessageService.getAllMessages(
+        this.context.employeeId,
+        currentCount,
+        20
+      );
+      
+      if (olderMessages.length > 0) {
+        const formattedMessages: Message[] = olderMessages.map(msg => ({
+          id: msg.id || crypto.randomUUID(),
+          type: msg.message_type as Message['type'],
+          content: msg.content,
+          timestamp: new Date(msg.created_at || Date.now()),
+          metadata: msg.metadata
+        }));
+        
+        this.context.setMessages(prev => [...formattedMessages, ...prev]);
+        this.context.setHasMoreMessages(hasMore);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      this.context.setLoadingHistory(false);
+    }
+  };
+}
+
+// Export legacy functions for backward compatibility
 export {
   addBotMessage,
   addUserMessage,
