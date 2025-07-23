@@ -56,6 +56,7 @@ import { IntentHandlers } from './handlers/intentHandlers';
 import { SmartIntentHandlers } from './services/smartIntentHandlers';
 import { CVHandlers } from './services/cvHandlers';
 import { MessageHandlers } from './services/messageHandlers';
+import { StepProcessors } from './handlers/stepProcessors';
 
 export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfileBuilderProps) {
   // Use the extracted custom hook for state management
@@ -325,7 +326,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             message_type: 'bot',
             content,
             metadata: { points },
-            step: currentStepRef.current
+            step: String(currentStepRef.current)
           });
         } catch (error) {
           console.error('Failed to save bot message:', error);
@@ -372,7 +373,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           user_id: userId,
           message_type: 'user',
           content,
-          step: currentStepRef.current
+          step: String(currentStepRef.current)
         });
       } catch (error) {
         console.error('Failed to save user message:', error);
@@ -1106,15 +1107,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // This will be implemented with the actual step processing logic
   };
 
-  // Save step data
+  const dataPersistenceServiceRef = useRef<DataPersistenceService | null>(null);
+
+  // ALL component handler functions like handleQuickReply, handleCVUpload, saveStepData, etc. must be defined BEFORE the useEffect hook below.
+  
   const saveStepData = async (autoSave = false) => {
+    if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
     try {
-      await dataPersistenceService.saveFormData(formData);
-      if (!autoSave) {
-        console.log('Step data saved');
+      if (dataPersistenceServiceRef.current) {
+        await dataPersistenceServiceRef.current.saveStepData(formData, currentStep, autoSave);
+        if (!autoSave) toast.success('Progress saved!', { duration: 2000 });
       }
     } catch (error) {
       console.error('Failed to save step data:', error);
+      toast.error('Failed to save progress');
     }
   };
 
@@ -1228,12 +1234,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   );
 
   const smartIntentService = new SmartIntentService();
-  const dataPersistenceService = new DataPersistenceService(employeeId);
 
   // Initialize handlers with proper context
   const stepHandlerContext = {
-    setCurrentStep: (step: number) => setNavigationState(prev => ({ ...prev, currentStep: step })),
-    setMaxStepReached: (step: number) => setNavigationState(prev => ({ ...prev, maxStepReached: Math.max(prev.maxStepReached, step) })),
+    setCurrentStep,
+    setMaxStepReached,
     setMessages,
     setFormData,
     currentStepRef,
@@ -1246,37 +1251,71 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     moveToNextStep: () => navigationService.moveToNextStep(),
     analyzeIntent: smartIntentService.analyzeIntent,
     executeSmartAction: async (intent: any) => {
-      const smartHandlers = new SmartIntentHandlers(
-        messageManager,
-        navigationService,
-        formData,
-        setFormData
-      );
+      const smartHandlers = new SmartIntentHandlers(stepHandlerContext);
       await smartHandlers.executeSmartAction(intent);
     },
     handleCVUpload: async (file: File) => {
-      const cvHandlers = new CVHandlers(
-        employeeId,
-        messageManager,
-        setCvState,
-        setUiState
-      );
+      const cvHandlers = new CVHandlers(stepHandlerContext);
       await cvHandlers.handleCVUpload(file);
     },
     showInlineWorkForm: () => {
-      const messageHandlers = new MessageHandlers(messageManager, formData, setFormData);
+      const messageHandlers = new MessageHandlers(stepHandlerContext);
       messageHandlers.showInlineWorkForm();
     },
     showInlineEducationForm: () => {
-      const messageHandlers = new MessageHandlers(messageManager, formData, setFormData);
+      const messageHandlers = new MessageHandlers(stepHandlerContext);
       messageHandlers.showInlineEducationForm();
     },
-    ChatSkillsReview
+    ChatSkillsReview,
+    // Add other missing properties from various handler contexts
+    userId,
+    setWaitingForCVUpload,
+    saveStepData,
+    navigateToStep,
+    initiateStep: (step: number) => {}, // Placeholder
+    onComplete,
+    isUpdatingInfo,
+    returnToStep,
+    setReturnToStep,
+    setIsUpdatingInfo,
+    currentWorkExperience,
+    setCurrentWorkExperience,
+    currentEducationIndex,
+    setCurrentEducationIndex,
+    currentWorkIndex,
+    setCurrentWorkIndex,
+    personalizedSuggestions,
+    setCourseOutline,
+    setIsCompleted,
   };
 
   const stepHandlers = new StepHandlers(stepHandlerContext);
   const intentHandlers = new IntentHandlers(stepHandlerContext);
   const stepProcessors = new StepProcessors(stepHandlerContext);
+
+  // Initialize DataPersistenceService
+  const dataPersistenceService = userId ? new DataPersistenceService(
+    employeeId,
+    userId,
+    {
+      setMessages,
+      setHasMoreMessages,
+      setCvUploaded,
+      setNavigationState,
+      setCvState,
+      setLoadingHistory
+    },
+    {
+      showQuickReplies: messageManager.showQuickReplies,
+      initializeChat,
+      handleSectionAccept,
+      handleSectionUpdate,
+      handleAllSectionsComplete
+    },
+    {
+      CVExtractedSections
+    }
+  ) : null;
 
   // Initialize conversation
   useEffect(() => {
@@ -1334,74 +1373,30 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Load chat history
   const loadChatHistory = async () => {
+    if (!userId) return;
+    setUiState(prev => ({ ...prev, loadingHistory: true }));
     try {
-      const recentMessages = await ChatMessageService.getRecentMessages(employeeId, 10);
-      
-      if (recentMessages.length > 0) {
-        // Check if there are more messages
-        const { total } = await ChatMessageService.getAllMessages(employeeId, 0, 1);
-        console.log('Chat history check:', { 
-          recentMessagesLength: recentMessages.length, 
-          totalMessages: total, 
-          hasMore: total > 10 
-        });
-        setUiState(prev => ({ ...prev, hasMoreMessages: total > 10 }));
-        
-        // Check if CV has been uploaded from chat history
-        const cvUploadMessage = recentMessages.find(msg => 
-          msg.content?.includes('📄 Uploading') || 
-          msg.metadata?.componentType === 'CVExtractedSections'
-        );
-        if (cvUploadMessage) {
-          setCvState(prev => ({ ...prev, cvUploaded: true }));
+      if (dataPersistenceServiceRef.current) {
+        const history = await dataPersistenceServiceRef.current.loadChatHistory();
+        if (history.length > 0) {
+          setMessages(history);
+          const lastMessage = history[history.length - 1];
+          const lastStep = lastMessage.metadata?.step || 0;
+          setNavigationState(prev => ({
+            ...prev,
+            currentStep: lastStep,
+            maxStepReached: Math.max(prev.maxStepReached, lastStep)
+          }));
+        } else {
+          startConversation();
         }
-        
-        // Convert saved messages to app format
-        const formattedMessages: Message[] = recentMessages.map((msg: any) => {
-          // Handle special system messages that need component restoration
-          if (msg.message_type === 'system' && msg.metadata?.componentType === 'CVExtractedSections') {
-            return {
-              id: msg.id || crypto.randomUUID(),
-              type: 'system' as Message['type'],
-              content: (
-                <CVExtractedSections
-                  extractedData={msg.metadata.extractedData || {}}
-                  onSectionAccept={handleSectionAccept}
-                  onSectionUpdate={handleSectionUpdate}
-                  onComplete={handleAllSectionsComplete}
-                />
-              ),
-              timestamp: new Date(msg.created_at || Date.now()),
-              metadata: msg.metadata
-            };
-          }
-          
-          return {
-            id: msg.id || crypto.randomUUID(),
-            type: msg.message_type as Message['type'],
-            content: msg.content,
-            timestamp: new Date(msg.created_at || Date.now()),
-            metadata: msg.metadata
-          };
-        });
-
-        setMessages(formattedMessages.reverse());
-        
-        // Determine current step from history
-        const lastStepMessage = recentMessages.find(msg => msg.step !== null);
-        const lastStep = lastStepMessage?.step || 0;
-        setNavigationState(prev => ({ 
-          ...prev, 
-          currentStep: Math.min(lastStep, STEPS.length),
-          maxStepReached: Math.max(prev.maxStepReached, lastStep)
-        }));
-      } else {
-        // Start fresh conversation
-        startConversation();
       }
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      console.error('Failed to load chat history:', error);
+      toast.error('Could not load chat history.');
       startConversation();
+    } finally {
+      setUiState(prev => ({ ...prev, loadingHistory: false }));
     }
   };
 
@@ -1555,6 +1550,105 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }, 1500);
   };
 
+  // Initialize DataPersistenceService after all function definitions
+  useEffect(() => {
+    if (!dataPersistenceServiceRef.current && userId && messageManager) {
+      const allHandlersAndSetters = {
+        // All state and setters required by any service or handler
+        employeeId,
+        userId,
+        setMessages,
+        setHasMoreMessages,
+        setCvUploaded,
+        setNavigationState,
+        setCvState,
+        setLoadingHistory,
+        showQuickReplies,
+        initializeChat,
+        handleSectionAccept,
+        handleSectionUpdate,
+        handleAllSectionsComplete,
+        CVExtractedSections,
+        setCurrentStep,
+        setMaxStepReached,
+        setFormData,
+        currentStepRef,
+        maxStepReached: navigationState.maxStepReached,
+        formData,
+        addBotMessage: messageManager.addBotMessage,
+        addAchievement: messageManager.addAchievement,
+        moveToNextStep: () => navigationService.moveToNextStep(),
+        analyzeIntent: smartIntentService.analyzeIntent,
+        executeSmartAction: async (intent: any) => {
+          const smartHandlers = new SmartIntentHandlers(allHandlersAndSetters);
+          await smartHandlers.executeSmartAction(intent);
+        },
+        handleCVUpload: async (file: File) => {
+          const cvHandlers = new CVHandlers(allHandlersAndSetters);
+          await cvHandlers.handleCVUpload(file);
+        },
+        showInlineWorkForm: () => {
+          const messageHandlers = new MessageHandlers(allHandlersAndSetters);
+          messageHandlers.showInlineWorkForm();
+        },
+        showInlineEducationForm: () => {
+          const messageHandlers = new MessageHandlers(allHandlersAndSetters);
+          messageHandlers.showInlineEducationForm();
+        },
+        ChatSkillsReview,
+        setWaitingForCVUpload,
+        saveStepData,
+        navigateToStep,
+        initiateStep: (step: number) => {}, // Placeholder
+        onComplete,
+        isUpdatingInfo,
+        returnToStep,
+        setReturnToStep,
+        setIsUpdatingInfo,
+        currentWorkExperience,
+        setCurrentWorkExperience,
+        currentEducationIndex,
+        setCurrentEducationIndex,
+        currentWorkIndex,
+        setCurrentWorkIndex,
+        personalizedSuggestions,
+        setCourseOutline,
+        setIsCompleted,
+      };
+
+      dataPersistenceServiceRef.current = new DataPersistenceService(
+        employeeId,
+        userId,
+        {
+          setMessages,
+          setHasMoreMessages,
+          setCvUploaded,
+          setNavigationState,
+          setCvState,
+          setLoadingHistory
+        },
+        {
+          showQuickReplies: messageManager.showQuickReplies,
+          initializeChat,
+          handleSectionAccept,
+          handleSectionUpdate,
+          handleAllSectionsComplete
+        },
+        {
+          CVExtractedSections
+        }
+      );
+      
+      const stepHandlers = new StepHandlers(allHandlersAndSetters);
+      const intentHandlers = new IntentHandlers(allHandlersAndSetters);
+      const stepProcessors = new StepProcessors(allHandlersAndSetters);
+      
+      // Now safe to load data
+      loadEmployeeData();
+      loadChatHistory();
+    }
+  }, [employeeId, userId, messageManager]);
+
   // Navigate to step
   const navigateToStep = (stepNumber: number) => {
     navigationService.navigateToStep(stepNumber);
@@ -1595,67 +1689,24 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Handle start fresh
   const handleStartFresh = async () => {
-    try {
-      // Clear all profile data except basic info
-      await dataPersistenceService.clearProfileData();
-      
-      // Reset all state
-      setMessages([]);
-      setNavigationState({
-        currentStep: 0,
-        maxStepReached: 0,
-        navigatingTo: null,
-        showDynamicMessage: false,
-        context: null,
-        returnToStep: null,
-        isUpdatingInfo: false
-      });
-      setFormData({
-        currentPosition: '',
-        department: '',
-        timeInRole: '',
-        workExperience: [],
-        education: [],
-        currentProjects: [],
-        teamSize: '',
-        roleInTeam: '',
-        challenges: [],
-        growthAreas: []
-      });
-      setCvState({
-        isProcessingCV: false,
-        cvFile: null,
-        cvUploaded: false,
-        cvProcessingStage: '',
-        showCVConfirmation: false,
-        cvData: null,
-        isAnalyzingCV: false,
-        cvSummaryData: null,
-        lastCVUploadPath: '',
-        cvUploadStep: '',
-        cvUploadError: null
-      });
-      setGamificationState({
-        points: 0,
-        elapsedTime: 0,
-        startTime: null,
-        stepStartTime: null,
-        learningStreak: 0,
-        achievements: []
-      });
-      setUiState(prev => ({ ...prev, showRestartDialog: false }));
-      setCourseOutline(null);
-      setIsCompleted(false);
-      
-      // Restart conversation
-      conversationStartTime.current = new Date();
-      setTimeout(() => startConversation(), 500);
-      
-      toast.success('Profile reset successfully');
-    } catch (error) {
-      console.error('Error resetting profile:', error);
-      toast.error('Failed to reset profile');
+    setMessages([]);
+    setFormData({
+      workExperience: [],
+      education: [],
+      skills: [],
+      challenges: [],
+      growthAreas: []
+    });
+    setNavigationState(prev => ({
+      ...prev,
+      currentStep: 0,
+      maxStepReached: 0
+    }));
+    if (dataPersistenceServiceRef.current) {
+      await dataPersistenceServiceRef.current.clearProfileData();
     }
+    initializeChat();
+    setUiState(prev => ({ ...prev, showRestartDialog: false }));
   };
 
   // Get steps for menu
@@ -1675,7 +1726,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
     autoSaveTimeoutRef.current = setTimeout(async () => {
       if (Object.keys(formData).some(key => formData[key as keyof FormData])) {
-        await dataPersistenceService.saveFormData(formData);
+        await dataPersistenceServiceRef.current?.saveStepData(formData, currentStep, true);
       }
     }, 2000);
 
@@ -1684,7 +1735,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [formData, currentStepLegacy]);
+  }, [formData, currentStep]);
 
   // Update smart context when relevant state changes
   useEffect(() => {

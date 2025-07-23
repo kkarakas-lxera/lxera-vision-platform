@@ -138,7 +138,8 @@ export class MessageManager {
       points: achievement.points,
       achievement: {
         title: achievement.name,
-        icon: achievement.icon
+        icon: achievement.icon,
+        iconClassName: achievement.iconClassName
       }
     };
     

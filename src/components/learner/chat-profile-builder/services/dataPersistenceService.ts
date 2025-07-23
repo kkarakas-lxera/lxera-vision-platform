@@ -150,7 +150,7 @@ export class DataPersistenceService {
           const hasUploadMessage = recentMessages.some(msg => 
             msg.content?.includes('Upload CV') || msg.content?.includes('paperclip icon')
           );
-          if (hasUploadMessage && !this.cvState?.cvUploaded) {
+          if (hasUploadMessage) {
             this.setCvState(prev => ({ ...prev, waitingForUpload: true }));
             this.setNavigationState(prev => ({ 
               ...prev, 
