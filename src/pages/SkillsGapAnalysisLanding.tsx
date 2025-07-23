@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import * as Accordion from '@radix-ui/react-accordion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Logo from '@/components/Logo';
-import { ArrowRight, TrendingUp, Target, BarChart3, Shield, Star } from 'lucide-react';
+import { ArrowRight, TrendingUp, Target, BarChart3, Shield, Star, ChevronDown } from 'lucide-react';
 
 
 const SkillsGapAnalysisLanding = () => {
   const navigate = useNavigate();
-  const [spotsRemaining, setSpotsRemaining] = useState(47);
+  const [hoveredService, setHoveredService] = useState<number | null>(null);
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 300], [0, -50]);
 
-  // Simulate spots decreasing
+  // Add smooth scroll behavior
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSpotsRemaining((prev) => {
-        if (prev > 35) {
-          return prev - 1;
-        }
-        return prev;
-      });
-    }, 45000); // Decrease every 45 seconds
-
-    return () => clearInterval(interval);
+    document.documentElement.style.scrollBehavior = 'smooth';
+    return () => {
+      document.documentElement.style.scrollBehavior = 'auto';
+    };
   }, []);
 
   const handleGetStarted = () => {
@@ -109,206 +108,455 @@ const SkillsGapAnalysisLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation - InBold style: minimal and clean */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-sm z-50 border-b border-gray-100">
+    <div className="min-h-screen bg-white font-sans antialiased">
+      {/* Navigation - InBold style with animation */}
+      <motion.nav 
+        className="fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-200"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-20">
             <Logo className="text-business-black" />
             <div className="flex items-center gap-6">
-              <Button 
-                onClick={handleGetStarted}
-                className="text-sm font-medium bg-business-black text-white px-6 py-2.5 rounded-full hover:bg-business-black/90 transition-all"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Book Free Analysis
-              </Button>
+                <Button 
+                  onClick={handleGetStarted}
+                  className="text-sm font-semibold bg-black text-white px-8 py-3 rounded-full hover:bg-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  Book Free Analysis
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      {/* Hero Section - InBold style: bold statement + immediate value */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl lg:text-7xl font-bold text-business-black mb-6 leading-tight">
-            Turn your skills gap into a 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-future-green to-emerald-600"> growth opportunity</span> ⚡
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            With AI that reveals hidden gaps and builds personalized learning paths.
-          </p>
-          <Button 
-            onClick={handleGetStarted}
-            className="inline-flex items-center gap-2 bg-business-black text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-business-black/90 transition-all shadow-xl hover:shadow-2xl"
+      {/* Hero Section with parallax effect */}
+      <section className="pt-32 pb-20 px-6 overflow-hidden">
+        <motion.div 
+          className="max-w-4xl mx-auto text-center"
+          style={{ y }}
+        >
+          <motion.h1 
+            className="text-5xl lg:text-7xl font-black text-gray-900 mb-6 leading-[1.1] tracking-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Book a free skills analysis
-            <ArrowRight className="h-5 w-5" />
-          </Button>
-        </div>
+            Turn your skills gap into a 
+            <motion.span 
+              className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+            > growth opportunity</motion.span> ⚡
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            With AI that reveals hidden gaps and builds personalized learning paths.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button 
+              onClick={handleGetStarted}
+              className="inline-flex items-center gap-2 bg-black text-white px-10 py-5 rounded-full text-lg font-semibold hover:bg-gray-900 transition-all shadow-2xl hover:shadow-3xl"
+            >
+              Book a free skills analysis
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <ArrowRight className="h-5 w-5" />
+              </motion.div>
+            </Button>
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* Challenges Section - InBold style: rotating carousel */}
-      <section className="py-16 bg-gray-50">
+      {/* Challenges Section with smooth scroll */}
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-2xl font-semibold text-center mb-12">Do any of these sound similar to you?</h2>
+          <motion.h2 
+            className="text-3xl font-bold text-center mb-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            Do any of these sound similar to you?
+          </motion.h2>
           <div className="relative overflow-hidden">
-            <div className="flex gap-6 animate-scroll">
+            <motion.div 
+              className="flex gap-6"
+              animate={{ x: ["-50%", "0%"] }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 30,
+                  ease: "linear",
+                },
+              }}
+            >
               {[...challenges, ...challenges].map((challenge, i) => (
-                <div key={i} className="flex-shrink-0 w-80 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                  <p className="text-gray-700">{challenge}</p>
-                </div>
+                <motion.div 
+                  key={i} 
+                  className="flex-shrink-0 w-96 p-8 bg-white rounded-3xl shadow-lg border border-gray-100"
+                  whileHover={{ y: -5 }}
+                >
+                  <p className="text-gray-800 text-lg">{challenge}</p>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Trust Badges - InBold style */}
-      <section className="py-12 border-y border-gray-100">
+      {/* Trust Badges with animation */}
+      <section className="py-16 border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-center text-sm text-gray-500 mb-6">Trusted by growing tech companies</p>
-          <div className="flex justify-center items-center gap-12 opacity-60">
-            <div className="text-2xl font-bold text-gray-400">TechCorp</div>
-            <div className="text-2xl font-bold text-gray-400">DataDrive</div>
-            <div className="text-2xl font-bold text-gray-400">FinanceFlow</div>
-            <div className="text-2xl font-bold text-gray-400">CloudScale</div>
-          </div>
+          <motion.p 
+            className="text-center text-sm text-gray-500 mb-8 uppercase tracking-wider"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            Trusted by growing tech companies
+          </motion.p>
+          <motion.div 
+            className="flex justify-center items-center gap-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 0.6, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            {['TechCorp', 'DataDrive', 'FinanceFlow', 'CloudScale'].map((company, i) => (
+              <motion.div
+                key={company}
+                className="text-2xl font-bold text-gray-400"
+                whileHover={{ scale: 1.1, opacity: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                {company}
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Services Section - InBold style: clean cards */}
+      {/* Services Section with animations */}
       <section className="py-20" id="services">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">Designed for HR & L&D Leaders</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Stop guessing. Start knowing. Fix skills gaps with AI-powered precision.
-          </p>
-          <div className="grid md:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-4xl font-bold text-center mb-4">Designed for HR & L&D Leaders</h2>
+            <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto text-lg">
+              Stop guessing. Start knowing. Fix skills gaps with AI-powered precision.
+            </p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 gap-8">
             {services.map((service, i) => {
               const Icon = service.icon;
+              const [ref, inView] = useInView({
+                triggerOnce: true,
+                threshold: 0.1,
+              });
               return (
-                <Card key={i} className="p-8 hover:shadow-lg transition-all cursor-pointer group">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-future-green/10 rounded-xl group-hover:bg-future-green/20 transition-colors">
-                      <Icon className="h-6 w-6 text-future-green" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                      <p className="text-gray-600 mb-4">{service.description}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {service.features.map((feature, j) => (
-                          <Badge key={j} variant="secondary" className="bg-gray-100">
-                            {feature}
-                          </Badge>
-                        ))}
+                <motion.div
+                  key={i}
+                  ref={ref}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  className="group"
+                  onMouseEnter={() => setHoveredService(i)}
+                  onMouseLeave={() => setHoveredService(null)}
+                >
+                  <Card className="p-10 h-full hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-emerald-100 relative overflow-hidden">
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-transparent opacity-0"
+                      animate={{ opacity: hoveredService === i ? 0.5 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <div className="flex items-start gap-4 mb-6">
+                      <motion.div 
+                        className="p-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl"
+                        whileHover={{ rotate: 5 }}
+                      >
+                        <Icon className="h-8 w-8 text-emerald-700" />
+                      </motion.div>
+                      <div className="flex-1 relative z-10">
+                        <h3 className="text-2xl font-bold mb-3 text-gray-900">{service.title}</h3>
+                        <p className="text-gray-600 mb-6 text-lg leading-relaxed">{service.description}</p>
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {service.features.map((feature, j) => (
+                            <motion.div
+                              key={j}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: i * 0.1 + j * 0.05 }}
+                            >
+                              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 px-4 py-1.5 font-medium">
+                                {feature}
+                              </Badge>
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <button className="text-future-green font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    View Details →
-                  </button>
-                </Card>
+                    <motion.button 
+                      className="text-emerald-600 font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2"
+                      whileHover={{ x: 5 }}
+                    >
+                      View Details <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Process Section - InBold style */}
-      <section className="py-20 bg-gray-50">
+      {/* Process Section with counter animation */}
+      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">From skills gap to impact in 4 steps</h2>
-          <p className="text-gray-600 text-center mb-12">Our outcome-focused process delivers results, not reports.</p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">From skills gap to impact in 4 steps</h2>
+            <p className="text-gray-600 text-lg">Our outcome-focused process delivers results, not reports.</p>
+          </motion.div>
           <div className="grid md:grid-cols-4 gap-8">
-            {process.map((step, i) => (
-              <div key={i} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-future-green text-white rounded-full font-bold text-lg mb-4">
-                  {step.number}
-                </div>
-                <h3 className="font-semibold mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600">{step.description}</p>
-              </div>
-            ))}
+            {process.map((step, i) => {
+              const [ref, inView] = useInView({
+                triggerOnce: true,
+                threshold: 0.5,
+              });
+              return (
+                <motion.div 
+                  key={i} 
+                  ref={ref}
+                  className="text-center"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: i * 0.15 }}
+                >
+                  <motion.div 
+                    className="inline-flex items-center justify-center w-16 h-16 bg-black text-white rounded-full font-bold text-xl mb-6"
+                    initial={{ scale: 0 }}
+                    animate={inView ? { scale: 1 } : {}}
+                    transition={{ type: "spring", stiffness: 200, delay: i * 0.15 + 0.3 }}
+                  >
+                    {step.number}
+                  </motion.div>
+                  <h3 className="font-bold text-xl mb-3">{step.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Testimonials - InBold style */}
-      <section className="py-20">
+      {/* Testimonials with hover effects */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Hear stories straight from the people we helped!</h2>
+          <motion.h2 
+            className="text-4xl font-bold text-center mb-16"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            Hear stories straight from the people we helped!
+          </motion.h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, i) => (
-              <Card key={i} className="p-6 bg-gray-50 border-0">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-700 mb-4 italic">"{testimonial.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full" />
-                  <div>
-                    <p className="font-semibold text-sm">{testimonial.author}</p>
-                    <p className="text-xs text-gray-500">{testimonial.role}</p>
-                  </div>
-                </div>
-                <Badge className="mt-4 bg-future-green/10 text-future-green border-0">
-                  {testimonial.metric}
-                </Badge>
-              </Card>
-            ))}
+            {testimonials.map((testimonial, i) => {
+              const [ref, inView] = useInView({
+                triggerOnce: true,
+                threshold: 0.1,
+              });
+              return (
+                <motion.div
+                  key={i}
+                  ref={ref}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: i * 0.15 }}
+                  whileHover={{ y: -10 }}
+                >
+                  <Card className="p-8 h-full bg-white border-2 border-gray-100 hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+                    <div className="flex gap-1 mb-6">
+                      {[...Array(5)].map((_, j) => (
+                        <motion.div
+                          key={j}
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={inView ? { opacity: 1, scale: 1 } : {}}
+                          transition={{ delay: i * 0.15 + j * 0.05 }}
+                        >
+                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        </motion.div>
+                      ))}
+                    </div>
+                    <p className="text-gray-700 mb-6 italic text-lg leading-relaxed">"{testimonial.quote}"</p>
+                    <div className="flex items-center gap-4 mb-4">
+                      <motion.div 
+                        className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-full"
+                        whileHover={{ scale: 1.1 }}
+                      />
+                      <div>
+                        <p className="font-bold text-base">{testimonial.author}</p>
+                        <p className="text-sm text-gray-500">{testimonial.role}</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-0 px-4 py-2 text-sm font-semibold">
+                      {testimonial.metric}
+                    </Badge>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* About Section - InBold style */}
-      <section className="py-20 bg-business-black text-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold mb-6">Built by L&D experts who've been in your shoes</h2>
-          <p className="text-gray-300 mb-8 text-lg">
+      {/* About Section with gradient background */}
+      <section className="py-24 bg-gradient-to-br from-black to-gray-900 text-white relative overflow-hidden">
+        <motion.div 
+          className="absolute inset-0 opacity-10"
+          animate={{
+            backgroundImage: [
+              "radial-gradient(circle at 20% 80%, emerald 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, emerald 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 80%, emerald 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <motion.h2 
+            className="text-4xl font-bold mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            Built by L&D experts who've been in your shoes
+          </motion.h2>
+          <motion.p 
+            className="text-gray-300 mb-10 text-xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
             After 10+ years helping companies identify and close skills gaps, we built the AI-powered solution we wished we had.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              onClick={handleGetStarted}
-              className="bg-future-green text-business-black px-6 py-3 rounded-full font-medium hover:bg-future-green/90 transition-all"
-            >
-              Book a Call
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-business-black"
-              onClick={() => navigate('/about')}
-            >
-              Learn More
-            </Button>
-          </div>
+          </motion.p>
+          <motion.div 
+            className="flex justify-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                onClick={handleGetStarted}
+                className="bg-emerald-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-emerald-600 transition-all text-lg shadow-xl"
+              >
+                Book a Call
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                variant="outline" 
+                className="border-2 border-white text-white hover:bg-white hover:text-black px-8 py-4 rounded-full font-semibold text-lg"
+                onClick={() => navigate('/about')}
+              >
+                Learn More
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* FAQ Section - InBold style */}
+      {/* FAQ Section with Radix Accordion */}
       <section className="py-20">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">FAQ - Let's clear things up!</h2>
-          <div className="space-y-6">
-            <details className="p-6 bg-gray-50 rounded-xl cursor-pointer">
-              <summary className="font-semibold">How accurate is the AI skills analysis?</summary>
-              <p className="mt-4 text-gray-600">Our AI achieves 92% accuracy in skills extraction and gap identification, validated across 500+ companies.</p>
-            </details>
-            <details className="p-6 bg-gray-50 rounded-xl cursor-pointer">
-              <summary className="font-semibold">What happens after the free analysis?</summary>
-              <p className="mt-4 text-gray-600">You'll see your complete skills gap report and can choose to activate AI course generation for your team.</p>
-            </details>
-            <details className="p-6 bg-gray-50 rounded-xl cursor-pointer">
-              <summary className="font-semibold">How long does implementation take?</summary>
-              <p className="mt-4 text-gray-600">Analysis takes 5 minutes. Course generation is instant. Most teams see first completions within 48 hours.</p>
-            </details>
-            <details className="p-6 bg-gray-50 rounded-xl cursor-pointer">
-              <summary className="font-semibold">Do you integrate with our HRIS?</summary>
-              <p className="mt-4 text-gray-600">Yes! We support Workday, BambooHR, ADP, and 250+ other systems for seamless employee data sync.</p>
-            </details>
-          </div>
+          <motion.h2 
+            className="text-4xl font-bold text-center mb-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            FAQ - Let's clear things up!
+          </motion.h2>
+          <Accordion.Root type="single" collapsible className="space-y-4">
+            {[
+              {
+                question: "How accurate is the AI skills analysis?",
+                answer: "Our AI achieves 92% accuracy in skills extraction and gap identification, validated across 500+ companies."
+              },
+              {
+                question: "What happens after the free analysis?",
+                answer: "You'll see your complete skills gap report and can choose to activate AI course generation for your team."
+              },
+              {
+                question: "How long does implementation take?",
+                answer: "Analysis takes 5 minutes. Course generation is instant. Most teams see first completions within 48 hours."
+              },
+              {
+                question: "Do you integrate with our HRIS?",
+                answer: "Yes! We support Workday, BambooHR, ADP, and 250+ other systems for seamless employee data sync."
+              }
+            ].map((faq, i) => (
+              <Accordion.Item key={i} value={`item-${i}`} className="bg-gray-50 rounded-2xl overflow-hidden">
+                <Accordion.Header>
+                  <Accordion.Trigger className="w-full p-6 text-left font-semibold text-lg flex items-center justify-between hover:bg-gray-100 transition-colors group">
+                    {faq.question}
+                    <motion.div
+                      animate={{ rotate: 0 }}
+                      className="transition-transform duration-300 group-data-[state=open]:rotate-180"
+                    >
+                      <ChevronDown className="h-5 w-5" />
+                    </motion.div>
+                  </Accordion.Trigger>
+                </Accordion.Header>
+                <Accordion.Content className="px-6 pb-6">
+                  <motion.p 
+                    className="text-gray-600 leading-relaxed"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {faq.answer}
+                  </motion.p>
+                </Accordion.Content>
+              </Accordion.Item>
+            ))}
+          </Accordion.Root>
         </div>
       </section>
 
@@ -335,18 +583,6 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </footer>
 
-      {/* Add animation styles */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .animate-scroll {
-            animation: scroll 30s linear infinite;
-          }
-        `
-      }} />
     </div>
   );
 };
