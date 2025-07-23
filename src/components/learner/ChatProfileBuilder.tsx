@@ -2213,8 +2213,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     // Handle editing responses
     if (response === 'all_good') {
+      console.log('Received all_good response in handleCurrentWork');
+      console.log('Current step:', currentStepRef.current);
+      console.log('Form data:', formData);
+      
       addBotMessage("Perfect! Let's move on to the next step. 🎯", 0, 500);
       setTimeout(() => {
+        console.log('Calling moveToNextStep from all_good handler');
         moveToNextStep();
       }, 1000);
       return;
@@ -2446,6 +2451,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   // Navigation
   const moveToNextStep = async () => {
     const step = currentStepRef.current;
+    console.log('moveToNextStep called, current step:', step);
+    console.log('STEPS length:', STEPS.length);
+    console.log('Next step would be:', STEPS[step] || 'undefined');
+    
     if (step < STEPS.length) {
       console.log(`Moving from step ${step} to step ${step + 1}`);
       
@@ -2705,6 +2714,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                 type: 'system',
                 content: (
                   <WorkExperienceForm
+                    initialData={employeeData?.st_company_positions ? [{
+                      title: employeeData.st_company_positions.position_title || '',
+                      company: employeeData.company?.name || '',
+                      duration: 'Current'
+                    }] : undefined}
                     onComplete={async (workData) => {
                       // Save basic work data with description field
                       const workWithDescription = workData.map(w => ({
@@ -2746,10 +2760,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                                   const handleRegenerate = async (workIndex: number, additionalContext: string) => {
                                           // Show regenerating state
                                           const regeneratingMessageId = 'regenerating-' + Date.now();
+                                          
+                                          // Get current work data from the form data state
+                                          const currentWorkData = formData.workExperience || generated.workExperiences;
+                                          const workToRegenerate = currentWorkData[workIndex];
+                                          
                                           setMessages(prev => [...prev, {
                                             id: regeneratingMessageId,
                                             type: 'system',
-                                            content: <AIResponsibilityGeneration workExperiences={[generated.workExperiences[workIndex]]} />,
+                                            content: <AIResponsibilityGeneration workExperiences={[workToRegenerate]} />,
                                             timestamp: new Date()
                                           }]);
                                           
@@ -2765,7 +2784,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                                                 },
                                                 body: JSON.stringify({
                                                   workExperiences: [{
-                                                    ...generated.workExperiences[workIndex],
+                                                    ...workToRegenerate,
                                                     additionalContext
                                                   }],
                                                   employeeId: employeeData?.id
@@ -3236,6 +3255,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         break;
 
       case 'challenges':
+        console.log('Challenges step initiated with context:', navContext);
+        console.log('Current personalized suggestions:', personalizedSuggestions);
+        console.log('Current formData.challenges:', formData.challenges);
+        
         setShowDynamicMessage(false);
         // CRITICAL: Remove any lingering skills components
         setMessages(prev => prev.filter(m => m.id !== 'skills-component'));

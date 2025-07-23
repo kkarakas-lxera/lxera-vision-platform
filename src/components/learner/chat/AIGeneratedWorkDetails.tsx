@@ -68,14 +68,17 @@ export default function AIGeneratedWorkDetails({
   const toggleResponsibility = (workIndex: number, respIndex: number) => {
     setSelectedResponsibilities(prev => {
       const newMap = new Map(prev);
-      const workSet = newMap.get(workIndex) || new Set();
+      const existingSet = newMap.get(workIndex) || new Set<number>();
+      const workSet = new Set(existingSet); // Create a new Set to trigger re-render
+      
       if (workSet.has(respIndex)) {
         workSet.delete(respIndex);
       } else {
         workSet.add(respIndex);
       }
+      
       newMap.set(workIndex, workSet);
-      return newMap;
+      return new Map(newMap); // Create a new Map instance to ensure re-render
     });
   };
 
@@ -249,18 +252,20 @@ export default function AIGeneratedWorkDetails({
                               </p>
                               <div className="space-y-2">
                                 {work.responsibilities.map((resp, respIndex) => (
-                                  <label
+                                  <div
                                     key={respIndex}
                                     className="flex items-start gap-3 p-2.5 rounded-md border border-transparent hover:border-gray-200 hover:bg-gray-50 cursor-pointer transition-all"
+                                    onClick={() => toggleResponsibility(index, respIndex)}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={selectedResponsibilities.get(index)?.has(respIndex) || false}
                                       onChange={() => toggleResponsibility(index, respIndex)}
-                                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                     />
-                                    <span className="text-xs text-gray-700 flex-1 leading-relaxed">{resp}</span>
-                                  </label>
+                                    <span className="text-xs text-gray-700 flex-1 leading-relaxed select-none">{resp}</span>
+                                  </div>
                                 ))}
                               </div>
                             </div>
