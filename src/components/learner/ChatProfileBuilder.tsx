@@ -1447,10 +1447,24 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Process responses based on current step
   const processUserResponse = async (response: string) => {
-    // Enable smart mode for natural language inputs
-    const isNaturalLanguage = !response.includes('_') && response.length > 5;
+    // Define quick reply values that should not go through AI intent analysis
+    const quickReplyValues = [
+      'start', 'upload_cv', 'manual_entry', 'rewards', 'more_info',
+      'yes', 'no', 'skip', 'save', 'next', 'previous', 'back',
+      'add_more', 'done', 'confirm', 'cancel', 'skip_skills', 'review_skills',
+      'add_work', 'done_work', 'add_education', 'done_education',
+      'add_project', 'done_projects', 'yes_challenges', 'no_challenges',
+      'yes_growth', 'no_growth'
+    ];
     
-    if (isNaturalLanguage || ENABLE_SMART_MODE) {
+    // Check if this is a quick reply button click
+    const isQuickReply = quickReplyValues.includes(response.toLowerCase());
+    
+    // Determine if this looks like natural language
+    const isNaturalLanguage = !response.includes('_') && response.length > 5 && !isQuickReply;
+    
+    // Only send actual user input to AI, not quick reply buttons
+    if (!isQuickReply && (isNaturalLanguage || ENABLE_SMART_MODE)) {
       // Try smart intent processing first
       const intent = await analyzeIntent(response);
       
