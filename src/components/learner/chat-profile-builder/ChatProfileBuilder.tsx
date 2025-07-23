@@ -16,7 +16,7 @@ import ProfileProgressSidebar from '../chat/ProfileProgressSidebar';
 import ChatSkillsReview from '../chat/ChatSkillsReview';
 import ProfileStepMessage from '../chat/ProfileStepMessage';
 import SectionConfirmationProgress from '../chat/SectionConfirmationProgress';
-import CourseOutlineReward from './CourseOutlineReward';
+import CourseOutlineReward from '../CourseOutlineReward';
 import AIGenerationProgress from '../chat/AIGenerationProgress';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
