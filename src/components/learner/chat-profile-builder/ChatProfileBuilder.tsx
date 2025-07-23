@@ -50,6 +50,8 @@ import { MessageManager } from './services/messageManager';
 import { NavigationService } from './services/navigationService';
 import { SmartIntentService } from './services/smartIntentService';
 import { DataPersistenceService } from './services/dataPersistenceService';
+import { StepHandlers } from './handlers/stepHandlers';
+import { IntentHandlers } from './handlers/intentHandlers';
 
 export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfileBuilderProps) {
   // Use the extracted custom hook for state management
