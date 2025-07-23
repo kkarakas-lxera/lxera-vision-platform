@@ -27,6 +27,38 @@ const ACHIEVEMENTS = {
 // Enable smart mode for natural language processing
 const ENABLE_SMART_MODE = true;
 
+// Placeholder functions for standalone exports - these are replaced by class methods
+const analyzeIntent = async (input: string): Promise<any> => { return null; };
+const executeSmartAction = async (intent: any): Promise<void> => { };
+const currentStepRef = { current: 0 };
+const maxStepReached = 0;
+const setMaxStepReached = (value: any) => { };
+const setCurrentStep = (step: number) => { };
+const addBotMessage = (content: string, points?: number, delay?: number) => { };
+const addAchievement = (achievement: any) => { };
+const showQuickReplies = (options: any[]) => { };
+const moveToNextStep = () => { };
+const setWaitingForCVUpload = (value: boolean) => { };
+const setMessages = (fn: any) => { };
+const employeeId = '';
+const setReturnToStep = (step: number | null) => { };
+const setIsUpdatingInfo = (value: boolean) => { };
+const setFormData = (fn: any) => { };
+const formData: any = {};
+const setCurrentEducationIndex = (index: number) => { };
+const setCurrentWorkIndex = (index: number) => { };
+const setCurrentWorkExperience = (exp: any) => { };
+const currentEducationIndex = 0;
+const currentWorkIndex = 0;
+const currentWorkExperience: any = {};
+const navigateToStep = (step: number, source?: string) => { };
+const personalizedSuggestions: any = {};
+const saveStepData = async (autoSave?: boolean) => { };
+const initiateStep = (step: number) => { };
+const setCourseOutline = (outline: any) => { };
+const setIsCompleted = (value: boolean) => { };
+const onComplete = () => { };
+
 export const processUserResponse = async (response: string) => {
   // When smart mode is enabled, try intent processing for ALL inputs
   if (ENABLE_SMART_MODE) {

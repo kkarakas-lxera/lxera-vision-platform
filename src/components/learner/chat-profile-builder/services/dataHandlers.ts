@@ -101,14 +101,10 @@ export const loadChatHistory = async (
           return {
             id: msg.id || crypto.randomUUID(),
             type: 'system' as Message['type'],
-            content: (
-              <CVExtractedSections
-                extractedData={msg.metadata.extractedData || {}}
-                onSectionAccept={handleSectionAccept}
-                onSectionUpdate={handleSectionUpdate}
-                onComplete={handleAllSectionsComplete}
-              />
-            ),
+            content: JSON.stringify({
+              type: 'cv_extracted_sections',
+              extractedData: msg.metadata.extractedData || {}
+            }),
             timestamp: new Date(msg.created_at || Date.now()),
             metadata: msg.metadata
           };
