@@ -41,8 +41,11 @@ const moveToNextStep = () => { };
 const setWaitingForCVUpload = (value: boolean) => { };
 const setMessages = (fn: any) => { };
 const employeeId = '';
-const setReturnToStep = (step: number | null) => { };
-const setIsUpdatingInfo = (value: boolean) => { };
+// Mutable stubs to satisfy TypeScript and avoid temporal dead zone issues
+let returnToStep: number | null = null;
+let isUpdatingInfo = false;
+const setReturnToStep = (step: number | null) => { returnToStep = step; };
+const setIsUpdatingInfo = (value: boolean) => { isUpdatingInfo = value; };
 const setFormData = (fn: any) => { };
 const formData: any = {};
 const setCurrentEducationIndex = (index: number) => { };
@@ -59,20 +62,7 @@ const setCourseOutline = (outline: any) => { };
 const setIsCompleted = (value: boolean) => { };
 const onComplete = () => { };
 
-// Forward declarations to fix temporal dead zone
-let startStep1: () => void;
-let explainRewards: () => void;
-let explainProcess: () => void;
-let handleCVUploadResponse: (response: string) => void;
-let handleWorkExperience: (response: string) => void;
-let handleEducation: (response: string) => void;
-let handleCurrentWork: (response: string) => Promise<void>;
-let handleChallenges: (response: string) => Promise<void>;
-let handleGrowthAreas: (response: string) => Promise<void>;
-let handleAllSectionsComplete: () => Promise<void>;
-let showChallenges: () => void;
-let showGrowthAreas: () => void;
-let completeProfile: () => Promise<void>;
+// Hoisted function declarations below make forward declarations unnecessary – removed to avoid duplicate identifiers.
 
 export const processUserResponse = async (response: string) => {
   // When smart mode is enabled, try intent processing for ALL inputs
@@ -149,7 +139,7 @@ export const processUserResponse = async (response: string) => {
 };
 
 // Step handlers
-export const startStep1 = startStep1 = () => {
+export function startStep1() {
   setCurrentStep(1); // Move to CV upload step
   setMaxStepReached(prev => Math.max(prev, 1));
   // Don't show dynamic message for initial CV upload step
@@ -165,9 +155,9 @@ export const startStep1 = startStep1 = () => {
       { label: "✍️ Enter manually", value: "manual_entry", points: 0 }
     ]);
   }, 2000);
-};
+}
 
-export const explainRewards = explainRewards = () => {
+export function explainRewards() {
   addBotMessage(
     "Great question! As you complete your profile, you'll unlock:\n\n🎯 A personalized learning path based on your goals\n📊 Skills gap analysis\n🏆 Achievement badges\n📚 Course recommendations\n\nReady to start?",
     0,
@@ -180,9 +170,9 @@ export const explainRewards = explainRewards = () => {
       { label: "Tell me more", value: "more_info" }
     ]);
   }, 2000);
-};
+}
 
-export const explainProcess = explainProcess = () => {
+export function explainProcess() {
   addBotMessage(
     "I'll guide you through 7 quick steps:\n\n1️⃣ CV Upload (optional)\n2️⃣ Work Experience\n3️⃣ Education\n4️⃣ Skills Review\n5️⃣ Current Projects\n6️⃣ Challenges\n7️⃣ Growth Goals\n\nYou'll see your progress at the top, and I'll celebrate with you along the way! 🎉",
     0,
@@ -194,9 +184,9 @@ export const explainProcess = explainProcess = () => {
       { label: "Perfect, let's start!", value: "start", points: 50, variant: 'primary' }
     ]);
   }, 2500);
-};
+}
 
-export const handleCVUploadResponse = handleCVUploadResponse = (response: string) => {
+export const handleCVUploadResponse = (response: string) => {
   if (response === 'upload_cv') {
     setWaitingForCVUpload(true);
     addBotMessage("Perfect! Please use the paperclip icon below to select your CV file (PDF, DOC, or DOCX).", 0, 500);
@@ -208,7 +198,7 @@ export const handleCVUploadResponse = handleCVUploadResponse = (response: string
   }
 };
 
-export const handleWorkExperience = handleWorkExperience = (response: string) => {
+export const handleWorkExperience = (response: string) => {
   // Handle single entry verification
   if (response === 'confirm_single_experience') {
     const nextIndex = currentWorkIndex + 1;
@@ -348,7 +338,7 @@ export const handleWorkExperience = handleWorkExperience = (response: string) =>
   }
 };
 
-export const handleEducation = handleEducation = (response: string) => {
+export const handleEducation = (response: string) => {
   // Handle single entry verification
   if (response === 'confirm_single_education') {
     const nextIndex = currentEducationIndex + 1;
@@ -460,7 +450,7 @@ export const handleEducation = handleEducation = (response: string) => {
   }
 };
 
-export const handleCurrentWork = handleCurrentWork = async (response: string) => {
+export const handleCurrentWork = async (response: string) => {
   console.log('handleCurrentWork called with:', response, 'Current formData:', formData);
   
   if (response === 'update_team') {
@@ -545,7 +535,7 @@ export const handleCurrentWork = handleCurrentWork = async (response: string) =>
   moveToNextStep();
 };
 
-export const handleChallenges = handleChallenges = async (response: string) => {
+export const handleChallenges = async (response: string) => {
   if (response === 'update_challenges') {
     // Store current step if we're updating from a different step
     if (currentStepRef.current !== 6) {
@@ -624,7 +614,7 @@ export const handleChallenges = handleChallenges = async (response: string) => {
   }
 };
 
-export const handleGrowthAreas = handleGrowthAreas = async (response: string) => {
+export const handleGrowthAreas = async (response: string) => {
   if (response === 'update_growth') {
     // Store current step if we're updating from a different step
     if (currentStepRef.current !== 7) {
@@ -690,7 +680,7 @@ export const handleGrowthAreas = handleGrowthAreas = async (response: string) =>
   }
 };
 
-export const handleAllSectionsComplete = handleAllSectionsComplete = async () => {
+export const handleAllSectionsComplete = async () => {
   // Import CV data to profile
   await supabase.functions.invoke('import-cv-to-profile', {
     body: { employeeId }
@@ -709,7 +699,7 @@ export const handleAllSectionsComplete = handleAllSectionsComplete = async () =>
   }, 1500);
 };
 
-export const showChallenges = showChallenges = () => {
+export const showChallenges = () => {
   if (!personalizedSuggestions?.challenges) {
     console.error('No personalized suggestions available');
     addBotMessage(
@@ -739,7 +729,7 @@ export const showChallenges = showChallenges = () => {
   }, 1500);
 };
 
-export const showGrowthAreas = showGrowthAreas = () => {
+export const showGrowthAreas = () => {
   if (!personalizedSuggestions?.growthAreas) {
     console.error('No personalized growth areas available');
     addBotMessage(
@@ -769,7 +759,7 @@ export const showGrowthAreas = showGrowthAreas = () => {
   }, 1500);
 };
 
-export const completeProfile = completeProfile = async () => {
+export const completeProfile = async () => {
   setIsCompleted(true);
   addAchievement(ACHIEVEMENTS.COMPLETIONIST);
   
