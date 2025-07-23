@@ -258,39 +258,43 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Initialize chat
   const initializeChat = () => {
+    if (isInitializing) return; // Prevent duplicate initialization
     setIsInitializing(true);
+    
+    // Clear any existing messages to prevent duplicates
+    setMessages([]);
     
     setTimeout(() => {
       const welcomeMessage = employeeData?.full_name
         ? `Hello ${employeeData.full_name}! 👋 Welcome to your personalized learning journey!`
         : "Hello! 👋 Welcome to your personalized learning journey!";
       
-      addBotMessage(welcomeMessage, 0, 500);
+      messageManager.addBotMessage(welcomeMessage, 0, 500);
       
       setTimeout(() => {
-        addBotMessage(
+        messageManager.addBotMessage(
           "I'm here to help you unlock your potential and advance your career. Our system uses AI to create personalized learning paths based on your unique profile and goals.",
           0,
           1000
         );
         
         setTimeout(() => {
-          addBotMessage(
+          messageManager.addBotMessage(
             "By completing your profile, you'll earn points, unlock achievements, and get access to tailored courses that will help you grow professionally. How does that sound? 🚀",
             0,
             1500
           );
           
           setTimeout(() => {
-            showQuickReplies([
+            messageManager.showQuickReplies([
               { label: "Let's start! 🚀", value: "start", points: 50, variant: 'primary' },
               { label: "Tell me more", value: "more_info" },
               { label: "What rewards?", value: "rewards" }
             ]);
+            setIsInitializing(false);
           }, 2000);
         }, 1000);
       }, 500);
-      setIsInitializing(false);
     }, 1000);
   };
 
@@ -1474,12 +1478,18 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  // Start chat after employee data loads
+  // Start chat after employee data loads and services are initialized
   useEffect(() => {
-    if (employeeData && userId) {
+    if (employeeData && userId && messageManager) {
+      // Initialize dataPersistenceService first if not already initialized
+      if (!dataPersistenceServiceRef.current) {
+        // This will be handled by the other useEffect
+        return;
+      }
+      // Now safe to load data
       loadChatHistory();
     }
-  }, [employeeData, userId]);
+  }, [employeeData, userId, messageManager]);
 
   // Load chat history
   const loadChatHistory = async () => {

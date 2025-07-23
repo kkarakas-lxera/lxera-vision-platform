@@ -14,19 +14,19 @@ const SkillsGapAnalysisLanding = () => {
   const challenges = [
     {
       title: "Can't see who knows what across your organization?",
-      description: "<u>One-third of Americans are digitally illiterate</u> according to Third Way research. Manual skill tracking in spreadsheets leaves critical talent hidden."
+      description: "<u>64% of managers don't think their employees can keep pace with future skill needs</u> while 70% of employees haven't mastered the skills they need today. Manual tracking leaves capabilities hidden from decision makers (Gartner)."
     },
     {
-      title: "Taking 3-6 months for manual skills audits?",
-      description: "<u>SHRM found that HR teams often procrastinate on skills analysis</u> because traditional methods are overwhelming and time-consuming."
+      title: "Still using outdated skills audits?",
+      description: "<u>SHRM found that HR teams often procrastinate on skills analysis</u> because traditional methods are overwhelming. Modern AI-powered analysis delivers comprehensive results in rapid timeframes (SHRM)."
     },
     {
       title: "Generic training with 23% completion rates?",
-      description: "<u>McKinsey reports 87% of companies face skill gaps</u> but most L&D programs fail because they're not personalized to actual needs."
+      description: "<u>McKinsey reports 87% of companies face skill gaps</u> but most L&D programs fail because they're not personalized to actual needs. Connected learners achieve 95% completion when content matches their gaps (McKinsey)."
     },
     {
-      title: "Losing $1.5M annually to productivity gaps?",
-      description: "<u>InStride research shows skill gaps cost companies millions</u> in decreased productivity, increased turnover, and compliance risks."
+      title: "Losing productivity to invisible skill gaps?",
+      description: "<u>InStride research shows skill gaps cost companies millions</u> in decreased productivity and increased turnover. Organizations waste 9.3 hours weekly searching for expertise that already exists internally (InStride)."
     }
   ];
 
@@ -75,7 +75,7 @@ const SkillsGapAnalysisLanding = () => {
     {
       metric: "$347K",
       label: "Average Savings",
-      description: "In first 6 months"
+      description: "From rapid implementation"
     },
     {
       metric: "92%",
@@ -92,7 +92,7 @@ const SkillsGapAnalysisLanding = () => {
     },
     {
       company: "FinanceFlow", 
-      quote: "What took us 3 months manually, LXERA did in 5 minutes. The accuracy was eye-opening - we found skills we didn't know we had.",
+      quote: "What took months manually, LXERA completed rapidly. The accuracy was eye-opening - we found skills we didn't know we had.",
       author: "Michael Rodriguez, Head of L&D"
     },
     {
@@ -113,7 +113,7 @@ const SkillsGapAnalysisLanding = () => {
     },
     {
       question: "How long does the analysis take?",
-      answer: "Initial results in 5 minutes for up to 100 employees. Full departmental analysis completes within an hour."
+      answer: "Initial results appear rapidly for teams of any size. Full departmental analysis completes with real-time processing."
     },
     {
       question: "What happens after the analysis?",
@@ -144,7 +144,7 @@ const SkillsGapAnalysisLanding = () => {
             <br />
             <span className="text-future-green">skills gap analysis</span>
             <br />
-            in under 10 minutes
+            with rapid analysis
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-[600px]">
             Build simple team profiles, get AI-powered analysis, and receive a comprehensive report showing exactly where your skills gaps are and what they're costing you.
@@ -229,52 +229,36 @@ const SkillsGapAnalysisLanding = () => {
         </div>
       </section>
 
-      {/* How It Works - The Funnel */}
+      {/* How It Works - InBold style */}
       <section id="how-it-works" className="px-10 py-[100px]">
-        <div className="max-w-[1200px] mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-[48px] font-bold mb-4">
-              From team profiles to skills gap report
-            </h2>
-            <p className="text-xl text-gray-600">
-              Our AI-powered analysis gives you complete visibility into your workforce capabilities
-            </p>
+        <div className="max-w-[900px] mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-2 h-2 rounded-full bg-business-black"></div>
+            <h2 className="text-sm uppercase tracking-wider">Here is how it works</h2>
           </div>
+          <h2 className="text-[48px] font-bold mb-20 leading-tight">
+            From team profiles<br />
+            to skills gap report<br />
+            with AI-powered analysis
+          </h2>
           
-          <div className="relative">
-            {/* Curved Roadmap */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 400" preserveAspectRatio="none">
-              <path
-                d="M 150 100 Q 350 50 550 100 T 950 100"
-                fill="none"
-                stroke="url(#gradient)"
-                strokeWidth="3"
-                strokeDasharray="8 4"
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#e5e7eb" />
-                  <stop offset="50%" stopColor="#7AE5C6" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#7AE5C6" />
-                </linearGradient>
-              </defs>
-            </svg>
-            
-            <div className="grid grid-cols-4 gap-8 relative pt-20">
-              {funnel.map((item, i) => (
-                <div key={i} className="relative text-center">
-                  <div className="bg-gradient-to-br from-white to-smart-beige rounded-full w-[100px] h-[100px] flex items-center justify-center mx-auto mb-6 border-4 border-future-green/30 shadow-lg relative z-10">
-                    <span className="text-[36px] font-bold text-business-black">{item.step}</span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3">{item.description}</p>
-                  <p className="text-sm text-future-green font-semibold">{item.time}</p>
+          <div className="space-y-16">
+            {funnel.map((item, i) => (
+              <div key={i} className="flex gap-12 items-start">
+                <div className="text-[72px] font-bold text-future-green/20 leading-none flex-shrink-0 w-20">
+                  {item.step}
                 </div>
-              ))}
-            </div>
+                <div className="flex-1 pt-4">
+                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
           
-          <div className="text-center mt-16">
+          <div className="mt-20">
             <Button 
               onClick={handleGetStarted}
               className="bg-future-green text-business-black px-12 py-5 rounded-full text-lg font-semibold hover:bg-future-green/90 transition-all shadow-lg"
@@ -309,7 +293,7 @@ const SkillsGapAnalysisLanding = () => {
                 <ul className="space-y-4 text-gray-600">
                   <li className="flex items-start gap-3">
                     <span className="text-lxera-red mt-1">✗</span>
-                    3-6 months for manual skills audits
+                    Months of manual skills audits
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-lxera-red mt-1">✗</span>
@@ -330,7 +314,7 @@ const SkillsGapAnalysisLanding = () => {
                 <ul className="space-y-4 text-gray-600">
                   <li className="flex items-start gap-3">
                     <span className="text-future-green mt-1">✓</span>
-                    10-minute automated analysis
+                    Rapid automated analysis
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-future-green mt-1">✓</span>
@@ -405,7 +389,7 @@ const SkillsGapAnalysisLanding = () => {
             Ready to unlock your organization's hidden potential?
           </h2>
           <p className="text-gray-300 mb-12 text-lg leading-relaxed">
-            Get a complete skills inventory in minutes. See exactly where your gaps are and what they're costing you.
+            Get a complete skills inventory with rapid analysis. See exactly where your gaps are and what they're costing you.
           </p>
           <div className="flex gap-4">
             <Button 

@@ -274,4 +274,33 @@ export class DataPersistenceService {
       console.error('Error saving step data:', error);
     }
   };
+
+  // Clear profile data
+  clearProfileData = async () => {
+    try {
+      // Clear messages from chat history
+      await ChatMessageService.deleteMessages(this.employeeId);
+      
+      // Clear form data
+      this.setMessages([]);
+      
+      // Reset navigation state
+      this.setNavigationState({
+        currentStep: 0,
+        maxStepReached: 0
+      });
+      
+      // Reset CV state
+      this.setCvState({
+        cvUploaded: false,
+        cvData: null,
+        waitingForUpload: false,
+        sectionsConfirmed: []
+      });
+      
+      console.log('Profile data cleared successfully');
+    } catch (error) {
+      console.error('Error clearing profile data:', error);
+    }
+  };
 }
