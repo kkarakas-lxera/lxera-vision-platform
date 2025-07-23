@@ -111,7 +111,7 @@ const SkillsGapAnalysisLanding = () => {
     <div className="min-h-screen bg-white font-sans antialiased">
       {/* Navigation - InBold style with animation */}
       <motion.nav 
-        className="fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-200"
+        className="fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-smart-beige"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -408,14 +408,14 @@ const SkillsGapAnalysisLanding = () => {
                 description: "Missing skills blocking your strategic initiatives",
                 metric: "avg. 5-7",
                 label: "per team",
-                color: "text-red-600"
+                color: "text-lxera-red"
               },
               {
                 title: "Risk Areas",
                 description: "Single points of failure where only one person has key skills",
                 metric: "avg. 3",
                 label: "per department",
-                color: "text-orange-600"
+                color: "text-lxera-yellow"
               }
             ].map((item, i) => {
               const [ref, inView] = useInView({
@@ -516,9 +516,9 @@ const SkillsGapAnalysisLanding = () => {
           className="absolute inset-0 opacity-10"
           animate={{
             backgroundImage: [
-              "radial-gradient(circle at 20% 80%, emerald 0%, transparent 50%)",
-              "radial-gradient(circle at 80% 20%, emerald 0%, transparent 50%)",
-              "radial-gradient(circle at 20% 80%, emerald 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 80%, #7AE5C6 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, #7AE5C6 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 80%, #7AE5C6 0%, transparent 50%)",
             ],
           }}
           transition={{ duration: 10, repeat: Infinity }}
