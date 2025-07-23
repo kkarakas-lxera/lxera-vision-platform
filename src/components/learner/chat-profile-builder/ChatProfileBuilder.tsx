@@ -1298,6 +1298,111 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const intentHandlers = new IntentHandlers(stepHandlerContext);
   const stepProcessors = new StepProcessors(stepHandlerContext);
 
+  // Handle section accept
+  const handleSectionAccept = (section: 'work' | 'education' | 'certifications' | 'languages') => {
+    // Add to confirmed sections
+    setSectionsConfirmed(prev => {
+      if (!prev.includes(section)) {
+        return [...prev, section];
+      }
+      return prev;
+    });
+    
+    // Check if we need to show the confirmation progress
+    const confirmationMessageId = 'section-confirmations-' + Date.now();
+    setMessages(prev => {
+      // Remove any existing confirmation progress messages
+      const filtered = prev.filter(m => !m.id.startsWith('section-confirmations-'));
+      
+      // Add new confirmation progress
+      return [...filtered, {
+        id: confirmationMessageId,
+        type: 'system',
+        content: (
+          <SectionConfirmationProgress 
+            confirmedSections={[...sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)}
+            onAllConfirmed={() => {
+              // This will be called when all sections are confirmed
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }];
+    });
+    
+    // Save section data using auto-save
+    saveStepData(true);
+  };
+
+  // Handle section update
+  const handleSectionUpdate = (section: 'work' | 'education' | 'certifications' | 'languages', data: any) => {
+    // Update the CV extracted data
+    setCvState(prev => ({
+      ...prev,
+      cvData: {
+        ...prev.cvData,
+        [section === 'work' ? 'work_experience' : section]: data
+      }
+    }));
+    
+    // Also update form data for work and education
+    if (section === 'work') {
+      setFormData(prev => ({ 
+        ...prev, 
+        workExperience: data.map((exp: any) => ({
+          title: exp.title || exp.position || '',
+          company: exp.company || '',
+          duration: exp.duration || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
+          description: exp.description || ''
+        }))
+      }));
+    } else if (section === 'education') {
+      setFormData(prev => ({ 
+        ...prev, 
+        education: data.map((edu: any) => ({
+          degree: edu.degree || '',
+          institution: edu.institution || '',
+          year: edu.year || '',
+          fieldOfStudy: edu.fieldOfStudy || ''
+        }))
+      }));
+    }
+    
+    // Save updated data
+    saveStepData(true);
+  };
+
+  // Handle all sections complete
+  const handleAllSectionsComplete = async () => {
+    // Import CV data to profile
+    await supabase.functions.invoke('import-cv-to-profile', {
+      body: { 
+        employee_id: employeeId,
+        cv_data: cvState.cvData
+      }
+    });
+    
+    // Mark CV sections as processed and move to next step
+    setCvState(prev => ({ ...prev, sectionsConfirmed: [], cvData: null }));
+    setSectionsConfirmed([]);
+    
+    // Move to work experience step
+    setCurrentStep(2);
+    setMaxStepReached(prev => Math.max(prev, 2));
+    
+    // Show success message
+    messageManager.addBotMessage(
+      "✅ Great! I've imported all your information. Let's review and enhance your work experience.",
+      50
+    );
+    
+    // Start work experience step
+    setTimeout(() => {
+      const messageHandlers = new MessageHandlers(stepHandlerContext);
+      messageHandlers.showInlineWorkForm();
+    }, 1500);
+  };
+
   // Initialize DataPersistenceService
   const dataPersistenceService = userId ? new DataPersistenceService(
     employeeId,
@@ -1457,102 +1562,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       );
       await cvHandlers.handleCVUpload(file);
     }
-  };
-
-  // Handle section accept
-  const handleSectionAccept = (section: 'work' | 'education' | 'certifications' | 'languages') => {
-    // Add to confirmed sections
-    setSectionsConfirmed(prev => {
-      if (!prev.includes(section)) {
-        return [...prev, section];
-      }
-      return prev;
-    });
-    
-    // Check if we need to show the confirmation progress
-    const confirmationMessageId = 'section-confirmations-' + Date.now();
-    setMessages(prev => {
-      // Remove any existing confirmation progress messages
-      const filtered = prev.filter(m => !m.id.startsWith('section-confirmations-'));
-      
-      // Add new confirmation progress
-      return [...filtered, {
-        id: confirmationMessageId,
-        type: 'system',
-        content: (
-          <SectionConfirmationProgress 
-            confirmedSections={[...sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)}
-            onAllConfirmed={() => {
-              // This will be called when all sections are confirmed
-            }}
-          />
-        ),
-        timestamp: new Date()
-      }];
-    });
-    
-    // Save section data using auto-save
-    saveStepData(true);
-  };
-
-  // Handle section update
-  const handleSectionUpdate = (section: 'work' | 'education' | 'certifications' | 'languages', data: any) => {
-    // Update the CV extracted data
-    setCvState(prev => ({
-      ...prev,
-      cvData: {
-        ...prev.cvData,
-        [section === 'work' ? 'work_experience' : section]: data
-      }
-    }));
-    
-    // Also update form data for work and education
-    if (section === 'work') {
-      setFormData(prev => ({ 
-        ...prev, 
-        workExperience: data.map((exp: any) => ({
-          title: exp.title || exp.position || '',
-          company: exp.company || '',
-          duration: exp.duration || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
-          description: exp.description || ''
-        }))
-      }));
-    } else if (section === 'education') {
-      setFormData(prev => ({ 
-        ...prev, 
-        education: data.map((edu: any) => ({
-          degree: edu.degree || '',
-          institution: edu.institution || '',
-          year: edu.year || '',
-          fieldOfStudy: edu.fieldOfStudy || ''
-        }))
-      }));
-    }
-    
-    // Save updated data
-    saveStepData(true);
-  };
-
-  // Handle all sections complete
-  const handleAllSectionsComplete = async () => {
-    // Import CV data to profile
-    await supabase.functions.invoke('import-cv-to-profile', {
-      body: { employeeId }
-    });
-    
-    // Clear the sections display
-    setMessages(prev => prev.filter(m => !m.id.startsWith('cv-sections-')));
-    
-    messageManager.addBotMessage("Perfect! All your information has been verified and saved. Let's continue with your skills! 🚀", 0);
-    
-    // Move to skills step
-    setTimeout(() => {
-      setNavigationState(prev => ({ 
-        ...prev, 
-        currentStep: 4, 
-        maxStepReached: Math.max(prev.maxStepReached, 4) 
-      }));
-    }, 1500);
   };
 
   // Initialize DataPersistenceService after all function definitions
