@@ -1317,7 +1317,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Add new confirmation progress
       return [...filtered, {
         id: confirmationMessageId,
-        type: 'system',
+        type: 'bot',
         content: (
           <SectionConfirmationProgress 
             confirmedSections={[...sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)}

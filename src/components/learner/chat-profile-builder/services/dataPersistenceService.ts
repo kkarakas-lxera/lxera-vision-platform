@@ -122,7 +122,7 @@ export class DataPersistenceService {
           
           // Important: Don't show any new messages, just restore the step UI
           // The messages are already loaded from history
-          return; // Exit early - don't initialize chat or show welcome messages
+          return formattedMessages; // Return the messages
         } else {
           // Check if we're at step 0 but have started (e.g., saw the welcome message)
           const hasStarted = recentMessages.some(msg => 
@@ -143,7 +143,7 @@ export class DataPersistenceService {
                 ]);
               }, 500);
             }
-            return; // Exit early - don't show duplicate welcome
+            return formattedMessages; // Exit early - don't show duplicate welcome
           }
           
           // Check if we're in the middle of CV upload
@@ -157,16 +157,20 @@ export class DataPersistenceService {
               currentStep: 1,
               maxStepReached: Math.max(prev.maxStepReached, 1)
             }));
-            return; // Exit early
+            return formattedMessages; // Exit early
           }
         }
+        // Return messages for any other case
+        return formattedMessages;
       } else {
         // No history, start fresh
         this.initializeChat();
+        return []; // Return empty array
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
       this.initializeChat();
+      return []; // Return empty array on error
     }
   };
 
