@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -20,6 +21,8 @@ import CourseOutlineReward from './CourseOutlineReward';
 import AIGenerationProgress from './chat/AIGenerationProgress';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,6 +91,15 @@ interface FormData {
   roleInTeam: string;
   challenges: string[];
   growthAreas: string[];
+  skills?: any[];
+  suggestedChallenges?: string[];
+  selectedChallenges?: string[];
+  suggestedGrowthAreas?: string[];
+  selectedGrowthAreas?: string[];
+  highestDegree?: string;
+  fieldOfStudy?: string;
+  institution?: string;
+  graduationYear?: string;
 }
 
 const STEPS = [
@@ -242,7 +254,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Check if CV has been uploaded from chat history
         const cvUploadMessage = recentMessages.find(msg => 
           msg.content?.includes('📄 Uploading') || 
-          msg.metadata?.componentType === 'CVExtractedSections'
+          (msg.metadata as any)?.componentType === 'CVExtractedSections'
         );
         if (cvUploadMessage) {
           setCvUploaded(true);
@@ -614,10 +626,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           console.log('Loaded CV extracted data from employee:', employee.cv_extracted_data);
           
           // Update form data with CV data - handle both old and new formats
-          if (employee.cv_extracted_data.work_experience) {
+          if ((employee.cv_extracted_data as any).work_experience) {
             setFormData(prev => ({
               ...prev,
-              workExperience: employee.cv_extracted_data.work_experience.map((exp: any) => ({
+              workExperience: (employee.cv_extracted_data as any).work_experience.map((exp: any) => ({
                 title: exp.title || exp.position || '',
                 company: exp.company || '',
                 duration: exp.duration || exp.dates || `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
@@ -628,13 +640,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               }))
             }));
           }
-          if (employee.cv_extracted_data.education) {
+          if ((employee.cv_extracted_data as any).education) {
             setFormData(prev => ({
               ...prev,
-              education: employee.cv_extracted_data.education.map((edu: any) => ({
+              education: (employee.cv_extracted_data as any).education.map((edu: any) => ({
                 degree: edu.degree || '',
                 institution: edu.institution || '',
-                year: edu.year || '',
+                graduationYear: edu.graduationYear || edu.graduationYear || '',
                 fieldOfStudy: edu.fieldOfStudy || ''
               }))
             }));
@@ -699,7 +711,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             message_type: 'bot',
             content,
             metadata: { points },
-            step: currentStepRef.current
+            step: currentStepRef.current.toString()
           });
         } catch (error) {
           console.error('Failed to save bot message:', error);
@@ -723,12 +735,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setStreak(prev => {
         const newStreak = prev + 1;
         // Save streak to database
-        supabase
-          .from('employees')
-          .update({ profile_builder_streak: newStreak })
-          .eq('id', employeeId)
-          .then(() => {})
-          .catch(err => console.error('Failed to save streak:', err));
+        const updateStreak = async () => {
+          try {
+            await supabase
+              .from('employees')
+              .update({ profile_builder_streak: newStreak })
+              .eq('id', employeeId);
+          } catch (err) {
+            console.error('Failed to save streak:', err);
+          }
+        };
+        updateStreak();
         
         if (newStreak > 2) {
           addAchievement(ACHIEVEMENTS.SPEED_DEMON);
@@ -746,7 +763,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           user_id: userId,
           message_type: 'user',
           content,
-          step: currentStepRef.current
+          step: currentStep.toString()
         });
       } catch (error) {
         console.error('Failed to save user message:', error);
@@ -1005,7 +1022,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     const targetStep = stepMap[target] || parseInt(target);
     if (targetStep && targetStep <= maxStepReached) {
-      navigateToStep(targetStep, 'edit_existing');
+      navigateToStep(targetStep, 'sidebar');
     }
   };
 
@@ -1231,7 +1248,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               setMessages(prev => prev.filter(m => m.id !== messageId));
               addBotMessage("Great! Your skills have been updated. Let's talk about your current work context.");
               setCurrentStep(5);
-              setTimeout(() => askCurrentWorkQuestions(), 1000);
+              setTimeout(() => {
+                addBotMessage("Now, let's learn about your current projects and work context. What are the main projects you're currently working on?");
+              }, 1000);
             }}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
           >
@@ -1262,18 +1281,18 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               <label key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.selectedChallenges?.includes(index)}
+                  checked={formData.selectedChallenges?.includes(challenge)}
                   onChange={(e) => {
                     const selected = formData.selectedChallenges || [];
                     if (e.target.checked) {
                       setFormData(prev => ({
                         ...prev,
-                        selectedChallenges: [...selected, index]
+                        selectedChallenges: [...selected, challenge]
                       }));
                     } else {
                       setFormData(prev => ({
                         ...prev,
-                        selectedChallenges: selected.filter(i => i !== index)
+                        selectedChallenges: selected.filter(i => i !== challenge)
                       }));
                     }
                   }}
@@ -1292,7 +1311,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               }
               setMessages(prev => prev.filter(m => m.id !== messageId));
               addBotMessage("Thanks for sharing! Now let's explore growth opportunities.");
-              showGrowth();
+              showGrowthAreas();
             }}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 w-full"
           >
@@ -1323,18 +1342,18 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               <label key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.selectedGrowthAreas?.includes(index)}
+                  checked={formData.selectedGrowthAreas?.includes(area)}
                   onChange={(e) => {
                     const selected = formData.selectedGrowthAreas || [];
                     if (e.target.checked) {
                       setFormData(prev => ({
                         ...prev,
-                        selectedGrowthAreas: [...selected, index]
+                        selectedGrowthAreas: [...selected, area]
                       }));
                     } else {
                       setFormData(prev => ({
                         ...prev,
-                        selectedGrowthAreas: selected.filter(i => i !== index)
+                        selectedGrowthAreas: selected.filter(i => i !== area)
                       }));
                     }
                   }}
@@ -1375,7 +1394,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           <div className="space-y-3">
             <Input placeholder="Job Title" />
             <Input placeholder="Company" />
-            <select className="w-full px-3 py-2 border rounded">
+            <select className="w-full px-3 py-2 border rounded" title="Select duration">
               <option>Duration</option>
               <option>&lt; 1 year</option>
               <option>1-3 years</option>
@@ -1802,7 +1821,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         setCurrentEducationIndex(nextIndex);
         const edu = formData.education[nextIndex];
         addBotMessage(
-          `Good! Let's verify the next one (${nextIndex + 1} of ${formData.education.length}):\n\n🎓 ${edu.degree}\n🏫 ${edu.institution}\n${edu.year ? `📅 ${edu.year}` : ''}\n\nIs this correct?`,
+          `Good! Let's verify the next one (${nextIndex + 1} of ${formData.education.length}):\n\n🎓 ${edu.degree}\n🏫 ${edu.institution}\n${edu.graduationYear ? `📅 ${edu.graduationYear}` : ''}\n\nIs this correct?`,
           50,
           1000
         );
@@ -1877,7 +1896,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     // Build education entry
     if (!formData.education.length || !formData.education[formData.education.length - 1]?.degree) {
       // Starting new education entry
-      const newEducation = { degree: response, institution: '', year: '' };
+      const newEducation = { degree: response, institution: '', fieldOfStudy: '', graduationYear: '' };
       setFormData(prev => ({
         ...prev,
         education: [...prev.education, newEducation]
@@ -1895,7 +1914,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Update year and save
       setFormData(prev => {
         const updated = [...prev.education];
-        updated[updated.length - 1].year = response;
+        updated[updated.length - 1].graduationYear = response;
         return { ...prev, education: updated };
       });
       saveStepData(true);
@@ -2345,6 +2364,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           savedState.stepHistory.forEach(history => {
             historyMap.set(history.stepId, {
               ...history,
+              status: history.status as 'not_visited' | 'in_progress' | 'completed' | 'reviewing',
               firstVisitedAt: new Date(history.firstVisitedAt),
               lastVisitedAt: new Date(history.lastVisitedAt),
               completedAt: history.completedAt ? new Date(history.completedAt) : undefined
@@ -2487,7 +2507,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setTimeout(() => {
             const edu = formData.education[0];
             addBotMessage(
-              `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
+              `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.graduationYear || edu.graduationYear ? `📅 ${edu.graduationYear || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
               0,
               1000
             );
@@ -2506,7 +2526,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             setTimeout(() => {
               const edu = formData.education[currentEducationIndex];
               addBotMessage(
-                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nIs this information correct?`,
+                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.graduationYear || edu.graduationYear ? `📅 ${edu.graduationYear || edu.graduationYear}` : ''}\n\nIs this information correct?`,
                 0,
                 1000
               );
@@ -2559,7 +2579,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             setTimeout(() => {
               const edu = formData.education[0];
               addBotMessage(
-                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.year || edu.graduationYear ? `📅 ${edu.year || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
+                `🎓 ${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n🏫 ${edu.institution}\n${edu.graduationYear || edu.graduationYear ? `📅 ${edu.graduationYear || edu.graduationYear}` : ''}\n\nWhat would you like to do?`,
                 0,
                 1000
               );
@@ -3243,7 +3263,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             extractedData: extractedData,
             specificSection: section
           },
-          step: currentStepRef.current
+          step: currentStep.toString()
         });
       } catch (error) {
         console.error('Failed to save CV sections message:', error);
@@ -3311,7 +3331,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               componentType: 'CVExtractedSections',
               extractedData: extractedData
             },
-            step: currentStepRef.current
+            step: currentStepRef.current.toString()
           });
         } catch (error) {
           console.error('Failed to save CV sections message:', error);
@@ -3378,7 +3398,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         education: data.map((edu: any) => ({
           degree: edu.degree || '',
           institution: edu.institution || '',
-          year: edu.year || '',
+          year: edu.graduationYear || '',
           fieldOfStudy: edu.fieldOfStudy || ''
         }))
       }));
@@ -3434,7 +3454,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         id: step.id,
         name: step.name,
         title: step.title,
-        status: status,
+        status: status as 'completed' | 'current' | 'upcoming' | 'locked',
         points: history?.milestoneAwarded ? 10 : 0, // Show points if milestone was awarded
         visitCount: history?.visitCount || 0
       };

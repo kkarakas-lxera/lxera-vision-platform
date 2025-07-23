@@ -1102,6 +1102,189 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          id: string
+          employee_id: string
+          user_id: string
+          message_type: string
+          content: string
+          metadata: Json | null
+          step: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          user_id: string
+          message_type: string
+          content: string
+          metadata?: Json | null
+          step?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          user_id?: string
+          message_type?: string
+          content?: string
+          metadata?: Json | null
+          step?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cv_analysis_results: {
+        Row: {
+          id: string
+          employee_id: string
+          extracted_skills: Json | null
+          work_experience: Json | null
+          education: Json | null
+          analysis_status: string | null
+          analyzed_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          extracted_skills?: Json | null
+          work_experience?: Json | null
+          education?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          extracted_skills?: Json | null
+          work_experience?: Json | null
+          education?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cv_analysis_results_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      employee_profile_sections: {
+        Row: {
+          id: string
+          employee_id: string
+          section_name: string
+          is_complete: boolean | null
+          completed_at: string | null
+          data: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          section_name: string
+          is_complete?: boolean | null
+          completed_at?: string | null
+          data?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          section_name?: string
+          is_complete?: boolean | null
+          completed_at?: string | null
+          data?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_profile_sections_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      employee_skills_validation: {
+        Row: {
+          id: string
+          employee_id: string
+          skill_name: string
+          skill_id: string | null
+          proficiency_level: number | null
+          validation_order: number | null
+          is_from_position: boolean | null
+          is_from_cv: boolean | null
+          validated_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          skill_name: string
+          skill_id?: string | null
+          proficiency_level?: number | null
+          validation_order?: number | null
+          is_from_position?: boolean | null
+          is_from_cv?: boolean | null
+          validated_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          skill_name?: string
+          skill_id?: string | null
+          proficiency_level?: number | null
+          validation_order?: number | null
+          is_from_position?: boolean | null
+          is_from_cv?: boolean | null
+          validated_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_skills_validation_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       cv_analysis_metrics: {
         Row: {
           analysis_time_ms: number
@@ -1313,6 +1496,9 @@ export type Database = {
           total_learning_hours: number | null
           updated_at: string | null
           user_id: string | null
+          profile_builder_points: number | null
+          profile_builder_streak: number | null
+          skills_validation_completed: boolean | null
         }
         Insert: {
           career_goal?: string | null
@@ -1341,6 +1527,9 @@ export type Database = {
           total_learning_hours?: number | null
           updated_at?: string | null
           user_id?: string | null
+          profile_builder_points?: number | null
+          profile_builder_streak?: number | null
+          skills_validation_completed?: boolean | null
         }
         Update: {
           career_goal?: string | null
@@ -1369,6 +1558,9 @@ export type Database = {
           total_learning_hours?: number | null
           updated_at?: string | null
           user_id?: string | null
+          profile_builder_points?: number | null
+          profile_builder_streak?: number | null
+          skills_validation_completed?: boolean | null
         }
         Relationships: [
           {
