@@ -1235,6 +1235,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   const smartIntentService = new SmartIntentService();
 
+  // Navigate to step - defined early to avoid temporal dead zone
+  const navigateToStep = (stepNumber: number) => {
+    navigationService.navigateToStep(stepNumber);
+  };
+
   // Initialize handlers with proper context
   const stepHandlerContext = {
     setCurrentStep,
@@ -1648,11 +1653,6 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       loadChatHistory();
     }
   }, [employeeId, userId, messageManager]);
-
-  // Navigate to step
-  const navigateToStep = (stepNumber: number) => {
-    navigationService.navigateToStep(stepNumber);
-  };
 
   // Load more messages
   const loadMoreMessages = async () => {
