@@ -18,27 +18,27 @@ const SkillsGapAnalysisLanding = () => {
   const funnel = [
     {
       step: "1",
-      title: "Upload Team CVs",
-      description: "Drop your team's resumes or connect your HRIS. We handle PDFs, Word docs, and direct integrations.",
-      time: "2 minutes"
+      title: "Build Team Profiles",
+      description: "Simple form with basic info - name, tools used, education. Just public data that takes seconds to fill.",
+      time: "Quick setup"
     },
     {
       step: "2", 
-      title: "AI Analyzes Skills",
-      description: "Our AI extracts skills, maps them to industry standards, and identifies gaps with 92% accuracy.",
-      time: "3 minutes"
+      title: "AI Skills Mapping",
+      description: "Our AI maps your team's capabilities to industry standards and identifies skill levels across your organization.",
+      time: "Real-time analysis"
     },
     {
       step: "3",
-      title: "See Your Gaps",
-      description: "Get a complete skills inventory showing exactly what's missing and what it's costing you.",
-      time: "Instant"
+      title: "Gap Analysis Report",
+      description: "Comprehensive report showing skill gaps, their severity, cost impact, and which teams are affected.",
+      time: "Instant insights"
     },
     {
       step: "4",
-      title: "Generate Custom Courses",
-      description: "AI creates personalized learning paths for each gap. No generic content - everything is tailored to your team.",
-      time: "5 minutes"
+      title: "Strategic Recommendations",
+      description: "Get actionable next steps - whether it's hiring, training, or reorganizing teams for better skill coverage.",
+      time: "Data-driven decisions"
     }
   ];
 
@@ -59,9 +59,9 @@ const SkillsGapAnalysisLanding = () => {
       description: "In first 6 months"
     },
     {
-      metric: "10min",
-      label: "Time to Insight",
-      description: "vs 3-6 month audits"
+      metric: "92%",
+      label: "Accuracy Rate",
+      description: "vs 27% self-reporting"
     }
   ];
 
@@ -90,7 +90,7 @@ const SkillsGapAnalysisLanding = () => {
     },
     {
       question: "What data do you need from us?",
-      answer: "Just employee names and CVs. We can import from your HRIS or you can upload a CSV file. No complex integration required."
+      answer: "Just basic info like names, tools they use, and where they studied. Simple data that's already public - nothing sensitive or complex."
     },
     {
       question: "How long does the analysis take?",
@@ -108,17 +108,12 @@ const SkillsGapAnalysisLanding = () => {
       <nav className="relative px-10 py-2.5">
         <div className="flex justify-between items-center h-16">
           <Logo className="text-business-black" />
-          <div className="flex items-center gap-8">
-            <button className="text-sm hover:opacity-70 transition-opacity">Services</button>
-            <button className="text-sm hover:opacity-70 transition-opacity">Process</button>
-            <button className="text-sm hover:opacity-70 transition-opacity">Blog</button>
-            <Button 
-              onClick={handleGetStarted}
-              className="bg-future-green text-business-black text-sm px-6 py-3 rounded-full hover:bg-future-green/90 transition-all shadow-md"
-            >
-              Discovery Call
-            </Button>
-          </div>
+          <Button 
+            onClick={handleGetStarted}
+            className="bg-future-green text-business-black text-sm px-6 py-3 rounded-full hover:bg-future-green/90 transition-all shadow-md"
+          >
+            Get Free Analysis
+          </Button>
         </div>
       </nav>
 
@@ -126,21 +121,21 @@ const SkillsGapAnalysisLanding = () => {
       <section className="px-10 pt-[80px] pb-[60px]">
         <div className="max-w-[900px]">
           <h1 className="text-[72px] leading-[72px] font-bold mb-6">
-            From skills gaps to
+            Your complete
             <br />
-            <span className="text-future-green">personalized courses</span>
+            <span className="text-future-green">skills gap analysis</span>
             <br />
-            in minutes, not months
+            in under 10 minutes
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-[600px]">
-            AI analyzes your team's skills gaps and instantly generates custom training that actually gets completed. No more generic courses.
+            Build simple team profiles, get AI-powered analysis, and receive a comprehensive report showing exactly where your skills gaps are and what they're costing you.
           </p>
           <div className="flex gap-4">
             <Button 
               onClick={handleGetStarted}
               className="bg-future-green text-business-black px-10 py-5 rounded-full text-base font-semibold hover:bg-future-green/90 transition-all shadow-lg"
             >
-              Start Free Analysis →
+              Get Your Skills Report →
             </Button>
             <Button 
               variant="outline"
@@ -191,26 +186,41 @@ const SkillsGapAnalysisLanding = () => {
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-[48px] font-bold mb-4">
-              Skills gap to custom courses in 10 minutes
+              From team profiles to skills gap report
             </h2>
             <p className="text-xl text-gray-600">
-              Our AI-powered funnel transforms your workforce data into actionable learning paths
+              Our AI-powered analysis gives you complete visibility into your workforce capabilities
             </p>
           </div>
           
           <div className="relative">
-            {/* Funnel Flow */}
-            <div className="absolute top-[60px] left-0 right-0 h-1 bg-gradient-to-r from-gray-200 via-future-green/50 to-future-green"></div>
+            {/* Curved Roadmap */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 400" preserveAspectRatio="none">
+              <path
+                d="M 150 100 Q 350 50 550 100 T 950 100"
+                fill="none"
+                stroke="url(#gradient)"
+                strokeWidth="3"
+                strokeDasharray="8 4"
+              />
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#e5e7eb" />
+                  <stop offset="50%" stopColor="#7AE5C6" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#7AE5C6" />
+                </linearGradient>
+              </defs>
+            </svg>
             
-            <div className="grid grid-cols-4 gap-8 relative">
+            <div className="grid grid-cols-4 gap-8 relative pt-20">
               {funnel.map((item, i) => (
-                <div key={i} className="relative">
-                  <div className="bg-white rounded-full w-[120px] h-[120px] flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg relative z-10">
-                    <span className="text-[48px] font-bold text-future-green">{item.step}</span>
+                <div key={i} className="relative text-center">
+                  <div className="bg-white rounded-full w-[100px] h-[100px] flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg relative z-10">
+                    <span className="text-[36px] font-bold text-future-green">{item.step}</span>
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-center">{item.title}</h3>
-                  <p className="text-gray-600 text-center mb-3">{item.description}</p>
-                  <p className="text-sm text-future-green font-semibold text-center">{item.time}</p>
+                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-600 text-sm mb-3">{item.description}</p>
+                  <p className="text-sm text-future-green font-semibold">{item.time}</p>
                 </div>
               ))}
             </div>
@@ -354,7 +364,7 @@ const SkillsGapAnalysisLanding = () => {
               onClick={handleGetStarted}
               className="bg-future-green text-business-black px-8 py-4 rounded-full font-medium hover:bg-future-green/90 transition-all"
             >
-              Start Free Analysis
+              Get Skills Gap Report
             </Button>
             <Button 
               variant="outline" 
