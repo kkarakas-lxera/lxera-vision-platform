@@ -42,6 +42,7 @@ import type {
   Education,
   FormData,
 } from './types';
+import type { EmployeeUpdateExtra } from '@/types/dbTypes';
 import { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE } from './constants';
 
 // Import all extracted services and handlers
@@ -52,6 +53,9 @@ import { SmartIntentService } from './services/smartIntentService';
 import { DataPersistenceService } from './services/dataPersistenceService';
 import { StepHandlers } from './handlers/stepHandlers';
 import { IntentHandlers } from './handlers/intentHandlers';
+import { SmartIntentHandlers } from './services/smartIntentHandlers';
+import { CVHandlers } from './services/cvHandlers';
+import { MessageHandlers } from './services/messageHandlers';
 
 export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfileBuilderProps) {
   // Use the extracted custom hook for state management
@@ -244,7 +248,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         .update({ 
           profile_builder_points: newPoints,
           profile_builder_streak: streak
-        })
+        } as EmployeeUpdateExtra)
         .eq('id', employeeId);
     } catch (error) {
       console.error('Failed to save points:', error);
@@ -1172,7 +1176,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       try {
         await supabase
           .from('employees')
-          .update({ profile_builder_completed: true })
+          .update({ profile_builder_completed: true } as EmployeeUpdateExtra)
           .eq('id', employeeId);
       } catch (dbError) {
         console.error('Failed to update profile completion:', dbError);
@@ -1208,7 +1212,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       try {
         await supabase
           .from('employees')
-          .update({ profile_builder_points: points })
+          .update({ profile_builder_points: points } as EmployeeUpdateExtra)
           .eq('id', employeeId);
       } catch (error) {
         console.error('Failed to save points:', error);

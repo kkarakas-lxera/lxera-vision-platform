@@ -41,27 +41,36 @@ interface WorkExperience {
   title: string;
   company: string;
   duration: string;
-  description: string;
+  description?: string;
+  responsibilities?: any[];
 }
 
 interface Education {
   degree: string;
-  fieldOfStudy: string;
+  fieldOfStudy?: string;
   institution: string;
-  graduationYear: string;
+  graduationYear?: string;
+  year?: string;
 }
 
 interface FormData {
-  currentPosition: string;
-  department: string;
-  timeInRole: string;
+  currentPosition?: string;
+  department?: string;
+  timeInRole?: string;
+  fullName?: string;
+  email?: string;
   workExperience: WorkExperience[];
   education: Education[];
-  currentProjects: string[];
-  teamSize: string;
-  roleInTeam: string;
+  currentProjects?: string[];
+  teamSize?: string;
+  roleInTeam?: string;
+  skills?: any[];
   challenges: string[];
   growthAreas: string[];
+  selectedChallenges?: any[];
+  suggestedChallenges?: string[];
+  selectedGrowthAreas?: any[];
+  suggestedGrowthAreas?: string[];
 }
 
 interface NavigationState {
@@ -112,10 +121,16 @@ interface ProgressState {
   stepProgress: Record<number, number>;
   currentStepProgress: number;
   sectionProgress: Record<string, number>;
+  currentEducationIndex?: number;
+  currentWorkIndex?: number;
+  currentWorkExperience?: any;
+  sectionsConfirmed?: string[];
 }
 
 interface SmartContext {
   currentStep: number;
+  currentFocus?: string;
+  activeUI?: string;
   recentInteractions: Array<{
     type: string;
     data: any;

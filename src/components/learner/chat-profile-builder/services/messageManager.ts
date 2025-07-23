@@ -1,5 +1,6 @@
 import React from 'react';
-import { Message } from '../types';
+import type { Message } from '../types';
+import type { EmployeeUpdateExtra } from '@/types/dbTypes';
 import { ChatMessageService } from '@/services/chatMessageService';
 import { supabase } from '@/integrations/supabase/client';
 import { ACHIEVEMENTS } from '../constants';
@@ -71,8 +72,7 @@ export class MessageManager {
             user_id: this.userId,
             message_type: 'bot',
             content,
-            metadata: { points },
-            step: this.currentStepRef.current
+            step: String(this.currentStepRef.current)
           });
         } catch (error) {
           console.error('Failed to save bot message:', error);
@@ -98,7 +98,9 @@ export class MessageManager {
         // Save streak to database
         supabase
           .from('employees')
-          .update({ profile_builder_streak: newStreak })
+          .update({ 
+            profile_builder_streak: newStreak 
+          } as EmployeeUpdateExtra)
           .eq('id', this.employeeId)
           .then(() => {})
           .catch(err => console.error('Failed to save streak:', err));
@@ -119,7 +121,7 @@ export class MessageManager {
           user_id: this.userId,
           message_type: 'user',
           content,
-          step: this.currentStepRef.current
+          step: String(this.currentStepRef.current)
         });
       } catch (error) {
         console.error('Failed to save user message:', error);

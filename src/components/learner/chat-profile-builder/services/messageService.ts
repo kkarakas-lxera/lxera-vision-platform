@@ -1,5 +1,10 @@
-import { Message } from '../types';
-import { MESSAGE_DELAYS } from '../constants';
+import type { Message } from '../types';
+// Default delays used for typing indicator simulation
+const MESSAGE_DELAYS = {
+  typing: 750,     // generic typing indicator
+  response: 300,   // time between bot responses
+  quickReply: 150  // quick-reply stagger
+};
 import type React from 'react';
 
 export class MessageService {

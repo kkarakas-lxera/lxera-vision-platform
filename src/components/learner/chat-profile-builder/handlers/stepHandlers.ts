@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormData, Message } from '../types';
+import type { FormData, Message } from '../types';
 import { STEPS, ACHIEVEMENTS, ENABLE_SMART_MODE } from '../constants';
 
 export interface StepHandlerContext {

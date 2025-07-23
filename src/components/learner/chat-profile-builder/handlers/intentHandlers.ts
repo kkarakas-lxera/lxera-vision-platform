@@ -1,4 +1,4 @@
-import { FormData, SmartContext } from '../types';
+import type { FormData, SmartContext } from '../types';
 import { SmartIntentService } from '../services/smartIntentService';
 import type { Dispatch, SetStateAction } from 'react';
 

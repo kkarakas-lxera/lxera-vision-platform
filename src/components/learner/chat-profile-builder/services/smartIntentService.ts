@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { SmartContext, FormData } from '../types';
+import type { SmartContext, FormData } from '../types';
 import { UI_CONSTANTS } from '../constants';
 
 export class SmartIntentService {

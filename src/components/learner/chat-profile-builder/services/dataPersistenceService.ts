@@ -1,4 +1,4 @@
-import { Message, FormData } from '../types';
+import type { Message, FormData } from '../types';
 import { ChatMessageService } from '@/services/chatMessageService';
 import { EmployeeProfileService } from '@/services/employeeProfileService';
 import { supabase } from '@/integrations/supabase/client';

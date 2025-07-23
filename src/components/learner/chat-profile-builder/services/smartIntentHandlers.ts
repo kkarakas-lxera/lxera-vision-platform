@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase';
-import { FormData, SmartContext } from '../types';
+import { supabase } from '@/integrations/supabase/client';
+import type { FormData, SmartContext } from '../types';
 // UI component imports removed as JSX is no longer used in this file
 import type { Dispatch, SetStateAction, MutableRefObject } from 'react';
 

@@ -1,7 +1,51 @@
-import { NavigationState, NavigationContext, StepVisitHistory } from '../types';
+import type { NavigationState, NavigationContext, StepVisitHistory } from '../types';
+import type React from 'react';
 import { STEPS } from '../constants';
 
 export class NavigationService {
+  // Instance state references for mutating navigation inside components
+  private state: NavigationState;
+  private setState: (updater: (prev: NavigationState) => NavigationState) => void;
+  private currentStepRef: React.MutableRefObject<number>;
+  private maxStepReachedRef: React.MutableRefObject<number>;
+
+  constructor(
+    state: NavigationState,
+    setState: React.Dispatch<React.SetStateAction<NavigationState>>,
+    currentStepRef: React.MutableRefObject<number>,
+    maxStepReachedRef: React.MutableRefObject<number>
+  ) {
+    this.state = state;
+    this.setState = (updater) => setState(updater);
+    this.currentStepRef = currentStepRef;
+    this.maxStepReachedRef = maxStepReachedRef;
+  }
+
+  /**
+   * Navigate to a specific step, updating refs along the way.
+   */
+  navigateToStep(targetStep: number) {
+    if (!NavigationService.canNavigateToStep(targetStep, this.maxStepReachedRef.current)) return;
+
+    this.setState(prev => ({
+      ...prev,
+      navigatingTo: targetStep,
+      currentStep: targetStep
+    }));
+
+    this.currentStepRef.current = targetStep;
+  }
+
+  /**
+   * Move forward exactly one step when possible.
+   */
+  moveToNextStep() {
+    const next = NavigationService.getNextStep(this.state.currentStep);
+    if (next) {
+      this.navigateToStep(next);
+    }
+  }
+
   static createNavigationContext(
     source: NavigationContext['source'],
     intent: NavigationContext['intent']

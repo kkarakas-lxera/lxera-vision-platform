@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavigationState, UIState, GamificationState, CVState, ProgressState, FormData, SmartContext } from '../types';
+import type { NavigationState, UIState, GamificationState, CVState, ProgressState, FormData, SmartContext } from '../types';
 import { STEPS } from '../constants';
 
 export const useProfileBuilderState = (employeeId: string) => {
