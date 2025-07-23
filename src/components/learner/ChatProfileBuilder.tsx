@@ -1481,41 +1481,132 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const showInlineWorkForm = () => {
-    const messageId = 'inline-work-form-' + Date.now();
-    setMessages(prev => [...prev, {
-      id: messageId,
-      type: 'system',
-      content: (
-        <Card className="border rounded-lg p-4 bg-gray-50">
-          <h3 className="font-medium mb-3">Add Work Experience</h3>
-          <div className="space-y-3">
-            <Input placeholder="Job Title" />
-            <Input placeholder="Company" />
-            <select className="w-full px-3 py-2 border rounded" title="Select duration">
-              <option>Duration</option>
-              <option>&lt; 1 year</option>
-              <option>1-3 years</option>
-              <option>3-5 years</option>
-              <option>5+ years</option>
-            </select>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => {
-                // Handle save
-                setMessages(prev => prev.filter(m => m.id !== messageId));
-              }}>Save</Button>
-              <Button size="sm" variant="ghost" onClick={() => {
-                setMessages(prev => prev.filter(m => m.id !== messageId));
-              }}>Cancel</Button>
-            </div>
-          </div>
-        </Card>
-      ),
-      timestamp: new Date()
-    }]);
+    // First show the bot message
+    addBotMessage("Sure, let's add another work experience. Please fill in the details below:", 0, 300);
+    
+    // Then show the form after a short delay
+    setTimeout(() => {
+      const messageId = 'inline-work-form-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: messageId,
+        type: 'system',
+        content: (
+          <WorkExperienceForm
+            onComplete={(newWorkData) => {
+              // Add the new work experience to existing data
+              const updatedWork = [...formData.workExperience, ...newWorkData];
+              setFormData(prev => ({ ...prev, workExperience: updatedWork }));
+              
+              // Remove the form
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              
+              // Show confirmation with the added work
+              const addedWork = newWorkData[0];
+              addBotMessage(
+                `✅ Successfully added: ${addedWork.title} at ${addedWork.company}`,
+                0,
+                300
+              );
+              
+              // Show all work experiences after a short delay
+              setTimeout(() => {
+                const reviewMessageId = 'work-review-' + Date.now();
+                setMessages(prev => [...prev, {
+                  id: reviewMessageId,
+                  type: 'system',
+                  content: (
+                    <ProfileDataReview
+                      section="work"
+                      data={{ workExperience: updatedWork }}
+                      onEdit={() => {
+                        setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+                        navigateToStep(2, 'sidebar');
+                      }}
+                      onClose={() => {
+                        setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+                      }}
+                    />
+                  ),
+                  timestamp: new Date()
+                }]);
+              }, 500);
+              
+              // Save the data
+              saveStepData(true);
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }]);
+    }, 500);
   };
 
   const showInlineEducationForm = () => {
-    // Similar to work form
+    // First show the bot message
+    addBotMessage("Let's add your education details. Please fill in the information below:", 0, 300);
+    
+    // Then show the form after a short delay
+    setTimeout(() => {
+      const messageId = 'inline-education-form-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: messageId,
+        type: 'system',
+        content: (
+          <EducationForm
+            onComplete={(newEducationData) => {
+              // Map year to graduationYear for consistency
+              const mappedEducation = newEducationData.map(edu => ({
+                degree: edu.degree,
+                fieldOfStudy: edu.fieldOfStudy,
+                institution: edu.institution,
+                graduationYear: edu.year
+              }));
+              // Add the new education to existing data
+              const updatedEducation = [...formData.education, ...mappedEducation];
+              setFormData(prev => ({ ...prev, education: updatedEducation }));
+              
+              // Remove the form
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              
+              // Show confirmation with the added education
+              const addedEdu = newEducationData[0];
+              addBotMessage(
+                `✅ Successfully added: ${addedEdu.degree} from ${addedEdu.institution}`,
+                0,
+                300
+              );
+              
+              // Show all education after a short delay
+              setTimeout(() => {
+                const reviewMessageId = 'education-review-' + Date.now();
+                setMessages(prev => [...prev, {
+                  id: reviewMessageId,
+                  type: 'system',
+                  content: (
+                    <ProfileDataReview
+                      section="education"
+                      data={{ education: updatedEducation }}
+                      onEdit={() => {
+                        setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+                        navigateToStep(3, 'sidebar');
+                      }}
+                      onClose={() => {
+                        setMessages(prev => prev.filter(m => m.id !== reviewMessageId));
+                      }}
+                    />
+                  ),
+                  timestamp: new Date()
+                }]);
+              }, 500);
+              
+              // Save the data
+              saveStepData(true);
+            }}
+          />
+        ),
+        timestamp: new Date()
+      }]);
+    }, 500);
   };
 
   const showEditWorkForm = (index: number) => {
@@ -2106,13 +2197,54 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           navigateToStep(stepToReturn, 'sidebar');
         }, 1500);
       } else {
-        // Normal flow - continue to next step
-        addBotMessage(`Great! Working in a ${currentTeamSize} team as a ${response}. Let's continue...`, 0, 500);
+        // Normal flow - ask if they want to add or edit anything
+        addBotMessage(`Got it, you're the ${response}. Is there anything else you'd like to add or update about your current work context?`, 0, 500);
         setTimeout(() => {
-          moveToNextStep();
-        }, 1500);
+          showQuickReplies([
+            { label: "All good", value: "all_good", variant: 'primary' },
+            { label: "Edit Work", value: "edit_work" },
+            { label: "Edit Education", value: "edit_education" },
+            { label: "Edit Skills", value: "edit_skills" }
+          ]);
+        }, 1000);
       }
       return; // Exit after handling role
+    }
+    
+    // Handle editing responses
+    if (response === 'all_good') {
+      addBotMessage("Perfect! Let's move on to the next step. 🎯", 0, 500);
+      setTimeout(() => {
+        moveToNextStep();
+      }, 1000);
+      return;
+    }
+    
+    if (response === 'edit_work') {
+      // Navigate to work experience step
+      addBotMessage("Let's review your work experience.", 0, 500);
+      setTimeout(() => {
+        navigateToStep(2, 'sidebar');
+      }, 1000);
+      return;
+    }
+    
+    if (response === 'edit_education') {
+      // Navigate to education step
+      addBotMessage("Let's review your education.", 0, 500);
+      setTimeout(() => {
+        navigateToStep(3, 'sidebar');
+      }, 1000);
+      return;
+    }
+    
+    if (response === 'edit_skills') {
+      // Navigate to skills step
+      addBotMessage("Let's review your skills.", 0, 500);
+      setTimeout(() => {
+        navigateToStep(4, 'sidebar');
+      }, 1000);
+      return;
     }
     
     // If we get here with both teamSize and roleInTeam set, just continue
@@ -2610,6 +2742,94 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                                   
                                   if (error) throw error;
                                   
+                                  // Define handleRegenerate function
+                                  const handleRegenerate = async (workIndex: number, additionalContext: string) => {
+                                          // Show regenerating state
+                                          const regeneratingMessageId = 'regenerating-' + Date.now();
+                                          setMessages(prev => [...prev, {
+                                            id: regeneratingMessageId,
+                                            type: 'system',
+                                            content: <AIResponsibilityGeneration workExperiences={[generated.workExperiences[workIndex]]} />,
+                                            timestamp: new Date()
+                                          }]);
+                                          
+                                          try {
+                                            // Call the API with additional context
+                                            const response = await fetch(
+                                              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-work-responsibilities`,
+                                              {
+                                                method: 'POST',
+                                                headers: {
+                                                  'Content-Type': 'application/json',
+                                                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+                                                },
+                                                body: JSON.stringify({
+                                                  workExperiences: [{
+                                                    ...generated.workExperiences[workIndex],
+                                                    additionalContext
+                                                  }],
+                                                  employeeId: employeeData?.id
+                                                })
+                                              }
+                                            );
+
+                                            if (!response.ok) throw new Error('Failed to regenerate');
+                                            
+                                            const result = await response.json();
+                                            
+                                            // Update the specific work experience
+                                            const updatedWorkExperiences = [...generated.workExperiences];
+                                            updatedWorkExperiences[workIndex] = result.workExperiences[0];
+                                            
+                                            // Remove regenerating message and update the details
+                                            setMessages(prev => prev.filter(m => m.id !== regeneratingMessageId));
+                                            
+                                            // Update the component with new data
+                                            generated.workExperiences = updatedWorkExperiences;
+                                            
+                                            // Force re-render by removing and re-adding the component
+                                            setMessages(prev => prev.filter(m => m.id !== detailsMessageId));
+                                            setTimeout(() => {
+                                              setMessages(prev => [...prev, {
+                                                id: detailsMessageId,
+                                                type: 'system',
+                                                content: (
+                                                  <AIGeneratedWorkDetails
+                                                    workData={updatedWorkExperiences}
+                                                    onAccept={(finalData) => {
+                                                      const workWithDesc = finalData.map(w => ({
+                                                        title: w.title,
+                                                        company: w.company,
+                                                        duration: w.duration,
+                                                        description: w.responsibilities?.join(' ') || ''
+                                                      }));
+                                                      setFormData(prev => ({ ...prev, workExperience: workWithDesc }));
+                                                      setMessages(prev => prev.filter(m => m.id !== detailsMessageId));
+                                                      addBotMessage("Perfect! Your work experience has been captured. 💼", 100);
+                                                      setTimeout(() => moveToNextStep(), 1500);
+                                                    }}
+                                                    onUpdate={(updatedData) => {
+                                                      const workWithDesc = updatedData.map(w => ({
+                                                        title: w.title,
+                                                        company: w.company,
+                                                        duration: w.duration,
+                                                        description: w.responsibilities?.join(' ') || ''
+                                                      }));
+                                                      setFormData(prev => ({ ...prev, workExperience: workWithDesc }));
+                                                    }}
+                                                    onRegenerate={handleRegenerate}
+                                                  />
+                                                ),
+                                                timestamp: new Date()
+                                              }]);
+                                            }, 100);
+                                            
+                                          } catch (error) {
+                                            setMessages(prev => prev.filter(m => m.id !== regeneratingMessageId));
+                                            addBotMessage("I had trouble regenerating the suggestions. Please try editing manually.", 50);
+                                          }
+                                  };
+                                  
                                   // Show generated details for review
                                   const detailsMessageId = 'work-details-' + Date.now();
                                   setMessages(prev => [...prev, {
@@ -2631,6 +2851,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                                           addBotMessage("Perfect! Your work experience has been captured. 💼", 100);
                                           setTimeout(() => moveToNextStep(), 1500);
                                         }}
+                                        onRegenerate={handleRegenerate}
                                         onUpdate={(updatedData) => {
                                           // Update work data without moving forward
                                           const workWithDesc = updatedData.map(w => ({

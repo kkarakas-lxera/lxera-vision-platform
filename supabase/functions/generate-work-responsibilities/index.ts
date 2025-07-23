@@ -12,6 +12,7 @@ interface WorkExperience {
   company: string;
   duration: string;
   employeeId?: string;
+  additionalContext?: string;
 }
 
 interface GeneratedDetails {
@@ -76,6 +77,8 @@ Required skills for this position: ${positionContext.required_skills?.map((s: an
 Department: ${positionContext.department || 'Not specified'}
 
 Generate responsibilities that align with both the actual job title "${work.title}" and the official position requirements.` : ''}
+
+${work.additionalContext ? `Additional context from the employee: ${work.additionalContext}` : ''}
 
 Generate realistic, specific responsibilities, achievements, and technologies for:
 - Job Title: ${work.title}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, ChevronRight, ChevronDown, Check, Edit2, Save, X, Plus, Wrench } from 'lucide-react';
+import { Briefcase, ChevronRight, ChevronDown, Check, Edit2, Save, X, Plus, Wrench, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,20 +20,36 @@ interface AIGeneratedWorkDetailsProps {
   workData: WorkExperience[];
   onAccept: (data: WorkExperience[]) => void;
   onUpdate: (data: WorkExperience[]) => void;
+  onRegenerate?: (workIndex: number, additionalContext: string) => void;
 }
 
 export default function AIGeneratedWorkDetails({ 
   workData: initialData, 
   onAccept,
-  onUpdate 
+  onUpdate,
+  onRegenerate 
 }: AIGeneratedWorkDetailsProps) {
   const [workData, setWorkData] = useState<WorkExperience[]>(initialData);
+  
+  // Update workData when initialData changes
+  React.useEffect(() => {
+    setWorkData(initialData);
+    // Reset selected responsibilities when data changes
+    setSelectedResponsibilities(
+      new Map(initialData.map((work, index) => [
+        index, 
+        new Set(work.responsibilities?.map((_, i) => i) || [])
+      ]))
+    );
+  }, [initialData]);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [editingWork, setEditingWork] = useState<number | null>(null);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+  const [regenerateContext, setRegenerateContext] = useState('');
   const [selectedResponsibilities, setSelectedResponsibilities] = useState<Map<number, Set<number>>>(
-    new Map(workData.map((_, index) => [
+    new Map(workData.map((work, index) => [
       index, 
-      new Set(workData[index].responsibilities?.map((_, i) => i) || [])
+      new Set(work.responsibilities?.map((_, i) => i) || [])
     ]))
   );
 
@@ -195,13 +211,25 @@ export default function AIGeneratedWorkDetails({
                         </div>
                       </div>
                     </button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => handleWorkEdit(index)}
-                    >
-                      <Edit2 className="h-3 w-3" />
-                    </Button>
+                    <div className="flex gap-1">
+                      {onRegenerate && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => setRegeneratingIndex(index)}
+                          title="Regenerate with more context"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleWorkEdit(index)}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <AnimatePresence>
@@ -223,15 +251,15 @@ export default function AIGeneratedWorkDetails({
                                 {work.responsibilities.map((resp, respIndex) => (
                                   <label
                                     key={respIndex}
-                                    className="flex items-start gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                                    className="flex items-start gap-3 p-2.5 rounded-md border border-transparent hover:border-gray-200 hover:bg-gray-50 cursor-pointer transition-all"
                                   >
                                     <input
                                       type="checkbox"
                                       checked={selectedResponsibilities.get(index)?.has(respIndex) || false}
                                       onChange={() => toggleResponsibility(index, respIndex)}
-                                      className="mt-0.5 rounded"
+                                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
-                                    <span className="text-xs text-gray-700 flex-1">{resp}</span>
+                                    <span className="text-xs text-gray-700 flex-1 leading-relaxed">{resp}</span>
                                   </label>
                                 ))}
                               </div>
@@ -253,6 +281,52 @@ export default function AIGeneratedWorkDetails({
                     )}
                   </AnimatePresence>
                 </div>
+              )}
+              
+              {/* Regenerate Dialog */}
+              {regeneratingIndex === index && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200"
+                >
+                  <p className="text-xs text-gray-700 mb-2">
+                    Tell me more about your role to generate better suggestions:
+                  </p>
+                  <Textarea
+                    value={regenerateContext}
+                    onChange={(e) => setRegenerateContext(e.target.value)}
+                    placeholder="e.g., I led a team of 5 engineers and focused on building microservices..."
+                    className="text-sm mb-2"
+                    rows={2}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setRegeneratingIndex(null);
+                        setRegenerateContext('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (onRegenerate && regenerateContext.trim()) {
+                          onRegenerate(index, regenerateContext);
+                          setRegeneratingIndex(null);
+                          setRegenerateContext('');
+                        }
+                      }}
+                      disabled={!regenerateContext.trim()}
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Regenerate
+                    </Button>
+                  </div>
+                </motion.div>
               )}
             </motion.div>
           ))}
