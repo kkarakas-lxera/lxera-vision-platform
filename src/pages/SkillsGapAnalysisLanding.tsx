@@ -268,9 +268,9 @@ const SkillsGapAnalysisLanding = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-center mb-4">Designed for HR & L&D Leaders</h2>
+            <h2 className="text-4xl font-bold text-center mb-4">Know Your Workforce Like Never Before</h2>
             <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto text-lg">
-              Stop guessing. Start knowing. Fix skills gaps with AI-powered precision.
+              Get complete visibility into your organization's skills landscape.
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-8">
@@ -347,8 +347,8 @@ const SkillsGapAnalysisLanding = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4">From skills gap to impact in 4 steps</h2>
-            <p className="text-gray-600 text-lg">Our outcome-focused process delivers results, not reports.</p>
+            <h2 className="text-4xl font-bold mb-4">From confusion to clarity in 4 steps</h2>
+            <p className="text-gray-600 text-lg">A systematic approach to understanding your workforce capabilities.</p>
           </motion.div>
           <div className="grid md:grid-cols-4 gap-8">
             {process.map((step, i) => {
@@ -375,6 +375,73 @@ const SkillsGapAnalysisLanding = () => {
                   </motion.div>
                   <h3 className="font-bold text-xl mb-3">{step.title}</h3>
                   <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* What You'll Discover Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">What your skills analysis reveals</h2>
+            <p className="text-gray-600 text-lg">Insights that transform how you manage talent</p>
+          </motion.div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Hidden Talent",
+                description: "Employees with underutilized skills you didn't know existed",
+                metric: "avg. 23%",
+                label: "untapped skills",
+                color: "text-emerald-600"
+              },
+              {
+                title: "Critical Gaps",
+                description: "Missing skills blocking your strategic initiatives",
+                metric: "avg. 5-7",
+                label: "per team",
+                color: "text-red-600"
+              },
+              {
+                title: "Risk Areas",
+                description: "Single points of failure where only one person has key skills",
+                metric: "avg. 3",
+                label: "per department",
+                color: "text-orange-600"
+              }
+            ].map((item, i) => {
+              const [ref, inView] = useInView({
+                triggerOnce: true,
+                threshold: 0.1,
+              });
+              return (
+                <motion.div
+                  key={i}
+                  ref={ref}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: i * 0.15 }}
+                >
+                  <Card className="p-8 h-full hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200">
+                    <h3 className="text-xl font-bold mb-4 text-gray-900">{item.title}</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      {item.description}
+                    </p>
+                    <div className="pt-4 border-t border-gray-100">
+                      <div className={`text-3xl font-bold ${item.color}`}>
+                        {item.metric}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">{item.label}</p>
+                    </div>
+                  </Card>
                 </motion.div>
               );
             })}
@@ -463,7 +530,7 @@ const SkillsGapAnalysisLanding = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Built by L&D experts who've been in your shoes
+            Finally see what skills you actually have
           </motion.h2>
           <motion.p 
             className="text-gray-300 mb-10 text-xl"
@@ -472,7 +539,7 @@ const SkillsGapAnalysisLanding = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            After 10+ years helping companies identify and close skills gaps, we built the AI-powered solution we wished we had.
+            Join the 30% of organizations who truly understand their workforce capabilities. Get insights that drive smarter talent decisions.
           </motion.p>
           <motion.div 
             className="flex justify-center gap-4"
@@ -486,7 +553,7 @@ const SkillsGapAnalysisLanding = () => {
                 onClick={handleGetStarted}
                 className="bg-emerald-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-emerald-600 transition-all text-lg shadow-xl"
               >
-                Book a Call
+                Analyze Your Team
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -516,20 +583,20 @@ const SkillsGapAnalysisLanding = () => {
           <Accordion.Root type="single" collapsible className="space-y-4">
             {[
               {
-                question: "How accurate is the AI skills analysis?",
-                answer: "Our AI achieves 92% accuracy in skills extraction and gap identification, validated across 500+ companies."
+                question: "How accurate is the skills extraction?",
+                answer: "Our analysis achieves 92% accuracy, compared to 27% for self-reported skills. We validate against industry standards."
               },
               {
-                question: "What happens after the free analysis?",
-                answer: "You'll see your complete skills gap report and can choose to activate AI course generation for your team."
+                question: "What happens after the analysis?",
+                answer: "You get a complete skills inventory and gap report. Use it for hiring decisions, L&D planning, or succession planning. Further action is entirely up to you."
               },
               {
-                question: "How long does implementation take?",
-                answer: "Analysis takes 5 minutes. Course generation is instant. Most teams see first completions within 48 hours."
+                question: "Can we do this manually?",
+                answer: "Manual audits take 3-6 months and often miss critical gaps. Our analysis completes in minutes with comprehensive coverage."
               },
               {
-                question: "Do you integrate with our HRIS?",
-                answer: "Yes! We support Workday, BambooHR, ADP, and 250+ other systems for seamless employee data sync."
+                question: "What data do you need?",
+                answer: "Just employee names, roles, and CVs. We can import from your HRIS or you can upload a simple CSV file."
               }
             ].map((faq, i) => (
               <Accordion.Item key={i} value={`item-${i}`} className="bg-gray-50 rounded-2xl overflow-hidden">
