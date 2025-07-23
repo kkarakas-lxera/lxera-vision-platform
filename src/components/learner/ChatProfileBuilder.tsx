@@ -369,6 +369,102 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Clear saved profile builder state
       await ProfileBuilderStateService.clearState(employeeId);
       
+      // Delete ALL profile sections except basic_info
+      const sectionsToDelete = [
+        'work_experience',
+        'education',
+        'skills',
+        'certifications',
+        'languages',
+        'projects',
+        'current_work',
+        'tools_technologies',
+        'daily_tasks'
+      ];
+      
+      // Delete all profile sections
+      const { error: sectionsError } = await supabase
+        .from('employee_profile_sections')
+        .delete()
+        .eq('employee_id', employeeId)
+        .in('section_name', sectionsToDelete);
+      
+      if (sectionsError) {
+        console.error('Error deleting profile sections:', sectionsError);
+      }
+      
+      // Clear CV data and skills profile
+      const { error: cvError } = await supabase
+        .from('employees')
+        .update({ 
+          cv_file_path: null,
+          cv_uploaded_at: null,
+          cv_extracted_data: null,
+          cv_analysis_data: null,
+          profile_data: null,
+          profile_complete: false,
+          profile_completion_date: null,
+          skills_validation_completed: false,
+          profile_builder_points: 0,
+          profile_builder_streak: 0
+        })
+        .eq('id', employeeId);
+      
+      if (cvError) {
+        console.error('Error clearing CV data:', cvError);
+      }
+      
+      // Clear skills profile data
+      const { error: skillsError } = await supabase
+        .from('st_employee_skills_profile')
+        .delete()
+        .eq('employee_id', employeeId);
+      
+      if (skillsError) {
+        console.error('Error clearing skills profile:', skillsError);
+      }
+      
+      // Delete CV analysis results
+      const { error: cvResultsError } = await supabase
+        .from('cv_analysis_results')
+        .delete()
+        .eq('employee_id', employeeId);
+      
+      if (cvResultsError) {
+        console.error('Error deleting cv_analysis_results:', cvResultsError);
+      }
+      
+      // Delete skills validation data
+      const { error: skillsValidationError } = await supabase
+        .from('employee_skills_validation')
+        .delete()
+        .eq('employee_id', employeeId);
+      
+      if (skillsValidationError) {
+        console.error('Error deleting skills validation:', skillsValidationError);
+      }
+      
+      // Delete CV file from storage if exists
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('cv_file_path')
+        .eq('id', employeeId)
+        .single();
+      
+      if (employee?.cv_file_path) {
+        // Extract the path after 'employee-cvs/'
+        const filePath = employee.cv_file_path.replace(/^.*employee-cvs\//, '');
+        
+        const { error: storageError } = await supabase
+          .storage
+          .from('employee-cvs')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error('Error deleting CV file:', storageError);
+        }
+      }
+      
       // Reset all state
       setMessages([]);
       setCurrentStep(0);
@@ -389,6 +485,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setBuilderState(null); // Clear builder state
       setIsInitializing(false); // Reset initialization flag
       setSectionsConfirmed([]); // Reset confirmed sections
+      setStepHistory(new Map()); // Clear step history
+      setAwardedMilestones(new Set()); // Clear awarded milestones
+      setCvAcceptedSections({ // Reset CV sections
+        work: false,
+        education: false,
+        certifications: false,
+        languages: false
+      });
       setFormData({
         currentPosition: employeeData?.st_company_positions?.position_title || '',
         department: employeeData?.st_company_positions?.department || '',
@@ -402,14 +506,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         growthAreas: []
       });
       
-      // Reset points in database
-      await supabase
-        .from('employees')
-        .update({ 
-          profile_builder_points: 0,
-          profile_builder_streak: 0
-        })
-        .eq('id', employeeId);
+      // Points already reset in the employees update above
       
       // Close dialog
       setShowRestartDialog(false);
@@ -419,10 +516,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         initializeChat();
       }, 500);
       
-      toast.success('Starting fresh! Let\'s build your profile together.');
+      toast.success('Starting fresh! All profile data has been cleared.');
     } catch (error) {
       console.error('Error starting fresh:', error);
-      toast.error('Failed to reset. Please try again.');
+      toast.error('Failed to start fresh. Please try again.');
     }
   };
 
@@ -2532,8 +2629,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                 <AlertDialogHeader>
                   <AlertDialogTitle>Start Fresh?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clear your current conversation and progress. You'll start from the beginning.
-                    Your basic information will be preserved.
+                    This will clear your current conversation and all profile data including:
+                    • Work experience • Education • Skills • Certifications
+                    • CV uploads • Current projects • Challenges • Growth areas
+                    
+                    Only your basic login information will be preserved.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
