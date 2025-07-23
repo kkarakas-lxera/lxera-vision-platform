@@ -7,7 +7,7 @@ import { Zap, Upload, Clock, Trophy } from 'lucide-react';
 
 interface Message {
   id: string;
-  type: 'bot' | 'user' | 'achievement' | 'challenge' | 'system';
+  type: 'bot' | 'user' | 'achievement' | 'challenge' | 'system' | 'quick_replies';
   content: string | React.ReactNode;
   timestamp: Date;
   points?: number;
@@ -15,15 +15,17 @@ interface Message {
     title: string;
     description?: string;
     icon?: React.ReactNode;
+    iconName?: string;
+    iconClass?: string;
   };
   metadata?: any;
 }
 
 const ACHIEVEMENTS = {
-  QUICK_START: { name: "Quick Start", points: 50, icon: <Zap className="h-6 w-6 text-yellow-600" /> },
-  CV_UPLOADED: { name: "Document Master", points: 200, icon: <Upload className="h-6 w-6 text-blue-600" /> },
-  SPEED_DEMON: { name: "Speed Demon", points: 150, icon: <Clock className="h-6 w-6 text-purple-600" /> },
-  COMPLETIONIST: { name: "Profile Hero", points: 500, icon: <Trophy className="h-6 w-6 text-gold-600" /> }
+  QUICK_START: { name: "Quick Start", points: 50, iconName: 'Zap', iconClass: "h-6 w-6 text-yellow-600" },
+  CV_UPLOADED: { name: "Document Master", points: 200, iconName: 'Upload', iconClass: "h-6 w-6 text-blue-600" },
+  SPEED_DEMON: { name: "Speed Demon", points: 150, iconName: 'Clock', iconClass: "h-6 w-6 text-purple-600" },
+  COMPLETIONIST: { name: "Profile Hero", points: 500, iconName: 'Trophy', iconClass: "h-6 w-6 text-gold-600" }
 };
 
 const addBotMessage = (
@@ -148,7 +150,8 @@ const addAchievement = (
     points: achievement.points,
     achievement: {
       title: achievement.name,
-      icon: achievement.icon
+      iconName: achievement.iconName,
+      iconClass: achievement.iconClass
     }
   };
   
@@ -176,7 +179,7 @@ const showQuickReplies = (
   setMessages(prev => [...prev, {
     id: 'quick-replies-' + Date.now(),
     type: 'system',
-    content: <QuickReplyButtons options={options} onSelect={(value, label) => handleQuickReply(value, label, optionsMap.get(value))} />,
+    content: JSON.stringify({ type: 'quick_replies', options }),
     timestamp: new Date()
   }]);
 };
@@ -369,7 +372,8 @@ export class MessageHandlers {
       points: achievement.points,
       achievement: {
         title: achievement.name,
-        icon: achievement.icon
+        iconName: achievement.iconName,
+        iconClass: achievement.iconClass
       }
     };
     
@@ -393,7 +397,7 @@ export class MessageHandlers {
     this.context.setMessages(prev => [...prev, {
       id: 'quick-replies-' + Date.now(),
       type: 'system',
-      content: <QuickReplyButtons options={options} onSelect={(value, label) => handleQuickReply(value, label, optionsMap.get(value))} />,
+      content: JSON.stringify({ type: 'quick_replies', options }),
       timestamp: new Date()
     }]);
   };

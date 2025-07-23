@@ -89,14 +89,7 @@ export class DataPersistenceService {
             return {
               id: msg.id || crypto.randomUUID(),
               type: 'system' as Message['type'],
-              content: (
-                <this.CVExtractedSections
-                  extractedData={msg.metadata.extractedData || {}}
-                  onSectionAccept={this.handleSectionAccept}
-                  onSectionUpdate={this.handleSectionUpdate}
-                  onComplete={this.handleAllSectionsComplete}
-                />
-              ),
+              content: msg.content || 'CV Sections Display',
               timestamp: new Date(msg.created_at || Date.now()),
               metadata: msg.metadata
             };

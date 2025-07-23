@@ -23,7 +23,7 @@ interface ChatProfileBuilderProps {
 
 interface Message {
   id: string;
-  type: 'bot' | 'user' | 'achievement' | 'challenge' | 'system';
+  type: 'bot' | 'user' | 'achievement' | 'challenge' | 'system' | 'quick_replies';
   content: string | React.ReactNode;
   timestamp: Date;
   points?: number;
@@ -31,6 +31,8 @@ interface Message {
     title: string;
     description?: string;
     icon?: React.ReactNode;
+    iconName?: string;
+    iconClass?: string;
   };
   metadata?: any;
 }

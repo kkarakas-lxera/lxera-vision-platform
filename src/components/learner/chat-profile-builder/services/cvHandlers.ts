@@ -20,10 +20,10 @@ const STEPS = [
 ];
 
 const ACHIEVEMENTS = {
-  QUICK_START: { name: "Quick Start", points: 50, icon: <Zap className="h-6 w-6 text-yellow-600" /> },
-  CV_UPLOADED: { name: "Document Master", points: 200, icon: <Upload className="h-6 w-6 text-blue-600" /> },
-  SPEED_DEMON: { name: "Speed Demon", points: 150, icon: <Clock className="h-6 w-6 text-purple-600" /> },
-  COMPLETIONIST: { name: "Profile Hero", points: 500, icon: <Trophy className="h-6 w-6 text-gold-600" /> }
+  QUICK_START: { name: "Quick Start", points: 50, iconName: 'Zap', iconClass: "h-6 w-6 text-yellow-600" },
+  CV_UPLOADED: { name: "Document Master", points: 200, iconName: 'Upload', iconClass: "h-6 w-6 text-blue-600" },
+  SPEED_DEMON: { name: "Speed Demon", points: 150, iconName: 'Clock', iconClass: "h-6 w-6 text-purple-600" },
+  COMPLETIONIST: { name: "Profile Hero", points: 500, iconName: 'Trophy', iconClass: "h-6 w-6 text-gold-600" }
 };
 
 // Types
@@ -150,14 +150,15 @@ export class CVHandlers {
       this.context.setMessages(prev => [...prev, {
         id: messageId,
         type: 'system',
-        content: (
-          <CVAnalysisProgress 
-            forceComplete={false} // cvAnalysisComplete
-            onComplete={() => {
-              console.log('CV analysis progress completed');
-            }}
-          />
-        ),
+        content: JSON.stringify({
+          type: 'cv_analysis_progress',
+          props: {
+            forceComplete: false
+          }
+        }),
+        metadata: {
+          componentType: 'CVAnalysisProgress'
+        },
         timestamp: new Date()
       }]);
     }, 500);
@@ -279,14 +280,10 @@ export class CVHandlers {
       this.context.setMessages(prev => [...prev, {
         id: messageId,
         type: 'system',
-        content: (
-          <CVExtractedSections
-            extractedData={extractedData || {}}
-            onSectionAccept={this.handleSectionAccept.bind(this)}
-            onSectionUpdate={this.handleSectionUpdate.bind(this)}
-            onComplete={this.handleAllSectionsComplete.bind(this)}
-          />
-        ),
+        content: JSON.stringify({
+          type: 'cv_extracted_sections',
+          extractedData: extractedData || {}
+        }),
         timestamp: new Date(),
         metadata: {
           componentType: 'CVExtractedSections',
@@ -334,14 +331,13 @@ export class CVHandlers {
       return [...filtered, {
         id: confirmationMessageId,
         type: 'system',
-        content: (
-          <SectionConfirmationProgress 
-            confirmedSections={[...this.context.sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)}
-            onAllConfirmed={() => {
-              // This will be called when all sections are confirmed
-            }}
-          />
-        ),
+        content: JSON.stringify({
+          type: 'section_confirmation_progress',
+          confirmedSections: [...this.context.sectionsConfirmed, section].filter((s, i, arr) => arr.indexOf(s) === i)
+        }),
+        metadata: {
+          componentType: 'SectionConfirmationProgress'
+        },
         timestamp: new Date()
       }];
     });
