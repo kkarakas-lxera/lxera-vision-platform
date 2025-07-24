@@ -24,7 +24,7 @@ import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
 import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
 import ProfileDataReview from './chat/ProfileDataReview';
 import MultiSelectCards from './chat/MultiSelectCards';
-import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2 } from 'lucide-react';
+import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -706,6 +706,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }
         if (employee.profile_builder_streak !== null) {
           setStreak(employee.profile_builder_streak);
+        }
+        
+        // Check if profile is already completed
+        if (employee.profile_complete === true) {
+          setIsCompleted(true);
         }
         
         // Load CV extracted data if available
@@ -4272,7 +4277,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         localStorage.setItem('profileJustCompleted', 'true');
         
         // Navigate to learner dashboard
-        window.location.href = '/learner/dashboard';
+        window.location.href = '/learner';
       }, 1500);
     }, 5000);
   };
@@ -4716,6 +4721,34 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         )}
         
         {/* CV sections are now displayed as system messages */}
+        
+        {/* Show continue button if profile is completed and last message is about course creation */}
+        {isCompleted && messages.length > 0 && 
+         messages[messages.length - 1].content?.toString().includes('personalized course creation center') && (
+          <div className="mt-4 animate-in fade-in-0 slide-in-from-bottom-2">
+            <Card className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-purple-900">Ready to continue?</h3>
+                  <p className="text-sm text-purple-700 mt-1">
+                    Your profile is complete! Click below to create your personalized learning pathway.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    localStorage.setItem('showCourseGeneration', 'true');
+                    localStorage.setItem('profileJustCompleted', 'true');
+                    window.location.href = '/learner';
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                >
+                  Continue to Course Creation
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
         
         <div ref={messagesEndRef} />
       </div>
