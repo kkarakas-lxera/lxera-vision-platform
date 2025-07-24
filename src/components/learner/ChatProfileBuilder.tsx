@@ -3726,7 +3726,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             }}
             title="Professional Challenges"
             subtitle="Select challenges that resonate with your current role"
-            minSelection={1}
+            minSelection={3}
             itemsPerPage={3}
           />
         ),
@@ -3782,7 +3782,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             title="Growth Opportunities"
             subtitle="Select areas where you'd like to develop and grow professionally"
             minSelection={2}
-            maxSelection={3}
+            maxSelection={5}
             itemsPerPage={3}
           />
         ),
