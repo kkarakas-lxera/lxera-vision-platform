@@ -690,45 +690,59 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   // Message Management
-  const addBotMessage = (content: string | React.ReactNode, points = 0, delay = 1000) => {
+  const addBotMessage = (content: string | React.ReactNode, points = 0, delay = 1000, typingDuration = 1000) => {
+    // Show typing indicator immediately
     setIsTyping(true);
     
-    setTimeout(async () => {
-      const message: Message = {
-        id: Date.now().toString(),
-        type: 'bot',
-        content,
-        timestamp: new Date(),
-        ...(points > 0 && { points }) // Only include points if greater than 0
-      };
-      
-      setMessages(prev => [...prev, message]);
-      if (points > 0) {
-        setPoints(prev => {
-          const newPoints = prev + points;
-          // Save points to database
-          savePointsToDatabase(newPoints);
-          return newPoints;
-        });
-      }
+    // Show typing for specified duration before showing the message
+    setTimeout(() => {
       setIsTyping(false);
       
-      // Auto-save message if it's a string
-      if (userId && typeof content === 'string') {
-        try {
-          await ChatMessageService.saveMessage({
-            employee_id: employeeId,
-            user_id: userId,
-            message_type: 'bot',
-            content,
-            metadata: { points },
-            step: currentStepRef.current.toString()
+      // Small delay between typing ending and message appearing for realism
+      setTimeout(async () => {
+        const message: Message = {
+          id: Date.now().toString(),
+          type: 'bot',
+          content,
+          timestamp: new Date(),
+          ...(points > 0 && { points }) // Only include points if greater than 0
+        };
+        
+        setMessages(prev => [...prev, message]);
+        if (points > 0) {
+          setPoints(prev => {
+            const newPoints = prev + points;
+            // Save points to database
+            savePointsToDatabase(newPoints);
+            return newPoints;
           });
-        } catch (error) {
-          console.error('Failed to save bot message:', error);
         }
-      }
-    }, delay);
+        
+        // Auto-save message if it's a string
+        if (userId && typeof content === 'string') {
+          try {
+            await ChatMessageService.saveMessage({
+              employee_id: employeeId,
+              user_id: userId,
+              message_type: 'bot',
+              content,
+              metadata: { points },
+              step: currentStepRef.current.toString()
+            });
+          } catch (error) {
+            console.error('Failed to save bot message:', error);
+          }
+        }
+      }, 100); // Small delay after typing ends
+    }, typingDuration); // Typing duration
+  };
+
+  // Helper function to show typing indicator for navigation/transitions
+  const showTypingAnimation = (duration = 1000) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+    }, duration);
   };
 
   const addUserMessage = async (content: string) => {
@@ -2342,14 +2356,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }, 1500);
       } else {
         // Normal flow - confirm and auto-navigate to next step
-        addBotMessage(`Got it! ${response} in a team of ${currentTeamSize}. Let me take you to the next step... 🎯`, 0, 500);
+        // Show typing for a bit longer for this transition message
+        addBotMessage(`Got it! ${response} in a team of ${currentTeamSize}. Let me take you to the next step... 🎯`, 0, 500, 1200);
         
-        // Mark step as complete and auto-navigate after a brief pause
+        // Mark step as complete and auto-navigate after the message appears
         setTimeout(() => {
           console.log('Auto-navigating to next step after role collection');
           updateStepHistory(5, 'completed'); // Mark current work step as complete
           moveToNextStep();
-        }, 1500);
+        }, 2000); // Increased to allow typing + message to be seen
       }
       return; // Exit after handling role
     }
@@ -2450,8 +2465,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }
       return;
     } else if (response === 'continue') {
-      if (formData.challenges.length === 0) {
-        addBotMessage("Please select at least one challenge before continuing.", 0, 500);
+      if (formData.challenges.length < 3) {
+        addBotMessage(`Please select at least 3 challenges before continuing. You've selected ${formData.challenges.length}.`, 0, 500);
         return;
       }
       
@@ -2491,8 +2506,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       await saveStepData(true);
       addBotMessage("Good choice! Any other challenges?", 0);
     } else if (response === 'continue') {
-      if (formData.challenges.length === 0) {
-        addBotMessage("Please select at least one challenge before continuing.", 0, 500);
+      if (formData.challenges.length < 3) {
+        addBotMessage(`Please select at least 3 challenges before continuing. You've selected ${formData.challenges.length}.`, 0, 500);
         return;
       }
       
@@ -2541,8 +2556,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }
       return;
     } else if (response === 'complete') {
-      if (formData.growthAreas.length === 0) {
-        addBotMessage("Please select at least one growth area before completing.", 0, 500);
+      if (formData.growthAreas.length < 3) {
+        addBotMessage(`Please select at least 3 growth areas before completing. You've selected ${formData.growthAreas.length}.`, 0, 500);
         return;
       }
       
@@ -2646,6 +2661,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     if (step < STEPS.length) {
       console.log(`Moving from step ${step} to step ${step + 1}`);
       
+      // Show typing animation during transition
+      showTypingAnimation(800);
+      
       // CRITICAL: Save current state BEFORE moving to next step
       await saveStepData(true);
       
@@ -2725,6 +2743,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     if (targetStep > maxStepReached + 1) return; // Can't skip ahead beyond max reached + 1
     
     console.log(`Navigating from step ${step} to step ${targetStep}`);
+    
+    // Show typing animation during navigation
+    showTypingAnimation(800);
     
     // CRITICAL: Save current state BEFORE navigating away
     await saveStepData(true);
@@ -3727,15 +3748,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             onSelectionChange={(selected) => {
               setFormData(prev => ({ ...prev, challenges: selected }));
             }}
-            onComplete={async () => {
-              // Get the current selected items count from the component's state
-              const selectedCount = formData.challenges?.length || 0;
+            onComplete={async (selectedItems) => {
+              // Use the passed selectedItems instead of formData
+              const selectedCount = selectedItems.length;
               
-              if (selectedCount === 0) {
-                addBotMessage("Please select at least 3 challenges before continuing.", 0, 500);
+              if (selectedCount < 3) {
+                addBotMessage(`Please select at least 3 challenges before continuing. You've selected ${selectedCount}.`, 0, 500);
                 return;
               }
               
+              // Update formData with the final selection
+              setFormData(prev => ({ ...prev, challenges: selectedItems }));
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               addBotMessage(`Got it, I've noted that you're facing ${selectedCount} challenge${selectedCount !== 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
@@ -3791,15 +3814,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             onSelectionChange={(selected) => {
               setFormData(prev => ({ ...prev, growthAreas: selected }));
             }}
-            onComplete={async () => {
-              // Get the current selected items count from the component's state
-              const selectedCount = formData.growthAreas?.length || 0;
+            onComplete={async (selectedItems) => {
+              // Use the passed selectedItems instead of formData
+              const selectedCount = selectedItems.length;
               
-              if (selectedCount === 0) {
-                addBotMessage("Please select at least 2 growth areas before continuing.", 0, 500);
+              if (selectedCount < 3) {
+                addBotMessage(`Please select at least 3 growth areas before continuing. You've selected ${selectedCount}.`, 0, 500);
                 return;
               }
               
+              // Update formData with the final selection
+              setFormData(prev => ({ ...prev, growthAreas: selectedItems }));
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               

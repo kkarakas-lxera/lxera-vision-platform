@@ -8,7 +8,7 @@ interface MultiSelectCardsProps {
   items: string[];
   selectedItems: string[];
   onSelectionChange: (selected: string[]) => void;
-  onComplete: () => void;
+  onComplete: (selectedItems: string[]) => void;
   title: string;
   subtitle: string;
   minSelection?: number;
@@ -180,7 +180,7 @@ export default function MultiSelectCards({
         </p>
         
         <Button
-          onClick={onComplete}
+          onClick={() => onComplete(localSelected)}
           disabled={!canProceed}
           className="min-w-[140px]"
           variant={canProceed ? "default" : "outline"}
