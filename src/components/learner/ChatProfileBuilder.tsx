@@ -3516,15 +3516,29 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const showChallenges = () => {
     if (!personalizedSuggestions?.challenges) {
       console.error('No personalized suggestions available');
+      
+      // Provide fallback challenges
+      const fallbackChallenges = [
+        "Balancing technical expertise with strategic leadership",
+        "Managing cross-functional team dynamics",
+        "Staying current with rapidly evolving financial technologies",
+        "Communicating complex financial concepts to non-financial stakeholders",
+        "Optimizing processes while maintaining compliance",
+        "Building a data-driven culture within the finance team"
+      ];
+      
       addBotMessage(
-        "I'm having trouble generating personalized challenges. Let's continue to the next step.",
+        "Based on your role as a Financial Consultant and Team Lead, here are some common challenges. Select any that resonate with you:",
         0,
         500
       );
       
       setTimeout(() => {
-        moveToNextStep();
-      }, 1500);
+        showQuickReplies([
+          ...fallbackChallenges.slice(0, 4).map(c => ({ label: c, value: c })),
+          { label: "Continue →", value: "continue", variant: 'primary' }
+        ]);
+      }, 1000);
       return;
     }
     
@@ -3546,14 +3560,28 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const showGrowthAreas = () => {
     if (!personalizedSuggestions?.growthAreas) {
       console.error('No personalized growth areas available');
+      
+      // Provide fallback growth areas
+      const fallbackGrowthAreas = [
+        "Advanced Financial Modeling & Analytics",
+        "AI & Machine Learning for Finance",
+        "Strategic Leadership Development",
+        "Digital Transformation in Finance",
+        "Risk Management & Compliance Innovation",
+        "Data Science for Financial Decision Making"
+      ];
+      
       addBotMessage(
-        "I'm having trouble generating growth opportunities. Let's complete your profile.",
+        "Based on your background, here are some growth opportunities to consider. Pick 2-3 that excite you most:",
         0,
         500
       );
       
       setTimeout(() => {
-        completeProfile();
+        showQuickReplies([
+          ...fallbackGrowthAreas.slice(0, 5).map(a => ({ label: a, value: a, variant: 'success' as const })),
+          { label: "Complete Profile →", value: "complete", variant: 'primary' }
+        ]);
       }, 1500);
       return;
     }
@@ -3623,9 +3651,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       switch (stepName) {
         case 'work_experience':
-          await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
-            experience: formData.workExperience
-          });
+          console.log('Saving work experience:', formData.workExperience);
+          if (formData.workExperience && formData.workExperience.length > 0) {
+            await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
+              experiences: formData.workExperience
+            });
+          }
           break;
           
         case 'education':
@@ -3664,17 +3695,63 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
+  // Check if profile has actual data
+  const isProfileDataComplete = () => {
+    const hasWorkExperience = formData.workExperience && formData.workExperience.length > 0;
+    const hasEducation = formData.education && formData.education.length > 0;
+    const hasChallenges = formData.challenges && formData.challenges.length > 0;
+    const hasGrowthAreas = formData.growthAreas && formData.growthAreas.length > 0;
+    
+    console.log('Profile completion check:', {
+      hasWorkExperience,
+      hasEducation,
+      hasChallenges,
+      hasGrowthAreas
+    });
+    
+    return hasWorkExperience && hasEducation && hasChallenges && hasGrowthAreas;
+  };
+  
   // Complete profile
   const completeProfile = async () => {
+    // First check if profile actually has data
+    if (!isProfileDataComplete()) {
+      console.error('Profile incomplete - missing data');
+      addBotMessage(
+        "It looks like some sections of your profile are incomplete. Let me help you complete them.",
+        0,
+        500
+      );
+      
+      // Navigate to the first incomplete section
+      if (!formData.workExperience || formData.workExperience.length === 0) {
+        setTimeout(() => navigateToStep(2, 'sidebar'), 1000);
+      } else if (!formData.education || formData.education.length === 0) {
+        setTimeout(() => navigateToStep(3, 'sidebar'), 1000);
+      } else if (!formData.challenges || formData.challenges.length === 0) {
+        setTimeout(() => navigateToStep(6, 'sidebar'), 1000);
+      } else if (!formData.growthAreas || formData.growthAreas.length === 0) {
+        setTimeout(() => navigateToStep(7, 'sidebar'), 1000);
+      }
+      return;
+    }
+    
     setIsCompleted(true);
     addAchievement(ACHIEVEMENTS.COMPLETIONIST);
     
     // Generate course outline
-    const { data } = await supabase.functions.invoke('generate-course-outline', {
+    const { data, error } = await supabase.functions.invoke('generate-course-outline', {
       body: { employee_id: employeeId }
     });
     
-    if (data?.success) {
+    if (error) {
+      console.error('Course outline generation failed:', error);
+      addBotMessage(
+        "I had trouble generating your personalized course outline. Please contact support if this persists.",
+        0,
+        500
+      );
+    } else if (data?.success) {
       setCourseOutline(data.courseOutline);
     }
     
