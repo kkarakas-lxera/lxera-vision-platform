@@ -24,8 +24,9 @@ import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
 import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
 import ProfileDataReview from './chat/ProfileDataReview';
 import MultiSelectCards from './chat/MultiSelectCards';
-import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
+import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -214,6 +215,24 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     formDataRef.current = formData;
   }, [formData]);
   // ----------------------------------------------------------------
+
+  // Saving state
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Debounced save hook
+  const debouncedSaveRef = useRef<NodeJS.Timeout>();
+  
+  const debouncedSave = useCallback(() => {
+    clearTimeout(debouncedSaveRef.current);
+    debouncedSaveRef.current = setTimeout(() => {
+      saveStepData(true);
+    }, 500);
+  }, []);
+  
+  const flushSave = useCallback(async () => {
+    clearTimeout(debouncedSaveRef.current);
+    await saveStepData(true);
+  }, []);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -890,24 +909,28 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   // Auto-save effect
+  // Auto-save on form data changes using debounced save
   useEffect(() => {
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
+    const step = currentStepRef.current;
+    if (step > 0 && step <= STEPS.length) {
+      debouncedSave();
     }
-    
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      const step = currentStepRef.current;
-      if (step > 0 && step <= STEPS.length) {
+  }, [formData, debouncedSave]);
+
+  // Save on page unload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Cancel any pending debounced saves
+      if (debouncedSaveRef.current) {
+        clearTimeout(debouncedSaveRef.current);
+        // Attempt synchronous save (best effort)
         saveStepData(true);
       }
-    }, 2000);
-    
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
     };
-  }, [formData, currentStep]);
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Smart Intent Context
   interface SmartContext {
@@ -2697,7 +2720,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       showTypingAnimation(800);
       
       // CRITICAL: Save current state BEFORE moving to next step
-      await saveStepData(true);
+      await flushSave();
       
       // Mark current step as completed
       updateStepHistory(step, 'completed');
@@ -3905,6 +3928,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     const step = currentStepRef.current;
     if (step === 0 || step > STEPS.length) return;
     
+    // Always work with the freshest data
+    const dataSnapshot = formDataRef.current;
+    
+    setIsSaving(true);
+    
     try {
       const stepName = STEPS[step - 1].name;
       
@@ -3923,7 +3951,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       const currentBuilderState: ProfileBuilderState = {
         step,
         maxStepReached,
-        formData,
+        formData: dataSnapshot,
         personalizedSuggestions, // Save AI-generated suggestions
         lastActivity: new Date().toISOString(),
         // Add component-specific states
@@ -3951,20 +3979,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       switch (stepName) {
         case 'work_experience':
-          console.log('Saving work experience:', formData.workExperience);
-          if (formData.workExperience && formData.workExperience.length > 0) {
+          console.log('Saving work experience:', dataSnapshot.workExperience);
+          if (dataSnapshot.workExperience && dataSnapshot.workExperience.length > 0) {
             await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
-              experiences: formData.workExperience
+              experiences: dataSnapshot.workExperience
             });
           }
           break;
           
         case 'education':
-          console.log('Saving education:', formData.education);
+          console.log('Saving education:', dataSnapshot.education);
           // Only save if we have valid education data
-          if (formData.education && formData.education.length > 0) {
+          if (dataSnapshot.education && dataSnapshot.education.length > 0) {
             // Filter out empty education entries
-            const validEducation = formData.education.filter(edu => 
+            const validEducation = dataSnapshot.education.filter(edu => 
               edu.degree && edu.institution
             );
             
@@ -3978,26 +4006,29 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           
         case 'current_work':
           await EmployeeProfileService.saveSection(employeeId, 'current_work', {
-            projects: formData.currentProjects,
-            teamSize: formData.teamSize,
-            role: formData.roleInTeam
+            projects: dataSnapshot.currentProjects,
+            teamSize: dataSnapshot.teamSize,
+            role: dataSnapshot.roleInTeam
           });
           break;
           
         case 'challenges':
           await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
-            challenges: formData.challenges
+            challenges: dataSnapshot.challenges
           });
           break;
           
         case 'growth':
           await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
-            growthAreas: formData.growthAreas
+            growthAreas: dataSnapshot.growthAreas
           });
           break;
       }
+      
+      setIsSaving(false);
     } catch (error) {
       console.error('Error saving data:', error);
+      setIsSaving(false);
     }
   };
 
@@ -4023,26 +4054,22 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   
   // Complete profile
   const completeProfile = async () => {
-    // First check if profile actually has data
-    if (!isProfileDataComplete()) {
-      console.error('Profile incomplete - missing data');
-      addBotMessage(
-        "It looks like some sections of your profile are incomplete. Let me help you complete them.",
-        0,
-        500
-      );
-      
-      // Navigate to the first incomplete section
-      if (!formData.workExperience || formData.workExperience.length === 0) {
-        setTimeout(() => navigateToStep(2, 'sidebar'), 1000);
-      } else if (!formData.education || formData.education.length === 0) {
-        setTimeout(() => navigateToStep(3, 'sidebar'), 1000);
-      } else if (!formData.challenges || formData.challenges.length === 0) {
-        setTimeout(() => navigateToStep(6, 'sidebar'), 1000);
-      } else if (!formData.growthAreas || formData.growthAreas.length === 0) {
-        setTimeout(() => navigateToStep(7, 'sidebar'), 1000);
-      }
-      return;
+    // Force save before validation
+    await flushSave();
+    
+    // Simple validation - NO NAVIGATION
+    const dataSnapshot = formDataRef.current;
+    const missing = [];
+    
+    if (!dataSnapshot.workExperience?.length) missing.push("work experience");
+    if (!dataSnapshot.education?.length) missing.push("education");
+    if ((dataSnapshot.challenges?.length || 0) < 3) missing.push("3+ challenges");
+    if ((dataSnapshot.growthAreas?.length || 0) < 3) missing.push("3+ growth areas");
+    
+    if (missing.length > 0) {
+      // Just show error - NO NAVIGATION!
+      toast.error(`Please complete: ${missing.join(', ')}`);
+      return; // STOP HERE - no navigation!
     }
     
     // Show completion message
@@ -4058,8 +4085,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     setTimeout(() => {
       addBotMessage(
-        `✅ Your ${formData.challenges.length} professional challenges\n` +
-        `✅ Your ${formData.growthAreas.length} growth areas\n` +
+        `✅ Your ${dataSnapshot.challenges.length} professional challenges\n` +
+        `✅ Your ${dataSnapshot.growthAreas.length} growth areas\n` +
         `✅ Your work experience and skills\n` +
         `✅ Your career development goals`,
         0,
@@ -4397,6 +4424,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Saving indicator */}
+      {isSaving && (
+        <div className="fixed top-4 right-4 z-50">
+          <Badge variant="secondary" className="animate-pulse">
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            Saving...
+          </Badge>
+        </div>
+      )}
+      
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header with Start Fresh button */}
