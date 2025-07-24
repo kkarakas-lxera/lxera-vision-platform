@@ -2326,11 +2326,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       // Store the current teamSize value before updating state
       const currentTeamSize = formData.teamSize;
       setFormData(prev => ({ ...prev, roleInTeam: response }));
-      await saveStepData(true);
+      
+      // Temporarily skip saving to avoid the date error
+      // We'll save when they proceed or add more details
       
       if (isUpdatingInfo && returnToStep !== null) {
         // Show confirmation and return - use the stored teamSize value
         addBotMessage(`Perfect! Your current work info has been updated:\n\nTeam of ${currentTeamSize} as a ${response} ✅`, 0, 500);
+        
+        // Save before returning
+        await saveStepData(true);
         
         setTimeout(() => {
           setIsUpdatingInfo(false);
@@ -2340,17 +2345,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }, 1500);
       } else {
         // Normal flow - ask if they want to add or edit anything
-        addBotMessage(`Got it, you're the ${response}. Is there anything else you'd like to add or update?`, 0, 500);
+        addBotMessage(`Got it, you're an ${response} in your team. Anything else you'd like to add about your current work context?`, 0, 500);
         
+        // Show quick replies immediately without the second message
         setTimeout(() => {
-          addBotMessage(
-            "You can add more details about your experience or proceed to the next step:",
-            0,
-            300
-          );
-        }, 800);
-        
-        setTimeout(() => {
+          console.log('Showing quick replies after role selection');
           showQuickReplies([
             { label: "No, let's proceed →", value: "all_good", variant: 'primary' },
             { label: "Add Work Experience", value: "edit_work" },
@@ -2358,7 +2357,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             { label: "Add Current Projects", value: "edit_projects" },
             { label: "Update Skills", value: "edit_skills" }
           ]);
-        }, 1500);
+        }, 1000);
       }
       return; // Exit after handling role
     }
@@ -2368,6 +2367,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       console.log('Received all_good response in handleCurrentWork');
       console.log('Current step:', currentStepRef.current);
       console.log('Form data:', formData);
+      
+      // Save the step data now that user is ready to proceed
+      await saveStepData(true);
       
       addBotMessage("Perfect! Let's move on to the next step. 🎯", 0, 500);
       setTimeout(() => {
