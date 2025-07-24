@@ -245,6 +245,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const loadChatHistory = async () => {
     try {
       const recentMessages = await ChatMessageService.getRecentMessages(employeeId, 10);
+      console.log('Loaded chat history:', recentMessages);
       
       if (recentMessages.length > 0) {
         // Check if there are more messages
@@ -312,24 +313,28 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           return; // Exit early - don't initialize chat or show welcome messages
         } else {
           // Check if we're at step 0 but have started (e.g., saw the welcome message)
-          const hasStarted = recentMessages.some(msg => 
-            msg.content?.includes('How does that sound?') ||
-            msg.content?.includes("Let's start!")
+          const hasWelcomeMessage = recentMessages.some(msg => 
+            msg.content?.includes("Hey there! 👋 I'm Lexie") ||
+            msg.content?.includes("I'm Lexie, your AI profile assistant")
           );
           
-          if (hasStarted) {
-            // User has seen welcome but hasn't started step 1 yet
-            const lastBotMessage = recentMessages.filter(msg => msg.message_type === 'bot').pop();
-            if (lastBotMessage?.content?.includes('How does that sound?')) {
-              // Recreate the initial quick replies
-              setTimeout(() => {
-                showQuickReplies([
-                  { label: "Let's start! 🚀", value: "start", points: 50, variant: 'primary' },
-                  { label: "Tell me more", value: "more_info" },
-                  { label: "What rewards?", value: "rewards" }
-                ]);
-              }, 500);
-            }
+          const hasQuickReplyInteraction = recentMessages.some(msg => 
+            msg.content?.includes("Let's start!") ||
+            msg.content?.includes("Tell me more") ||
+            msg.content?.includes("What rewards?")
+          );
+          
+          if (hasWelcomeMessage && !hasQuickReplyInteraction) {
+            console.log('User has seen welcome but not interacted, showing quick replies');
+            // User has seen welcome but hasn't clicked any quick replies yet
+            // Always show quick replies in this case
+            setTimeout(() => {
+              showQuickReplies([
+                { label: "Let's start! 🚀", value: "start", points: 50, variant: 'primary' },
+                { label: "Tell me more", value: "more_info" },
+                { label: "What rewards?", value: "rewards" }
+              ]);
+            }, 500);
             return; // Exit early - don't show duplicate welcome
           }
           
@@ -3459,6 +3464,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }
       });
       
+      console.log('generate-profile-suggestions response:', { data, error });
+      
       // Update to finalizing stage
       setAiGenerationStage('finalizing');
       setMessages(prev => prev.map(m => 
@@ -3467,7 +3474,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           : m
       ));
       
+      if (error) {
+        throw new Error(`Edge function error: ${error.message || JSON.stringify(error)}`);
+      }
+      
       if (data?.challenges && data?.growthAreas) {
+        console.log('Setting personalized suggestions:', {
+          challenges: data.challenges.length,
+          growthAreas: data.growthAreas.length
+        });
         setPersonalizedSuggestions({
           challenges: data.challenges,
           growthAreas: data.growthAreas
@@ -3495,50 +3510,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       setMessages(prev => prev.filter(m => m.id !== 'ai-generation-progress'));
       setIsGeneratingAI(false);
       
-      // Show error and continue
+      // Show critical error - do not continue
       addBotMessage(
-        "I encountered an error while generating personalized suggestions. Let's continue with your profile.",
+        "I'm having trouble generating personalized suggestions. This is required to continue. Please refresh the page and try again, or contact support if the issue persists.",
         0,
         500
       );
       
-      setTimeout(() => {
-        const step = currentStepRef.current;
-        if (step === 6) {
-          showChallenges(); // This will skip to next step
-        } else if (step === 7) {
-          showGrowthAreas(); // This will complete profile
-        }
-      }, 1000);
+      // Do not proceed - the system requires AI-generated suggestions
     }
   };
 
   const showChallenges = () => {
-    if (!personalizedSuggestions?.challenges) {
-      console.error('No personalized suggestions available');
-      
-      // Provide fallback challenges
-      const fallbackChallenges = [
-        "Balancing technical expertise with strategic leadership",
-        "Managing cross-functional team dynamics",
-        "Staying current with rapidly evolving financial technologies",
-        "Communicating complex financial concepts to non-financial stakeholders",
-        "Optimizing processes while maintaining compliance",
-        "Building a data-driven culture within the finance team"
-      ];
+    if (!personalizedSuggestions?.challenges || personalizedSuggestions.challenges.length === 0) {
+      console.error('No personalized suggestions available - this is a critical error');
       
       addBotMessage(
-        "Based on your role as a Financial Consultant and Team Lead, here are some common challenges. Select any that resonate with you:",
+        "I'm having trouble generating personalized challenges. Please refresh the page and try again.",
         0,
         500
       );
-      
-      setTimeout(() => {
-        showQuickReplies([
-          ...fallbackChallenges.slice(0, 4).map(c => ({ label: c, value: c })),
-          { label: "Continue →", value: "continue", variant: 'primary' }
-        ]);
-      }, 1000);
       return;
     }
     
@@ -3558,31 +3549,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const showGrowthAreas = () => {
-    if (!personalizedSuggestions?.growthAreas) {
-      console.error('No personalized growth areas available');
-      
-      // Provide fallback growth areas
-      const fallbackGrowthAreas = [
-        "Advanced Financial Modeling & Analytics",
-        "AI & Machine Learning for Finance",
-        "Strategic Leadership Development",
-        "Digital Transformation in Finance",
-        "Risk Management & Compliance Innovation",
-        "Data Science for Financial Decision Making"
-      ];
+    if (!personalizedSuggestions?.growthAreas || personalizedSuggestions.growthAreas.length === 0) {
+      console.error('No personalized growth areas available - this is a critical error');
       
       addBotMessage(
-        "Based on your background, here are some growth opportunities to consider. Pick 2-3 that excite you most:",
+        "I'm having trouble generating personalized growth areas. Please refresh the page and try again.",
         0,
         500
       );
-      
-      setTimeout(() => {
-        showQuickReplies([
-          ...fallbackGrowthAreas.slice(0, 5).map(a => ({ label: a, value: a, variant: 'success' as const })),
-          { label: "Complete Profile →", value: "complete", variant: 'primary' }
-        ]);
-      }, 1500);
       return;
     }
     

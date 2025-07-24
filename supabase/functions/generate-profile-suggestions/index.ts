@@ -26,6 +26,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     console.log(`Generating suggestions for employee: ${employee_id}`)
+    console.log(`Step data received:`, JSON.stringify(step_data))
 
     // Get employee data with all relevant information
     const { data: employee, error: empError } = await supabase
@@ -57,10 +58,25 @@ serve(async (req) => {
       .eq('employee_id', employee_id)
       .in('section_name', ['work_experience', 'education', 'skills'])
 
+    console.log('Profile sections:', sections)
+    
     const workExperience = sections?.find(s => s.section_name === 'work_experience')?.data || {}
     const education = sections?.find(s => s.section_name === 'education')?.data || {}
     const skills = employee.st_employee_skills_profile?.extracted_skills || []
 
+    console.log('Context for AI:', {
+      position: employee.st_company_positions?.position_title || employee.position || 'Unknown',
+      department: employee.st_company_positions?.department || employee.department || 'Unknown',
+      currentProjects: step_data?.currentProjects || [],
+      teamSize: step_data?.teamSize || 'Unknown',
+      roleInTeam: step_data?.roleInTeam || 'Unknown',
+      workExperience: workExperience.experiences || workExperience.experience || [],
+      education: education.education || [],
+      skills: skills.map((s: any) => s.skill_name).slice(0, 20), // Top 20 skills
+      yearsOfExperience: calculateYearsOfExperience(workExperience),
+      skillsMatchScore: employee.st_employee_skills_profile?.skills_match_score || 0
+    })
+    
     // Prepare context for AI
     const context = {
       position: employee.st_company_positions?.position_title || employee.position || 'Unknown',
@@ -146,6 +162,8 @@ Make them actionable, specific, and relevant. Avoid generic suggestions.`
 
     const aiResponse = await response.json()
     const suggestions = JSON.parse(aiResponse.choices[0].message.content)
+    
+    console.log('Generated suggestions:', { challenges: suggestions.challenges?.length || 0, growthAreas: suggestions.growthAreas?.length || 0 })
 
     // Store suggestions in a temporary table or return directly
     const { error: storeError } = await supabase
