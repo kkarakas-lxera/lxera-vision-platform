@@ -16,7 +16,7 @@ interface IntentContext {
 }
 
 interface AnalyzedIntent {
-  type: 'provide_info' | 'correction' | 'navigation' | 'bulk_operation' | 'question' | 'confirmation' | 'add_item' | 'remove_item' | 'edit_item' | 'review';
+  type: 'provide_info' | 'correction' | 'navigation' | 'bulk_operation' | 'question' | 'confirmation' | 'add_item' | 'remove_item' | 'edit_item' | 'review' | 'completion';
   confidence: number;
   entities: {
     field?: string;
@@ -25,7 +25,7 @@ interface AnalyzedIntent {
     index?: number;
   };
   suggestedAction: {
-    type: 'update_field' | 'show_ui' | 'navigate' | 'confirm' | 'ask_clarification';
+    type: 'update_field' | 'show_ui' | 'navigate' | 'confirm' | 'ask_clarification' | 'proceed_next';
     params?: any;
   };
   naturalResponse: string;
@@ -72,6 +72,7 @@ Intent types:
 - remove_item: User wants to remove something
 - edit_item: User wants to edit a specific item
 - review: User wants to see what they've entered
+- completion: User indicates they're done with current input ("no", "none", "nothing", "that's all", "no thanks")
 
 Return JSON in this exact format:
 {
@@ -103,7 +104,9 @@ Examples of expected analysis:
 - "Next step" → navigation with target: next_step
 - "Let's go to Step 6" → navigation with targetStep: 6, target: challenges
 - "What's the next step?" → question with subject: navigation
-- "Continue" → navigation with target: continue`;
+- "Continue" → navigation with target: continue
+- "no" / "no thanks" / "nothing" → completion with naturalResponse: "Great! Let's move on to the next step."
+- "none" / "that's all" → completion with suggestedAction: proceed_next`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

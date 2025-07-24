@@ -24,6 +24,7 @@ import EducationForm from './chat/EducationForm';
 import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
 import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
 import ProfileDataReview from './chat/ProfileDataReview';
+import MultiSelectCards from './chat/MultiSelectCards';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -83,7 +84,7 @@ interface FormData {
     title: string;
     company: string;
     duration: string;
-    description: string;
+    description?: string;
   }>;
   education: Array<{
     degree: string;
@@ -878,7 +879,9 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [smartContext, setSmartContext] = useState<SmartContext>({
     currentStep: 0,
     recentInteractions: [],
-    formData: formData
+    formData: formData,
+    activeUI: undefined,
+    currentFocus: undefined
   });
 
   // Update smart context when relevant state changes
@@ -889,6 +892,15 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       formData: formData
     }));
   }, [currentStep, formData]);
+
+  // Helper functions for updating smart context
+  const setActiveUI = (uiType: string) => {
+    setSmartContext(prev => ({ ...prev, activeUI: uiType }));
+  };
+
+  const setCurrentInputField = (fieldName: string) => {
+    setSmartContext(prev => ({ ...prev, currentFocus: fieldName }));
+  };
 
   // Smart Intent Engine
   const analyzeIntent = async (input: string) => {
@@ -969,6 +981,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       case 'confirmation':
         await handleConfirmation(entities);
+        break;
+      
+      case 'completion':
+        // User indicated they're done with current input - move to next step
+        if (suggestedAction?.type === 'proceed_next') {
+          setTimeout(() => moveToNextStep(), 1000);
+        }
         break;
       
       default:
@@ -1291,6 +1310,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       switch (action.field) {
         case 'company':
           addBotMessage("And which company is/was this with?", 0, 300);
+          setTimeout(() => {
+            showQuickReplies([
+              { label: "Current company", value: "current_company" },
+              { label: "Previous company", value: "previous_company" },
+              { label: "Self-employed", value: "self_employed" },
+              { label: "Type company name", value: "type_company" }
+            ]);
+          }, 500);
           break;
         case 'duration':
           addBotMessage("How long have you been in this role?", 0, 300);
@@ -2071,6 +2098,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       if (!currentWorkExperience.title) {
         setCurrentWorkExperience({ title: response });
         addBotMessage("And which company is/was this with?", 0);
+        setTimeout(() => {
+          showQuickReplies([
+            { label: "Current company", value: "current_company" },
+            { label: "Previous company", value: "previous_company" },
+            { label: "Self-employed", value: "self_employed" },
+            { label: "Type company name", value: "type_company" }
+          ]);
+        }, 500);
       } else if (!currentWorkExperience.company) {
         setCurrentWorkExperience(prev => ({ ...prev, company: response }));
         addBotMessage("How long have you been in this role?", 0);
@@ -2193,6 +2228,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         education: [...prev.education, newEducation]
       }));
       addBotMessage("Which institution did you attend?", 0);
+      setTimeout(() => {
+        showQuickReplies([
+          { label: "University", value: "university" },
+          { label: "College", value: "college" },
+          { label: "Online Program", value: "online" },
+          { label: "Type institution name", value: "type_institution" }
+        ]);
+      }, 500);
     } else if (!formData.education[formData.education.length - 1].institution) {
       // Update institution
       setFormData(prev => {
@@ -2201,6 +2244,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         return { ...prev, education: updated };
       });
       addBotMessage("What year did you graduate?", 0);
+      const currentYear = new Date().getFullYear();
+      setTimeout(() => {
+        showQuickReplies([
+          { label: `${currentYear}`, value: `${currentYear}` },
+          { label: `${currentYear - 1}`, value: `${currentYear - 1}` },
+          { label: `${currentYear - 2}`, value: `${currentYear - 2}` },
+          { label: "Earlier", value: "earlier" },
+          { label: "Still studying", value: "in_progress" }
+        ]);
+      }, 500);
     } else {
       // Update year and save
       setFormData(prev => {
@@ -2367,6 +2420,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const handleChallenges = async (response: string) => {
+    // Handle "no" response after challenge selection
+    if (response === 'no' || response.toLowerCase() === 'no, thanks' || response.toLowerCase() === 'none') {
+      addBotMessage("Great! Let's move on to explore your growth opportunities.", 0, 300);
+      setTimeout(() => moveToNextStep(), 800);
+      return;
+    }
+    
     if (response === 'update_challenges') {
       // Store current step if we're updating from a different step
       if (currentStepRef.current !== 6) {
@@ -3641,11 +3701,37 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     );
     
     setTimeout(() => {
-      const challenges = suggestions.challenges.slice(0, 4);
-      showQuickReplies([
-        ...challenges.map(c => ({ label: c, value: c })),
-        { label: "Continue →", value: "continue", variant: 'primary' }
-      ]);
+      const messageId = 'challenges-cards-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: messageId,
+        type: 'system',
+        content: (
+          <MultiSelectCards
+            items={suggestions.challenges}
+            selectedItems={formData.challenges || []}
+            onSelectionChange={(selected) => {
+              setFormData(prev => ({ ...prev, challenges: selected }));
+            }}
+            onComplete={async () => {
+              await saveStepData(true);
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              addBotMessage(`Got it, I've noted that you're facing ${formData.challenges.length} challenge${formData.challenges.length > 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
+              
+              setTimeout(() => {
+                showQuickReplies([
+                  { label: "No, let's continue", value: "no", variant: 'primary' },
+                  { label: "Add more details", value: "add_details" }
+                ]);
+              }, 1000);
+            }}
+            title="Professional Challenges"
+            subtitle="Select challenges that resonate with your current role"
+            minSelection={1}
+            itemsPerPage={3}
+          />
+        ),
+        timestamp: new Date()
+      }]);
     }, 1500);
   };
 
@@ -3671,11 +3757,37 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     );
     
     setTimeout(() => {
-      const areas = suggestions.growthAreas.slice(0, 5);
-      showQuickReplies([
-        ...areas.map(a => ({ label: a, value: a, variant: 'success' as const })),
-        { label: "Complete Profile →", value: "complete", variant: 'primary' }
-      ]);
+      const messageId = 'growth-cards-' + Date.now();
+      setMessages(prev => [...prev, {
+        id: messageId,
+        type: 'system',
+        content: (
+          <MultiSelectCards
+            items={suggestions.growthAreas}
+            selectedItems={formData.growthAreas || []}
+            onSelectionChange={(selected) => {
+              setFormData(prev => ({ ...prev, growthAreas: selected }));
+            }}
+            onComplete={async () => {
+              await saveStepData(true);
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+              
+              if (formData.growthAreas && formData.growthAreas.length > 0) {
+                addBotMessage(`Excellent! You've identified ${formData.growthAreas.length} growth area${formData.growthAreas.length > 1 ? 's' : ''}. Let's complete your profile!`, 0, 500);
+                setTimeout(() => {
+                  completeProfile();
+                }, 1500);
+              }
+            }}
+            title="Growth Opportunities"
+            subtitle="Select areas where you'd like to develop and grow professionally"
+            minSelection={2}
+            maxSelection={3}
+            itemsPerPage={3}
+          />
+        ),
+        timestamp: new Date()
+      }]);
     }, 1500);
   };
 
@@ -3820,38 +3932,50 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       return;
     }
     
-    // Show profile summary first
-    addBotMessage("Here are the personalized challenges you've identified. Please let me know if you'd like to add more details or make any changes.", 0, 500);
+    // Show completion message
+    addBotMessage("🎉 Congratulations! You've completed your profile!", 0, 500);
     
     setTimeout(() => {
-      showProfileSummary();
-    }, 1000);
+      addBotMessage("Amazing work! You've successfully built your comprehensive professional profile.", 0, 500);
+    }, 1500);
     
-    setIsCompleted(true);
-    addAchievement(ACHIEVEMENTS.COMPLETIONIST);
+    setTimeout(() => {
+      addBotMessage("I'm now going to create a personalized learning pathway just for you based on:", 0, 500);
+    }, 2500);
     
-    // Generate course outline
-    const { data, error } = await supabase.functions.invoke('generate-course-outline', {
-      body: { employee_id: employeeId }
-    });
-    
-    if (error) {
-      console.error('Course outline generation failed:', error);
+    setTimeout(() => {
       addBotMessage(
-        "I had trouble generating your personalized course outline. Please contact support if this persists.",
+        `✅ Your ${formData.challenges.length} professional challenges\n` +
+        `✅ Your ${formData.growthAreas.length} growth areas\n` +
+        `✅ Your work experience and skills\n` +
+        `✅ Your career development goals`,
         0,
         500
       );
-    } else if (data?.success) {
-      setCourseOutline(data.courseOutline);
-    }
+    }, 3500);
     
-    // Mark profile as complete
-    await EmployeeProfileService.completeProfile(employeeId);
-    
+    // Award achievement
     setTimeout(() => {
-      onComplete();
-    }, 3000);
+      addAchievement(ACHIEVEMENTS.COMPLETIONIST);
+    }, 4000);
+    
+    // Navigate to course generation view
+    setTimeout(() => {
+      addBotMessage("Let me take you to your personalized course creation center...", 0, 500);
+      
+      // Mark profile as completed and trigger navigation
+      setTimeout(async () => {
+        await EmployeeProfileService.completeProfile(employeeId);
+        setIsCompleted(true);
+        
+        // Save navigation state to show course generation
+        localStorage.setItem('showCourseGeneration', 'true');
+        localStorage.setItem('profileJustCompleted', 'true');
+        
+        // Navigate to learner dashboard
+        window.location.href = '/learner/dashboard';
+      }, 1500);
+    }, 5000);
   };
 
   const explainRewards = () => {

@@ -24,6 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
+import CourseGenerationWelcome from '@/components/learner/CourseGenerationWelcome';
 
 interface CourseAssignment {
   id: string;
@@ -70,6 +71,7 @@ export default function LearnerDashboard() {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showCourseGeneration, setShowCourseGeneration] = useState(false);
   
   // Pull-to-refresh functionality
   const pullToRefresh = usePullToRefresh({
@@ -83,6 +85,17 @@ export default function LearnerDashboard() {
   useEffect(() => {
     if (userProfile) {
       fetchLearnerData();
+      
+      // Check if coming from profile completion
+      const shouldShowCourseGen = localStorage.getItem('showCourseGeneration');
+      const profileJustCompleted = localStorage.getItem('profileJustCompleted');
+      
+      if (shouldShowCourseGen === 'true' && profileJustCompleted === 'true') {
+        setShowCourseGeneration(true);
+        // Clear the flags
+        localStorage.removeItem('showCourseGeneration');
+        localStorage.removeItem('profileJustCompleted');
+      }
     }
   }, [userProfile]);
 
@@ -308,6 +321,17 @@ export default function LearnerDashboard() {
       <ChatProfileBuilder
         employeeId={profileCompletion.employeeId}
         onComplete={handleProfileComplete}
+      />
+    );
+  }
+
+  // Show course generation welcome after profile completion
+  if (showCourseGeneration && profileCompletion.employeeId) {
+    return (
+      <CourseGenerationWelcome
+        employeeId={profileCompletion.employeeId}
+        employeeName={userProfile?.full_name || 'Learner'}
+        onClose={() => setShowCourseGeneration(false)}
       />
     );
   }

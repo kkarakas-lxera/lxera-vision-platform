@@ -19,6 +19,7 @@ serve(async (req) => {
   const requestId = crypto.randomUUID()
   const sessionId = crypto.randomUUID() // For tracking this specific analysis session
   let employee_id: string | undefined // Declare at function scope
+  let company_id: string | undefined // Declare at function scope for error logging
   
   try {
     const body = await req.json()
@@ -123,6 +124,9 @@ serve(async (req) => {
     if (empError || !employee) {
       throw new Error('Failed to fetch employee information')
     }
+    
+    // Store company_id for error logging
+    company_id = employee.company_id
 
     // Get analysis template if requested
     let analysisTemplate = null
@@ -536,6 +540,7 @@ serve(async (req) => {
       await supabase
         .from('st_llm_usage_metrics')
         .insert({
+          company_id: company_id || null, // Use company_id if available
           service_type: 'cv_analysis',
           model_used: 'gpt-4-turbo-preview',
           input_tokens: 0,

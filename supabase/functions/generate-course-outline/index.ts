@@ -402,10 +402,18 @@ CRITICAL: This is a REWARD for completing their profile. Make it incredibly valu
       .insert({
         plan_id: globalThis.crypto.randomUUID(),
         employee_id,
+        company_id: employee.company_id, // Add company_id from employee record
         employee_name: context.employee_name,
         session_id: `reward-${requestId}`,
         course_structure: enhancedCourseOutline,
-        prioritized_gaps: context.critical_gaps || {},
+        prioritized_gaps: {
+          skills_gaps: employee.st_employee_skills_profile?.gap_analysis_data || [],
+          required_skills_missing: employee.st_company_positions?.required_skills?.filter((skill: any) => 
+            !profileAnalysis.skills.some((s: any) => 
+              (s.skill_name || s.name || s).toLowerCase() === (skill.skill || skill).toLowerCase()
+            )
+          ) || []
+        },
         research_strategy: {
           type: 'outline_only',
           generated_for: 'profile_completion_reward'
@@ -418,8 +426,8 @@ CRITICAL: This is a REWARD for completing their profile. Make it incredibly valu
         employee_profile: context,
         planning_agent_version: 'outline-reward-v1.0',
         total_modules: enhancedCourseOutline.modules.length,
-        course_duration_weeks: enhancedCourseOutline.estimated_weeks || 4,
-        course_title: enhancedCourseOutline.title,
+        course_duration_weeks: enhancedCourseOutline.total_duration_weeks || 4,
+        course_title: enhancedCourseOutline.course_title,
         status: 'completed',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
