@@ -334,16 +334,47 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setCurrentStep(lastStep);
           setMaxStepReached(prev => Math.max(prev, lastStep));
           
-          // Check if we need to restore UI for challenges or growth areas
-          if ((lastStep === 6 && (!formData.challenges || formData.challenges.length < 3)) ||
-              (lastStep === 7 && (!formData.growthAreas || formData.growthAreas.length < 3))) {
+          // Load saved state and profile sections
+          const savedState = await ProfileBuilderStateService.loadState(employeeId);
+          if (savedState) {
+            // Load form data from saved state
+            if (savedState.formData) {
+              setFormData(savedState.formData);
+              formDataRef.current = savedState.formData;
+            }
             
-            // Load saved state which includes personalizedSuggestions
-            const savedState = await ProfileBuilderStateService.loadState(employeeId);
-            if (savedState?.personalizedSuggestions) {
+            // Load personalized suggestions
+            if (savedState.personalizedSuggestions) {
               setPersonalizedSuggestions(savedState.personalizedSuggestions);
-              
-              // Restore the UI after a short delay
+            }
+          }
+          
+          // Load challenges and growth areas from database sections
+          const [dailyTasksData, toolsTechData] = await Promise.all([
+            EmployeeProfileService.loadSection(employeeId, 'daily_tasks'),
+            EmployeeProfileService.loadSection(employeeId, 'tools_technologies')
+          ]);
+          
+          // Update formData with loaded sections
+          if (dailyTasksData?.data?.challenges || toolsTechData?.data?.growthAreas) {
+            setFormData(prev => {
+              const updated = {
+                ...prev,
+                challenges: dailyTasksData?.data?.challenges || prev.challenges,
+                growthAreas: toolsTechData?.data?.growthAreas || prev.growthAreas
+              };
+              formDataRef.current = updated;
+              return updated;
+            });
+          }
+          
+          // Check if we need to restore UI for challenges or growth areas
+          const currentFormData = formDataRef.current;
+          if ((lastStep === 6 && (!currentFormData.challenges || currentFormData.challenges.length < 3)) ||
+              (lastStep === 7 && (!currentFormData.growthAreas || currentFormData.growthAreas.length < 3))) {
+            
+            // Restore the UI after a short delay if we have personalized suggestions
+            if (savedState?.personalizedSuggestions) {
               setTimeout(() => {
                 if (lastStep === 6 && savedState.personalizedSuggestions.challenges) {
                   console.log('Restoring challenges UI on page load');
@@ -2867,6 +2898,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Restore form data for the step
         if (savedState.formData) {
           setFormData(savedState.formData);
+          formDataRef.current = savedState.formData;
         }
         
         // Restore CV sections state
@@ -2877,6 +2909,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Restore personalized suggestions
         if (savedState.personalizedSuggestions) {
           setPersonalizedSuggestions(savedState.personalizedSuggestions);
+        }
+        
+        // Load challenges and growth areas from database sections
+        const [dailyTasksData, toolsTechData] = await Promise.all([
+          EmployeeProfileService.loadSection(employeeId, 'daily_tasks'),
+          EmployeeProfileService.loadSection(employeeId, 'tools_technologies')
+        ]);
+        
+        // Update formData with loaded sections
+        if (dailyTasksData?.data?.challenges || toolsTechData?.data?.growthAreas) {
+          setFormData(prev => {
+            const updated = {
+              ...prev,
+              challenges: dailyTasksData?.data?.challenges || prev.challenges,
+              growthAreas: toolsTechData?.data?.growthAreas || prev.growthAreas
+            };
+            formDataRef.current = updated;
+            return updated;
+          });
         }
         
         // Restore step history
@@ -3928,6 +3979,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     const step = currentStepRef.current;
     if (step === 0 || step > STEPS.length) return;
     
+    console.log('saveStepData called:', {
+      employeeId,
+      step,
+      isAutoSave,
+      hasEmployeeId: !!employeeId
+    });
+    
+    if (!employeeId) {
+      console.error('Cannot save: No employee ID!');
+      setIsSaving(false);
+      return;
+    }
+    
     // Always work with the freshest data
     const dataSnapshot = formDataRef.current;
     
@@ -3977,14 +4041,51 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       await ProfileBuilderStateService.saveState(employeeId, currentBuilderState);
       
+      // Always save all sections that have data, not just the current step
+      // This ensures data isn't lost when navigating between steps
+      
+      // Save work experience if exists
+      if (dataSnapshot.workExperience && dataSnapshot.workExperience.length > 0) {
+        await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
+          experiences: dataSnapshot.workExperience
+        });
+      }
+      
+      // Save education if exists
+      if (dataSnapshot.education && dataSnapshot.education.length > 0) {
+        await EmployeeProfileService.saveSection(employeeId, 'education', {
+          entries: dataSnapshot.education
+        });
+      }
+      
+      // Save current work if exists
+      if (dataSnapshot.teamSize && dataSnapshot.roleInTeam) {
+        await EmployeeProfileService.saveSection(employeeId, 'current_work', {
+          teamSize: dataSnapshot.teamSize,
+          role: dataSnapshot.roleInTeam
+        });
+      }
+      
+      // Save challenges if exists
+      if (dataSnapshot.challenges && dataSnapshot.challenges.length > 0) {
+        console.log('Saving challenges:', dataSnapshot.challenges);
+        await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
+          challenges: dataSnapshot.challenges
+        });
+      }
+      
+      // Save growth areas if exists
+      if (dataSnapshot.growthAreas && dataSnapshot.growthAreas.length > 0) {
+        console.log('Saving growth areas:', dataSnapshot.growthAreas);
+        await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
+          growthAreas: dataSnapshot.growthAreas
+        });
+      }
+      
+      // Additional step-specific saves (for backward compatibility)
       switch (stepName) {
         case 'work_experience':
-          console.log('Saving work experience:', dataSnapshot.workExperience);
-          if (dataSnapshot.workExperience && dataSnapshot.workExperience.length > 0) {
-            await EmployeeProfileService.saveSection(employeeId, 'work_experience', {
-              experiences: dataSnapshot.workExperience
-            });
-          }
+          // Already saved above
           break;
           
         case 'education':
@@ -4013,14 +4114,26 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           break;
           
         case 'challenges':
+          console.log('Saving challenges step data:', {
+            challenges: dataSnapshot.challenges,
+            formDataChallenges: formData.challenges,
+            step: step,
+            stepName: stepName
+          });
           await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
-            challenges: dataSnapshot.challenges
+            challenges: dataSnapshot.challenges || []
           });
           break;
           
         case 'growth':
+          console.log('Saving growth areas step data:', {
+            growthAreas: dataSnapshot.growthAreas,
+            formDataGrowthAreas: formData.growthAreas,
+            step: step,
+            stepName: stepName
+          });
           await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
-            growthAreas: dataSnapshot.growthAreas
+            growthAreas: dataSnapshot.growthAreas || []
           });
           break;
       }

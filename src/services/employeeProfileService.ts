@@ -113,6 +113,18 @@ export class EmployeeProfileService {
     await this.updateProfileSection(employeeId, sectionName, data, true);
   }
 
+  static async loadSection(employeeId: string, sectionName: ProfileSection['name']): Promise<{ data: any } | null> {
+    const { data, error } = await supabase
+      .from('employee_profile_sections')
+      .select('data')
+      .eq('employee_id', employeeId)
+      .eq('section_name', sectionName)
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  }
+
   static async completeProfile(employeeId: string): Promise<void> {
     // Update employee profile_complete flag
     const { error: employeeError } = await supabase
