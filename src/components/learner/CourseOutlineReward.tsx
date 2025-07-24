@@ -41,14 +41,21 @@ const difficultyColors = {
   Advanced: 'bg-red-100 text-red-800'
 };
 
-const CourseOutlineReward: React.FC<CourseOutlineRewardProps> = ({
+interface ExtendedCourseOutlineRewardProps extends CourseOutlineRewardProps {
+  onStartLearning?: () => void;
+  onSkip?: () => void;
+}
+
+const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
   courseOutline,
   employeeName = 'there',
   loading = false,
   error = null,
   onStartCourse,
   onViewFullCourse,
-  onRetryGeneration
+  onRetryGeneration,
+  onStartLearning,
+  onSkip
 }) => {
   // Loading state
   if (loading) {
@@ -330,35 +337,53 @@ const CourseOutlineReward: React.FC<CourseOutlineRewardProps> = ({
 
               {/* Call to Action */}
               <div className="text-center space-y-4 pt-6 border-t border-gray-200">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mb-4">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    Ready to transform your career?
+                  </h3>
+                  <p className="text-sm text-blue-800">
+                    This personalized course is designed to bridge your skill gaps and accelerate your professional growth. 
+                    Master the skills that matter most for your role and unlock new opportunities.
+                  </p>
+                </div>
+                
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  {onStartCourse && (
+                  {(onStartCourse || onStartLearning) && (
                     <Button 
-                      onClick={onStartCourse}
+                      onClick={onStartCourse || onStartLearning}
                       size="lg"
                       className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
                     >
-                      <PlayCircle className="h-5 w-5 mr-2" />
-                      Start Learning
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Yes, I want to grow my skills
                     </Button>
                   )}
-                  {onViewFullCourse && (
+                  {(onViewFullCourse || onSkip) && (
                     <Button 
-                      onClick={onViewFullCourse}
+                      onClick={onViewFullCourse || onSkip}
                       variant="outline"
                       size="lg"
-                      className="border-green-600 text-green-600 hover:bg-green-50 px-6 py-3"
+                      className="border-gray-600 text-gray-600 hover:bg-gray-50 px-6 py-3"
                     >
-                      View Full Course
-                      <ChevronRight className="h-4 w-4 ml-2" />
+                      <ChevronRight className="h-4 w-4 mr-2" />
+                      Help us improve this course
                     </Button>
                   )}
                 </div>
                 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Next Steps:</strong> Your course will be available in your learning dashboard. 
-                    You'll receive a notification once it's ready to start.
-                  </p>
+                <div className="flex items-center justify-center gap-4 text-xs text-gray-600 mt-6">
+                  <div className="flex items-center gap-1">
+                    <Target className="h-3 w-3" />
+                    <span>Skills aligned to your goals</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>Advance your career</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Award className="h-3 w-3" />
+                    <span>Earn recognition</span>
+                  </div>
                 </div>
               </div>
             </CardContent>

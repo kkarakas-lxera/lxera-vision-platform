@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Flame, BookOpen, Clock, Award, TrendingUp, Target, PlayCircle, Settings, RefreshCw } from 'lucide-react';
+import { ArrowRight, Flame, BookOpen, Clock, Award, TrendingUp, Target, PlayCircle, Settings, RefreshCw, CheckCircle, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import WelcomeOnboarding from '@/components/learner/WelcomeOnboarding';
 import MobileLearningProgress from '@/components/mobile/learner/MobileLearningProgress';
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
 import CourseGenerationWelcome from '@/components/learner/CourseGenerationWelcome';
+import CourseOutlineReward from '@/components/learner/CourseOutlineReward';
 
 interface CourseAssignment {
   id: string;
@@ -58,6 +59,14 @@ interface ActivityItem {
   };
 }
 
+interface CourseOutline {
+  course_title: string;
+  description: string;
+  total_duration_weeks: number;
+  total_duration_hours: number;
+  modules: any[];
+}
+
 export default function LearnerDashboard() {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
@@ -72,6 +81,8 @@ export default function LearnerDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showCourseGeneration, setShowCourseGeneration] = useState(false);
+  const [courseOutline, setCourseOutline] = useState<CourseOutline | null>(null);
+  const [showCourseOutline, setShowCourseOutline] = useState(false);
   
   // Pull-to-refresh functionality
   const pullToRefresh = usePullToRefresh({
@@ -130,6 +141,21 @@ export default function LearnerDashboard() {
         toast.error('Employee profile not found');
         setLoading(false);
         return;
+      }
+
+      // Check for existing course outline
+      const { data: courseIntention } = await supabase
+        .from('employee_course_intentions')
+        .select('course_outline')
+        .eq('employee_id', employee.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      let hasExistingCourseOutline = false;
+      if (courseIntention?.course_outline) {
+        setCourseOutline(courseIntention.course_outline);
+        hasExistingCourseOutline = true;
       }
 
       // Update streak if needed
@@ -191,7 +217,13 @@ export default function LearnerDashboard() {
       
       const hasStartedAnyCourse = finalAssignments.some(a => a.started_at !== null);
       setIsFirstTime(!hasStartedAnyCourse);
-      setShowWelcome(!hasStartedAnyCourse);
+      // Only show welcome if no course outline exists
+      setShowWelcome(!hasStartedAnyCourse && !hasExistingCourseOutline);
+      
+      // Show course outline if they haven't started any courses yet
+      if (!hasStartedAnyCourse && hasExistingCourseOutline) {
+        setShowCourseOutline(true);
+      }
 
       // Set current course (most recently accessed in-progress course)
       const inProgressCourses = finalAssignments.filter(a => a.status === 'in_progress');
@@ -332,6 +364,57 @@ export default function LearnerDashboard() {
         employeeId={profileCompletion.employeeId}
         employeeName={userProfile?.full_name || 'Learner'}
         onClose={() => setShowCourseGeneration(false)}
+      />
+    );
+  }
+
+  // Show course outline preview if available and user hasn't started any courses
+  if (showCourseOutline && courseOutline && profileCompletion.employeeId) {
+    return (
+      <CourseOutlineReward
+        courseOutline={{
+          title: courseOutline.course_title,
+          description: courseOutline.description,
+          totalDuration: `${courseOutline.total_duration_hours} hours`,
+          estimatedWeeks: courseOutline.total_duration_weeks,
+          difficultyLevel: 'Intermediate' as const,
+          certificateAvailable: true,
+          learningObjectives: [],
+          skillsToGain: [],
+          modules: courseOutline.modules.map((m: any, idx: number) => ({
+            id: m.module_id ? `M${String(m.module_id).padStart(2, '0')}` : `M${String(idx + 1).padStart(2, '0')}`,
+            name: m.module_name || m.name || `Module ${idx + 1}`,
+            description: Array.isArray(m.learning_objectives) 
+              ? m.learning_objectives.join(' ') 
+              : (m.description || ''),
+            duration: m.duration_hours ? `${m.duration_hours} hours` : '3 hours',
+            topics: m.key_topics || m.topics || [],
+            difficulty: m.difficulty_level || m.difficulty || 'intermediate'
+          }))
+        }}
+        employeeName={userProfile?.full_name || 'Learner'}
+        onStartLearning={async () => {
+          // Save the intention as accepted
+          try {
+            await supabase
+              .from('employee_course_intentions')
+              .update({ intention: 'accepted' })
+              .eq('employee_id', profileCompletion.employeeId)
+              .order('created_at', { ascending: false })
+              .limit(1);
+            
+            toast.success("Great! We've noted your interest in this course. You'll be notified when it's ready to start.");
+            setShowCourseOutline(false);
+          } catch (error) {
+            console.error('Failed to save intention:', error);
+            toast.error('Failed to save your preference');
+          }
+        }}
+        onViewFullCourse={() => {
+          // Could open a feedback modal here
+          toast.info("Thank you for wanting to improve the course! We'll add a feedback feature soon.");
+          setShowCourseOutline(false);
+        }}
       />
     );
   }

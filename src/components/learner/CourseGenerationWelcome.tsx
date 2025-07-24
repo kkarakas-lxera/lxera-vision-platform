@@ -299,45 +299,80 @@ export default function CourseGenerationWelcome({
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-4">
-              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 className="font-medium text-gray-900">{courseOutline.title}</h3>
-                <p className="text-sm text-gray-600">{courseOutline.description}</p>
+            <CardContent className="space-y-6">
+              {/* Course Overview */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">{courseOutline.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{courseOutline.description}</p>
                 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="text-sm">
-                    <span className="text-gray-500">Duration:</span>
-                    <span className="ml-2 font-medium">{courseOutline.totalDuration}</span>
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  <div className="text-center p-2 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500">Duration</div>
+                    <div className="text-sm font-medium">{courseOutline.totalDuration}</div>
                   </div>
-                  <div className="text-sm">
-                    <span className="text-gray-500">Modules:</span>
-                    <span className="ml-2 font-medium">{courseOutline.modules.length}</span>
+                  <div className="text-center p-2 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500">Modules</div>
+                    <div className="text-sm font-medium">{courseOutline.modules.length}</div>
+                  </div>
+                  <div className="text-center p-2 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500">Timeline</div>
+                    <div className="text-sm font-medium">{courseOutline.estimatedWeeks} weeks</div>
                   </div>
                 </div>
               </div>
-              
+
+              {/* Course Modules */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-900">Would you like to take this course?</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <h4 className="text-sm font-medium text-gray-900">Course Modules</h4>
+                <div className="space-y-2">
+                  {courseOutline.modules.map((module, index) => (
+                    <div key={module.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-500">WEEK {index + 1}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {module.duration}
+                            </Badge>
+                          </div>
+                          <h5 className="font-medium text-sm text-gray-900 mt-1">
+                            {module.name}
+                          </h5>
+                          {module.description && (
+                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                              {module.description}
+                            </p>
+                          )}
+                          {rawCourseOutline?.modules?.[index]?.skill_gap_addressed && (
+                            <div className="mt-2 flex items-center gap-1">
+                              <Target className="h-3 w-3 text-blue-600" />
+                              <span className="text-xs text-blue-600">
+                                Addresses: {rawCourseOutline.modules[index].skill_gap_addressed}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-sm font-medium text-gray-900">Ready to start your learning journey?</h4>
+                <div className="flex gap-3">
                   <Button
                     onClick={() => handleIntention('accepted')}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Yes, start now
                   </Button>
                   <Button
-                    onClick={() => handleIntention('maybe_later')}
+                    onClick={() => handleIntention('rejected')}
                     variant="outline"
                     className="border-gray-300"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    Save for later
-                  </Button>
-                  <Button
-                    onClick={() => handleIntention('rejected')}
-                    variant="ghost"
-                    className="text-gray-600"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Different course

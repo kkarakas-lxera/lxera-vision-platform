@@ -110,32 +110,51 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     console.log(`[${requestId}] Generating enhanced course outline for employee: ${employee_id}`)
+    console.log(`[${requestId}] Request body:`, JSON.stringify(requestBody))
 
-    // Get employee data with comprehensive profile information
+    // First, try to get the employee data with user relationship
     const { data: employee, error: empError } = await supabase
       .from('employees')
       .select(`
         *,
-        st_company_positions!employees_current_position_id_fkey (
-          position_title,
-          department,
-          required_skills,
-          nice_to_have_skills
-        ),
-        st_employee_skills_profile (
-          extracted_skills,
-          skills_match_score,
-          gap_analysis_data
+        users!employees_user_id_fkey (
+          email,
+          full_name
         )
       `)
       .eq('id', employee_id)
       .single()
 
     if (empError || !employee) {
-      throw new Error('Failed to fetch employee data')
+      console.error(`[${requestId}] Employee fetch error:`, empError)
+      throw new Error(`Failed to fetch employee data: ${empError?.message || 'Employee not found'}`)
     }
+
+    // Get position data separately
+    let positionData = null
+    if (employee.current_position_id) {
+      const { data: position } = await supabase
+        .from('st_company_positions')
+        .select('position_title, department, required_skills, nice_to_have_skills')
+        .eq('id', employee.current_position_id)
+        .single()
+      positionData = position
+    }
+
+    // Get skills profile data separately
+    let skillsProfileData = null
+    const { data: skillsProfile } = await supabase
+      .from('st_employee_skills_profile')
+      .select('extracted_skills, skills_match_score, gap_analysis_data')
+      .eq('employee_id', employee_id)
+      .single()
+    skillsProfileData = skillsProfile
+
+    // Combine the data
+    employee.st_company_positions = positionData
+    employee.st_employee_skills_profile = skillsProfileData
     
-    console.log(`[${requestId}] Employee data fetched - Name: ${employee.full_name || 'Not set'}, Email: ${employee.email}`)
+    console.log(`[${requestId}] Employee data fetched - Name: ${employee.full_name || employee.users?.full_name || 'Not set'}, Email: ${employee.email || employee.users?.email || 'Not set'}`)
 
     // Get all profile sections for comprehensive context
     const { data: sections, error: sectionsError } = await supabase
@@ -186,8 +205,10 @@ serve(async (req) => {
     }
 
     // Prepare enhanced context for AI course outline generation
+    const emailAddress = employee.email || employee.users?.email
+    const fullName = employee.full_name || employee.users?.full_name
     const context: CourseGenerationContext = {
-      employee_name: employee.full_name || employee.email?.split('@')[0] || 'Learner',
+      employee_name: fullName || (emailAddress ? emailAddress.split('@')[0] : null) || `Employee ${employee.id.substring(0, 8)}`,
       position: employee.st_company_positions?.position_title || employee.position || 'Professional',
       department: employee.st_company_positions?.department || employee.department || 'General',
       experience_level: profileAnalysis.experience_level,
@@ -349,8 +370,8 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
           }
         ],
         temperature: 0.3, // Lower temperature for more consistent structure
-        max_tokens: 3000, // Increased for comprehensive modules
-        response_format: { type: 'json_object' }
+        max_tokens: 3000 // Increased for comprehensive modules
+        // Note: response_format not supported with GPT-4
       })
     })
 
@@ -430,7 +451,6 @@ CRITICAL: This course outline is their REWARD for completing the profile. Every 
       .insert({
         plan_id: globalThis.crypto.randomUUID(),
         employee_id,
-        company_id: employee.company_id, // Add company_id from employee record
         employee_name: context.employee_name,
         session_id: `reward-${requestId}`,
         course_structure: enhancedCourseOutline,

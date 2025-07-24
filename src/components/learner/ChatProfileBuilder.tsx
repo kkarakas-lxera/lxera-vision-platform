@@ -24,7 +24,7 @@ import AIResponsibilityGeneration from './chat/AIResponsibilityGeneration';
 import AIGeneratedWorkDetails from './chat/AIGeneratedWorkDetails';
 import ProfileDataReview from './chat/ProfileDataReview';
 import MultiSelectCards from './chat/MultiSelectCards';
-import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2, ArrowRight } from 'lucide-react';
+import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2, ArrowRight, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -147,6 +147,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const [cvUploaded, setCvUploaded] = useState(false);
   const [currentWorkExperience, setCurrentWorkExperience] = useState<any>({});
   const [waitingForCVUpload, setWaitingForCVUpload] = useState(false);
+  const [hasCourseOutline, setHasCourseOutline] = useState(false);
   const [cvExtractedData, setCvExtractedData] = useState<any>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEducationIndex, setCurrentEducationIndex] = useState(0);
@@ -710,6 +711,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Check if profile is already completed
         if (employee.profile_complete === true) {
           setIsCompleted(true);
+        }
+        
+        // Check if employee has a course outline
+        const { data: courseIntention } = await supabase
+          .from('employee_course_intentions')
+          .select('course_outline')
+          .eq('employee_id', employeeId)
+          .not('course_outline', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+          
+        if (courseIntention?.course_outline) {
+          setHasCourseOutline(true);
         }
         
         // Load CV extracted data if available
@@ -4264,16 +4279,22 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     
     // Navigate to course generation view
     setTimeout(() => {
-      addBotMessage("Let me take you to your personalized course creation center...", 0, 500);
+      if (hasCourseOutline) {
+        addBotMessage("Let me take you to view your personalized learning pathway...", 0, 500);
+      } else {
+        addBotMessage("Let me take you to your personalized course creation center...", 0, 500);
+      }
       
       // Mark profile as completed and trigger navigation
       setTimeout(async () => {
         await EmployeeProfileService.completeProfile(employeeId);
         setIsCompleted(true);
         
-        // Save navigation state to show course generation
-        localStorage.setItem('showCourseGeneration', 'true');
-        localStorage.setItem('profileJustCompleted', 'true');
+        if (!hasCourseOutline) {
+          // Save navigation state to show course generation only if no course exists
+          localStorage.setItem('showCourseGeneration', 'true');
+          localStorage.setItem('profileJustCompleted', 'true');
+        }
         
         // Navigate to learner dashboard
         window.location.href = '/learner';
@@ -4727,23 +4748,42 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           <div className="mt-4 animate-in fade-in-0 slide-in-from-bottom-2">
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="text-sm font-medium text-blue-900">
-                Your profile is complete! Ready to create your personalized learning pathway?
+                {hasCourseOutline 
+                  ? "Your profile is complete! View your personalized learning pathway."
+                  : "Your profile is complete! Ready to create your personalized learning pathway?"}
               </div>
               
               <Button 
                 onClick={() => {
-                  localStorage.setItem('showCourseGeneration', 'true');
-                  localStorage.setItem('profileJustCompleted', 'true');
-                  window.location.href = '/learner';
+                  if (hasCourseOutline) {
+                    // Navigate directly to learner dashboard to view existing course
+                    window.location.href = '/learner';
+                  } else {
+                    // Show course generation
+                    localStorage.setItem('showCourseGeneration', 'true');
+                    localStorage.setItem('profileJustCompleted', 'true');
+                    window.location.href = '/learner';
+                  }
                 }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Continue to Course Creation
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {hasCourseOutline ? (
+                  <>
+                    View Course Outline
+                    <BookOpen className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Continue to Course Creation
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
               
               <div className="text-xs text-gray-600">
-                I'll analyze your profile and create a custom course just for you.
+                {hasCourseOutline 
+                  ? "Access your personalized course and start learning."
+                  : "I'll analyze your profile and create a custom course just for you."}
               </div>
             </div>
           </div>
