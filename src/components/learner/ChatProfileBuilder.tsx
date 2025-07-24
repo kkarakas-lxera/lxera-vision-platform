@@ -1028,6 +1028,30 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       return;
     }
     
+    // Handle "show challenges" request
+    if (target === 'challenges' || target === 'show_challenges') {
+      if (currentStepRef.current === 6 && personalizedSuggestions?.challenges) {
+        // We're on the challenges step and have data
+        showChallenges(personalizedSuggestions);
+        return;
+      } else if (formData.challenges && formData.challenges.length > 0) {
+        // Show saved challenges
+        addBotMessage("Here are your selected challenges:", 0, 500);
+        setTimeout(() => {
+          formData.challenges.forEach((challenge, index) => {
+            addBotMessage(`${index + 1}. ${challenge}`, 0, 200 * (index + 1));
+          });
+        }, 800);
+        return;
+      } else {
+        addBotMessage("You haven't selected any challenges yet. Let me help you with that.", 0, 500);
+        if (currentStepRef.current !== 6) {
+          setTimeout(() => navigateToStep(6, 'sidebar'), 1000);
+        }
+        return;
+      }
+    }
+    
     // Map target to step number
     const stepMap: Record<string, number> = {
       'cv': 1,
@@ -1649,7 +1673,45 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   };
 
   const showProfileSummary = () => {
-    // Show complete profile summary
+    const messageId = 'profile-summary-' + Date.now();
+    
+    console.log('Showing profile summary with data:', {
+      challenges: formData.challenges,
+      growthAreas: formData.growthAreas,
+      workExperience: formData.workExperience,
+      education: formData.education
+    });
+    
+    setMessages(prev => [...prev, {
+      id: messageId,
+      type: 'system',
+      content: (
+        <ProfileDataReview
+          section="all"
+          data={formData}
+          onEdit={(sectionToEdit) => {
+            setMessages(prev => prev.filter(m => m.id !== messageId));
+            
+            const stepMap: Record<string, number> = {
+              'work': 2,
+              'education': 3,
+              'skills': 4,
+              'current_work': 5,
+              'challenges': 6,
+              'growth': 7
+            };
+            
+            if (stepMap[sectionToEdit]) {
+              navigateToStep(stepMap[sectionToEdit], 'sidebar');
+            }
+          }}
+          onClose={() => {
+            setMessages(prev => prev.filter(m => m.id !== messageId));
+          }}
+        />
+      ),
+      timestamp: new Date()
+    }]);
   };
 
   const showWorkSummary = () => {
@@ -2225,15 +2287,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         }, 1500);
       } else {
         // Normal flow - ask if they want to add or edit anything
-        addBotMessage(`Got it, you're the ${response}. Is there anything else you'd like to add or update about your current work context?`, 0, 500);
+        addBotMessage(`Got it, you're the ${response}. Is there anything else you'd like to add or update?`, 0, 500);
+        
+        setTimeout(() => {
+          addBotMessage(
+            "You can add more details about your experience or proceed to the next step:",
+            0,
+            300
+          );
+        }, 800);
+        
         setTimeout(() => {
           showQuickReplies([
-            { label: "All good", value: "all_good", variant: 'primary' },
-            { label: "Edit Work", value: "edit_work" },
-            { label: "Edit Education", value: "edit_education" },
-            { label: "Edit Skills", value: "edit_skills" }
+            { label: "No, let's proceed →", value: "all_good", variant: 'primary' },
+            { label: "Add Work Experience", value: "edit_work" },
+            { label: "Add Education", value: "edit_education" },
+            { label: "Add Current Projects", value: "edit_projects" },
+            { label: "Update Skills", value: "edit_skills" }
           ]);
-        }, 1000);
+        }, 1500);
       }
       return; // Exit after handling role
     }
@@ -2270,6 +2342,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       return;
     }
     
+    if (response === 'edit_projects') {
+      // Stay on current step but focus on projects
+      addBotMessage("What projects are you currently working on? You can describe them briefly.", 0, 500);
+      setTimeout(() => {
+        setActiveUI('add_text_input');
+        setCurrentInputField('currentProjects');
+      }, 1000);
+      return;
+    }
+    
     if (response === 'edit_skills') {
       // Navigate to skills step
       addBotMessage("Let's review your skills.", 0, 500);
@@ -2294,11 +2376,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       // Reset challenges and show selection again
       setFormData(prev => ({ ...prev, challenges: [] }));
-      showChallenges();
+      if (personalizedSuggestions) {
+        showChallenges(personalizedSuggestions);
+      } else {
+        addBotMessage("Loading challenges...", 0, 500);
+        generatePersonalizedSuggestions();
+      }
       return;
     } else if (response === 'add_more_challenges') {
       // Show additional challenges without resetting
-      showChallenges();
+      if (personalizedSuggestions) {
+        showChallenges(personalizedSuggestions);
+      } else {
+        addBotMessage("Loading challenges...", 0, 500);
+        generatePersonalizedSuggestions();
+      }
       return;
     } else if (response === 'continue') {
       if (formData.challenges.length === 0) {
@@ -3312,7 +3404,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             if (!personalizedSuggestions) {
               generatePersonalizedSuggestions();
             } else {
-              showChallenges();
+              showChallenges(personalizedSuggestions);
             }
           }
         } else if (navContext.intent === 'continue_progress') {
@@ -3322,7 +3414,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             addBotMessage("Let me prepare some suggestions based on your profile...", 0, 1000);
             generatePersonalizedSuggestions();
           } else {
-            showChallenges();
+            showChallenges(personalizedSuggestions);
           }
         } else if (navContext.intent === 'first_visit') {
           // First time on this step
@@ -3349,7 +3441,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
             if (!personalizedSuggestions) {
               generatePersonalizedSuggestions();
             } else {
-              showChallenges();
+              showChallenges(personalizedSuggestions);
             }
           }
         }
@@ -3494,10 +3586,16 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setIsGeneratingAI(false);
           
           // Show appropriate content based on current step
+          // Pass the data directly to avoid state timing issues
+          const suggestionsData = {
+            challenges: data.challenges,
+            growthAreas: data.growthAreas
+          };
+          
           if (currentStep === 6) {
-            showChallenges();
+            showChallenges(suggestionsData);
           } else if (currentStep === 7) {
-            showGrowthAreas();
+            showGrowthAreas(suggestionsData);
           }
         }, 500);
       } else {
@@ -3521,8 +3619,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }
   };
 
-  const showChallenges = () => {
-    if (!personalizedSuggestions?.challenges || personalizedSuggestions.challenges.length === 0) {
+  const showChallenges = (suggestionsData?: { challenges: string[], growthAreas: string[] }) => {
+    // Use provided data or fall back to state
+    const suggestions = suggestionsData || personalizedSuggestions;
+    
+    if (!suggestions?.challenges || suggestions.challenges.length === 0) {
       console.error('No personalized suggestions available - this is a critical error');
       
       addBotMessage(
@@ -3540,7 +3641,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     );
     
     setTimeout(() => {
-      const challenges = personalizedSuggestions.challenges.slice(0, 4);
+      const challenges = suggestions.challenges.slice(0, 4);
       showQuickReplies([
         ...challenges.map(c => ({ label: c, value: c })),
         { label: "Continue →", value: "continue", variant: 'primary' }
@@ -3548,8 +3649,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     }, 1500);
   };
 
-  const showGrowthAreas = () => {
-    if (!personalizedSuggestions?.growthAreas || personalizedSuggestions.growthAreas.length === 0) {
+  const showGrowthAreas = (suggestionsData?: { challenges: string[], growthAreas: string[] }) => {
+    // Use provided data or fall back to state
+    const suggestions = suggestionsData || personalizedSuggestions;
+    
+    if (!suggestions?.growthAreas || suggestions.growthAreas.length === 0) {
       console.error('No personalized growth areas available - this is a critical error');
       
       addBotMessage(
@@ -3567,7 +3671,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     );
     
     setTimeout(() => {
-      const areas = personalizedSuggestions.growthAreas.slice(0, 5);
+      const areas = suggestions.growthAreas.slice(0, 5);
       showQuickReplies([
         ...areas.map(a => ({ label: a, value: a, variant: 'success' as const })),
         { label: "Complete Profile →", value: "complete", variant: 'primary' }
@@ -3715,6 +3819,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       }
       return;
     }
+    
+    // Show profile summary first
+    addBotMessage("Here are the personalized challenges you've identified. Please let me know if you'd like to add more details or make any changes.", 0, 500);
+    
+    setTimeout(() => {
+      showProfileSummary();
+    }, 1000);
     
     setIsCompleted(true);
     addAchievement(ACHIEVEMENTS.COMPLETIONIST);

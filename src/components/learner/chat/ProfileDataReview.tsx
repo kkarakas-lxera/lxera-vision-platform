@@ -18,6 +18,7 @@ export default function ProfileDataReview({
   onEdit,
   onClose 
 }: ProfileDataReviewProps) {
+  console.log('ProfileDataReview received data:', { section, data });
   
   const renderWorkExperience = () => {
     if (!data.workExperience || data.workExperience.length === 0) {
