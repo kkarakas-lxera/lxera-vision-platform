@@ -79,10 +79,11 @@ serve(async (req) => {
 
   const requestId = crypto.randomUUID()
   const functionName = 'generate-course-outline'
+  let employee_id: string | undefined
 
   try {
     const requestBody = await req.json()
-    const { employee_id } = requestBody
+    employee_id = requestBody.employee_id
 
     if (!employee_id) {
       const context: ErrorLogContext = { requestId, functionName }
@@ -133,6 +134,8 @@ serve(async (req) => {
     if (empError || !employee) {
       throw new Error('Failed to fetch employee data')
     }
+    
+    console.log(`[${requestId}] Employee data fetched - Name: ${employee.full_name || 'Not set'}, Email: ${employee.email}`)
 
     // Get all profile sections for comprehensive context
     const { data: sections, error: sectionsError } = await supabase
@@ -184,7 +187,7 @@ serve(async (req) => {
 
     // Prepare enhanced context for AI course outline generation
     const context: CourseGenerationContext = {
-      employee_name: employee.full_name || 'Learner',
+      employee_name: employee.full_name || employee.email?.split('@')[0] || 'Learner',
       position: employee.st_company_positions?.position_title || employee.position || 'Professional',
       department: employee.st_company_positions?.department || employee.department || 'General',
       experience_level: profileAnalysis.experience_level,
@@ -203,6 +206,8 @@ serve(async (req) => {
       skills_match_score: employee.st_employee_skills_profile?.skills_match_score || 0,
       required_skills: employee.st_company_positions?.required_skills || []
     }
+    
+    console.log(`[${requestId}] Context prepared for ${context.employee_name} (${context.experience_level})`)
 
     // Calculate personalization factors for advanced course customization
     const personalizationFactors = {
@@ -231,7 +236,7 @@ serve(async (req) => {
     }
 
     // Enhanced prompt with planning tools methodology
-    const enhancedPrompt = `Create a highly personalized 4-week course outline for ${context.employee_name} as their completion reward for finishing the 7-step profile building process.
+    const enhancedPrompt = `Create a highly personalized 4-week course outline for ${context.employee_name} that perfectly harmonizes their professional challenges, growth areas, and skills gaps.
 
 LEARNER PROFILE ANALYSIS:
 - Name: ${context.employee_name}
@@ -240,75 +245,88 @@ LEARNER PROFILE ANALYSIS:
 - Experience Level: ${context.experience_level}
 - Team Context: ${context.role_in_team} in a ${context.team_size} team
 - Skills Match Score: ${context.skills_match_score}%
-- Top Skills: ${context.top_skills.slice(0, 10).join(', ')}
-- Current Projects: ${context.current_projects.join(', ')}
+- Current Expertise: ${context.top_skills.slice(0, 5).join(', ')}
+- Active Projects: ${context.current_projects.slice(0, 3).join(', ')}
 
-PERSONALIZATION FACTORS:
-- Practical Emphasis: ${(personalizationFactors.practical_emphasis * 100).toFixed(0)}%
-- Tool Integration Score: ${(personalizationFactors.tool_integration_score * 100).toFixed(0)}%
-- Complexity Level: ${(personalizationFactors.complexity_level * 100).toFixed(0)}%
+PERSONALIZATION MAPPING:
+1. PROFESSIONAL CHALLENGES (Pain Points to Solve):
+   ${context.professional_challenges.slice(0, 4).map((c, i) => `   ${i + 1}. ${c}`).join('\n')}
 
-DEVELOPMENT PRIORITIES (From Profile Analysis):
-- Professional Challenges: ${context.professional_challenges.slice(0, 6).join('; ')}
-- Growth Priorities: ${context.growth_priorities.slice(0, 6).join('; ')}
-- Required Skills Gap: ${context.required_skills.slice(0, 5).map(s => typeof s === 'string' ? s : s.skill || 'Unknown Skill').join('; ')}
+2. GROWTH PRIORITIES (Career Aspirations):
+   ${context.growth_priorities.slice(0, 4).map((g, i) => `   ${i + 1}. ${g}`).join('\n')}
 
-COURSE REQUIREMENTS:
-1. Create 4-week intensive course with 6-8 modules (1-2 per week)
-2. Address their top 3-4 professional challenges directly
-3. Build on existing skills while filling critical gaps
-4. Include tool-specific applications for their current tech stack
-5. Progressive difficulty: foundational → intermediate → advanced → expert
-6. High practical emphasis (${(personalizationFactors.practical_emphasis * 100).toFixed(0)}% hands-on content)
-7. Real-world scenarios from their actual work context
-8. Clear ROI for their career progression to next role
+3. SKILLS GAPS (What's Missing for Next Level):
+   ${context.required_skills.slice(0, 4).map((s, i) => `   ${i + 1}. ${typeof s === 'string' ? s : s.skill || 'Unknown'}`).join('\n')}
 
-ENHANCED OUTPUT FORMAT (JSON):
+HARMONIZATION STRATEGY:
+Create modules that simultaneously:
+- Solve a specific professional challenge
+- Develop a growth priority skill
+- Fill an identified skills gap
+- Build on their existing expertise (${context.top_skills.slice(0, 3).join(', ')})
+
+COURSE DESIGN PRINCIPLES:
+1. Each module must address AT LEAST one challenge AND one growth area
+2. Progressive learning path: Foundation → Application → Mastery → Leadership
+3. ${(personalizationFactors.practical_emphasis * 100).toFixed(0)}% practical, hands-on content
+4. Direct application to their ${context.position} role and current projects
+5. Clear connection between learning and career advancement
+
+REQUIRED OUTPUT FORMAT (JSON):
 {
-  "course_title": "Highly specific title addressing their key challenge",
-  "description": "Compelling description showing value and career impact",
+  "course_title": "[Specific Title that Reflects Their #1 Challenge + Role]",
+  "description": "A personalized 4-week course that addresses your specific challenges: [challenge 1], [challenge 2], while building skills in [growth area 1], [growth area 2] to advance your career as a ${context.position}.",
   "total_duration_weeks": 4,
   "total_duration_hours": 20,
-  "target_audience": "${context.experience_level} ${context.position} seeking advancement",
-  "prerequisites": ["Based on their current skill level"],
+  "target_audience": "${context.employee_name} - ${context.experience_level} ${context.position}",
+  "prerequisites": [
+    "Your existing skills in [top skill 1 from their profile]",
+    "Current experience with [tool/process they already use]"
+  ],
   "learning_outcomes": [
-    "Measurable outcome addressing challenge 1",
-    "Measurable outcome addressing challenge 2", 
-    "Measurable outcome for career progression"
+    "Overcome [specific challenge 1] by implementing [solution]",
+    "Master [growth priority 1] to [specific career outcome]",
+    "Fill skill gap in [missing skill 1] through practical application",
+    "Transform from [current state] to [desired future state]"
   ],
   "modules": [
     {
       "module_id": 1,
-      "module_name": "Specific name targeting their #1 challenge",
+      "module_name": "[Action-Oriented Title that Addresses Challenge #1]",
       "week": 1,
       "duration_hours": 3,
-      "priority": "critical|high|medium",
-      "skill_gap_addressed": "Specific gap from their profile",
-      "tools_integration": ["List of their actual tools"],
+      "priority": "critical",
+      "skill_gap_addressed": "[Specific gap from their profile]",
+      "challenge_addressed": "[Specific challenge from their profile]",
+      "growth_area_developed": "[Specific growth priority from their profile]",
       "learning_objectives": [
-        "Apply X to their current projects",
-        "Master Y using their existing tools"
+        "Map this to solving their challenge #1",
+        "Connect to their growth priority #1",
+        "Fill specific skill gap #1"
       ],
       "key_topics": [
-        "Topic 1 with direct work relevance",
-        "Topic 2 building on their strengths",
-        "Topic 3 addressing skill gap"
+        "Topic directly related to their ${context.position} role",
+        "Application to their current project: ${context.current_projects[0] || 'daily work'}",
+        "Building on their strength in ${context.top_skills[0] || 'existing skills'}"
       ],
-      "practical_exercises": [
-        "Exercise using their project context",
-        "Real scenario from their role type"
-      ],
-      "difficulty_level": "foundational|intermediate|advanced",
-      "personalization_factors": {
-        "practical_emphasis": ${personalizationFactors.practical_emphasis},
-        "tool_specific_content": ${personalizationFactors.tool_integration_score},
-        "experience_level": "${context.experience_level}"
-      }
+      "difficulty_level": "beginner"
     }
   ]
 }
 
-CRITICAL: This is a REWARD for completing their profile. Make it incredibly valuable, actionable, and directly applicable to their career advancement. Show clear connection between their profile data and course content.`
+MODULE GENERATION RULES:
+1. Generate EXACTLY 6-8 modules (this is an OUTLINE, not full course content)
+2. Each module MUST explicitly state which challenge, growth area, and skill gap it addresses
+3. Module progression: Week 1 (Foundation) → Week 2 (Application) → Week 3 (Advanced) → Week 4 (Mastery)
+4. Module names must be SPECIFIC to their role and challenges, not generic
+5. Every module must show clear harmony between challenges + growth areas + skill gaps
+
+EXAMPLE MODULE NAMING:
+❌ BAD: "Communication Skills" or "Advanced Techniques"
+✅ GOOD: "Executive Presentation Skills for Data-Driven ${context.position} Decisions" 
+✅ GOOD: "Automating ${context.professional_challenges[0] || 'Daily Tasks'} with ${context.top_skills[0] || 'Your Tools'}"
+
+CRITICAL: This course outline is their REWARD for completing the profile. Every module must feel personally crafted for ${context.employee_name}, directly addressing their specific situation, challenges, and aspirations. Show them a clear path from where they are to where they want to be.`
 
     console.log(`[${requestId}] Calling OpenAI GPT-4 for personalized course generation...`)
     
@@ -323,7 +341,7 @@ CRITICAL: This is a REWARD for completing their profile. Make it incredibly valu
         messages: [
           {
             role: 'system',
-            content: 'You are an expert learning and development specialist who creates highly personalized, actionable course outlines based on detailed employee profiles. Focus on practical application and career advancement. ALWAYS respond with valid JSON only, no additional text.'
+            content: 'You are an expert learning and development specialist who creates highly personalized course OUTLINES (not full courses). Your #1 priority is to harmonize the learner\'s professional challenges, growth aspirations, and skill gaps into a cohesive learning journey. Every module must explicitly show how it addresses their specific situation. Use their actual challenges and growth areas as module titles and content focus. Make the course feel like it was custom-designed for this individual, because it is. Follow the exact JSON structure provided. ALWAYS respond with valid JSON only, no additional text or markdown.'
           },
           {
             role: 'user',
@@ -393,6 +411,16 @@ CRITICAL: This is a REWARD for completing their profile. Make it incredibly valu
         challenges_addressed: context.professional_challenges.length,
         growth_areas_covered: context.growth_priorities.length
       }
+    }
+    
+    // Ensure modules have required structure
+    if (!enhancedCourseOutline.modules || enhancedCourseOutline.modules.length === 0) {
+      const errorContext: ErrorLogContext = { requestId, functionName, employeeId: employee_id }
+      return createErrorResponse(
+        new Error('No modules returned from AI - please try again'),
+        errorContext,
+        502
+      )
     }
 
     // Store the course outline in the existing cm_course_plans table

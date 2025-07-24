@@ -73,7 +73,7 @@ export default function CourseGenerationWelcome({
 
       if (error) throw error;
 
-      console.log('Edge function response:', data);
+      console.log('Edge function response:', JSON.stringify(data, null, 2));
 
       if (data?.success && data.course_outline) {
         try {
@@ -105,8 +105,9 @@ export default function CourseGenerationWelcome({
           };
           
           // Validate we have at least some content
-          if (!mappedOutline.modules.length) {
+          if (!mappedOutline.modules || mappedOutline.modules.length === 0) {
             console.error('No modules found in course outline');
+            console.error('Course data modules:', courseData.modules);
             throw new Error('Course outline is missing required modules');
           }
           
