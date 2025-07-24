@@ -3,19 +3,10 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
-  Award,
   BookOpen,
   Clock,
-  GraduationCap,
-  Target,
   CheckCircle,
-  Star,
-  Sparkles,
-  TrendingUp,
-  Users,
-  PlayCircle,
   ChevronRight,
   Loader2
 } from 'lucide-react';
@@ -26,19 +17,10 @@ import {
   CourseOutlineRewardProps 
 } from './CourseOutlineReward.types';
 
-const moduleIcons = [
-  BookOpen,
-  Target,
-  Users,
-  TrendingUp,
-  GraduationCap,
-  Award
-];
-
 const difficultyColors = {
-  Beginner: 'bg-green-100 text-green-800',
-  Intermediate: 'bg-yellow-100 text-yellow-800',
-  Advanced: 'bg-red-100 text-red-800'
+  Beginner: 'bg-green-50 text-green-700 border-0',
+  Intermediate: 'bg-yellow-50 text-yellow-700 border-0',
+  Advanced: 'bg-red-50 text-red-700 border-0'
 };
 
 interface ExtendedCourseOutlineRewardProps extends CourseOutlineRewardProps {
@@ -60,25 +42,21 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
-          <Card className="border-blue-200 shadow-lg">
+          <Card className="border border-[#EFEFE3] shadow-sm">
             <CardContent className="p-12">
               <div className="text-center space-y-6">
-                <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
-                </div>
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Creating Your Personalized Course...
-                  </h2>
-                  <p className="text-gray-600">
-                    Our AI is analyzing your profile and generating a custom learning path just for you.
-                  </p>
+                <div className="mx-auto w-16 h-16 bg-[#EFEFE3] rounded-full flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-[#191919] animate-spin" />
                 </div>
                 <div className="space-y-2">
-                  <Progress value={65} className="h-2" />
-                  <p className="text-sm text-gray-500">This usually takes 30-60 seconds</p>
+                  <h2 className="text-xl font-medium text-[#191919]">
+                    Creating Your Personalized Course
+                  </h2>
+                  <p className="text-base text-[#4b5563]">
+                    Analyzing your profile to generate a custom learning path.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -91,26 +69,23 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
   // Error state
   if (error || !courseOutline) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
-          <Card className="border-red-200 shadow-lg">
+          <Card className="border border-[#EFEFE3] shadow-sm">
             <CardContent className="p-12">
               <div className="text-center space-y-6">
-                <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                  <Target className="h-10 w-10 text-red-600" />
-                </div>
                 <div className="space-y-3">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl font-medium text-[#191919]">
                     Course Generation Failed
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-base text-[#4b5563]">
                     {error || "We couldn't generate your course outline at this time. Please try again."}
                   </p>
                 </div>
                 {onRetryGeneration && (
                   <Button 
                     onClick={onRetryGeneration}
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-[#191919] hover:bg-[#333333] text-white rounded-full"
                   >
                     Try Again
                   </Button>
@@ -126,281 +101,176 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
   const firstName = employeeName.split(' ')[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Congratulations Header */}
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-[960px] mx-auto space-y-12">
+        {/* Header */}
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-center space-y-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center space-y-4"
         >
-          <div className="flex justify-center">
-            <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
-                <Award className="h-12 w-12 text-white" />
-              </div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, duration: 0.3 }}
-                className="absolute -top-2 -right-2"
-              >
-                <Sparkles className="h-8 w-8 text-yellow-500" />
-              </motion.div>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Congratulations, {firstName}! 🎉
-            </h1>
-            <p className="text-xl text-gray-600">
-              Your personalized learning course is ready
-            </p>
-          </div>
+          <h1 className="text-3xl font-semibold text-[#191919]">
+            Welcome back, {firstName}
+          </h1>
+          <p className="text-base text-[#4b5563]">
+            Your personalized course outline is ready
+          </p>
         </motion.div>
 
         {/* Main Course Card */}
         <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
         >
-          <Card className="border-green-200 shadow-xl">
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
+          <Card className="border border-[#EFEFE3] shadow-sm">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                {/* Course Header */}
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Badge className={cn("text-xs", difficultyColors[courseOutline.difficultyLevel])}>
                       {courseOutline.difficultyLevel}
                     </Badge>
-                    {courseOutline.certificateAvailable && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Star className="h-3 w-3 mr-1" />
-                        Certificate
-                      </Badge>
-                    )}
                   </div>
-                  <CardTitle className="text-2xl text-gray-900 leading-tight">
+                  <h2 className="text-xl font-medium text-[#191919]">
                     {courseOutline.title}
-                  </CardTitle>
-                  <CardDescription className="text-base text-gray-600">
+                  </h2>
+                  <p className="text-base text-[#4b5563]">
                     {courseOutline.description}
-                  </CardDescription>
+                  </p>
                 </div>
-              </div>
-            </CardHeader>
 
-            <CardContent className="space-y-8">
-              {/* Course Statistics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-                  <BookOpen className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-blue-900">
+                {/* Course Statistics */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-[#EFEFE3] rounded-lg">
+                  <div className="text-center">
+                    <div className="text-xl font-medium text-[#191919]">
                       {courseOutline.modules.length}
                     </div>
-                    <div className="text-sm text-blue-700">modules</div>
+                    <div className="text-xs text-[#888888]">modules</div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
-                  <Clock className="h-8 w-8 text-green-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-green-900">
+                  <div className="text-center border-x border-[#E5E7EB]">
+                    <div className="text-xl font-medium text-[#191919]">
                       {courseOutline.totalDuration}
                     </div>
-                    <div className="text-sm text-green-700">total time</div>
+                    <div className="text-xs text-[#888888]">duration</div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
-                  <Target className="h-8 w-8 text-purple-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-purple-900">
+                  <div className="text-center">
+                    <div className="text-xl font-medium text-[#191919]">
                       {courseOutline.estimatedWeeks}
                     </div>
-                    <div className="text-sm text-purple-700">weeks</div>
+                    <div className="text-xs text-[#888888]">weeks</div>
                   </div>
                 </div>
-              </div>
 
               {/* Learning Objectives */}
               {courseOutline.learningObjectives.length > 0 && (
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                <div className="space-y-3">
+                  <h3 className="text-base font-medium text-[#191919]">
                     What You'll Learn
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {courseOutline.learningObjectives.slice(0, 6).map((objective, index) => (
-                      <div key={index} className="flex items-start space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{objective}</span>
-                      </div>
+                  <ul className="space-y-2">
+                    {courseOutline.learningObjectives.slice(0, 4).map((objective, index) => (
+                      <li key={index} className="text-sm text-[#4b5563] pl-4 relative">
+                        <span className="absolute left-0">•</span>
+                        {objective}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               )}
 
               {/* Course Modules */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
+                <h3 className="text-base font-medium text-[#191919]">
                   Course Modules
                 </h3>
-                <div className="space-y-4">
-                  {courseOutline.modules.slice(0, 4).map((module, index) => {
-                    const IconComponent = moduleIcons[index % moduleIcons.length];
-                    return (
-                      <motion.div
-                        key={module.id}
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.1 * index, duration: 0.3 }}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <IconComponent className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium text-gray-900">
-                                  Module {index + 1}: {module.name}
-                                </h4>
-                                <Badge variant="outline" className="text-xs">
-                                  {module.duration}
-                                </Badge>
-                              </div>
-                              {module.description && (
-                                <p className="text-sm text-gray-600 mb-2">
-                                  {module.description}
-                                </p>
-                              )}
-                              {module.topics.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {module.topics.slice(0, 3).map((topic, topicIndex) => (
-                                    <Badge
-                                      key={topicIndex}
-                                      variant="secondary"
-                                      className="text-xs bg-gray-100"
-                                    >
-                                      {topic}
-                                    </Badge>
-                                  ))}
-                                  {module.topics.length > 3 && (
-                                    <Badge variant="secondary" className="text-xs bg-gray-100">
-                                      +{module.topics.length - 3} more
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                <div className="space-y-3">
+                  {courseOutline.modules.slice(0, 4).map((module, index) => (
+                    <motion.div
+                      key={module.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1 * (index + 1), duration: 0.3 }}
+                      className="border border-[#E5E7EB] rounded-lg p-4"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-base text-[#191919]">
+                            {index + 1}. {module.name}
+                          </h4>
+                          <span className="text-xs text-[#888888]">
+                            {module.duration}
+                          </span>
                         </div>
-                      </motion.div>
-                    );
-                  })}
+                        {module.description && (
+                          <p className="text-sm text-[#4b5563]">
+                            {module.description}
+                          </p>
+                        )}
+                        {module.topics.length > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {module.topics.slice(0, 3).map((topic, topicIndex) => (
+                              <Badge
+                                key={topicIndex}
+                                variant="secondary"
+                                className="text-xs bg-[#F3F4F6] text-[#4B5563] border-0"
+                              >
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
                   
                   {courseOutline.modules.length > 4 && (
-                    <div className="text-center py-3 border-t border-gray-200">
-                      <p className="text-sm text-gray-500">
-                        + {courseOutline.modules.length - 4} more modules to discover
-                      </p>
-                    </div>
+                    <p className="text-sm text-[#888888] text-center pt-2">
+                      + {courseOutline.modules.length - 4} more modules
+                    </p>
                   )}
                 </div>
               </div>
 
-              {/* Skills to Gain */}
-              {courseOutline.skillsToGain.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
-                    Skills You'll Gain
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {courseOutline.skillsToGain.map((skill, index) => (
-                      <Badge
-                        key={index}
-                        className="bg-blue-100 text-blue-800 hover:bg-blue-200"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Call to Action */}
-              <div className="text-center space-y-4 pt-6 border-t border-gray-200">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mb-4">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                    Ready to transform your career?
+              <div className="pt-6 space-y-6 border-t border-[#EFEFE3]">
+                <div className="space-y-2 text-center">
+                  <h3 className="text-base font-medium text-[#191919]">
+                    Ready to advance your career?
                   </h3>
-                  <p className="text-sm text-blue-800">
-                    This personalized course is designed to bridge your skill gaps and accelerate your professional growth. 
-                    Master the skills that matter most for your role and unlock new opportunities.
+                  <p className="text-sm text-[#4b5563]">
+                    This course is tailored to your skills and career goals.
                   </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex gap-3 justify-center">
                   {(onStartCourse || onStartLearning) && (
                     <Button 
                       onClick={onStartCourse || onStartLearning}
-                      size="lg"
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                      className="bg-[#191919] hover:bg-[#333333] text-white rounded-full px-8 h-11"
                     >
-                      <CheckCircle className="h-5 w-5 mr-2" />
-                      Yes, I want to grow my skills
+                      Yes, I'm interested
                     </Button>
                   )}
                   {(onViewFullCourse || onSkip) && (
                     <Button 
                       onClick={onViewFullCourse || onSkip}
                       variant="outline"
-                      size="lg"
-                      className="border-gray-600 text-gray-600 hover:bg-gray-50 px-6 py-3"
+                      className="border-[#191919] text-[#191919] hover:bg-[#EFEFE3] rounded-full px-6 h-11"
                     >
-                      <ChevronRight className="h-4 w-4 mr-2" />
-                      Help us improve this course
+                      Provide feedback
                     </Button>
                   )}
                 </div>
-                
-                <div className="flex items-center justify-center gap-4 text-xs text-gray-600 mt-6">
-                  <div className="flex items-center gap-1">
-                    <Target className="h-3 w-3" />
-                    <span>Skills aligned to your goals</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" />
-                    <span>Advance your career</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Award className="h-3 w-3" />
-                    <span>Earn recognition</span>
-                  </div>
-                </div>
+              </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Success Footer */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="text-center"
-        >
-          <p className="text-sm text-gray-500">
-            🚀 Ready to advance your career? Your learning journey starts now!
-          </p>
-        </motion.div>
       </div>
     </div>
   );
