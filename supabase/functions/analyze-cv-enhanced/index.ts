@@ -442,8 +442,27 @@ serve(async (req) => {
       throw cvResultsError
     }
     
-    // Note: We no longer update st_employee_skills_profile here
-    // This will be done after skills validation in Step 4
+    // Store skills in st_employee_skills_profile as jsonb
+    const { error: profileError } = await supabase
+      .from('st_employee_skills_profile')
+      .upsert({
+        employee_id: employee_id,
+        cv_file_path: file_path,
+        extracted_skills: extractedSkills, // Now stored as jsonb array
+        analyzed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        skills_match_score: matchScore,
+        career_readiness_score: 75 // Default score, will be updated later
+      }, { onConflict: 'employee_id' })
+
+    if (profileError) {
+      logSanitizedError(profileError, {
+        requestId,
+        functionName: 'analyze-cv-enhanced',
+        metadata: { context: 'skills_profile_storage' }
+      })
+      throw profileError
+    }
 
     // Update session item if provided
     if (session_item_id) {
