@@ -3734,9 +3734,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               setFormData(prev => ({ ...prev, challenges: selected }));
             }}
             onComplete={async () => {
+              // Get the current selected items count from the component's state
+              const selectedCount = formData.challenges?.length || 0;
+              
+              if (selectedCount === 0) {
+                addBotMessage("Please select at least 3 challenges before continuing.", 0, 500);
+                return;
+              }
+              
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
-              addBotMessage(`Got it, I've noted that you're facing ${formData.challenges.length} challenge${formData.challenges.length > 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
+              addBotMessage(`Got it, I've noted that you're facing ${selectedCount} challenge${selectedCount !== 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
               
               setTimeout(() => {
                 showQuickReplies([
@@ -3790,15 +3798,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               setFormData(prev => ({ ...prev, growthAreas: selected }));
             }}
             onComplete={async () => {
+              // Get the current selected items count from the component's state
+              const selectedCount = formData.growthAreas?.length || 0;
+              
+              if (selectedCount === 0) {
+                addBotMessage("Please select at least 2 growth areas before continuing.", 0, 500);
+                return;
+              }
+              
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               
-              if (formData.growthAreas && formData.growthAreas.length > 0) {
-                addBotMessage(`Excellent! You've identified ${formData.growthAreas.length} growth area${formData.growthAreas.length > 1 ? 's' : ''}. Let's complete your profile!`, 0, 500);
-                setTimeout(() => {
-                  completeProfile();
-                }, 1500);
-              }
+              addBotMessage(`Excellent! You've identified ${selectedCount} growth area${selectedCount !== 1 ? 's' : ''}. Let's complete your profile!`, 0, 500);
+              setTimeout(() => {
+                completeProfile();
+              }, 1500);
             }}
             title="Growth Opportunities"
             subtitle="Select areas where you'd like to develop and grow professionally"
