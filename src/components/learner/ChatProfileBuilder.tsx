@@ -2436,16 +2436,19 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       // Reset challenges and show selection again
       setFormData(prev => ({ ...prev, challenges: [] }));
-      if (personalizedSuggestions) {
-        showChallenges(personalizedSuggestions);
-      } else {
-        addBotMessage("Loading challenges...", 0, 500);
-        generatePersonalizedSuggestions();
-      }
+      // Always regenerate to ensure we have fresh UI
+      addBotMessage("Let me show you the challenges again...", 0, 500);
+      setTimeout(() => {
+        if (personalizedSuggestions?.challenges && personalizedSuggestions.challenges.length > 0) {
+          showChallenges(personalizedSuggestions);
+        } else {
+          generatePersonalizedSuggestions();
+        }
+      }, 1000);
       return;
     } else if (response === 'add_more_challenges') {
       // Show additional challenges without resetting
-      if (personalizedSuggestions) {
+      if (personalizedSuggestions?.challenges && personalizedSuggestions.challenges.length > 0) {
         showChallenges(personalizedSuggestions);
       } else {
         addBotMessage("Loading challenges...", 0, 500);
@@ -2525,11 +2528,23 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       
       // Reset growth areas and show selection again
       setFormData(prev => ({ ...prev, growthAreas: [] }));
-      showGrowthAreas();
+      // Always regenerate to ensure we have fresh UI
+      addBotMessage("Let me show you the growth opportunities again...", 0, 500);
+      setTimeout(() => {
+        if (personalizedSuggestions?.growthAreas && personalizedSuggestions.growthAreas.length > 0) {
+          showGrowthAreas(personalizedSuggestions);
+        } else {
+          generatePersonalizedSuggestions();
+        }
+      }, 1000);
       return;
     } else if (response === 'add_more_growth') {
       // Show additional growth areas without resetting
-      showGrowthAreas();
+      if (personalizedSuggestions?.growthAreas && personalizedSuggestions.growthAreas.length > 0) {
+        showGrowthAreas(personalizedSuggestions);
+      } else {
+        generatePersonalizedSuggestions();
+      }
       return;
     } else if (response === 'complete') {
       if (formData.growthAreas.length === 0) {
@@ -3470,11 +3485,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         } else if (navContext.intent === 'continue_progress') {
           // They were in the middle of selecting challenges
           addBotMessage("Let's continue identifying your professional challenges.", 0, 500);
-          if (!personalizedSuggestions) {
+          // Always show the UI if we have the data
+          if (personalizedSuggestions?.challenges && personalizedSuggestions.challenges.length > 0) {
+            setTimeout(() => {
+              showChallenges(personalizedSuggestions);
+            }, 1000);
+          } else {
             addBotMessage("Let me prepare some suggestions based on your profile...", 0, 1000);
             generatePersonalizedSuggestions();
-          } else {
-            showChallenges(personalizedSuggestions);
           }
         } else if (navContext.intent === 'first_visit') {
           // First time on this step
@@ -3540,11 +3558,14 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         } else if (navContext.intent === 'continue_progress') {
           // They were in the middle of selecting growth areas
           addBotMessage("Let's continue identifying your growth opportunities.", 0, 500);
-          if (!personalizedSuggestions) {
+          // Always show the UI if we have the data
+          if (personalizedSuggestions?.growthAreas && personalizedSuggestions.growthAreas.length > 0) {
+            setTimeout(() => {
+              showGrowthAreas(personalizedSuggestions);
+            }, 1000);
+          } else {
             addBotMessage("Preparing personalized suggestions...", 0, 1000);
             generatePersonalizedSuggestions();
-          } else {
-            showGrowthAreas();
           }
         } else if (navContext.intent === 'first_visit') {
           // First time on this step
