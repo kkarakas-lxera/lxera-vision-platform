@@ -309,6 +309,28 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setCurrentStep(lastStep);
           setMaxStepReached(prev => Math.max(prev, lastStep));
           
+          // Check if we need to restore UI for challenges or growth areas
+          if ((lastStep === 6 && (!formData.challenges || formData.challenges.length < 3)) ||
+              (lastStep === 7 && (!formData.growthAreas || formData.growthAreas.length < 3))) {
+            
+            // Load saved state which includes personalizedSuggestions
+            const savedState = await ProfileBuilderStateService.loadState(employeeId);
+            if (savedState?.personalizedSuggestions) {
+              setPersonalizedSuggestions(savedState.personalizedSuggestions);
+              
+              // Restore the UI after a short delay
+              setTimeout(() => {
+                if (lastStep === 6 && savedState.personalizedSuggestions.challenges) {
+                  console.log('Restoring challenges UI on page load');
+                  showChallenges(savedState.personalizedSuggestions);
+                } else if (lastStep === 7 && savedState.personalizedSuggestions.growthAreas) {
+                  console.log('Restoring growth areas UI on page load');
+                  showGrowthAreas(savedState.personalizedSuggestions);
+                }
+              }, 1000);
+            }
+          }
+          
           // Important: Don't show any new messages, just restore the step UI
           // The messages are already loaded from history
           return; // Exit early - don't initialize chat or show welcome messages
@@ -679,6 +701,10 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         // Restore max step reached
         if (savedState.maxStepReached) {
           setMaxStepReached(savedState.maxStepReached);
+        }
+        // Restore personalized suggestions
+        if (savedState.personalizedSuggestions) {
+          setPersonalizedSuggestions(savedState.personalizedSuggestions);
         }
       }
       
@@ -2819,6 +2845,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           setCvAcceptedSections(savedState.cvSectionsState.acceptedSections);
         }
         
+        // Restore personalized suggestions
+        if (savedState.personalizedSuggestions) {
+          setPersonalizedSuggestions(savedState.personalizedSuggestions);
+        }
+        
         // Restore step history
         if (savedState.stepHistory) {
           const historyMap = new Map<number, StepVisitHistory>();
@@ -3502,12 +3533,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           addBotMessage("Let's continue identifying your professional challenges.", 0, 500);
           // Always show the UI if we have the data
           if (personalizedSuggestions?.challenges && personalizedSuggestions.challenges.length > 0) {
+            // Show the UI immediately after a short delay
             setTimeout(() => {
+              console.log('Showing challenges UI with saved suggestions');
               showChallenges(personalizedSuggestions);
-            }, 1000);
+            }, 800);
           } else {
+            // Generate new suggestions if we don't have any
             addBotMessage("Let me prepare some suggestions based on your profile...", 0, 1000);
-            generatePersonalizedSuggestions();
+            setTimeout(() => {
+              generatePersonalizedSuggestions();
+            }, 1500);
           }
         } else if (navContext.intent === 'first_visit') {
           // First time on this step
@@ -3575,12 +3611,17 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           addBotMessage("Let's continue identifying your growth opportunities.", 0, 500);
           // Always show the UI if we have the data
           if (personalizedSuggestions?.growthAreas && personalizedSuggestions.growthAreas.length > 0) {
+            // Show the UI immediately after a short delay
             setTimeout(() => {
+              console.log('Showing growth areas UI with saved suggestions');
               showGrowthAreas(personalizedSuggestions);
-            }, 1000);
+            }, 800);
           } else {
+            // Generate new suggestions if we don't have any
             addBotMessage("Preparing personalized suggestions...", 0, 1000);
-            generatePersonalizedSuggestions();
+            setTimeout(() => {
+              generatePersonalizedSuggestions();
+            }, 1500);
           }
         } else if (navContext.intent === 'first_visit') {
           // First time on this step
@@ -3869,6 +3910,7 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         step,
         maxStepReached,
         formData,
+        personalizedSuggestions, // Save AI-generated suggestions
         lastActivity: new Date().toISOString(),
         // Add component-specific states
         workExperienceState: {

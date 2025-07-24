@@ -60,7 +60,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
   const { userProfile, signOut } = isEarlyAccess && mockAuth ? mockAuth : authContext;
   const location = useLocation();
   const profileCompletion = useProfileCompletion();
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    // Start with sidebar closed for learners, open for others
+    return userProfile?.role !== 'learner';
+  });
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     // Load from localStorage or default to all expanded
     const saved = localStorage.getItem('sidebar-expanded-sections');

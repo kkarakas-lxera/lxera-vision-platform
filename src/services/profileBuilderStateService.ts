@@ -29,6 +29,7 @@ export interface ProfileBuilderState {
     editingStates: any;
   };
   formData?: any;
+  personalizedSuggestions?: any; // Store AI-generated suggestions
   lastActivity: string;
   // Context-aware navigation tracking
   stepHistory?: Array<{
