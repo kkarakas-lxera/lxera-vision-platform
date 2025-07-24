@@ -2327,15 +2327,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
       const currentTeamSize = formData.teamSize;
       setFormData(prev => ({ ...prev, roleInTeam: response }));
       
-      // Temporarily skip saving to avoid the date error
-      // We'll save when they proceed or add more details
+      // Save the step data
+      await saveStepData(true);
       
       if (isUpdatingInfo && returnToStep !== null) {
         // Show confirmation and return - use the stored teamSize value
         addBotMessage(`Perfect! Your current work info has been updated:\n\nTeam of ${currentTeamSize} as a ${response} ✅`, 0, 500);
-        
-        // Save before returning
-        await saveStepData(true);
         
         setTimeout(() => {
           setIsUpdatingInfo(false);
@@ -2344,25 +2341,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           navigateToStep(stepToReturn, 'sidebar');
         }, 1500);
       } else {
-        // Normal flow - ask if they want to add or edit anything
-        addBotMessage(`Got it, you're an ${response} in your team. Anything else you'd like to add about your current work context?`, 0, 500);
+        // Normal flow - confirm and auto-navigate to next step
+        addBotMessage(`Got it! ${response} in a team of ${currentTeamSize}. Let me take you to the next step... 🎯`, 0, 500);
         
-        // Show quick replies immediately without the second message
+        // Mark step as complete and auto-navigate after a brief pause
         setTimeout(() => {
-          console.log('Showing quick replies after role selection');
-          showQuickReplies([
-            { label: "No, let's proceed →", value: "all_good", variant: 'primary' },
-            { label: "Add Work Experience", value: "edit_work" },
-            { label: "Add Education", value: "edit_education" },
-            { label: "Add Current Projects", value: "edit_projects" },
-            { label: "Update Skills", value: "edit_skills" }
-          ]);
-        }, 1000);
+          console.log('Auto-navigating to next step after role collection');
+          updateStepHistory(5, 'completed'); // Mark current work step as complete
+          moveToNextStep();
+        }, 1500);
       }
       return; // Exit after handling role
     }
     
-    // Handle editing responses
+    // Handle editing responses (keeping this for when user returns to edit)
     if (response === 'all_good') {
       console.log('Received all_good response in handleCurrentWork');
       console.log('Current step:', currentStepRef.current);
