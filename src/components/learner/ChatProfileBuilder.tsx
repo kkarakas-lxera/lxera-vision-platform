@@ -3660,14 +3660,20 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
           break;
           
         case 'education':
-          await EmployeeProfileService.saveSection(employeeId, 'education', {
-            education: formData.education.length > 0 ? formData.education : [{
-              degree: formData.highestDegree,
-              field: formData.fieldOfStudy,
-              institution: formData.institution,
-              graduationYear: formData.graduationYear
-            }]
-          });
+          console.log('Saving education:', formData.education);
+          // Only save if we have valid education data
+          if (formData.education && formData.education.length > 0) {
+            // Filter out empty education entries
+            const validEducation = formData.education.filter(edu => 
+              edu.degree && edu.institution
+            );
+            
+            if (validEducation.length > 0) {
+              await EmployeeProfileService.saveSection(employeeId, 'education', {
+                education: validEducation
+              });
+            }
+          }
           break;
           
         case 'current_work':
