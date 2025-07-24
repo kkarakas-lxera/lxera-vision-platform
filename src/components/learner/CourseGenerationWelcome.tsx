@@ -106,15 +106,8 @@ export default function CourseGenerationWelcome({
           
           // Validate we have at least some content
           if (!mappedOutline.modules.length) {
-            console.warn('No modules found in course outline, using minimal structure');
-            mappedOutline.modules = [{
-              id: 'M01',
-              name: 'Getting Started',
-              description: 'Introduction to your personalized learning journey',
-              duration: '3 hours',
-              topics: [],
-              difficulty: 'beginner'
-            }];
+            console.error('No modules found in course outline');
+            throw new Error('Course outline is missing required modules');
           }
           
           setCourseOutline(mappedOutline);
