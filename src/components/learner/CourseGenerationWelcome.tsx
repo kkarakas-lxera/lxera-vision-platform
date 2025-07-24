@@ -6,20 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Award,
-  BookOpen,
   Clock,
-  GraduationCap,
   Target,
   CheckCircle,
-  Star,
-  Sparkles,
-  TrendingUp,
-  Users,
+  Check,
   ChevronRight,
   Loader2,
   MessageSquare,
   Brain,
-  Zap
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -83,24 +78,44 @@ export default function CourseGenerationWelcome({
       if (data?.success && data.course_outline) {
         try {
           // Map the API response to match CourseOutlineData interface
+          const courseData = data.course_outline;
+          
+          // Handle both array and object module structures
+          const modules = Array.isArray(courseData.modules) ? courseData.modules : [];
+          
           const mappedOutline = {
-            title: data.course_outline.course_title,
-            description: data.course_outline.description,
-            totalDuration: `${data.course_outline.total_duration_hours} hours`,
-            estimatedWeeks: data.course_outline.total_duration_weeks || 4,
-            difficultyLevel: 'Intermediate' as const,
-            certificateAvailable: true,
-            learningObjectives: data.course_outline.learning_outcomes || [],
-            skillsToGain: data.course_outline.modules?.flatMap(m => m.key_topics || []) || [],
-            modules: data.course_outline.modules?.map((m, idx) => ({
-              id: `M${String(idx + 1).padStart(2, '0')}`,
-              name: m.module_name,
-              description: m.learning_objectives?.join(' ') || '',
-              duration: `${m.duration_hours} hours`,
-              topics: m.key_topics || [],
-              difficulty: m.difficulty_level || 'Intermediate'
-            })) || []
+            title: courseData.course_title || courseData.title || 'Your Personalized Course',
+            description: courseData.description || 'A personalized learning pathway designed for you',
+            totalDuration: courseData.total_duration_hours ? `${courseData.total_duration_hours} hours` : '20 hours',
+            estimatedWeeks: courseData.total_duration_weeks || courseData.estimatedWeeks || 4,
+            difficultyLevel: courseData.difficultyLevel || 'Intermediate' as const,
+            certificateAvailable: courseData.certificateAvailable !== false,
+            learningObjectives: courseData.learning_outcomes || courseData.learningObjectives || [],
+            skillsToGain: modules.flatMap(m => m.key_topics || []).filter(Boolean),
+            modules: modules.map((m, idx) => ({
+              id: m.module_id ? `M${String(m.module_id).padStart(2, '0')}` : `M${String(idx + 1).padStart(2, '0')}`,
+              name: m.module_name || m.name || `Module ${idx + 1}`,
+              description: Array.isArray(m.learning_objectives) 
+                ? m.learning_objectives.join(' ') 
+                : (m.description || ''),
+              duration: m.duration_hours ? `${m.duration_hours} hours` : '3 hours',
+              topics: m.key_topics || m.topics || [],
+              difficulty: m.difficulty_level || m.difficulty || 'intermediate'
+            }))
           };
+          
+          // Validate we have at least some content
+          if (!mappedOutline.modules.length) {
+            console.warn('No modules found in course outline, using minimal structure');
+            mappedOutline.modules = [{
+              id: 'M01',
+              name: 'Getting Started',
+              description: 'Introduction to your personalized learning journey',
+              duration: '3 hours',
+              topics: [],
+              difficulty: 'beginner'
+            }];
+          }
           
           setCourseOutline(mappedOutline);
           setRawCourseOutline(data.course_outline); // Save raw data for database
@@ -154,92 +169,79 @@ export default function CourseGenerationWelcome({
 
   if (stage === 'welcome') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="max-w-2xl w-full"
         >
-          <Card className="border-purple-200 shadow-xl">
-            <CardHeader className="text-center pb-8">
-              <div className="mx-auto mb-6">
-                <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-indigo-600 rounded-full flex items-center justify-center">
-                    <Award className="h-12 w-12 text-white" />
-                  </div>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, duration: 0.3 }}
-                    className="absolute -top-2 -right-2"
-                  >
-                    <Sparkles className="h-8 w-8 text-yellow-500" />
-                  </motion.div>
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Award className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">
+                    Congratulations, {employeeName.split(' ')[0]}!
+                  </CardTitle>
+                  <CardDescription>
+                    You've completed your professional profile
+                  </CardDescription>
                 </div>
               </div>
-              
-              <CardTitle className="text-3xl mb-4">
-                🎉 Congratulations, {employeeName.split(' ')[0]}!
-              </CardTitle>
-              <CardDescription className="text-lg">
-                You've completed your professional profile
-              </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6">
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg">
-                <h3 className="font-semibold text-lg mb-4">Your Personalized Course Awaits!</h3>
-                <p className="text-gray-700 mb-4">
-                  Based on your profile, I'll create a custom learning pathway that addresses:
-                </p>
+            <CardContent className="space-y-4">
+              <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-sm font-medium text-blue-900">
+                  I'll now create a personalized learning pathway based on:
+                </div>
+                
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Your professional challenges</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Your growth priorities</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Skills gaps for your role</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Your career advancement goals</span>
-                  </div>
+                  {[
+                    'Your professional challenges',
+                    'Your growth priorities', 
+                    'Skills gaps for your role',
+                    'Your career advancement goals'
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <Brain className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="font-semibold">AI-Powered</div>
-                  <div className="text-sm text-gray-600">Personalization</div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Brain className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                  <div className="text-sm font-medium text-gray-900">AI-Powered</div>
+                  <div className="text-xs text-gray-600">Personalization</div>
                 </div>
-                <div className="p-4 bg-indigo-50 rounded-lg">
-                  <Zap className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <div className="font-semibold">4 Weeks</div>
-                  <div className="text-sm text-gray-600">To Complete</div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Clock className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                  <div className="text-sm font-medium text-gray-900">4 Weeks</div>
+                  <div className="text-xs text-gray-600">Duration</div>
                 </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <Target className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="font-semibold">Practical</div>
-                  <div className="text-sm text-gray-600">Application</div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Target className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                  <div className="text-sm font-medium text-gray-900">Practical</div>
+                  <div className="text-xs text-gray-600">Application</div>
                 </div>
               </div>
 
-              <div className="flex justify-center pt-4">
-                <Button
-                  onClick={startGeneration}
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8"
-                >
-                  Generate My Personalized Course
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
+              <Button
+                onClick={startGeneration}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Generate My Personalized Course
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+              
+              <div className="text-xs text-center text-gray-500">
+                This usually takes 30-60 seconds
               </div>
             </CardContent>
           </Card>
@@ -250,25 +252,31 @@ export default function CourseGenerationWelcome({
 
   if (stage === 'generating') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
-          <Card className="border-blue-200 shadow-lg">
-            <CardContent className="p-12">
-              <div className="text-center space-y-6">
-                <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+          <Card className="border-gray-200 shadow-sm">
+            <CardContent className="p-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Creating Your Personalized Course
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      This usually takes 30-60 seconds...
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Creating Your Personalized Course
-                  </h2>
-                  <p className="text-gray-600">
-                    {currentStep}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Progress value={progress} className="h-2" />
-                  <p className="text-sm text-gray-500">{progress}% complete</p>
+                
+                <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-900">{currentStep}</span>
+                      <span className="text-sm text-blue-700">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-1.5" />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -280,42 +288,67 @@ export default function CourseGenerationWelcome({
 
   if (stage === 'completed' && courseOutline) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
-        <CourseOutlineReward
-          courseOutline={courseOutline}
-          employeeName={employeeName}
-          loading={false}
-          error={null}
-          onStartCourse={() => handleIntention('accepted')}
-          onViewFullCourse={() => handleIntention('maybe_later')}
-        />
-        
-        <div className="max-w-4xl mx-auto px-6 pb-8">
-          <Card className="border-green-200 shadow-lg">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Would you like to take this course?</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Button
-                  onClick={() => handleIntention('accepted')}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Yes, start now!
-                </Button>
-                <Button
-                  onClick={() => handleIntention('maybe_later')}
-                  variant="outline"
-                >
-                  <Clock className="mr-2 h-4 w-4" />
-                  Save for later
-                </Button>
-                <Button
-                  onClick={() => handleIntention('rejected')}
-                  variant="ghost"
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Request different course
-                </Button>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Course Generated Successfully!</CardTitle>
+                  <CardDescription className="text-sm">
+                    Your personalized learning pathway is ready
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="font-medium text-gray-900">{courseOutline.title}</h3>
+                <p className="text-sm text-gray-600">{courseOutline.description}</p>
+                
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="text-sm">
+                    <span className="text-gray-500">Duration:</span>
+                    <span className="ml-2 font-medium">{courseOutline.totalDuration}</span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-gray-500">Modules:</span>
+                    <span className="ml-2 font-medium">{courseOutline.modules.length}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-900">Would you like to take this course?</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button
+                    onClick={() => handleIntention('accepted')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Yes, start now
+                  </Button>
+                  <Button
+                    onClick={() => handleIntention('maybe_later')}
+                    variant="outline"
+                    className="border-gray-300"
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    Save for later
+                  </Button>
+                  <Button
+                    onClick={() => handleIntention('rejected')}
+                    variant="ghost"
+                    className="text-gray-600"
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Different course
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -326,32 +359,36 @@ export default function CourseGenerationWelcome({
 
   if (stage === 'error') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full">
-          <Card className="border-red-200 shadow-lg">
-            <CardContent className="p-12">
-              <div className="text-center space-y-6">
-                <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                  <Target className="h-10 w-10 text-red-600" />
+          <Card className="border-gray-200 shadow-sm">
+            <CardContent className="p-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <X className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Course Generation Failed
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {error || "We couldn't generate your course outline at this time."}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Course Generation Failed
-                  </h2>
-                  <p className="text-gray-600">
-                    {error || "We couldn't generate your course outline at this time."}
-                  </p>
-                </div>
-                <div className="flex justify-center gap-3">
+                
+                <div className="flex gap-3">
                   <Button 
                     onClick={startGeneration}
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     Try Again
                   </Button>
                   <Button 
                     onClick={onClose}
                     variant="outline"
+                    className="border-gray-300"
                   >
                     Back to Dashboard
                   </Button>

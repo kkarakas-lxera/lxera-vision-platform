@@ -27,7 +27,6 @@ import MultiSelectCards from './chat/MultiSelectCards';
 import { Trophy, Zap, Upload, Clock, ChevronUp, RefreshCw, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
@@ -4726,27 +4725,27 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         {isCompleted && messages.length > 0 && 
          messages[messages.length - 1].content?.toString().includes('personalized course creation center') && (
           <div className="mt-4 animate-in fade-in-0 slide-in-from-bottom-2">
-            <Card className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-purple-900">Ready to continue?</h3>
-                  <p className="text-sm text-purple-700 mt-1">
-                    Your profile is complete! Click below to create your personalized learning pathway.
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    localStorage.setItem('showCourseGeneration', 'true');
-                    localStorage.setItem('profileJustCompleted', 'true');
-                    window.location.href = '/learner';
-                  }}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                >
-                  Continue to Course Creation
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+            <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-sm font-medium text-blue-900">
+                Your profile is complete! Ready to create your personalized learning pathway?
               </div>
-            </Card>
+              
+              <Button 
+                onClick={() => {
+                  localStorage.setItem('showCourseGeneration', 'true');
+                  localStorage.setItem('profileJustCompleted', 'true');
+                  window.location.href = '/learner';
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Continue to Course Creation
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              
+              <div className="text-xs text-gray-600">
+                I'll analyze your profile and create a custom course just for you.
+              </div>
+            </div>
           </div>
         )}
         
