@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -208,6 +207,13 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
     challenges: [],
     growthAreas: []
   });
+
+  // ------- NEW: keep a live reference to the latest formData -------
+  const formDataRef = useRef<FormData>(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+  // ----------------------------------------------------------------
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -3798,8 +3804,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                 return;
               }
               
-              // Update formData with the final selection
-              setFormData(prev => ({ ...prev, challenges: selectedItems }));
+              // Update formData (state + ref) with the final selection synchronously
+              setFormData(prev => {
+                const updated = { ...prev, challenges: selectedItems };
+                formDataRef.current = updated;
+                return updated;
+              });
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               addBotMessage(`Got it, I've noted that you're facing ${selectedCount} challenge${selectedCount !== 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
@@ -3864,8 +3874,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
                 return;
               }
               
-              // Update formData with the final selection
-              setFormData(prev => ({ ...prev, growthAreas: selectedItems }));
+              // Update formData (state + ref) with the final selection synchronously
+              setFormData(prev => {
+                const updated = { ...prev, growthAreas: selectedItems };
+                formDataRef.current = updated;
+                return updated;
+              });
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               
@@ -3989,18 +4003,21 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
 
   // Check if profile has actual data
   const isProfileDataComplete = () => {
-    const hasWorkExperience = formData.workExperience && formData.workExperience.length > 0;
-    const hasEducation = formData.education && formData.education.length > 0;
-    const hasChallenges = formData.challenges && formData.challenges.length > 0;
-    const hasGrowthAreas = formData.growthAreas && formData.growthAreas.length > 0;
-    
+    // Use the ref to avoid stale closures when this function is called
+    const data = formDataRef.current;
+
+    const hasWorkExperience = data.workExperience && data.workExperience.length > 0;
+    const hasEducation = data.education && data.education.length > 0;
+    const hasChallenges = data.challenges && data.challenges.length > 0;
+    const hasGrowthAreas = data.growthAreas && data.growthAreas.length > 0;
+
     console.log('Profile completion check:', {
       hasWorkExperience,
       hasEducation,
       hasChallenges,
       hasGrowthAreas
     });
-    
+
     return hasWorkExperience && hasEducation && hasChallenges && hasGrowthAreas;
   };
   
