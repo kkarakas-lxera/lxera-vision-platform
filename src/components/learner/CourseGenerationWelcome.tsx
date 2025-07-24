@@ -78,33 +78,42 @@ export default function CourseGenerationWelcome({
 
       if (error) throw error;
 
+      console.log('Edge function response:', data);
+
       if (data?.success && data.course_outline) {
-        // Map the API response to match CourseOutlineData interface
-        const mappedOutline = {
-          title: data.course_outline.course_title,
-          description: data.course_outline.description,
-          totalDuration: `${data.course_outline.total_duration_hours} hours`,
-          estimatedWeeks: data.course_outline.total_duration_weeks || 4,
-          difficultyLevel: 'Intermediate' as const,
-          certificateAvailable: true,
-          learningObjectives: data.course_outline.learning_outcomes || [],
-          skillsToGain: data.course_outline.modules?.flatMap(m => m.key_topics || []) || [],
-          modules: data.course_outline.modules?.map((m, idx) => ({
-            id: `M${String(idx + 1).padStart(2, '0')}`,
-            name: m.module_name,
-            description: m.learning_objectives?.join(' ') || '',
-            duration: `${m.duration_hours} hours`,
-            topics: m.key_topics || [],
-            difficulty: m.difficulty_level || 'Intermediate'
-          })) || []
-        };
-        
-        setCourseOutline(mappedOutline);
-        setRawCourseOutline(data.course_outline); // Save raw data for database
-        setProgress(100);
-        setStage('completed');
+        try {
+          // Map the API response to match CourseOutlineData interface
+          const mappedOutline = {
+            title: data.course_outline.course_title,
+            description: data.course_outline.description,
+            totalDuration: `${data.course_outline.total_duration_hours} hours`,
+            estimatedWeeks: data.course_outline.total_duration_weeks || 4,
+            difficultyLevel: 'Intermediate' as const,
+            certificateAvailable: true,
+            learningObjectives: data.course_outline.learning_outcomes || [],
+            skillsToGain: data.course_outline.modules?.flatMap(m => m.key_topics || []) || [],
+            modules: data.course_outline.modules?.map((m, idx) => ({
+              id: `M${String(idx + 1).padStart(2, '0')}`,
+              name: m.module_name,
+              description: m.learning_objectives?.join(' ') || '',
+              duration: `${m.duration_hours} hours`,
+              topics: m.key_topics || [],
+              difficulty: m.difficulty_level || 'Intermediate'
+            })) || []
+          };
+          
+          setCourseOutline(mappedOutline);
+          setRawCourseOutline(data.course_outline); // Save raw data for database
+          setProgress(100);
+          setStage('completed');
+        } catch (mappingError) {
+          console.error('Error mapping course outline:', mappingError);
+          console.error('Raw course outline data:', data.course_outline);
+          throw new Error(`Failed to process course outline: ${mappingError.message}`);
+        }
       } else {
-        throw new Error('Failed to generate course outline');
+        console.error('Invalid response structure:', data);
+        throw new Error('Invalid response from course generation service');
       }
     } catch (err) {
       console.error('Course generation error:', err);
