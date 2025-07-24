@@ -11,7 +11,8 @@ import {
   Loader2,
   Calendar,
   Target,
-  Award
+  Award,
+  PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -146,7 +147,7 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
                 </div>
 
                 {/* Course Statistics */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-[#f7f9fa] rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <BookOpen className="h-4 w-4 text-[#029c55]" />
@@ -174,6 +175,35 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
                     </div>
                     <div className="text-sm text-[#888888]">weeks</div>
                   </div>
+                  <div className="text-center p-4 bg-[#f5f3ff] rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <PlayCircle className="h-4 w-4 text-[#8b5cf6]" />
+                      <div className="text-2xl font-semibold text-[#191919]">
+                        Rich
+                      </div>
+                    </div>
+                    <div className="text-sm text-[#888888]">multimedia</div>
+                  </div>
+                </div>
+
+                {/* Call to Action - Horizontal */}
+                <div className="flex items-center justify-between p-6 bg-[#f7f9fa] rounded-xl">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-[#191919]">
+                      Ready to advance your career?
+                    </h3>
+                    <p className="text-base text-[#4b5563] mt-1">
+                      This course is tailored to your skills and career goals.
+                    </p>
+                  </div>
+                  {(onStartCourse || onStartLearning) && (
+                    <Button 
+                      onClick={onStartCourse || onStartLearning}
+                      className="bg-[#029c55] hover:bg-[#027a42] text-white rounded-full px-8 h-12 text-base font-medium shadow-[0_4px_12px_rgba(2,156,85,0.2)] transition-all hover:shadow-[0_6px_16px_rgba(2,156,85,0.3)] ml-6"
+                    >
+                      Yes, I want to grow my skills
+                    </Button>
+                  )}
                 </div>
 
               {/* Learning Objectives */}
@@ -250,27 +280,18 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
               </div>
 
 
-              {/* Call to Action */}
-              <div className="pt-8 space-y-6 border-t border-[#E5E7EB]">
-                <div className="space-y-2 text-center">
-                  <h3 className="text-xl font-medium text-[#191919]">
-                    Ready to advance your career?
-                  </h3>
-                  <p className="text-base text-[#4b5563]">
-                    This course is tailored to your skills and career goals.
-                  </p>
-                </div>
-                
-                <div className="flex gap-3 justify-center">
-                  {(onStartCourse || onStartLearning) && (
-                    <Button 
-                      onClick={onStartCourse || onStartLearning}
-                      className="bg-[#029c55] hover:bg-[#027a42] text-white rounded-full px-8 h-12 text-base font-medium shadow-[0_4px_12px_rgba(2,156,85,0.2)] transition-all hover:shadow-[0_6px_16px_rgba(2,156,85,0.3)]"
-                    >
-                      Yes, I want to grow my skills
-                    </Button>
-                  )}
-                  {(onViewFullCourse || onSkip) && (
+              {/* Feedback Section */}
+              {(onViewFullCourse || onSkip) && (
+                <div className="pt-8 border-t border-[#E5E7EB]">
+                  <div className="text-center space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium text-[#191919]">
+                        Not quite what you need?
+                      </h3>
+                      <p className="text-base text-[#4b5563]">
+                        Help us improve this course by sharing your feedback. Your input helps us create better learning experiences.
+                      </p>
+                    </div>
                     <Button 
                       onClick={onViewFullCourse || onSkip}
                       variant="outline"
@@ -278,9 +299,9 @@ const CourseOutlineReward: React.FC<ExtendedCourseOutlineRewardProps> = ({
                     >
                       Help us improve this course
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
               </div>
             </CardContent>
           </Card>
