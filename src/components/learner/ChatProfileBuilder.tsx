@@ -944,7 +944,11 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   useEffect(() => {
     const step = currentStepRef.current;
     if (step > 0 && step <= STEPS.length) {
-      debouncedSave();
+      // Don't auto-save if we're on challenges or growth areas steps
+      // These steps have explicit save on completion
+      if (step !== 6 && step !== 7) {
+        debouncedSave();
+      }
     }
   }, [formData, debouncedSave]);
 
@@ -2517,6 +2521,8 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
   const handleChallenges = async (response: string) => {
     // Handle "no" response after challenge selection
     if (response === 'no' || response.toLowerCase() === 'no, thanks' || response.toLowerCase() === 'none') {
+      // Ensure we save before moving on
+      await flushSave();
       addBotMessage("Great! Let's move on to explore your growth opportunities.", 0, 300);
       setTimeout(() => moveToNextStep(), 800);
       return;
@@ -3879,11 +3885,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               }
               
               // Update formData (state + ref) with the final selection synchronously
+              console.log('Challenges onComplete - selectedItems:', selectedItems);
+              console.log('Challenges onComplete - current formData.challenges:', formData.challenges);
+              
               setFormData(prev => {
                 const updated = { ...prev, challenges: selectedItems };
                 formDataRef.current = updated;
+                console.log('Challenges onComplete - updated formDataRef:', formDataRef.current.challenges);
                 return updated;
               });
+              
+              // Cancel any pending auto-save
+              clearTimeout(debouncedSaveRef.current);
+              
+              // Force a small delay to ensure state is updated
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              console.log('Challenges onComplete - before saveStepData:', formDataRef.current.challenges);
+              
+              // Explicitly save with the updated data
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               addBotMessage(`Got it, I've noted that you're facing ${selectedCount} challenge${selectedCount !== 1 ? 's' : ''}. Anything else you'd like to add about your current work context?`, 0, 500);
@@ -3949,11 +3969,25 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
               }
               
               // Update formData (state + ref) with the final selection synchronously
+              console.log('Growth Areas onComplete - selectedItems:', selectedItems);
+              console.log('Growth Areas onComplete - current formData.growthAreas:', formData.growthAreas);
+              
               setFormData(prev => {
                 const updated = { ...prev, growthAreas: selectedItems };
                 formDataRef.current = updated;
+                console.log('Growth Areas onComplete - updated formDataRef:', formDataRef.current.growthAreas);
                 return updated;
               });
+              
+              // Cancel any pending auto-save
+              clearTimeout(debouncedSaveRef.current);
+              
+              // Force a small delay to ensure state is updated
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              console.log('Growth Areas onComplete - before saveStepData:', formDataRef.current.growthAreas);
+              
+              // Explicitly save with the updated data
               await saveStepData(true);
               setMessages(prev => prev.filter(m => m.id !== messageId));
               
@@ -4072,6 +4106,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         await EmployeeProfileService.saveSection(employeeId, 'daily_tasks', {
           challenges: dataSnapshot.challenges
         });
+      } else {
+        console.log('No challenges to save:', {
+          challenges: dataSnapshot.challenges,
+          step: step,
+          stepName: stepName
+        });
       }
       
       // Save growth areas if exists
@@ -4079,6 +4119,12 @@ export default function ChatProfileBuilder({ employeeId, onComplete }: ChatProfi
         console.log('Saving growth areas:', dataSnapshot.growthAreas);
         await EmployeeProfileService.saveSection(employeeId, 'tools_technologies', {
           growthAreas: dataSnapshot.growthAreas
+        });
+      } else {
+        console.log('No growth areas to save:', {
+          growthAreas: dataSnapshot.growthAreas,
+          step: step,
+          stepName: stepName
         });
       }
       
