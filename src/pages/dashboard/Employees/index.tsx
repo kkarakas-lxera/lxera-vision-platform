@@ -309,34 +309,38 @@ const EmployeesPage = () => {
 
   const getSkillsStatus = (employee: Employee) => {
     if (!employee.skills_last_analyzed) {
-      return { status: 'not-analyzed', color: 'bg-gray-100 text-gray-800', text: 'Not Analyzed' };
+      return { status: 'not-analyzed', color: 'bg-gray-100 text-gray-800 border-gray-200', text: 'Not Analyzed' };
     }
     
     if (employee.skills_match_score === null) {
-      return { status: 'analyzing', color: 'bg-blue-100 text-blue-800', text: 'Analyzing' };
+      return { status: 'analyzing', color: 'bg-blue-100 text-blue-800 border-blue-200', text: 'Analyzing' };
     }
 
     const score = employee.skills_match_score;
     if (score >= 80) {
-      return { status: 'good', color: 'bg-green-100 text-green-800', text: `${score}% Match` };
+      return { status: 'good', color: 'bg-green-100 text-green-800 border-green-200', text: `${score}% Match` };
     } else if (score >= 60) {
-      return { status: 'moderate', color: 'bg-yellow-100 text-yellow-800', text: `${score}% Match` };
+      return { status: 'moderate', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', text: `${score}% Match` };
     } else {
-      return { status: 'poor', color: 'bg-red-100 text-red-800', text: `${score}% Match` };
+      return { status: 'poor', color: 'bg-red-100 text-red-800 border-red-200', text: `${score}% Match` };
     }
   };
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="p-6 space-y-6">
+        <div className="space-y-2">
+          <div className="h-8 bg-gray-200 animate-pulse rounded w-64"></div>
+          <div className="h-4 bg-gray-200 animate-pulse rounded w-48"></div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg"></div>
+          ))}
+        </div>
+        
+        <div className="h-96 bg-gray-200 animate-pulse rounded-lg"></div>
       </div>
     );
   }
@@ -344,12 +348,10 @@ const EmployeesPage = () => {
   return (
     <TooltipProvider>
     <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Employees</h1>
-          <p className="text-muted-foreground">Manage your team and track their learning progress</p>
-        </div>
-        
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Employee Directory</h1>
+        <p className="text-gray-600 mt-1">Manage your team and track their learning progress</p>
       </div>
 
       {/* Main Content with Conditional Blur */}
@@ -362,62 +364,86 @@ const EmployeesPage = () => {
                 "space-y-6 transition-all duration-500",
                 emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
               )}>
-                {/* Stats Cards */}
+                {/* Overall Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">{employees.length}</span>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Users className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Total Employees</p>
+                          <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
+                          <p className="text-xs text-gray-500">{employees.filter(e => e.is_active).length} active</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">CV Uploaded</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">
-                {employees.filter(e => e.cv_file_path).length}
-              </span>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <FileText className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">CV Uploaded</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {employees.filter(e => e.cv_file_path).length}
+                          </p>
+                          <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                            <div 
+                              className="h-1 rounded-full transition-all duration-300 bg-green-500"
+                              style={{ width: `${employees.length > 0 ? (employees.filter(e => e.cv_file_path).length / employees.length) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Skills Analyzed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">
-                {employees.filter(e => e.skills_last_analyzed).length}
-              </span>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Skills Analyzed</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {employees.filter(e => e.skills_last_analyzed).length}
+                          </p>
+                          <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                            <div 
+                              className="h-1 rounded-full transition-all duration-300 bg-purple-500"
+                              style={{ width: `${employees.length > 0 ? (employees.filter(e => e.skills_last_analyzed).length / employees.length) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Profiles Complete</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">
-                {employees.filter(e => e.profile_complete).length}
-              </span>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-orange-100 rounded-lg">
+                          <CheckCircle2 className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Profiles Complete</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {employees.filter(e => e.profile_complete).length}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {employees.filter(e => e.completed_sections && e.completed_sections > 0 && !e.profile_complete).length} in progress
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
       {/* Search and Actions */}
       <div className="flex flex-col gap-4">
@@ -480,22 +506,43 @@ const EmployeesPage = () => {
         </div>
       </div>
 
-      {/* Employees Table */}
+      {/* Employee List */}
       <Card>
-        <CardHeader>
-          <CardTitle>Employee Directory</CardTitle>
-          <CardDescription>
-            {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle className="text-base font-medium">Employee List</CardTitle>
+            <CardDescription>{filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found</CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/dashboard/onboarding')}
+              className="text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Employees
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {/* Add export functionality */}}
+              className="text-xs"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Export
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4">
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">
                     <input
                       type="checkbox"
+                      className="rounded border-gray-300"
                       onChange={(e) => {
                         if (e.target.checked) {
                           setSelectedEmployees(filteredEmployees.map(emp => emp.id));
@@ -506,14 +553,14 @@ const EmployeesPage = () => {
                       checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
                     />
                   </th>
-                  <th className="text-left p-4">Employee</th>
-                  <th className="text-left p-4">Department</th>
-                  <th className="text-left p-4">Position</th>
-                  <th className="text-left p-4">Profile Status</th>
-                  <th className="text-left p-4">Invitation</th>
-                  <th className="text-left p-4">CV Status</th>
-                  <th className="text-left p-4">Skills Analysis</th>
-                  <th className="text-left p-4">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Employee</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Department</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Position</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Invitation</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">CV Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Skills Analysis</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -521,10 +568,11 @@ const EmployeesPage = () => {
                   const skillsStatus = getSkillsStatus(employee);
                   
                   return (
-                    <tr key={employee.id} className="border-b hover:bg-gray-50">
+                    <tr key={employee.id} className="border-b hover:bg-gray-50 transition-colors">
                       <td className="p-4">
                         <input
                           type="checkbox"
+                          className="rounded border-gray-300"
                           checked={selectedEmployees.includes(employee.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -537,26 +585,26 @@ const EmployeesPage = () => {
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-medium">{employee.full_name}</p>
-                          <p className="text-sm text-muted-foreground">{employee.email}</p>
+                          <p className="font-medium text-gray-900">{employee.full_name}</p>
+                          <p className="text-sm text-gray-500">{employee.email}</p>
                         </div>
                       </td>
-                      <td className="p-4">{employee.department || '-'}</td>
-                      <td className="p-4">{employee.position || '-'}</td>
+                      <td className="p-4 text-gray-600">{employee.department || '-'}</td>
+                      <td className="p-4 text-gray-600">{employee.position || '-'}</td>
                       <td className="p-4">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="inline-block">
                               {employee.profile_complete ? (
-                                <Badge className="bg-green-100 text-green-800 cursor-help">
+                                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 cursor-help">
                                   Complete
                                 </Badge>
                               ) : employee.completed_sections && employee.total_sections ? (
-                                <Badge className="bg-yellow-100 text-yellow-800 cursor-help">
+                                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 cursor-help">
                                   {employee.completed_sections}/{employee.total_sections} Complete
                                 </Badge>
                               ) : (
-                                <Badge variant="secondary" className="cursor-help">
+                                <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200 cursor-help">
                                   Not Started
                                 </Badge>
                               )}
@@ -623,25 +671,25 @@ const EmployeesPage = () => {
                       </td>
                       <td className="p-4">
                         {employee.invitation_status === 'completed' && (
-                          <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>
                         )}
                         {employee.invitation_status === 'viewed' && (
-                          <Badge className="bg-blue-100 text-blue-800">Viewed</Badge>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Viewed</Badge>
                         )}
                         {employee.invitation_status === 'sent' && (
-                          <Badge className="bg-yellow-100 text-yellow-800">Sent</Badge>
+                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Sent</Badge>
                         )}
                         {employee.invitation_status === 'not_sent' && (
-                          <Badge variant="secondary">Not Sent</Badge>
+                          <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">Not Sent</Badge>
                         )}
                       </td>
                       <td className="p-4">
-                        <Badge variant={employee.cv_file_path ? "default" : "secondary"}>
+                        <Badge variant="outline" className={employee.cv_file_path ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}>
                           {employee.cv_file_path ? 'Uploaded' : 'Not Uploaded'}
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <Badge className={skillsStatus.color}>
+                        <Badge variant="outline" className={skillsStatus.color}>
                           {skillsStatus.text}
                         </Badge>
                       </td>
@@ -678,24 +726,28 @@ const EmployeesPage = () => {
             </table>
             
             {filteredEmployees.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {hasActiveFilters 
-                    ? 'Try adjusting your filters or search terms.' 
-                    : 'Get started by adding your first employee.'}
-                </p>
-                {hasActiveFilters && (
-                  <Button 
-                    onClick={clearFilters} 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-4"
-                  >
-                    Clear filters
-                  </Button>
-                )}
+              <div className="text-center py-12">
+                <div className="flex flex-col items-center">
+                  <div className="p-3 bg-gray-100 rounded-full mb-4">
+                    <Users className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-base font-medium text-gray-900 mb-1">No employees found</h3>
+                  <p className="text-sm text-gray-500 max-w-sm">
+                    {hasActiveFilters 
+                      ? 'Try adjusting your filters or search terms.' 
+                      : 'Get started by adding your first employee.'}
+                  </p>
+                  {hasActiveFilters && (
+                    <Button 
+                      onClick={clearFilters} 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </div>
