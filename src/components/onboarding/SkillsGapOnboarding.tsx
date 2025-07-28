@@ -416,16 +416,6 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
   const handleComplete = () => {
     const { confirmPassword, name, ...onboardingData } = formData;
-    console.log('Form data before submission:', formData);
-    console.log('Onboarding data being sent:', {
-      password: onboardingData.password,
-      company: onboardingData.company,
-      industry: onboardingData.industry,
-      role: onboardingData.role,
-      teamSize: onboardingData.teamSize,
-      useCases: onboardingData.useCases,
-      heardAbout: onboardingData.heardAbout,
-    });
     onComplete({
       password: onboardingData.password,
       company: onboardingData.company,
