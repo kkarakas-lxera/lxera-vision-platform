@@ -556,12 +556,12 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
     if (field === 'industry') {
       return (
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-2 max-h-96 overflow-y-auto">
           {INDUSTRY_OPTIONS.map((option) => (
             <Card
               key={option.value}
               className={cn(
-                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
+                "p-2.5 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.industry === option.value
                   ? "bg-blue-50 border-blue-200"
                   : "bg-white border-gray-200 hover:border-gray-300"
@@ -570,11 +570,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-gray-900">{option.label}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
+                  <div className="font-medium text-sm text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-600">{option.description}</div>
                 </div>
                 {formData.industry === option.value && (
-                  <Check className="h-4 w-4 text-blue-600" />
+                  <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 ml-2" />
                 )}
               </div>
             </Card>
@@ -585,12 +585,12 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
     if (field === 'role') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {ROLE_OPTIONS.map((option) => (
             <Card
               key={option.value}
               className={cn(
-                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
+                "p-2.5 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.role === option.value
                   ? "bg-blue-50 border-blue-200"
                   : "bg-white border-gray-200 hover:border-gray-300"
@@ -599,11 +599,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-gray-900">{option.label}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
+                  <div className="font-medium text-sm text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-600">{option.description}</div>
                 </div>
                 {formData.role === option.value && (
-                  <Check className="h-4 w-4 text-blue-600" />
+                  <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 ml-2" />
                 )}
               </div>
             </Card>
@@ -614,12 +614,12 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
     if (field === 'teamSize') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {TEAM_SIZE_OPTIONS.map((option) => (
             <Card
               key={option.value}
               className={cn(
-                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
+                "p-2.5 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.teamSize === option.value
                   ? "bg-blue-50 border-blue-200"
                   : "bg-white border-gray-200 hover:border-gray-300"
@@ -628,11 +628,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-gray-900">{option.label}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
+                  <div className="font-medium text-sm text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-600">{option.description}</div>
                 </div>
                 {formData.teamSize === option.value && (
-                  <Check className="h-4 w-4 text-blue-600" />
+                  <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 ml-2" />
                 )}
               </div>
             </Card>
@@ -643,14 +643,14 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
     if (field === 'useCases') {
       return (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground mb-2">Select all that apply</p>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {USE_CASE_OPTIONS.map((option) => (
               <Card
                 key={option.value}
                 className={cn(
-                  "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
+                  "p-2.5 cursor-pointer transition-all duration-200 hover:shadow-sm",
                   formData.useCases.includes(option.value)
                     ? "bg-blue-50 border-blue-200"
                     : "bg-white border-gray-200 hover:border-gray-300"
@@ -659,11 +659,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium text-gray-900">{option.label}</div>
-                    <div className="text-sm text-gray-600">{option.description}</div>
+                    <div className="font-medium text-sm text-gray-900">{option.label}</div>
+                    <div className="text-xs text-gray-600">{option.description}</div>
                   </div>
                   {formData.useCases.includes(option.value) && (
-                    <Check className="h-4 w-4 text-blue-600" />
+                    <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 ml-2" />
                   )}
                 </div>
               </Card>
@@ -675,12 +675,12 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
     if (field === 'heardAbout') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {HEARD_ABOUT_OPTIONS.map((option) => (
             <Card
               key={option.value}
               className={cn(
-                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
+                "p-2.5 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.heardAbout === option.value
                   ? "bg-blue-50 border-blue-200"
                   : "bg-white border-gray-200 hover:border-gray-300"
@@ -689,11 +689,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-gray-900">{option.label}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
+                  <div className="font-medium text-sm text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-600">{option.description}</div>
                 </div>
                 {formData.heardAbout === option.value && (
-                  <Check className="h-4 w-4 text-blue-600" />
+                  <Check className="h-3.5 w-3.5 text-blue-600 flex-shrink-0 ml-2" />
                 )}
               </div>
             </Card>
