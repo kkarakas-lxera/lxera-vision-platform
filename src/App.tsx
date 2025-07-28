@@ -79,7 +79,7 @@ const ProductTour = lazy(() => import("./pages/resources/ProductTour"));
 const Glossary = lazy(() => import("./pages/resources/Glossary"));
 
 // Lazy load onboarding pages
-const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
+const EarlyAccessOnboarding = lazy(() => import("./pages/onboarding/EarlyAccessOnboarding"));
 const EarlyAccessSignup = lazy(() => import("./pages/EarlyAccessSignup"));
 const EarlyAccessSetPassword = lazy(() => import("./pages/auth/EarlyAccessSetPassword"));
 const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
@@ -902,7 +902,7 @@ const App = () => {
             <Route path="/early-access/set-password" element={<PageSuspense><EarlyAccessSetPassword /></PageSuspense>} />
             
             {/* Onboarding routes */}
-            <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />
+            <Route path="/early-access-onboarding" element={<PageSuspense><EarlyAccessOnboarding /></PageSuspense>} />
             <Route path="/early-access" element={<PageSuspense><EarlyAccessSignup openEarlyAccessModal={openEarlyAccessModal} /></PageSuspense>} />
             <Route path="/waiting-room" element={<PageSuspense><WaitingRoom /></PageSuspense>} />
             <Route path="/skills-gap-analysis" element={<PageSuspense><SkillsGapAnalysisLanding /></PageSuspense>} />

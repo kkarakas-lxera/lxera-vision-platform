@@ -21,12 +21,15 @@ interface ProgressiveOnboardingProps {
 }
 
 interface FormData {
+  password: string;
+  confirmPassword: string;
   name: string;
   company: string;
+  industry: string;
   role: string;
   otherRole?: string;
   teamSize: string;
-  useCase: string;
+  useCases: string[];
   otherUseCase?: string;
   heardAbout: string;
 }
@@ -34,46 +37,143 @@ interface FormData {
 const STEPS = [
   { 
     id: 1, 
+    title: "Set your password", 
+    field: 'password', 
+    placeholder: 'Choose a secure password',
+    subtitle: "Create a secure password to protect your account."
+  },
+  { 
+    id: 2, 
     title: "What should we call you?", 
     field: 'name', 
     placeholder: 'Your full name',
     subtitle: "Let's start with the basics — we'd love to know your name."
   },
   { 
-    id: 2, 
+    id: 3, 
     title: "What's the name of your company?", 
     field: 'company', 
     placeholder: 'Your company name',
     subtitle: "Tell us about the organization you're helping to transform."
   },
   { 
-    id: 3, 
+    id: 4, 
+    title: "What industry are you in?", 
+    field: 'industry', 
+    placeholder: 'Select your industry',
+    subtitle: "This helps us tailor our solutions to your specific sector needs."
+  },
+  { 
+    id: 5, 
     title: "What best describes your role?", 
     field: 'role', 
     placeholder: 'Your role',
     subtitle: "Help us understand your position so we can personalize your experience."
   },
   { 
-    id: 4, 
+    id: 6, 
     title: "How big is your team?", 
     field: 'teamSize', 
     placeholder: 'Select team size',
     subtitle: "This helps us recommend the right solution for your organization."
   },
   { 
-    id: 5, 
+    id: 7, 
     title: "What are you hoping to achieve with LXERA?", 
-    field: 'useCase', 
-    placeholder: 'Your main focus area',
-    subtitle: "Select all that apply to your learning and development goals."
+    field: 'useCases', 
+    placeholder: 'Select all that apply',
+    subtitle: "Select all the learning and development goals you want to accomplish."
   },
   { 
-    id: 6, 
+    id: 8, 
     title: "How did you discover us?", 
     field: 'heardAbout', 
     placeholder: 'Discovery source',
     subtitle: "We're curious — what brought you to LXERA today?"
   },
+];
+
+const INDUSTRY_OPTIONS = [
+  { 
+    value: 'technology', 
+    label: 'Technology', 
+    description: 'Software, hardware, and IT services'
+  },
+  { 
+    value: 'finance', 
+    label: 'Finance & Banking', 
+    description: 'Banking, insurance, and financial services'
+  },
+  { 
+    value: 'healthcare', 
+    label: 'Healthcare', 
+    description: 'Medical services, pharmaceuticals, and biotech'
+  },
+  { 
+    value: 'retail', 
+    label: 'Retail & E-commerce', 
+    description: 'Physical and online retail businesses'
+  },
+  { 
+    value: 'manufacturing', 
+    label: 'Manufacturing', 
+    description: 'Production and industrial operations'
+  },
+  { 
+    value: 'education', 
+    label: 'Education', 
+    description: 'Schools, universities, and training institutions'
+  },
+  { 
+    value: 'government', 
+    label: 'Government & Public Sector', 
+    description: 'Government agencies and public services'
+  },
+  { 
+    value: 'consulting', 
+    label: 'Consulting & Professional Services', 
+    description: 'Business consulting and professional services'
+  },
+  { 
+    value: 'energy', 
+    label: 'Energy & Utilities', 
+    description: 'Oil, gas, renewable energy, and utilities'
+  },
+  { 
+    value: 'telecommunications', 
+    label: 'Telecommunications', 
+    description: 'Telecom providers and communication services'
+  },
+  { 
+    value: 'transportation', 
+    label: 'Transportation & Logistics', 
+    description: 'Shipping, logistics, and transportation services'
+  },
+  { 
+    value: 'hospitality', 
+    label: 'Hospitality & Tourism', 
+    description: 'Hotels, restaurants, and tourism services'
+  },
+  { 
+    value: 'real_estate', 
+    label: 'Real Estate', 
+    description: 'Property development and management'
+  },
+  { 
+    value: 'media', 
+    label: 'Media & Entertainment', 
+    description: 'Broadcasting, publishing, and entertainment'
+  },
+  { 
+    value: 'non_profit', 
+    label: 'Non-Profit', 
+    description: 'NGOs and charitable organizations'
+  },
+  { 
+    value: 'other', 
+    label: 'Other Industry', 
+    description: 'Industry not listed above'
+  }
 ];
 
 const ROLE_OPTIONS = [
@@ -188,31 +288,6 @@ const USE_CASE_OPTIONS = [
     label: 'Innovation Enablement / Citizen Development', 
     description: 'Empower employees to drive innovation'
   },
-  { 
-    value: 'ai_content_generation', 
-    label: 'AI-Powered Content Generation', 
-    description: 'Create learning content with AI assistance'
-  },
-  { 
-    value: 'learning_roi', 
-    label: 'Measuring Learning ROI', 
-    description: 'Track and demonstrate the value of L&D investments'
-  },
-  { 
-    value: 'mentorship_coaching', 
-    label: 'Mentorship & Coaching', 
-    description: 'Connect learners with mentors and coaches'
-  },
-  { 
-    value: 'course_creation', 
-    label: 'Course Creation', 
-    description: 'Build courses for internal knowledge transfer'
-  },
-  { 
-    value: 'other', 
-    label: 'Other Use Case', 
-    description: 'Tell us a bit more so we can recommend the right solution'
-  },
 ];
 
 const HEARD_ABOUT_OPTIONS = [
@@ -256,23 +331,21 @@ const HEARD_ABOUT_OPTIONS = [
 export default function ProgressiveOnboarding({ email, leadId, initialData, onComplete }: ProgressiveOnboardingProps) {
   // Determine initial step based on pre-filled data
   const getInitialStep = () => {
-    if (initialData?.name) {
-      // If name is pre-filled, skip to company or next empty field
-      if (!initialData.company) return 2;
-      if (!initialData.role) return 3;
-      return 4; // Start at team size if name, company, and role are filled
-    }
-    return 1; // Start at name if not pre-filled
+    // Always start with password for new users
+    return 1;
   };
 
   const [currentStep, setCurrentStep] = useState(getInitialStep());
   const [formData, setFormData] = useState<FormData>({
+    password: '',
+    confirmPassword: '',
     name: initialData?.name || '',
     company: initialData?.company || '',
+    industry: '',
     role: initialData?.role || '',
     otherRole: '',
     teamSize: '',
-    useCase: initialData?.use_case || '',
+    useCases: [],
     otherUseCase: '',
     heardAbout: '',
   });

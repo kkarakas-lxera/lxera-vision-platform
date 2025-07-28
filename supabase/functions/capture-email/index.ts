@@ -94,7 +94,7 @@ serve(async (req) => {
 
     // Send magic link email
     const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai';
-    const magicLink = `${siteUrl}/onboarding/early-access?token=${session.token}`;
+    const magicLink = `${siteUrl}/early-access-onboarding?token=${session.token}`;
 
     // Initialize Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
