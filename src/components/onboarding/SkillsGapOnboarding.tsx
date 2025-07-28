@@ -374,10 +374,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
   };
 
   const getPasswordStrengthColor = () => {
-    if (formData.password.length === 0) return 'bg-indigo-100';
+    if (formData.password.length === 0) return 'bg-gray-200';
     if (formData.password.length < 8) return 'bg-red-400';
-    if (isPasswordStrong(formData.password)) return 'bg-indigo-500';
-    return 'bg-indigo-300';
+    if (isPasswordStrong(formData.password)) return 'bg-green-500';
+    return 'bg-yellow-400';
   };
 
   const getPasswordStrengthText = () => {
@@ -473,7 +473,6 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 onChange={(e) => updateFormData('password', e.target.value)}
                 placeholder="Enter your password"
                 className="pr-10 bg-white"
-                style={{ backgroundColor: 'white' }}
               />
               <button
                 type="button"
@@ -481,16 +480,16 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-indigo-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-indigo-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </button>
             </div>
             {formData.password && (
               <div className="mt-2">
                 <div className="flex items-center space-x-2">
-                  <div className="flex-1 h-2 bg-indigo-100 rounded-full">
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor()}`}
                       style={{
@@ -498,11 +497,11 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                       }}
                     />
                   </div>
-                  <span className="text-xs text-indigo-600">
+                  <span className="text-xs text-muted-foreground">
                     {getPasswordStrengthText()}
                   </span>
                 </div>
-                <p className="text-xs text-indigo-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Use 8+ characters with uppercase, lowercase, and numbers
                 </p>
               </div>
@@ -519,7 +518,6 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 onChange={(e) => updateFormData('confirmPassword', e.target.value)}
                 placeholder="Confirm your password"
                 className="pr-10 bg-white"
-                style={{ backgroundColor: 'white' }}
               />
               <button
                 type="button"
@@ -527,9 +525,9 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4 text-indigo-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-indigo-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </button>
             </div>
@@ -550,8 +548,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             value={formData[field]}
             onChange={(e) => updateFormData(field, e.target.value)}
             placeholder={step.placeholder}
-            className="text-lg p-4 border-2 border-indigo-200 focus:border-indigo-500 focus:ring-indigo-200 bg-white"
-            style={{ backgroundColor: 'white' }}
+            className="bg-white"
           />
         </div>
       );
@@ -564,10 +561,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             <Card
               key={option.value}
               className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.industry === option.value
-                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-white border-gray-200 hover:border-gray-300"
               )}
               onClick={() => updateFormData('industry', option.value)}
             >
@@ -577,7 +574,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                   <div className="text-sm text-gray-600">{option.description}</div>
                 </div>
                 {formData.industry === option.value && (
-                  <Check className="h-5 w-5 text-indigo-600" />
+                  <Check className="h-4 w-4 text-blue-600" />
                 )}
               </div>
             </Card>
@@ -593,10 +590,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             <Card
               key={option.value}
               className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.role === option.value
-                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-white border-gray-200 hover:border-gray-300"
               )}
               onClick={() => updateFormData('role', option.value)}
             >
@@ -606,7 +603,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                   <div className="text-sm text-gray-600">{option.description}</div>
                 </div>
                 {formData.role === option.value && (
-                  <Check className="h-5 w-5 text-indigo-600" />
+                  <Check className="h-4 w-4 text-blue-600" />
                 )}
               </div>
             </Card>
@@ -622,10 +619,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             <Card
               key={option.value}
               className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.teamSize === option.value
-                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-white border-gray-200 hover:border-gray-300"
               )}
               onClick={() => updateFormData('teamSize', option.value)}
             >
@@ -635,7 +632,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                   <div className="text-sm text-gray-600">{option.description}</div>
                 </div>
                 {formData.teamSize === option.value && (
-                  <Check className="h-5 w-5 text-indigo-600" />
+                  <Check className="h-4 w-4 text-blue-600" />
                 )}
               </div>
             </Card>
@@ -647,16 +644,16 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
     if (field === 'useCases') {
       return (
         <div className="space-y-3">
-          <p className="text-sm text-indigo-600 mb-2">Select all that apply</p>
+          <p className="text-sm text-muted-foreground mb-2">Select all that apply</p>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {USE_CASE_OPTIONS.map((option) => (
               <Card
                 key={option.value}
                 className={cn(
-                  "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                  "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
                   formData.useCases.includes(option.value)
-                    ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                    : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+                    ? "bg-blue-50 border-blue-200"
+                    : "bg-white border-gray-200 hover:border-gray-300"
                 )}
                 onClick={() => toggleUseCase(option.value)}
               >
@@ -666,7 +663,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                     <div className="text-sm text-gray-600">{option.description}</div>
                   </div>
                   {formData.useCases.includes(option.value) && (
-                    <Check className="h-5 w-5 text-indigo-600" />
+                    <Check className="h-4 w-4 text-blue-600" />
                   )}
                 </div>
               </Card>
@@ -683,10 +680,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             <Card
               key={option.value}
               className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                "p-3 cursor-pointer transition-all duration-200 hover:shadow-sm",
                 formData.heardAbout === option.value
-                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-white border-gray-200 hover:border-gray-300"
               )}
               onClick={() => updateFormData('heardAbout', option.value)}
             >
@@ -696,7 +693,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                   <div className="text-sm text-gray-600">{option.description}</div>
                 </div>
                 {formData.heardAbout === option.value && (
-                  <Check className="h-5 w-5 text-indigo-600" />
+                  <Check className="h-4 w-4 text-blue-600" />
                 )}
               </div>
             </Card>
@@ -712,20 +709,20 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
   const progress = (currentStep / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl">
         {/* Progress Bar and Help Section - Side by Side */}
         <div className="mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
             {/* Progress Section */}
             <div className="lg:col-span-2">
-              <div className="flex items-center justify-between text-sm text-indigo-600 mb-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                 <span>Step {currentStep} of {STEPS.length}</span>
                 <span>{Math.round(progress)}% complete</span>
               </div>
-              <div className="w-full bg-indigo-100 rounded-full h-1">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1 rounded-full transition-all duration-300"
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -733,16 +730,16 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
             
             {/* Help Section */}
             <div className="lg:col-span-1">
-              <Card className="bg-indigo-50 border-indigo-200 p-3">
+              <Card className="bg-gray-50 border-gray-200 p-3">
                 <div className="flex items-start space-x-2">
-                  <HelpCircle className="h-4 w-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                  <HelpCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm font-medium text-indigo-900 mb-1">Need Help Getting Started?</h4>
-                    <p className="text-xs text-indigo-700 mb-2">Our team is here to help you set up your account and get the most out of LXERA.</p>
+                    <h4 className="text-sm font-medium text-foreground mb-1">Need Help?</h4>
+                    <p className="text-xs text-muted-foreground mb-2">Our team is here to help you get started.</p>
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="h-7 px-3 text-xs border-indigo-300 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-400"
+                      className="h-7 px-3 text-xs"
                       onClick={() => window.open('mailto:support@lxera.ai', '_blank')}
                     >
                       <MessageCircle className="h-3 w-3 mr-1" />
@@ -756,18 +753,18 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
         </div>
 
         {/* Main Content */}
-        <Card className="bg-white backdrop-blur-sm border-indigo-100 shadow-lg max-w-2xl mx-auto">
-          <div className="p-8">
-            <div className="text-center mb-8">
+        <Card className="bg-white border shadow-sm max-w-2xl mx-auto">
+          <div className="p-6">
+            <div className="text-center mb-6">
               <img 
                 src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" 
                 alt="LXERA" 
-                className="h-12 mx-auto mb-4"
+                className="h-8 mx-auto mb-4"
               />
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-xl font-semibold text-foreground mb-1">
                 {currentStepData.title}
               </h1>
-              <p className="text-gray-600 text-lg">
+              <p className="text-sm text-muted-foreground">
                 {currentStepData.subtitle}
               </p>
             </div>
@@ -791,7 +788,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
                 variant="outline"
                 onClick={handleBack}
                 disabled={currentStep === 1}
-                className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                size="sm"
               >
                 Back
               </Button>
@@ -799,7 +796,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
               <Button
                 onClick={handleNext}
                 disabled={!isStepValid() || isSubmitting}
-                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 text-white px-8 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105"
+                size="sm"
               >
                 {isSubmitting ? (
                   'Setting up...'

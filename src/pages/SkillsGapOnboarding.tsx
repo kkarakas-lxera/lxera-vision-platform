@@ -95,14 +95,14 @@ const SkillsGapOnboardingPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-sm">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-1">
               Verifying your email...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Please wait while we verify your account.
             </p>
           </CardContent>
@@ -113,22 +113,22 @@ const SkillsGapOnboardingPage = () => {
 
   if (error || !leadData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-sm">
+          <CardContent className="p-6">
             <div className="text-center mb-6">
               <img 
                 src="https://www.lxera.ai/lovable-uploads/ed8138a6-1489-4140-8b44-0003698e8154.png" 
                 alt="LXERA" 
-                className="h-12 mx-auto mb-4"
+                className="h-8 mx-auto mb-4"
               />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
                 Verification Error
               </h2>
             </div>
             
-            <Alert className="mb-6 border-red-200 bg-red-50">
-              <AlertDescription className="text-red-700">
+            <Alert className="mb-6">
+              <AlertDescription className="text-sm">
                 {error}
               </AlertDescription>
             </Alert>
@@ -136,14 +136,16 @@ const SkillsGapOnboardingPage = () => {
             <div className="space-y-3">
               <Button
                 onClick={() => navigate('/skills-gap-signup')}
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                className="w-full"
+                size="sm"
               >
                 Start Over
               </Button>
               <Button
                 onClick={() => navigate('/login')}
                 variant="outline"
-                className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                className="w-full"
+                size="sm"
               >
                 Go to Login
               </Button>
@@ -156,14 +158,14 @@ const SkillsGapOnboardingPage = () => {
 
   if (isCompletingSetup) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-sm">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-1">
               Setting up your account...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Please wait while we create your dashboard.
             </p>
           </CardContent>

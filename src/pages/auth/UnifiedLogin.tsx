@@ -91,54 +91,59 @@ const UnifiedLogin = () => {
     setUserType(null);
 
     try {
-      // First check if this is an early access user
-      // @ts-ignore - early_access_leads table not in generated types yet
-      const { data: leads } = await supabase
-        .from('early_access_leads' as any)
-        .select('id, status, password_set, auth_user_id')
+      // First check if user exists in the users table (authenticated users)
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, role')
         .eq('email', email.toLowerCase());
 
-      if (leads && leads.length > 0) {
-        // This is an early access user
-        setUserType('early_access');
-        const lead = leads[0];
-
-        // Check if it's a company email for early access
-        if (!isCompanyEmail(email)) {
-          setPersonalEmailError(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // Check if user has password set
-        if (lead.password_set && lead.auth_user_id) {
-          setStep('password');
+      if (users && users.length > 0) {
+        // This is an authenticated user - determine their type
+        const userRole = users[0].role;
+        if (userRole === 'learner') {
+          setUserType('learner');
         } else {
-          // Send password setup email
-          const { error: emailError } = await supabase.functions.invoke('send-password-setup-email', {
-            body: { email: email.toLowerCase(), isNewUser: true }
-          });
-
-          if (emailError) throw emailError;
-
-          setPasswordSetupSent(true);
-          toast.success('Email sent!', {
-            description: 'Check your email to set up your password and access early access.',
-          });
+          setUserType('company');
         }
+        setStep('password');
       } else {
-        // Check if this is a company user
-        const { data: users } = await supabase
-          .from('users')
-          .select('id')
+        // Not an authenticated user, check if they're early access
+        // @ts-ignore - early_access_leads table not in generated types yet
+        const { data: leads } = await supabase
+          .from('early_access_leads' as any)
+          .select('id, status, password_set, auth_user_id')
           .eq('email', email.toLowerCase());
 
-        if (users && users.length > 0) {
-          // This is a company user
-          setUserType('company');
-          setStep('password');
+        if (leads && leads.length > 0) {
+          // This is an early access user
+          setUserType('early_access');
+          const lead = leads[0];
+
+          // Check if it's a company email for early access
+          if (!isCompanyEmail(email)) {
+            setPersonalEmailError(true);
+            setIsLoading(false);
+            return;
+          }
+
+          // Check if user has password set
+          if (lead.password_set && lead.auth_user_id) {
+            setStep('password');
+          } else {
+            // Send password setup email
+            const { error: emailError } = await supabase.functions.invoke('send-password-setup-email', {
+              body: { email: email.toLowerCase(), isNewUser: true }
+            });
+
+            if (emailError) throw emailError;
+
+            setPasswordSetupSent(true);
+            toast.success('Email sent!', {
+              description: 'Check your email to set up your password and access early access.',
+            });
+          }
         } else {
-          // User not found
+          // User not found anywhere
           setUserNotFound(true);
         }
       }

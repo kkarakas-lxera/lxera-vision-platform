@@ -3,24 +3,24 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import SkillsGapOnboarding from '@/components/onboarding/SkillsGapOnboarding';
 
 const EarlyAccessOnboarding = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [leadData, setLeadData] = useState<any>(null);
   const token = searchParams.get('token');
 
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
-        toast({
-          title: 'Invalid Link',
-          description: 'No token provided. Please use the link from your email.',
-          variant: 'destructive'
-        });
-        navigate('/');
+        setError('Invalid or missing verification token');
+        setLoading(false);
         return;
       }
 
@@ -100,17 +100,17 @@ const EarlyAccessOnboarding = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <Loader2 className="h-12 w-12 animate-spin text-future-green mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <Card className="w-full max-w-md shadow-sm">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-1">
               Verifying your access...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Please wait while we prepare your profile setup.
             </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
