@@ -93,7 +93,7 @@ serve(async (req) => {
     if (sessionError) throw sessionError;
 
     // Send magic link email
-    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'http://localhost:5173';
+    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai';
     const magicLink = `${siteUrl}/onboarding/early-access?token=${session.token}`;
 
     // Initialize Resend

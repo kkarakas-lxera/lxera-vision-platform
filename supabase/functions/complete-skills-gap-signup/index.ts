@@ -11,9 +11,10 @@ interface CompleteSignupPayload {
   token: string;
   password: string;
   company: string;
+  industry: string;
   role: string;
   teamSize: string;
-  useCase: string;
+  useCases: string[];
   heardAbout: string;
 }
 
@@ -29,15 +30,16 @@ serve(async (req) => {
   try {
     const payload = await req.json();
     console.log(`[${requestId}] Payload parsed:`, JSON.stringify(payload));
-    const { token, password, company, role, teamSize, useCase, heardAbout }: CompleteSignupPayload = payload;
+    const { token, password, company, industry, role, teamSize, useCases, heardAbout }: CompleteSignupPayload = payload;
 
     console.log(`[${requestId}] Extracted values:`, {
       token: !!token,
       password: !!password,
       company: company || 'UNDEFINED',
+      industry: industry || 'UNDEFINED',
       role: role || 'UNDEFINED',
       teamSize: teamSize || 'UNDEFINED',
-      useCase: useCase || 'UNDEFINED',
+      useCases: useCases || [],
       heardAbout: heardAbout || 'UNDEFINED'
     });
 
@@ -114,7 +116,11 @@ serve(async (req) => {
         plan_type: 'free_skills_gap',
         max_employees: 10,
         max_courses: 0,
-        is_active: true
+        is_active: true,
+        settings: {
+          industry: industry,
+          use_cases: useCases
+        }
       })
       .select()
       .single();
@@ -277,7 +283,7 @@ serve(async (req) => {
         company: company,
         role: role,
         team_size: teamSize,
-        use_case: useCase,
+        use_case: useCases.join(', '), // Store as comma-separated string for now
         heard_about: heardAbout
       })
       .eq('id', lead.id);
@@ -318,7 +324,7 @@ serve(async (req) => {
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="${siteUrl}/admin-login" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Access Your Dashboard</a>
+                      <a href="${siteUrl}/login" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Access Your Dashboard</a>
                     </div>
                     
                     <div style="background: #7AE5C6; color: #191919; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">

@@ -12,7 +12,7 @@ interface SkillsGapOnboardingProps {
   email: string;
   name: string;
   leadId: string;
-  onComplete: (data: { password: string; company: string; role: string; teamSize: string; useCase: string; heardAbout: string }) => void;
+  onComplete: (data: { password: string; company: string; industry: string; role: string; teamSize: string; useCases: string[]; heardAbout: string }) => void;
 }
 
 interface FormData {
@@ -20,9 +20,10 @@ interface FormData {
   confirmPassword: string;
   name: string;
   company: string;
+  industry: string;
   role: string;
   teamSize: string;
-  useCase: string;
+  useCases: string[];
   heardAbout: string;
 }
 
@@ -50,27 +51,34 @@ const STEPS = [
   },
   { 
     id: 4, 
+    title: "What industry are you in?", 
+    field: 'industry', 
+    placeholder: 'Select your industry',
+    subtitle: "This helps us tailor our solutions to your specific sector needs."
+  },
+  { 
+    id: 5, 
     title: "What best describes your role?", 
     field: 'role', 
     placeholder: 'Your role',
     subtitle: "Help us understand your position so we can personalize your experience."
   },
   { 
-    id: 5, 
+    id: 6, 
     title: "How big is your team?", 
     field: 'teamSize', 
     placeholder: 'Select team size',
     subtitle: "This helps us recommend the right solution for your organization."
   },
   { 
-    id: 6, 
+    id: 7, 
     title: "What are you hoping to achieve with LXERA?", 
-    field: 'useCase', 
-    placeholder: 'Your main focus area',
-    subtitle: "Select what best describes your learning and development goals."
+    field: 'useCases', 
+    placeholder: 'Select all that apply',
+    subtitle: "Select all the learning and development goals you want to accomplish."
   },
   { 
-    id: 7, 
+    id: 8, 
     title: "How did you discover us?", 
     field: 'heardAbout', 
     placeholder: 'Discovery source',
@@ -113,6 +121,89 @@ const ROLE_OPTIONS = [
     value: 'other', 
     label: 'Other Role', 
     description: 'Something else entirely'
+  },
+];
+
+const INDUSTRY_OPTIONS = [
+  { 
+    value: 'technology', 
+    label: 'Technology', 
+    description: 'Software, hardware, and IT services'
+  },
+  { 
+    value: 'finance', 
+    label: 'Finance & Banking', 
+    description: 'Banking, insurance, and financial services'
+  },
+  { 
+    value: 'healthcare', 
+    label: 'Healthcare', 
+    description: 'Medical services, pharmaceuticals, and biotech'
+  },
+  { 
+    value: 'retail', 
+    label: 'Retail & E-commerce', 
+    description: 'Physical and online retail businesses'
+  },
+  { 
+    value: 'manufacturing', 
+    label: 'Manufacturing', 
+    description: 'Industrial and consumer goods production'
+  },
+  { 
+    value: 'education', 
+    label: 'Education', 
+    description: 'Schools, universities, and training'
+  },
+  { 
+    value: 'consulting', 
+    label: 'Consulting & Professional Services', 
+    description: 'Business, legal, and advisory services'
+  },
+  { 
+    value: 'media', 
+    label: 'Media & Entertainment', 
+    description: 'Publishing, broadcasting, and digital media'
+  },
+  { 
+    value: 'nonprofit', 
+    label: 'Non-profit & NGO', 
+    description: 'Charitable and social organizations'
+  },
+  { 
+    value: 'government', 
+    label: 'Government & Public Sector', 
+    description: 'Federal, state, and local government'
+  },
+  { 
+    value: 'hospitality', 
+    label: 'Hospitality & Tourism', 
+    description: 'Hotels, restaurants, and travel'
+  },
+  { 
+    value: 'energy', 
+    label: 'Energy & Utilities', 
+    description: 'Oil, gas, renewable energy, and utilities'
+  },
+  { 
+    value: 'telecommunications', 
+    label: 'Telecommunications', 
+    description: 'Telecom and networking services'
+  },
+  { 
+    value: 'real_estate', 
+    label: 'Real Estate', 
+    description: 'Property development and management'
+  },
+  { 
+    value: 'transportation', 
+    label: 'Transportation & Logistics', 
+    description: 'Shipping, freight, and logistics'
+  },
+  { 
+    value: 'other', 
+    label: 'Other Industry', 
+    description: 'Not listed above'
   },
 ];
 
@@ -262,9 +353,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
     confirmPassword: '',
     name: name || '',
     company: '',
+    industry: '',
     role: '',
     teamSize: '',
-    useCase: '',
+    useCases: [],
     heardAbout: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -303,6 +395,10 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
       return formData.password.length >= 8 && formData.password === formData.confirmPassword;
     }
     
+    if (field === 'useCases') {
+      return formData.useCases.length > 0;
+    }
+    
     return formData[field] && formData[field] !== '';
   };
 
@@ -324,17 +420,19 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
     console.log('Onboarding data being sent:', {
       password: onboardingData.password,
       company: onboardingData.company,
+      industry: onboardingData.industry,
       role: onboardingData.role,
       teamSize: onboardingData.teamSize,
-      useCase: onboardingData.useCase,
+      useCases: onboardingData.useCases,
       heardAbout: onboardingData.heardAbout,
     });
     onComplete({
       password: onboardingData.password,
       company: onboardingData.company,
+      industry: onboardingData.industry,
       role: onboardingData.role,
       teamSize: onboardingData.teamSize,
-      useCase: onboardingData.useCase,
+      useCases: onboardingData.useCases,
       heardAbout: onboardingData.heardAbout,
     });
   };
@@ -347,6 +445,15 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleUseCase = (useCase: string) => {
+    setFormData(prev => ({
+      ...prev,
+      useCases: prev.useCases.includes(useCase) 
+        ? prev.useCases.filter(uc => uc !== useCase)
+        : [...prev.useCases, useCase]
+    }));
   };
 
   const renderStepContent = () => {
@@ -450,6 +557,35 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
       );
     }
 
+    if (field === 'industry') {
+      return (
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {INDUSTRY_OPTIONS.map((option) => (
+            <Card
+              key={option.value}
+              className={cn(
+                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                formData.industry === option.value
+                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
+                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
+              )}
+              onClick={() => updateFormData('industry', option.value)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-900">{option.label}</div>
+                  <div className="text-sm text-gray-600">{option.description}</div>
+                </div>
+                {formData.industry === option.value && (
+                  <Check className="h-5 w-5 text-indigo-600" />
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
     if (field === 'role') {
       return (
         <div className="space-y-3">
@@ -508,31 +644,34 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
       );
     }
 
-    if (field === 'useCase') {
+    if (field === 'useCases') {
       return (
         <div className="space-y-3">
-          {USE_CASE_OPTIONS.map((option) => (
-            <Card
-              key={option.value}
-              className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
-                formData.useCase === option.value
-                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
-                  : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
-              )}
-              onClick={() => updateFormData('useCase', option.value)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900">{option.label}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
-                </div>
-                {formData.useCase === option.value && (
-                  <Check className="h-5 w-5 text-indigo-600" />
+          <p className="text-sm text-indigo-600 mb-2">Select all that apply</p>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {USE_CASE_OPTIONS.map((option) => (
+              <Card
+                key={option.value}
+                className={cn(
+                  "p-4 cursor-pointer transition-all duration-200 hover:shadow-md",
+                  formData.useCases.includes(option.value)
+                    ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md"
+                    : "bg-white/60 backdrop-blur-sm border-indigo-100 hover:border-indigo-200"
                 )}
-              </div>
-            </Card>
-          ))}
+                onClick={() => toggleUseCase(option.value)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{option.label}</div>
+                    <div className="text-sm text-gray-600">{option.description}</div>
+                  </div>
+                  {formData.useCases.includes(option.value) && (
+                    <Check className="h-5 w-5 text-indigo-600" />
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       );
     }

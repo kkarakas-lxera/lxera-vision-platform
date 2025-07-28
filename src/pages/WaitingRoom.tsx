@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import ProgressiveOnboarding from '@/components/onboarding/ProgressiveOnboarding
 
 const WaitingRoom = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const email = searchParams.get('email');
   const token = searchParams.get('token');
   const [leadData, setLeadData] = useState<{
@@ -29,6 +30,7 @@ const WaitingRoom = () => {
   const [loading, setLoading] = useState(true);
   const [totalLeads, setTotalLeads] = useState(0);
   const [profileCompleted, setProfileCompleted] = useState(false);
+  const [authUser, setAuthUser] = useState<any>(null);
 
   const loadLeadData = async () => {
       // If we have a token, verify it first
@@ -74,16 +76,65 @@ const WaitingRoom = () => {
     };
 
   useEffect(() => {
-    loadLeadData();
+    // Check authentication first
+    const checkAuthAndLoadData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user && !token) {
+        // Not authenticated and no token, redirect to login
+        navigate('/login');
+        return;
+      }
+      
+      if (user) {
+        setAuthUser(user);
+        // If authenticated, override email from URL with auth email
+        const authEmail = user.email?.toLowerCase();
+        if (authEmail) {
+          // Load lead data for authenticated user
+          try {
+            const { data: lead, error } = await supabase
+              .from('early_access_leads')
+              .select('*')
+              .eq('email', authEmail)
+              .single();
+
+            if (!error && lead) {
+              setLeadData(lead);
+              setProfileCompleted(lead.status === 'profile_completed' || lead.status === 'waitlisted');
+            }
+          } catch (error) {
+            console.error('Error loading lead data:', error);
+          }
+        }
+      } else {
+        // Not authenticated but has token, proceed with token verification
+        loadLeadData();
+      }
+      
+      // Get total waitlist count
+      const { count } = await supabase
+        .from('early_access_leads')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['waitlisted', 'profile_completed', 'invited', 'converted']);
+
+      setTotalLeads(count || 0);
+      setLoading(false);
+    };
+    
+    checkAuthAndLoadData();
     
     // Poll for profile completion status if not completed
-    if (!profileCompleted && email) {
+    if (!profileCompleted && (email || authUser?.email)) {
       const interval = setInterval(async () => {
         try {
+          const emailToUse = authUser?.email || email;
+          if (!emailToUse) return;
+          
           const { data: lead, error } = await supabase
             .from('early_access_leads')
             .select('*')
-            .eq('email', email)
+            .eq('email', emailToUse.toLowerCase())
             .single();
           
           if (!error && lead && (lead.status === 'profile_completed' || lead.status === 'waitlisted')) {
@@ -98,7 +149,7 @@ const WaitingRoom = () => {
       
       return () => clearInterval(interval);
     }
-  }, [email, token, profileCompleted]);
+  }, [email, token, profileCompleted, authUser, navigate]);
 
 
   if (loading) {
@@ -148,14 +199,15 @@ const WaitingRoom = () => {
   const mockAuthContext = {
     userProfile: {
       id: 'early-access',
-      email: leadData?.email || email || '',
+      email: authUser?.email || leadData?.email || email || '',
       full_name: leadData?.name || 'Early Access User',
       role: 'early_access' as const,
       company_id: null,
       company_name: leadData?.company || 'Company'
     },
     signOut: async () => {
-      window.location.href = '/';
+      await supabase.auth.signOut();
+      navigate('/login');
     }
   };
 

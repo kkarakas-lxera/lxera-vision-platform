@@ -30,8 +30,7 @@ import { toast } from "@/components/ui/sonner";
 // Critical pages - loaded synchronously
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/auth/Login";
-import EarlyAccessLogin from "./pages/auth/EarlyAccessLogin";
+import UnifiedLogin from "./pages/auth/UnifiedLogin";
 import AuthCallback from "./pages/auth/AuthCallback";
 
 // Lazy load auth pages
@@ -82,6 +81,7 @@ const Glossary = lazy(() => import("./pages/resources/Glossary"));
 // Lazy load onboarding pages
 const EarlyAccess = lazy(() => import("./pages/onboarding/EarlyAccess"));
 const EarlyAccessSignup = lazy(() => import("./pages/EarlyAccessSignup"));
+const EarlyAccessSetPassword = lazy(() => import("./pages/auth/EarlyAccessSetPassword"));
 const WaitingRoom = lazy(() => import("./pages/WaitingRoom"));
 const SkillsGapAnalysisLanding = lazy(() => import("./pages/SkillsGapAnalysisLanding"));
 const SkillsGapSignup = lazy(() => import("./pages/SkillsGapSignup"));
@@ -896,10 +896,10 @@ const App = () => {
             <Route path="/resources/glossary" element={<PageSuspense><Glossary /></PageSuspense>} />
 
             {/* Auth routes */}
-            <Route path="/login" element={<EarlyAccessLogin />} />
-            <Route path="/admin-login" element={<Login />} />
+            <Route path="/login" element={<UnifiedLogin />} />
             <Route path="/signup/invitation" element={<PageSuspense><InvitationSignup /></PageSuspense>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/early-access/set-password" element={<PageSuspense><EarlyAccessSetPassword /></PageSuspense>} />
             
             {/* Onboarding routes */}
             <Route path="/onboarding/early-access" element={<PageSuspense><EarlyAccess /></PageSuspense>} />

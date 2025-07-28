@@ -95,7 +95,7 @@ const SkillsGapSignup = () => {
               Click the link in the email to complete your setup and access your dashboard.
             </p>
             <Button
-              onClick={() => navigate('/admin-login')}
+              onClick={() => navigate('/login')}
               variant="outline"
               className="w-full"
             >

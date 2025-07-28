@@ -126,17 +126,29 @@ const InvitationSignup = () => {
           }
         }
 
-        // Check if user already exists
-        const { data: existingUser, error: userError } = await supabase
-          .from('users')
-          .select('id, email')
-          .eq('email', email)
-          .single();
-
-        if (!userError && existingUser) {
-          setError('An account with this email already exists. Please sign in instead.');
-          setIsValidating(false);
-          return;
+        // Check if user already has an auth account (not just a profile)
+        // For imported employees, they have a users record but no auth account
+        // We need to check auth.users, not public.users
+        try {
+          const { data: { user: authUser } } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: 'dummy_check_123' // This will fail but tells us if account exists
+          });
+          
+          // If we get here without error, auth account exists
+          if (authUser) {
+            setError('An account with this email already exists. Please sign in instead.');
+            setIsValidating(false);
+            return;
+          }
+        } catch (authError: any) {
+          // If error is "Invalid login credentials", account exists
+          if (authError?.message?.includes('Invalid login credentials')) {
+            setError('An account with this email already exists. Please sign in instead.');
+            setIsValidating(false);
+            return;
+          }
+          // Any other error means no auth account exists, which is what we want
         }
 
         // Set employee data
@@ -219,7 +231,7 @@ const InvitationSignup = () => {
         console.error('Error signing in after signup:', signInError);
         setError('Account created successfully! Please sign in to complete your profile.');
         // Navigate to login with success message
-        navigate(`/admin-login?redirect=/learner/profile&token=${invitationToken}&message=account-created`);
+        navigate(`/login?redirect=/learner/profile&token=${invitationToken}&message=account-created`);
         return;
       }
       
@@ -228,16 +240,48 @@ const InvitationSignup = () => {
       // Wait a moment for auth trigger to create user profile
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Update the automatically created user profile with company info
-      const { error: userUpdateError } = await supabase
+      // For imported employees, they already have a users record with a different ID
+      // We need to update it to match the auth user ID
+      const { data: existingUserRecord } = await supabase
         .from('users')
-        .update({
-          role: 'learner',
-          company_id: employeeData.company_id,
-          is_active: true,
-          email_verified: true
-        })
-        .eq('id', authUser.id);
+        .select('id')
+        .eq('email', employeeData.email)
+        .single();
+
+      if (existingUserRecord && existingUserRecord.id !== authUser.id) {
+        // Update the existing user record to have the correct auth user ID
+        const { error: updateIdError } = await supabase
+          .from('users')
+          .update({
+            id: authUser.id,
+            role: 'learner',
+            company_id: employeeData.company_id,
+            is_active: true,
+            email_verified: true
+          })
+          .eq('email', employeeData.email);
+          
+        if (updateIdError) {
+          console.error('Error updating user ID:', updateIdError);
+          // Try to delete the duplicate that trigger might have created
+          await supabase.from('users').delete().eq('id', authUser.id);
+        }
+      } else {
+        // Normal flow - update the user profile created by trigger
+        const { error: userUpdateError } = await supabase
+          .from('users')
+          .update({
+            role: 'learner',
+            company_id: employeeData.company_id,
+            is_active: true,
+            email_verified: true
+          })
+          .eq('id', authUser.id);
+          
+        if (userUpdateError) {
+          console.error('Error updating user profile:', userUpdateError);
+        }
+      }
         
       // Also mark the auth user's email as confirmed since they came from an invitation
       // This requires a server-side function or edge function to update auth.users
@@ -251,13 +295,6 @@ const InvitationSignup = () => {
       if (confirmEmailError) {
         console.error('Error confirming email:', confirmEmailError);
         // Don't fail the signup process for this
-      }
-
-      if (userUpdateError) {
-        console.error('Error updating user profile:', userUpdateError);
-        setError('Failed to update user profile. Please contact support.');
-        setIsLoading(false);
-        return;
       }
 
       // Step 3: Link employee to user
@@ -320,7 +357,7 @@ const InvitationSignup = () => {
             </AlertDescription>
           </Alert>
           <Button 
-            onClick={() => navigate('/admin-login')}
+            onClick={() => navigate('/login')}
             className="bg-gradient-to-r from-business-black to-business-black/90 hover:from-business-black hover:to-business-black text-white"
           >
             Go to Login

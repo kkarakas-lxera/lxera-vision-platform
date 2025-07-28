@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
         const resendApiKey = Deno.env.get('RESEND_API_KEY');
         if (resendApiKey) {
           const resend = new Resend(resendApiKey);
+          const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai';
           
           const { data: leadData } = await supabaseClient
             .from('early_access_leads')
@@ -147,7 +148,10 @@ Deno.serve(async (req) => {
                         </ol>
                         
                         <div style="text-align: center; margin: 30px 0;">
-                          <a href="https://lxera.ai/waiting-room?email=${encodeURIComponent(leadData.email)}" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Visit Your Dashboard</a>
+                          <a href="${siteUrl}/login" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Access Your Waiting Room</a>
+                        </div>
+                        <div style="text-align: center; color: #666; font-size: 14px; margin: 10px 0;">
+                          First time? You'll receive a password setup email when you click above.
                         </div>
                       </div>
                       
@@ -171,7 +175,7 @@ Deno.serve(async (req) => {
                   </div>
                 </div>
               `,
-              text: `Welcome to LXERA Early Access!\n\nYou're #${leadData.waitlist_position}! (Top ${progressPercentage}% of waitlist)\n\nWhat's Next?\n1. Join your personalized waiting room\n2. Complete your profile for priority access\n3. Get notified when we launch\n\nVisit your dashboard: https://lxera.ai/waiting-room?email=${encodeURIComponent(leadData.email)}\n\nBeyond Learning | www.lxera.ai\n© 2025 LXERA. All rights reserved.`
+              text: `Welcome to LXERA Early Access!\n\nYou're #${leadData.waitlist_position}! (Top ${progressPercentage}% of waitlist)\n\nWhat's Next?\n1. Join your personalized waiting room\n2. Complete your profile for priority access\n3. Get notified when we launch\n\nAccess your waiting room: ${siteUrl}/login\n(First time? You'll receive a password setup email)\n\nBeyond Learning | www.lxera.ai\n© 2025 LXERA. All rights reserved.`
             });
 
             // Log email sent

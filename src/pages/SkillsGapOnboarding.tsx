@@ -56,9 +56,10 @@ const SkillsGapOnboardingPage = () => {
   const handleOnboardingComplete = async (onboardingData: {
     password: string;
     company: string;
+    industry: string;
     role: string;
     teamSize: string;
-    useCase: string;
+    useCases: string[];
     heardAbout: string;
   }) => {
     setIsCompletingSetup(true);
@@ -140,7 +141,7 @@ const SkillsGapOnboardingPage = () => {
                 Start Over
               </Button>
               <Button
-                onClick={() => navigate('/admin-login')}
+                onClick={() => navigate('/login')}
                 variant="outline"
                 className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50"
               >

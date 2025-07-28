@@ -80,7 +80,7 @@ serve(async (req) => {
             success: true, 
             message: 'already_converted',
             leadId,
-            redirectTo: '/admin-login'
+            redirectTo: '/login'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -134,7 +134,7 @@ serve(async (req) => {
     }
 
     // Send verification email
-    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'http://localhost:5173';
+    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai';
     const verificationLink = `${siteUrl}/skills-gap-onboarding?token=${session.token}`;
 
     // Initialize Resend

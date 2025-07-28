@@ -7,8 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface SendVerificationCodeRequest {
+interface SendPasswordSetupRequest {
   email: string;
+  isNewUser?: boolean;
 }
 
 serve(async (req) => {
@@ -17,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email }: SendVerificationCodeRequest = await req.json()
+    const { email, isNewUser = true }: SendPasswordSetupRequest = await req.json()
 
     if (!email) {
       throw new Error('Email is required')
@@ -29,46 +30,57 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Generate 6-digit verification code
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    // Check if lead exists
+    const { data: lead, error: leadError } = await supabaseAdmin
+      .from('early_access_leads')
+      .select('id, name, status, password_set, auth_user_id')
+      .eq('email', email.toLowerCase())
+      .single()
+
+    if (leadError || !lead) {
+      throw new Error('No early access registration found for this email')
+    }
+
+    // If already has password, return error
+    if (lead.password_set && lead.auth_user_id) {
+      throw new Error('Account already exists. Please sign in with your password.')
+    }
+
+    // Generate session token
+    const token = crypto.randomUUID()
     
-    // Set expiration time (15 minutes from now)
+    // Set expiration time (24 hours from now)
     const expiresAt = new Date()
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15)
+    expiresAt.setHours(expiresAt.getHours() + 24)
 
-    // Mark any existing unused codes for this email as used
-    await supabaseAdmin
-      .from('verification_codes')
-      .update({ used: true })
-      .eq('email', email)
-      .eq('used', false)
-
-    // Insert new verification code
-    const { error: insertError } = await supabaseAdmin
-      .from('verification_codes')
+    // Create lead session
+    const { error: sessionError } = await supabaseAdmin
+      .from('lead_sessions')
       .insert({
-        email,
-        code,
+        lead_id: lead.id,
+        token: token,
         expires_at: expiresAt.toISOString()
       })
 
-    if (insertError) {
-      console.error('Error inserting verification code:', insertError)
-      throw new Error('Failed to generate verification code')
+    if (sessionError) {
+      console.error('Error creating session:', sessionError)
+      throw new Error('Failed to create verification session')
     }
 
-    // Send email with verification code
+    // Send email with password setup link
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) {
       throw new Error('RESEND_API_KEY not configured')
     }
 
     const resend = new Resend(resendApiKey)
+    const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://www.lxera.ai'
+    const verificationLink = `${siteUrl}/early-access/set-password?token=${token}`
     
     const { error: emailError } = await resend.emails.send({
       from: 'LXERA <hello@lxera.ai>',
       to: email,
-      subject: 'Your LXERA Verification Code',
+      subject: 'Set your password for LXERA Early Access',
       html: `
         <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%); padding: 40px 20px;">
@@ -81,17 +93,34 @@ serve(async (req) => {
               
               <!-- Content -->
               <div style="padding: 40px;">
-                <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Verify Your Email</h1>
-                <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
-                  Hi there, welcome to LXERA!
+                <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">
+                  ${isNewUser ? 'Complete Your Early Access Setup' : 'Set Your Password'}
+                </h1>
+                <p style="color: #666; font-size: 16px; margin-bottom: 20px; line-height: 1.6;">
+                  Hi ${lead.name || 'there'},<br><br>
+                  ${isNewUser 
+                    ? 'Thanks for your interest in LXERA Early Access! Click the button below to set your password and access the waiting room.'
+                    : 'We\'ve upgraded our security. Please set a password to continue accessing LXERA Early Access.'}
                 </p>
                 
-                <div style="background: #7AE5C6; color: #191919; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; font-size: 36px; font-weight: 700; letter-spacing: 8px;">
-                  ${code}
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${verificationLink}" style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                    Set Password & Access Early Access
+                  </a>
+                </div>
+                
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                  <div style="font-size: 16px; font-weight: 600; color: #191919; margin-bottom: 12px;">🚀 Early Access Benefits</div>
+                  <div style="color: #666; font-size: 14px; line-height: 1.8;">
+                    ✓ Be the first to try new features<br>
+                    ✓ Direct feedback channel with our team<br>
+                    ✓ Exclusive updates and insights<br>
+                    ✓ Priority access when we launch
+                  </div>
                 </div>
                 
                 <p style="text-align: center; color: #666; font-size: 14px; margin: 20px 0;">
-                  ⏱️ Code expires in 15 minutes
+                  🔒 This link expires in 24 hours for security reasons
                 </p>
               </div>
               
@@ -112,18 +141,18 @@ serve(async (req) => {
           </div>
         </div>
       `,
-      text: `Your LXERA Verification Code: ${code}\n\nThis code will expire in 15 minutes. If you didn't request this code, please ignore this email.`
+      text: `Set your password for LXERA Early Access\n\nHi ${lead.name || 'there'},\n\n${isNewUser ? 'Thanks for your interest in LXERA Early Access! Click the link below to set your password and access the waiting room.' : 'We\'ve upgraded our security. Please set a password to continue accessing LXERA Early Access.'}\n\nSet your password: ${verificationLink}\n\nThis link expires in 24 hours.\n\nIf you didn't request this, please ignore this email.`
     })
 
     if (emailError) {
       console.error('Error sending email:', emailError)
-      throw new Error('Failed to send verification email')
+      throw new Error('Failed to send password setup email')
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Verification code sent successfully' 
+        message: 'Password setup email sent successfully' 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -132,7 +161,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Send verification code error:', error)
+    console.error('Send password setup email error:', error)
     return new Response(
       JSON.stringify({ 
         success: false,
