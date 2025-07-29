@@ -46,14 +46,15 @@ Description: ${position_description || 'No description provided'}
 
 Based on actual 2025 job market data, provide 20-25 relevant skills that are most in-demand.
 
-For each skill, provide:
-- skill_name: Clear, concise skill name (2-4 words max)
-- category: "essential" (must-have), "important" (strongly preferred), or "nice-to-have"
-- proficiency_level: "basic", "intermediate", "advanced", or "expert"
-- description: One sentence explaining how this skill applies to the role
-- reason: Why this skill matters for this specific position
-- skill_group: "technical", "soft", "leadership", "tools", or "industry"
-- market_demand: "high", "medium", or "low" based on current industry trends
+For each skill, create a section with this exact format:
+
+### [Skill Name]
+- **Category:** essential/important
+- **Proficiency:** basic/intermediate/advanced/expert
+- **Market Demand:** high/medium/low
+- **Skill Group:** technical/soft/leadership/tools/industry
+- **Description:** [One sentence explaining how this skill applies to the role]
+- **Reason:** [Why this skill matters for this specific position]
 
 Consider:
 - Current 2025 industry standards and trends
@@ -62,13 +63,10 @@ Consider:
 - Emerging skills gaining importance in 2025
 - Skills mentioned in actual 2025 job postings (if market data available)
 
-Return your response as a valid JSON object ONLY, with no additional text before or after. The JSON must have this exact structure:
-{
-  "skills": [array of skill objects],
-  "insights": "Brief summary of key trends or patterns noticed"
-}
+At the end, add a section:
 
-IMPORTANT: Your entire response must be valid JSON that can be parsed directly.`
+## Insights
+[Brief summary of key trends or patterns noticed from the 2025 job market data]`
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -84,7 +82,7 @@ IMPORTANT: Your entire response must be valid JSON that can be parsed directly.`
         messages: [
           {
             role: 'system',
-            content: 'You are an expert HR consultant and skills analyst with deep knowledge of current job market trends. Provide practical, relevant skill suggestions based on industry best practices. Be specific and avoid generic skills. ALWAYS respond with valid JSON only, no additional text.'
+            content: 'You are an expert HR consultant and skills analyst with deep knowledge of current job market trends. Provide practical, relevant skill suggestions based on industry best practices. Be specific and avoid generic skills. Use markdown formatting as requested.'
           },
           {
             role: 'user',
@@ -102,16 +100,71 @@ IMPORTANT: Your entire response must be valid JSON that can be parsed directly.`
     }
 
     const openaiData = await openaiResponse.json()
-    const content = openaiData.choices[0]?.message?.content
+    const content = openaiData.choices[0]?.message?.content || ''
 
     let skills: SkillSuggestion[] = []
     let insights = ''
     let marketDataAvailable = false
     
     try {
-      const parsed = JSON.parse(content)
-      skills = parsed.skills || []
-      insights = parsed.insights || ''
+      // Parse markdown format
+      const skillSections = content.split('###').slice(1) // Skip first empty element
+      
+      for (const section of skillSections) {
+        if (section.trim().startsWith('[')) continue // Skip any bracketed sections
+        
+        const lines = section.trim().split('\n')
+        const skillName = lines[0].trim()
+        
+        if (!skillName || skillName.toLowerCase() === 'insights') break
+        
+        const skill: SkillSuggestion = {
+          skill_name: skillName,
+          category: 'important' as any,
+          proficiency_level: 'intermediate' as any,
+          description: '',
+          skill_group: 'industry' as any,
+          market_demand: 'medium' as any
+        }
+        
+        // Parse each line
+        for (const line of lines.slice(1)) {
+          const trimmedLine = line.trim()
+          if (trimmedLine.startsWith('- **Category:**')) {
+            const value = trimmedLine.replace('- **Category:**', '').trim()
+            if (['essential', 'important', 'nice-to-have'].includes(value)) {
+              skill.category = value as any
+            }
+          } else if (trimmedLine.startsWith('- **Proficiency:**')) {
+            const value = trimmedLine.replace('- **Proficiency:**', '').trim()
+            if (['basic', 'intermediate', 'advanced', 'expert'].includes(value)) {
+              skill.proficiency_level = value as any
+            }
+          } else if (trimmedLine.startsWith('- **Market Demand:**')) {
+            const value = trimmedLine.replace('- **Market Demand:**', '').trim()
+            if (['high', 'medium', 'low'].includes(value)) {
+              skill.market_demand = value as any
+            }
+          } else if (trimmedLine.startsWith('- **Skill Group:**')) {
+            const value = trimmedLine.replace('- **Skill Group:**', '').trim()
+            if (['technical', 'soft', 'leadership', 'tools', 'industry'].includes(value)) {
+              skill.skill_group = value as any
+            }
+          } else if (trimmedLine.startsWith('- **Description:**')) {
+            skill.description = trimmedLine.replace('- **Description:**', '').trim()
+          } else if (trimmedLine.startsWith('- **Reason:**')) {
+            skill.reason = trimmedLine.replace('- **Reason:**', '').trim()
+          }
+        }
+        
+        skills.push(skill)
+      }
+      
+      // Extract insights
+      const insightsMatch = content.match(/## Insights\s*\n([\s\S]*?)$/i)
+      if (insightsMatch) {
+        insights = insightsMatch[1].trim()
+      }
       
       // Check if web search was used based on model response
       const responseMessage = openaiData.choices[0]?.message
@@ -133,6 +186,7 @@ IMPORTANT: Your entire response must be valid JSON that can be parsed directly.`
       })
     } catch (e) {
       console.error('Failed to parse OpenAI response:', e)
+      console.error('Response content:', content)
       throw new Error('Invalid response format from AI')
     }
 
