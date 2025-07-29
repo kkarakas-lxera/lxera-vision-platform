@@ -107,11 +107,11 @@ serve(async (req) => {
     const timestamp = Date.now().toString(36); // Convert timestamp to base36 for shorter string
     const companyDomain = `${emailDomain}-${lead.id.substring(0, 8)}-${timestamp}`;
 
-    // Create company record
+    // Create company record with Skills Gap suffix like early access
     const { data: companyRecord, error: companyError } = await supabase
       .from('companies')
       .insert({
-        name: company,
+        name: `${company} (Skills Gap)`,
         domain: companyDomain,
         plan_type: 'free_skills_gap',
         max_employees: 10,
@@ -119,7 +119,11 @@ serve(async (req) => {
         is_active: true,
         settings: {
           industry: industry,
-          use_cases: useCases
+          team_size: teamSize,
+          use_cases: useCases,
+          heard_about: heardAbout,
+          skills_gap: true,
+          skills_gap_lead_id: lead.id
         }
       })
       .select()
@@ -169,7 +173,9 @@ serve(async (req) => {
         password: password,
         email_confirm: true,
         user_metadata: {
-          full_name: lead.name,
+          full_name: lead.name || company,
+          skills_gap: true,
+          skills_gap_lead_id: lead.id,
           signup_type: 'skills_gap'
         }
       });
@@ -210,7 +216,12 @@ serve(async (req) => {
           company_id: companyRecord.id,
           position: role || 'HR Manager',
           is_active: true,
-          email_verified: true
+          email_verified: true,
+          metadata: {
+            skills_gap: true,
+            skills_gap_lead_id: lead.id,
+            onboarded_from: 'skills_gap_signup'
+          }
         })
         .eq('id', existingUser.id)
         .select()
@@ -235,12 +246,17 @@ serve(async (req) => {
           id: authUser.id,
           email: lead.email,
           password_hash: 'supabase_managed',
-          full_name: lead.name,
+          full_name: lead.name || company,
           role: 'company_admin',
           company_id: companyRecord.id,
           position: role || 'HR Manager',
           is_active: true,
-          email_verified: true
+          email_verified: true,
+          metadata: {
+            skills_gap: true,
+            skills_gap_lead_id: lead.id,
+            onboarded_from: 'skills_gap_signup'
+          }
         })
         .select()
         .single();
@@ -275,7 +291,7 @@ serve(async (req) => {
       .update({ used_at: new Date().toISOString() })
       .eq('id', session.id);
 
-    // Update lead status to converted and store onboarding data
+    // Update lead status to converted and store onboarding data (matching early access structure)
     await supabase
       .from('skills_gap_leads')
       .update({ 
@@ -285,7 +301,19 @@ serve(async (req) => {
         role: role,
         team_size: teamSize,
         use_case: useCases.join(', '), // Store as comma-separated string for now
-        heard_about: heardAbout
+        heard_about: heardAbout,
+        enrichment_data: {
+          ...lead.enrichment_data,
+          industry: industry,
+          teamSize: teamSize,
+          useCases: useCases,
+          heardAbout: heardAbout
+        },
+        onboarded_at: new Date().toISOString(),
+        password_set: true,
+        auth_user_id: authUser.id,
+        converted_to_auth_at: new Date().toISOString(),
+        converted_to_company_id: companyRecord.id
       })
       .eq('id', lead.id);
 
