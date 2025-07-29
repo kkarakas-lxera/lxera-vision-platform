@@ -791,8 +791,9 @@ export default function PositionCreate() {
                   <Input
                     id="position_code"
                     value={positionData.position_code}
-                    onChange={(e) => setPositionData({ ...positionData, position_code: e.target.value })}
-                    placeholder="e.g., ENG-SR-001"
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                    placeholder="Auto-generated from title"
                   />
                 </div>
               </div>

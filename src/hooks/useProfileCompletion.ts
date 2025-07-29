@@ -28,15 +28,25 @@ export const useProfileCompletion = () => {
       return;
     }
 
+    // Skip profile completion check for company admins and super admins
+    if (userProfile.role === 'company_admin' || userProfile.role === 'super_admin') {
+      setStatus(prev => ({ 
+        ...prev, 
+        isLoading: false,
+        isComplete: true // Admins don't need profile completion
+      }));
+      return;
+    }
+
     try {
       // Get employee record
-      const { data: employee } = await supabase
+      const { data: employee, error } = await supabase
         .from('employees')
         .select('id, profile_complete, profile_completion_date')
         .eq('user_id', userProfile.id)
         .single();
 
-      if (!employee) {
+      if (error || !employee) {
         setStatus(prev => ({ ...prev, isLoading: false }));
         return;
       }
