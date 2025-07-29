@@ -53,6 +53,7 @@ export default function PositionCreate() {
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<Record<number, 'pending' | 'processing' | 'completed' | 'error'>>({});
+  const [loadingStage, setLoadingStage] = useState<Record<number, 'market' | 'ai' | null>>({});
   const [expandedPositions, setExpandedPositions] = useState<Set<number>>(new Set([0]));
   const [loadingMessages, setLoadingMessages] = useState<{[key: number]: string}>({});
   const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
@@ -61,6 +62,8 @@ export default function PositionCreate() {
   const [processingStartTime, setProcessingStartTime] = useState<{[key: number]: number}>({});
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
   const [collapsedPositions, setCollapsedPositions] = useState<Set<number>>(new Set());
+  const [selectedSkills, setSelectedSkills] = useState<{[positionIndex: number]: Set<string>}>({});
+  const [marketDataAvailable, setMarketDataAvailable] = useState<{[positionIndex: number]: boolean}>({});
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const descriptionEndRef = useRef<HTMLDivElement>(null);
   const [hasScrolledDescription, setHasScrolledDescription] = useState(false);
@@ -166,16 +169,22 @@ export default function PositionCreate() {
     let progressInterval: NodeJS.Timer | null = null;
 
     try {
-      updateProgress(10, '🔍 Searching skills database...');
+      updateProgress(10, '🔍 Searching job market data for 2025...');
+      setLoadingStage(prev => ({ ...prev, [positionIndex]: 'market' }));
       
-      // Stage 1: Database search simulation
-      progressTimeouts.push(setTimeout(() => updateProgress(25, '🤖 AI analyzing position requirements...'), 800));
+      // Stage 1: Market data search
+      progressTimeouts.push(setTimeout(() => {
+        updateProgress(25, '🌐 Analyzing current job requirements...');
+      }, 800));
       
-      // Stage 2: AI processing simulation
-      progressTimeouts.push(setTimeout(() => updateProgress(45, '📊 Categorizing and scoring skills...'), 1500));
+      // Stage 2: AI processing
+      progressTimeouts.push(setTimeout(() => {
+        updateProgress(45, '🤖 AI processing market insights...');
+        setLoadingStage(prev => ({ ...prev, [positionIndex]: 'ai' }));
+      }, 1500));
       
-      // Stage 3: Almost done
-      progressTimeouts.push(setTimeout(() => updateProgress(70, '⚡ Finalizing recommendations...'), 2500));
+      // Stage 3: Finalizing
+      progressTimeouts.push(setTimeout(() => updateProgress(70, '⚡ Generating tailored recommendations...'), 2500));
       
       // Progressive increment until API completes
       progressInterval = setInterval(() => {
@@ -239,6 +248,12 @@ export default function PositionCreate() {
 
         setProcessingStatus(prev => ({ ...prev, [positionIndex]: 'completed' }));
         setLoadingMessages(prev => ({ ...prev, [positionIndex]: '' }));
+        setLoadingStage(prev => ({ ...prev, [positionIndex]: null }));
+        
+        // Check if market data was available
+        if (data.summary?.market_data_available) {
+          setMarketDataAvailable(prev => ({ ...prev, [positionIndex]: true }));
+        }
       }
     } catch (error) {
       console.error('Error generating skills for position:', error);
@@ -879,9 +894,9 @@ export default function PositionCreate() {
           {currentStep === 2 && (
             <div className="space-y-6">
               {/* Top-Level Multi-Position Progress Bar */}
-              <div className="bg-gradient-to-br from-smart-beige via-future-green/10 to-smart-beige border border-future-green/30 rounded-lg p-4">
+              <div className="bg-muted/50 border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-medium text-business-black">⚡ AI Processing Status</h3>
+                  <h3 className="text-lg font-medium">AI Processing Status</h3>
                   {(() => {
                     const currentProcessing = positions.findIndex(
                       (_, i) => processingStatus[i] === 'processing'
@@ -922,13 +937,18 @@ export default function PositionCreate() {
                             {status === 'processing' && (
                               <div className="mt-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm text-purple-700">
+                                  <span className="text-sm text-blue-700">
                                     {loadingMessages[index]} {timeElapsed}
                                   </span>
+                                  {loadingStage[index] && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({loadingStage[index] === 'market' ? 'Searching market data' : 'AI analysis'})
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                   <div 
-                                    className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                                     style={{ width: `${progress}%` }}
                                   ></div>
                                 </div>
@@ -1009,7 +1029,7 @@ export default function PositionCreate() {
                         <div className="border-t bg-white p-4">
                           {status === 'processing' && (
                             <div className="text-center py-4">
-                              <div className="text-sm text-purple-700 mb-2">
+                              <div className="text-sm text-blue-700 mb-2">
                                 Currently processing this position...
                               </div>
                             </div>
@@ -1031,19 +1051,37 @@ export default function PositionCreate() {
                           {(status === 'completed' || skillCount > 0) && (
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-purple-700">
-                                  🤖 AI + Database found {skillCount} skills
+                                <span className="text-sm font-medium text-blue-700">
+                                  🤖 AI found {skillCount} skills
+                                  {marketDataAvailable[index] && (
+                                    <span className="ml-2 text-xs text-green-600">✓ With 2025 market data</span>
+                                  )}
                                 </span>
                                 <div className="flex gap-2">
                                   <Button
-                                    variant="default"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      toast.success(`Accepted ${skillCount} skills for ${position.position_title}`);
+                                      // Add all essential skills
+                                      const essentialSkills = position.required_skills.filter(s => s.category === 'essential');
+                                      toast.success(`Added ${essentialSkills.length} essential skills`);
                                     }}
                                   >
-                                    Accept All
+                                    Add All Essential
                                   </Button>
+                                  {selectedSkills[index]?.size > 0 && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => {
+                                        const selectedCount = selectedSkills[index]?.size || 0;
+                                        toast.success(`Added ${selectedCount} selected skills`);
+                                        setSelectedSkills(prev => ({ ...prev, [index]: new Set() }));
+                                      }}
+                                    >
+                                      Add Selected ({selectedSkills[index]?.size})
+                                    </Button>
+                                  )}
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -1081,22 +1119,40 @@ export default function PositionCreate() {
                                           {displaySkills.map(skill => (
                                             <div key={skill.skill_id} className="bg-white rounded p-2 border text-xs">
                                               <div className="flex items-center justify-between">
-                                                <div className="flex-1">
-                                                  <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-medium">{skill.skill_name}</span>
-                                                    {skill.source && (
-                                                      <span className="text-xs px-1 py-0.5 rounded bg-blue-100 text-blue-600">
-                                                        {skill.source === 'database' ? 'DB' : 'AI'}
-                                                      </span>
-                                                    )}
-                                                  </div>
+                                                <div className="flex items-center gap-2 flex-1">
+                                                  <Checkbox
+                                                    checked={selectedSkills[index]?.has(skill.skill_id) || false}
+                                                    onCheckedChange={(checked) => {
+                                                      setSelectedSkills(prev => {
+                                                        const newSelected = { ...prev };
+                                                        if (!newSelected[index]) {
+                                                          newSelected[index] = new Set();
+                                                        }
+                                                        if (checked) {
+                                                          newSelected[index].add(skill.skill_id);
+                                                        } else {
+                                                          newSelected[index].delete(skill.skill_id);
+                                                        }
+                                                        return newSelected;
+                                                      });
+                                                    }}
+                                                  />
+                                                  <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                      <span className="font-medium">{skill.skill_name}</span>
+                                                      {skill.category === 'essential' && (
+                                                        <span className="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600">
+                                                          Essential
+                                                        </span>
+                                                      )}
+                                                    </div>
                                                   <div className="flex items-center gap-2">
                                                     <div className="flex">
                                                       {[1, 2, 3, 4, 5].map(level => (
                                                         <div
                                                           key={level}
                                                           className={`w-1.5 h-1.5 rounded-full mr-0.5 ${
-                                                            level <= skill.proficiency_level ? 'bg-purple-500' : 'bg-gray-200'
+                                                            level <= skill.proficiency_level ? 'bg-blue-500' : 'bg-gray-200'
                                                           }`}
                                                         />
                                                       ))}
@@ -1116,6 +1172,7 @@ export default function PositionCreate() {
                                                       {skill.reason}
                                                     </div>
                                                   )}
+                                                  </div>
                                                 </div>
                                                 <Button
                                                   variant="ghost"

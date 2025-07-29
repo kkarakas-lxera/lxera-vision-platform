@@ -44,7 +44,7 @@ serve(async (req) => {
       try {
         console.log('Fetching job market insights with Firecrawl...')
         
-        const searchQuery = `"${position_title}" job requirements skills "${department || ''}"`.trim()
+        const searchQuery = `"${position_title}" job requirements skills 2025 "${department || ''}"`.trim()
         
         const firecrawlResponse = await fetch('https://api.firecrawl.dev/v1/search', {
           method: 'POST',
@@ -64,7 +64,6 @@ serve(async (req) => {
                 - job_title: The exact job title
                 - company: The company name
                 - required_skills: Array of required technical and soft skills
-                - nice_to_have_skills: Array of preferred/bonus skills
                 - experience_level: Years of experience required
                 - key_responsibilities: Main duties and responsibilities
                 - technologies: Specific tools, languages, frameworks mentioned`
@@ -140,7 +139,7 @@ Department: ${department || 'Not specified'}
 Description: ${position_description || 'No description provided'}
 ${marketInsights}
 
-Based on the position details${marketInsights ? ' and real job market data' : ''}, provide 20-25 relevant skills.
+Based on the position details${marketInsights ? ' and real job market data from 2025' : ''}, provide 20-25 relevant skills that are most in-demand for 2025.
 
 For each skill, provide:
 - skill_name: Clear, concise skill name (2-4 words max)
@@ -152,11 +151,11 @@ For each skill, provide:
 - market_demand: "high", "medium", or "low" based on current industry trends
 
 Consider:
-- Current industry standards and trends
-- Specific technologies and tools used in ${position_title} roles
-- Soft skills critical for ${position_level || 'this'} level
-- Emerging skills gaining importance
-- Skills mentioned in actual job postings (if market data available)
+- Current 2025 industry standards and trends
+- Latest technologies and tools used in ${position_title} roles as of 2025
+- Soft skills critical for ${position_level || 'this'} level in 2025
+- Emerging skills gaining importance in 2025
+- Skills mentioned in actual 2025 job postings (if market data available)
 
 Return ONLY a JSON object with:
 {
