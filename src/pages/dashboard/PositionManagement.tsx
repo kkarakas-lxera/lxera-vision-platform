@@ -60,6 +60,8 @@ export default function PositionManagement() {
   const [editPosition, setEditPosition] = useState<CompanyPosition | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [openPositions, setOpenPositions] = useState<Set<string>>(new Set());
+  const [hasDraft, setHasDraft] = useState(false);
+  const [draftInfo, setDraftInfo] = useState<{ id: string; updated_at: string; positions_count: number } | null>(null);
   
   // Drag and drop sensors
   const sensors = useSensors(
@@ -208,8 +210,40 @@ export default function PositionManagement() {
     }
   };
 
+  const checkForDraft = async () => {
+    if (!userProfile?.company_id) return;
+    
+    try {
+      const { data: drafts, error } = await supabase
+        .from('position_drafts')
+        .select('id, updated_at, draft_data')
+        .eq('company_id', userProfile.company_id)
+        .eq('created_by', userProfile.id)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+        
+      if (error) throw error;
+      
+      if (drafts && drafts.length > 0) {
+        const draft = drafts[0];
+        const draftData = draft.draft_data as any;
+        const positionsCount = draftData.positions?.length || 0;
+        
+        setHasDraft(true);
+        setDraftInfo({
+          id: draft.id,
+          updated_at: draft.updated_at,
+          positions_count: positionsCount
+        });
+      }
+    } catch (error) {
+      console.error('Error checking for draft:', error);
+    }
+  };
+
   useEffect(() => {
     fetchPositions();
+    checkForDraft();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
@@ -403,11 +437,25 @@ export default function PositionManagement() {
             <div className="text-center py-12">
               <Briefcase className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No positions defined</h3>
-              <p className="text-gray-500 mb-4">Create your first position to get started</p>
-              <Button onClick={() => navigate('/dashboard/positions/new')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Position
-              </Button>
+              <p className="text-gray-500 mb-4">
+                {hasDraft ? 'Continue where you left off' : 'Create your first position to get started'}
+              </p>
+              {hasDraft && draftInfo ? (
+                <div className="space-y-3">
+                  <div className="text-sm text-gray-600">
+                    Draft saved {new Date(draftInfo.updated_at).toLocaleDateString()} at {new Date(draftInfo.updated_at).toLocaleTimeString()}
+                    {draftInfo.positions_count > 0 && ` • ${draftInfo.positions_count} position${draftInfo.positions_count > 1 ? 's' : ''}`}
+                  </div>
+                  <Button onClick={() => navigate('/dashboard/positions/new')}>
+                    Continue Draft
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => navigate('/dashboard/positions/new')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Position
+                </Button>
+              )}
             </div>
           ) : filteredPositions.length > 0 ? (
             <div className="space-y-4">

@@ -872,6 +872,11 @@ export default function PositionCreate() {
               }
             });
             
+            // Also restore UI expanded states to make it visible
+            if (draftData.positions.length > 0) {
+              setExpandedPositions(new Set([0])); // Expand first position by default
+            }
+            
             toast.success('Draft loaded successfully');
           }
         }
@@ -1357,14 +1362,26 @@ export default function PositionCreate() {
                                     onClick={() => {
                                       // Select all essential skills in the UI
                                       const essentialSkills = position.ai_suggestions?.filter(s => s.category === 'essential') || [];
-                                      const essentialSkillIds = essentialSkills.map(s => s.skill_id || s.skill_name);
+                                      
+                                      // Filter out already added skills
+                                      const existingSkillNames = position.required_skills.map(s => s.skill_name);
+                                      const newEssentialSkills = essentialSkills.filter(s => 
+                                        !existingSkillNames.includes(s.skill_name)
+                                      );
+                                      
+                                      if (newEssentialSkills.length === 0) {
+                                        toast.info('All essential skills are already added');
+                                        return;
+                                      }
+                                      
+                                      const essentialSkillIds = newEssentialSkills.map(s => s.skill_id || s.skill_name);
                                       
                                       setSelectedSkills(prev => ({
                                         ...prev,
                                         [index]: new Set([...(prev[index] || new Set()), ...essentialSkillIds])
                                       }));
                                       
-                                      toast.success(`Selected ${essentialSkills.length} essential skills`);
+                                      toast.success(`Selected ${newEssentialSkills.length} essential skills`);
                                     }}
                                   >
                                     Add All Essential
@@ -1380,13 +1397,24 @@ export default function PositionCreate() {
                                             selectedForPosition.has(skill.skill_id || skill.skill_name)
                                           ) || [];
                                           
+                                          // Filter out already added skills
+                                          const existingSkillNames = position.required_skills.map(s => s.skill_name);
+                                          const newSkillsToAdd = skillsToAdd.filter(skill => 
+                                            !existingSkillNames.includes(skill.skill_name)
+                                          );
+                                          
+                                          if (newSkillsToAdd.length === 0) {
+                                            toast.info('Selected skills are already added');
+                                            return;
+                                          }
+                                          
                                           setPositions(prev => {
                                             const newPositions = [...prev];
                                             newPositions[index] = {
                                               ...newPositions[index],
                                               required_skills: [
                                                 ...newPositions[index].required_skills,
-                                                ...skillsToAdd.map(skill => ({
+                                                ...newSkillsToAdd.map(skill => ({
                                                   skill_id: skill.skill_id || `ai_${Date.now()}_${Math.random()}`,
                                                   skill_name: skill.skill_name,
                                                   proficiency_level: skill.proficiency_level === 'basic' ? 1 :
@@ -1402,7 +1430,7 @@ export default function PositionCreate() {
                                             return newPositions;
                                           });
                                           
-                                          toast.success(`Added ${selectedForPosition.size} selected skills`);
+                                          toast.success(`Added ${newSkillsToAdd.length} selected skills`);
                                           setSelectedSkills(prev => ({ ...prev, [index]: new Set() }));
                                         }
                                       }}
@@ -1484,40 +1512,51 @@ export default function PositionCreate() {
                                         </div>
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                          {displaySkills.map(skill => (
-                                            <div 
-                                              key={skill.skill_id} 
-                                              className={`bg-white rounded-lg border transition-all ${
-                                                expandedSkills[skill.skill_id] 
-                                                  ? 'border-blue-200 shadow-sm' 
-                                                  : 'border-gray-200 hover:border-gray-300'
-                                              }`}
-                                            >
+                                          {displaySkills.map(skill => {
+                                            const isAlreadyAdded = position.required_skills.some(
+                                              rs => rs.skill_name === skill.skill_name
+                                            );
+                                            
+                                            return (
                                               <div 
-                                                className="p-3 cursor-pointer"
-                                                onClick={() => toggleSkillExpanded(skill.skill_id)}
+                                                key={skill.skill_id} 
+                                                className={`bg-white rounded-lg border transition-all ${
+                                                  isAlreadyAdded 
+                                                    ? 'border-green-200 bg-green-50' 
+                                                    : expandedSkills[skill.skill_id] 
+                                                      ? 'border-blue-200 shadow-sm' 
+                                                      : 'border-gray-200 hover:border-gray-300'
+                                                }`}
                                               >
-                                                <div className="flex items-start justify-between gap-2">
-                                                  <div className="flex items-start gap-2 flex-1">
-                                                    <Checkbox
-                                                      checked={selectedSkills[index]?.has(skill.skill_id) || false}
-                                                      onClick={(e) => e.stopPropagation()}
-                                                      onCheckedChange={(checked) => {
-                                                        setSelectedSkills(prev => {
-                                                          const newSelected = { ...prev };
-                                                          if (!newSelected[index]) {
-                                                            newSelected[index] = new Set();
-                                                          }
-                                                          if (checked) {
-                                                            newSelected[index].add(skill.skill_id);
-                                                          } else {
-                                                            newSelected[index].delete(skill.skill_id);
-                                                          }
-                                                          return newSelected;
-                                                        });
-                                                      }}
-                                                      className="mt-0.5"
-                                                    />
+                                                <div 
+                                                  className="p-3 cursor-pointer"
+                                                  onClick={() => toggleSkillExpanded(skill.skill_id)}
+                                                >
+                                                  <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex items-start gap-2 flex-1">
+                                                      {isAlreadyAdded ? (
+                                                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                                                      ) : (
+                                                        <Checkbox
+                                                          checked={selectedSkills[index]?.has(skill.skill_id) || false}
+                                                          onClick={(e) => e.stopPropagation()}
+                                                          onCheckedChange={(checked) => {
+                                                            setSelectedSkills(prev => {
+                                                              const newSelected = { ...prev };
+                                                              if (!newSelected[index]) {
+                                                                newSelected[index] = new Set();
+                                                              }
+                                                              if (checked) {
+                                                                newSelected[index].add(skill.skill_id);
+                                                              } else {
+                                                                newSelected[index].delete(skill.skill_id);
+                                                              }
+                                                              return newSelected;
+                                                            });
+                                                          }}
+                                                          className="mt-0.5"
+                                                        />
+                                                      )}
                                                     <div className="flex-1">
                                                       <h6 className="font-medium text-sm text-gray-900 leading-tight">
                                                         {skill.skill_name}
@@ -1564,7 +1603,8 @@ export default function PositionCreate() {
                                                 </div>
                                               )}
                                             </div>
-                                          ))}
+                                          );
+                                          })}
                                           
                                           {!isExpanded && skills.length > 2 && (
                                             <button

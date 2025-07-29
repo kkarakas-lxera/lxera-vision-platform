@@ -155,20 +155,15 @@ export function AISkillSuggestions({
       skill.category === 'essential' && !isSkillAdded(skill.skill_name)
     );
 
-    essentialSkills.forEach(skill => {
-      const skillData = {
-        skill_id: `ai_${Date.now()}_${Math.random()}`,
-        skill_name: skill.skill_name,
-        proficiency_level: skill.proficiency_level === 'basic' ? 1 :
-                          skill.proficiency_level === 'intermediate' ? 2 :
-                          skill.proficiency_level === 'advanced' ? 3 : 4,
-        description: skill.description
-      };
-      onAddSkill(skillData);
-      setAddedSkills(prev => new Set(prev).add(skill.skill_name));
+    // Select all essential skills (don't add them yet)
+    const skillNamesToSelect = essentialSkills.map(skill => skill.skill_name);
+    setSelectedSkills(prev => {
+      const newSet = new Set(prev);
+      skillNamesToSelect.forEach(skillName => newSet.add(skillName));
+      return newSet;
     });
 
-    toast.success(`Added ${essentialSkills.length} essential skills`);
+    toast.success(`Selected ${essentialSkills.length} essential skills`);
   };
 
   const toggleSkillSelection = (skillName: string) => {
