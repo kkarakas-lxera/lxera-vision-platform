@@ -80,13 +80,22 @@ const EarlyAccessOnboarding = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Profile completed!',
-        description: 'Welcome to LXERA Early Access. Please sign in with your new password.',
-      });
-
-      // Redirect to login
-      navigate('/login');
+      // Check if we got a redirect URL in the response
+      const responseData = data as any;
+      if (responseData?.redirectTo === '/waiting-room') {
+        toast({
+          title: 'Profile completed!',
+          description: 'Welcome to the LXERA Early Access waiting room.',
+        });
+        // Navigate to waiting room with the lead's email
+        navigate(`/waiting-room?email=${encodeURIComponent(leadData.email)}`);
+      } else {
+        toast({
+          title: 'Profile completed!',
+          description: 'Welcome to LXERA Early Access. Please sign in with your new password.',
+        });
+        navigate('/login');
+      }
     } catch (error: any) {
       console.error('Profile completion error:', error);
       toast({

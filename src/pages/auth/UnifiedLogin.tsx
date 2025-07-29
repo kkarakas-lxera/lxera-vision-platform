@@ -100,7 +100,9 @@ const UnifiedLogin = () => {
       if (users && users.length > 0) {
         // This is an authenticated user - determine their type
         const userRole = users[0].role;
-        if (userRole === 'learner') {
+        if (userRole === 'early_access') {
+          setUserType('early_access');
+        } else if (userRole === 'learner') {
           setUserType('learner');
         } else {
           setUserType('company');

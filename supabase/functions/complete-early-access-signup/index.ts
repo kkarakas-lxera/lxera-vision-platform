@@ -56,6 +56,38 @@ serve(async (req) => {
       throw new Error('Account already exists. Please sign in.')
     }
 
+    // Create a pseudo-company for early access users (for tracking)
+    const emailDomain = lead.email.split('@')[1];
+    const timestamp = Date.now().toString(36);
+    const companyDomain = `early-access-${emailDomain}-${leadId.substring(0, 8)}-${timestamp}`;
+    
+    // Create company record for early access user
+    const { data: companyRecord, error: companyError } = await supabaseAdmin
+      .from('companies')
+      .insert({
+        name: `${company} (Early Access)`,
+        domain: companyDomain,
+        plan_type: 'early_access',
+        max_employees: 0, // No employee management for early access
+        max_courses: 0,
+        is_active: true,
+        settings: {
+          industry: industry,
+          team_size: teamSize,
+          use_cases: useCases,
+          heard_about: heardAbout,
+          early_access: true,
+          early_access_lead_id: leadId
+        }
+      })
+      .select()
+      .single()
+
+    if (companyError) {
+      console.error('Company creation error:', companyError)
+      throw new Error('Failed to create company record')
+    }
+
     // Create auth user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: lead.email,
@@ -63,13 +95,52 @@ serve(async (req) => {
       email_confirm: true,
       user_metadata: {
         full_name: lead.name || company,
-        role: 'early_access'
+        early_access: true,
+        early_access_lead_id: leadId
       }
     })
 
     if (authError || !authData.user) {
       console.error('Auth creation error:', authError)
+      // Clean up company on failure
+      await supabaseAdmin
+        .from('companies')
+        .delete()
+        .eq('id', companyRecord.id)
       throw new Error('Failed to create account')
+    }
+
+    // Create user profile record (required by auth trigger)
+    const { data: userRecord, error: userError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: authData.user.id,
+        email: lead.email,
+        password_hash: 'supabase_managed',
+        full_name: lead.name || company,
+        role: 'early_access',
+        company_id: companyRecord.id,
+        position: role || 'Early Access User',
+        is_active: true,
+        email_verified: true,
+        metadata: {
+          early_access: true,
+          early_access_lead_id: leadId,
+          onboarded_from: 'early_access_signup'
+        }
+      })
+      .select()
+      .single()
+
+    if (userError) {
+      console.error('User profile creation error:', userError)
+      // Clean up on failure
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      await supabaseAdmin
+        .from('companies')
+        .delete()
+        .eq('id', companyRecord.id)
+      throw new Error('Failed to create user profile')
     }
 
     // Update lead record with profile data and auth info
@@ -89,14 +160,24 @@ serve(async (req) => {
         onboarded_at: new Date().toISOString(),
         password_set: true,
         auth_user_id: authData.user.id,
-        converted_to_auth_at: new Date().toISOString()
+        converted_to_auth_at: new Date().toISOString(),
+        converted_to_company_id: companyRecord.id,
+        converted_to_user_id: userRecord.id
       })
       .eq('id', leadId)
 
     if (updateError) {
       console.error('Lead update error:', updateError)
-      // Try to clean up auth user
+      // Try to clean up everything
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      await supabaseAdmin
+        .from('users')
+        .delete()
+        .eq('id', userRecord.id)
+      await supabaseAdmin
+        .from('companies')
+        .delete()
+        .eq('id', companyRecord.id)
       throw new Error('Failed to update profile')
     }
 
