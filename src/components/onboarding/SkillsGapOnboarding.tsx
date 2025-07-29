@@ -415,7 +415,22 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
   };
 
   const handleComplete = () => {
+    console.log('=== SKILLS GAP ONBOARDING COMPLETE ===');
+    console.log('Form data state:', formData);
+    console.log('Is early access?', !!leadId);
+    console.log('Lead ID:', leadId);
+    
     const { confirmPassword, name, ...onboardingData } = formData;
+    console.log('Data being passed to onComplete:', {
+      password: onboardingData.password ? `[${onboardingData.password.length} chars]` : 'undefined',
+      company: onboardingData.company,
+      industry: onboardingData.industry,
+      role: onboardingData.role,
+      teamSize: onboardingData.teamSize,
+      useCases: onboardingData.useCases,
+      heardAbout: onboardingData.heardAbout,
+    });
+    
     onComplete({
       password: onboardingData.password,
       company: onboardingData.company,

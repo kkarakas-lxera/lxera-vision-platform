@@ -63,9 +63,27 @@ const EarlyAccessOnboarding = () => {
     useCases: string[]; 
     heardAbout: string 
   }) => {
+    console.log('=== EARLY ACCESS SIGNUP DEBUG ===');
+    console.log('Lead Data:', {
+      id: leadData.id,
+      email: leadData.email,
+      name: leadData.name,
+      status: leadData.status
+    });
+    console.log('Form Data:', {
+      company: data.company,
+      industry: data.industry,
+      role: data.role,
+      teamSize: data.teamSize,
+      useCases: data.useCases,
+      heardAbout: data.heardAbout,
+      passwordLength: data.password.length
+    });
+
     try {
       // Create auth account for early access user
-      const { error } = await supabase.functions.invoke('complete-early-access-signup', {
+      console.log('Invoking complete-early-access-signup edge function...');
+      const response = await supabase.functions.invoke('complete-early-access-signup', {
         body: {
           leadId: leadData.id,
           password: data.password,
@@ -78,11 +96,28 @@ const EarlyAccessOnboarding = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', response);
+      console.log('Response data:', response.data);
+      console.log('Response error:', response.error);
+
+      if (response.error) {
+        console.error('Edge function error details:', {
+          message: response.error.message,
+          status: response.error.status,
+          code: response.error.code,
+          details: response.error.details,
+          hint: response.error.hint,
+          context: response.error.context
+        });
+        throw response.error;
+      }
 
       // Check if we got a redirect URL in the response
-      const responseData = data as any;
+      const responseData = response.data as any;
+      console.log('Parsed response data:', responseData);
+      
       if (responseData?.redirectTo === '/waiting-room') {
+        console.log('Redirecting to waiting room...');
         toast({
           title: 'Profile completed!',
           description: 'Welcome to the LXERA Early Access waiting room.',
@@ -90,6 +125,7 @@ const EarlyAccessOnboarding = () => {
         // Navigate to waiting room with the lead's email
         navigate(`/waiting-room?email=${encodeURIComponent(leadData.email)}`);
       } else {
+        console.log('Profile completed, redirecting to login...');
         toast({
           title: 'Profile completed!',
           description: 'Welcome to LXERA Early Access. Please sign in with your new password.',
@@ -97,7 +133,12 @@ const EarlyAccessOnboarding = () => {
         navigate('/login');
       }
     } catch (error: any) {
-      console.error('Profile completion error:', error);
+      console.error('=== PROFILE COMPLETION ERROR ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Full error object:', error);
+      
       toast({
         title: 'Error',
         description: error.message || 'Failed to complete profile. Please try again.',
