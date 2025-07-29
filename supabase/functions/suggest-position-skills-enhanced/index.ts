@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,15 +6,13 @@ const corsHeaders = {
 }
 
 interface SkillSuggestion {
-  skill_id?: string;
   skill_name: string;
-  category: 'essential' | 'important';
+  category: 'essential' | 'important' | 'nice-to-have';
   proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
   description: string;
-  source: 'database' | 'ai';
-  relevance_score?: number;
   reason?: string;
   skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
+  market_demand?: 'high' | 'medium' | 'low';
 }
 
 serve(async (req) => {
@@ -31,107 +28,141 @@ serve(async (req) => {
       throw new Error('Position title is required')
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
     // Get OpenAI API key
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured')
     }
 
-    // Step 1: Search skills taxonomy database
-    console.log('Searching skills taxonomy database...')
-    const searchTerms = extractKeyTerms(position_title, position_description)
+    // Get Firecrawl API key if available
+    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY')
     
-    let databaseSkills: SkillSuggestion[] = []
+    let marketInsights = ''
     
-    for (const term of searchTerms) {
-      const { data: skills, error } = await supabase.rpc('search_skills', {
-        search_term: term,
-        limit_count: 5
-      })
-
-      if (!error && skills) {
-        interface DatabaseSkill {
-          skill_id: string;
-          skill_name: string;
-          description?: string;
-          skill_type?: string;
-          rank?: number;
-        }
+    // Step 1: Use Firecrawl to get real job market data (if API key available)
+    if (firecrawlApiKey) {
+      try {
+        console.log('Fetching job market insights with Firecrawl...')
         
-        const mappedSkills = skills.map((skill: DatabaseSkill) => ({
-          skill_id: skill.skill_id,
-          skill_name: skill.skill_name,
-          category: 'important' as const,
-          proficiency_level: 'intermediate' as const,
-          description: skill.description || `${skill.skill_name} from ${skill.skill_type}`,
-          source: 'database' as const,
-          relevance_score: skill.rank || 0
-        }))
-        databaseSkills = [...databaseSkills, ...mappedSkills]
+        const searchQuery = `"${position_title}" job requirements skills "${department || ''}"`.trim()
+        
+        const firecrawlResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${firecrawlApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: searchQuery,
+            limit: 3,
+            scrapeOptions: {
+              formats: ['markdown', 'json'],
+              onlyMainContent: true,
+              maxTokens: 1000,
+              jsonOptions: {
+                prompt: `Extract the following information from this job posting:
+                - job_title: The exact job title
+                - company: The company name
+                - required_skills: Array of required technical and soft skills
+                - nice_to_have_skills: Array of preferred/bonus skills
+                - experience_level: Years of experience required
+                - key_responsibilities: Main duties and responsibilities
+                - technologies: Specific tools, languages, frameworks mentioned`
+              }
+            }
+          })
+        })
+
+        if (firecrawlResponse.ok) {
+          const searchResults = await firecrawlResponse.json()
+          
+          if (searchResults.data && searchResults.data.length > 0) {
+            marketInsights = `\n\nREAL JOB MARKET DATA:\n`
+            const extractedSkills: string[] = []
+            const extractedTechnologies: string[] = []
+            
+            searchResults.data.forEach((result: any, index: number) => {
+              marketInsights += `\nSource ${index + 1}: ${result.url}\n`
+              
+              // Use structured JSON data if available
+              if (result.json) {
+                const jobData = result.json
+                marketInsights += `Company: ${jobData.company || 'Unknown'}\n`
+                marketInsights += `Role: ${jobData.job_title || position_title}\n`
+                
+                if (jobData.required_skills?.length > 0) {
+                  extractedSkills.push(...jobData.required_skills)
+                  marketInsights += `Required Skills: ${jobData.required_skills.join(', ')}\n`
+                }
+                
+                if (jobData.technologies?.length > 0) {
+                  extractedTechnologies.push(...jobData.technologies)
+                  marketInsights += `Technologies: ${jobData.technologies.join(', ')}\n`
+                }
+                
+                if (jobData.experience_level) {
+                  marketInsights += `Experience: ${jobData.experience_level}\n`
+                }
+              }
+              
+              // Fallback to markdown if JSON extraction failed
+              if (result.markdown) {
+                marketInsights += `\nContent:\n${result.markdown.substring(0, 500)}...\n`
+              }
+              
+              marketInsights += `---\n`
+            })
+            
+            // Add aggregated skills summary
+            if (extractedSkills.length > 0) {
+              const uniqueSkills = [...new Set(extractedSkills)]
+              marketInsights += `\nAGGREGATED SKILLS FROM JOB POSTINGS:\n${uniqueSkills.join(', ')}\n`
+            }
+            
+            if (extractedTechnologies.length > 0) {
+              const uniqueTech = [...new Set(extractedTechnologies)]
+              marketInsights += `\nCOMMON TECHNOLOGIES:\n${uniqueTech.join(', ')}\n`
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Firecrawl search error:', error)
+        // Continue without market insights
       }
     }
 
-    // Remove duplicates based on skill_id
-    const uniqueDbSkills = Array.from(
-      new Map(databaseSkills.map(skill => [skill.skill_id, skill])).values()
-    )
-
-    console.log(`Found ${uniqueDbSkills.length} skills from database`)
-
-    // Step 2: Get AI suggestions with context about database skills
-    const aiPrompt = `Analyze this position and provide comprehensive suggestions:
+    // Step 2: Generate comprehensive skills with AI
+    const aiPrompt = `Analyze this position and provide comprehensive skill suggestions:
 
 Position: ${position_title}
 Level: ${position_level || 'Not specified'}
 Department: ${department || 'Not specified'}
 Description: ${position_description || 'No description provided'}
+${marketInsights}
 
-Skills already found in our database:
-${uniqueDbSkills.map(s => `- ${s.skill_name}`).join('\n')}
-
-Please provide:
-
-1. POSITION DESCRIPTION (if not already provided):
-   - A comprehensive 3-4 paragraph description of this role
-   - Include the role's purpose, key objectives, and impact
-   - Mention team dynamics and reporting structure
-   - Highlight growth opportunities and career progression
-   - Only generate if the current description is missing or very brief
-
-2. RESPONSIBILITIES (7-10 key responsibilities for this role):
-   - Each should be a clear, action-oriented statement
-   - Start with strong action verbs
-   - Be specific to the position level and department
-   - Include both technical and leadership aspects as appropriate
-
-3. SKILLS (15-20 additional skills):
-   - Relevant to this specific position
-   - NOT already in the database list above
-   - Current and industry-standard
+Based on the position details${marketInsights ? ' and real job market data' : ''}, provide 20-25 relevant skills.
 
 For each skill, provide:
-- skill_name: Clear, concise skill name
-- category: "essential" (must-have) or "important" (strongly preferred)
+- skill_name: Clear, concise skill name (2-4 words max)
+- category: "essential" (must-have), "important" (strongly preferred), or "nice-to-have"
 - proficiency_level: "basic", "intermediate", "advanced", or "expert"
-- description: One sentence explaining the skill
-- reason: Why this skill is relevant for this position
+- description: One sentence explaining how this skill applies to the role
+- reason: Why this skill matters for this specific position
 - skill_group: "technical", "soft", "leadership", "tools", or "industry"
+- market_demand: "high", "medium", or "low" based on current industry trends
 
 Consider:
-- Technical skills specific to ${position_title}
-- Tools and technologies commonly used
-- Soft skills critical for success
-- Emerging skills in the field
-- Industry best practices
+- Current industry standards and trends
+- Specific technologies and tools used in ${position_title} roles
+- Soft skills critical for ${position_level || 'this'} level
+- Emerging skills gaining importance
+- Skills mentioned in actual job postings (if market data available)
 
-Return as JSON object with:
-- "responsibilities": array of responsibility strings
-- "skills": array of skill objects`
+Return ONLY a JSON object with:
+{
+  "skills": [array of skill objects],
+  "insights": "Brief summary of key trends or patterns noticed"
+}`
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -144,7 +175,7 @@ Return as JSON object with:
         messages: [
           {
             role: 'system',
-            content: 'You are an expert HR consultant and skills analyst. Provide practical, relevant skill suggestions based on current industry standards and best practices.'
+            content: 'You are an expert HR consultant and skills analyst with deep knowledge of current job market trends. Provide practical, relevant skill suggestions based on industry best practices. Be specific and avoid generic skills.'
           },
           {
             role: 'user',
@@ -160,65 +191,46 @@ Return as JSON object with:
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text()
       console.error('OpenAI API error:', errorData)
-      throw new Error('OpenAI API request failed')
+      throw new Error('Failed to generate skills suggestions')
     }
 
     const openaiData = await openaiResponse.json()
     const content = openaiData.choices[0]?.message?.content
 
-    let aiSkills: SkillSuggestion[] = []
-    let responsibilities: string[] = []
+    let skills: SkillSuggestion[] = []
+    let insights = ''
+    
     try {
       const parsed = JSON.parse(content)
-      aiSkills = (parsed.skills || []).map((skill: any) => ({
-        ...skill,
-        source: 'ai' as const,
-        relevance_score: 0.8 // AI suggestions get slightly lower base score
-      }))
-      responsibilities = parsed.responsibilities || []
+      skills = parsed.skills || []
+      insights = parsed.insights || ''
+      
+      // Sort skills by category (essential first) and market demand
+      skills.sort((a, b) => {
+        const categoryOrder = { 'essential': 0, 'important': 1, 'nice-to-have': 2 }
+        const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category]
+        if (categoryDiff !== 0) return categoryDiff
+        
+        const demandOrder = { 'high': 0, 'medium': 1, 'low': 2 }
+        const demandA = a.market_demand || 'medium'
+        const demandB = b.market_demand || 'medium'
+        return demandOrder[demandA] - demandOrder[demandB]
+      })
     } catch (e) {
       console.error('Failed to parse OpenAI response:', e)
+      throw new Error('Invalid response format from AI')
     }
-
-    // Step 3: Categorize database skills based on position context
-    const categorizedDbSkills = await categorizeSkillsWithAI(
-      uniqueDbSkills,
-      position_title,
-      position_description,
-      openaiApiKey
-    )
-
-    // Step 4: Combine and rank all skills
-    const allSkills = [...categorizedDbSkills, ...aiSkills]
-    
-    // Sort by category (essential first) and relevance
-    const sortedSkills = allSkills.sort((a, b) => {
-      const categoryOrder = { 'essential': 0, 'important': 1 }
-      const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category]
-      if (categoryDiff !== 0) return categoryDiff
-      
-      // Within same category, database skills come first
-      if (a.source !== b.source) {
-        return a.source === 'database' ? -1 : 1
-      }
-      
-      return (b.relevance_score || 0) - (a.relevance_score || 0)
-    })
-
-    // Limit to top 25 skills
-    const finalSkills = sortedSkills.slice(0, 25)
 
     return new Response(
       JSON.stringify({ 
-        skills: finalSkills,
-        responsibilities: responsibilities,
+        skills: skills,
         summary: {
-          total_suggestions: finalSkills.length,
-          from_database: finalSkills.filter(s => s.source === 'database').length,
-          from_ai: finalSkills.filter(s => s.source === 'ai').length,
-          essential_count: finalSkills.filter(s => s.category === 'essential').length,
-          important_count: finalSkills.filter(s => s.category === 'important').length,
-          responsibilities_count: responsibilities.length
+          total_suggestions: skills.length,
+          essential_count: skills.filter(s => s.category === 'essential').length,
+          important_count: skills.filter(s => s.category === 'important').length,
+          nice_to_have_count: skills.filter(s => s.category === 'nice-to-have').length,
+          market_data_available: !!marketInsights,
+          insights: insights
         }
       }),
       { 
@@ -233,15 +245,14 @@ Return as JSON object with:
     return new Response(
       JSON.stringify({ 
         skills: [],
-        responsibilities: [],
         error: error.message,
         summary: {
           total_suggestions: 0,
-          from_database: 0,
-          from_ai: 0,
           essential_count: 0,
           important_count: 0,
-          responsibilities_count: 0
+          nice_to_have_count: 0,
+          market_data_available: false,
+          insights: ''
         }
       }),
       { 
@@ -251,92 +262,3 @@ Return as JSON object with:
     )
   }
 })
-
-// Extract key terms from position title and description for database search
-function extractKeyTerms(title: string, description?: string): string[] {
-  const text = `${title} ${description || ''}`.toLowerCase()
-  
-  // Common technology/skill keywords to search for
-  const keywords = text.match(/\b(react|angular|vue|node|python|java|javascript|typescript|aws|azure|gcp|docker|kubernetes|sql|nosql|mongodb|postgres|mysql|agile|scrum|devops|ci\/cd|machine learning|ai|data|analytics|cloud|microservices|api|rest|graphql|frontend|backend|fullstack|mobile|ios|android|security|testing|qa|automation|leadership|management|communication|design|ux|ui)\b/gi) || []
-  
-  // Also search for the main role terms
-  const roleTerms = title.split(/\s+/).filter(term => 
-    term.length > 3 && 
-    !['the', 'and', 'for', 'with'].includes(term.toLowerCase())
-  )
-  
-  return [...new Set([...keywords, ...roleTerms])].slice(0, 10) // Limit to 10 terms
-}
-
-// Use AI to categorize database skills based on position context
-async function categorizeSkillsWithAI(
-  skills: SkillSuggestion[],
-  positionTitle: string,
-  positionDescription: string | undefined,
-  openaiApiKey: string
-): Promise<SkillSuggestion[]> {
-  if (skills.length === 0) return []
-
-  const categorizationPrompt = `For the position "${positionTitle}"${positionDescription ? ` with description: "${positionDescription}"` : ''}, 
-categorize these skills by importance:
-
-${skills.map((s, i) => `${i + 1}. ${s.skill_name}`).join('\n')}
-
-For each skill number, provide:
-- category: "essential" or "important"
-- proficiency_level: "basic", "intermediate", "advanced", or "expert"
-- reason: One sentence why this skill matters for this position
-- skill_group: "technical", "soft", "leadership", "tools", or "industry"
-
-Return as JSON object with "categorizations" array containing objects with: skill_index, category, proficiency_level, reason, skill_group`
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at evaluating skill requirements for job positions.'
-          },
-          {
-            role: 'user',
-            content: categorizationPrompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1500,
-        response_format: { type: 'json_object' }
-      })
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      const parsed = JSON.parse(data.choices[0]?.message?.content || '{}')
-      const categorizations = parsed.categorizations || []
-
-      return skills.map((skill, index) => {
-        const categorization = categorizations.find((c: any) => c.skill_index === index + 1)
-        if (categorization) {
-          return {
-            ...skill,
-            category: categorization.category || skill.category,
-            proficiency_level: categorization.proficiency_level || skill.proficiency_level,
-            reason: categorization.reason,
-            skill_group: categorization.skill_group
-          }
-        }
-        return skill
-      })
-    }
-  } catch (error) {
-    console.error('Error categorizing skills:', error)
-  }
-
-  return skills
-}

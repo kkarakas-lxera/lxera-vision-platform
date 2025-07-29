@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Circle,
   Sparkles,
-  Activity,
   Target,
   HelpCircle,
   MessageCircle,
@@ -192,41 +191,23 @@ export default function SkillsGapOnboardingFlow() {
       </div>
 
       <div className="space-y-4">
-        {/* Progress Overview */}
+        {/* Setup Steps with integrated progress */}
         <Card className="overflow-hidden">
           <CardHeader className="py-3 border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-base">Setup Progress</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Setup Steps</CardTitle>
               </div>
               <Badge className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                 {completedSteps} of {steps.length} Complete
               </Badge>
             </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="space-y-3">
+            <div className="mt-3 space-y-2">
               <Progress value={progress} className="h-2" />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Get started with your skills gap analysis</span>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="h-7 text-xs">
-                    <HelpCircle className="h-3 w-3 mr-1" />
-                    Help
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Setup Steps */}
-        <Card className="overflow-hidden">
-          <CardHeader className="py-3 border-b">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">Setup Steps</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Get started with your skills gap analysis
+              </p>
             </div>
           </CardHeader>
           <CardContent className="p-4">

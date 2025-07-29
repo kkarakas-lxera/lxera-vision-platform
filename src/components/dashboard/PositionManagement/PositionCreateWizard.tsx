@@ -58,6 +58,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [positionData, setPositionData] = useState<PositionData>({
     position_title: '',
     position_code: '',
@@ -165,7 +166,6 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
             proficiency_level: skill.proficiency_level,
             description: skill.description
           })),
-          nice_to_have_skills: [],
           ai_suggestions: positionData.ai_suggestions || [],
           created_by: userProfile.id
         })
@@ -201,28 +201,34 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
   const canProceedToStep = (step: number) => {
     switch (step) {
       case 2:
-        return positionData.position_title && positionData.position_code && positionData.admin_approved;
+        return positionData.position_title && 
+               positionData.position_code && 
+               positionData.admin_approved && 
+               (positionData.description_fully_read || !positionData.description);
       case 3:
         return positionData.required_skills.length > 0;
+      case 4:
+        return true; // Step 3 is review, so always allow proceeding from there
       default:
         return true;
     }
   };
 
 
-  // Auto-generate description when title, level, and department are filled
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (positionData.position_title && 
-          (positionData.position_level || positionData.department) && 
-          !positionData.description && 
-          !isGeneratingDescription) {
-        generateDescription();
-      }
-    }, 2000); // 2 second delay
+  // Removed auto-generation - description should only be generated on user click
 
-    return () => clearTimeout(timer);
-  }, [positionData.position_title, positionData.position_level, positionData.department]);
+  // Check if description has been scrolled to bottom
+  const checkDescriptionScroll = () => {
+    if (descriptionRef.current && positionData.description) {
+      const element = descriptionRef.current;
+      const hasScrolledToBottom = 
+        element.scrollHeight - element.scrollTop <= element.clientHeight + 5; // 5px tolerance
+      
+      if (hasScrolledToBottom) {
+        setPositionData(prev => ({ ...prev, description_fully_read: true }));
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -342,9 +348,11 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                   </Button>
                 </div>
                 <Textarea
+                  ref={descriptionRef}
                   id="description"
                   value={positionData.description}
                   onChange={(e) => setPositionData(prev => ({ ...prev, description: e.target.value }))}
+                  onScroll={checkDescriptionScroll}
                   placeholder={isGeneratingDescription ? "AI is generating description..." : "Describe the role, responsibilities, and key objectives..."}
                   rows={4}
                   disabled={isGeneratingDescription}
@@ -356,6 +364,15 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                   </p>
                 )}
               </div>
+
+              {/* Show scroll reminder if description exists but hasn't been scrolled */}
+              {positionData.description && !positionData.description_fully_read && (
+                <Alert className="mt-2">
+                  <AlertDescription className="text-sm">
+                    Please scroll through the entire description before proceeding
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {/* Simple Admin Approval - Only show if description exists */}
               {positionData.description && (
@@ -425,7 +442,7 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
                 <Alert>
                   <Lightbulb className="h-4 w-4" />
                   <AlertDescription>
-                    Add at least one required skill from the AI suggestions above.
+                    <strong>At least one skill is required.</strong> Add skills from the AI suggestions above to proceed.
                   </AlertDescription>
                 </Alert>
               )}
@@ -484,7 +501,11 @@ export function PositionCreateWizard({ onComplete, onCancel }: PositionCreateWiz
 
         <Button
           onClick={currentStep === 3 ? createPosition : () => setCurrentStep(currentStep + 1)}
-          disabled={!canProceedToStep(currentStep + 1) || isLoading}
+          disabled={
+            currentStep === 3 
+              ? isLoading 
+              : !canProceedToStep(currentStep + 1)
+          }
           className="flex items-center gap-2"
         >
           {currentStep === 3 ? (

@@ -304,10 +304,12 @@ export default function PositionManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Position Management</h1>
           <p className="text-gray-600 mt-1">Define and manage company positions and their skill requirements</p>
         </div>
-        <Button onClick={() => navigate('/dashboard/positions/new')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Position
-        </Button>
+        {positions.length > 0 && (
+          <Button onClick={() => navigate('/dashboard/positions/new')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Position
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}

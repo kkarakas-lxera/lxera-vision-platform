@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Sparkles, 
   Database, 
@@ -15,20 +16,20 @@ import {
   RefreshCw, 
   Lightbulb,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  PlusCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface SkillSuggestion {
-  skill_id?: string;
   skill_name: string;
   category: 'essential' | 'important' | 'nice-to-have';
   proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
   description: string;
-  source: 'database' | 'ai';
-  relevance_score?: number;
   reason?: string;
+  skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
+  market_demand?: 'high' | 'medium' | 'low';
 }
 
 interface AISkillSuggestionsProps {
@@ -52,10 +53,12 @@ export function AISkillSuggestions({
 }: AISkillSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<'market' | 'ai' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [addedSkills, setAddedSkills] = useState<Set<string>>(new Set());
   const [summary, setSummary] = useState<any>(null);
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
+  const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
 
   const fetchSuggestions = async () => {
     if (!positionTitle) {
@@ -64,9 +67,15 @@ export function AISkillSuggestions({
     }
 
     setLoading(true);
+    setLoadingStage('market');
     setError(null);
 
     try {
+      // Start with market data stage
+      setTimeout(() => {
+        if (loading) setLoadingStage('ai');
+      }, 3000); // Switch to AI stage after 3 seconds
+
       const { data, error: fetchError } = await supabase.functions.invoke('suggest-position-skills-enhanced', {
         body: {
           position_title: positionTitle,
@@ -90,30 +99,88 @@ export function AISkillSuggestions({
         onSuggestionsLoaded(data.skills);
       }
       
-      toast.success(`Found ${data.skills?.length || 0} skills`);
+      const message = data.summary?.market_data_available 
+        ? `Found ${data.skills?.length || 0} skills with market insights`
+        : `Found ${data.skills?.length || 0} skills`;
+      toast.success(message);
     } catch (err) {
       console.error('Error fetching AI suggestions:', err);
       setError(err.message || 'Failed to get AI suggestions');
       toast.error('Failed to get AI suggestions');
     } finally {
       setLoading(false);
+      setLoadingStage(null);
     }
   };
 
   const handleAddSkill = (skill: SkillSuggestion) => {
     const skillData = {
-      skill_id: skill.skill_id || `ai_${Date.now()}_${Math.random()}`,
+      skill_id: `ai_${Date.now()}_${Math.random()}`,
       skill_name: skill.skill_name,
       proficiency_level: skill.proficiency_level === 'basic' ? 1 :
                         skill.proficiency_level === 'intermediate' ? 2 :
                         skill.proficiency_level === 'advanced' ? 3 : 4,
-      description: skill.description,
-      source: skill.source
+      description: skill.description
     };
 
     onAddSkill(skillData);
     setAddedSkills(prev => new Set(prev).add(skill.skill_name));
     toast.success(`Added ${skill.skill_name} to required skills`);
+  };
+
+  const handleAddSelectedSkills = () => {
+    const skillsToAdd = suggestions.filter(skill => 
+      selectedSkills.has(skill.skill_name) && !isSkillAdded(skill.skill_name)
+    );
+
+    skillsToAdd.forEach(skill => {
+      const skillData = {
+        skill_id: `ai_${Date.now()}_${Math.random()}`,
+        skill_name: skill.skill_name,
+        proficiency_level: skill.proficiency_level === 'basic' ? 1 :
+                          skill.proficiency_level === 'intermediate' ? 2 :
+                          skill.proficiency_level === 'advanced' ? 3 : 4,
+        description: skill.description
+      };
+      onAddSkill(skillData);
+      setAddedSkills(prev => new Set(prev).add(skill.skill_name));
+    });
+
+    setSelectedSkills(new Set());
+    toast.success(`Added ${skillsToAdd.length} skills to required skills`);
+  };
+
+  const handleAddAllEssential = () => {
+    const essentialSkills = suggestions.filter(skill => 
+      skill.category === 'essential' && !isSkillAdded(skill.skill_name)
+    );
+
+    essentialSkills.forEach(skill => {
+      const skillData = {
+        skill_id: `ai_${Date.now()}_${Math.random()}`,
+        skill_name: skill.skill_name,
+        proficiency_level: skill.proficiency_level === 'basic' ? 1 :
+                          skill.proficiency_level === 'intermediate' ? 2 :
+                          skill.proficiency_level === 'advanced' ? 3 : 4,
+        description: skill.description
+      };
+      onAddSkill(skillData);
+      setAddedSkills(prev => new Set(prev).add(skill.skill_name));
+    });
+
+    toast.success(`Added ${essentialSkills.length} essential skills`);
+  };
+
+  const toggleSkillSelection = (skillName: string) => {
+    setSelectedSkills(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(skillName)) {
+        newSet.delete(skillName);
+      } else {
+        newSet.add(skillName);
+      }
+      return newSet;
+    });
   };
 
 
@@ -137,13 +204,13 @@ export function AISkillSuggestions({
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'essential':
-        return 'bg-red-500 text-white';
+        return 'bg-red-100 text-red-700 border-red-200';
       case 'important':
-        return 'bg-orange-500 text-white';
+        return 'bg-orange-100 text-orange-700 border-orange-200';
       case 'nice-to-have':
-        return 'bg-blue-500 text-white';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
@@ -173,7 +240,7 @@ export function AISkillSuggestions({
     return () => clearTimeout(timer);
   }, [positionTitle, positionLevel, department]);
 
-  // Show all suggestions
+  // No filtering needed anymore
   const filteredSuggestions = suggestions;
 
   return (
@@ -182,11 +249,11 @@ export function AISkillSuggestions({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-600" />
+              <Sparkles className="h-5 w-5 text-blue-600" />
               AI Skills Suggestions
             </CardTitle>
             <CardDescription>
-              Smart skill recommendations powered by OpenAI & your database
+              Smart skill recommendations powered by AI
             </CardDescription>
           </div>
           <Button
@@ -213,9 +280,25 @@ export function AISkillSuggestions({
 
         {loading && (
           <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center space-y-3">
+                <div className="relative">
+                  <div className="h-12 w-12 mx-auto rounded-full border-4 border-muted animate-pulse">
+                    <div className="h-full w-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {loadingStage === 'market' ? 'Searching job market data...' : 'Analyzing with AI...'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {loadingStage === 'market' 
+                      ? 'Finding real job requirements' 
+                      : 'Generating tailored skills suggestions'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -228,19 +311,47 @@ export function AISkillSuggestions({
         {!loading && suggestions.length > 0 && (
           <div className="space-y-4">
               {summary && (
-                <div className="p-3 bg-purple-50 rounded-lg text-sm border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium text-purple-900">AI Analysis Summary</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-purple-800">
-                    <div>Database matches: <span className="font-medium">{summary.from_database}</span></div>
-                    <div>AI suggestions: <span className="font-medium">{summary.from_ai}</span></div>
-                    <div>Essential skills: <span className="font-medium">{summary.essential_count}</span></div>
-                    <div>Important skills: <span className="font-medium">{summary.important_count}</span></div>
+                <div className="p-2 bg-muted/50 rounded-md text-sm border">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium">Skills Analysis</span>
+                    </div>
+                    <div className="flex gap-3 text-xs text-muted-foreground">
+                      <span>Total: {summary.total_suggestions}</span>
+                      <span>Essential: {summary.essential_count}</span>
+                      {summary.market_data_available && (
+                        <span className="text-green-600">✓ Market data</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
+
+              {/* Bulk action buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleAddAllEssential}
+                  disabled={suggestions.filter(s => s.category === 'essential' && !isSkillAdded(s.skill_name)).length === 0}
+                  className="flex items-center gap-2"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Add All Essential Skills
+                </Button>
+                {selectedSkills.size > 0 && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={handleAddSelectedSkills}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Selected ({selectedSkills.size})
+                  </Button>
+                )}
+              </div>
 
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-2">
@@ -257,32 +368,36 @@ export function AISkillSuggestions({
                       >
                         <div className="p-3">
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-3 flex-1">
+                              {!isAdded && (
+                                <Checkbox
+                                  checked={selectedSkills.has(skill.skill_name)}
+                                  onCheckedChange={() => toggleSkillSelection(skill.skill_name)}
+                                  className="mt-1"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
                                 <h4 className="font-medium text-sm">{skill.skill_name}</h4>
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      {skill.source === 'database' ? (
-                                        <Database className="h-4 w-4 text-blue-600" />
-                                      ) : (
-                                        <Sparkles className="h-4 w-4 text-purple-600" />
-                                      )}
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {skill.source === 'database' ? 'From your skills database' : 'AI generated'}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                {skill.market_demand === 'high' && (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                    High demand
+                                  </Badge>
+                                )}
                               </div>
                               
                               <div className="flex items-center gap-2 mb-2">
-                                <Badge className={`text-xs ${getCategoryColor(skill.category)}`}>
+                                <Badge variant="outline" className={`text-xs ${getCategoryColor(skill.category)}`}>
                                   {skill.category}
                                 </Badge>
                                 <span className="text-xs text-gray-600">
                                   {getProficiencyIcon(skill.proficiency_level)} {skill.proficiency_level}
                                 </span>
+                                {skill.skill_group && (
+                                  <span className="text-xs text-muted-foreground">
+                                    • {skill.skill_group}
+                                  </span>
+                                )}
                               </div>
                               
                               <p className="text-xs text-muted-foreground line-clamp-2">
@@ -304,6 +419,7 @@ export function AISkillSuggestions({
                                   {skill.reason}
                                 </p>
                               )}
+                              </div>
                             </div>
                             
                             <Button
