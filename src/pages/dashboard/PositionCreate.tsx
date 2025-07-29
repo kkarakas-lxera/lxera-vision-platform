@@ -1136,16 +1136,6 @@ export default function PositionCreate() {
                                                       )}
                                                     </div>
                                                   <div className="flex items-center gap-2">
-                                                    <div className="flex">
-                                                      {[1, 2, 3, 4, 5].map(level => (
-                                                        <div
-                                                          key={level}
-                                                          className={`w-1.5 h-1.5 rounded-full mr-0.5 ${
-                                                            level <= skill.proficiency_level ? 'bg-blue-500' : 'bg-gray-200'
-                                                          }`}
-                                                        />
-                                                      ))}
-                                                    </div>
                                                     {skill.reason && (
                                                       <button
                                                         onClick={() => toggleSkillExpanded(skill.skill_id)}

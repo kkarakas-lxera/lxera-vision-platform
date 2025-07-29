@@ -391,7 +391,7 @@ export function AISkillSuggestions({
                                   {skill.category}
                                 </Badge>
                                 <span className="text-xs text-gray-600">
-                                  {getProficiencyIcon(skill.proficiency_level)} {skill.proficiency_level}
+                                  {skill.proficiency_level}
                                 </span>
                                 {skill.skill_group && (
                                   <span className="text-xs text-muted-foreground">
