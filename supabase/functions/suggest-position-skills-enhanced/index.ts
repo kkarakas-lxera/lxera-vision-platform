@@ -40,16 +40,19 @@ serve(async (req) => {
     let marketInsights = ''
     
     // Step 1: Use Firecrawl to get real job market data (if API key available)
-    if (firecrawlApiKey) {
+    if (firecrawlApiKey && firecrawlApiKey.trim()) {
       try {
         console.log('Fetching job market insights with Firecrawl...')
+        
+        // Validate and clean the API key
+        const cleanApiKey = firecrawlApiKey.trim().replace(/[\r\n\t]/g, '')
         
         const searchQuery = `"${position_title}" job requirements skills 2025 "${department || ''}"`.trim()
         
         const firecrawlResponse = await fetch('https://api.firecrawl.dev/v1/search', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${firecrawlApiKey}`,
+            'Authorization': `Bearer ${cleanApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
