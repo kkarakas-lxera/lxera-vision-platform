@@ -13,6 +13,7 @@ interface SkillSuggestion {
   reason?: string;
   skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
   market_demand?: 'high' | 'medium' | 'low';
+  sources?: Array<{ title: string; url: string; }>;
 }
 
 serve(async (req) => {
@@ -56,6 +57,7 @@ For each skill, create a section with this exact format:
 - **Skill Group:** technical/soft/leadership/tools/industry
 - **Description:** [One sentence explaining how this skill applies to the role]
 - **Reason:** [Why this skill matters for this specific position]
+- **Sources:** [URL1](title1), [URL2](title2) (Include 1-2 most relevant source URLs if you found specific information from web search)
 
 Consider:
 - Current 2025 industry standards and trends
@@ -155,6 +157,21 @@ At the end, add a section:
             skill.description = trimmedLine.replace('- **Description:**', '').trim()
           } else if (trimmedLine.startsWith('- **Reason:**')) {
             skill.reason = trimmedLine.replace('- **Reason:**', '').trim()
+          } else if (trimmedLine.startsWith('- **Sources:**')) {
+            // Parse markdown links format: [URL1](title1), [URL2](title2)
+            const sourcesText = trimmedLine.replace('- **Sources:**', '').trim()
+            const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+            const sources: Array<{ title: string; url: string }> = []
+            let match
+            while ((match = linkRegex.exec(sourcesText)) !== null) {
+              sources.push({
+                url: match[1],
+                title: match[2]
+              })
+            }
+            if (sources.length > 0) {
+              skill.sources = sources
+            }
           }
         }
         

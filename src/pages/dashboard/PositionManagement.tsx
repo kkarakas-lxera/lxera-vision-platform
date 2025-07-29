@@ -247,6 +247,34 @@ export default function PositionManagement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
+  const handleDiscardDraft = async () => {
+    if (!draftInfo) return;
+    
+    const confirmed = window.confirm(
+      'Are you sure you want to discard this draft? This action cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      const { error } = await supabase
+        .from('position_drafts')
+        .delete()
+        .eq('id', draftInfo.id);
+        
+      if (error) throw error;
+      
+      // Reset draft state
+      setHasDraft(false);
+      setDraftInfo(null);
+      
+      toast.success('Draft discarded successfully');
+    } catch (error) {
+      console.error('Error discarding draft:', error);
+      toast.error('Failed to discard draft');
+    }
+  };
+
   const handleDelete = async (position: CompanyPosition) => {
     // First check if there are employees assigned to this position
     const { count: employeeCount } = await supabase
@@ -446,9 +474,17 @@ export default function PositionManagement() {
                     Draft saved {new Date(draftInfo.updated_at).toLocaleDateString()} at {new Date(draftInfo.updated_at).toLocaleTimeString()}
                     {draftInfo.positions_count > 0 && ` • ${draftInfo.positions_count} position${draftInfo.positions_count > 1 ? 's' : ''}`}
                   </div>
-                  <Button onClick={() => navigate('/dashboard/positions/new')}>
-                    Continue Draft
-                  </Button>
+                  <div className="flex items-center justify-center gap-3">
+                    <Button onClick={() => navigate('/dashboard/positions/new')}>
+                      Continue Draft
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleDiscardDraft()}
+                    >
+                      Discard
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <Button onClick={() => navigate('/dashboard/positions/new')}>

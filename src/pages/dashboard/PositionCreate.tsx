@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, ChevronLeft, ChevronDown, ChevronUp, Save, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +29,7 @@ interface SkillSelection {
   source?: 'database' | 'ai';
   category?: 'essential' | 'important';
   skill_group?: 'technical' | 'soft' | 'leadership' | 'tools' | 'industry';
+  sources?: Array<{ title: string; url: string; }>;
 }
 
 interface PositionData {
@@ -238,7 +240,8 @@ export default function PositionCreate() {
           reason: skill.reason,
           source: skill.source,
           category: skill.category,
-          skill_group: skill.skill_group || categorizeSkill(skill.skill_name)
+          skill_group: skill.skill_group || categorizeSkill(skill.skill_name),
+          sources: skill.sources
         }));
 
         // Group skills by category
@@ -249,8 +252,8 @@ export default function PositionCreate() {
           const newPositions = [...prev];
           newPositions[positionIndex] = {
             ...newPositions[positionIndex],
-            required_skills: newSkills,
-            ai_suggestions: data.skills
+            required_skills: [], // Don't pre-select, let users choose
+            ai_suggestions: newSkills
           };
           return newPositions;
         });
@@ -562,7 +565,8 @@ export default function PositionCreate() {
                   description: skill.description,
                   category: skill.category,
                   skill_group: skill.skill_group,
-                  source: 'ai' as const
+                  source: 'ai' as const,
+                  sources: skill.sources
                 }))
               ]
             };
@@ -727,7 +731,8 @@ export default function PositionCreate() {
               description: skill.description,
               category: skill.category,
               skill_group: skill.skill_group,
-              source: 'ai' as const
+              source: 'ai' as const,
+              sources: skill.sources
             }))
           };
         }
@@ -1423,7 +1428,8 @@ export default function PositionCreate() {
                                                   description: skill.description,
                                                   category: skill.category,
                                                   skill_group: skill.skill_group,
-                                                  source: 'ai' as const
+                                                  source: 'ai' as const,
+                                                  sources: skill.sources
                                                 }))
                                               ]
                                             };
@@ -1596,7 +1602,33 @@ export default function PositionCreate() {
                                                     {skill.reason && (
                                                       <div className="text-xs">
                                                         <span className="font-medium text-gray-700">Why needed: </span>
-                                                        <span className="text-gray-600">{skill.reason}</span>
+                                                        <span className="text-gray-600">
+                                                          {skill.reason}
+                                                          {skill.sources && skill.sources.length > 0 && (
+                                                            <span className="ml-1">
+                                                              {skill.sources.map((source, idx) => (
+                                                                <TooltipProvider key={idx}>
+                                                                  <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                      <a
+                                                                        href={source.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-blue-600 hover:text-blue-800 hover:underline mx-0.5"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                      >
+                                                                        [{idx + 1}]
+                                                                      </a>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                      <p className="text-xs max-w-xs">{source.title}</p>
+                                                                    </TooltipContent>
+                                                                  </Tooltip>
+                                                                </TooltipProvider>
+                                                              ))}
+                                                            </span>
+                                                          )}
+                                                        </span>
                                                       </div>
                                                     )}
                                                   </div>
@@ -1734,18 +1766,6 @@ export default function PositionCreate() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCurrentPositionIndex(index);
-                              setCurrentStep(1);
-                            }}
-                            className="text-xs"
-                          >
-                            Edit
-                          </Button>
                         </div>
                       </div>
                       
@@ -1763,7 +1783,7 @@ export default function PositionCreate() {
                                   {position.required_skills.map(skill => (
                                     <div 
                                       key={skill.skill_id} 
-                                      className="flex items-center gap-2 text-xs p-1.5 bg-gray-50 rounded"
+                                      className="flex items-center gap-2 text-xs p-1.5 bg-gray-50 rounded group hover:bg-gray-100"
                                     >
                                       <span className="flex-1 truncate">{skill.skill_name}</span>
                                       {skill.category === 'essential' && (
@@ -1774,6 +1794,25 @@ export default function PositionCreate() {
                                       {skill.source === 'ai' && (
                                         <Sparkles className="h-3 w-3 text-blue-500" />
                                       )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPositions(prev => {
+                                            const newPositions = [...prev];
+                                            newPositions[index] = {
+                                              ...newPositions[index],
+                                              required_skills: newPositions[index].required_skills.filter(
+                                                s => s.skill_id !== skill.skill_id
+                                              )
+                                            };
+                                            return newPositions;
+                                          });
+                                          toast.success(`Removed ${skill.skill_name}`);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-3 w-3 text-gray-500 hover:text-red-600" />
+                                      </button>
                                     </div>
                                   ))}
                                 </div>
