@@ -401,7 +401,9 @@ export default function PositionCreate() {
 
   // Helper functions for processing status
   const getProcessingStats = () => {
-    const completed = Object.values(processingStatus).filter(status => status === 'completed').length;
+    const completed = positions.filter((p, index) => 
+      p.position_title && p.ai_suggestions && p.ai_suggestions.length > 0
+    ).length;
     const processing = Object.values(processingStatus).filter(status => status === 'processing').length;
     const total = positions.filter(p => p.position_title).length;
     return { completed, processing, total };
@@ -410,7 +412,7 @@ export default function PositionCreate() {
   const getPositionStatus = (index: number) => {
     const position = positions[index];
     if (!position.position_title) return 'empty';
-    if (position.required_skills.length > 0) return 'completed';
+    if (position.ai_suggestions && position.ai_suggestions.length > 0) return 'completed';
     return processingStatus[index] || 'pending';
   };
 
@@ -741,11 +743,12 @@ export default function PositionCreate() {
       
       const draftData = {
         company_id: userProfile.company_id,
-        positions: positionsWithSelections,
+        positions: positions, // Save the full positions including ai_suggestions
         current_step: currentStep,
         selected_skills: Object.fromEntries(
           Object.entries(selectedSkills).map(([key, value]) => [key, Array.from(value)])
-        )
+        ),
+        pending_selections: positionsWithSelections.map(p => p.pending_selections || [])
       };
 
       if (draftId) {
@@ -880,6 +883,23 @@ export default function PositionCreate() {
             // Also restore UI expanded states to make it visible
             if (draftData.positions.length > 0) {
               setExpandedPositions(new Set([0])); // Expand first position by default
+              
+              // Restore processing status for positions that have ai_suggestions
+              const newProcessingStatus: Record<number, 'pending' | 'processing' | 'completed' | 'error'> = {};
+              draftData.positions.forEach((position: any, index: number) => {
+                if (position.ai_suggestions && position.ai_suggestions.length > 0) {
+                  newProcessingStatus[index] = 'completed';
+                }
+              });
+              setProcessingStatus(newProcessingStatus);
+              
+              // Restore grouped skills
+              draftData.positions.forEach((position: any, index: number) => {
+                if (position.ai_suggestions && position.ai_suggestions.length > 0) {
+                  const grouped = groupSkillsByCategory(position.ai_suggestions);
+                  setGroupedSkills(prev => ({ ...prev, [index]: grouped }));
+                }
+              });
             }
             
             toast.success('Draft loaded successfully');
@@ -1195,7 +1215,7 @@ export default function PositionCreate() {
                 <div className="space-y-2">
                   {positions.map((position, index) => {
                     const status = getPositionStatus(index);
-                    const skillCount = position.required_skills.length;
+                    const skillCount = position.ai_suggestions?.length || 0;
                     const progress = processingProgress[index] || 0;
                     const timeElapsed = getProcessingTime(index);
                     
@@ -1213,24 +1233,31 @@ export default function PositionCreate() {
                               )}
                             </div>
                             {status === 'processing' && (
-                              <div className="mt-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm text-blue-700">
-                                    {loadingMessages[index]} {timeElapsed}
-                                  </span>
-                                  {loadingStage[index] && (
-                                    <span className="text-xs text-muted-foreground">
-                                      ({loadingStage[index] === 'market' ? 'Searching market data' : 'AI analysis'})
+                              <div className="mt-1 flex items-center gap-3">
+                                <div className="relative flex-shrink-0">
+                                  <div className="h-5 w-5 rounded-full border-2 border-gray-200">
+                                    <div className="h-full w-full rounded-full border-t-2 border-blue-600 animate-spin"></div>
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm text-blue-700">
+                                      {loadingMessages[index]} {timeElapsed}
                                     </span>
-                                  )}
+                                    {loadingStage[index] && (
+                                      <span className="text-xs text-muted-foreground">
+                                        ({loadingStage[index] === 'market' ? 'Searching market data' : 'AI analysis'})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div 
+                                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                      style={{ width: `${progress}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs text-gray-500">{progress}% complete</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${progress}%` }}
-                                  ></div>
-                                </div>
-                                <span className="text-xs text-gray-500">{progress}% complete</span>
                               </div>
                             )}
                           </div>
@@ -1247,7 +1274,7 @@ export default function PositionCreate() {
                       <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-center">
                         <span className="text-green-700 font-medium">
                           ✅ All {stats.total} positions processed successfully! 
-                          Total: {positions.reduce((sum, p) => sum + p.required_skills.length, 0)} skills
+                          Total: {positions.reduce((sum, p) => sum + (p.ai_suggestions?.length || 0), 0)} skills
                         </span>
                       </div>
                     );
@@ -1260,7 +1287,7 @@ export default function PositionCreate() {
               <div className="space-y-4">
                 {positions.map((position, index) => {
                   const status = getPositionStatus(index);
-                  const skillCount = position.required_skills.length;
+                  const skillCount = position.ai_suggestions?.length || 0;
                   const isCollapsed = collapsedPositions.has(index);
                   
                   // Auto-expand current processing position, collapse others
@@ -1306,35 +1333,8 @@ export default function PositionCreate() {
                       {shouldShow && (
                         <div className="border-t bg-white p-4">
                           {status === 'processing' && (
-                            <div className="space-y-4">
-                              {/* Progress Bar */}
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="text-gray-600">
-                                    {loadingStage[index] === 'market' ? '🔍 Searching job market data...' : 
-                                     loadingStage[index] === 'ai' ? '🤖 AI analyzing skills...' : 
-                                     '⚡ Processing...'}
-                                  </span>
-                                  <span className="text-gray-500">{processingProgress[index] || 0}%</span>
-                                </div>
-                                <Progress value={processingProgress[index] || 0} className="h-2" />
-                              </div>
-                              
-                              {/* Loading Animation */}
-                              <div className="flex justify-center py-4">
-                                <div className="relative">
-                                  <div className="h-12 w-12 rounded-full border-4 border-gray-200">
-                                    <div className="h-full w-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Loading Message */}
-                              {loadingMessages[index] && (
-                                <p className="text-center text-sm text-gray-600 animate-pulse">
-                                  {loadingMessages[index]}
-                                </p>
-                              )}
+                            <div className="text-center py-8 text-sm text-gray-600">
+                              Processing skills...
                             </div>
                           )}
 

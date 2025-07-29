@@ -481,6 +481,7 @@ export default function PositionManagement() {
                     <Button 
                       variant="outline" 
                       onClick={() => handleDiscardDraft()}
+                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
                     >
                       Discard
                     </Button>
