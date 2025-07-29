@@ -525,6 +525,20 @@ export default function PositionCreate() {
         return;
       }
       
+      // Check minimum skill requirement per position
+      const MIN_SKILLS_PER_POSITION = 3;
+      for (let i = 0; i < positions.length; i++) {
+        const position = positions[i];
+        const selectedForPosition = selectedSkills[i]?.size || 0;
+        const existingSkills = position.required_skills.length;
+        const totalSkillsForPosition = selectedForPosition + existingSkills;
+        
+        if (totalSkillsForPosition < MIN_SKILLS_PER_POSITION) {
+          toast.error(`Position "${position.position_title}" needs at least ${MIN_SKILLS_PER_POSITION} skills. Currently has ${totalSkillsForPosition}.`);
+          return;
+        }
+      }
+      
       // Add selected skills to required_skills before moving to next step
       positions.forEach((position, index) => {
         const selectedForPosition = selectedSkills[index];
@@ -696,9 +710,33 @@ export default function PositionCreate() {
     setSaveStatus('saving');
     
     try {
+      // Merge selected skills into positions for auto-save
+      const positionsWithSelections = positions.map((position, index) => {
+        const selectedForPosition = selectedSkills[index];
+        if (selectedForPosition && selectedForPosition.size > 0) {
+          const selectedSkillsArray = position.ai_suggestions?.filter(skill => 
+            selectedForPosition.has(skill.skill_id || skill.skill_name)
+          ) || [];
+          
+          return {
+            ...position,
+            pending_selections: selectedSkillsArray.map(skill => ({
+              skill_id: skill.skill_id || skill.skill_name,
+              skill_name: skill.skill_name,
+              proficiency_level: skill.proficiency_level,
+              description: skill.description,
+              category: skill.category,
+              skill_group: skill.skill_group,
+              source: 'ai' as const
+            }))
+          };
+        }
+        return position;
+      });
+      
       const draftData = {
         company_id: userProfile.company_id,
-        positions: positions,
+        positions: positionsWithSelections,
         current_step: currentStep,
         selected_skills: Object.fromEntries(
           Object.entries(selectedSkills).map(([key, value]) => [key, Array.from(value)])
@@ -735,12 +773,36 @@ export default function PositionCreate() {
       setSaveStatus('saved');
       setLastSaved(new Date());
       
+      // Clean up old drafts (keep only last 5)
+      const { error: cleanupError } = await supabase
+        .from('position_drafts')
+        .delete()
+        .eq('company_id', userProfile.company_id)
+        .eq('created_by', userProfile.id)
+        .not('id', 'in', `(${draftId || 'null'})`)
+        .lt('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()); // Delete drafts older than 7 days
+      
+      if (cleanupError) {
+        console.error('Error cleaning up old drafts:', cleanupError);
+      }
+      
       // Reset status after 3 seconds
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
       console.error('Error saving draft:', error);
       setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      
+      // Show retry button in UI
+      setTimeout(() => {
+        setSaveStatus('error');
+        toast.error('Failed to save draft. Click the save icon to retry.', {
+          duration: 5000,
+          action: {
+            label: 'Retry',
+            onClick: () => savePositionDraft()
+          }
+        });
+      }, 100);
     }
   };
 
@@ -758,6 +820,68 @@ export default function PositionCreate() {
       debouncedSave();
     }
   }, [positions, currentStep, selectedSkills]);
+
+  // Load draft on component mount
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!userProfile?.company_id) return;
+      
+      try {
+        // Get the most recent draft
+        const { data: drafts, error } = await supabase
+          .from('position_drafts')
+          .select('*')
+          .eq('company_id', userProfile.company_id)
+          .eq('created_by', userProfile.id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+          
+        if (error) throw error;
+        
+        if (drafts && drafts.length > 0) {
+          const draft = drafts[0];
+          const draftData = draft.draft_data;
+          
+          // Show confirmation dialog
+          const confirmed = window.confirm(
+            `Found a draft from ${new Date(draft.updated_at).toLocaleDateString()} at ${new Date(draft.updated_at).toLocaleTimeString()}. Would you like to continue from where you left off?`
+          );
+          
+          if (confirmed) {
+            setDraftId(draft.id);
+            setPositions(draftData.positions || []);
+            setCurrentStep(draftData.current_step || 1);
+            
+            // Restore selected skills
+            if (draftData.selected_skills) {
+              const restoredSelections: {[key: number]: Set<string>} = {};
+              Object.entries(draftData.selected_skills).forEach(([key, value]) => {
+                restoredSelections[parseInt(key)] = new Set(value as string[]);
+              });
+              setSelectedSkills(restoredSelections);
+            }
+            
+            // Restore pending selections to selected skills if they exist
+            draftData.positions.forEach((position: any, index: number) => {
+              if (position.pending_selections && position.pending_selections.length > 0) {
+                const skillIds = position.pending_selections.map((s: any) => s.skill_id || s.skill_name);
+                setSelectedSkills(prev => ({
+                  ...prev,
+                  [index]: new Set([...(prev[index] || new Set()), ...skillIds])
+                }));
+              }
+            });
+            
+            toast.success('Draft loaded successfully');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading draft:', error);
+      }
+    };
+    
+    loadDraft();
+  }, [userProfile?.company_id, userProfile?.id]);
 
   const handleAISuggestions = (suggestions: any[]) => {
     setPositionData({
@@ -803,8 +927,15 @@ export default function PositionCreate() {
               )}
               {saveStatus === 'error' && (
                 <>
-                  <CloudOff className="h-4 w-4 text-red-600" />
-                  <span className="text-red-600">Save failed</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={savePositionDraft}
+                    className="h-auto p-1 text-red-600 hover:text-red-700"
+                  >
+                    <CloudOff className="h-4 w-4 mr-2" />
+                    <span>Save failed - Click to retry</span>
+                  </Button>
                 </>
               )}
               {lastSaved && saveStatus === 'idle' && (
@@ -1243,9 +1374,37 @@ export default function PositionCreate() {
                                       variant="default"
                                       size="sm"
                                       onClick={() => {
-                                        const selectedCount = selectedSkills[index]?.size || 0;
-                                        toast.success(`Added ${selectedCount} selected skills`);
-                                        setSelectedSkills(prev => ({ ...prev, [index]: new Set() }));
+                                        const selectedForPosition = selectedSkills[index];
+                                        if (selectedForPosition && selectedForPosition.size > 0) {
+                                          const skillsToAdd = position.ai_suggestions?.filter(skill => 
+                                            selectedForPosition.has(skill.skill_id || skill.skill_name)
+                                          ) || [];
+                                          
+                                          setPositions(prev => {
+                                            const newPositions = [...prev];
+                                            newPositions[index] = {
+                                              ...newPositions[index],
+                                              required_skills: [
+                                                ...newPositions[index].required_skills,
+                                                ...skillsToAdd.map(skill => ({
+                                                  skill_id: skill.skill_id || `ai_${Date.now()}_${Math.random()}`,
+                                                  skill_name: skill.skill_name,
+                                                  proficiency_level: skill.proficiency_level === 'basic' ? 1 :
+                                                                    skill.proficiency_level === 'intermediate' ? 2 :
+                                                                    skill.proficiency_level === 'advanced' ? 3 : 4,
+                                                  description: skill.description,
+                                                  category: skill.category,
+                                                  skill_group: skill.skill_group,
+                                                  source: 'ai' as const
+                                                }))
+                                              ]
+                                            };
+                                            return newPositions;
+                                          });
+                                          
+                                          toast.success(`Added ${selectedForPosition.size} selected skills`);
+                                          setSelectedSkills(prev => ({ ...prev, [index]: new Set() }));
+                                        }
                                       }}
                                     >
                                       Add Selected ({selectedSkills[index]?.size})
@@ -1588,27 +1747,26 @@ export default function PositionCreate() {
                 })}
               </div>
 
-                <Alert className="mt-6 bg-white">
-                  <Lightbulb className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <p>By creating these positions, you confirm that:</p>
-                      <div className="flex items-start gap-2">
-                        <Checkbox
-                          id="admin_approved"
-                          checked={positions.every(p => p.admin_approved)}
-                          onCheckedChange={(checked) => {
-                            setPositions(prev => prev.map(p => ({ ...p, admin_approved: checked as boolean })));
-                          }}
-                        />
-                        <Label htmlFor="admin_approved" className="text-sm cursor-pointer">
-                          All position details and skill requirements have been reviewed and approved
-                        </Label>
-                      </div>
+              <Alert className="mt-6 bg-white">
+                <Lightbulb className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p>By creating these positions, you confirm that:</p>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="admin_approved"
+                        checked={positions.every(p => p.admin_approved)}
+                        onCheckedChange={(checked) => {
+                          setPositions(prev => prev.map(p => ({ ...p, admin_approved: checked as boolean })));
+                        }}
+                      />
+                      <Label htmlFor="admin_approved" className="text-sm cursor-pointer">
+                        All position details and skill requirements have been reviewed and approved
+                      </Label>
                     </div>
-                  </AlertDescription>
-                </Alert>
-              </div>
+                  </div>
+                </AlertDescription>
+              </Alert>
             </div>
           )}
 
