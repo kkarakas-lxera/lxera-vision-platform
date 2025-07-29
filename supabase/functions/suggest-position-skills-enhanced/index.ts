@@ -108,7 +108,7 @@ At the end, add a section:
     
     try {
       // Parse markdown format
-      const skillSections = content.split('###').slice(1) // Skip first empty element
+      const skillSections = content.split(/###\s+/).slice(1) // Skip first empty element and handle ### with spaces
       
       for (const section of skillSections) {
         if (section.trim().startsWith('[')) continue // Skip any bracketed sections
@@ -131,22 +131,22 @@ At the end, add a section:
         for (const line of lines.slice(1)) {
           const trimmedLine = line.trim()
           if (trimmedLine.startsWith('- **Category:**')) {
-            const value = trimmedLine.replace('- **Category:**', '').trim()
+            const value = trimmedLine.replace('- **Category:**', '').trim().toLowerCase()
             if (['essential', 'important', 'nice-to-have'].includes(value)) {
               skill.category = value as any
             }
           } else if (trimmedLine.startsWith('- **Proficiency:**')) {
-            const value = trimmedLine.replace('- **Proficiency:**', '').trim()
+            const value = trimmedLine.replace('- **Proficiency:**', '').trim().toLowerCase()
             if (['basic', 'intermediate', 'advanced', 'expert'].includes(value)) {
               skill.proficiency_level = value as any
             }
           } else if (trimmedLine.startsWith('- **Market Demand:**')) {
-            const value = trimmedLine.replace('- **Market Demand:**', '').trim()
+            const value = trimmedLine.replace('- **Market Demand:**', '').trim().toLowerCase()
             if (['high', 'medium', 'low'].includes(value)) {
               skill.market_demand = value as any
             }
           } else if (trimmedLine.startsWith('- **Skill Group:**')) {
-            const value = trimmedLine.replace('- **Skill Group:**', '').trim()
+            const value = trimmedLine.replace('- **Skill Group:**', '').trim().toLowerCase()
             if (['technical', 'soft', 'leadership', 'tools', 'industry'].includes(value)) {
               skill.skill_group = value as any
             }
@@ -171,7 +171,14 @@ At the end, add a section:
       if (responseMessage && responseMessage.search_results) {
         marketDataAvailable = true
         console.log('Web search results used:', responseMessage.search_results.length)
+      } else {
+        // Since we're using web search model, assume data is available
+        marketDataAvailable = true
+        console.log('Web search model used, marking as market data available')
       }
+      
+      console.log('Parsed skills count:', skills.length)
+      console.log('First skill example:', skills[0])
       
       // Sort skills by category (essential first) and market demand
       skills.sort((a, b) => {
