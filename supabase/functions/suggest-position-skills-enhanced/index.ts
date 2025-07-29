@@ -22,7 +22,7 @@ serve(async (req) => {
   }
 
   try {
-    const { position_title, position_description, position_level, department } = await req.json()
+    const { position_title, position_description, position_level, department, additional_context } = await req.json()
 
     if (!position_title) {
       throw new Error('Position title is required')
@@ -43,6 +43,7 @@ Position: ${position_title}
 Level: ${position_level || 'Not specified'}
 Department: ${department || 'Not specified'}
 Description: ${position_description || 'No description provided'}
+${additional_context ? `Additional Requirements: ${additional_context}` : ''}
 
 Based on actual 2025 job market data, provide 20-25 relevant skills that are most in-demand.
 

@@ -60,6 +60,8 @@ export default function PositionCreate() {
   const [groupedSkills, setGroupedSkills] = useState<{[key: number]: {[group: string]: any[]}}>({});
   const [processingProgress, setProcessingProgress] = useState<{[key: number]: number}>({});
   const [processingStartTime, setProcessingStartTime] = useState<{[key: number]: number}>({});
+  const [regenerateContext, setRegenerateContext] = useState<{[key: number]: string}>({});
+  const [showRegenerateInput, setShowRegenerateInput] = useState<{[key: number]: boolean}>({});
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
   const [collapsedPositions, setCollapsedPositions] = useState<Set<number>>(new Set());
   const [selectedSkills, setSelectedSkills] = useState<{[positionIndex: number]: Set<string>}>({});
@@ -203,7 +205,8 @@ export default function PositionCreate() {
           position_title: position.position_title,
           position_description: position.description,
           position_level: position.position_level,
-          department: position.department
+          department: position.department,
+          additional_context: regenerateContext[positionIndex] || ''
         }
       });
 
@@ -1017,10 +1020,35 @@ export default function PositionCreate() {
                       {shouldShow && (
                         <div className="border-t bg-white p-4">
                           {status === 'processing' && (
-                            <div className="text-center py-4">
-                              <div className="text-sm text-blue-700 mb-2">
-                                Currently processing this position...
+                            <div className="space-y-4">
+                              {/* Progress Bar */}
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-gray-600">
+                                    {loadingStage[index] === 'market' ? '🔍 Searching job market data...' : 
+                                     loadingStage[index] === 'ai' ? '🤖 AI analyzing skills...' : 
+                                     '⚡ Processing...'}
+                                  </span>
+                                  <span className="text-gray-500">{processingProgress[index] || 0}%</span>
+                                </div>
+                                <Progress value={processingProgress[index] || 0} className="h-2" />
                               </div>
+                              
+                              {/* Loading Animation */}
+                              <div className="flex justify-center py-4">
+                                <div className="relative">
+                                  <div className="h-12 w-12 rounded-full border-4 border-gray-200">
+                                    <div className="h-full w-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Loading Message */}
+                              {loadingMessages[index] && (
+                                <p className="text-center text-sm text-gray-600 animate-pulse">
+                                  {loadingMessages[index]}
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -1041,7 +1069,7 @@ export default function PositionCreate() {
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-blue-700">
-                                  🤖 AI found {skillCount} skills
+                                  🤖 We found {skillCount} skills
                                   {marketDataAvailable[index] && (
                                     <span className="ml-2 text-xs text-green-600">✓ With 2025 market data</span>
                                   )}
@@ -1074,12 +1102,50 @@ export default function PositionCreate() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => generateSkillsForPosition(index)}
+                                    onClick={() => {
+                                      setShowRegenerateInput(prev => ({ ...prev, [index]: !prev[index] }));
+                                    }}
                                   >
                                     Regenerate
                                   </Button>
                                 </div>
                               </div>
+
+                              {/* Regenerate Input Field */}
+                              {showRegenerateInput[index] && (
+                                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                  <div className="space-y-3">
+                                    <Label className="text-sm font-medium">Additional Context for AI</Label>
+                                    <Textarea
+                                      placeholder="e.g., Focus on cloud technologies, emphasize leadership skills for this role, include emerging AI tools..."
+                                      value={regenerateContext[index] || ''}
+                                      onChange={(e) => setRegenerateContext(prev => ({ ...prev, [index]: e.target.value }))}
+                                      rows={2}
+                                      className="text-sm"
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => {
+                                          generateSkillsForPosition(index);
+                                          setShowRegenerateInput(prev => ({ ...prev, [index]: false }));
+                                        }}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <Sparkles className="h-4 w-4" />
+                                        Generate with Context
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowRegenerateInput(prev => ({ ...prev, [index]: false }))}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
 
                               {/* Skills Grid Layout */}
                               {groupedSkills[index] && (
@@ -1152,8 +1218,6 @@ export default function PositionCreate() {
                                                         {skill.category === 'important' && (
                                                           <span className="text-orange-600">Important</span>
                                                         )}
-                                                        <span>•</span>
-                                                        <span>{skill.proficiency_level}</span>
                                                         {skill.market_demand === 'high' && (
                                                           <>
                                                             <span>•</span>
