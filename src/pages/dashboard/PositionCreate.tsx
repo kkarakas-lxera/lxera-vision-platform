@@ -61,7 +61,7 @@ export default function PositionCreate() {
   const [loadingMessages, setLoadingMessages] = useState<{[key: number]: string}>({});
   const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
   const [groupedSkills, setGroupedSkills] = useState<{[key: number]: {[group: string]: any[]}}>({});
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<number>>(new Set());
+  const [editingDescriptions, setEditingDescriptions] = useState<Set<number>>(new Set());
   const [processingProgress, setProcessingProgress] = useState<{[key: number]: number}>({});
   const [processingStartTime, setProcessingStartTime] = useState<{[key: number]: number}>({});
   const [regenerateContext, setRegenerateContext] = useState<{[key: number]: string}>({});
@@ -1796,32 +1796,62 @@ export default function PositionCreate() {
                       {isExpanded && (
                         <div className="px-3 pb-3 border-t border-gray-100">
                           <div className="pt-3 space-y-3">
-                            {position.description && (
-                              <div className="text-xs text-gray-600">
-                                <p className={expandedDescriptions.has(index) ? "" : "line-clamp-2"}>
-                                  {position.description}
-                                </p>
-                                {position.description.length > 150 && (
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-medium text-gray-700">Description:</p>
+                                {position.description && !editingDescriptions.has(index) && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setExpandedDescriptions(prev => {
-                                        const newSet = new Set(prev);
-                                        if (newSet.has(index)) {
-                                          newSet.delete(index);
-                                        } else {
-                                          newSet.add(index);
-                                        }
-                                        return newSet;
-                                      });
+                                      setEditingDescriptions(prev => new Set(prev).add(index));
                                     }}
-                                    className="text-blue-600 hover:text-blue-800 mt-1"
+                                    className="text-xs text-blue-600 hover:text-blue-800"
                                   >
-                                    {expandedDescriptions.has(index) ? 'Show less' : 'Show full description'}
+                                    Edit
                                   </button>
                                 )}
                               </div>
-                            )}
+                              {editingDescriptions.has(index) ? (
+                                <div className="space-y-2">
+                                  <textarea
+                                    value={position.description || ''}
+                                    onChange={(e) => {
+                                      setPositions(prev => {
+                                        const newPositions = [...prev];
+                                        newPositions[index] = {
+                                          ...newPositions[index],
+                                          description: e.target.value
+                                        };
+                                        return newPositions;
+                                      });
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    placeholder="Add position description..."
+                                    className="w-full text-xs p-2 border rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    rows={3}
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingDescriptions(prev => {
+                                          const newSet = new Set(prev);
+                                          newSet.delete(index);
+                                          return newSet;
+                                        });
+                                      }}
+                                      className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                      Done
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-600 line-clamp-2">
+                                  {position.description || <span className="italic text-gray-400">No description added</span>}
+                                </p>
+                              )}
+                            </div>
                             
                             {position.required_skills.length > 0 && (
                               <div>
