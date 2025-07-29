@@ -34,115 +34,17 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured')
     }
 
-    // Get Firecrawl API key if available
-    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY')
+    // Generate comprehensive skills with AI using web search
+    console.log('Generating skills with OpenAI web search...')
     
-    let marketInsights = ''
-    
-    // Step 1: Use Firecrawl to get real job market data (if API key available)
-    if (firecrawlApiKey && firecrawlApiKey.trim()) {
-      try {
-        console.log('Fetching job market insights with Firecrawl...')
-        
-        // Validate and clean the API key
-        const cleanApiKey = firecrawlApiKey.trim().replace(/[\r\n\t]/g, '')
-        
-        const searchQuery = `"${position_title}" job requirements skills 2025 "${department || ''}"`.trim()
-        
-        const firecrawlResponse = await fetch('https://api.firecrawl.dev/v1/search', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${cleanApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: searchQuery,
-            limit: 3,
-            scrapeOptions: {
-              formats: ['markdown', 'json'],
-              onlyMainContent: true,
-              maxTokens: 1000,
-              jsonOptions: {
-                prompt: `Extract the following information from this job posting:
-                - job_title: The exact job title
-                - company: The company name
-                - required_skills: Array of required technical and soft skills
-                - experience_level: Years of experience required
-                - key_responsibilities: Main duties and responsibilities
-                - technologies: Specific tools, languages, frameworks mentioned`
-              }
-            }
-          })
-        })
-
-        if (firecrawlResponse.ok) {
-          const searchResults = await firecrawlResponse.json()
-          
-          if (searchResults.data && searchResults.data.length > 0) {
-            marketInsights = `\n\nREAL JOB MARKET DATA:\n`
-            const extractedSkills: string[] = []
-            const extractedTechnologies: string[] = []
-            
-            searchResults.data.forEach((result: any, index: number) => {
-              marketInsights += `\nSource ${index + 1}: ${result.url}\n`
-              
-              // Use structured JSON data if available
-              if (result.json) {
-                const jobData = result.json
-                marketInsights += `Company: ${jobData.company || 'Unknown'}\n`
-                marketInsights += `Role: ${jobData.job_title || position_title}\n`
-                
-                if (jobData.required_skills?.length > 0) {
-                  extractedSkills.push(...jobData.required_skills)
-                  marketInsights += `Required Skills: ${jobData.required_skills.join(', ')}\n`
-                }
-                
-                if (jobData.technologies?.length > 0) {
-                  extractedTechnologies.push(...jobData.technologies)
-                  marketInsights += `Technologies: ${jobData.technologies.join(', ')}\n`
-                }
-                
-                if (jobData.experience_level) {
-                  marketInsights += `Experience: ${jobData.experience_level}\n`
-                }
-              }
-              
-              // Fallback to markdown if JSON extraction failed
-              if (result.markdown) {
-                marketInsights += `\nContent:\n${result.markdown.substring(0, 500)}...\n`
-              }
-              
-              marketInsights += `---\n`
-            })
-            
-            // Add aggregated skills summary
-            if (extractedSkills.length > 0) {
-              const uniqueSkills = [...new Set(extractedSkills)]
-              marketInsights += `\nAGGREGATED SKILLS FROM JOB POSTINGS:\n${uniqueSkills.join(', ')}\n`
-            }
-            
-            if (extractedTechnologies.length > 0) {
-              const uniqueTech = [...new Set(extractedTechnologies)]
-              marketInsights += `\nCOMMON TECHNOLOGIES:\n${uniqueTech.join(', ')}\n`
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Firecrawl search error:', error)
-        // Continue without market insights
-      }
-    }
-
-    // Step 2: Generate comprehensive skills with AI
-    const aiPrompt = `Analyze this position and provide comprehensive skill suggestions:
+    const aiPrompt = `Search the web for current 2025 job postings for "${position_title}"${department ? ` in ${department} department` : ''} to understand the latest requirements. Then analyze this position and provide comprehensive skill suggestions:
 
 Position: ${position_title}
 Level: ${position_level || 'Not specified'}
 Department: ${department || 'Not specified'}
 Description: ${position_description || 'No description provided'}
-${marketInsights}
 
-Based on the position details${marketInsights ? ' and real job market data from 2025' : ''}, provide 20-25 relevant skills that are most in-demand for 2025.
+Based on actual 2025 job market data, provide 20-25 relevant skills that are most in-demand.
 
 For each skill, provide:
 - skill_name: Clear, concise skill name (2-4 words max)
@@ -173,7 +75,10 @@ Return ONLY a JSON object with:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o-search-preview',
+        web_search_options: { 
+          search_context_size: 'medium'
+        },
         messages: [
           {
             role: 'system',
@@ -201,11 +106,19 @@ Return ONLY a JSON object with:
 
     let skills: SkillSuggestion[] = []
     let insights = ''
+    let marketDataAvailable = false
     
     try {
       const parsed = JSON.parse(content)
       skills = parsed.skills || []
       insights = parsed.insights || ''
+      
+      // Check if web search was used based on model response
+      const responseMessage = openaiData.choices[0]?.message
+      if (responseMessage && responseMessage.search_results) {
+        marketDataAvailable = true
+        console.log('Web search results used:', responseMessage.search_results.length)
+      }
       
       // Sort skills by category (essential first) and market demand
       skills.sort((a, b) => {
@@ -231,7 +144,7 @@ Return ONLY a JSON object with:
           essential_count: skills.filter(s => s.category === 'essential').length,
           important_count: skills.filter(s => s.category === 'important').length,
           nice_to_have_count: skills.filter(s => s.category === 'nice-to-have').length,
-          market_data_available: !!marketInsights,
+          market_data_available: marketDataAvailable,
           insights: insights
         }
       }),
