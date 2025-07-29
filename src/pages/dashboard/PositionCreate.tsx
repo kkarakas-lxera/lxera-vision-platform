@@ -1541,13 +1541,32 @@ export default function PositionCreate() {
                                                 >
                                                   <div className="flex items-start justify-between gap-2">
                                                     <div className="flex items-start gap-2 flex-1">
-                                                      {isAlreadyAdded ? (
-                                                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                                                      ) : (
-                                                        <Checkbox
-                                                          checked={selectedSkills[index]?.has(skill.skill_id) || false}
-                                                          onClick={(e) => e.stopPropagation()}
-                                                          onCheckedChange={(checked) => {
+                                                      <Checkbox
+                                                        checked={isAlreadyAdded || selectedSkills[index]?.has(skill.skill_id) || false}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onCheckedChange={(checked) => {
+                                                          if (isAlreadyAdded && !checked) {
+                                                            // Remove from required_skills
+                                                            setPositions(prev => {
+                                                              const newPositions = [...prev];
+                                                              newPositions[index] = {
+                                                                ...newPositions[index],
+                                                                required_skills: newPositions[index].required_skills.filter(
+                                                                  rs => rs.skill_name !== skill.skill_name
+                                                                )
+                                                              };
+                                                              return newPositions;
+                                                            });
+                                                            // Also remove from selectedSkills if present
+                                                            setSelectedSkills(prev => {
+                                                              const newSelected = { ...prev };
+                                                              if (newSelected[index]) {
+                                                                newSelected[index].delete(skill.skill_id);
+                                                              }
+                                                              return newSelected;
+                                                            });
+                                                          } else if (!isAlreadyAdded) {
+                                                            // Handle selection/deselection for not yet added skills
                                                             setSelectedSkills(prev => {
                                                               const newSelected = { ...prev };
                                                               if (!newSelected[index]) {
@@ -1560,10 +1579,10 @@ export default function PositionCreate() {
                                                               }
                                                               return newSelected;
                                                             });
-                                                          }}
-                                                          className="mt-0.5"
-                                                        />
-                                                      )}
+                                                          }
+                                                        }}
+                                                        className="mt-0.5"
+                                                      />
                                                     <div className="flex-1">
                                                       <h6 className="font-medium text-sm text-gray-900 leading-tight">
                                                         {skill.skill_name}
