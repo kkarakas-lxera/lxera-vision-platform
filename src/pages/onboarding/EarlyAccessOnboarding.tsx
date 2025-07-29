@@ -81,6 +81,24 @@ const EarlyAccessOnboarding = () => {
     });
 
     try {
+      // First check if user already exists in the database
+      console.log('Checking if user already exists in database...');
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id, email, role, company_id')
+        .eq('email', leadData.email.toLowerCase());
+      
+      console.log('Existing users check:', {
+        users: existingUsers,
+        error: checkError,
+        count: existingUsers?.length || 0
+      });
+
+      // Check auth.users table too
+      console.log('Checking auth status...');
+      const { data: { user: currentAuthUser } } = await supabase.auth.getUser();
+      console.log('Current auth user:', currentAuthUser);
+
       // Create auth account for early access user
       console.log('Invoking complete-early-access-signup edge function...');
       const response = await supabase.functions.invoke('complete-early-access-signup', {
