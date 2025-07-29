@@ -170,6 +170,7 @@ serve(async (req) => {
         email_confirm: true,
         user_metadata: {
           full_name: lead.name,
+          signup_type: 'skills_gap'
         }
       });
 

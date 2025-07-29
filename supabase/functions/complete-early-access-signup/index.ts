@@ -162,7 +162,8 @@ serve(async (req) => {
             user_metadata: {
               full_name: lead.name || company,
               early_access: true,
-              early_access_lead_id: leadId
+              early_access_lead_id: leadId,
+              signup_type: 'early_access'
             }
           })
           
@@ -275,7 +276,8 @@ serve(async (req) => {
       user_metadata: {
         full_name: lead.name || company,
         early_access: true,
-        early_access_lead_id: leadId
+        early_access_lead_id: leadId,
+        signup_type: 'early_access'
       }
     })
 
