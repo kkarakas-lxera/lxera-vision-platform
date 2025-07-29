@@ -1,4 +1,6 @@
+// @ts-ignore - Deno imports
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts'
+// @ts-ignore - Deno imports
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -36,7 +38,9 @@ serve(async (req) => {
 
     // Initialize Supabase admin client
     const supabaseAdmin = createClient(
+      // @ts-ignore - Deno global
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-ignore - Deno global
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
@@ -102,13 +106,94 @@ serve(async (req) => {
     })
 
     if (existingUsers && existingUsers.length > 0) {
-      console.error('User already exists in users table:', existingUsers[0])
-      // Clean up company
-      await supabaseAdmin
-        .from('companies')
-        .delete()
-        .eq('id', companyRecord.id)
-      throw new Error('An account already exists with this email. Please sign in.')
+      console.log('User already exists in users table:', existingUsers[0])
+      const existingUser = existingUsers[0]
+      
+      // Update the existing user to be an early access user
+      const { data: updatedUser, error: updateError } = await supabaseAdmin
+        .from('users')
+        .update({
+          role: 'company_admin', // Early access users are company admins
+          company_id: companyRecord.id,
+          position: role || 'Early Access User',
+          full_name: lead.name || company,
+          metadata: {
+            early_access: true,
+            early_access_lead_id: leadId,
+            onboarded_from: 'early_access_signup',
+            previous_role: existingUser.role
+          }
+        })
+        .eq('id', existingUser.id)
+        .select()
+        .single()
+      
+      if (updateError) {
+        console.error('Failed to update existing user:', updateError)
+        // Clean up company
+        await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id)
+        throw new Error('Failed to update existing user profile')
+      }
+      
+      // Update the password if the user exists in auth
+      try {
+        const { data: authUser, error: authCheckError } = await supabaseAdmin.auth.admin.getUserByEmail(lead.email)
+        if (authUser?.user) {
+          console.log('Updating password for existing auth user')
+          const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+            authUser.user.id,
+            { password: password }
+          )
+          if (passwordError) {
+            console.error('Failed to update password:', passwordError)
+          }
+        }
+      } catch (e) {
+        console.log('Could not update auth password:', e)
+      }
+      
+      // Update lead record
+      const { error: leadUpdateError } = await supabaseAdmin
+        .from('early_access_leads')
+        .update({
+          company: company,
+          role: role,
+          enrichment_data: {
+            ...lead.enrichment_data,
+            industry: industry,
+            teamSize: teamSize,
+            useCases: useCases,
+            heardAbout: heardAbout
+          },
+          status: 'profile_completed',
+          onboarded_at: new Date().toISOString(),
+          password_set: true,
+          auth_user_id: existingUser.id,
+          converted_to_auth_at: new Date().toISOString(),
+          converted_to_company_id: companyRecord.id,
+          converted_to_user_id: existingUser.id
+        })
+        .eq('id', leadId)
+      
+      if (leadUpdateError) {
+        console.error('Lead update error:', leadUpdateError)
+      }
+      
+      // Return success - user was updated
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'Profile completed successfully',
+          userUpdated: true
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
     }
 
     // Check if auth user exists
@@ -195,7 +280,7 @@ serve(async (req) => {
         .from('users')
         .update({
           full_name: lead.name || company,
-          role: 'early_access',
+          role: 'company_admin', // Early access users are company admins
           company_id: companyRecord.id,
           position: role || 'Early Access User',
           metadata: {
@@ -222,7 +307,7 @@ serve(async (req) => {
           email: lead.email,
           password_hash: 'supabase_managed',
           full_name: lead.name || company,
-          role: 'early_access',
+          role: 'company_admin', // Early access users are company admins
           company_id: companyRecord.id,
           position: role || 'Early Access User',
           is_active: true,
