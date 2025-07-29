@@ -464,19 +464,7 @@ export default function PositionCreate() {
     }
   };
 
-  // Auto-generate description when title, level, and department are filled
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (positionData.position_title && 
-          (positionData.position_level || positionData.department) && 
-          !positionData.description && 
-          !isGeneratingDescription) {
-        generateDescription();
-      }
-    }, 2000); // 2 second delay
-
-    return () => clearTimeout(timer);
-  }, [positionData.position_title, positionData.position_level, positionData.department]);
+  // Removed auto-generation - description should only be generated on user click
 
   useEffect(() => {
     // When description changes, reset the fully read status

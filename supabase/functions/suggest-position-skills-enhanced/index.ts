@@ -89,7 +89,6 @@ Return ONLY a JSON object with:
             content: aiPrompt
           }
         ],
-        temperature: 0.7,
         max_tokens: 3000,
         response_format: { type: 'json_object' }
       })
