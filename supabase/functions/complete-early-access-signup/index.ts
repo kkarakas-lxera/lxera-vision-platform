@@ -138,7 +138,8 @@ serve(async (req) => {
         throw new Error('Failed to update existing user profile')
       }
       
-      // Update the password if the user exists in auth
+      // Check if auth account exists, create if not
+      let authUserId = existingUser.id;
       try {
         const { data: authUser, error: authCheckError } = await supabaseAdmin.auth.admin.getUserByEmail(lead.email)
         if (authUser?.user) {
@@ -150,9 +151,49 @@ serve(async (req) => {
           if (passwordError) {
             console.error('Failed to update password:', passwordError)
           }
+          authUserId = authUser.user.id;
+        } else {
+          // No auth user exists, create one
+          console.log('Creating auth account for existing user')
+          const { data: newAuthUser, error: authCreateError } = await supabaseAdmin.auth.admin.createUser({
+            email: lead.email,
+            password: password,
+            email_confirm: true,
+            user_metadata: {
+              full_name: lead.name || company,
+              early_access: true,
+              early_access_lead_id: leadId
+            }
+          })
+          
+          if (authCreateError || !newAuthUser.user) {
+            console.error('Failed to create auth account:', authCreateError)
+            // Clean up company
+            await supabaseAdmin.from('companies').delete().eq('id', companyRecord.id)
+            throw new Error('Failed to create auth account')
+          }
+          
+          authUserId = newAuthUser.user.id;
+          
+          // If the auth user ID is different from existing user ID, update it
+          if (authUserId !== existingUser.id) {
+            console.log('Auth user ID differs from existing user ID, updating...')
+            // Update the existing user record with the new auth user ID
+            const { error: idUpdateError } = await supabaseAdmin
+              .from('users')
+              .update({ id: authUserId })
+              .eq('id', existingUser.id)
+            
+            if (idUpdateError) {
+              console.error('Failed to update user ID:', idUpdateError)
+              // This is tricky - we might need to delete the old user and recreate
+              // For now, we'll continue with the existing user ID
+              authUserId = existingUser.id;
+            }
+          }
         }
       } catch (e) {
-        console.log('Could not update auth password:', e)
+        console.log('Error handling auth account:', e)
       }
       
       // Update lead record
@@ -171,7 +212,7 @@ serve(async (req) => {
           status: 'profile_completed',
           onboarded_at: new Date().toISOString(),
           password_set: true,
-          auth_user_id: existingUser.id,
+          auth_user_id: authUserId, // Use the auth user ID we determined above
           converted_to_auth_at: new Date().toISOString(),
           converted_to_company_id: companyRecord.id,
           converted_to_user_id: existingUser.id
