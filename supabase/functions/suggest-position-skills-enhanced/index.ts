@@ -62,11 +62,13 @@ Consider:
 - Emerging skills gaining importance in 2025
 - Skills mentioned in actual 2025 job postings (if market data available)
 
-Return ONLY a JSON object with:
+Return your response as a valid JSON object ONLY, with no additional text before or after. The JSON must have this exact structure:
 {
   "skills": [array of skill objects],
   "insights": "Brief summary of key trends or patterns noticed"
-}`
+}
+
+IMPORTANT: Your entire response must be valid JSON that can be parsed directly.`
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -82,15 +84,14 @@ Return ONLY a JSON object with:
         messages: [
           {
             role: 'system',
-            content: 'You are an expert HR consultant and skills analyst with deep knowledge of current job market trends. Provide practical, relevant skill suggestions based on industry best practices. Be specific and avoid generic skills.'
+            content: 'You are an expert HR consultant and skills analyst with deep knowledge of current job market trends. Provide practical, relevant skill suggestions based on industry best practices. Be specific and avoid generic skills. ALWAYS respond with valid JSON only, no additional text.'
           },
           {
             role: 'user',
             content: aiPrompt
           }
         ],
-        max_tokens: 3000,
-        response_format: { type: 'json_object' }
+        max_tokens: 3000
       })
     })
 
