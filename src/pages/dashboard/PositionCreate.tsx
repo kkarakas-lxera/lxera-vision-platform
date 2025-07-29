@@ -61,7 +61,7 @@ export default function PositionCreate() {
   const [loadingMessages, setLoadingMessages] = useState<{[key: number]: string}>({});
   const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
   const [groupedSkills, setGroupedSkills] = useState<{[key: number]: {[group: string]: any[]}}>({});
-  const [expandedSkillDescriptions, setExpandedSkillDescriptions] = useState<Set<string>>(new Set());
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<number>>(new Set());
   const [processingProgress, setProcessingProgress] = useState<{[key: number]: number}>({});
   const [processingStartTime, setProcessingStartTime] = useState<{[key: number]: number}>({});
   const [regenerateContext, setRegenerateContext] = useState<{[key: number]: string}>({});
@@ -1797,86 +1797,71 @@ export default function PositionCreate() {
                         <div className="px-3 pb-3 border-t border-gray-100">
                           <div className="pt-3 space-y-3">
                             {position.description && (
-                              <p className="text-xs text-gray-600 line-clamp-2">{position.description}</p>
+                              <div className="text-xs text-gray-600">
+                                <p className={expandedDescriptions.has(index) ? "" : "line-clamp-2"}>
+                                  {position.description}
+                                </p>
+                                {position.description.length > 150 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedDescriptions(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(index)) {
+                                          newSet.delete(index);
+                                        } else {
+                                          newSet.add(index);
+                                        }
+                                        return newSet;
+                                      });
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 mt-1"
+                                  >
+                                    {expandedDescriptions.has(index) ? 'Show less' : 'Show full description'}
+                                  </button>
+                                )}
+                              </div>
                             )}
                             
                             {position.required_skills.length > 0 && (
                               <div>
                                 <p className="text-xs font-medium text-gray-700 mb-2">Selected Skills:</p>
-                                <div className="space-y-2">
-                                  {position.required_skills.map((skill, skillIndex) => {
-                                    const isLongDescription = skill.description && skill.description.length > 100;
-                                    const skillKey = `${index}-${skill.skill_id}`;
-                                    const showFull = expandedSkillDescriptions.has(skillKey);
-                                    
-                                    return (
-                                      <div 
-                                        key={skill.skill_id} 
-                                        className="p-2 bg-gray-50 rounded-lg group hover:bg-gray-100"
+                                <div className="grid grid-cols-2 gap-1">
+                                  {position.required_skills.map(skill => (
+                                    <div 
+                                      key={skill.skill_id} 
+                                      className="flex items-center gap-2 text-xs p-1.5 bg-gray-50 rounded group hover:bg-gray-100"
+                                    >
+                                      <span className="flex-1 truncate">{skill.skill_name}</span>
+                                      {skill.category === 'essential' && (
+                                        <Badge variant="outline" className="text-xs h-4 px-1 bg-red-50 text-red-700 border-red-200">
+                                          E
+                                        </Badge>
+                                      )}
+                                      {skill.source === 'ai' && (
+                                        <Sparkles className="h-3 w-3 text-blue-500" />
+                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPositions(prev => {
+                                            const newPositions = [...prev];
+                                            newPositions[index] = {
+                                              ...newPositions[index],
+                                              required_skills: newPositions[index].required_skills.filter(
+                                                s => s.skill_id !== skill.skill_id
+                                              )
+                                            };
+                                            return newPositions;
+                                          });
+                                          toast.success(`Removed ${skill.skill_name}`);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                                       >
-                                        <div className="flex items-start justify-between gap-2">
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                              <span className="font-medium text-sm">{skill.skill_name}</span>
-                                              {skill.category === 'essential' && (
-                                                <Badge variant="outline" className="text-xs h-4 px-1 bg-red-50 text-red-700 border-red-200">
-                                                  Essential
-                                                </Badge>
-                                              )}
-                                              {skill.source === 'ai' && (
-                                                <Sparkles className="h-3 w-3 text-blue-500" />
-                                              )}
-                                            </div>
-                                            {skill.description && (
-                                              <div className="text-xs text-gray-600">
-                                                <p className={!showFull && isLongDescription ? "line-clamp-2" : ""}>
-                                                  {skill.description}
-                                                </p>
-                                                {isLongDescription && (
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setExpandedSkillDescriptions(prev => {
-                                                        const newSet = new Set(prev);
-                                                        if (newSet.has(skillKey)) {
-                                                          newSet.delete(skillKey);
-                                                        } else {
-                                                          newSet.add(skillKey);
-                                                        }
-                                                        return newSet;
-                                                      });
-                                                    }}
-                                                    className="text-blue-600 hover:text-blue-800 mt-1"
-                                                  >
-                                                    {showFull ? 'Show less' : 'Show full description'}
-                                                  </button>
-                                                )}
-                                              </div>
-                                            )}
-                                          </div>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setPositions(prev => {
-                                                const newPositions = [...prev];
-                                                newPositions[index] = {
-                                                  ...newPositions[index],
-                                                  required_skills: newPositions[index].required_skills.filter(
-                                                    s => s.skill_id !== skill.skill_id
-                                                  )
-                                                };
-                                                return newPositions;
-                                              });
-                                              toast.success(`Removed ${skill.skill_name}`);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                                          >
-                                            <X className="h-4 w-4 text-gray-500 hover:text-red-600" />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
+                                        <X className="h-3 w-3 text-gray-500 hover:text-red-600" />
+                                      </button>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             )}
