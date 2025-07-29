@@ -1081,96 +1081,113 @@ export default function PositionCreate() {
                                 </div>
                               </div>
 
-                              {/* Compact Grid Layout with Expandable Categories */}
+                              {/* Skills Grid Layout */}
                               {groupedSkills[index] && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="space-y-6">
                                   {Object.entries(groupedSkills[index]).map(([group, skills]) => {
                                     const isExpanded = isCategoryExpanded(index, group);
                                     const displaySkills = isExpanded ? skills : skills.slice(0, 2);
                                     
                                     return (
-                                      <div key={group} className="border rounded-lg p-3 bg-gray-50">
+                                      <div key={group}>
                                         <div 
-                                          className="flex items-center justify-between cursor-pointer mb-2"
+                                          className="flex items-center justify-between cursor-pointer mb-3"
                                           onClick={() => toggleCategoryExpanded(index, group)}
                                         >
                                           <div className="flex items-center gap-2">
-                                            <span>{getGroupIcon(group)}</span>
-                                            <span className="font-medium text-sm">{getGroupLabel(group)}</span>
-                                            <span className="text-xs text-gray-500">({skills.length})</span>
+                                            <span className="text-gray-400">{getGroupIcon(group)}</span>
+                                            <h5 className="font-medium text-sm text-gray-700">{getGroupLabel(group)}</h5>
+                                            <span className="text-xs text-gray-400">({skills.length})</span>
                                           </div>
-                                          <span className="text-sm text-gray-400">
-                                            {isExpanded ? '▲' : '▼'}
-                                          </span>
+                                          <ChevronDown 
+                                            className={`h-4 w-4 text-gray-400 transition-transform ${
+                                              isExpanded ? 'rotate-180' : ''
+                                            }`} 
+                                          />
                                         </div>
                                         
-                                        <div className="space-y-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                           {displaySkills.map(skill => (
-                                            <div key={skill.skill_id} className="bg-white rounded p-2 border text-xs">
-                                              <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 flex-1">
-                                                  <Checkbox
-                                                    checked={selectedSkills[index]?.has(skill.skill_id) || false}
-                                                    onCheckedChange={(checked) => {
-                                                      setSelectedSkills(prev => {
-                                                        const newSelected = { ...prev };
-                                                        if (!newSelected[index]) {
-                                                          newSelected[index] = new Set();
-                                                        }
-                                                        if (checked) {
-                                                          newSelected[index].add(skill.skill_id);
-                                                        } else {
-                                                          newSelected[index].delete(skill.skill_id);
-                                                        }
-                                                        return newSelected;
-                                                      });
-                                                    }}
-                                                  />
-                                                  <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                      <span className="font-medium">{skill.skill_name}</span>
-                                                      {skill.category === 'essential' && (
-                                                        <span className="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600">
-                                                          Essential
-                                                        </span>
-                                                      )}
+                                            <div 
+                                              key={skill.skill_id} 
+                                              className={`bg-white rounded-lg border transition-all ${
+                                                expandedSkills[skill.skill_id] 
+                                                  ? 'border-blue-200 shadow-sm' 
+                                                  : 'border-gray-200 hover:border-gray-300'
+                                              }`}
+                                            >
+                                              <div 
+                                                className="p-3 cursor-pointer"
+                                                onClick={() => toggleSkillExpanded(skill.skill_id)}
+                                              >
+                                                <div className="flex items-start justify-between gap-2">
+                                                  <div className="flex items-start gap-2 flex-1">
+                                                    <Checkbox
+                                                      checked={selectedSkills[index]?.has(skill.skill_id) || false}
+                                                      onClick={(e) => e.stopPropagation()}
+                                                      onCheckedChange={(checked) => {
+                                                        setSelectedSkills(prev => {
+                                                          const newSelected = { ...prev };
+                                                          if (!newSelected[index]) {
+                                                            newSelected[index] = new Set();
+                                                          }
+                                                          if (checked) {
+                                                            newSelected[index].add(skill.skill_id);
+                                                          } else {
+                                                            newSelected[index].delete(skill.skill_id);
+                                                          }
+                                                          return newSelected;
+                                                        });
+                                                      }}
+                                                      className="mt-0.5"
+                                                    />
+                                                    <div className="flex-1">
+                                                      <h6 className="font-medium text-sm text-gray-900 leading-tight">
+                                                        {skill.skill_name}
+                                                      </h6>
+                                                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                                        {skill.category === 'essential' && (
+                                                          <span className="text-red-600">Essential</span>
+                                                        )}
+                                                        {skill.category === 'important' && (
+                                                          <span className="text-orange-600">Important</span>
+                                                        )}
+                                                        <span>•</span>
+                                                        <span>{skill.proficiency_level}</span>
+                                                        {skill.market_demand === 'high' && (
+                                                          <>
+                                                            <span>•</span>
+                                                            <span className="text-green-600">High demand</span>
+                                                          </>
+                                                        )}
+                                                      </div>
                                                     </div>
-                                                  <div className="flex items-center gap-2">
+                                                  </div>
+                                                  <ChevronDown 
+                                                    className={`h-3 w-3 text-gray-400 transition-transform ${
+                                                      expandedSkills[skill.skill_id] ? 'rotate-180' : ''
+                                                    }`} 
+                                                  />
+                                                </div>
+                                              </div>
+                                              
+                                              {expandedSkills[skill.skill_id] && (
+                                                <div className="px-3 pb-3 border-t border-gray-100">
+                                                  <div className="pt-2 space-y-2">
+                                                    {skill.description && (
+                                                      <p className="text-xs text-gray-600 leading-relaxed">
+                                                        {skill.description}
+                                                      </p>
+                                                    )}
                                                     {skill.reason && (
-                                                      <button
-                                                        onClick={() => toggleSkillExpanded(skill.skill_id)}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                        title="Why this skill?"
-                                                      >
-                                                        ?
-                                                      </button>
+                                                      <div className="text-xs">
+                                                        <span className="font-medium text-gray-700">Why needed: </span>
+                                                        <span className="text-gray-600">{skill.reason}</span>
+                                                      </div>
                                                     )}
                                                   </div>
-                                                  {expandedSkills[skill.skill_id] && skill.reason && (
-                                                    <div className="mt-1 p-1 bg-blue-50 rounded text-xs text-blue-800">
-                                                      {skill.reason}
-                                                    </div>
-                                                  )}
-                                                  </div>
                                                 </div>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() => {
-                                                    setPositions(prev => {
-                                                      const newPositions = [...prev];
-                                                      newPositions[index] = {
-                                                        ...newPositions[index],
-                                                        required_skills: newPositions[index].required_skills.filter(s => s.skill_id !== skill.skill_id)
-                                                      };
-                                                      return newPositions;
-                                                    });
-                                                  }}
-                                                  className="h-4 w-4 p-0 opacity-50 hover:opacity-100"
-                                                >
-                                                  <X className="h-3 w-3" />
-                                                </Button>
-                                              </div>
+                                              )}
                                             </div>
                                           ))}
                                           
