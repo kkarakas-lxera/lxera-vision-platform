@@ -12,6 +12,12 @@ interface UserProfile {
   is_active: boolean;
   email_verified: boolean;
   position?: string;
+  metadata?: {
+    early_access?: boolean;
+    early_access_lead_id?: string;
+    onboarded_from?: string;
+    [key: string]: any;
+  };
   companies?: {
     id: string;
     name: string;
@@ -74,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           is_active, 
           email_verified, 
           position,
+          metadata,
           companies (
             id,
             name,
