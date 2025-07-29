@@ -1356,9 +1356,9 @@ export default function PositionCreate() {
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-blue-700">
-                                  🤖 We found {skillCount} skills
+                                  🤖 We found {skillCount} skill{skillCount !== 1 ? 's' : ''}
                                   {marketDataAvailable[index] && (
-                                    <span className="ml-2 text-xs text-green-600">✓ With 2025 market data</span>
+                                    <span className="ml-2 text-xs text-green-600">✓ Confirmed with market insights</span>
                                   )}
                                 </span>
                                 <div className="flex gap-2">
