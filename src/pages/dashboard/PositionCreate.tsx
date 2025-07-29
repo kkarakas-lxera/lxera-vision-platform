@@ -546,15 +546,15 @@ export default function PositionCreate() {
       }
       
       // Add selected skills to required_skills before moving to next step
-      positions.forEach((position, index) => {
-        const selectedForPosition = selectedSkills[index];
-        if (selectedForPosition && selectedForPosition.size > 0) {
-          const skillsToAdd = position.ai_suggestions?.filter(skill => 
-            selectedForPosition.has(skill.skill_id || skill.skill_name)
-          ) || [];
-          
-          setPositions(prev => {
-            const newPositions = [...prev];
+      setPositions(prev => {
+        const newPositions = [...prev];
+        positions.forEach((position, index) => {
+          const selectedForPosition = selectedSkills[index];
+          if (selectedForPosition && selectedForPosition.size > 0) {
+            const skillsToAdd = position.ai_suggestions?.filter(skill => 
+              selectedForPosition.has(skill.skill_id || skill.skill_name)
+            ) || [];
+            
             newPositions[index] = {
               ...newPositions[index],
               required_skills: [
@@ -573,12 +573,12 @@ export default function PositionCreate() {
                 }))
               ]
             };
-            return newPositions;
-          });
-        }
+          }
+        });
+        return newPositions;
       });
       
-      // Clear selections after adding
+      // Clear selected skills after adding them to required_skills
       setSelectedSkills({});
     }
     setCurrentStep(currentStep + 1);
@@ -1223,7 +1223,15 @@ export default function PositionCreate() {
                     return (
                       <div key={index} className="flex items-center justify-between p-3 bg-white rounded border">
                         <div className="flex items-center gap-3 flex-1">
-                          <span className="text-lg">{getStatusIcon(status)}</span>
+                          {status === 'processing' ? (
+                            <div className="relative flex-shrink-0">
+                              <div className="h-5 w-5 rounded-full border-2 border-gray-200">
+                                <div className="h-full w-full rounded-full border-t-2 border-blue-600 animate-spin"></div>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-lg">{getStatusIcon(status)}</span>
+                          )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium">
@@ -1234,31 +1242,24 @@ export default function PositionCreate() {
                               )}
                             </div>
                             {status === 'processing' && (
-                              <div className="mt-1 flex items-center gap-3">
-                                <div className="relative flex-shrink-0">
-                                  <div className="h-5 w-5 rounded-full border-2 border-gray-200">
-                                    <div className="h-full w-full rounded-full border-t-2 border-blue-600 animate-spin"></div>
-                                  </div>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-sm text-blue-700">
-                                      {loadingMessages[index]} {timeElapsed}
+                              <div className="mt-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-sm text-blue-700">
+                                    {loadingMessages[index]} {timeElapsed}
+                                  </span>
+                                  {loadingStage[index] && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({loadingStage[index] === 'market' ? 'Searching market data' : 'AI analysis'})
                                     </span>
-                                    {loadingStage[index] && (
-                                      <span className="text-xs text-muted-foreground">
-                                        ({loadingStage[index] === 'market' ? 'Searching market data' : 'AI analysis'})
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div 
-                                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                      style={{ width: `${progress}%` }}
-                                    ></div>
-                                  </div>
-                                  <span className="text-xs text-gray-500">{progress}% complete</span>
+                                  )}
                                 </div>
+                                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                  <div 
+                                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${progress}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500">{progress}% complete</span>
                               </div>
                             )}
                           </div>
@@ -1274,7 +1275,7 @@ export default function PositionCreate() {
                     return (
                       <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-center">
                         <span className="text-green-700 font-medium">
-                          ✅ All {stats.total} positions processed successfully! 
+                          All {stats.total} positions processed successfully! 
                           Total: {positions.reduce((sum, p) => sum + (p.ai_suggestions?.length || 0), 0)} skills
                         </span>
                       </div>
@@ -1545,27 +1546,30 @@ export default function PositionCreate() {
                                                         checked={isAlreadyAdded || selectedSkills[index]?.has(skill.skill_id) || false}
                                                         onClick={(e) => e.stopPropagation()}
                                                         onCheckedChange={(checked) => {
-                                                          if (isAlreadyAdded && !checked) {
-                                                            // Remove from required_skills
-                                                            setPositions(prev => {
-                                                              const newPositions = [...prev];
-                                                              newPositions[index] = {
-                                                                ...newPositions[index],
-                                                                required_skills: newPositions[index].required_skills.filter(
-                                                                  rs => rs.skill_name !== skill.skill_name
-                                                                )
-                                                              };
-                                                              return newPositions;
-                                                            });
-                                                            // Also remove from selectedSkills if present
-                                                            setSelectedSkills(prev => {
-                                                              const newSelected = { ...prev };
-                                                              if (newSelected[index]) {
-                                                                newSelected[index].delete(skill.skill_id);
-                                                              }
-                                                              return newSelected;
-                                                            });
-                                                          } else if (!isAlreadyAdded) {
+                                                          if (isAlreadyAdded) {
+                                                            if (!checked) {
+                                                              // Remove from required_skills
+                                                              setPositions(prev => {
+                                                                const newPositions = [...prev];
+                                                                newPositions[index] = {
+                                                                  ...newPositions[index],
+                                                                  required_skills: newPositions[index].required_skills.filter(
+                                                                    rs => rs.skill_name !== skill.skill_name
+                                                                  )
+                                                                };
+                                                                return newPositions;
+                                                              });
+                                                              // Also remove from selectedSkills if present
+                                                              setSelectedSkills(prev => {
+                                                                const newSelected = { ...prev };
+                                                                if (newSelected[index]) {
+                                                                  newSelected[index].delete(skill.skill_id);
+                                                                }
+                                                                return newSelected;
+                                                              });
+                                                            }
+                                                            // If checked is true and already added, do nothing
+                                                          } else {
                                                             // Handle selection/deselection for not yet added skills
                                                             setSelectedSkills(prev => {
                                                               const newSelected = { ...prev };
