@@ -374,7 +374,8 @@ const DesktopMenu = ({ menuItems, activeSection, scrollToSection, openDemoModal 
         {user && userProfile ? (
           <Link to={
             userProfile.role === 'super_admin' ? '/admin' : 
-            userProfile.role === 'company_admin' ? '/dashboard' : 
+            userProfile.role === 'company_admin' ? 
+              (userProfile.metadata?.early_access === true ? '/waiting-room' : '/dashboard') : 
             '/learner'
           }>
             <Button 

@@ -32,7 +32,12 @@ const AuthCallback = () => {
                 navigate('/admin');
                 break;
               case 'company_admin':
-                navigate('/dashboard');
+                // Check if this is an early access user
+                if (userProfile.metadata?.early_access === true) {
+                  navigate('/waiting-room');
+                } else {
+                  navigate('/dashboard');
+                }
                 break;
               case 'learner':
                 navigate('/learner');
