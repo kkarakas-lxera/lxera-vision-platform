@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,13 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Search, ArrowRight, ArrowLeft, CheckCircle, Lightbulb, Sparkles, ChevronLeft, ChevronDown, ChevronUp, Save, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AISkillSuggestions } from '@/components/dashboard/PositionManagement/AISkillSuggestions';
 import { parseSkillsArray } from '@/utils/typeGuards';
+import { debounce } from 'lodash';
 
 interface SkillSelection {
   skill_id: string;
@@ -69,6 +70,11 @@ export default function PositionCreate() {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const descriptionEndRef = useRef<HTMLDivElement>(null);
   const [hasScrolledDescription, setHasScrolledDescription] = useState(false);
+  
+  // Auto-save states
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
 
   const [positions, setPositions] = useState<PositionData[]>([{
     position_title: '',
@@ -509,9 +515,50 @@ export default function PositionCreate() {
     if (currentStep === 1 && !validateBasicInfo()) {
       return;
     }
-    if (currentStep === 2 && positionData.required_skills.length === 0) {
-      toast.error('Please add at least one required skill');
-      return;
+    if (currentStep === 2) {
+      // Check if any skills are selected across all positions
+      const totalSelectedSkills = Object.values(selectedSkills).reduce((total, skillSet) => total + skillSet.size, 0);
+      const totalRequiredSkills = positions.reduce((total, pos) => total + pos.required_skills.length, 0);
+      
+      if (totalSelectedSkills === 0 && totalRequiredSkills === 0) {
+        toast.error('Please select at least one skill for the positions');
+        return;
+      }
+      
+      // Add selected skills to required_skills before moving to next step
+      positions.forEach((position, index) => {
+        const selectedForPosition = selectedSkills[index];
+        if (selectedForPosition && selectedForPosition.size > 0) {
+          const skillsToAdd = position.ai_suggestions?.filter(skill => 
+            selectedForPosition.has(skill.skill_id || skill.skill_name)
+          ) || [];
+          
+          setPositions(prev => {
+            const newPositions = [...prev];
+            newPositions[index] = {
+              ...newPositions[index],
+              required_skills: [
+                ...newPositions[index].required_skills,
+                ...skillsToAdd.map(skill => ({
+                  skill_id: skill.skill_id || `ai_${Date.now()}_${Math.random()}`,
+                  skill_name: skill.skill_name,
+                  proficiency_level: skill.proficiency_level === 'basic' ? 1 :
+                                    skill.proficiency_level === 'intermediate' ? 2 :
+                                    skill.proficiency_level === 'advanced' ? 3 : 4,
+                  description: skill.description,
+                  category: skill.category,
+                  skill_group: skill.skill_group,
+                  source: 'ai' as const
+                }))
+              ]
+            };
+            return newPositions;
+          });
+        }
+      });
+      
+      // Clear selections after adding
+      setSelectedSkills({});
     }
     setCurrentStep(currentStep + 1);
   };
@@ -642,6 +689,76 @@ export default function PositionCreate() {
     skill.skill_name.toLowerCase().includes(skillSearchTerm.toLowerCase())
   ).slice(0, 10);
 
+  // Auto-save functionality
+  const savePositionDraft = async () => {
+    if (!userProfile?.company_id || !positions[0].position_title) return;
+    
+    setSaveStatus('saving');
+    
+    try {
+      const draftData = {
+        company_id: userProfile.company_id,
+        positions: positions,
+        current_step: currentStep,
+        selected_skills: Object.fromEntries(
+          Object.entries(selectedSkills).map(([key, value]) => [key, Array.from(value)])
+        )
+      };
+
+      if (draftId) {
+        // Update existing draft
+        const { error } = await supabase
+          .from('position_drafts')
+          .update({ 
+            draft_data: draftData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', draftId);
+          
+        if (error) throw error;
+      } else {
+        // Create new draft
+        const { data, error } = await supabase
+          .from('position_drafts')
+          .insert({ 
+            company_id: userProfile.company_id,
+            draft_data: draftData,
+            created_by: userProfile.id
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        if (data) setDraftId(data.id);
+      }
+      
+      setSaveStatus('saved');
+      setLastSaved(new Date());
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  };
+
+  // Debounced save function
+  const debouncedSave = useCallback(
+    debounce(() => {
+      savePositionDraft();
+    }, 2000),
+    [positions, currentStep, selectedSkills, draftId]
+  );
+
+  // Watch for changes and trigger auto-save
+  useEffect(() => {
+    if (positions[0].position_title || positions[0].position_code || positions[0].description) {
+      debouncedSave();
+    }
+  }, [positions, currentStep, selectedSkills]);
+
   const handleAISuggestions = (suggestions: any[]) => {
     setPositionData({
       ...positionData,
@@ -669,10 +786,38 @@ export default function PositionCreate() {
               Position {currentPositionIndex + 1} of {positions.length}
             </p>
           </div>
-          <Button onClick={addNewPosition} variant="outline" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Position
-          </Button>
+          <div className="flex items-center gap-4">
+            {/* Save Status Indicator */}
+            <div className="flex items-center gap-2 text-sm">
+              {saveStatus === 'saving' && (
+                <>
+                  <div className="h-4 w-4 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
+                  <span className="text-gray-600">Saving...</span>
+                </>
+              )}
+              {saveStatus === 'saved' && (
+                <>
+                  <Cloud className="h-4 w-4 text-green-600" />
+                  <span className="text-green-600">Saved</span>
+                </>
+              )}
+              {saveStatus === 'error' && (
+                <>
+                  <CloudOff className="h-4 w-4 text-red-600" />
+                  <span className="text-red-600">Save failed</span>
+                </>
+              )}
+              {lastSaved && saveStatus === 'idle' && (
+                <span className="text-gray-500 text-xs">
+                  Last saved {new Date(lastSaved).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <Button onClick={addNewPosition} variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Position
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -1079,9 +1224,16 @@ export default function PositionCreate() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      // Add all essential skills
-                                      const essentialSkills = position.required_skills.filter(s => s.category === 'essential');
-                                      toast.success(`Added ${essentialSkills.length} essential skills`);
+                                      // Select all essential skills in the UI
+                                      const essentialSkills = position.ai_suggestions?.filter(s => s.category === 'essential') || [];
+                                      const essentialSkillIds = essentialSkills.map(s => s.skill_id || s.skill_name);
+                                      
+                                      setSelectedSkills(prev => ({
+                                        ...prev,
+                                        [index]: new Set([...(prev[index] || new Set()), ...essentialSkillIds])
+                                      }));
+                                      
+                                      toast.success(`Selected ${essentialSkills.length} essential skills`);
                                     }}
                                   >
                                     Add All Essential
@@ -1343,73 +1495,98 @@ export default function PositionCreate() {
           )}
 
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">Review All Positions ({positions.length})</h3>
-                
-                <div className="space-y-6">
-                  {positions.map((position, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Position {index + 1}: {position.position_title}</h4>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setCurrentPositionIndex(index);
-                            setCurrentStep(1);
-                          }}
-                        >
-                          Edit
-                        </Button>
+            <div className="space-y-4">
+              <h3 className="text-base font-medium text-gray-700">Review {positions.length} Position{positions.length > 1 ? 's' : ''}</h3>
+              
+              <div className="space-y-3">
+                {positions.map((position, index) => {
+                  const isExpanded = expandedPositions.has(index);
+                  const selectedCount = Object.entries(selectedSkills).reduce((total, [posIndex, skills]) => {
+                    return posIndex === String(index) ? total + skills.size : total;
+                  }, 0);
+                  
+                  return (
+                    <div key={index} className="border rounded-lg overflow-hidden bg-white">
+                      <div 
+                        className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => togglePositionExpanded(index)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${!isExpanded ? '-rotate-90' : ''}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <h4 className="font-medium text-sm">{position.position_title}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {position.position_code}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                <span>{position.department}</span>
+                                <span>•</span>
+                                <span>{position.position_level}</span>
+                                <span>•</span>
+                                <span className="font-medium text-gray-700">
+                                  {position.required_skills.length} skills
+                                  {selectedCount > 0 && (
+                                    <span className="text-blue-600"> ({selectedCount} selected)</span>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentPositionIndex(index);
+                              setCurrentStep(1);
+                            }}
+                            className="text-xs"
+                          >
+                            Edit
+                          </Button>
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Position Code</p>
-                          <p className="font-medium">{position.position_code}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Level</p>
-                          <p className="font-medium capitalize">{position.position_level}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Department</p>
-                          <p className="font-medium capitalize">{position.department}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Required Skills</p>
-                          <p className="font-medium">{position.required_skills.length} skills</p>
-                        </div>
-                      </div>
-                      
-                      {position.description && (
-                        <div className="mb-4">
-                          <p className="text-sm text-muted-foreground mb-2">Description</p>
-                          <p className="text-sm line-clamp-3">{position.description}</p>
-                        </div>
-                      )}
-                      
-                      {position.required_skills.length > 0 && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-2">Skills</p>
-                          <div className="flex flex-wrap gap-1">
-                            {position.required_skills.slice(0, 6).map(skill => (
-                              <Badge key={skill.skill_id} variant="outline" className="text-xs">
-                                {skill.skill_name}
-                              </Badge>
-                            ))}
-                            {position.required_skills.length > 6 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{position.required_skills.length - 6} more
-                              </Badge>
+                      {isExpanded && (
+                        <div className="px-3 pb-3 border-t border-gray-100">
+                          <div className="pt-3 space-y-3">
+                            {position.description && (
+                              <p className="text-xs text-gray-600 line-clamp-2">{position.description}</p>
+                            )}
+                            
+                            {position.required_skills.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-2">Selected Skills:</p>
+                                <div className="grid grid-cols-2 gap-1">
+                                  {position.required_skills.map(skill => (
+                                    <div 
+                                      key={skill.skill_id} 
+                                      className="flex items-center gap-2 text-xs p-1.5 bg-gray-50 rounded"
+                                    >
+                                      <span className="flex-1 truncate">{skill.skill_name}</span>
+                                      {skill.category === 'essential' && (
+                                        <Badge variant="outline" className="text-xs h-4 px-1 bg-red-50 text-red-700 border-red-200">
+                                          E
+                                        </Badge>
+                                      )}
+                                      {skill.source === 'ai' && (
+                                        <Sparkles className="h-3 w-3 text-blue-500" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             )}
                           </div>
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
 
                 <Alert className="mt-6 bg-white">
                   <Lightbulb className="h-4 w-4" />
