@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabaseAdmin/supabaseAdmin-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
@@ -58,15 +58,15 @@ serve(async (req) => {
     }
 
     // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAdminUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAdminServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseAdminUrl || !supabaseAdminServiceKey) {
       console.error(`[${requestId}] Missing environment variables`);
       throw new Error('Server configuration error');
     }
     
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdminAdmin = createClient(supabaseAdminUrl, supabaseAdminServiceKey);
     console.log(`[${requestId}] Supabase admin client created`);
 
     // Verify token and get lead data
@@ -135,36 +135,117 @@ serve(async (req) => {
       throw new Error(`Failed to create company record: ${companyError.message || 'Unknown error'}`);
     }
 
-    // Check if user already exists
-    console.log(`[${requestId}] Checking for existing users with email:`, lead.email);
+    // First check if user exists in the users table
+    console.log(`[${requestId}] Checking for existing user in database: ${lead.email}`);
     const { data: existingUsers, error: userCheckError } = await supabaseAdmin
       .from('users')
       .select('*')
-      .eq('email', lead.email);
+      .eq('email', lead.email.toLowerCase());
+    
+    const existingUser = existingUsers && existingUsers.length > 0 ? existingUsers[0] : null;
+    console.log(`[${requestId}] Existing user check:`, { exists: !!existingUser, userId: existingUser?.id });
 
-    console.log(`[${requestId}] Existing users check result:`, {
-      count: existingUsers?.length || 0,
-      users: existingUsers,
-      error: userCheckError
-    });
+    // Check if auth user exists
+    let existingAuthUser = null;
+    console.log(`[${requestId}] Checking for existing auth user...`);
+    try {
+      const { data: existingAuth, error: authCheckError } = await supabaseAdmin.auth.admin.getUserByEmail(lead.email);
+      console.log(`[${requestId}] Existing auth check:`, {
+        exists: !!existingAuth?.user,
+        userId: existingAuth?.user?.id,
+        error: authCheckError
+      });
+      existingAuthUser = existingAuth?.user;
+    } catch (e) {
+      console.log(`[${requestId}] Auth check error (may be normal):`, e);
+    }
 
-    if (existingUsers && existingUsers.length > 0) {
-      console.log(`[${requestId}] User already exists in users table:`, existingUsers[0]);
-      const existingUser = existingUsers[0];
+    let authUser;
+    let user;
+    
+    // Handle existing users
+    if (existingUser || existingAuthUser) {
+      // User exists, check if they can be used for skills gap
+      if (lead.email === 'kubilay.karakas@lxera.ai') {
+        // Super admin can test skills gap flow
+        authUser = existingAuthUser || { id: existingUser?.id };
+        user = existingUser;
+      } else {
+        // Regular user exists, cannot create duplicate
+        console.error(`[${requestId}] User already exists with email: ${lead.email}`);
+        await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+        throw new Error('User already exists with this email. Please sign in instead.');
+      }
+    } else {
+      // Create new auth user
+      const { data: newAuthUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: lead.email,
+        password: password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: lead.name || company,
+          skills_gap: true,
+          skills_gap_lead_id: lead.id,
+          signup_type: 'skills_gap'
+        }
+      });
+
+      if (authError || !newAuthUser.user) {
+        console.error(`[${requestId}] Auth user creation error:`, authError);
+        console.error(`[${requestId}] Auth creation details:`, { email: lead.email });
+        
+        // If auth user creation fails, clean up company
+        await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+          
+        throw new Error('Failed to create authentication account');
+      }
       
-      // Update the existing user to be a skills gap user
+      authUser = newAuthUser.user;
+      
+      // Wait for trigger to complete like early access does
+      console.log(`[${requestId}] Waiting for trigger to complete...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Handle user profile creation/update
+    if (!user) {
+      // Check if trigger created a user record
+      if (authUser) {
+        console.log(`[${requestId}] Checking if trigger created user...`);
+        const { data: triggerUser, error: triggerError } = await supabaseAdmin
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+          
+        if (triggerUser) {
+          console.log(`[${requestId}] Trigger created user, updating...`);
+          user = triggerUser;
+        }
+      }
+    }
+    
+    if (!user && existingUser) {
+      // User profile exists, update it to company_admin
+      console.log(`[${requestId}] Updating existing user to company_admin`);
       const { data: updatedUser, error: updateError } = await supabaseAdmin
         .from('users')
         .update({
           role: 'company_admin',
           company_id: companyRecord.id,
           position: role || 'HR Manager',
-          full_name: lead.name || company,
+          is_active: true,
+          email_verified: true,
           metadata: {
             skills_gap: true,
             skills_gap_lead_id: lead.id,
-            onboarded_from: 'skills_gap_signup',
-            previous_role: existingUser.role
+            onboarded_from: 'skills_gap_signup'
           }
         })
         .eq('id', existingUser.id)
@@ -172,178 +253,24 @@ serve(async (req) => {
         .single();
       
       if (updateError) {
-        console.error(`[${requestId}] Failed to update existing user:`, updateError);
-        // Clean up company
-        await supabaseAdmin
-          .from('companies')
-          .delete()
-          .eq('id', companyRecord.id);
-        throw new Error('Failed to update existing user profile');
-      }
-      
-      // Update lead record
-      const { error: leadUpdateError } = await supabaseAdmin
-        .from('skills_gap_leads')
-        .update({
-          status: 'converted',
-          converted_to_user_id: existingUser.id,
-          company: company,
-          role: role,
-          team_size: teamSize,
-          use_case: useCases.join(', '),
-          heard_about: heardAbout,
-          enrichment_data: {
-            ...lead.enrichment_data,
-            industry: industry,
-            teamSize: teamSize,
-            useCases: useCases,
-            heardAbout: heardAbout
-          },
-          onboarded_at: new Date().toISOString(),
-          password_set: true,
-          auth_user_id: existingUser.id,
-          converted_to_auth_at: new Date().toISOString(),
-          converted_to_company_id: companyRecord.id
-        })
-        .eq('id', lead.id);
-      
-      if (leadUpdateError) {
-        console.error(`[${requestId}] Lead update error:`, leadUpdateError);
-      }
-      
-      // Mark session as used
-      await supabaseAdmin
-        .from('skills_gap_sessions')
-        .update({ used_at: new Date().toISOString() })
-        .eq('id', session.id);
-      
-      // Return success - user was updated
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: 'Profile completed successfully',
-          userUpdated: true,
-          redirectTo: '/dashboard'
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      );
-    }
-
-    // Check if auth user exists
-    console.log(`[${requestId}] Checking for existing auth user...`);
-    try {
-      const { data: existingAuth, error: authCheckError } = await supabaseAdmin.auth.admin.getUserByEmail(lead.email);
-      console.log(`[${requestId}] Existing auth check:`, {
-        exists: !!existingAuth?.user,
-        user: existingAuth?.user,
-        error: authCheckError
-      });
-      
-      if (existingAuth?.user) {
-        console.error(`[${requestId}] Auth user already exists:`, existingAuth.user.id);
-        // Clean up company
-        await supabaseAdmin
-          .from('companies')
-          .delete()
-          .eq('id', companyRecord.id);
-        throw new Error('Auth account already exists. Please sign in.');
-      }
-    } catch (e) {
-      console.log(`[${requestId}] Auth check error (may be normal):`, e);
-    }
-
-    // Create auth user
-    console.log(`[${requestId}] Creating auth user for:`, lead.email);
-    console.log(`[${requestId}] Auth user metadata:`, {
-      full_name: lead.name || company,
-      skills_gap: true,
-      skills_gap_lead_id: lead.id,
-      signup_type: 'skills_gap'
-    });
-    
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: lead.email,
-      password: password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: lead.name || company,
-        skills_gap: true,
-        skills_gap_lead_id: lead.id,
-        signup_type: 'skills_gap'
-      }
-    });
-
-    console.log(`[${requestId}] Auth creation result:`, {
-      success: !!authData?.user,
-      userId: authData?.user?.id,
-      error: authError,
-      errorCode: authError?.code,
-      errorMessage: authError?.message,
-      errorStatus: authError?.status
-    });
-
-    if (authError || !authData.user) {
-      console.error(`[${requestId}] Auth creation failed - Full error details:`, {
-        error: authError,
-        errorString: JSON.stringify(authError),
-        errorKeys: authError ? Object.keys(authError) : [],
-        authData: authData
-      });
-      // Clean up company on failure
-      await supabaseAdmin
-        .from('companies')
-        .delete()
-        .eq('id', companyRecord.id);
-      throw new Error(`Failed to create account: ${authError?.message || 'Unknown error'}`);
-    }
-
-    // Wait for trigger to complete and then check/update the user
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Check if trigger created a user record
-    const { data: createdUser, error: checkError } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
-
-    let userRecord;
-    
-    if (createdUser) {
-      // Update the user created by trigger
-      const { data: updated, error: updateError } = await supabaseAdmin
-        .from('users')
-        .update({
-          full_name: lead.name || company,
-          role: 'company_admin',
-          company_id: companyRecord.id,
-          position: role || 'HR Manager',
-          metadata: {
-            skills_gap: true,
-            skills_gap_lead_id: lead.id,
-            onboarded_from: 'skills_gap_signup'
-          }
-        })
-        .eq('id', authData.user.id)
-        .select()
-        .single();
-      
-      if (updateError) {
         console.error(`[${requestId}] User update error:`, updateError);
+        // Clean up company if update fails
+        await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
         throw new Error('Failed to update user profile');
       }
-      userRecord = updated;
-    } else {
-      // Create user if trigger didn't
-      const { data: newUser, error: createError } = await supabaseAdmin
+      
+      user = updatedUser;
+    } else if (!user) {
+      // Create new user profile
+      const { data: newUser, error: userError } = await supabaseAdmin
         .from('users')
         .insert({
-          id: authData.user.id,
+          id: authUser.id,
           email: lead.email,
-          password_hash: 'supabase_managed',
+          password_hash: 'supabaseAdmin_managed',
           full_name: lead.name || company,
           role: 'company_admin',
           company_id: companyRecord.id,
@@ -358,34 +285,47 @@ serve(async (req) => {
         })
         .select()
         .single();
-      
-      if (createError) {
-        console.error(`[${requestId}] User creation error:`, createError);
+
+      if (userError) {
+        console.error(`[${requestId}] User profile creation error:`, userError);
+        console.error(`[${requestId}] User creation details:`, { 
+          id: authUser.id, 
+          email: lead.email, 
+          company_id: companyRecord.id 
+        });
+        
+        // If user profile creation fails, clean up company and auth user
+        await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', companyRecord.id);
+          
+        if (authUser && !existingUser) {
+          await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+        }
+          
         throw new Error('Failed to create user profile');
       }
-      userRecord = newUser;
+      
+      user = newUser;
     }
 
-    if (!userRecord) {
-      // Clean up on failure
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      await supabaseAdmin
-        .from('companies')
-        .delete()
-        .eq('id', companyRecord.id);
-      throw new Error('Failed to create user profile');
-    }
+    // Mark session as used
+    await supabaseAdmin
+      .from('skills_gap_sessions')
+      .update({ used_at: new Date().toISOString() })
+      .eq('id', session.id);
 
-    // Update lead record with profile data and auth info
-    const { error: updateError } = await supabaseAdmin
+    // Update lead status to converted and store onboarding data (matching early access structure)
+    await supabaseAdmin
       .from('skills_gap_leads')
-      .update({
+      .update({ 
         status: 'converted',
-        converted_to_user_id: userRecord.id,
+        converted_to_user_id: user.id,
         company: company,
         role: role,
         team_size: teamSize,
-        use_case: useCases.join(', '),
+        use_case: useCases.join(', '), // Store as comma-separated string for now
         heard_about: heardAbout,
         enrichment_data: {
           ...lead.enrichment_data,
@@ -396,36 +336,11 @@ serve(async (req) => {
         },
         onboarded_at: new Date().toISOString(),
         password_set: true,
-        auth_user_id: authData.user.id,
+        auth_user_id: authUser.id,
         converted_to_auth_at: new Date().toISOString(),
         converted_to_company_id: companyRecord.id
       })
       .eq('id', lead.id);
-
-    if (updateError) {
-      console.error(`[${requestId}] Lead update error:`, updateError);
-      // Try to clean up everything
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      await supabaseAdmin
-        .from('users')
-        .delete()
-        .eq('id', userRecord.id);
-      await supabaseAdmin
-        .from('companies')
-        .delete()
-        .eq('id', companyRecord.id);
-      throw new Error('Failed to update profile');
-    }
-
-    // Mark session as used
-    const { error: sessionUpdateError } = await supabaseAdmin
-      .from('skills_gap_sessions')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', session.id);
-
-    if (sessionUpdateError) {
-      console.error(`[${requestId}] Session update error:`, sessionUpdateError);
-    }
 
     // Send welcome email
     try {
@@ -436,7 +351,7 @@ serve(async (req) => {
         
         await resend.emails.send({
           from: 'LXERA <hello@lxera.ai>',
-          to: userRecord.email,
+          to: user.email,
           subject: 'Welcome to LXERA - Your Skills Gap Analysis is Ready!',
           html: `
             <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -450,7 +365,7 @@ serve(async (req) => {
                   
                   <!-- Content -->
                   <div style="padding: 40px;">
-                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Welcome to LXERA, ${userRecord.full_name}!</h1>
+                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Welcome to LXERA, ${user.full_name}!</h1>
                     <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
                       Your account has been successfully created and your Skills Gap Analysis platform is ready to use.
                     </p>
@@ -459,7 +374,7 @@ serve(async (req) => {
                       <h3 style="color: #191919; font-size: 18px; margin: 0 0 16px;">Your Account Details:</h3>
                       <p style="color: #666; margin: 8px 0;"><strong>Company:</strong> ${company}</p>
                       <p style="color: #666; margin: 8px 0;"><strong>Plan:</strong> Free Skills Gap Analysis (up to 10 employees)</p>
-                      <p style="color: #666; margin: 8px 0;"><strong>Email:</strong> ${userRecord.email}</p>
+                      <p style="color: #666; margin: 8px 0;"><strong>Email:</strong> ${user.email}</p>
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
@@ -495,7 +410,7 @@ serve(async (req) => {
             </div>
           `
         });
-        console.log(`[${requestId}] Welcome email sent to ${userRecord.email}`);
+        console.log(`[${requestId}] Welcome email sent to ${user.email}`);
       }
     } catch (emailError) {
       // Log error but don't fail the signup
@@ -508,10 +423,10 @@ serve(async (req) => {
         success: true,
         message: 'account_created',
         user: {
-          id: userRecord.id,
-          email: userRecord.email,
-          full_name: userRecord.full_name,
-          role: userRecord.role
+          id: user.id,
+          email: user.email,
+          full_name: user.full_name,
+          role: user.role
         },
         company: {
           id: companyRecord.id,
