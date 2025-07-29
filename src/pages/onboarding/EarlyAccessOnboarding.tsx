@@ -188,6 +188,7 @@ const EarlyAccessOnboarding = () => {
       email={leadData.email}
       name={leadData.name || ''}
       leadId={leadData.id}
+      isEarlyAccess={true}
       onComplete={handleComplete}
     />
   );

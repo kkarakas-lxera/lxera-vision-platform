@@ -12,6 +12,7 @@ interface SkillsGapOnboardingProps {
   email: string;
   name: string;
   leadId: string;
+  isEarlyAccess?: boolean;
   onComplete: (data: { password: string; company: string; industry: string; role: string; teamSize: string; useCases: string[]; heardAbout: string }) => void;
 }
 
@@ -346,7 +347,7 @@ const HEARD_ABOUT_OPTIONS = [
   },
 ];
 
-export default function SkillsGapOnboarding({ email, name, leadId, onComplete }: SkillsGapOnboardingProps) {
+export default function SkillsGapOnboarding({ email, name, leadId, isEarlyAccess = false, onComplete }: SkillsGapOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     password: '',
@@ -417,7 +418,7 @@ export default function SkillsGapOnboarding({ email, name, leadId, onComplete }:
   const handleComplete = () => {
     console.log('=== SKILLS GAP ONBOARDING COMPLETE ===');
     console.log('Form data state:', formData);
-    console.log('Is early access?', !!leadId);
+    console.log('Is early access?', isEarlyAccess);
     console.log('Lead ID:', leadId);
     
     const { confirmPassword, name, ...onboardingData } = formData;
