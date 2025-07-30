@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Target, CheckCircle, Database, Sparkles, Plus, X, Search } from 'lucide-react';
+import { ChevronLeft, Target, CheckCircle, Database, Sparkles, Plus, X, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,8 @@ interface SkillRequirement {
   skill_type: string;
   proficiency_level: 'basic' | 'intermediate' | 'advanced' | 'expert';
   is_mandatory: boolean;
+  description?: string;
+  reason?: string;
 }
 
 interface SkillSuggestion {
@@ -65,6 +67,7 @@ export default function PositionEdit() {
   const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
   const [expandedSkills, setExpandedSkills] = useState<{[key: string]: boolean}>({});
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
+  const [expandedRequiredSkills, setExpandedRequiredSkills] = useState<{[key: string]: boolean}>({});
   
   // Form state
   const [positionCode, setPositionCode] = useState('');
@@ -189,7 +192,8 @@ export default function PositionEdit() {
       skill_name: skill.skill_name,
       skill_type: skill.skill_type,
       proficiency_level: proficiencyLevel as any,
-      is_mandatory: isRequired
+      is_mandatory: isRequired,
+      description: skill.description
     };
 
     if (isRequired) {
@@ -203,10 +207,11 @@ export default function PositionEdit() {
     setRequiredSkills(requiredSkills.filter(s => s.skill_id !== skillId));
   };
 
-  const updateSkillProficiency = (skillId: string, proficiencyLevel: string) => {
-    setRequiredSkills(requiredSkills.map(s => 
-      s.skill_id === skillId ? { ...s, proficiency_level: proficiencyLevel as any } : s
-    ));
+  const toggleRequiredSkillExpanded = (skillId: string) => {
+    setExpandedRequiredSkills(prev => ({
+      ...prev,
+      [skillId]: !prev[skillId]
+    }));
   };
 
   const handleAddAiSuggestion = (suggestion: SkillSuggestion) => {
@@ -215,7 +220,9 @@ export default function PositionEdit() {
       skill_name: suggestion.skill_name,
       skill_type: 'AI Suggested',
       proficiency_level: suggestion.proficiency_level,
-      is_mandatory: suggestion.category === 'essential'
+      is_mandatory: suggestion.category === 'essential',
+      description: suggestion.description,
+      reason: suggestion.reason
     };
 
     if (!requiredSkills.find(s => s.skill_name === suggestion.skill_name)) {
@@ -238,21 +245,6 @@ export default function PositionEdit() {
         return 'bg-orange-500 text-white';
       default:
         return 'bg-gray-500 text-white';
-    }
-  };
-
-  const getProficiencyColor = (level: string) => {
-    switch (level) {
-      case 'basic':
-        return 'bg-blue-100 text-blue-800';
-      case 'intermediate':
-        return 'bg-green-100 text-green-800';
-      case 'advanced':
-        return 'bg-orange-100 text-orange-800';
-      case 'expert':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -444,43 +436,66 @@ export default function PositionEdit() {
           {/* Current Skills Grid */}
           {requiredSkills.length > 0 && (
             <div className="grid grid-cols-2 gap-3">
-              {requiredSkills.map((skill) => (
-                <div key={skill.skill_id} className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{skill.skill_name}</span>
-                      <Badge className={`text-xs ${getProficiencyColor(skill.proficiency_level)}`}>
-                        {skill.proficiency_level}
-                      </Badge>
+              {requiredSkills.map((skill) => {
+                const isExpanded = expandedRequiredSkills[skill.skill_id];
+                
+                return (
+                  <div key={skill.skill_id} className="bg-white border rounded-lg shadow-sm">
+                    <div 
+                      className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleRequiredSkillExpanded(skill.skill_id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{skill.skill_name}</span>
+                            {skill.is_mandatory && (
+                              <Badge variant="destructive" className="text-xs">Essential</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{skill.skill_type}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ChevronDown 
+                            className={`h-4 w-4 text-gray-400 transition-transform ${
+                              isExpanded ? 'rotate-180' : ''
+                            }`} 
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeSkill(skill.skill_id);
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{skill.skill_type}</p>
+                    
+                    {isExpanded && (skill.description || skill.reason) && (
+                      <div className="px-3 pb-3 border-t border-gray-100">
+                        <div className="pt-2 space-y-2">
+                          {skill.description && (
+                            <p className="text-xs text-gray-600 leading-relaxed">
+                              {skill.description}
+                            </p>
+                          )}
+                          {skill.reason && (
+                            <div className="text-xs">
+                              <span className="font-medium text-gray-700">Why needed: </span>
+                              <span className="text-gray-600">{skill.reason}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={skill.proficiency_level}
-                      onValueChange={(value) => updateSkillProficiency(skill.skill_id, value)}
-                    >
-                      <SelectTrigger className="w-32 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSkill(skill.skill_id)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -538,45 +553,84 @@ export default function PositionEdit() {
             
             {suggestionsLoaded && getAvailableSuggestions().length > 0 && (
               <div className="border rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
-                {getAvailableSuggestions().map((suggestion, index) => (
-                  <div key={`${suggestion.skill_id || index}`} className="flex items-start justify-between p-2 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{suggestion.skill_name}</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              {suggestion.source === 'database' ? (
-                                <Database className="h-3 w-3 text-blue-600" />
-                              ) : (
-                                <Sparkles className="h-3 w-3 text-purple-600" />
-                              )}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {suggestion.source === 'database' ? 'From your skills database' : 'AI generated'}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <Badge className={`text-xs ${getCategoryColor(suggestion.category)}`}>
-                          {suggestion.category}
-                        </Badge>
+                {getAvailableSuggestions().map((suggestion, index) => {
+                  const suggestionKey = `${suggestion.skill_id || index}`;
+                  const isExpanded = expandedSkills[suggestionKey];
+                  
+                  return (
+                    <div key={suggestionKey} className="bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div 
+                        className="p-2 cursor-pointer"
+                        onClick={() => setExpandedSkills(prev => ({...prev, [suggestionKey]: !prev[suggestionKey]}))}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{suggestion.skill_name}</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    {suggestion.source === 'database' ? (
+                                      <Database className="h-3 w-3 text-blue-600" />
+                                    ) : (
+                                      <Sparkles className="h-3 w-3 text-purple-600" />
+                                    )}
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {suggestion.source === 'database' ? 'From your skills database' : 'AI generated'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <Badge className={`text-xs ${getCategoryColor(suggestion.category)}`}>
+                                {suggestion.category}
+                              </Badge>
+                            </div>
+                            {!isExpanded && suggestion.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{suggestion.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 ml-2">
+                            <ChevronDown 
+                              className={`h-3 w-3 text-gray-400 transition-transform ${
+                                isExpanded ? 'rotate-180' : ''
+                              }`} 
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddAiSuggestion(suggestion);
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <Plus className="h-3 w-3" />
+                              Add
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.description}</p>
-                      {suggestion.reason && (
-                        <p className="text-xs text-blue-600 italic mt-1">{suggestion.reason}</p>
+                      
+                      {isExpanded && (suggestion.description || suggestion.reason) && (
+                        <div className="px-2 pb-2 border-t border-gray-100">
+                          <div className="pt-2 space-y-2">
+                            {suggestion.description && (
+                              <p className="text-xs text-gray-600 leading-relaxed">
+                                {suggestion.description}
+                              </p>
+                            )}
+                            {suggestion.reason && (
+                              <div className="text-xs">
+                                <span className="font-medium text-gray-700">Why needed: </span>
+                                <span className="text-gray-600">{suggestion.reason}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleAddAiSuggestion(suggestion)}
-                      className="ml-2 flex items-center gap-1"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Add
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
