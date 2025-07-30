@@ -10,7 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { PositionEditModal } from '@/components/dashboard/PositionManagement/PositionEditModal';
 import { PositionCreateWizard } from '@/components/dashboard/PositionManagement/PositionCreateWizard';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -57,7 +56,6 @@ export default function PositionManagement() {
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [editPosition, setEditPosition] = useState<CompanyPosition | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [openPositions, setOpenPositions] = useState<Set<string>>(new Set());
   const [hasDraft, setHasDraft] = useState(false);
@@ -578,7 +576,7 @@ export default function PositionManagement() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setEditPosition(position)}
+                                onClick={() => navigate(`/dashboard/positions/${position.id}/edit`)}
                               >
                                 <Edit2 className="h-4 w-4" />
                               </Button>
@@ -656,18 +654,6 @@ export default function PositionManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Position Dialog */}
-      {editPosition && (
-        <PositionEditModal
-          position={editPosition}
-          open={!!editPosition}
-          onOpenChange={(open) => !open && setEditPosition(null)}
-          onSuccess={() => {
-            setEditPosition(null);
-            fetchPositions();
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -109,6 +109,7 @@ const LearnerProfile = lazy(() => import("./pages/learner/LearnerProfile"));
 const CompanyDashboard = lazy(() => import("./pages/dashboard/CompanyDashboard"));
 const PositionManagement = lazy(() => import("./pages/dashboard/PositionManagement"));
 const PositionCreate = lazy(() => import("./pages/dashboard/PositionCreate"));
+const PositionEdit = lazy(() => import("./pages/dashboard/PositionEdit"));
 const EmployeeOnboarding = lazy(() => import("./pages/dashboard/EmployeeOnboarding"));
 const Employees = lazy(() => import("./pages/dashboard/Employees"));
 const EmployeeProfile = lazy(() => import("./pages/dashboard/EmployeeProfile"));
@@ -941,6 +942,7 @@ const App = () => {
                       <Route path="/onboarding/*" element={<PageSuspense><EmployeeOnboarding /></PageSuspense>} />
                       <Route path="/positions" element={<PageSuspense><PositionManagement /></PageSuspense>} />
                       <Route path="/positions/new" element={<PageSuspense><PositionCreate /></PageSuspense>} />
+                      <Route path="/positions/:id/edit" element={<PageSuspense><PositionEdit /></PageSuspense>} />
                       <Route path="/employees" element={<PageSuspense><Employees /></PageSuspense>} />
                       <Route path="/employees/:employeeId" element={<PageSuspense><EmployeeProfile /></PageSuspense>} />
                       <Route path="/courses" element={<PageSuspense><Courses /></PageSuspense>} />
