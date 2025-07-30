@@ -514,7 +514,7 @@ export default function PositionEdit() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-600" />
-                <Label className="text-sm font-medium">AI Skill Suggestions</Label>
+                <Label className="text-sm font-medium">Skills Suggested for this position</Label>
               </div>
               {!suggestionsLoaded ? (
                 <Button
