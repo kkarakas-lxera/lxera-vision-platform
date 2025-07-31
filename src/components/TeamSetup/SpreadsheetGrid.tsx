@@ -13,7 +13,7 @@ export interface Employee {
   position?: string;
   position_code?: string;
   manager_email?: string;
-  status: 'draft' | 'ready' | 'error';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'ready' | 'error';
   errorMessage?: string;
 }
 
@@ -204,7 +204,7 @@ export default function SpreadsheetGrid({
       position: '',
       position_code: '',
       manager_email: '',
-      status: 'draft'
+      status: 'pending'
     };
     
     onEmployeesChange([...employees, newEmployee]);
@@ -257,7 +257,7 @@ export default function SpreadsheetGrid({
           position: columns[3] || '',
           position_code: columns[4] || '',
           manager_email: columns[5] || '',
-          status: 'draft'
+          status: 'pending'
         };
 
         const validation = validateRow(employee);
@@ -476,28 +476,21 @@ export default function SpreadsheetGrid({
         Add Row
       </Button>
 
-      {/* Help Text - Minimalistic */}
-      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Click</kbd>
-          to edit
+      {/* Help Text - User Friendly */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-gray-50 rounded-md px-3 py-2">
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium">Click</kbd>
+          any cell to start typing
         </span>
-        <span className="text-gray-300">•</span>
+        <span className="text-gray-300">|</span>
         <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Tab</kbd>
-          /
-          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">↵</kbd>
-          to navigate
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium">Tab</kbd>
+          to next cell
         </span>
-        <span className="text-gray-300">•</span>
-        <span>Paste from Excel/Sheets</span>
-        <span className="text-gray-300">•</span>
-        <span className="flex items-center gap-1">
-          <span className="text-red-500">*</span>
-          Required
-        </span>
-        <span className="text-gray-300">•</span>
-        <span className="text-green-600">Auto-saves</span>
+        <span className="text-gray-300">|</span>
+        <span>📋 Paste from Excel</span>
+        <span className="text-gray-300">|</span>
+        <span className="text-green-600">✓ Saves automatically</span>
       </div>
     </div>
   );

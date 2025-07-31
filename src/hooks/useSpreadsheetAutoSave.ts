@@ -112,7 +112,7 @@ export function useSpreadsheetAutoSave(
                 position_code: employee.position_code,
                 manager_email: employee.manager_email
               },
-              status: employee.status || 'draft'
+              status: employee.status || 'pending'
             })
             .select()
             .single();
