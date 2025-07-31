@@ -71,15 +71,20 @@ export default function OnboardingImport() {
     
     try {
       // Check for existing active session
-      const { data: existingSession, error: fetchError } = await supabase
+      const { data: existingSessions, error: fetchError } = await supabase
         .from('st_import_sessions')
         .select('id, active_position_id')
         .eq('company_id', userProfile.company_id)
         .eq('import_type', 'employee_onboarding')
         .eq('status', 'draft')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      const existingSession = existingSessions?.[0];
 
       if (existingSession) {
         setCurrentSessionId(existingSession.id);
@@ -100,7 +105,10 @@ export default function OnboardingImport() {
             successful: 0,
             failed: 0,
             status: 'draft',
-            created_by: userProfile.id
+            created_by: userProfile.id,
+            spreadsheet_mode: true,
+            checklist_state: {},
+            last_active: new Date().toISOString()
           })
           .select()
           .single();
