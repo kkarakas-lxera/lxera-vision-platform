@@ -95,7 +95,7 @@ export default function SkillsGapOnboardingFlow() {
       // Fetch company data
       const { data: company } = await supabase
         .from('companies')
-        .select('subscription_tier')
+        .select('plan_type')
         .eq('id', userProfile.company_id)
         .single();
       
