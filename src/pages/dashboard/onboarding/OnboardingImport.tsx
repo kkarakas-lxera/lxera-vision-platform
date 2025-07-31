@@ -19,7 +19,8 @@ export default function OnboardingImport() {
   const { userProfile } = useAuth();
   const { importSessions, stats, loading, refreshData } = useOnboarding();
   const [defaultPosition, setDefaultPosition] = useState<string>('');
-  const [positions, setPositions] = useState<{ id: string; position_code: string; position_title: string }[]>([]);
+  const [positions, setPositions] = useState<{ id: string; position_code: string; position_title: string; department?: string }[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -56,12 +57,21 @@ export default function OnboardingImport() {
     try {
       const { data, error } = await supabase
         .from('st_company_positions')
-        .select('id, position_code, position_title')
+        .select('id, position_code, position_title, department')
         .eq('company_id', userProfile.company_id)
         .order('position_title');
       
       if (error) throw error;
       setPositions(data || []);
+      
+      // Extract unique departments
+      const uniqueDepartments = [...new Set(
+        (data || [])
+          .map(p => p.department)
+          .filter(d => d) // Remove null/undefined
+      )].sort();
+      
+      setDepartments(uniqueDepartments);
     } catch (error) {
       console.error('Error loading positions:', error);
     }
@@ -599,6 +609,8 @@ export default function OnboardingImport() {
               onCellSave={saveCellNow}
               isLoading={isImporting || sessionLoading || !currentSessionId}
               saveStatus={saveStatus}
+              departments={departments}
+              positions={positions}
             />
           </SpreadsheetErrorBoundary>
         )}

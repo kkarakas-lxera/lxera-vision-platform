@@ -31,6 +31,8 @@ interface SpreadsheetGridProps {
   onCellSave?: (rowId: string, field: string, value: string) => Promise<void>;
   isLoading?: boolean;
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  departments?: string[];
+  positions?: { id: string; position_code: string; position_title: string; department?: string }[];
 }
 
 const DEPARTMENTS = [
@@ -74,7 +76,9 @@ export default function SpreadsheetGrid({
   onRowDelete,
   onCellSave,
   isLoading = false,
-  saveStatus = 'idle'
+  saveStatus = 'idle',
+  departments: companyDepartments,
+  positions: companyPositions
 }: SpreadsheetGridProps) {
   const [editingCell, setEditingCell] = useState<{ rowId: string; column: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -137,7 +141,12 @@ export default function SpreadsheetGrid({
         
         // Auto-generate position code when position changes
         if (editingCell.column === 'position' && editValue) {
-          if (!updated.position_code || updated.position_code === generatePositionCode(employee.position || '')) {
+          // First try to find the position code from company positions
+          const selectedPosition = companyPositions?.find(p => p.position_title === editValue);
+          if (selectedPosition && selectedPosition.position_code) {
+            updated.position_code = selectedPosition.position_code;
+          } else if (!updated.position_code || updated.position_code === generatePositionCode(employee.position || '')) {
+            // Fall back to auto-generation
             updated.position_code = generatePositionCode(editValue);
           }
         }
@@ -492,13 +501,38 @@ export default function SpreadsheetGrid({
                                 <SelectValue placeholder={`Select ${column.label}`} />
                               </SelectTrigger>
                               <SelectContent>
-                                {column.key === 'department' && DEPARTMENTS.map(dept => (
-                                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                ))}
-                                {column.key === 'position' && employee.department && (
-                                  POSITIONS_BY_DEPARTMENT[employee.department]?.map(pos => (
-                                    <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                                  )) || <SelectItem value="" disabled>Select department first</SelectItem>
+                                {column.key === 'department' && (
+                                  companyDepartments && companyDepartments.length > 0 ? (
+                                    <>
+                                      {companyDepartments.map(dept => (
+                                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                      ))}
+                                      <SelectItem value="Other">Other</SelectItem>
+                                    </>
+                                  ) : (
+                                    DEPARTMENTS.map(dept => (
+                                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                    ))
+                                  )
+                                )}
+                                {column.key === 'position' && (
+                                  employee.department ? (
+                                    companyPositions && companyPositions.length > 0 ? (
+                                      companyPositions
+                                        .filter(p => !p.department || p.department === employee.department)
+                                        .map(pos => (
+                                          <SelectItem key={pos.id} value={pos.position_title}>
+                                            {pos.position_title}
+                                          </SelectItem>
+                                        ))
+                                    ) : (
+                                      POSITIONS_BY_DEPARTMENT[employee.department]?.map(pos => (
+                                        <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                                      )) || <SelectItem value="" disabled>No positions for this department</SelectItem>
+                                    )
+                                  ) : (
+                                    <SelectItem value="" disabled>Select department first</SelectItem>
+                                  )
                                 )}
                               </SelectContent>
                             </Select>
