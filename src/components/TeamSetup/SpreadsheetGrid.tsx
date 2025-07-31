@@ -1,7 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, AlertCircle, Check, Loader2, Trash2 } from 'lucide-react';
+import { Plus, AlertCircle, Check, Loader2, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -26,13 +33,39 @@ interface SpreadsheetGridProps {
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
 }
 
+const DEPARTMENTS = [
+  'Engineering',
+  'Sales',
+  'Marketing',
+  'Operations',
+  'HR',
+  'Finance',
+  'Product',
+  'Customer Success',
+  'Legal',
+  'Other'
+];
+
+const POSITIONS_BY_DEPARTMENT: Record<string, string[]> = {
+  Engineering: ['Software Engineer', 'Senior Engineer', 'Tech Lead', 'Engineering Manager', 'DevOps Engineer', 'QA Engineer'],
+  Sales: ['Sales Representative', 'Account Executive', 'Sales Manager', 'Business Development Rep', 'Sales Director'],
+  Marketing: ['Marketing Specialist', 'Content Manager', 'SEO Specialist', 'Marketing Manager', 'Brand Manager'],
+  Operations: ['Operations Manager', 'Operations Analyst', 'Supply Chain Manager', 'Logistics Coordinator'],
+  HR: ['HR Manager', 'Recruiter', 'HR Business Partner', 'Talent Acquisition Specialist', 'HR Coordinator'],
+  Finance: ['Financial Analyst', 'Accountant', 'Finance Manager', 'Controller', 'Bookkeeper'],
+  Product: ['Product Manager', 'Product Designer', 'UX Designer', 'Product Owner', 'UX Researcher'],
+  'Customer Success': ['Customer Success Manager', 'Support Engineer', 'Implementation Specialist', 'Customer Support Rep'],
+  Legal: ['Legal Counsel', 'Paralegal', 'Compliance Officer', 'Contract Manager'],
+  Other: ['General', 'Specialist', 'Manager', 'Coordinator', 'Analyst']
+};
+
 const COLUMNS = [
-  { key: 'name', label: 'Name', required: true, width: '200px' },
-  { key: 'email', label: 'Email', required: true, width: '250px' },
-  { key: 'department', label: 'Department', required: false, width: '150px' },
-  { key: 'position', label: 'Position', required: false, width: '200px' },
-  { key: 'position_code', label: 'Position Code', required: false, width: '120px' },
-  { key: 'manager_email', label: 'Manager Email', required: false, width: '200px' },
+  { key: 'name', label: 'Name', required: true, width: '200px', type: 'text' },
+  { key: 'email', label: 'Email', required: true, width: '250px', type: 'email' },
+  { key: 'department', label: 'Department', required: false, width: '180px', type: 'select' },
+  { key: 'position', label: 'Position', required: false, width: '220px', type: 'select' },
+  { key: 'position_code', label: 'Code', required: false, width: '100px', type: 'text' },
+  { key: 'manager_email', label: 'Manager Email', required: false, width: '200px', type: 'email' },
 ];
 
 export default function SpreadsheetGrid({
@@ -86,12 +119,35 @@ export default function SpreadsheetGrid({
     setEditValue(value);
   };
 
+  const generatePositionCode = (position: string): string => {
+    if (!position) return '';
+    const words = position.split(' ');
+    if (words.length === 1) {
+      return position.substring(0, 3).toUpperCase();
+    }
+    return words.map(w => w[0]).join('').toUpperCase();
+  };
+
   const handleCellSave = async () => {
     if (!editingCell) return;
 
     const updatedEmployees = employees.map(employee => {
       if (employee.id === editingCell.rowId) {
-        const updated = { ...employee, [editingCell.column]: editValue };
+        let updated = { ...employee, [editingCell.column]: editValue };
+        
+        // Auto-generate position code when position changes
+        if (editingCell.column === 'position' && editValue) {
+          if (!updated.position_code || updated.position_code === generatePositionCode(employee.position || '')) {
+            updated.position_code = generatePositionCode(editValue);
+          }
+        }
+        
+        // Clear position when department changes
+        if (editingCell.column === 'department' && editValue !== employee.department) {
+          updated.position = '';
+          updated.position_code = '';
+        }
+        
         const validation = validateRow(updated);
         
         return {
@@ -129,8 +185,10 @@ export default function SpreadsheetGrid({
         const currentRowIndex = employees.findIndex(emp => emp.id === editingCell.rowId);
         
         if (e.key === 'Enter') {
-          // Enter: Move down
-          if (currentRowIndex < employees.length - 1) {
+          // Enter: Save and create new row if on last row
+          if (currentRowIndex === employees.length - 1) {
+            handleAddRow();
+          } else {
             handleCellClick(employees[currentRowIndex + 1].id, editingCell.column);
           }
         } else if (e.key === 'Tab') {
@@ -175,14 +233,14 @@ export default function SpreadsheetGrid({
             }
             break;
           case 'ArrowLeft':
-            if (e.target.selectionStart === 0 && currentColumnIndex > 0) {
+            if ((e.target as HTMLInputElement).selectionStart === 0 && currentColumnIndex > 0) {
               e.preventDefault();
               handleCellSave();
               handleCellClick(editingCell.rowId, COLUMNS[currentColumnIndex - 1].key);
             }
             break;
           case 'ArrowRight':
-            if (e.target.selectionStart === editValue.length && currentColumnIndex < COLUMNS.length - 1) {
+            if ((e.target as HTMLInputElement).selectionStart === editValue.length && currentColumnIndex < COLUMNS.length - 1) {
               e.preventDefault();
               handleCellSave();
               handleCellClick(editingCell.rowId, COLUMNS[currentColumnIndex + 1].key);
@@ -316,11 +374,17 @@ export default function SpreadsheetGrid({
   const getStatusIcon = (status: Employee['status']) => {
     switch (status) {
       case 'ready':
-        return <Check className="h-3 w-3 text-green-600" />;
+        return (
+          <div className="w-2 h-2 rounded-full bg-green-500" title="Ready" />
+        );
       case 'error':
-        return <AlertCircle className="h-3 w-3 text-red-600" />;
+        return (
+          <div className="w-2 h-2 rounded-full bg-orange-500" title="Missing required fields" />
+        );
       default:
-        return null;
+        return (
+          <div className="w-2 h-2 rounded-full bg-gray-300" title="Pending" />
+        );
     }
   };
 
@@ -366,19 +430,19 @@ export default function SpreadsheetGrid({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="w-10 p-2"></th>
+              <tr className="bg-gray-50/50 border-b">
+                <th className="w-12 p-3 text-xs font-medium text-gray-500">#</th>
                 {COLUMNS.map(column => (
                   <th
                     key={column.key}
-                    className="text-left p-2 text-xs font-medium text-gray-700"
+                    className="text-left p-3 text-xs font-medium text-gray-600"
                     style={{ width: column.width, minWidth: column.width }}
                   >
                     {column.label}
-                    {column.required && <span className="text-red-500 ml-1">*</span>}
+                    {column.required && <span className="text-red-400 ml-0.5">*</span>}
                   </th>
                 ))}
-                <th className="w-10 p-2"></th>
+                <th className="w-16 p-3 text-xs font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -396,42 +460,75 @@ export default function SpreadsheetGrid({
                   <tr
                     key={employee.id}
                     className={cn(
-                      "border-b hover:bg-gray-50",
-                      employee.status === 'error' && "bg-red-50"
+                      "border-b transition-all duration-200",
+                      "hover:bg-gray-50 hover:shadow-sm",
+                      employee.status === 'error' && "bg-orange-50"
                     )}
                   >
-                    <td className="p-2 text-center text-xs text-muted-foreground">
+                    <td className="p-3 text-center text-xs text-muted-foreground">
                       {index + 1}
                     </td>
                     {COLUMNS.map(column => (
                       <td
                         key={column.key}
-                        className="p-0"
+                        className="p-0 relative"
                         style={{ width: column.width, minWidth: column.width }}
                       >
                         {editingCell?.rowId === employee.id && editingCell?.column === column.key ? (
-                          <Input
-                            ref={inputRef}
-                            value={editValue}
-                            onChange={(e) => handleCellChange(e.target.value)}
-                            onBlur={handleCellSave}
-                            onKeyDown={handleKeyDown}
-                            className="h-8 rounded-none border-0 focus:ring-2 focus:ring-blue-500"
-                            placeholder={column.label}
-                          />
+                          column.type === 'select' ? (
+                            <Select
+                              value={editValue}
+                              onValueChange={(value) => {
+                                setEditValue(value);
+                                handleCellSave();
+                              }}
+                              onOpenChange={(open) => {
+                                if (!open) {
+                                  handleCellSave();
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500">
+                                <SelectValue placeholder={`Select ${column.label}`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {column.key === 'department' && DEPARTMENTS.map(dept => (
+                                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                ))}
+                                {column.key === 'position' && employee.department && (
+                                  POSITIONS_BY_DEPARTMENT[employee.department]?.map(pos => (
+                                    <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                                  )) || <SelectItem value="" disabled>Select department first</SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              ref={inputRef}
+                              type={column.type}
+                              value={editValue}
+                              onChange={(e) => handleCellChange(e.target.value)}
+                              onBlur={handleCellSave}
+                              onKeyDown={handleKeyDown}
+                              className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500"
+                              placeholder={`Enter ${column.label.toLowerCase()}`}
+                            />
+                          )
                         ) : (
                           <div
                             className={cn(
-                              "p-2 h-8 flex items-center cursor-pointer hover:bg-gray-100",
-                              column.required && 
-                              !employee[column.key as keyof Employee] && 
-                              "bg-red-50"
+                              "px-3 h-12 flex items-center cursor-pointer hover:bg-gray-50 transition-colors",
+                              column.required && !employee[column.key as keyof Employee] && 
+                              "border-b-2 border-gray-200"
                             )}
                             onClick={() => handleCellClick(employee.id, column.key)}
                           >
-                            <span className="text-sm truncate">
+                            <span className={cn(
+                              "text-sm truncate",
+                              !employee[column.key as keyof Employee] && "text-gray-400"
+                            )}>
                               {employee[column.key as keyof Employee] || 
-                                <span className="text-gray-400">Enter {column.label.toLowerCase()}</span>
+                                `Enter ${column.label.toLowerCase()}`
                               }
                             </span>
                           </div>
@@ -439,16 +536,38 @@ export default function SpreadsheetGrid({
                       </td>
                     ))}
                     <td className="p-2">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-end gap-1">
                         {getStatusIcon(employee.status)}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => onRowDelete(employee.id)}
-                        >
-                          <Trash2 className="h-3 w-3 text-gray-400 hover:text-red-600" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-gray-100"
+                            >
+                              <MoreVertical className="h-4 w-4 text-gray-500" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const newEmployee = { ...employee, id: `temp-${Date.now()}-${Math.random()}` };
+                                const index = employees.findIndex(e => e.id === employee.id);
+                                const updatedEmployees = [...employees];
+                                updatedEmployees.splice(index + 1, 0, newEmployee);
+                                onEmployeesChange(updatedEmployees);
+                              }}
+                            >
+                              Duplicate row
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => onRowDelete(employee.id)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              Delete row
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
@@ -471,21 +590,27 @@ export default function SpreadsheetGrid({
         Add Row
       </Button>
 
-      {/* Help Text - User Friendly */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-gray-50 rounded-md px-3 py-2">
-        <span className="flex items-center gap-1.5">
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium">Click</kbd>
-          any cell to start typing
-        </span>
-        <span className="text-gray-300">|</span>
-        <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium">Tab</kbd>
-          to next cell
-        </span>
-        <span className="text-gray-300">|</span>
-        <span>📋 Paste from Excel</span>
-        <span className="text-gray-300">|</span>
-        <span className="text-green-600">✓ Saves automatically</span>
+      {/* Help Text - Modern & Clean */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground bg-gray-50/50 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Click</kbd>
+            to edit
+          </span>
+          <span className="text-gray-300">•</span>
+          <span className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Tab</kbd>
+            /
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Enter</kbd>
+            to navigate
+          </span>
+          <span className="text-gray-300">•</span>
+          <span>Paste from Excel supported</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <span className="text-green-600">Auto-saves</span>
+        </div>
       </div>
     </div>
   );
