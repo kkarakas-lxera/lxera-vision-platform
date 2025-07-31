@@ -16,13 +16,16 @@ export const useEmployee = () => {
         const { data, error } = await supabase
           .from('employees')
           .select('*')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', user.id);
           
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error fetching employee:', error);
+        } else if (data && data.length > 0) {
+          // If multiple records exist, use the first one
+          setEmployee(data[0]);
         } else {
-          setEmployee(data);
+          // No employee record exists for this user
+          setEmployee(null);
         }
       } catch (error) {
         console.error('Error fetching employee:', error);
