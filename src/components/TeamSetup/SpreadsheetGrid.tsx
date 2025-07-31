@@ -476,12 +476,28 @@ export default function SpreadsheetGrid({
         Add Row
       </Button>
 
-      {/* Help Text */}
-      <div className="text-xs text-muted-foreground space-y-1">
-        <p>• Click any cell to edit. Use Tab/Enter to navigate between cells.</p>
-        <p>• Copy and paste from Excel, Google Sheets, or CSV to add multiple rows.</p>
-        <p>• Use arrow keys to navigate while editing. Press Escape to cancel.</p>
-        <p>• Required fields are marked with a red asterisk (*). Changes save automatically.</p>
+      {/* Help Text - Minimalistic */}
+      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Click</kbd>
+          to edit
+        </span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Tab</kbd>
+          /
+          <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">↵</kbd>
+          to navigate
+        </span>
+        <span className="text-gray-300">•</span>
+        <span>Paste from Excel/Sheets</span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <span className="text-red-500">*</span>
+          Required
+        </span>
+        <span className="text-gray-300">•</span>
+        <span className="text-green-600">Auto-saves</span>
       </div>
     </div>
   );
