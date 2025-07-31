@@ -504,9 +504,11 @@ export default function SpreadsheetGrid({
                                 {column.key === 'department' && (
                                   companyDepartments && companyDepartments.length > 0 ? (
                                     <>
-                                      {companyDepartments.map(dept => (
-                                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                      ))}
+                                      {companyDepartments
+                                        .filter(dept => dept && dept.trim() !== '')
+                                        .map(dept => (
+                                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                        ))}
                                       <SelectItem value="Other">Other</SelectItem>
                                     </>
                                   ) : (
@@ -520,6 +522,7 @@ export default function SpreadsheetGrid({
                                     companyPositions && companyPositions.length > 0 ? (
                                       companyPositions
                                         .filter(p => !p.department || p.department === employee.department)
+                                        .filter(p => p.position_title && p.position_title.trim() !== '')
                                         .map(pos => (
                                           <SelectItem key={pos.id} value={pos.position_title}>
                                             {pos.position_title}

@@ -68,7 +68,7 @@ export default function OnboardingImport() {
       const uniqueDepartments = [...new Set(
         (data || [])
           .map(p => p.department)
-          .filter(d => d) // Remove null/undefined
+          .filter(d => d && d.trim() !== '') // Remove null/undefined/empty strings
       )].sort();
       
       setDepartments(uniqueDepartments);
