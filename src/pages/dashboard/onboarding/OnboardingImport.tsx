@@ -198,6 +198,13 @@ export default function OnboardingImport() {
     }
   });
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[OnboardingImport] currentSessionId:', currentSessionId);
+    console.log('[OnboardingImport] employees count:', employees.length);
+    console.log('[OnboardingImport] saveStatus:', saveStatus);
+  }, [currentSessionId, employees.length, saveStatus]);
+
   const handleEmployeesChange = (updatedEmployees: Employee[]) => {
     setEmployees(updatedEmployees);
     

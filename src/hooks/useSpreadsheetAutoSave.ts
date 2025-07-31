@@ -32,7 +32,10 @@ export function useSpreadsheetAutoSave(
 
   // Detect changes and queue them
   const detectChanges = useCallback(() => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      console.log('[AutoSave] No sessionId, skipping detection');
+      return;
+    }
 
     const changes = new Map<string, Partial<Employee>>();
     
@@ -45,6 +48,7 @@ export function useSpreadsheetAutoSave(
     });
 
     if (changes.size > 0) {
+      console.log('[AutoSave] Detected changes:', changes.size, 'items');
       pendingChangesRef.current = changes;
       debouncedSave();
     }
@@ -77,8 +81,12 @@ export function useSpreadsheetAutoSave(
 
   // Process pending changes
   const processPendingChanges = async () => {
-    if (!sessionId || pendingChangesRef.current.size === 0) return;
+    if (!sessionId || pendingChangesRef.current.size === 0) {
+      console.log('[AutoSave] Process skipped - sessionId:', !!sessionId, 'pending:', pendingChangesRef.current.size);
+      return;
+    }
 
+    console.log('[AutoSave] Processing', pendingChangesRef.current.size, 'pending changes');
     setSaveStatus('saving');
     setError(null);
 
@@ -190,6 +198,7 @@ export function useSpreadsheetAutoSave(
   // Debounced save function
   const debouncedSave = useRef(
     debounce(() => {
+      console.log('[AutoSave] Debounced save triggered');
       processPendingChanges();
     }, delay)
   ).current;
