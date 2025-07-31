@@ -47,7 +47,6 @@ export default function SpreadsheetGrid({
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const [showEmptyMessage, setShowEmptyMessage] = useState(true);
 
   // Focus input when editing cell changes
   useEffect(() => {
@@ -81,7 +80,6 @@ export default function SpreadsheetGrid({
     
     setEditingCell({ rowId, column });
     setEditValue(employee[column as keyof Employee] as string || '');
-    setShowEmptyMessage(false);
   };
 
   const handleCellChange = (value: string) => {
@@ -222,9 +220,6 @@ export default function SpreadsheetGrid({
     if (!text) return;
 
     try {
-      // Hide empty message when pasting
-      setShowEmptyMessage(false);
-      
       // Split by newlines and filter empty rows
       const rows = text.split(/\r?\n/).filter(row => row.trim());
       const newEmployees: Employee[] = [];
@@ -387,12 +382,12 @@ export default function SpreadsheetGrid({
               </tr>
             </thead>
             <tbody>
-              {employees.length === 0 || (showEmptyMessage && employees.every(e => !e.name && !e.email)) ? (
+              {employees.length === 0 ? (
                 <tr>
                   <td colSpan={COLUMNS.length + 2} className="text-center py-8 text-muted-foreground">
                     <div className="space-y-2">
                       <p className="text-sm">No team members added yet</p>
-                      <p className="text-xs">Click any cell to start typing, paste from Excel, or click "Add Row"</p>
+                      <p className="text-xs">Click "Add Row" to get started</p>
                     </div>
                   </td>
                 </tr>
