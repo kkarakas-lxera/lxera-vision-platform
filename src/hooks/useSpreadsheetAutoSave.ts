@@ -24,6 +24,7 @@ export function useSpreadsheetAutoSave(
   const { sessionId, delay = 1000, onSuccess, onError, onIdUpdate } = options;
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<Error | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const previousEmployeesRef = useRef<Employee[]>([]);
   const pendingChangesRef = useRef<Map<string, Partial<Employee>>>(new Map());
@@ -33,7 +34,6 @@ export function useSpreadsheetAutoSave(
   // Detect changes and queue them
   const detectChanges = useCallback(() => {
     if (!sessionId) {
-      console.log('[AutoSave] No sessionId, skipping detection');
       return;
     }
 
@@ -48,7 +48,6 @@ export function useSpreadsheetAutoSave(
     });
 
     if (changes.size > 0) {
-      console.log('[AutoSave] Detected changes:', changes.size, 'items');
       pendingChangesRef.current = changes;
       debouncedSave();
     }
@@ -71,7 +70,7 @@ export function useSpreadsheetAutoSave(
   // Batch update using RPC
   const batchUpdateRPC = async (updates: Array<{ row_id: string; field_updates: any }>) => {
     const { data, error } = await supabase.rpc('batch_update_rows', {
-      p_session_id: sessionId,
+      p_session_id: sessionIdRef.current,
       p_updates: updates
     });
     
@@ -81,12 +80,11 @@ export function useSpreadsheetAutoSave(
 
   // Process pending changes
   const processPendingChanges = async () => {
-    if (!sessionId || pendingChangesRef.current.size === 0) {
-      console.log('[AutoSave] Process skipped - sessionId:', !!sessionId, 'pending:', pendingChangesRef.current.size);
+    const currentSessionId = sessionIdRef.current;
+    if (!currentSessionId || pendingChangesRef.current.size === 0) {
       return;
     }
 
-    console.log('[AutoSave] Processing', pendingChangesRef.current.size, 'pending changes');
     setSaveStatus('saving');
     setError(null);
 
@@ -108,7 +106,7 @@ export function useSpreadsheetAutoSave(
           const { data, error } = await supabase
             .from('st_import_session_items')
             .insert({
-              import_session_id: sessionId,
+              import_session_id: currentSessionId,
               employee_name: employee.name,
               employee_email: employee.email,
               current_position_code: employee.position_code || employee.position,
@@ -160,12 +158,13 @@ export function useSpreadsheetAutoSave(
           last_active: new Date().toISOString(),
           total_employees: employees.filter(e => e.email && e.name).length
         })
-        .eq('id', sessionId);
+        .eq('id', currentSessionId);
 
       // Clear pending changes
       pendingChangesRef.current.clear();
       
       setSaveStatus('saved');
+      setLastSaved(new Date());
       onSuccess?.();
 
       // Reset status after 2 seconds
@@ -195,10 +194,17 @@ export function useSpreadsheetAutoSave(
     }
   };
 
+  // Create a ref to hold the current sessionId
+  const sessionIdRef = useRef(sessionId);
+  
+  // Update the ref whenever sessionId changes
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   // Debounced save function
   const debouncedSave = useRef(
     debounce(() => {
-      console.log('[AutoSave] Debounced save triggered');
       processPendingChanges();
     }, delay)
   ).current;
@@ -254,6 +260,7 @@ export function useSpreadsheetAutoSave(
   return {
     saveStatus,
     error,
+    lastSaved,
     pendingChanges: pendingChangesRef.current.size,
     offlineQueue: offlineQueueRef.current.length,
     // Expose manual save for immediate saves (e.g., on blur)

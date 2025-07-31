@@ -31,6 +31,7 @@ interface SpreadsheetGridProps {
   onCellSave?: (rowId: string, field: string, value: string) => Promise<void>;
   isLoading?: boolean;
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  lastSaved?: Date | null;
   departments?: string[];
   positions?: { id: string; position_code: string; position_title: string; department?: string }[];
 }
@@ -76,6 +77,7 @@ export default function SpreadsheetGrid({
   onCellSave,
   isLoading = false,
   saveStatus = 'idle',
+  lastSaved,
   departments: companyDepartments,
   positions: companyPositions
 }: SpreadsheetGridProps) {
@@ -409,30 +411,29 @@ export default function SpreadsheetGrid({
         
         <div className="flex items-center gap-3">
           {/* Auto-save status */}
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-sm">
             {saveStatus === 'saving' && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>Saving...</span>
-              </div>
+              <>
+                <div className="h-4 w-4 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
+                <span className="text-gray-600">Saving...</span>
+              </>
             )}
             {saveStatus === 'saved' && (
-              <div className="flex items-center gap-1 text-green-600">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                <span>Auto-saved</span>
-              </div>
+              <>
+                <Check className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Saved</span>
+              </>
             )}
             {saveStatus === 'error' && (
-              <div className="flex items-center gap-1 text-red-600">
-                <AlertCircle className="h-3 w-3" />
-                <span>Error</span>
-              </div>
+              <>
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <span className="text-red-600">Error</span>
+              </>
             )}
-            {saveStatus === 'idle' && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-                <span>Auto-save</span>
-              </div>
+            {lastSaved && saveStatus === 'idle' && (
+              <span className="text-gray-500 text-xs">
+                Last saved {new Date(lastSaved).toLocaleTimeString()}
+              </span>
             )}
           </div>
           

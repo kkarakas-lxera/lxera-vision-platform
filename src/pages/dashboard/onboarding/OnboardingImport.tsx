@@ -176,6 +176,7 @@ export default function OnboardingImport() {
   const {
     saveStatus,
     error: saveError,
+    lastSaved,
     pendingChanges,
     offlineQueue,
     saveNow,
@@ -198,12 +199,6 @@ export default function OnboardingImport() {
     }
   });
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[OnboardingImport] currentSessionId:', currentSessionId);
-    console.log('[OnboardingImport] employees count:', employees.length);
-    console.log('[OnboardingImport] saveStatus:', saveStatus);
-  }, [currentSessionId, employees.length, saveStatus]);
 
   const handleEmployeesChange = (updatedEmployees: Employee[]) => {
     setEmployees(updatedEmployees);
@@ -616,6 +611,7 @@ export default function OnboardingImport() {
               onCellSave={saveCellNow}
               isLoading={isImporting || sessionLoading || !currentSessionId}
               saveStatus={saveStatus}
+              lastSaved={lastSaved}
               departments={departments}
               positions={positions}
             />
