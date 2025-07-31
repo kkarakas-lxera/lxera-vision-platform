@@ -22,6 +22,7 @@ export default function OnboardingImport() {
   const [positions, setPositions] = useState<{ id: string; position_code: string; position_title: string }[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
   const [showPositionSelector, setShowPositionSelector] = useState(false);
 
@@ -37,7 +38,7 @@ export default function OnboardingImport() {
         position: '',
         position_code: '',
         manager_email: '',
-        status: 'draft'
+        status: 'pending'
       }));
       setEmployees(emptyRows);
     }
@@ -69,6 +70,7 @@ export default function OnboardingImport() {
   const loadOrCreateSession = async () => {
     if (!userProfile?.company_id) return;
     
+    setSessionLoading(true);
     try {
       // Check for existing active session
       const { data: existingSessions, error: fetchError } = await supabase
@@ -119,6 +121,8 @@ export default function OnboardingImport() {
     } catch (error) {
       console.error('Error loading/creating session:', error);
       toast.error('Failed to initialize import session');
+    } finally {
+      setSessionLoading(false);
     }
   };
 
@@ -147,7 +151,7 @@ export default function OnboardingImport() {
           position: item.field_values?.position || item.current_position_code || '',
           position_code: item.field_values?.position_code || item.current_position_code || '',
           manager_email: item.field_values?.manager_email || '',
-          status: item.status === 'ready' ? 'ready' : 'draft',
+          status: item.status as Employee['status'],
           errorMessage: undefined
         }));
         setEmployees(loadedEmployees);
@@ -200,7 +204,7 @@ export default function OnboardingImport() {
         position: '',
         position_code: '',
         manager_email: '',
-        status: 'draft' as const
+        status: 'pending' as const
       }));
       setEmployees([...updatedEmployees, ...newEmptyRows]);
     }
@@ -593,7 +597,7 @@ export default function OnboardingImport() {
               onEmployeesChange={handleEmployeesChange}
               onRowDelete={handleRowDelete}
               onCellSave={saveCellNow}
-              isLoading={isImporting}
+              isLoading={isImporting || sessionLoading || !currentSessionId}
               saveStatus={saveStatus}
             />
           </SpreadsheetErrorBoundary>
