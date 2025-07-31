@@ -62,12 +62,11 @@ const POSITIONS_BY_DEPARTMENT: Record<string, string[]> = {
 };
 
 const COLUMNS = [
-  { key: 'name', label: 'Name', required: true, width: '200px', type: 'text' },
-  { key: 'email', label: 'Email', required: true, width: '250px', type: 'email' },
-  { key: 'department', label: 'Department', required: false, width: '180px', type: 'select' },
-  { key: 'position', label: 'Position', required: false, width: '220px', type: 'select' },
-  { key: 'position_code', label: 'Code', required: false, width: '100px', type: 'text' },
-  { key: 'manager_email', label: 'Manager Email', required: false, width: '200px', type: 'email' },
+  { key: 'name', label: 'Name', required: true, width: '250px', type: 'text' },
+  { key: 'email', label: 'Email', required: true, width: '300px', type: 'email' },
+  { key: 'department', label: 'Department', required: false, width: '200px', type: 'select' },
+  { key: 'position', label: 'Position', required: false, width: '250px', type: 'select' },
+  { key: 'position_code', label: 'Code', required: false, width: '120px', type: 'text' },
 ];
 
 export default function SpreadsheetGrid({
@@ -408,25 +407,46 @@ export default function SpreadsheetGrid({
           </span>
         </div>
         
-        <div className="flex items-center gap-2">
-          {saveStatus === 'saving' && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Saving...
-            </div>
-          )}
-          {saveStatus === 'saved' && (
-            <div className="flex items-center gap-1 text-xs text-green-600">
-              <Check className="h-3 w-3" />
-              Saved
-            </div>
-          )}
-          {saveStatus === 'error' && (
-            <div className="flex items-center gap-1 text-xs text-red-600">
-              <AlertCircle className="h-3 w-3" />
-              Error saving
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          {/* Auto-save status */}
+          <div className="flex items-center gap-2 text-xs">
+            {saveStatus === 'saving' && (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {saveStatus === 'saved' && (
+              <div className="flex items-center gap-1 text-green-600">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                <span>Auto-saved</span>
+              </div>
+            )}
+            {saveStatus === 'error' && (
+              <div className="flex items-center gap-1 text-red-600">
+                <AlertCircle className="h-3 w-3" />
+                <span>Error</span>
+              </div>
+            )}
+            {saveStatus === 'idle' && (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                <span>Auto-save</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Compact Add Row button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddRow}
+            disabled={isLoading}
+            className="h-8 px-3 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Row
+          </Button>
         </div>
       </div>
 
@@ -489,14 +509,12 @@ export default function SpreadsheetGrid({
                               value={editValue || ''}
                               onValueChange={(value) => {
                                 setEditValue(value);
-                                // Delay save to allow state update
-                                setTimeout(() => handleCellSave(), 10);
+                                // Don't save immediately, wait for dropdown to close
                               }}
-                              open={true}
                               onOpenChange={(open) => {
-                                if (!open) {
-                                  // Save when dropdown closes
-                                  setTimeout(() => handleCellSave(), 10);
+                                if (!open && editValue !== employee[column.key as keyof Employee]) {
+                                  // Save when dropdown closes if value changed
+                                  handleCellSave();
                                 }
                               }}
                             >
@@ -640,39 +658,28 @@ export default function SpreadsheetGrid({
         </div>
       </div>
 
-      {/* Add Row Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleAddRow}
-        disabled={isLoading}
-        className="w-full"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Add Row
-      </Button>
-
       {/* Help Text - Modern & Clean */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground bg-gray-50/50 rounded-lg px-4 py-3">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Click</kbd>
-            to edit
-          </span>
-          <span className="text-gray-300">•</span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Tab</kbd>
-            /
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Enter</kbd>
-            to navigate
-          </span>
-          <span className="text-gray-300">•</span>
-          <span>Paste from Excel supported</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span className="text-green-600">Auto-saves</span>
-        </div>
+      <div className="flex items-center gap-4 text-xs text-muted-foreground bg-gray-50/50 rounded-lg px-4 py-2.5">
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Click</kbd>
+          to edit
+        </span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Tab</kbd>
+          /
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">Enter</kbd>
+          to navigate
+        </span>
+        <span className="text-gray-300">•</span>
+        <span>Paste from Excel supported</span>
+        <span className="text-gray-300">•</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">⌘/Ctrl</kbd>
+          +
+          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-medium shadow-sm">V</kbd>
+          to paste
+        </span>
       </div>
     </div>
   );
