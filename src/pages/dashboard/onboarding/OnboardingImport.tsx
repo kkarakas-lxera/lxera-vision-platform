@@ -76,7 +76,7 @@ export default function OnboardingImport() {
         .select('id, active_position_id')
         .eq('company_id', userProfile.company_id)
         .eq('import_type', 'employee_onboarding')
-        .eq('status', 'draft')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -104,7 +104,7 @@ export default function OnboardingImport() {
             processed: 0,
             successful: 0,
             failed: 0,
-            status: 'draft',
+            status: 'pending',
             created_by: userProfile.id,
             spreadsheet_mode: true,
             checklist_state: {},
