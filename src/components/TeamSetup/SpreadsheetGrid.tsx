@@ -486,18 +486,27 @@ export default function SpreadsheetGrid({
                         {editingCell?.rowId === employee.id && editingCell?.column === column.key ? (
                           column.type === 'select' ? (
                             <Select
-                              value={editValue}
+                              value={editValue || ''}
                               onValueChange={(value) => {
                                 setEditValue(value);
-                                handleCellSave();
+                                // Delay save to allow state update
+                                setTimeout(() => handleCellSave(), 10);
                               }}
+                              open={true}
                               onOpenChange={(open) => {
                                 if (!open) {
-                                  handleCellSave();
+                                  // Save when dropdown closes
+                                  setTimeout(() => handleCellSave(), 10);
                                 }
                               }}
                             >
-                              <SelectTrigger className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500">
+                              <SelectTrigger 
+                                className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500"
+                                onBlur={() => {
+                                  // Additional safety for blur events
+                                  setTimeout(() => handleCellSave(), 10);
+                                }}
+                              >
                                 <SelectValue placeholder={`Select ${column.label}`} />
                               </SelectTrigger>
                               <SelectContent>
@@ -520,21 +529,28 @@ export default function SpreadsheetGrid({
                                 {column.key === 'position' && (
                                   employee.department ? (
                                     companyPositions && companyPositions.length > 0 ? (
-                                      companyPositions
-                                        .filter(p => !p.department || p.department === employee.department)
-                                        .filter(p => p.position_title && p.position_title.trim() !== '')
-                                        .map(pos => (
-                                          <SelectItem key={pos.id} value={pos.position_title}>
-                                            {pos.position_title}
-                                          </SelectItem>
-                                        ))
+                                      (() => {
+                                        const filteredPositions = companyPositions
+                                          .filter(p => !p.department || p.department === employee.department)
+                                          .filter(p => p.position_title && p.position_title.trim() !== '');
+                                        
+                                        return filteredPositions.length > 0 ? (
+                                          filteredPositions.map(pos => (
+                                            <SelectItem key={pos.id} value={pos.position_title}>
+                                              {pos.position_title}
+                                            </SelectItem>
+                                          ))
+                                        ) : (
+                                          <SelectItem value="no-positions" disabled>No positions for this department</SelectItem>
+                                        );
+                                      })()
                                     ) : (
                                       POSITIONS_BY_DEPARTMENT[employee.department]?.map(pos => (
                                         <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                                      )) || <SelectItem value="" disabled>No positions for this department</SelectItem>
+                                      )) || <SelectItem value="no-positions" disabled>No positions for this department</SelectItem>
                                     )
                                   ) : (
-                                    <SelectItem value="" disabled>Select department first</SelectItem>
+                                    <SelectItem value="select-dept" disabled>Select department first</SelectItem>
                                   )
                                 )}
                               </SelectContent>
@@ -558,7 +574,16 @@ export default function SpreadsheetGrid({
                               column.required && !employee[column.key as keyof Employee] && 
                               "border-b-2 border-gray-200"
                             )}
-                            onClick={() => handleCellClick(employee.id, column.key)}
+                            onClick={() => {
+                              // Save any pending changes before switching cells
+                              if (editingCell) {
+                                handleCellSave();
+                                // Small delay to let save complete
+                                setTimeout(() => handleCellClick(employee.id, column.key), 50);
+                              } else {
+                                handleCellClick(employee.id, column.key);
+                              }
+                            }}
                           >
                             <span className={cn(
                               "text-sm truncate",
