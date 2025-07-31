@@ -26,9 +26,9 @@ export default function OnboardingImport() {
   const [isImporting, setIsImporting] = useState(false);
   const [showPositionSelector, setShowPositionSelector] = useState(false);
 
-  // Initialize empty rows
+  // Initialize empty rows ONLY after session is ready
   useEffect(() => {
-    if (employees.length === 0) {
+    if (employees.length === 0 && currentSessionId && !sessionLoading) {
       // Start with 5 empty rows
       const emptyRows: Employee[] = Array.from({ length: 5 }, (_, i) => ({
         id: `new-${Date.now()}-${i}`,
@@ -42,7 +42,7 @@ export default function OnboardingImport() {
       }));
       setEmployees(emptyRows);
     }
-  }, []);
+  }, [currentSessionId, sessionLoading]);
 
   // Load positions and existing session on mount
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function OnboardingImport() {
   };
 
   const loadOrCreateSession = async () => {
-    if (!userProfile?.company_id) return;
+    if (!userProfile?.company_id || !userProfile?.id) return;
     
     setSessionLoading(true);
     try {
