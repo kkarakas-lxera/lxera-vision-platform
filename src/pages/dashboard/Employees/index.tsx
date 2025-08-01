@@ -374,7 +374,7 @@ const EmployeesPage = () => {
         description: "Import your first employees to start building your team directory.",
         ctaText: "Import Employees",
         ctaLink: "/dashboard/employees",
-        shouldBlur: true
+        shouldBlur: false // Don't blur when we're already on the employees page
       };
     }
     
@@ -491,10 +491,7 @@ const EmployeesPage = () => {
               const emptyStateConfig = getEmptyStateConfig();
               return (
                 <>
-                  <div className={cn(
-                    "space-y-6 transition-all duration-500",
-                    emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
-                  )}>
+                  <div className="space-y-6 transition-all duration-500">
                     {/* Overall Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Card>
@@ -886,15 +883,18 @@ const EmployeesPage = () => {
       </Card>
               </div>
 
-              {/* Empty State Overlay */}
-              {emptyStateConfig.shouldBlur && (
-                <EmptyStateOverlay
-                  icon={emptyStateConfig.icon}
-                  title={emptyStateConfig.title}
-                  description={emptyStateConfig.description}
-                  ctaText={emptyStateConfig.ctaText}
-                  ctaLink={emptyStateConfig.ctaLink}
-                />
+              {/* Empty State - Show inline message instead of overlay */}
+              {employees.length === 0 && positionsCount > 0 && (
+                <Card className="border-dashed">
+                  <CardContent className="text-center py-12">
+                    <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Employees Yet</h3>
+                    <p className="text-gray-600 mb-4">Switch to the Import tab to add your first employees.</p>
+                    <Button onClick={() => setActiveTab('import')}>
+                      Go to Import Tab
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </>
           );

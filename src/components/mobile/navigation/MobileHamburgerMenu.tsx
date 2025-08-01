@@ -165,7 +165,6 @@ const MobileHamburgerMenu: React.FC<MobileHamburgerMenuProps> = ({
             items: [
               { href: '/dashboard', icon: Home, label: 'Dashboard', description: 'Company overview' },
               { href: '/dashboard/positions', icon: Target, label: 'Positions', description: 'Job positions' },
-              { href: '/dashboard/employees?tab=import', icon: Upload, label: 'Add Team Members', description: 'Import employees' },
             ]
           },
           {

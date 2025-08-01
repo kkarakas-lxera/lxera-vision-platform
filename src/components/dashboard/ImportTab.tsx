@@ -255,9 +255,21 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       {/* Session Status */}
       {currentSessionId && sessionStats && (
         <SessionStatusCard
-          status="pending"
-          stats={sessionStats}
-          lastUpdated={lastSaved}
+          session={{
+            id: currentSessionId,
+            import_type: 'spreadsheet',
+            total_employees: sessionStats.total || 0,
+            processed: 0,
+            successful: sessionStats.ready || 0,
+            failed: sessionStats.errors || 0,
+            status: 'pending',
+            created_at: new Date().toISOString(),
+            active_position_id: selectedPosition,
+            session_metadata: {
+              position_title: positions.find(p => p.id === selectedPosition)?.position_title
+            }
+          }}
+          positionTitle={positions.find(p => p.id === selectedPosition)?.position_title}
         />
       )}
 

@@ -275,9 +275,9 @@ export default function AnalyzedEmployees() {
           Back to Overview
         </Button>
         <Button
-          onClick={() => navigate('/dashboard/employees?tab=analysis')}
+          onClick={() => navigate('/dashboard/employees?tab=import')}
         >
-          Analyze More Employees
+          Import More Employees
         </Button>
       </div>
     </div>
