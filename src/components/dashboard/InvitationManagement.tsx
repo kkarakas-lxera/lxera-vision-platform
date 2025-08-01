@@ -388,18 +388,6 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                   Import employees first to start sending invitations
                 </p>
               </div>
-            ) : invitationStats.notSent === employees.length ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to invite your team</h3>
-                <p className="text-sm text-gray-500 mb-6">
-                  You've added {employees.length} employee{employees.length > 1 ? 's' : ''} but haven't started inviting them yet
-                </p>
-                <Button onClick={sendAllInvitations} size="lg">
-                  <Send className="h-4 w-4 mr-2" />
-                  Invite All {employees.length} Employee{employees.length > 1 ? 's' : ''}
-                </Button>
-              </div>
             ) : eligibleForInvite.length === 0 && statusFilter === 'all' ? (
               <Alert>
                 <CheckCircle className="h-4 w-4" />
