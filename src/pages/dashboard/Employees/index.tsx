@@ -24,7 +24,8 @@ import {
   BarChart3,
   History,
   HelpCircle,
-  Undo2
+  Undo2,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -456,71 +457,112 @@ const EmployeesPage = () => {
       {/* Quick Actions - Compact horizontal strip */}
       <QuickActions context="employees" className="mb-6" />
 
-      {/* Enhanced Tabbed Interface */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0">
-        <div className="border-b border-gray-200 overflow-x-auto">
-          <TabsList className="h-auto p-0 bg-transparent border-0 flex gap-4 sm:gap-6 lg:gap-8 min-w-max px-1">
-            <TabsTrigger 
-              value="directory" 
-              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
-              data-tab="directory"
-            >
-              <Users className="h-4 w-4" />
-              <span className="font-medium">Directory</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="import" 
-              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
-              data-tab="import"
-            >
-              <Upload className="h-4 w-4" />
-              <span className="font-medium">Import</span>
-              {pendingImports > 0 && (
-                <Badge className="ml-1 h-5 px-1.5 text-xs bg-blue-100 text-blue-700 border-0">
-                  {pendingImports}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="invitations" 
-              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
-              data-tab="invitations"
-            >
-              <Send className="h-4 w-4" />
-              <span className="font-medium">Invitations</span>
-              {pendingInvites > 0 && (
-                <Badge className="ml-1 h-5 px-1.5 text-xs bg-green-100 text-green-700 border-0">
-                  {pendingInvites}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analysis" 
-              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
-              data-tab="analysis"
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span className="font-medium">Analysis</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="history" 
-              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
-              data-tab="history"
-            >
-              <History className="h-4 w-4" />
-              <span className="font-medium">History</span>
-            </TabsTrigger>
-          </TabsList>
+      {/* Nested Tab Interface with Visual Context */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <p className="text-sm text-gray-600 font-medium">Employee Management Sections</p>
         </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="">
+          <div className="px-4 bg-white">
+            <TabsList className="h-auto p-0 bg-transparent border-0 flex gap-1 -mb-px">
+              <TabsTrigger 
+                value="directory" 
+                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                data-tab="directory"
+              >
+                <Users className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
+                <span>Directory</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                      {employees.length}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{employees.length} total employees</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="import" 
+                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                data-tab="import"
+              >
+                <Upload className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
+                <span>Import</span>
+                {pendingImports > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge className="ml-1.5 h-5 px-1.5 text-xs bg-blue-100 text-blue-700 border-0">
+                        {pendingImports}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{pendingImports} pending imports</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="invitations" 
+                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                data-tab="invitations"
+              >
+                <Send className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
+                <span>Invitations</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant={pendingInvites > 0 ? "default" : "secondary"} className="ml-1.5 h-5 px-1.5 text-xs">
+                      {pendingInvites > 0 ? pendingInvites : employees.filter(e => e.invitation_status === 'sent').length}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{pendingInvites > 0 ? `${pendingInvites} unsent invitations` : `${employees.filter(e => e.invitation_status === 'sent').length} invitations sent`}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="analysis" 
+                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                data-tab="analysis"
+              >
+                <BarChart3 className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
+                <span>Analysis</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                      {employees.filter(e => e.skills_last_analyzed).length}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{employees.filter(e => e.skills_last_analyzed).length} employees analyzed</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="history" 
+                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                data-tab="history"
+              >
+                <History className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
+                <span>History</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Directory Tab - Existing Employee List */}
-        <TabsContent value="directory" className="space-y-4 mt-6">
-          <div className="relative">
-            {(() => {
-              const emptyStateConfig = getEmptyStateConfig();
-              return (
-                <>
-                  <div className="space-y-4 transition-all duration-500">
+          {/* Directory Tab - Existing Employee List */}
+          <TabsContent value="directory" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-4">
+            <div className="relative">
+              {(() => {
+                const emptyStateConfig = getEmptyStateConfig();
+                return (
+                  <>
+                    <div className="space-y-4 transition-all duration-500">
                     {/* Compact Stats Bar */}
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
@@ -574,96 +616,101 @@ const EmployeesPage = () => {
                       </div>
                     </div>
 
-      {/* Search and Actions */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search employees..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={positionFilter} onValueChange={setPositionFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="All Positions" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Positions</SelectItem>
-                {positions.map(pos => (
-                  <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {hasActiveFilters && (
-              <Button 
-                onClick={clearFilters} 
-                variant="outline" 
-                size="sm"
-                className="text-gray-600"
-              >
-                Clear filters
-              </Button>
-            )}
-            
-            {selectedEmployees.length > 0 && (
-              <Button onClick={handleGenerateCourses} size="sm">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Generate Courses ({selectedEmployees.length})
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+                      {/* Employee List Card */}
+                      <Card>
+                        <CardHeader className="border-b bg-white">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-base font-medium">Employee Directory</CardTitle>
+                              <CardDescription>{filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found</CardDescription>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setActiveTab('import')}
+                                className="text-xs"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {/* Add export functionality */}}
+                                className="text-xs"
+                              >
+                                <Download className="h-3 w-3 mr-1" />
+                                Export
+                              </Button>
+                              {selectedEmployees.length > 0 && (
+                                <Button onClick={handleGenerateCourses} size="sm" className="text-xs">
+                                  <BookOpen className="h-3 w-3 mr-1" />
+                                  Generate ({selectedEmployees.length})
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Unified Smart Search Bar */}
+                          <div className="mt-4">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                              <Input
+                                placeholder="Search by name, email, department, or position..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-32"
+                              />
+                              
+                              {/* Inline Filter Buttons */}
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                                  <SelectTrigger className="h-7 text-xs border-0 bg-gray-100 hover:bg-gray-200 w-auto">
+                                    <Building2 className="h-3 w-3 mr-1" />
+                                    <span className="hidden sm:inline">
+                                      {departmentFilter === 'all' ? 'Dept' : departmentFilter.substring(0, 8)}
+                                    </span>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Departments</SelectItem>
+                                    {departments.map(dept => (
+                                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                
+                                <Select value={positionFilter} onValueChange={setPositionFilter}>
+                                  <SelectTrigger className="h-7 text-xs border-0 bg-gray-100 hover:bg-gray-200 w-auto">
+                                    <Users className="h-3 w-3 mr-1" />
+                                    <span className="hidden sm:inline">
+                                      {positionFilter === 'all' ? 'Role' : positionFilter.substring(0, 8)}
+                                    </span>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Positions</SelectItem>
+                                    {positions.map(pos => (
+                                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                
+                                {hasActiveFilters && (
+                                  <Button 
+                                    onClick={clearFilters} 
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
 
-      {/* Employee List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-base font-medium">Employee List</CardTitle>
-            <CardDescription>{filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveTab('import')}
-              className="text-xs"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Employees
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {/* Add export functionality */}}
-              className="text-xs"
-            >
-              <Download className="h-3 w-3 mr-1" />
-              Export
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+                        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -898,9 +945,9 @@ const EmployeesPage = () => {
       </div>
     </TabsContent>
 
-    {/* Import Tab */}
-    <TabsContent value="import" className="space-y-6">
-      <ImportTab 
+        {/* Import Tab */}
+        <TabsContent value="import" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+          <ImportTab 
         userProfile={userProfile}
         onImportComplete={() => {
           fetchEmployees();
@@ -912,23 +959,23 @@ const EmployeesPage = () => {
             data: {}
           });
         }}
-      />
-    </TabsContent>
+        />
+        </TabsContent>
 
-    {/* Invitations Tab */}
-    <TabsContent value="invitations" className="space-y-6">
-      <InvitationManagement 
+        {/* Invitations Tab */}
+        <TabsContent value="invitations" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+          <InvitationManagement 
         employees={employees}
         onInvitationsSent={() => {
           fetchEmployees();
           fetchPendingCounts();
         }}
-      />
-    </TabsContent>
+        />
+        </TabsContent>
 
-    {/* Analysis Tab */}
-    <TabsContent value="analysis" className="space-y-6">
-      <SkillsGapAnalysis 
+        {/* Analysis Tab */}
+        <TabsContent value="analysis" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+          <SkillsGapAnalysis 
         employees={employees.map(e => ({
           id: e.id,
           name: e.full_name,
@@ -938,12 +985,12 @@ const EmployeesPage = () => {
           skills_analysis: e.gap_analysis_completed_at ? 'completed' : 'pending',
           gap_score: e.skills_match_score
         }))}
-      />
-    </TabsContent>
+        />
+        </TabsContent>
 
-    {/* History Tab */}
-    <TabsContent value="history" className="space-y-6">
-      <BatchHistory 
+        {/* History Tab */}
+        <TabsContent value="history" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+          <BatchHistory 
         companyId={userProfile?.company_id || ''}
         onRestore={(sessionId) => {
           fetchEmployees();
@@ -954,9 +1001,10 @@ const EmployeesPage = () => {
             data: { sessionId }
           });
         }}
-      />
-    </TabsContent>
-  </Tabs>
+        />
+        </TabsContent>
+      </Tabs>
+    </div>
 
       {/* Modals */}
 
