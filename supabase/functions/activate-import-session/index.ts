@@ -36,13 +36,13 @@ serve(async (req) => {
       throw new Error('Not authenticated')
     }
 
-    const { data: profile } = await supabaseClient
-      .from('profiles')
+    const { data: userData } = await supabaseClient
+      .from('users')
       .select('company_id')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.company_id) {
+    if (!userData?.company_id) {
       throw new Error('No company found for user')
     }
 
@@ -54,7 +54,7 @@ serve(async (req) => {
         st_import_session_items!inner(*)
       `)
       .eq('id', sessionId)
-      .eq('company_id', profile.company_id)
+      .eq('company_id', userData.company_id)
       .single()
 
     if (sessionError || !session) {
@@ -125,7 +125,7 @@ serve(async (req) => {
           .from('employees')
           .upsert({
             user_id: userId,
-            company_id: profile.company_id,
+            company_id: userData.company_id,
             email: item.employee_email,
             full_name: item.employee_name || item.employee_email.split('@')[0],
             department: item.field_values?.department || 'General',

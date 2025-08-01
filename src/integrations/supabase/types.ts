@@ -3489,6 +3489,13 @@ export type Database = {
           sent_at: string | null
           updated_at: string | null
           viewed_at: string | null
+          resend_email_id: string | null
+          email_opened_at: string | null
+          email_opened_count: number | null
+          email_clicked_at: string | null
+          email_clicked_count: number | null
+          email_clicks: Json | null
+          email_tracking_data: Json | null
         }
         Insert: {
           completed_at?: string | null
@@ -3502,6 +3509,13 @@ export type Database = {
           sent_at?: string | null
           updated_at?: string | null
           viewed_at?: string | null
+          resend_email_id?: string | null
+          email_opened_at?: string | null
+          email_opened_count?: number | null
+          email_clicked_at?: string | null
+          email_clicked_count?: number | null
+          email_clicks?: Json | null
+          email_tracking_data?: Json | null
         }
         Update: {
           completed_at?: string | null
@@ -3515,6 +3529,13 @@ export type Database = {
           sent_at?: string | null
           updated_at?: string | null
           viewed_at?: string | null
+          resend_email_id?: string | null
+          email_opened_at?: string | null
+          email_opened_count?: number | null
+          email_clicked_at?: string | null
+          email_clicked_count?: number | null
+          email_clicks?: Json | null
+          email_tracking_data?: Json | null
         }
         Relationships: [
           {
