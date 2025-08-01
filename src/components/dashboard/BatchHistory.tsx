@@ -46,6 +46,9 @@ interface ImportSession {
       name: string;
       email: string;
       is_active: boolean;
+      status: string;
+      error_message?: string;
+      data_source: 'created_employee' | 'import_attempt' | 'none';
     }>;
   };
 }
@@ -140,12 +143,12 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
 
   const handleViewDetails = async (session: ImportSession) => {
     try {
-      // Try to fetch detailed employee information for this session
-      // First check if import_session_id field exists, otherwise use alternative method
-      let employees: any[] = [];
+      // Fetch both successful employees and failed import attempts
+      let allEmployeeData: any[] = [];
       
+      // First, get successfully created employees
       try {
-        const { data, error } = await supabase
+        const { data: employees, error: employeesError } = await supabase
           .from('employees')
           .select(`
             id, 
@@ -154,66 +157,109 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
           `)
           .eq('import_session_id', session.id);
 
-        if (error) {
-          // If the query fails due to missing column, try alternative approach
-          if (error.message?.includes('import_session_id') || error.code === '42703') {
-            console.warn('import_session_id column not found, using alternative method');
+        if (employeesError) {
+          // If import_session_id column doesn't exist, try alternative approach
+          if (employeesError.message?.includes('import_session_id') || employeesError.code === '42703') {
+            console.warn('import_session_id column not found, using alternative method for employees');
             
-            // Get employees created by this session from session items
+            // Get employees via session items lookup
             const { data: sessionItems, error: itemsError } = await supabase
               .from('st_import_session_items')
               .select(`
                 employee_id,
-                employee_name,
-                employee_email,
                 employees!inner(id, is_active, users!inner(full_name, email))
               `)
               .eq('import_session_id', session.id)
               .not('employee_id', 'is', null);
 
-            if (itemsError) throw itemsError;
-            
-            employees = sessionItems?.map(item => ({
-              id: item.employees?.id || item.employee_id,
-              name: item.employees?.users?.full_name || item.employee_name,
-              email: item.employees?.users?.email || item.employee_email,
-              is_active: item.employees?.is_active ?? true
-            })) || [];
+            if (!itemsError && sessionItems) {
+              const successfulEmployees = sessionItems.map(item => ({
+                id: item.employees?.id || item.employee_id,
+                name: item.employees?.users?.full_name || 'Unknown',
+                email: item.employees?.users?.email || 'Unknown',
+                is_active: item.employees?.is_active ?? true,
+                status: item.employees?.is_active ? 'active' : 'inactive',
+                data_source: 'created_employee'
+              }));
+              allEmployeeData.push(...successfulEmployees);
+            }
           } else {
-            throw error;
+            throw employeesError;
           }
         } else {
-          employees = (data || []).map(emp => ({
+          // Successfully got employees directly
+          const successfulEmployees = (employees || []).map(emp => ({
             id: emp.id,
             name: emp.users?.full_name || 'Unknown',
             email: emp.users?.email || 'No email',
-            is_active: emp.is_active
+            is_active: emp.is_active,
+            status: emp.is_active ? 'active' : 'inactive',
+            data_source: 'created_employee'
           }));
+          allEmployeeData.push(...successfulEmployees);
         }
-      } catch (queryError) {
-        console.error('Failed to fetch employees, showing session items only:', queryError);
-        
-        // Fallback: show session items data
+      } catch (employeesQueryError) {
+        console.warn('Failed to fetch employees:', employeesQueryError);
+      }
+
+      // Second, get all import attempts (including failed ones)
+      try {
         const { data: sessionItems, error: itemsError } = await supabase
           .from('st_import_session_items')
-          .select('id, employee_name, employee_email, status')
+          .select(`
+            id,
+            employee_name,
+            employee_email,
+            status,
+            error_message,
+            employee_id
+          `)
           .eq('import_session_id', session.id);
 
         if (itemsError) throw itemsError;
         
-        employees = sessionItems?.map(item => ({
+        // Add failed import attempts and any items not already covered by successful employees
+        const existingEmails = new Set(allEmployeeData.map(emp => emp.email));
+        
+        const importAttempts = (sessionItems || []).map(item => ({
           id: item.id,
           name: item.employee_name || 'Unknown',
           email: item.employee_email || 'Unknown',
-          is_active: item.status === 'completed'
-        })) || [];
+          is_active: item.status === 'completed' && item.employee_id !== null,
+          status: item.status === 'failed' ? 'failed' : 
+                  item.status === 'completed' && item.employee_id !== null ? 'completed' : 
+                  item.status || 'pending',
+          error_message: item.error_message,
+          data_source: 'import_attempt'
+        }));
+
+        // Add failed attempts and any missing successful attempts
+        importAttempts.forEach(attempt => {
+          if (attempt.status === 'failed' || !existingEmails.has(attempt.email)) {
+            allEmployeeData.push(attempt);
+          }
+        });
+      } catch (itemsQueryError) {
+        console.warn('Failed to fetch import session items:', itemsQueryError);
       }
 
-      // Update the session with batch details
+      // If we still have no data, show a message
+      if (allEmployeeData.length === 0) {
+        allEmployeeData = [{
+          id: 'no-data',
+          name: 'No data available',
+          email: 'Check session logs for details',
+          is_active: false,
+          status: 'unknown',
+          data_source: 'none'
+        }];
+      }
+
+      // Update the session with combined batch details
       const sessionWithDetails = {
         ...session,
         batch_details: {
-          added_employees: employees
+          added_employees: allEmployeeData
         }
       };
 
@@ -408,6 +454,23 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                 ? `Imported ${formatDistanceToNow(new Date(selectedSession.created_at), { addSuffix: true })}`
                 : 'Import details'
               }
+              {selectedSession?.batch_details?.added_employees && (
+                <div className="mt-2 text-sm">
+                  {(() => {
+                    const employees = selectedSession.batch_details.added_employees;
+                    const successful = employees.filter(e => e.data_source === 'created_employee').length;
+                    const failed = employees.filter(e => e.status === 'failed').length;
+                    const pending = employees.filter(e => e.status === 'pending').length;
+                    
+                    const parts = [];
+                    if (successful > 0) parts.push(`${successful} created`);
+                    if (failed > 0) parts.push(`${failed} failed`);
+                    if (pending > 0) parts.push(`${pending} pending`);
+                    
+                    return parts.length > 0 ? parts.join(', ') : 'No items found';
+                  })()}
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="max-h-96 overflow-y-auto">
@@ -417,6 +480,7 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -425,16 +489,39 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                     <TableCell>{emp.name}</TableCell>
                     <TableCell>{emp.email}</TableCell>
                     <TableCell>
-                      {emp.is_active ? (
+                      {emp.status === 'active' ? (
                         <Badge variant="default">Active</Badge>
-                      ) : (
+                      ) : emp.status === 'inactive' ? (
                         <Badge variant="secondary">Inactive</Badge>
+                      ) : emp.status === 'failed' ? (
+                        <Badge variant="destructive">Failed</Badge>
+                      ) : emp.status === 'completed' ? (
+                        <Badge variant="default">Created</Badge>
+                      ) : emp.status === 'pending' ? (
+                        <Badge variant="outline">Pending</Badge>
+                      ) : (
+                        <Badge variant="outline">{emp.status}</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {emp.error_message ? (
+                        <span className="text-sm text-red-600" title={emp.error_message}>
+                          {emp.error_message.length > 30 
+                            ? `${emp.error_message.substring(0, 30)}...` 
+                            : emp.error_message}
+                        </span>
+                      ) : emp.data_source === 'created_employee' ? (
+                        <span className="text-sm text-green-600">Successfully created</span>
+                      ) : emp.data_source === 'import_attempt' && emp.status === 'completed' ? (
+                        <span className="text-sm text-blue-600">Import completed</span>
+                      ) : (
+                        <span className="text-sm text-gray-500">-</span>
                       )}
                     </TableCell>
                   </TableRow>
                 )) || (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-gray-500">
+                    <TableCell colSpan={4} className="text-center text-gray-500">
                       No employee details available
                     </TableCell>
                   </TableRow>

@@ -109,22 +109,80 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   const checkExistingSession = async () => {
     try {
-      const { data, error } = await supabase
+      // Enhanced logic to find the most suitable session to resume
+      // Priority order:
+      // 1. Pending spreadsheet sessions with items
+      // 2. Pending spreadsheet sessions (even if empty, but recent)
+      // 3. Failed sessions with recoverable data (completed within last 24 hours)
+      const { data: sessions, error } = await supabase
         .from('st_import_sessions')
         .select('*, st_import_session_items(*)')
         .eq('company_id', userProfile.company_id)
-        .eq('status', 'pending')
         .eq('spreadsheet_mode', true)
+        .in('status', ['pending', 'failed'])
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(5);
 
-      if (data && !error) {
-        setCurrentSessionId(data.id);
-        setSessionCreatedAt(data.created_at);
+      if (error) {
+        console.error('Error fetching sessions:', error);
+        return;
+      }
+
+      let selectedSession = null;
+
+      if (sessions && sessions.length > 0) {
+        // Find the best session to resume
+        for (const session of sessions) {
+          const hasItems = session.st_import_session_items && session.st_import_session_items.length > 0;
+          const isRecent = new Date(session.created_at).getTime() > Date.now() - (24 * 60 * 60 * 1000); // within 24 hours
+          
+          if (session.status === 'pending') {
+            // Prioritize pending sessions with items, or recent empty ones
+            if (hasItems || isRecent) {
+              selectedSession = session;
+              break;
+            }
+          } else if (session.status === 'failed' && hasItems && isRecent) {
+            // Allow recovery from recent failed sessions with data
+            selectedSession = session;
+            
+            // Update the failed session status back to pending for recovery
+            await supabase
+              .from('st_import_sessions')
+              .update({ 
+                status: 'pending',
+                last_active: new Date().toISOString()
+              })
+              .eq('id', session.id);
+            
+            console.log(`Recovered failed session ${session.id} for continuation`);
+            break;
+          }
+        }
+
+        // Clean up very old empty pending sessions (older than 7 days)
+        const cutoffDate = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+        const oldEmptySessions = sessions.filter(s => 
+          s.status === 'pending' && 
+          (!s.st_import_session_items || s.st_import_session_items.length === 0) &&
+          s.created_at < cutoffDate
+        );
+
+        for (const oldSession of oldEmptySessions) {
+          await supabase
+            .from('st_import_sessions')
+            .update({ status: 'failed', completed_at: new Date().toISOString() })
+            .eq('id', oldSession.id);
+          console.log(`Cleaned up old empty session ${oldSession.id}`);
+        }
+      }
+
+      if (selectedSession) {
+        setCurrentSessionId(selectedSession.id);
+        setSessionCreatedAt(selectedSession.created_at);
         
         // Load existing items
-        const existingEmployees = data.st_import_session_items.map((item: any) => ({
+        const existingEmployees = selectedSession.st_import_session_items.map((item: any) => ({
           id: item.id,
           name: item.employee_name || '',
           email: item.employee_email || '',
@@ -158,13 +216,12 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         
         // Update session stats
         setSessionStats({
-          total: data.st_import_session_items.length,
-          ready: data.st_import_session_items.filter((i: any) => i.status === 'completed').length,
-          errors: data.st_import_session_items.filter((i: any) => i.status === 'failed').length
+          total: selectedSession.st_import_session_items.length,
+          ready: selectedSession.st_import_session_items.filter((i: any) => i.status === 'completed').length,
+          errors: selectedSession.st_import_session_items.filter((i: any) => i.status === 'failed').length
         });
-      } else if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "no rows found", which is expected when no session exists
-        console.error('Unexpected error checking existing session:', error);
+
+        console.log(`Resumed session ${selectedSession.id} with ${existingEmployees.length} items`);
       }
     } catch (error) {
       console.error('Error checking existing session:', error);
@@ -233,13 +290,25 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   const handleActivateEmployees = async () => {
     if (!currentSessionId) {
-      toast.error('No active import session');
-      return;
+      // Try to create a session if none exists but we have employee data
+      const employeesWithContent = spreadsheetEmployees.filter(e => e.name?.trim() || e.email?.trim());
+      if (employeesWithContent.length > 0) {
+        try {
+          const sessionId = await createImportSession();
+          console.log('Created new session for activation:', sessionId);
+        } catch (error) {
+          toast.error('Failed to create import session. Please try again.');
+          return;
+        }
+      } else {
+        toast.error('No active import session. Please add employee data first.');
+        return;
+      }
     }
 
     const readyEmployees = spreadsheetEmployees.filter(e => e.status === 'ready');
     if (readyEmployees.length === 0) {
-      toast.error('No employees are ready to be activated');
+      toast.error('No employees are ready to be activated. Please ensure all required fields are filled.');
       return;
     }
 
@@ -255,7 +324,17 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
       if (error) {
         console.error('Edge function error:', error);
-        throw new Error(error.message || 'Failed to activate employees');
+        // Try to provide more specific error messages
+        const errorMessage = error.message || 'Failed to activate employees';
+        if (errorMessage.includes('No session found')) {
+          toast.error('Import session not found. Please refresh the page and try again.');
+          // Reset session state to force recreation
+          setCurrentSessionId(null);
+          await checkExistingSession();
+        } else {
+          toast.error(errorMessage);
+        }
+        return;
       }
 
       console.log('Activation result:', data);
@@ -277,8 +356,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       } else {
         const failedCount = data?.failedCount || 0;
         const message = failedCount > 0 
-          ? `Activation completed with ${failedCount} failures. Please check for errors and try again.`
-          : 'No employees were activated. Please check for errors and try again.';
+          ? `Activation completed with ${failedCount} failures. Please check for missing required fields and try again.`
+          : 'No employees were activated. Please ensure all employees have complete information.';
         
         toast.error(message);
         
@@ -288,7 +367,15 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     } catch (error) {
       console.error('Error activating employees:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to activate employees';
-      toast.error(errorMessage);
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else if (errorMessage.includes('timeout')) {
+        toast.error('Request timed out. Please try again in a moment.');
+      } else {
+        toast.error(`Activation failed: ${errorMessage}`);
+      }
       
       // Refresh session to show any updated states
       await checkExistingSession();
