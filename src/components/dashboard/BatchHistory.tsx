@@ -40,7 +40,7 @@ interface ImportSession {
   spreadsheet_mode: boolean;
   created_by_name: string;
   current_active_employees: number;
-  batch_details: {
+  batch_details?: {
     added_employees: Array<{
       id: string;
       name: string;
@@ -66,20 +66,73 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
   const fetchImportHistory = async () => {
     setLoading(true);
     try {
+      // Get import sessions with user names and employee counts
       const { data, error } = await supabase
         .from('st_import_sessions')
-        .select('*')
+        .select(`
+          *,
+          users!created_by(full_name)
+        `)
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setSessions(data || []);
+
+      // Transform the data to include created_by_name and calculate current_active_employees
+      const sessionsWithDetails = await Promise.all(
+        (data || []).map(async (session) => {
+          // Get current active employees count for this session
+          const { count: activeCount } = await supabase
+            .from('employees')
+            .select('*', { count: 'exact', head: true })
+            .eq('import_session_id', session.id)
+            .eq('is_active', true);
+
+          return {
+            ...session,
+            created_by_name: session.users?.full_name || 'Unknown User',
+            current_active_employees: activeCount || 0
+          };
+        })
+      );
+
+      setSessions(sessionsWithDetails);
     } catch (error) {
       console.error('Error fetching import history:', error);
       toast.error('Failed to load import history');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (session: ImportSession) => {
+    try {
+      // Fetch detailed employee information for this session
+      const { data: employees, error } = await supabase
+        .from('employees')
+        .select('id, name, email, is_active')
+        .eq('import_session_id', session.id);
+
+      if (error) {
+        console.error('Error fetching session details:', error);
+        toast.error('Failed to load session details');
+        return;
+      }
+
+      // Update the session with batch details
+      const sessionWithDetails = {
+        ...session,
+        batch_details: {
+          added_employees: employees || []
+        }
+      };
+
+      setSelectedSession(sessionWithDetails);
+      setShowDetails(true);
+    } catch (error) {
+      console.error('Error loading session details:', error);
+      toast.error('Failed to load session details');
     }
   };
 
@@ -191,10 +244,7 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              setSelectedSession(session);
-                              setShowDetails(true);
-                            }}
+                            onClick={() => handleViewDetails(session)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -243,7 +293,7 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {selectedSession?.batch_details.added_employees.map((emp) => (
+                {selectedSession?.batch_details?.added_employees?.map((emp) => (
                   <TableRow key={emp.id}>
                     <TableCell>{emp.name}</TableCell>
                     <TableCell>{emp.email}</TableCell>
@@ -255,7 +305,13 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                )) || (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-gray-500">
+                      No employee details available
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
