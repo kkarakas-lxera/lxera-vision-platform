@@ -860,21 +860,30 @@ const EmployeesPage = () => {
                     <Users className="h-8 w-8 text-gray-400" />
                   </div>
                   <h3 className="text-base font-medium text-gray-900 mb-1">No employees found</h3>
-                  <p className="text-sm text-gray-500 max-w-sm">
+                  <p className="text-sm text-gray-500 max-w-sm mb-4">
                     {hasActiveFilters 
                       ? 'Try adjusting your filters or search terms.' 
                       : 'Get started by adding your first employee.'}
                   </p>
-                  {hasActiveFilters && (
-                    <Button 
-                      onClick={clearFilters} 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-4"
-                    >
-                      Clear filters
-                    </Button>
-                  )}
+                  <div className="flex gap-2 justify-center">
+                    {hasActiveFilters && (
+                      <Button 
+                        onClick={clearFilters} 
+                        variant="outline" 
+                        size="sm"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                    {!hasActiveFilters && employees.length === 0 && (
+                      <Button 
+                        onClick={() => setActiveTab('import')}
+                        size="sm"
+                      >
+                        Go to Import Tab
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -883,19 +892,6 @@ const EmployeesPage = () => {
       </Card>
               </div>
 
-              {/* Empty State - Show inline message instead of overlay */}
-              {employees.length === 0 && positionsCount > 0 && (
-                <Card className="border-dashed">
-                  <CardContent className="text-center py-12">
-                    <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Employees Yet</h3>
-                    <p className="text-gray-600 mb-4">Switch to the Import tab to add your first employees.</p>
-                    <Button onClick={() => setActiveTab('import')}>
-                      Go to Import Tab
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
             </>
           );
         })()}
