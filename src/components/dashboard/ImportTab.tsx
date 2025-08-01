@@ -91,12 +91,12 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         // Load existing items
         const existingEmployees = data.st_import_session_items.map((item: any) => ({
           id: item.id,
-          name: item.employee_name,
-          email: item.employee_email,
-          department: item.department || '',
-          position: item.position || '',
-          position_code: item.position_code || '',
-          manager_email: item.manager_email || '',
+          name: item.employee_name || '',
+          email: item.employee_email || '',
+          department: item.field_values?.department || '',
+          position: item.field_values?.position || '',
+          position_code: item.current_position_code || '',
+          manager_email: item.field_values?.manager_email || '',
           status: item.status as any
         }));
         

@@ -57,15 +57,17 @@ export function useAutoSaveEmployees(
       // Prepare batch upsert data
       const itemsToUpsert = employees.map(emp => ({
         id: emp.id.startsWith('temp-') || emp.id.startsWith('new-') ? undefined : emp.id,
-        session_id: sessionId,
+        import_session_id: sessionId,
         employee_name: emp.name,
         employee_email: emp.email,
-        department: emp.department || null,
-        position: emp.position || null,
-        position_code: emp.position_code || null,
-        manager_email: emp.manager_email || null,
+        current_position_code: emp.position_code || null,
         status: emp.status,
-        error_message: emp.errorMessage || null
+        error_message: emp.errorMessage || null,
+        field_values: {
+          department: emp.department || null,
+          position: emp.position || null,
+          manager_email: emp.manager_email || null
+        }
       }));
 
       // Filter out items without required fields or any content
@@ -79,7 +81,7 @@ export function useAutoSaveEmployees(
         const { error: deleteError } = await supabase
           .from('st_import_session_items')
           .delete()
-          .eq('session_id', sessionId);
+          .eq('import_session_id', sessionId);
 
         if (deleteError) {
           console.error('Delete error:', deleteError);
