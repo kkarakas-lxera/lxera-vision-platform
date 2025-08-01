@@ -69,7 +69,6 @@ serve(async (req) => {
         profile_invitations!inner(
           invitation_token,
           sent_at,
-          expires_at,
           reminder_count,
           last_reminder_at
         )
@@ -78,7 +77,7 @@ serve(async (req) => {
 
     if (employeesError) throw employeesError
 
-    console.log(`Found ${employeeData?.length || 0} employees to remind`)
+    console.log(`Found ${employeeData?.length || 0} employees to reinvite`)
 
     // Transform data to match expected format
     const employees = employeeData?.map(emp => ({
@@ -88,7 +87,6 @@ serve(async (req) => {
       user_id: emp.users.id,
       invitation_token: emp.profile_invitations[0]?.invitation_token,
       sent_at: emp.profile_invitations[0]?.sent_at,
-      expires_at: emp.profile_invitations[0]?.expires_at,
       reminder_count: emp.profile_invitations[0]?.reminder_count || 0,
       last_reminder_at: emp.profile_invitations[0]?.last_reminder_at
     })) || []
@@ -98,45 +96,33 @@ serve(async (req) => {
 
     for (const employee of employees) {
       try {
-        // Check if invitation has expired
-        if (employee.expires_at && new Date(employee.expires_at) < new Date()) {
-          throw new Error('Invitation has expired. Please send a new invitation.')
-        }
-
-        // Check rate limiting - no more than 3 reminders per invitation
-        if (employee.reminder_count >= 3) {
-          throw new Error('Maximum reminder limit reached. Please send a new invitation.')
-        }
-
-        // Check time since last reminder - at least 24 hours
-        if (employee.last_reminder_at) {
-          const hoursSinceLastReminder = (Date.now() - new Date(employee.last_reminder_at).getTime()) / (1000 * 60 * 60)
-          if (hoursSinceLastReminder < 24) {
-            throw new Error('Please wait 24 hours between reminders.')
-          }
-        }
-
-        // Calculate days until expiration
-        const daysUntilExpiration = employee.expires_at 
-          ? Math.ceil((new Date(employee.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-          : 30
-
-        // Update reminder count and last reminder timestamp
+        // Generate new invitation token for reinvite
+        const newInvitationToken = crypto.randomUUID()
+        
+        // Update invitation with new token and reset reminder count
         const { error: updateError } = await supabaseAdmin
           .from('profile_invitations')
           .update({
-            reminder_count: employee.reminder_count + 1,
-            last_reminder_at: new Date().toISOString()
+            invitation_token: newInvitationToken,
+            sent_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+            reminder_count: 0,
+            last_reminder_at: null
           })
           .eq('employee_id', employee.id)
 
         if (updateError) throw updateError
 
-        // Send reminder email via Resend SDK
+        // Calculate days since first invitation
+        const daysSinceSent = employee.sent_at 
+          ? Math.floor((Date.now() - new Date(employee.sent_at).getTime()) / (1000 * 60 * 60 * 24))
+          : 0
+
+        // Send reinvite email via Resend SDK
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: 'LXERA Team <hello@lxera.ai>',
           to: employee.email,
-          subject: `⏰ Reminder: Complete your profile at ${company.name}`,
+          subject: `🔄 New invitation: Complete your profile at ${company.name}`,
           html: `
             <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #EFEFE3 0%, rgba(122, 229, 198, 0.1) 50%, #EFEFE3 100%); padding: 40px 20px;">
@@ -149,49 +135,42 @@ serve(async (req) => {
                   
                   <!-- Content -->
                   <div style="padding: 40px;">
-                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Quick Reminder: Complete Your Profile</h1>
+                    <h1 style="font-size: 28px; font-weight: 700; color: #191919; margin: 0 0 20px; text-align: center;">Your Profile is Still Waiting!</h1>
                     <p style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.6;">
-                      Hi ${employee.full_name}, just a friendly reminder to complete your profile.
+                      Hi ${employee.full_name}, we noticed you haven't completed your profile yet.
                     </p>
                     
-                    <div style="background: #FFF4E6; border: 1px solid #FFD6A5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                      <p style="color: #E07C24; font-size: 15px; margin: 0; line-height: 1.6; font-weight: 500;">
-                        ⚠️ Your invitation expires in ${daysUntilExpiration} days
-                      </p>
-                      <p style="color: #666; font-size: 14px; margin: 10px 0 0; line-height: 1.6;">
-                        After that, you'll need to request a new invitation from your HR team.
+                    <div style="background: #EFEFE3; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                      <p style="color: #191919; font-size: 15px; margin: 0; line-height: 1.6;">
+                        We've generated a fresh invitation link for you. Your previous link has expired after ${daysSinceSent} days. 
+                        Don't worry - you can start right where you left off!
                       </p>
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="${siteUrl}/signup/invitation?token=${employee.invitation_token}" 
+                      <a href="${siteUrl}/signup/invitation?token=${newInvitationToken}" 
                          style="display: inline-block; background: #191919; color: white; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                        Complete Profile (5 min)
+                        Complete My Profile Now
                       </a>
+                      <p style="margin-top: 15px; color: #999; font-size: 14px;">⏱️ This new link expires in 30 days</p>
                     </div>
 
-                    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                      <h3 style="color: #191919; font-size: 16px; margin: 0 0 15px;">What's waiting for you:</h3>
-                      <ul style="list-style: none; padding: 0; margin: 0;">
-                        <li style="padding: 8px 0; color: #666; font-size: 14px;">
-                          ✅ Personalized skills assessment
-                        </li>
-                        <li style="padding: 8px 0; color: #666; font-size: 14px;">
-                          ✅ Custom learning recommendations
-                        </li>
-                        <li style="padding: 8px 0; color: #666; font-size: 14px;">
-                          ✅ Career development insights
-                        </li>
-                      </ul>
-                    </div>
+                    <h3 style="color: #191919; margin-top: 40px;">Why complete your profile?</h3>
+                    <ul style="list-style: none; padding: 0; margin: 20px 0;">
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        🎯 Get personalized learning recommendations
+                      </li>
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        📊 Track your skills and career progress
+                      </li>
+                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
+                        🚀 Access tailored courses and development paths
+                      </li>
+                    </ul>
                     
                     <div style="background: #7AE5C6; color: #191919; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0; font-size: 14px;">
-                      💬 Need help? Reply to this email or contact your HR team.
+                      💡 Pro tip: It only takes 5-10 minutes to complete your profile!
                     </div>
-
-                    <p style="text-align: center; color: #999; font-size: 12px; margin: 20px 0;">
-                      This is reminder ${employee.reminder_count + 1} of 3. We won't send more than 3 reminders.
-                    </p>
                   </div>
                   
                   <!-- Footer -->
@@ -212,10 +191,9 @@ serve(async (req) => {
             </div>
           `,
           tags: [
-            { name: 'category', value: 'profile_reminder' },
+            { name: 'category', value: 'profile_reinvite' },
             { name: 'company_id', value: company_id },
-            { name: 'employee_id', value: employee.id },
-            { name: 'reminder_number', value: (employee.reminder_count + 1).toString() }
+            { name: 'employee_id', value: employee.id }
           ]
         })
 
@@ -224,7 +202,7 @@ serve(async (req) => {
           throw new Error(`Email sending failed: ${emailError.message}`)
         }
 
-        console.log(`Reminder email sent successfully to ${employee.email} with ID: ${emailData?.id}`)
+        console.log(`Reinvite email sent successfully to ${employee.email} with ID: ${emailData?.id}`)
 
         // Store the Resend email ID for webhook tracking
         if (emailData?.id) {
@@ -244,11 +222,10 @@ serve(async (req) => {
           employee_id: employee.id,
           email: employee.email,
           success: true,
-          resend_email_id: emailData?.id,
-          reminder_count: employee.reminder_count + 1
+          resend_email_id: emailData?.id
         })
       } catch (error) {
-        console.error(`Failed to send reminder to ${employee.email}:`, error)
+        console.error(`Failed to send reinvite to ${employee.email}:`, error)
         errors.push({
           employee_id: employee.id,
           email: employee.email,
@@ -271,7 +248,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in send-profile-reminder:', error)
+    console.error('Error in send-profile-reinvite:', error)
     return new Response(
       JSON.stringify({ 
         error: error.message,

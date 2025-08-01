@@ -299,10 +299,25 @@ const EmployeesPage = () => {
         .select('*')
         .in('employee_id', employeeIds);
       
+      // Fetch profile section data
+      const { data: profileSectionsData } = await supabase
+        .from('employee_profile_sections')
+        .select('employee_id, section_name, is_complete, completed_at, updated_at')
+        .in('employee_id', employeeIds);
+      
       // Map invitation data to employees
       const invitationMap = new Map(
         (invitationsData || []).map(inv => [inv.employee_id, inv])
       );
+      
+      // Map profile sections data
+      const profileSectionsMap = new Map();
+      (profileSectionsData || []).forEach(section => {
+        if (!profileSectionsMap.has(section.employee_id)) {
+          profileSectionsMap.set(section.employee_id, []);
+        }
+        profileSectionsMap.get(section.employee_id).push(section);
+      });
       
       const employeesWithInvitations = (data || []).map(emp => {
         const invitation = invitationMap.get(emp.id);
@@ -314,6 +329,27 @@ const EmployeesPage = () => {
           else if (invitation.sent_at) invitationStatus = 'sent';
         }
         
+        // Calculate profile completion from sections
+        const sections = profileSectionsMap.get(emp.id) || [];
+        const profileSectionNames = ['basic_info', 'work_experience', 'education', 'skills', 'certifications', 'languages', 'projects'];
+        const completedSections = sections.filter(s => s.is_complete && profileSectionNames.includes(s.section_name)).length;
+        const totalSections = profileSectionNames.length;
+        
+        // Get the most recent profile update
+        const lastProfileUpdate = sections
+          .filter(s => profileSectionNames.includes(s.section_name))
+          .map(s => s.updated_at)
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+        
+        // Build section details
+        const sectionDetails = {
+          work_experience: sections.some(s => s.section_name === 'work_experience' && s.is_complete),
+          education: sections.some(s => s.section_name === 'education' && s.is_complete),
+          current_work: sections.some(s => s.section_name === 'current_work' && s.is_complete),
+          daily_tasks: sections.some(s => s.section_name === 'daily_tasks' && s.is_complete),
+          tools_technologies: sections.some(s => s.section_name === 'tools_technologies' && s.is_complete)
+        };
+        
         return {
           ...emp,
           invitation_status: invitationStatus,
@@ -322,7 +358,12 @@ const EmployeesPage = () => {
           email_opened_count: invitation?.email_opened_count || 0,
           email_clicked_at: invitation?.email_clicked_at,
           email_clicked_count: invitation?.email_clicked_count || 0,
-          email_clicks: invitation?.email_clicks || []
+          email_clicks: invitation?.email_clicks || [],
+          profile_complete: emp.profile_complete || (completedSections === totalSections),
+          completed_sections: completedSections,
+          total_sections: totalSections,
+          last_profile_update: lastProfileUpdate,
+          section_details: sectionDetails
         };
       });
       
@@ -354,20 +395,69 @@ const EmployeesPage = () => {
 
   const handleDeleteEmployee = async (employeeId: string) => {
     try {
+      // Actually delete the employee record instead of just deactivating
       const { error } = await supabase
         .from('employees')
-        .update({ is_active: false })
+        .delete()
         .eq('id', employeeId);
 
       if (error) throw error;
 
-      toast.success('Employee deactivated successfully');
+      toast.success('Employee deleted successfully');
       fetchEmployees();
     } catch (error) {
-      console.error('Error deactivating employee:', error);
-      toast.error('Failed to deactivate employee');
+      console.error('Error deleting employee:', error);
+      toast.error('Failed to delete employee');
     } finally {
       setEmployeeToDelete(null);
+    }
+  };
+
+  const handleReinvite = async (employeeIds: string[]) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-profile-reinvite', {
+        body: { 
+          employee_ids: employeeIds,
+          company_id: userProfile?.company_id 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Reinvited ${data.sent} employee${data.sent !== 1 ? 's' : ''}`);
+        if (data.failed > 0) {
+          toast.warning(`Failed to reinvite ${data.failed} employee${data.failed !== 1 ? 's' : ''}`);
+        }
+        fetchEmployees();
+      }
+    } catch (error) {
+      console.error('Error reinviting employees:', error);
+      toast.error('Failed to send reinvitations');
+    }
+  };
+
+  const handleReminder = async (employeeIds: string[]) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-profile-reminder', {
+        body: { 
+          employee_ids: employeeIds,
+          company_id: userProfile?.company_id 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Sent reminder to ${data.sent} employee${data.sent !== 1 ? 's' : ''}`);
+        if (data.failed > 0) {
+          toast.warning(`Failed to remind ${data.failed} employee${data.failed !== 1 ? 's' : ''}. ${data.errors?.[0]?.error || ''}`);
+        }
+        fetchEmployees();
+      }
+    } catch (error) {
+      console.error('Error sending reminders:', error);
+      toast.error('Failed to send reminders');
     }
   };
 
@@ -826,11 +916,47 @@ const EmployeesPage = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => {
-                        // Send invitations/reminders logic
-                        toast.success(`Sending invitations to ${selectedEmployees.length} employees`);
+                        const eligibleEmployees = selectedEmployees.filter(id => {
+                          const emp = employees.find(e => e.id === id);
+                          return emp?.invitation_status === 'sent' || emp?.invitation_status === 'viewed';
+                        });
+                        if (eligibleEmployees.length > 0) {
+                          handleReminder(eligibleEmployees);
+                        } else {
+                          toast.error('No employees eligible for reminders');
+                        }
+                      }}>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Send Reminders
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const notInvitedEmployees = selectedEmployees.filter(id => {
+                          const emp = employees.find(e => e.id === id);
+                          return !emp?.invitation_status || emp?.invitation_status === 'not_sent';
+                        });
+                        if (notInvitedEmployees.length > 0) {
+                          // This would call a send initial invitation function
+                          toast.info('Initial invitation feature coming soon');
+                        } else {
+                          toast.error('All selected employees have already been invited');
+                        }
                       }}>
                         <Send className="h-4 w-4 mr-2" />
-                        Send Invitations/Reminders
+                        Send Initial Invitations
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const expiredEmployees = selectedEmployees.filter(id => {
+                          const emp = employees.find(e => e.id === id);
+                          return emp?.invitation_status === 'sent' || emp?.invitation_status === 'viewed';
+                        });
+                        if (expiredEmployees.length > 0) {
+                          handleReinvite(expiredEmployees);
+                        } else {
+                          toast.error('No employees need reinvitation');
+                        }
+                      }}>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Reinvite Selected
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleGenerateCourses}>
                         <BookOpen className="h-4 w-4 mr-2" />
@@ -839,13 +965,22 @@ const EmployeesPage = () => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="text-red-600"
-                        onClick={() => {
-                          toast.success(`Deactivating ${selectedEmployees.length} employees`);
-                          setSelectedEmployees([]);
+                        onClick={async () => {
+                          if (confirm(`Are you sure you want to delete ${selectedEmployees.length} employees? This action cannot be undone.`)) {
+                            try {
+                              for (const employeeId of selectedEmployees) {
+                                await handleDeleteEmployee(employeeId);
+                              }
+                              toast.success(`Deleted ${selectedEmployees.length} employees`);
+                              setSelectedEmployees([]);
+                            } catch (error) {
+                              toast.error('Failed to delete some employees');
+                            }
+                          }
                         }}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Deactivate Selected
+                        Delete Selected
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -1105,7 +1240,17 @@ const EmployeesPage = () => {
                         ) : employee.cv_file_path ? (
                           <span className="text-sm text-gray-500">Analyzing...</span>
                         ) : (
-                          <span className="text-sm text-gray-400">-</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-flex items-center gap-1.5 text-gray-400">
+                                <AlertCircle className="h-4 w-4" />
+                                <span className="text-sm">No data</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Upload CV and complete profile to see skills match</p>
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </td>
                       <td className="p-4 text-right">
@@ -1119,7 +1264,7 @@ const EmployeesPage = () => {
                                   className="h-7 px-2 text-xs"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toast.success('Reminder sent to ' + employee.full_name);
+                                    handleReminder([employee.id]);
                                   }}
                                 >
                                   <RefreshCw className="h-3 w-3 mr-1" />
@@ -1156,7 +1301,7 @@ const EmployeesPage = () => {
                                   <DropdownMenuItem
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      toast.success('Reminder sent to ' + employee.full_name);
+                                      handleReminder([employee.id]);
                                     }}
                                   >
                                     <RefreshCw className="mr-2 h-4 w-4" />
@@ -1165,7 +1310,7 @@ const EmployeesPage = () => {
                                   <DropdownMenuItem
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      toast.success('New invitation sent to ' + employee.full_name);
+                                      handleReinvite([employee.id]);
                                     }}
                                   >
                                     <Mail className="mr-2 h-4 w-4" />
@@ -1192,7 +1337,7 @@ const EmployeesPage = () => {
                                 }}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Deactivate
+                                Delete Employee
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1325,15 +1470,18 @@ const EmployeesPage = () => {
       <AlertDialog open={!!employeeToDelete} onOpenChange={() => setEmployeeToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Employee?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate the employee. They will no longer have access to the system, but their data will be preserved.
+              This action cannot be undone. This will permanently delete the employee and all associated data including their profile, skills analysis, and course assignments.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => employeeToDelete && handleDeleteEmployee(employeeToDelete)}>
-              Deactivate
+            <AlertDialogAction 
+              onClick={() => employeeToDelete && handleDeleteEmployee(employeeToDelete)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Employee
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
