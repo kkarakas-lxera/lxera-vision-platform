@@ -158,21 +158,44 @@ const EmployeesPage = () => {
       
       setPendingImports(sessions?.length || 0);
 
-      // Get pending invitations
-      const { data: invites } = await supabase
-        .from('profile_invitations')
-        .select('id, employee_id')
-        .is('completed_at', null);
-      
-      if (invites) {
-        const employeeIds = invites.map(inv => inv.employee_id);
-        const { data: companyEmployees } = await supabase
-          .from('employees')
-          .select('id')
-          .eq('company_id', userProfile.company_id)
-          .in('id', employeeIds);
+      // Get employees waiting for invitations (same logic as main employee fetch)
+      const { data } = await supabase
+        .from('v_company_employees')
+        .select('*')
+        .eq('company_id', userProfile.company_id);
+
+      if (data) {
+        // Fetch invitation data
+        const employeeIds = data.map(emp => emp.id);
+        const { data: invitationsData } = await supabase
+          .from('profile_invitations')
+          .select('*')
+          .in('employee_id', employeeIds);
         
-        setPendingInvites(companyEmployees?.length || 0);
+        // Map invitation data to employees (same logic as fetchEmployees)
+        const invitationMap = new Map(
+          (invitationsData || []).map(inv => [inv.employee_id, inv])
+        );
+        
+        const employeesWithInvitations = data.map(emp => {
+          const invitation = invitationMap.get(emp.id);
+          let invitationStatus: 'not_sent' | 'sent' | 'viewed' | 'completed' = 'not_sent';
+          
+          if (invitation) {
+            if (invitation.completed_at) invitationStatus = 'completed';
+            else if (invitation.viewed_at) invitationStatus = 'viewed';
+            else if (invitation.sent_at) invitationStatus = 'sent';
+          }
+          
+          return { ...emp, invitation_status: invitationStatus };
+        });
+        
+        // Count employees that are eligible for invitations (not_sent or sent)
+        const pendingCount = employeesWithInvitations.filter(emp => 
+          emp.invitation_status === 'not_sent' || emp.invitation_status === 'sent'
+        ).length;
+        
+        setPendingInvites(pendingCount);
       }
     } catch (error) {
       console.error('Error fetching pending counts:', error);
