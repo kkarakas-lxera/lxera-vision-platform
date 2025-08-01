@@ -26,11 +26,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Send, Mail, CheckCircle, Eye, RefreshCw, Users, AlertTriangle, Clock, ArrowRight, Filter, RotateCw } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Send, Mail, CheckCircle, Eye, RefreshCw, Users, AlertTriangle, Clock, ArrowRight, Filter, RotateCw, MoreVertical, X, MousePointer, History } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 interface Employee {
   id: string;
@@ -62,6 +71,7 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
   const [sending, setSending] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'not_sent' | 'sent' | 'viewed' | 'completed'>('all');
   const [sendingReminders, setSendingReminders] = useState<string[]>([]);
+  const [showReminderBanner, setShowReminderBanner] = useState(true);
   const [invitationStats, setInvitationStats] = useState({
     notSent: 0,
     sent: 0,
@@ -183,33 +193,50 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
     switch (status) {
       case 'completed':
         return (
-          <Badge className="bg-green-100 text-green-800 border-green-300">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Completed
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-medium text-green-700">Completed</span>
+          </div>
         );
       case 'viewed':
         return (
-          <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-            <Eye className="h-3 w-3 mr-1" />
-            Viewed
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Eye className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">Viewed</span>
+          </div>
         );
       case 'sent':
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-            <Mail className="h-3 w-3 mr-1" />
-            Sent
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Mail className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-700">Sent</span>
+          </div>
         );
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-300">
-            <Clock className="h-3 w-3 mr-1" />
-            Not Sent
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-600">Not Sent</span>
+          </div>
         );
     }
+  };
+
+  // Get the right action button text based on selected employees
+  const getActionButtonText = () => {
+    if (selectedEmployees.length === 0) return 'Select employees';
+    
+    const selectedStatuses = selectedEmployees.map(id => 
+      employees.find(e => e.id === id)?.invitation_status || 'not_sent'
+    );
+    
+    const hasViewed = selectedStatuses.includes('viewed');
+    const hasSent = selectedStatuses.includes('sent');
+    
+    if (hasViewed || hasSent) {
+      return `Send Reminder${selectedEmployees.length > 1 ? 's' : ''}`;
+    }
+    return `Send Invitation${selectedEmployees.length > 1 ? 's' : ''}`;
   };
 
   const completionRate = Math.round((invitationStats.completed / employees.length) * 100) || 0;
@@ -222,7 +249,10 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
           <Tooltip>
             <TooltipTrigger asChild>
               <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow" 
+                className={cn(
+                  "cursor-pointer hover:shadow-md transition-all duration-200 border-2",
+                  statusFilter === 'not_sent' ? "border-gray-400 shadow-md" : "border-transparent"
+                )}
                 onClick={() => setStatusFilter('not_sent')}
               >
                 <CardContent className="p-4">
@@ -231,9 +261,18 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                       <div className="p-2 bg-gray-100 rounded-lg">
                         <Users className="h-5 w-5 text-gray-600" />
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-600">Not Invited</p>
-                        <p className="text-2xl font-bold">{invitationStats.notSent}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold">{invitationStats.notSent}</p>
+                          <span className="text-sm text-gray-500">/ {employees.length}</span>
+                        </div>
+                        {employees.length > 0 && (
+                          <Progress 
+                            value={(invitationStats.notSent / employees.length) * 100} 
+                            className="h-1 w-20" 
+                          />
+                        )}
                       </div>
                     </div>
                     {invitationStats.notSent > 0 && (
@@ -251,7 +290,10 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
           <Tooltip>
             <TooltipTrigger asChild>
               <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow" 
+                className={cn(
+                  "cursor-pointer hover:shadow-md transition-all duration-200 border-2",
+                  statusFilter === 'sent' ? "border-yellow-400 shadow-md" : "border-transparent"
+                )}
                 onClick={() => setStatusFilter('sent')}
               >
                 <CardContent className="p-4">
@@ -260,9 +302,18 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                       <div className="p-2 bg-yellow-100 rounded-lg">
                         <Send className="h-5 w-5 text-yellow-600" />
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-600">Sent</p>
-                        <p className="text-2xl font-bold">{invitationStats.sent}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold">{invitationStats.sent}</p>
+                          <span className="text-sm text-gray-500">/ {employees.length}</span>
+                        </div>
+                        {employees.length > 0 && (
+                          <Progress 
+                            value={(invitationStats.sent / employees.length) * 100} 
+                            className="h-1 w-20" 
+                          />
+                        )}
                       </div>
                     </div>
                     {invitationStats.sent > 0 && (
@@ -280,7 +331,10 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
           <Tooltip>
             <TooltipTrigger asChild>
               <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow" 
+                className={cn(
+                  "cursor-pointer hover:shadow-md transition-all duration-200 border-2",
+                  statusFilter === 'viewed' ? "border-blue-400 shadow-md" : "border-transparent"
+                )}
                 onClick={() => setStatusFilter('viewed')}
               >
                 <CardContent className="p-4">
@@ -289,9 +343,18 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                       <div className="p-2 bg-blue-100 rounded-lg">
                         <Eye className="h-5 w-5 text-blue-600" />
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-600">Viewed</p>
-                        <p className="text-2xl font-bold">{invitationStats.viewed}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold">{invitationStats.viewed}</p>
+                          <span className="text-sm text-gray-500">/ {employees.length}</span>
+                        </div>
+                        {employees.length > 0 && (
+                          <Progress 
+                            value={(invitationStats.viewed / employees.length) * 100} 
+                            className="h-1 w-20" 
+                          />
+                        )}
                       </div>
                     </div>
                     {invitationStats.viewed > 0 && (
@@ -309,7 +372,10 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
           <Tooltip>
             <TooltipTrigger asChild>
               <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow" 
+                className={cn(
+                  "cursor-pointer hover:shadow-md transition-all duration-200 border-2",
+                  statusFilter === 'completed' ? "border-green-400 shadow-md" : "border-transparent"
+                )}
                 onClick={() => setStatusFilter('completed')}
               >
                 <CardContent className="p-4">
@@ -318,16 +384,17 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                       <div className="p-2 bg-green-100 rounded-lg">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-600">Completed</p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold">{invitationStats.completed}</p>
-                          {employees.length > 0 && (
-                            <span className="text-sm text-gray-500">/ {employees.length}</span>
-                          )}
+                          <span className="text-sm text-gray-500">/ {employees.length}</span>
                         </div>
-                        {invitationStats.completed > 0 && (
-                          <Progress value={completionRate} className="h-1 mt-1" />
+                        {employees.length > 0 && (
+                          <Progress 
+                            value={completionRate} 
+                            className="h-1 w-20" 
+                          />
                         )}
                       </div>
                     </div>
@@ -345,17 +412,26 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
         </div>
 
         {/* Reminder Alert for Viewed but Not Completed */}
-        {viewedButNotCompleted.length > 0 && (
-          <Alert className="bg-blue-50 border-blue-200">
+        {viewedButNotCompleted.length > 0 && showReminderBanner && (
+          <Alert className="bg-blue-50 border-blue-200 relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-6 w-6"
+              onClick={() => setShowReminderBanner(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
             <RotateCw className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
+            <AlertDescription className="flex items-center justify-between pr-8">
               <span>
-                {viewedButNotCompleted.length} employee{viewedButNotCompleted.length > 1 ? 's' : ''} viewed but haven't completed their profile
+                <strong>{viewedButNotCompleted.length}</strong> employee{viewedButNotCompleted.length > 1 ? 's' : ''} viewed but haven't completed their profile
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setStatusFilter('viewed')}
+                className="ml-4"
               >
                 View & Send Reminders
               </Button>
@@ -410,29 +486,38 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                 No employees found with status: {statusFilter.replace('_', ' ')}
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Action Bar */}
-                {statusFilter !== 'completed' && eligibleForInvite.length > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <Checkbox
-                        checked={selectedEmployees.length === eligibleForInvite.length && eligibleForInvite.length > 0}
-                        onCheckedChange={handleSelectAll}
-                      />
-                      <span className="text-sm font-medium">
-                        {selectedEmployees.length > 0 
-                          ? `${selectedEmployees.length} selected`
-                          : 'Select all'
-                        }
-                      </span>
+              <div className="space-y-4 relative">
+                {/* Sticky Bulk Action Bar */}
+                {selectedEmployees.length > 0 && (
+                  <div className="sticky top-0 z-10 bg-white border rounded-lg shadow-lg p-4 mb-4 animate-in slide-in-from-top-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          checked={selectedEmployees.length === eligibleForInvite.length && eligibleForInvite.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                        <span className="text-sm font-medium">
+                          {selectedEmployees.length} employee{selectedEmployees.length > 1 ? 's' : ''} selected
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedEmployees([])}
+                        >
+                          Clear selection
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={sendInvitations}
+                          disabled={sending}
+                          className="min-w-[140px]"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {getActionButtonText()} ({selectedEmployees.length})
+                        </Button>
+                      </div>
                     </div>
-                    <Button
-                      onClick={sendInvitations}
-                      disabled={selectedEmployees.length === 0 || sending}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Send {selectedEmployees.length > 0 && `(${selectedEmployees.length})`} Invitation{selectedEmployees.length !== 1 ? 's' : ''}
-                    </Button>
                   </div>
                 )}
                 
@@ -450,12 +535,10 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                             )}
                           </TableHead>
                         )}
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Position</TableHead>
+                        <TableHead className="min-w-[250px]">Employee</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Email Tracking</TableHead>
-                        <TableHead>Last Activity</TableHead>
-                        {statusFilter === 'viewed' && <TableHead>Actions</TableHead>}
+                        <TableHead colSpan={2} className="text-center">Engagement</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -464,102 +547,131 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                           (employee.invitation_status === 'not_sent' || employee.invitation_status === 'sent' || !employee.invitation_status);
                         
                         return (
-                          <TableRow key={employee.id}>
+                          <TableRow 
+                            key={employee.id}
+                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
                             {statusFilter !== 'completed' && (
                               <TableCell>
                                 {canSelect && (
                                   <Checkbox
                                     checked={selectedEmployees.includes(employee.id)}
                                     onCheckedChange={(checked) => handleSelectEmployee(employee.id, !!checked)}
+                                    onClick={(e) => e.stopPropagation()}
                                   />
                                 )}
                               </TableCell>
                             )}
                             <TableCell>
-                              <div>
-                                <p className="font-medium">{employee.full_name}</p>
+                              <div className="space-y-1">
+                                <p className="font-medium text-gray-900">{employee.full_name}</p>
                                 <p className="text-sm text-gray-500">{employee.email}</p>
+                                {employee.position && (
+                                  <p className="text-xs text-gray-400">{employee.position}</p>
+                                )}
                               </div>
                             </TableCell>
-                            <TableCell>{employee.position || '-'}</TableCell>
                             <TableCell>{getStatusBadge(employee.invitation_status || 'not_sent')}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="space-y-1">
                                 {employee.email_opened_count > 0 && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <div className="flex items-center gap-1 text-sm">
+                                      <div className="flex items-center justify-center gap-1 text-sm">
                                         <Eye className="h-3 w-3 text-blue-600" />
                                         <span className="text-gray-600">
-                                          Opened {employee.email_opened_count}x
+                                          {employee.email_opened_count}x
                                         </span>
                                       </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      First opened {employee.email_opened_at 
-                                        ? formatDistanceToNow(new Date(employee.email_opened_at), { addSuffix: true })
-                                        : 'recently'}
+                                      <p>Email opened {employee.email_opened_count} time{employee.email_opened_count > 1 ? 's' : ''}</p>
+                                      <p className="text-xs text-gray-500">
+                                        First: {employee.email_opened_at 
+                                          ? formatDistanceToNow(new Date(employee.email_opened_at), { addSuffix: true })
+                                          : 'recently'}
+                                      </p>
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
                                 {employee.email_clicked_count > 0 && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <div className="flex items-center gap-1 text-sm">
-                                        <CheckCircle className="h-3 w-3 text-green-600" />
+                                      <div className="flex items-center justify-center gap-1 text-sm">
+                                        <MousePointer className="h-3 w-3 text-green-600" />
                                         <span className="text-gray-600">
-                                          Clicked {employee.email_clicked_count}x
+                                          {employee.email_clicked_count}x
                                         </span>
                                       </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <div className="space-y-1 max-w-xs">
-                                        <p className="font-medium">Click History:</p>
-                                        {employee.email_clicks?.slice(-3).map((click, idx) => (
-                                          <div key={idx} className="text-xs text-gray-600">
-                                            {new Date(click.timestamp).toLocaleString()}
-                                          </div>
-                                        ))}
-                                      </div>
+                                      <p>Invitation link clicked {employee.email_clicked_count} time{employee.email_clicked_count > 1 ? 's' : ''}</p>
+                                      <p className="text-xs text-gray-500 mt-1">No profile started yet</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
                                 {employee.invitation_status === 'sent' && 
                                  employee.email_opened_count === 0 && (
-                                  <span className="text-sm text-gray-400">Not opened yet</span>
+                                  <span className="text-xs text-gray-400">Not opened</span>
                                 )}
                                 {employee.invitation_status === 'not_sent' && (
-                                  <span className="text-sm text-gray-400">-</span>
+                                  <span className="text-xs text-gray-400">-</span>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              {employee.invitation_sent_at
-                                ? formatDistanceToNow(new Date(employee.invitation_sent_at), { addSuffix: true })
-                                : '-'}
-                            </TableCell>
-                            {statusFilter === 'viewed' && (
-                              <TableCell>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => sendReminder(employee.id)}
-                                  disabled={sendingReminders.includes(employee.id)}
-                                >
-                                  {sendingReminders.includes(employee.id) ? (
-                                    <>
-                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                      Sending...
-                                    </>
+                            <TableCell className="text-center">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-sm text-gray-500 cursor-help">
+                                    {employee.invitation_sent_at
+                                      ? formatDistanceToNow(new Date(employee.invitation_sent_at), { addSuffix: true })
+                                      : '-'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {employee.invitation_sent_at ? (
+                                    <p>Sent on {new Date(employee.invitation_sent_at).toLocaleString()}</p>
                                   ) : (
-                                    <>
-                                      <RotateCw className="h-3 w-3 mr-1" />
-                                      Send Reminder
-                                    </>
+                                    <p>No invitation sent yet</p>
                                   )}
-                                </Button>
-                              </TableCell>
-                            )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  {employee.invitation_status === 'viewed' && (
+                                    <DropdownMenuItem 
+                                      onClick={() => sendReminder(employee.id)}
+                                      disabled={sendingReminders.includes(employee.id)}
+                                    >
+                                      <RotateCw className="h-4 w-4 mr-2" />
+                                      Send Reminder
+                                    </DropdownMenuItem>
+                                  )}
+                                  {(employee.invitation_status === 'sent' || employee.invitation_status === 'viewed') && (
+                                    <DropdownMenuItem 
+                                      onClick={() => sendReminder(employee.id)}
+                                      disabled={sendingReminders.includes(employee.id)}
+                                    >
+                                      <Mail className="h-4 w-4 mr-2" />
+                                      Resend Invitation
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem>
+                                    <History className="h-4 w-4 mr-2" />
+                                    View Timeline
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
