@@ -572,58 +572,6 @@ const EmployeesPage = () => {
                 return (
                   <>
                     <div className="space-y-4 transition-all duration-500">
-                    {/* Compact Stats Bar */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-semibold text-gray-900">{employees.length}</span>
-                            <span className="text-gray-600">Total</span>
-                            <span className="text-gray-500 text-xs hidden sm:inline">({employees.filter(e => e.is_active).length} active)</span>
-                          </div>
-                        </div>
-                        
-                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
-                        
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-semibold text-gray-900">{employees.filter(e => e.cv_file_path).length}</span>
-                            <span className="text-gray-600">CVs</span>
-                            <span className="text-gray-500 text-xs">
-                              ({employees.length > 0 ? Math.round((employees.filter(e => e.cv_file_path).length / employees.length) * 100) : 0}%)
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
-                        
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-semibold text-gray-900">{employees.filter(e => e.skills_last_analyzed).length}</span>
-                            <span className="text-gray-600">Analyzed</span>
-                            <span className="text-gray-500 text-xs">
-                              ({employees.length > 0 ? Math.round((employees.filter(e => e.skills_last_analyzed).length / employees.length) * 100) : 0}%)
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
-                        
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-semibold text-gray-900">{employees.filter(e => e.profile_complete).length}</span>
-                            <span className="text-gray-600">Complete</span>
-                            <span className="text-gray-500 text-xs hidden sm:inline">
-                              ({employees.filter(e => e.completed_sections && e.completed_sections > 0 && !e.profile_complete).length} in progress)
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
                       {/* Employee List Card */}
                       <Card>
