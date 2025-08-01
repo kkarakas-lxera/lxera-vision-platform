@@ -67,7 +67,7 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('v_import_session_history')
+        .from('st_import_sessions')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
@@ -165,7 +165,10 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
                   {sessions.map((session) => (
                     <TableRow key={session.id}>
                       <TableCell>
-                        {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                        {session.created_at 
+                          ? formatDistanceToNow(new Date(session.created_at), { addSuffix: true })
+                          : '-'
+                        }
                       </TableCell>
                       <TableCell>{session.created_by_name || 'Unknown'}</TableCell>
                       <TableCell>
@@ -224,7 +227,10 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Batch Details</AlertDialogTitle>
             <AlertDialogDescription>
-              Imported {formatDistanceToNow(new Date(selectedSession?.created_at || ''), { addSuffix: true })}
+              {selectedSession?.created_at 
+                ? `Imported ${formatDistanceToNow(new Date(selectedSession.created_at), { addSuffix: true })}`
+                : 'Import details'
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="max-h-96 overflow-y-auto">

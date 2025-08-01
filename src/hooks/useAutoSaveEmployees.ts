@@ -76,16 +76,20 @@ export function useAutoSaveEmployees(
 
       if (validItems.length > 0) {
         // Delete existing items for this session first
-        await supabase
+        const { error: deleteError } = await supabase
           .from('st_import_session_items')
           .delete()
           .eq('session_id', sessionId);
+
+        if (deleteError) {
+          console.error('Delete error:', deleteError);
+        }
 
         // Insert all items
         const { data, error } = await supabase
           .from('st_import_session_items')
           .insert(validItems)
-          .select();
+          .select('*');
 
         if (error) throw error;
 
