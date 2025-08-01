@@ -208,10 +208,25 @@ serve(async (req) => {
 
         console.log(`Email sent successfully to ${employee.email} with ID: ${emailData?.id}`)
 
+        // Store the Resend email ID for webhook tracking
+        if (emailData?.id) {
+          const { error: trackingError } = await supabaseAdmin
+            .from('profile_invitations')
+            .update({
+              resend_email_id: emailData.id
+            })
+            .eq('employee_id', employee.id)
+
+          if (trackingError) {
+            console.error('Failed to store email ID for tracking:', trackingError)
+          }
+        }
+
         results.push({
           employee_id: employee.id,
           email: employee.email,
-          success: true
+          success: true,
+          resend_email_id: emailData?.id
         })
       } catch (error) {
         console.error(`Failed to send invitation to ${employee.email}:`, error)

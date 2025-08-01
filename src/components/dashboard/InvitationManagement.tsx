@@ -39,6 +39,16 @@ interface Employee {
   position?: string | null;
   invitation_status?: 'not_sent' | 'sent' | 'viewed' | 'completed';
   invitation_sent_at?: string | null;
+  email_opened_at?: string | null;
+  email_opened_count?: number;
+  email_clicked_at?: string | null;
+  email_clicked_count?: number;
+  email_clicks?: Array<{
+    link: string;
+    timestamp: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }>;
 }
 
 interface InvitationManagementProps {
@@ -443,6 +453,7 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                         <TableHead>Employee</TableHead>
                         <TableHead>Position</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Email Tracking</TableHead>
                         <TableHead>Last Activity</TableHead>
                         {statusFilter === 'viewed' && <TableHead>Actions</TableHead>}
                       </TableRow>
@@ -472,6 +483,56 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                             </TableCell>
                             <TableCell>{employee.position || '-'}</TableCell>
                             <TableCell>{getStatusBadge(employee.invitation_status || 'not_sent')}</TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                {employee.email_opened_count > 0 && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-1 text-sm">
+                                        <Eye className="h-3 w-3 text-blue-600" />
+                                        <span className="text-gray-600">
+                                          Opened {employee.email_opened_count}x
+                                        </span>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      First opened {employee.email_opened_at 
+                                        ? formatDistanceToNow(new Date(employee.email_opened_at), { addSuffix: true })
+                                        : 'recently'}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                                {employee.email_clicked_count > 0 && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-1 text-sm">
+                                        <CheckCircle className="h-3 w-3 text-green-600" />
+                                        <span className="text-gray-600">
+                                          Clicked {employee.email_clicked_count}x
+                                        </span>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <div className="space-y-1 max-w-xs">
+                                        <p className="font-medium">Click History:</p>
+                                        {employee.email_clicks?.slice(-3).map((click, idx) => (
+                                          <div key={idx} className="text-xs text-gray-600">
+                                            {new Date(click.timestamp).toLocaleString()}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                                {employee.invitation_status === 'sent' && 
+                                 employee.email_opened_count === 0 && (
+                                  <span className="text-sm text-gray-400">Not opened yet</span>
+                                )}
+                                {employee.invitation_status === 'not_sent' && (
+                                  <span className="text-sm text-gray-400">-</span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>
                               {employee.invitation_sent_at
                                 ? formatDistanceToNow(new Date(employee.invitation_sent_at), { addSuffix: true })

@@ -89,6 +89,16 @@ interface Employee {
   gap_analysis_completed_at: string | null;
   invitation_status?: 'not_sent' | 'sent' | 'viewed' | 'completed';
   invitation_sent_at?: string | null;
+  email_opened_at?: string | null;
+  email_opened_count?: number;
+  email_clicked_at?: string | null;
+  email_clicked_count?: number;
+  email_clicks?: Array<{
+    link: string;
+    timestamp: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }>;
   profile_complete?: boolean;
   completed_sections?: number;
   total_sections?: number;
@@ -296,7 +306,12 @@ const EmployeesPage = () => {
         return {
           ...emp,
           invitation_status: invitationStatus,
-          invitation_sent_at: invitation?.sent_at
+          invitation_sent_at: invitation?.sent_at,
+          email_opened_at: invitation?.email_opened_at,
+          email_opened_count: invitation?.email_opened_count || 0,
+          email_clicked_at: invitation?.email_clicked_at,
+          email_clicked_count: invitation?.email_clicked_count || 0,
+          email_clicks: invitation?.email_clicks || []
         };
       });
       
@@ -712,9 +727,9 @@ const EmployeesPage = () => {
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Employee</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Department</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Position</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Completion</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Invitation</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">CV Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Status</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Skills Analysis</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Actions</th>
                 </tr>
