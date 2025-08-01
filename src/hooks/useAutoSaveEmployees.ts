@@ -68,9 +68,10 @@ export function useAutoSaveEmployees(
         error_message: emp.errorMessage || null
       }));
 
-      // Filter out items without required fields
+      // Filter out items without required fields or any content
       const validItems = itemsToUpsert.filter(item => 
-        item.employee_name && item.employee_email
+        (item.employee_name?.trim() || item.employee_email?.trim()) && // At least one field has content
+        item.employee_name && item.employee_email // Both required fields must be present
       );
 
       if (validItems.length > 0) {

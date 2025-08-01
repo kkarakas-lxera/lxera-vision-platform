@@ -137,7 +137,13 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     }
   };
 
-  const handleAddRow = () => {
+  const handleAddRow = async () => {
+    // Create session if it doesn't exist
+    let sessionId = currentSessionId;
+    if (!sessionId) {
+      sessionId = await createImportSession();
+    }
+    
     const newEmployee: SpreadsheetEmployee = {
       id: `temp-${Date.now()}-${Math.random()}`,
       name: '',
@@ -207,21 +213,23 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     }
   };
 
-  const readyCount = spreadsheetEmployees.filter(e => e.status === 'ready').length;
-  const errorCount = spreadsheetEmployees.filter(e => e.status === 'error').length;
+  // Only count employees that have at least name or email filled
+  const employeesWithContent = spreadsheetEmployees.filter(e => e.name?.trim() || e.email?.trim());
+  const readyCount = employeesWithContent.filter(e => e.status === 'ready').length;
+  const errorCount = employeesWithContent.filter(e => e.status === 'error').length;
 
   return (
     <div className="space-y-6">
       {/* Session Status */}
-      {currentSessionId && sessionStats && (
+      {currentSessionId && employeesWithContent.length > 0 && (
         <SessionStatusCard
           session={{
             id: currentSessionId,
             import_type: 'spreadsheet',
-            total_employees: sessionStats.total || 0,
+            total_employees: employeesWithContent.length,
             processed: 0,
-            successful: sessionStats.ready || 0,
-            failed: sessionStats.errors || 0,
+            successful: readyCount,
+            failed: errorCount,
             status: 'pending',
             created_at: sessionCreatedAt || new Date().toISOString()
           }}
@@ -258,29 +266,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           />
           
           {/* Actions */}
-          <div className="mt-6 space-y-3">
-            {/* Validation Summary */}
-            {spreadsheetEmployees.length > 0 && (
-              <div className="flex items-center justify-end">
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-green-600">✅</span>
-                    <span className="font-medium text-green-700">{readyCount} Ready</span>
-                  </span>
-                  {errorCount > 0 && (
-                    <>
-                      <span className="text-gray-300">•</span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-orange-600">⚠️</span>
-                        <span className="text-orange-700">{errorCount} Incomplete</span>
-                      </span>
-                      <span className="text-gray-400 text-xs">– Activation available only for ready entries</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-            
+          <div className="mt-6">
             <div className="flex items-center justify-between">
               <Alert className="flex-1 mr-4">
                 <Info className="h-4 w-4" />
