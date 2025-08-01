@@ -822,7 +822,7 @@ export default function CompanyDashboard() {
               "h-10 sm:h-9 justify-start font-normal",
               isFreeTrialUser && "bg-white/80 backdrop-blur-sm border-indigo-200 hover:bg-indigo-50"
             )}
-            onClick={() => navigate('/dashboard/onboarding')}
+            onClick={() => navigate('/dashboard/employees?tab=import')}
           >
             <Upload className="h-4 w-4 mr-2 text-muted-foreground" />
             <span className="sm:hidden">Onboard Team</span>
@@ -936,7 +936,7 @@ export default function CompanyDashboard() {
             <Card className={cn(
               "hover:shadow-md transition-shadow cursor-pointer",
               isFreeTrialUser && "bg-white/60 backdrop-blur-sm border-indigo-100"
-            )} onClick={() => navigate('/dashboard/onboarding')}>
+            )} onClick={() => navigate('/dashboard/employees?tab=import')}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-semibold text-muted-foreground">

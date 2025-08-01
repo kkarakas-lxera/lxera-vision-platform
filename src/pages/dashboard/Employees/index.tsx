@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,12 @@ import {
   AlertCircle,
   Filter,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Send,
+  BarChart3,
+  History,
+  HelpCircle,
+  Undo2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,7 +62,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CourseGenerationModal from '@/pages/dashboard/Courses/CourseGenerationModal';
+
+// Import components from onboarding pages
+import { ImportTab } from '@/components/dashboard/ImportTab';
+import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
+import { QuickTour } from '@/components/dashboard/QuickTour';
+import { UndoButton } from '@/components/dashboard/UndoButton';
+import { BatchHistory } from '@/components/dashboard/BatchHistory';
+import { InvitationManagement } from '@/components/dashboard/InvitationManagement';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 
 interface Employee {
   id: string;
@@ -89,6 +104,7 @@ interface Employee {
 
 const EmployeesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { userProfile } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +118,66 @@ const EmployeesPage = () => {
   const [positions, setPositions] = useState<string[]>([]);
   const [positionsCount, setPositionsCount] = useState(0);
   const [employeesCount, setEmployeesCount] = useState(0);
+  
+  // New state for tabbed interface
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check for tab query parameter
+    const tabParam = searchParams.get('tab');
+    return tabParam || 'directory';
+  });
+  const [pendingImports, setPendingImports] = useState(0);
+  const [pendingInvites, setPendingInvites] = useState(0);
+  const [showTour, setShowTour] = useState(false);
+  const [lastOperation, setLastOperation] = useState<any>(null);
+
+  // Check for first-time user
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('employee-tour-completed');
+    if (!tourCompleted && employeesCount === 0 && positionsCount > 0) {
+      setShowTour(true);
+    }
+  }, [employeesCount, positionsCount]);
+
+  // Fetch pending counts for badges
+  useEffect(() => {
+    if (userProfile?.company_id) {
+      fetchPendingCounts();
+    }
+  }, [userProfile?.company_id]);
+
+  const fetchPendingCounts = async () => {
+    if (!userProfile?.company_id) return;
+
+    try {
+      // Get pending imports
+      const { data: sessions } = await supabase
+        .from('st_import_sessions')
+        .select('id')
+        .eq('company_id', userProfile.company_id)
+        .eq('status', 'pending');
+      
+      setPendingImports(sessions?.length || 0);
+
+      // Get pending invitations
+      const { data: invites } = await supabase
+        .from('profile_invitations')
+        .select('id, employee_id')
+        .is('completed_at', null);
+      
+      if (invites) {
+        const employeeIds = invites.map(inv => inv.employee_id);
+        const { data: companyEmployees } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('company_id', userProfile.company_id)
+          .in('id', employeeIds);
+        
+        setPendingInvites(companyEmployees?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pending counts:', error);
+    }
+  };
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -348,24 +424,79 @@ const EmployeesPage = () => {
   return (
     <TooltipProvider>
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Employee Directory</h1>
-        <p className="text-gray-600 mt-1">Manage your team and track their learning progress</p>
+      {/* Header with Quick Actions and Undo */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Employee Management</h1>
+          <p className="text-gray-600 mt-1">Manage your team directory, import employees, and analyze skills gaps</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {lastOperation && (
+            <UndoButton 
+              operation={lastOperation} 
+              onUndo={async () => {
+                // Handle undo logic here
+                toast.success('Action undone');
+                setLastOperation(null);
+                fetchEmployees();
+              }} 
+            />
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowTour(true)}
+            className="text-gray-600"
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Tour
+          </Button>
+        </div>
       </div>
 
-      {/* Main Content with Conditional Blur */}
-      <div className="relative">
-        {(() => {
-          const emptyStateConfig = getEmptyStateConfig();
-          return (
-            <>
-              <div className={cn(
-                "space-y-6 transition-all duration-500",
-                emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
-              )}>
-                {/* Overall Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Quick Actions */}
+      <QuickActions context="employees" />
+
+      {/* Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+          <TabsTrigger value="directory" className="flex items-center gap-2" data-tab="directory">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Directory</span>
+          </TabsTrigger>
+          <TabsTrigger value="import" className="flex items-center gap-2" data-tab="import">
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">Import</span>
+            {pendingImports > 0 && <Badge className="ml-1">{pendingImports}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center gap-2" data-tab="invitations">
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">Invitations</span>
+            {pendingInvites > 0 && <Badge className="ml-1">{pendingInvites}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="flex items-center gap-2" data-tab="analysis">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Analysis</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2" data-tab="history">
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">History</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Directory Tab - Existing Employee List */}
+        <TabsContent value="directory" className="space-y-6">
+          <div className="relative">
+            {(() => {
+              const emptyStateConfig = getEmptyStateConfig();
+              return (
+                <>
+                  <div className={cn(
+                    "space-y-6 transition-all duration-500",
+                    emptyStateConfig.shouldBlur && "blur-md pointer-events-none select-none"
+                  )}>
+                    {/* Overall Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
@@ -517,7 +648,7 @@ const EmployeesPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/dashboard/onboarding')}
+              onClick={() => setActiveTab('import')}
               className="text-xs"
             >
               <Plus className="h-3 w-3 mr-1" />
@@ -769,6 +900,67 @@ const EmployeesPage = () => {
           );
         })()}
       </div>
+    </TabsContent>
+
+    {/* Import Tab */}
+    <TabsContent value="import" className="space-y-6">
+      <ImportTab 
+        userProfile={userProfile}
+        onImportComplete={() => {
+          fetchEmployees();
+          fetchPendingCounts();
+          setLastOperation({
+            type: 'import',
+            timestamp: new Date(),
+            affectedCount: 0,
+            data: {}
+          });
+        }}
+      />
+    </TabsContent>
+
+    {/* Invitations Tab */}
+    <TabsContent value="invitations" className="space-y-6">
+      <InvitationManagement 
+        employees={employees}
+        onInvitationsSent={() => {
+          fetchEmployees();
+          fetchPendingCounts();
+        }}
+      />
+    </TabsContent>
+
+    {/* Analysis Tab */}
+    <TabsContent value="analysis" className="space-y-6">
+      <SkillsGapAnalysis 
+        employees={employees.map(e => ({
+          id: e.id,
+          name: e.full_name,
+          email: e.email,
+          position: e.position || '',
+          cv_status: e.cv_file_path ? 'analyzed' : 'missing',
+          skills_analysis: e.gap_analysis_completed_at ? 'completed' : 'pending',
+          gap_score: e.skills_match_score
+        }))}
+      />
+    </TabsContent>
+
+    {/* History Tab */}
+    <TabsContent value="history" className="space-y-6">
+      <BatchHistory 
+        companyId={userProfile?.company_id || ''}
+        onRestore={(sessionId) => {
+          fetchEmployees();
+          setLastOperation({
+            type: 'restore',
+            timestamp: new Date(),
+            affectedCount: 0,
+            data: { sessionId }
+          });
+        }}
+      />
+    </TabsContent>
+  </Tabs>
 
       {/* Modals */}
 
@@ -799,6 +991,38 @@ const EmployeesPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Quick Tour */}
+      {showTour && (
+        <QuickTour 
+          onComplete={() => {
+            localStorage.setItem('employee-tour-completed', 'true');
+            setShowTour(false);
+          }}
+          steps={[
+            {
+              target: '[data-tab="import"]',
+              content: 'Start here to import your team members via CSV or manual entry',
+              placement: 'bottom'
+            },
+            {
+              target: '[data-tab="invitations"]',
+              content: 'Send invitations to employees to complete their profiles',
+              placement: 'bottom'
+            },
+            {
+              target: '[data-tab="analysis"]',
+              content: 'View comprehensive skills gap analysis for your organization',
+              placement: 'bottom'
+            },
+            {
+              target: '[data-tab="history"]',
+              content: 'Track all import batches and restore previous imports if needed',
+              placement: 'bottom'
+            }
+          ]}
+        />
+      )}
     </div>
     </TooltipProvider>
   );

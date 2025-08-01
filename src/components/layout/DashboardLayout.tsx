@@ -115,7 +115,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           { href: '/dashboard', icon: Home, label: 'Dashboard' },
           { section: 'Core Setup', icon: Layout },
           { href: '/dashboard/positions', icon: Target, label: 'Positions' },
-          { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
+          { href: '/dashboard/employees?tab=import', icon: Upload, label: 'Add Team Members' },
           { href: '/dashboard/employees', icon: Users, label: 'Employees' },
           { section: 'Skills & Analytics', icon: ChartBar },
           { href: '/dashboard/skills', icon: BrainCircuit, label: 'Skills' },

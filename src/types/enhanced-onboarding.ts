@@ -43,6 +43,9 @@ export interface EnhancedImportSessionItem {
   analysis_started_at?: string;
   analysis_completed_at?: string;
   analysis_tokens_used?: number;
+  // Soft delete fields
+  deleted_at?: string;
+  deleted_by?: string;
 }
 
 export interface EnhancedSkillsProfile {
@@ -237,4 +240,72 @@ export interface BulkProcessingProgress {
     progress: number;
   };
   estimatedTimeRemaining?: number;
+}
+
+// Undo Operations Types
+export interface UndoOperation {
+  id: string;
+  company_id: string;
+  user_id: string;
+  operation_type: 'import' | 'delete' | 'update' | 'batch_delete';
+  affected_count: number;
+  operation_data: {
+    session_id?: string;
+    activated_employees?: Array<{
+      employee_id: string;
+      user_id: string;
+      email: string;
+      name: string;
+    }>;
+    items?: Array<{
+      item_id: string;
+      employee_name: string;
+      employee_email: string;
+      position_code?: string;
+      field_values?: Record<string, any>;
+    }>;
+    item_ids?: string[];
+  };
+  session_id?: string;
+  created_at: string;
+  expires_at: string;
+  undone_at?: string;
+  undone_by?: string;
+}
+
+// Batch History Types
+export interface BatchHistoryItem {
+  session_id: string;
+  company_id: string;
+  created_at: string;
+  created_by: string;
+  total_employees: number;
+  successful: number;
+  failed: number;
+  status: string;
+  spreadsheet_mode?: boolean;
+  active_position_id?: string;
+  created_by_name?: string;
+  created_by_email?: string;
+  position_title?: string;
+  position_code?: string;
+  current_active_employees: number;
+  deleted_items: number;
+  batch_details?: {
+    total_items: number;
+    active_employees: Array<{
+      id: string;
+      name: string;
+      email: string;
+      position: string;
+      is_active: boolean;
+    }>;
+    session_items: Array<{
+      id: string;
+      name: string;
+      email: string;
+      status: string;
+      deleted_at?: string;
+    }>;
+  };
 }

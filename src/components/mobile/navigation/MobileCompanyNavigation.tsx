@@ -49,7 +49,7 @@ const MobileCompanyNavigation: React.FC<MobileCompanyNavigationProps> = ({
 
   // Secondary items that will appear in the "More" menu
   const secondaryItems: NavigationItem[] = [
-    { href: '/dashboard/onboarding', icon: Upload, label: 'Add Team Members' },
+    { href: '/dashboard/employees?tab=import', icon: Upload, label: 'Add Team Members' },
     { href: '/dashboard/courses', icon: BookOpen, label: 'Courses' },
     { href: '/dashboard/analytics', icon: BarChart3, label: 'Game Engine' },
     { href: '#feedback', icon: MessageSquare, label: 'Platform Feedback', action: 'feedback' },
