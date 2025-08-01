@@ -238,15 +238,30 @@ const InvitationSignup = () => {
       const authUser = signInData.user;
       
       // Wait a moment for auth trigger to create user profile
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // For imported employees, they already have a users record with a different ID
-      // We need to update it to match the auth user ID
-      const { data: existingUserRecord } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', employeeData.email)
-        .single();
+      // Retry logic to handle timing issues with trigger
+      let retries = 3;
+      let existingUserRecord = null;
+      
+      while (retries > 0) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', employeeData.email)
+          .single();
+        
+        if (data) {
+          existingUserRecord = data;
+          break;
+        }
+        
+        if (retries > 1) {
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        retries--;
+      }
 
       if (existingUserRecord && existingUserRecord.id !== authUser.id) {
         // Update the existing user record to have the correct auth user ID
@@ -297,17 +312,49 @@ const InvitationSignup = () => {
         // Don't fail the signup process for this
       }
 
-      // Step 3: Link employee to user
-      const { error: linkError } = await supabase
-        .from('employees')
-        .update({ user_id: authUser.id })
-        .eq('id', employeeData.id);
+      // Step 3: Link employee to user - with retry logic
+      let linkRetries = 3;
+      let linkSuccess = false;
+      
+      while (linkRetries > 0 && !linkSuccess) {
+        // First verify the user record exists
+        const { data: userExists } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', authUser.id)
+          .single();
+        
+        if (!userExists) {
+          console.log(`User record not found yet, retries left: ${linkRetries}`);
+          if (linkRetries > 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            linkRetries--;
+            continue;
+          }
+        }
+        
+        const { error: linkError } = await supabase
+          .from('employees')
+          .update({ user_id: authUser.id })
+          .eq('id', employeeData.id);
 
-      if (linkError) {
-        console.error('Error linking employee to user:', linkError);
-        setError('Failed to link employee profile. Please contact support.');
-        setIsLoading(false);
-        return;
+        if (!linkError) {
+          linkSuccess = true;
+          break;
+        }
+        
+        console.error(`Error linking employee to user (attempt ${4 - linkRetries}):`, linkError);
+        
+        if (linkRetries > 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        linkRetries--;
+      }
+      
+      if (!linkSuccess) {
+        console.error('Failed to link employee after all retries');
+        setError('Account created but profile linking failed. You can still sign in.');
+        // Don't return - let them proceed to login
       }
 
       // Step 4: Mark invitation as viewed
