@@ -250,14 +250,20 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
       if (error) throw error;
 
-      toast.success(`Successfully activated ${data.activatedCount} employees`);
-      
-      // Show success state instead of resetting immediately
-      setActivatedCount(data.activatedCount);
-      setShowSuccessState(true);
-      
-      // Call onImportComplete to refresh the parent data
-      onImportComplete();
+      if (data.activatedCount > 0) {
+        toast.success(`Successfully activated ${data.activatedCount} employees`);
+        
+        // Show success state instead of resetting immediately
+        setActivatedCount(data.activatedCount);
+        setShowSuccessState(true);
+        
+        // Call onImportComplete to refresh the parent data
+        onImportComplete();
+      } else {
+        toast.error('No employees were activated. Please check for errors and try again.');
+        // Refresh the session to show updated error states
+        checkExistingSession();
+      }
     } catch (error) {
       console.error('Error activating employees:', error);
       toast.error('Failed to activate employees');
