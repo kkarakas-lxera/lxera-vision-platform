@@ -235,6 +235,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         .from('st_import_sessions')
         .insert({
           company_id: userProfile.company_id,
+          created_by: userProfile.id,
           status: 'pending',
           total_employees: 0,
           spreadsheet_mode: true
