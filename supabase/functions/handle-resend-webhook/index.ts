@@ -120,9 +120,17 @@ serve(async (req) => {
     )
 
     // Extract email ID from the webhook data
-    const emailId = payload.data?.email_id
+    // Try multiple possible fields where the email ID might be
+    const emailId = payload.data?.email_id || payload.data?.id || payload.email_id || payload.id
+    
+    console.log('Webhook payload structure:', {
+      type: payload.type,
+      dataKeys: Object.keys(payload.data || {}),
+      topLevelKeys: Object.keys(payload)
+    })
+    
     if (!emailId) {
-      console.log('No email_id in webhook payload')
+      console.log('No email_id found in webhook payload. Full payload:', JSON.stringify(payload))
       return new Response(
         JSON.stringify({ success: true, message: 'No email_id to process' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
