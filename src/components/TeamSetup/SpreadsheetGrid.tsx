@@ -94,6 +94,12 @@ export default function SpreadsheetGrid({
     if (!validateEmail(employee.email)) {
       return { isValid: false, errorMessage: 'Invalid email format' };
     }
+    if (!employee.department || employee.department.trim() === '') {
+      return { isValid: false, errorMessage: 'Department is required' };
+    }
+    if (!employee.position || employee.position.trim() === '') {
+      return { isValid: false, errorMessage: 'Position is required' };
+    }
     return { isValid: true };
   };
 

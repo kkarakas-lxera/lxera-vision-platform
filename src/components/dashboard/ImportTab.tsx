@@ -290,13 +290,15 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   };
 
   const handleActivateEmployees = async () => {
-    if (!currentSessionId) {
+    let sessionToActivate = currentSessionId;
+    
+    if (!sessionToActivate) {
       // Try to create a session if none exists but we have employee data
       const employeesWithContent = spreadsheetEmployees.filter(e => e.name?.trim() || e.email?.trim());
       if (employeesWithContent.length > 0) {
         try {
-          const sessionId = await createImportSession();
-          console.log('Created new session for activation:', sessionId);
+          sessionToActivate = await createImportSession();
+          console.log('Created new session for activation:', sessionToActivate);
         } catch (error) {
           toast.error('Failed to create import session. Please try again.');
           return;
@@ -307,19 +309,27 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       }
     }
 
+    // Validate we have a session ID
+    if (!sessionToActivate) {
+      toast.error('No session ID available. Please refresh the page and try again.');
+      return;
+    }
+
     const readyEmployees = spreadsheetEmployees.filter(e => e.status === 'ready');
     if (readyEmployees.length === 0) {
-      toast.error('No employees are ready to be activated. Please ensure all required fields are filled.');
+      toast.error('No employees are ready to be activated. Please ensure all required fields (name, email, department, position) are filled.');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
+      console.log('Activating session with ID:', sessionToActivate);
+      
       // Activate employees via edge function
       const { data, error } = await supabase.functions.invoke('activate-import-session', {
         body: { 
-          sessionId: currentSessionId
+          sessionId: sessionToActivate
         }
       });
 
