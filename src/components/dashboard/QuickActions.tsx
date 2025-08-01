@@ -2,20 +2,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Send, BarChart3, BookOpen, Users, FileSpreadsheet } from 'lucide-react';
+import { Upload, Send, BarChart3, BookOpen, Plus } from 'lucide-react';
 
 interface QuickActionsProps {
   context?: 'employees' | 'onboarding';
+  className?: string;
 }
 
-export function QuickActions({ context = 'employees' }: QuickActionsProps) {
+export function QuickActions({ context = 'employees', className = '' }: QuickActionsProps) {
   const navigate = useNavigate();
 
   const actions = [
     {
-      icon: Upload,
-      label: 'Import Employees',
-      description: 'Add team members via CSV',
+      icon: Plus,
+      label: 'Import',
+      mobileLabel: 'Import',
       onClick: () => {
         if (context === 'employees') {
           // Switch to import tab
@@ -25,12 +26,12 @@ export function QuickActions({ context = 'employees' }: QuickActionsProps) {
           navigate('/dashboard/onboarding/import');
         }
       },
-      color: 'bg-blue-50 text-blue-600'
+      color: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200'
     },
     {
       icon: Send,
       label: 'Send Invitations',
-      description: 'Invite employees to complete profiles',
+      mobileLabel: 'Invite',
       onClick: () => {
         if (context === 'employees') {
           // Switch to invitations tab
@@ -40,12 +41,12 @@ export function QuickActions({ context = 'employees' }: QuickActionsProps) {
           navigate('/dashboard/onboarding/invite');
         }
       },
-      color: 'bg-green-50 text-green-600'
+      color: 'text-green-600 bg-green-50 hover:bg-green-100 border-green-200'
     },
     {
       icon: BarChart3,
       label: 'View Analysis',
-      description: 'See skills gap insights',
+      mobileLabel: 'Analyze',
       onClick: () => {
         if (context === 'employees') {
           // Switch to analysis tab
@@ -55,36 +56,37 @@ export function QuickActions({ context = 'employees' }: QuickActionsProps) {
           navigate('/dashboard/onboarding/analysis');
         }
       },
-      color: 'bg-purple-50 text-purple-600'
+      color: 'text-purple-600 bg-purple-50 hover:bg-purple-100 border-purple-200'
     },
     {
       icon: BookOpen,
       label: 'Generate Courses',
-      description: 'Create personalized training',
+      mobileLabel: 'Courses',
       onClick: () => navigate('/dashboard/course-generation'),
-      color: 'bg-orange-50 text-orange-600'
+      color: 'text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200'
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {actions.map((action, index) => (
-        <Card
-          key={index}
-          className="p-4 hover:shadow-lg transition-shadow cursor-pointer group"
-          onClick={action.onClick}
-        >
-          <div className="flex items-start gap-3">
-            <div className={`p-2 rounded-lg ${action.color} group-hover:scale-110 transition-transform`}>
-              <action.icon className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm text-gray-900">{action.label}</h4>
-              <p className="text-xs text-gray-500 mt-0.5">{action.description}</p>
-            </div>
-          </div>
-        </Card>
-      ))}
+    <div className={`bg-gray-50 border border-gray-200 rounded-lg p-3 ${className}`}>
+      <div className="flex flex-wrap gap-2">
+        {actions.map((action, index) => (
+          <button
+            key={index}
+            onClick={action.onClick}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+              transition-all duration-200 border
+              ${action.color}
+              hover:shadow-sm active:scale-95
+            `}
+          >
+            <action.icon className="h-4 w-4" />
+            <span className="hidden sm:inline">{action.label}</span>
+            <span className="sm:hidden">{action.mobileLabel}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

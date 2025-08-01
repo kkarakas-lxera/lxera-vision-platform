@@ -453,124 +453,126 @@ const EmployeesPage = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <QuickActions context="employees" />
+      {/* Quick Actions - Compact horizontal strip */}
+      <QuickActions context="employees" className="mb-6" />
 
-      {/* Tabbed Interface */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="directory" className="flex items-center gap-2" data-tab="directory">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Directory</span>
-          </TabsTrigger>
-          <TabsTrigger value="import" className="flex items-center gap-2" data-tab="import">
-            <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">Import</span>
-            {pendingImports > 0 && <Badge className="ml-1">{pendingImports}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-2" data-tab="invitations">
-            <Send className="h-4 w-4" />
-            <span className="hidden sm:inline">Invitations</span>
-            {pendingInvites > 0 && <Badge className="ml-1">{pendingInvites}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="analysis" className="flex items-center gap-2" data-tab="analysis">
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Analysis</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2" data-tab="history">
-            <History className="h-4 w-4" />
-            <span className="hidden sm:inline">History</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Enhanced Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0">
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <TabsList className="h-auto p-0 bg-transparent border-0 flex gap-4 sm:gap-6 lg:gap-8 min-w-max px-1">
+            <TabsTrigger 
+              value="directory" 
+              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
+              data-tab="directory"
+            >
+              <Users className="h-4 w-4" />
+              <span className="font-medium">Directory</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="import" 
+              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
+              data-tab="import"
+            >
+              <Upload className="h-4 w-4" />
+              <span className="font-medium">Import</span>
+              {pendingImports > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 text-xs bg-blue-100 text-blue-700 border-0">
+                  {pendingImports}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="invitations" 
+              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
+              data-tab="invitations"
+            >
+              <Send className="h-4 w-4" />
+              <span className="font-medium">Invitations</span>
+              {pendingInvites > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 text-xs bg-green-100 text-green-700 border-0">
+                  {pendingInvites}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analysis" 
+              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
+              data-tab="analysis"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span className="font-medium">Analysis</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="history" 
+              className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-0 pb-3 pt-0 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 rounded-none bg-transparent hover:text-gray-900 text-sm sm:text-base" 
+              data-tab="history"
+            >
+              <History className="h-4 w-4" />
+              <span className="font-medium">History</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Directory Tab - Existing Employee List */}
-        <TabsContent value="directory" className="space-y-6">
+        <TabsContent value="directory" className="space-y-4 mt-6">
           <div className="relative">
             {(() => {
               const emptyStateConfig = getEmptyStateConfig();
               return (
                 <>
-                  <div className="space-y-6 transition-all duration-500">
-                    {/* Overall Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Users className="h-5 w-5 text-blue-600" />
+                  <div className="space-y-4 transition-all duration-500">
+                    {/* Compact Stats Bar */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-semibold text-gray-900">{employees.length}</span>
+                            <span className="text-gray-600">Total</span>
+                            <span className="text-gray-500 text-xs hidden sm:inline">({employees.filter(e => e.is_active).length} active)</span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Total Employees</p>
-                          <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
-                          <p className="text-xs text-gray-500">{employees.filter(e => e.is_active).length} active</p>
+                        
+                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+                        
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-semibold text-gray-900">{employees.filter(e => e.cv_file_path).length}</span>
+                            <span className="text-gray-600">CVs</span>
+                            <span className="text-gray-500 text-xs">
+                              ({employees.length > 0 ? Math.round((employees.filter(e => e.cv_file_path).length / employees.length) * 100) : 0}%)
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <FileText className="h-5 w-5 text-green-600" />
+                        
+                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+                        
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-semibold text-gray-900">{employees.filter(e => e.skills_last_analyzed).length}</span>
+                            <span className="text-gray-600">Analyzed</span>
+                            <span className="text-gray-500 text-xs">
+                              ({employees.length > 0 ? Math.round((employees.filter(e => e.skills_last_analyzed).length / employees.length) * 100) : 0}%)
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">CV Uploaded</p>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {employees.filter(e => e.cv_file_path).length}
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
-                            <div 
-                              className="h-1 rounded-full transition-all duration-300 bg-green-500"
-                              style={{ width: `${employees.length > 0 ? (employees.filter(e => e.cv_file_path).length / employees.length) * 100 : 0}%` }}
-                            ></div>
+                        
+                        <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+                        
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-semibold text-gray-900">{employees.filter(e => e.profile_complete).length}</span>
+                            <span className="text-gray-600">Complete</span>
+                            <span className="text-gray-500 text-xs hidden sm:inline">
+                              ({employees.filter(e => e.completed_sections && e.completed_sections > 0 && !e.profile_complete).length} in progress)
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                          <TrendingUp className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Skills Analyzed</p>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {employees.filter(e => e.skills_last_analyzed).length}
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
-                            <div 
-                              className="h-1 rounded-full transition-all duration-300 bg-purple-500"
-                              style={{ width: `${employees.length > 0 ? (employees.filter(e => e.skills_last_analyzed).length / employees.length) * 100 : 0}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-orange-100 rounded-lg">
-                          <CheckCircle2 className="h-5 w-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Profiles Complete</p>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {employees.filter(e => e.profile_complete).length}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {employees.filter(e => e.completed_sections && e.completed_sections > 0 && !e.profile_complete).length} in progress
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                    </div>
 
       {/* Search and Actions */}
       <div className="flex flex-col gap-4">
