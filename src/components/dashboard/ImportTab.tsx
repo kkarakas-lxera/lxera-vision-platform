@@ -97,7 +97,10 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           position: item.field_values?.position || '',
           position_code: item.current_position_code || '',
           manager_email: item.field_values?.manager_email || '',
-          status: item.status as any
+          // Map database status back to frontend status
+          status: item.status === 'completed' ? 'ready' : 
+                  item.status === 'failed' ? 'error' : 
+                  item.status as any
         }));
         
         setSpreadsheetEmployees(existingEmployees);
@@ -105,8 +108,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         // Update session stats
         setSessionStats({
           total: data.st_import_session_items.length,
-          ready: data.st_import_session_items.filter((i: any) => i.status === 'ready').length,
-          errors: data.st_import_session_items.filter((i: any) => i.status === 'error').length
+          ready: data.st_import_session_items.filter((i: any) => i.status === 'completed').length,
+          errors: data.st_import_session_items.filter((i: any) => i.status === 'failed').length
         });
       }
     } catch (error) {

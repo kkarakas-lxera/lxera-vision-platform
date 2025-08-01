@@ -61,7 +61,10 @@ export function useAutoSaveEmployees(
         employee_name: emp.name,
         employee_email: emp.email,
         current_position_code: emp.position_code || null,
-        status: emp.status,
+        // Map frontend status to database status
+        status: emp.status === 'ready' ? 'completed' : 
+                emp.status === 'error' ? 'failed' : 
+                emp.status,
         error_message: emp.errorMessage || null,
         field_values: {
           department: emp.department || null,
@@ -110,8 +113,8 @@ export function useAutoSaveEmployees(
         }
 
         // Update session stats
-        const readyCount = validItems.filter(item => item.status === 'ready').length;
-        const errorCount = validItems.filter(item => item.status === 'error').length;
+        const readyCount = validItems.filter(item => item.status === 'completed').length;
+        const errorCount = validItems.filter(item => item.status === 'failed').length;
         
         await supabase
           .from('st_import_sessions')
