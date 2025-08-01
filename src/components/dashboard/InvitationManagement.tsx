@@ -34,7 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Send, Mail, CheckCircle, Eye, RefreshCw, Users, AlertTriangle, Clock, ArrowRight, Filter, RotateCw, MoreVertical, X, MousePointer, History } from 'lucide-react';
+import { Send, Mail, CheckCircle, Eye, RefreshCw, Users, AlertTriangle, Clock, ArrowRight, Filter, RotateCw, MoreVertical, X, MousePointer, History, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -154,21 +154,52 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
     setSendingReminders([...sendingReminders, employeeId]);
     
     try {
-      const { error } = await supabase.functions.invoke('send-profile-invitations', {
+      const { data, error } = await supabase.functions.invoke('send-profile-reminder', {
         body: {
           employee_ids: [employeeId],
-          company_id: userProfile?.company_id,
-          isReminder: true
+          company_id: userProfile?.company_id
         }
       });
 
       if (error) throw error;
-
-      toast.success('Reminder sent successfully');
+      
+      if (data?.success) {
+        toast.success('Reminder sent successfully');
+        if (data.errors?.length > 0) {
+          toast.warning(data.errors[0].error);
+        }
+      }
+      
       if (onInvitationsSent) onInvitationsSent();
     } catch (error) {
       console.error('Error sending reminder:', error);
       toast.error('Failed to send reminder');
+    } finally {
+      setSendingReminders(sendingReminders.filter(id => id !== employeeId));
+    }
+  };
+
+  const sendReinvite = async (employeeId: string) => {
+    setSendingReminders([...sendingReminders, employeeId]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-profile-reinvite', {
+        body: {
+          employee_ids: [employeeId],
+          company_id: userProfile?.company_id
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('New invitation sent successfully');
+      }
+      
+      if (onInvitationsSent) onInvitationsSent();
+    } catch (error) {
+      console.error('Error sending reinvite:', error);
+      toast.error('Failed to send new invitation');
     } finally {
       setSendingReminders(sendingReminders.filter(id => id !== employeeId));
     }
@@ -658,7 +689,7 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                                   )}
                                   {(employee.invitation_status === 'sent' || employee.invitation_status === 'viewed') && (
                                     <DropdownMenuItem 
-                                      onClick={() => sendReminder(employee.id)}
+                                      onClick={() => sendReinvite(employee.id)}
                                       disabled={sendingReminders.includes(employee.id)}
                                     >
                                       <Mail className="h-4 w-4 mr-2" />
@@ -668,6 +699,31 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
                                   <DropdownMenuItem>
                                     <History className="h-4 w-4 mr-2" />
                                     View Timeline
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="text-red-600"
+                                    onClick={async () => {
+                                      if (confirm(`Are you sure you want to delete ${employee.full_name}? This action cannot be undone.`)) {
+                                        try {
+                                          const { error } = await supabase
+                                            .from('employees')
+                                            .delete()
+                                            .eq('id', employee.id);
+                                          
+                                          if (error) throw error;
+                                          
+                                          toast.success('Employee deleted successfully');
+                                          if (onInvitationsSent) onInvitationsSent();
+                                        } catch (error) {
+                                          console.error('Error deleting employee:', error);
+                                          toast.error('Failed to delete employee');
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Employee
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>

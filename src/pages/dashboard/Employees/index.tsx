@@ -1015,8 +1015,8 @@ const EmployeesPage = () => {
                     />
                   </th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600 min-w-[300px]">Employee</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Invitation</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Profile</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Invitation</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Skills Match</th>
                   <th className="text-right p-4 text-sm font-medium text-gray-600 w-20">Actions</th>
                 </tr>
@@ -1248,13 +1248,51 @@ const EmployeesPage = () => {
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Upload CV and complete profile to see skills match</p>
+                              <p>Employee needs to complete their profile</p>
                             </TooltipContent>
                           </Tooltip>
                         )}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {(!employee.invitation_status || employee.invitation_status === 'not_sent') && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toast.info('Initial invitation feature coming soon');
+                                  }}
+                                >
+                                  <Send className="h-3 w-3 mr-1" />
+                                  Invite
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Send initial invitation</TooltipContent>
+                            </Tooltip>
+                          )}
+                          {employee.invitation_status === 'sent' && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReminder([employee.id]);
+                                  }}
+                                >
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  Remind
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Send reminder email</TooltipContent>
+                            </Tooltip>
+                          )}
                           {employee.invitation_status === 'viewed' && (
                             <Tooltip>
                               <TooltipTrigger asChild>
