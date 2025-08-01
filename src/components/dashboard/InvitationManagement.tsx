@@ -122,14 +122,14 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
     try {
       const { data, error } = await supabase.functions.invoke('send-profile-invitations', {
         body: {
-          employeeIds: selectedEmployees,
-          companyId: userProfile?.company_id
+          employee_ids: selectedEmployees,
+          company_id: userProfile?.company_id
         }
       });
 
       if (error) throw error;
 
-      toast.success(`Successfully sent ${data.sentCount} invitations`);
+      toast.success(`Successfully sent ${data.sent} invitations`);
       setSelectedEmployees([]);
       if (onInvitationsSent) onInvitationsSent();
     } catch (error) {
@@ -146,8 +146,8 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
     try {
       const { error } = await supabase.functions.invoke('send-profile-invitations', {
         body: {
-          employeeIds: [employeeId],
-          companyId: userProfile?.company_id,
+          employee_ids: [employeeId],
+          company_id: userProfile?.company_id,
           isReminder: true
         }
       });
