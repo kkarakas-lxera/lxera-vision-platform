@@ -259,6 +259,15 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const readyCount = employeesWithContent.filter(e => e.status === 'ready').length;
   const errorCount = employeesWithContent.filter(e => e.status === 'error').length;
 
+  // Show loading if userProfile not ready
+  if (!userProfile?.company_id) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Session Status */}
