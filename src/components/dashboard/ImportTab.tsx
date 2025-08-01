@@ -9,7 +9,7 @@ import SpreadsheetGrid, { Employee as SpreadsheetEmployee } from '@/components/T
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAutoSaveEmployees } from '@/hooks/useAutoSaveEmployees';
-import { SessionStatusCard } from '@/components/dashboard/SessionStatusCard';
+import { SessionStatusCard } from '@/components/dashboard/EmployeeOnboarding/SessionStatusCard';
 
 interface ImportTabProps {
   userProfile: any;
