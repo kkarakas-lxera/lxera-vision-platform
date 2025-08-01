@@ -65,7 +65,7 @@ export function InvitationManagement({ employees, onInvitationsSent }: Invitatio
 
   const calculateStats = () => {
     const stats = {
-      notSent: employees.filter(e => e.invitation_status === 'not_sent').length,
+      notSent: employees.filter(e => e.invitation_status === 'not_sent' || !e.invitation_status).length,
       sent: employees.filter(e => e.invitation_status === 'sent').length,
       viewed: employees.filter(e => e.invitation_status === 'viewed').length,
       completed: employees.filter(e => e.invitation_status === 'completed').length
