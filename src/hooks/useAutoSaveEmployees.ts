@@ -73,11 +73,8 @@ export function useAutoSaveEmployees(
         }
       }));
 
-      // Filter out items without required fields or any content
-      const validItems = itemsToUpsert.filter(item => 
-        (item.employee_name?.trim() || item.employee_email?.trim()) && // At least one field has content
-        item.employee_name && item.employee_email // Both required fields must be present
-      );
+      // Don't filter out empty rows - we want to persist them
+      const validItems = itemsToUpsert;
 
       if (validItems.length > 0) {
         // Delete existing items for this session first

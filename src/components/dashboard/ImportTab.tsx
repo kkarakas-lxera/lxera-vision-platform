@@ -33,15 +33,35 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   );
 
   useEffect(() => {
+    console.log('ImportTab useEffect - userProfile:', userProfile);
     if (userProfile?.company_id) {
+      console.log('Fetching data for company_id:', userProfile.company_id);
       fetchPositions();
       fetchDepartments();
       checkExistingSession();
     }
   }, [userProfile?.company_id]);
 
+  // Initialize with 5 empty rows if no session exists
+  useEffect(() => {
+    if (userProfile?.company_id && !currentSessionId && spreadsheetEmployees.length === 0) {
+      const emptyRows: SpreadsheetEmployee[] = Array.from({ length: 5 }, (_, i) => ({
+        id: `temp-${Date.now()}-${i}-${Math.random()}`,
+        name: '',
+        email: '',
+        department: '',
+        position: '',
+        position_code: '',
+        manager_email: '',
+        status: 'pending'
+      }));
+      setSpreadsheetEmployees(emptyRows);
+    }
+  }, [userProfile?.company_id, currentSessionId]);
+
   const fetchPositions = async () => {
     try {
+      console.log('Fetching positions for company:', userProfile.company_id);
       const { data, error } = await supabase
         .from('st_company_positions')
         .select('*')
@@ -49,6 +69,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         .order('position_title');
 
       if (error) throw error;
+      console.log('Positions fetched:', data);
       setPositions(data || []);
     } catch (error) {
       console.error('Error fetching positions:', error);
@@ -57,6 +78,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   const fetchDepartments = async () => {
     try {
+      console.log('Fetching departments for company:', userProfile.company_id);
       const { data, error } = await supabase
         .from('employees')
         .select('department')
@@ -66,6 +88,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       if (error) throw error;
       
       const uniqueDepartments = [...new Set(data?.map(e => e.department).filter(Boolean))];
+      console.log('Departments fetched:', uniqueDepartments);
       setDepartments(uniqueDepartments);
     } catch (error) {
       console.error('Error fetching departments:', error);
@@ -103,7 +126,22 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
                   item.status as any
         }));
         
-        setSpreadsheetEmployees(existingEmployees);
+        // If no existing employees, initialize with 5 empty rows
+        if (existingEmployees.length === 0) {
+          const emptyRows: SpreadsheetEmployee[] = Array.from({ length: 5 }, (_, i) => ({
+            id: `temp-${Date.now()}-${i}-${Math.random()}`,
+            name: '',
+            email: '',
+            department: '',
+            position: '',
+            position_code: '',
+            manager_email: '',
+            status: 'pending'
+          }));
+          setSpreadsheetEmployees(emptyRows);
+        } else {
+          setSpreadsheetEmployees(existingEmployees);
+        }
         
         // Update session stats
         setSessionStats({
