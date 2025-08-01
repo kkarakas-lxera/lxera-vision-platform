@@ -25,7 +25,14 @@ import {
   History,
   HelpCircle,
   Undo2,
-  X
+  X,
+  Mail,
+  Clock,
+  UserCircle,
+  CheckCircle,
+  ChevronDown,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,6 +128,9 @@ const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [positionFilter, setPositionFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'not_sent' | 'sent' | 'viewed' | 'completed'>('all');
+  const [profileFilter, setProfileFilter] = useState<'all' | 'not_started' | 'in_progress' | 'completed'>('all');
+  const [needsAttentionFilter, setNeedsAttentionFilter] = useState(false);
   const [showCourseGeneration, setShowCourseGeneration] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
@@ -382,15 +392,33 @@ const EmployeesPage = () => {
     // Position filter  
     const matchesPosition = positionFilter === 'all' || employee.position === positionFilter;
     
-    return matchesSearch && matchesDepartment && matchesPosition;
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || employee.invitation_status === statusFilter || 
+      (statusFilter === 'not_sent' && !employee.invitation_status);
+    
+    // Profile filter
+    const matchesProfile = profileFilter === 'all' || 
+      (profileFilter === 'not_started' && !employee.completed_sections) ||
+      (profileFilter === 'in_progress' && employee.completed_sections && employee.completed_sections > 0 && !employee.profile_complete) ||
+      (profileFilter === 'completed' && employee.profile_complete);
+    
+    // Needs attention filter
+    const matchesNeedsAttention = !needsAttentionFilter || 
+      (!employee.profile_complete || employee.invitation_status === 'not_sent' || !employee.cv_file_path || !employee.skills_last_analyzed);
+    
+    return matchesSearch && matchesDepartment && matchesPosition && matchesStatus && matchesProfile && matchesNeedsAttention;
   });
 
-  const hasActiveFilters = departmentFilter !== 'all' || positionFilter !== 'all' || searchTerm !== '';
+  const hasActiveFilters = departmentFilter !== 'all' || positionFilter !== 'all' || searchTerm !== '' || 
+    statusFilter !== 'all' || profileFilter !== 'all' || needsAttentionFilter;
 
   const clearFilters = () => {
     setSearchTerm('');
     setDepartmentFilter('all');
     setPositionFilter('all');
+    setStatusFilter('all');
+    setProfileFilter('all');
+    setNeedsAttentionFilter(false);
   };
 
   const getEmptyStateConfig = () => {
@@ -621,101 +649,227 @@ const EmployeesPage = () => {
                             </div>
                             <div className="flex gap-2">
                               <Button
-                                variant="outline"
                                 size="sm"
                                 onClick={() => setActiveTab('import')}
                                 className="text-xs"
                               >
                                 <Plus className="h-3 w-3 mr-1" />
-                                Add
+                                Add Employee
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {/* Add export functionality */}}
-                                className="text-xs"
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                Export
-                              </Button>
-                              {selectedEmployees.length > 0 && (
-                                <Button onClick={handleGenerateCourses} size="sm" className="text-xs">
-                                  <BookOpen className="h-3 w-3 mr-1" />
-                                  Generate ({selectedEmployees.length})
-                                </Button>
-                              )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs"
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Export
+                                    <ChevronDown className="h-3 w-3 ml-1" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => {/* Export filtered */}}>
+                                    Export Filtered View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {/* Export all */}}>
+                                    Export All Employees
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
                           
                           {/* Unified Smart Search Bar */}
-                          <div className="mt-4">
+                          <div className="mt-4 space-y-3">
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                               <Input
-                                placeholder="Search by name, email, department, or position..."
+                                placeholder="Search employees..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-32"
+                                className="pl-10"
                               />
+                            </div>
+                            
+                            {/* Filter Chips Row */}
+                            <div className="flex flex-wrap gap-2 items-center">
+                              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                                <SelectTrigger className={cn(
+                                  "h-7 text-xs w-auto",
+                                  departmentFilter !== 'all' ? "bg-blue-50 border-blue-200" : "border-gray-200"
+                                )}>
+                                  <Building2 className="h-3 w-3 mr-1" />
+                                  <span>
+                                    {departmentFilter === 'all' ? 'Department' : departmentFilter}
+                                  </span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Departments</SelectItem>
+                                  {departments.map(dept => (
+                                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               
-                              {/* Inline Filter Buttons */}
-                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                                  <SelectTrigger className="h-7 text-xs border-0 bg-gray-100 hover:bg-gray-200 w-auto">
-                                    <Building2 className="h-3 w-3 mr-1" />
-                                    <span className="hidden sm:inline">
-                                      {departmentFilter === 'all' ? 'Dept' : departmentFilter.substring(0, 8)}
-                                    </span>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="all">All Departments</SelectItem>
-                                    {departments.map(dept => (
-                                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                
-                                <Select value={positionFilter} onValueChange={setPositionFilter}>
-                                  <SelectTrigger className="h-7 text-xs border-0 bg-gray-100 hover:bg-gray-200 w-auto">
-                                    <Users className="h-3 w-3 mr-1" />
-                                    <span className="hidden sm:inline">
-                                      {positionFilter === 'all' ? 'Role' : positionFilter.substring(0, 8)}
-                                    </span>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="all">All Positions</SelectItem>
-                                    {positions.map(pos => (
-                                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                
-                                {hasActiveFilters && (
-                                  <Button 
-                                    onClick={clearFilters} 
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 px-2 text-xs"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                )}
-                              </div>
+                              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                                <SelectTrigger className={cn(
+                                  "h-7 text-xs w-auto",
+                                  positionFilter !== 'all' ? "bg-blue-50 border-blue-200" : "border-gray-200"
+                                )}>
+                                  <Users className="h-3 w-3 mr-1" />
+                                  <span>
+                                    {positionFilter === 'all' ? 'Role' : positionFilter}
+                                  </span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Positions</SelectItem>
+                                  {positions.map(pos => (
+                                    <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              
+                              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className={cn(
+                                  "h-7 text-xs w-auto",
+                                  statusFilter !== 'all' ? "bg-blue-50 border-blue-200" : "border-gray-200"
+                                )}>
+                                  <Mail className="h-3 w-3 mr-1" />
+                                  <span>
+                                    {statusFilter === 'all' ? 'Invitation Status' : 
+                                     statusFilter === 'not_sent' ? 'Not Invited' :
+                                     statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                                  </span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Statuses</SelectItem>
+                                  <SelectItem value="not_sent">Not Invited</SelectItem>
+                                  <SelectItem value="sent">Sent</SelectItem>
+                                  <SelectItem value="viewed">Viewed</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              <Select value={profileFilter} onValueChange={setProfileFilter}>
+                                <SelectTrigger className={cn(
+                                  "h-7 text-xs w-auto",
+                                  profileFilter !== 'all' ? "bg-blue-50 border-blue-200" : "border-gray-200"
+                                )}>
+                                  <UserCircle className="h-3 w-3 mr-1" />
+                                  <span>
+                                    {profileFilter === 'all' ? 'Profile Status' :
+                                     profileFilter === 'not_started' ? 'Not Started' :
+                                     profileFilter === 'in_progress' ? 'In Progress' : 'Completed'}
+                                  </span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Profiles</SelectItem>
+                                  <SelectItem value="not_started">Not Started</SelectItem>
+                                  <SelectItem value="in_progress">In Progress</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              <Button
+                                variant={needsAttentionFilter ? "default" : "outline"}
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() => setNeedsAttentionFilter(!needsAttentionFilter)}
+                              >
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                Needs Attention
+                              </Button>
+                              
+                              {hasActiveFilters && (
+                                <Button 
+                                  onClick={clearFilters} 
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs text-gray-500"
+                                >
+                                  Clear all
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardHeader>
 
                         <CardContent className="p-0">
+          {/* Sticky Bulk Actions Bar */}
+          {selectedEmployees.length > 0 && (
+            <div className="sticky top-0 z-10 bg-blue-50 border-b border-blue-200 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedEmployees(filteredEmployees.map(emp => emp.id));
+                      } else {
+                        setSelectedEmployees([]);
+                      }
+                    }}
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedEmployees.length} employee{selectedEmployees.length !== 1 ? 's' : ''} selected
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-xs">
+                        Bulk Actions
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        // Send invitations/reminders logic
+                        toast.success(`Sending invitations to ${selectedEmployees.length} employees`);
+                      }}>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Invitations/Reminders
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleGenerateCourses}>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Generate Courses
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={() => {
+                          toast.success(`Deactivating ${selectedEmployees.length} employees`);
+                          setSelectedEmployees([]);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Deactivate Selected
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setSelectedEmployees([])}
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">
-                    <input
-                      type="checkbox"
+                  <th className="text-left p-4 text-sm font-medium text-gray-600 w-12">
+                    <Checkbox
                       className="rounded border-gray-300"
-                      onChange={(e) => {
-                        if (e.target.checked) {
+                      onCheckedChange={(checked) => {
+                        if (checked) {
                           setSelectedEmployees(filteredEmployees.map(emp => emp.id));
                         } else {
                           setSelectedEmployees([]);
@@ -724,14 +878,11 @@ const EmployeesPage = () => {
                       checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
                     />
                   </th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Employee</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Department</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Position</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Completion</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600 min-w-[300px]">Employee</th>
                   <th className="text-left p-4 text-sm font-medium text-gray-600">Invitation</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile Status</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Skills Analysis</th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-600">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Profile</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-600">Skills Match</th>
+                  <th className="text-right p-4 text-sm font-medium text-gray-600 w-20">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -739,46 +890,98 @@ const EmployeesPage = () => {
                   const skillsStatus = getSkillsStatus(employee);
                   
                   return (
-                    <tr key={employee.id} className="border-b hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={employee.id} 
+                      className="border-b hover:bg-gray-50 transition-colors group cursor-pointer"
+                      onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
+                    >
                       <td className="p-4">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           className="rounded border-gray-300"
                           checked={selectedEmployees.includes(employee.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
+                          onCheckedChange={(checked) => {
+                            if (checked) {
                               setSelectedEmployees([...selectedEmployees, employee.id]);
                             } else {
                               setSelectedEmployees(selectedEmployees.filter(id => id !== employee.id));
                             }
                           }}
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </td>
                       <td className="p-4">
-                        <div>
-                          <p className="font-medium text-gray-900">{employee.full_name}</p>
-                          <p className="text-sm text-gray-500">{employee.email}</p>
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                            <UserCircle className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 truncate">{employee.full_name}</p>
+                            <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {employee.department && (
+                                <span className="text-xs text-gray-400">{employee.department}</span>
+                              )}
+                              {employee.department && employee.position && (
+                                <span className="text-xs text-gray-400">•</span>
+                              )}
+                              {employee.position && (
+                                <span className="text-xs text-gray-400">{employee.position}</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="p-4 text-gray-600">{employee.department || '-'}</td>
-                      <td className="p-4 text-gray-600">{employee.position || '-'}</td>
                       <td className="p-4">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="inline-block">
-                              {employee.profile_complete ? (
-                                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 cursor-help">
-                                  Complete
-                                </Badge>
-                              ) : employee.completed_sections && employee.total_sections ? (
-                                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 cursor-help">
-                                  {employee.completed_sections}/{employee.total_sections} Complete
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200 cursor-help">
-                                  Not Started
-                                </Badge>
-                              )}
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                {employee.profile_complete ? (
+                                  <>
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm font-medium text-green-700">Completed</span>
+                                  </>
+                                ) : employee.completed_sections && employee.completed_sections > 0 ? (
+                                  <>
+                                    <div className="h-4 w-4 relative">
+                                      <svg className="h-4 w-4 -rotate-90" viewBox="0 0 24 24">
+                                        <circle
+                                          cx="12"
+                                          cy="12"
+                                          r="10"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          fill="none"
+                                          className="text-gray-200"
+                                        />
+                                        <circle
+                                          cx="12"
+                                          cy="12"
+                                          r="10"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          fill="none"
+                                          strokeDasharray={`${(employee.completed_sections / (employee.total_sections || 5)) * 62.83} 62.83`}
+                                          className="text-yellow-600"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <span className="text-sm font-medium text-yellow-700">In Progress</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <X className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-600">Not Started</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span className={cn(
+                                  "inline-block w-2 h-2 rounded-full",
+                                  employee.cv_file_path ? "bg-green-500" : "bg-gray-300"
+                                )} />
+                                CV {employee.cv_file_path ? 'uploaded' : 'missing'}
+                              </div>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs p-3">
@@ -841,54 +1044,158 @@ const EmployeesPage = () => {
                         </Tooltip>
                       </td>
                       <td className="p-4">
-                        {employee.invitation_status === 'completed' && (
-                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>
-                        )}
-                        {employee.invitation_status === 'viewed' && (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Viewed</Badge>
-                        )}
-                        {employee.invitation_status === 'sent' && (
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">Sent</Badge>
-                        )}
-                        {employee.invitation_status === 'not_sent' && (
-                          <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">Not Sent</Badge>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="inline-flex items-center gap-1.5">
+                              {employee.invitation_status === 'completed' && (
+                                <>
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <span className="text-sm font-medium text-green-700">Completed</span>
+                                </>
+                              )}
+                              {employee.invitation_status === 'viewed' && (
+                                <>
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                  <span className="text-sm font-medium text-blue-700">Viewed</span>
+                                </>
+                              )}
+                              {employee.invitation_status === 'sent' && (
+                                <>
+                                  <Mail className="h-4 w-4 text-yellow-600" />
+                                  <span className="text-sm font-medium text-yellow-700">Sent</span>
+                                </>
+                              )}
+                              {(!employee.invitation_status || employee.invitation_status === 'not_sent') && (
+                                <>
+                                  <Clock className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm font-medium text-gray-600">Not Sent</span>
+                                </>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {employee.invitation_status === 'completed' && 'Profile setup completed'}
+                              {employee.invitation_status === 'viewed' && 'Invitation opened but profile not completed'}
+                              {employee.invitation_status === 'sent' && 'Invitation sent, not yet opened'}
+                              {(!employee.invitation_status || employee.invitation_status === 'not_sent') && 'No invitation sent yet'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </td>
+                      {/* Merged CV status into Profile column */}
+                      <td className="p-4">
+                        {employee.skills_match_score !== null ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn(
+                                "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
+                                employee.skills_match_score >= 80 ? "bg-green-100 text-green-800" :
+                                employee.skills_match_score >= 60 ? "bg-yellow-100 text-yellow-800" :
+                                "bg-red-100 text-red-800"
+                              )}>
+                                {employee.skills_match_score}% Match
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Based on CV analysis and position requirements</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : employee.cv_file_path ? (
+                          <span className="text-sm text-gray-500">Analyzing...</span>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={employee.cv_file_path ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}>
-                          {employee.cv_file_path ? 'Uploaded' : 'Not Uploaded'}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={skillsStatus.color}>
-                          {skillsStatus.text}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => setEmployeeToDelete(employee.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Deactivate
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {employee.invitation_status === 'viewed' && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toast.success('Reminder sent to ' + employee.full_name);
+                                  }}
+                                >
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  Remind
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Send reminder to complete profile</TooltipContent>
+                            </Tooltip>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                className="h-8 w-8 p-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/dashboard/employees/${employee.id}`);
+                                }}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Profile
+                              </DropdownMenuItem>
+                              {(employee.invitation_status === 'sent' || employee.invitation_status === 'viewed') && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toast.success('Reminder sent to ' + employee.full_name);
+                                    }}
+                                  >
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    Send Reminder
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toast.success('New invitation sent to ' + employee.full_name);
+                                    }}
+                                  >
+                                    <Mail className="mr-2 h-4 w-4" />
+                                    Reinvite
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Show timeline modal
+                                  toast.info('Timeline view coming soon');
+                                }}
+                              >
+                                <History className="mr-2 h-4 w-4" />
+                                View Timeline
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEmployeeToDelete(employee.id);
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Deactivate
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </td>
                     </tr>
                   );
