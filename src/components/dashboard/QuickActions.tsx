@@ -2,7 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Send, BarChart3, BookOpen, Plus } from 'lucide-react';
+import { Upload, Send, BarChart3, BookOpen, Plus, MoreVertical, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface QuickActionsProps {
   context?: 'employees' | 'onboarding';
@@ -12,26 +18,25 @@ interface QuickActionsProps {
 export function QuickActions({ context = 'employees', className = '' }: QuickActionsProps) {
   const navigate = useNavigate();
 
-  const actions = [
-    {
-      icon: Plus,
-      label: 'Import',
-      mobileLabel: 'Import',
-      onClick: () => {
-        if (context === 'employees') {
-          // Switch to import tab
-          const importTab = document.querySelector('[data-tab="import"]') as HTMLElement;
-          if (importTab) importTab.click();
-        } else {
-          navigate('/dashboard/onboarding/import');
-        }
-      },
-      color: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200'
-    },
+  const primaryAction = {
+    icon: Plus,
+    label: 'Import Employees',
+    onClick: () => {
+      if (context === 'employees') {
+        // Switch to import tab
+        const importTab = document.querySelector('[data-tab="import"]') as HTMLElement;
+        if (importTab) importTab.click();
+      } else {
+        navigate('/dashboard/onboarding/import');
+      }
+    }
+  };
+
+  const secondaryActions = [
     {
       icon: Send,
       label: 'Send Invitations',
-      mobileLabel: 'Invite',
+      description: 'Invite employees to complete profiles',
       onClick: () => {
         if (context === 'employees') {
           // Switch to invitations tab
@@ -40,13 +45,12 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
         } else {
           navigate('/dashboard/onboarding/invite');
         }
-      },
-      color: 'text-green-600 bg-green-50 hover:bg-green-100 border-green-200'
+      }
     },
     {
       icon: BarChart3,
       label: 'View Analysis',
-      mobileLabel: 'Analyze',
+      description: 'Review skills gap insights',
       onClick: () => {
         if (context === 'employees') {
           // Switch to analysis tab
@@ -55,38 +59,51 @@ export function QuickActions({ context = 'employees', className = '' }: QuickAct
         } else {
           navigate('/dashboard/onboarding/analysis');
         }
-      },
-      color: 'text-purple-600 bg-purple-50 hover:bg-purple-100 border-purple-200'
+      }
     },
     {
       icon: BookOpen,
       label: 'Generate Courses',
-      mobileLabel: 'Courses',
-      onClick: () => navigate('/dashboard/course-generation'),
-      color: 'text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200'
+      description: 'Create personalized training',
+      onClick: () => navigate('/dashboard/course-generation')
     }
   ];
 
   return (
-    <div className={`bg-gray-50 border border-gray-200 rounded-lg p-3 ${className}`}>
-      <div className="flex flex-wrap gap-2">
-        {actions.map((action, index) => (
-          <button
-            key={index}
-            onClick={action.onClick}
-            className={`
-              flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
-              transition-all duration-200 border
-              ${action.color}
-              hover:shadow-sm active:scale-95
-            `}
-          >
-            <action.icon className="h-4 w-4" />
-            <span className="hidden sm:inline">{action.label}</span>
-            <span className="sm:hidden">{action.mobileLabel}</span>
-          </button>
-        ))}
-      </div>
+    <div className={`flex items-center gap-2 ${className}`}>
+      {/* Primary CTA */}
+      <Button 
+        onClick={primaryAction.onClick}
+        className="bg-blue-600 hover:bg-blue-700 text-white"
+      >
+        <primaryAction.icon className="h-4 w-4 mr-2" />
+        {primaryAction.label}
+      </Button>
+
+      {/* Secondary Actions Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="px-3">
+            <span className="hidden sm:inline mr-2">More Actions</span>
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-56">
+          {secondaryActions.map((action, index) => (
+            <DropdownMenuItem
+              key={index}
+              onClick={action.onClick}
+              className="cursor-pointer"
+            >
+              <action.icon className="h-4 w-4 mr-3 text-gray-500" />
+              <div className="flex-1">
+                <div className="font-medium text-sm">{action.label}</div>
+                <div className="text-xs text-gray-500">{action.description}</div>
+              </div>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

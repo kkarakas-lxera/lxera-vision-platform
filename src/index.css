@@ -48,6 +48,11 @@
     z-index: 1000 !important;
   }
   
+  /* Custom border utilities for tabs */
+  .border-b-3 {
+    border-bottom-width: 3px;
+  }
+  
   /* Progress bar animation */
   @keyframes progressGlow {
     0% {

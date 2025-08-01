@@ -457,106 +457,115 @@ const EmployeesPage = () => {
       {/* Quick Actions - Compact horizontal strip */}
       <QuickActions context="employees" className="mb-6" />
 
-      {/* Nested Tab Interface with Visual Context */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-          <p className="text-sm text-gray-600 font-medium">Employee Management Sections</p>
-        </div>
-        
+      {/* Enhanced Tab Structure with Visual Nesting */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-1">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="">
-          <div className="px-4 bg-white">
-            <TabsList className="h-auto p-0 bg-transparent border-0 flex gap-1 -mb-px">
+          <div className="bg-white rounded-md">
+            <TabsList className="h-auto p-0 bg-transparent border-0 flex gap-0">
               <TabsTrigger 
                 value="directory" 
-                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
                 data-tab="directory"
               >
-                <Users className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
-                <span>Directory</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                      {employees.length}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
+                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">Directory</span>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{employees.length} total employees</p>
+                    <p>Browse and manage all employees</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsTrigger>
               
               <TabsTrigger 
                 value="import" 
-                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
                 data-tab="import"
               >
-                <Upload className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
-                <span>Import</span>
-                {pendingImports > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge className="ml-1.5 h-5 px-1.5 text-xs bg-blue-100 text-blue-700 border-0">
-                        {pendingImports}
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{pendingImports} pending imports</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
+                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">Import</span>
+                      {pendingImports > 0 && (
+                        <Badge className="ml-1.5 h-5 px-1.5 text-xs bg-orange-100 text-orange-700 border-0">
+                          {pendingImports} pending
+                        </Badge>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Upload your employee data</p>
+                  </TooltipContent>
+                </Tooltip>
               </TabsTrigger>
               
               <TabsTrigger 
                 value="invitations" 
-                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
                 data-tab="invitations"
               >
-                <Send className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
-                <span>Invitations</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant={pendingInvites > 0 ? "default" : "secondary"} className="ml-1.5 h-5 px-1.5 text-xs">
-                      {pendingInvites > 0 ? pendingInvites : employees.filter(e => e.invitation_status === 'sent').length}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Send className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
+                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">Invitations</span>
+                      {pendingInvites > 0 && (
+                        <Badge className="ml-1.5 h-5 px-1.5 text-xs bg-orange-100 text-orange-700 border-0">
+                          {pendingInvites} pending
+                        </Badge>
+                      )}
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{pendingInvites > 0 ? `${pendingInvites} unsent invitations` : `${employees.filter(e => e.invitation_status === 'sent').length} invitations sent`}</p>
+                    <p>Track invitations sent to employees</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsTrigger>
               
               <TabsTrigger 
                 value="analysis" 
-                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
                 data-tab="analysis"
               >
-                <BarChart3 className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
-                <span>Analysis</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                      {employees.filter(e => e.skills_last_analyzed).length}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
+                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">Analysis</span>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{employees.filter(e => e.skills_last_analyzed).length} employees analyzed</p>
+                    <p>Review skills gap insights</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsTrigger>
               
               <TabsTrigger 
                 value="history" 
-                className="flex items-center gap-2 px-4 py-3 border border-transparent border-b-0 data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 rounded-t-lg hover:text-gray-900 text-sm font-medium relative" 
+                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
                 data-tab="history"
               >
-                <History className="h-4 w-4 text-gray-500 data-[state=active]:text-blue-600" />
-                <span>History</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <History className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
+                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">History</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View past imports and changes</p>
+                  </TooltipContent>
+                </Tooltip>
               </TabsTrigger>
             </TabsList>
           </div>
 
           {/* Directory Tab - Existing Employee List */}
-          <TabsContent value="directory" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-4">
+          <TabsContent value="directory" className="bg-white rounded-b-md p-6 space-y-4 -mt-px">
             <div className="relative">
               {(() => {
                 const emptyStateConfig = getEmptyStateConfig();
@@ -946,7 +955,7 @@ const EmployeesPage = () => {
     </TabsContent>
 
         {/* Import Tab */}
-        <TabsContent value="import" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+        <TabsContent value="import" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
           <ImportTab 
         userProfile={userProfile}
         onImportComplete={() => {
@@ -963,7 +972,7 @@ const EmployeesPage = () => {
         </TabsContent>
 
         {/* Invitations Tab */}
-        <TabsContent value="invitations" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+        <TabsContent value="invitations" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
           <InvitationManagement 
         employees={employees}
         onInvitationsSent={() => {
@@ -974,7 +983,7 @@ const EmployeesPage = () => {
         </TabsContent>
 
         {/* Analysis Tab */}
-        <TabsContent value="analysis" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+        <TabsContent value="analysis" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
           <SkillsGapAnalysis 
         employees={employees.map(e => ({
           id: e.id,
@@ -989,7 +998,7 @@ const EmployeesPage = () => {
         </TabsContent>
 
         {/* History Tab */}
-        <TabsContent value="history" className="bg-gray-50 border-x border-b border-gray-200 rounded-b-lg p-6 space-y-6">
+        <TabsContent value="history" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
           <BatchHistory 
         companyId={userProfile?.company_id || ''}
         onRestore={(sessionId) => {
