@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, AlertCircle, Check, Loader2, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, AlertCircle, Check, Loader2, Trash2, MoreVertical, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +9,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -398,9 +405,49 @@ export default function SpreadsheetGrid({
     }
   };
 
+  const getStatusBadge = (employee: Employee) => {
+    if (employee.status === 'ready') {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 text-xs px-2 py-0">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Ready
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            All required fields are complete
+          </TooltipContent>
+        </Tooltip>
+      );
+    } else if (employee.status === 'error') {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300 text-xs px-2 py-0">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Incomplete
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            {employee.errorMessage || 'Missing required fields'}
+          </TooltipContent>
+        </Tooltip>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-300 text-xs px-2 py-0">
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </Badge>
+      );
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Header with save status */}
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Header with save status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-muted-foreground">Team Members</h3>
@@ -617,8 +664,12 @@ export default function SpreadsheetGrid({
                       </td>
                     ))}
                     <td className="p-2">
-                      <div className="flex items-center justify-end gap-1">
-                        {getStatusIcon(employee.status)}
+                      <div className="flex items-center justify-center">
+                        {getStatusBadge(employee)}
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center justify-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -683,5 +734,6 @@ export default function SpreadsheetGrid({
         </span>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

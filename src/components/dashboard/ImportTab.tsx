@@ -17,13 +17,13 @@ interface ImportTabProps {
 }
 
 export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
-  const [selectedPosition, setSelectedPosition] = useState<string>('');
   const [positions, setPositions] = useState<any[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [spreadsheetEmployees, setSpreadsheetEmployees] = useState<SpreadsheetEmployee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState<any>(null);
+  const [sessionCreatedAt, setSessionCreatedAt] = useState<string | null>(null);
 
   // Auto-save hook
   const { saveStatus, lastSaved, handleCellSave } = useAutoSaveEmployees(
@@ -86,9 +86,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
       if (data && !error) {
         setCurrentSessionId(data.id);
-        if (data.default_position_id) {
-          setSelectedPosition(data.default_position_id);
-        }
+        setSessionCreatedAt(data.created_at);
         
         // Load existing items
         const existingEmployees = data.st_import_session_items.map((item: any) => ({
@@ -124,8 +122,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           company_id: userProfile.company_id,
           status: 'pending',
           total_employees: 0,
-          spreadsheet_mode: true,
-          default_position_id: selectedPosition || null
+          spreadsheet_mode: true
         })
         .select()
         .single();
@@ -146,8 +143,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       name: '',
       email: '',
       department: '',
-      position: positions.find(p => p.id === selectedPosition)?.position_title || '',
-      position_code: positions.find(p => p.id === selectedPosition)?.position_code || '',
+      position: '',
+      position_code: '',
       manager_email: '',
       status: 'pending'
     };
@@ -188,8 +185,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       // Activate employees via edge function
       const { data, error } = await supabase.functions.invoke('activate-import-session', {
         body: { 
-          sessionId: currentSessionId,
-          defaultPositionId: selectedPosition
+          sessionId: currentSessionId
         }
       });
 
@@ -216,42 +212,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Position Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Select Default Position
-          </CardTitle>
-          <CardDescription>
-            Choose a position that will be assigned to all imported employees by default
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedPosition} onValueChange={setSelectedPosition}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a position..." />
-            </SelectTrigger>
-            <SelectContent>
-              {positions.map(position => (
-                <SelectItem key={position.id} value={position.id}>
-                  {position.position_title} ({position.position_code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {positions.length === 0 && (
-            <Alert className="mt-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                No positions found. Please create positions first before importing employees.
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Session Status */}
       {currentSessionId && sessionStats && (
         <SessionStatusCard
@@ -263,13 +223,9 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
             successful: sessionStats.ready || 0,
             failed: sessionStats.errors || 0,
             status: 'pending',
-            created_at: new Date().toISOString(),
-            active_position_id: selectedPosition,
-            session_metadata: {
-              position_title: positions.find(p => p.id === selectedPosition)?.position_title
-            }
+            created_at: sessionCreatedAt || new Date().toISOString()
           }}
-          positionTitle={positions.find(p => p.id === selectedPosition)?.position_title}
+          positionTitle={null}
         />
       )}
 
@@ -316,22 +272,46 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           />
           
           {/* Actions */}
-          <div className="flex items-center justify-between mt-6">
-            <Alert className="flex-1 mr-4">
-              <Info className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                Employees are saved automatically as you type. Click "Activate Employees" when ready to finalize.
-              </AlertDescription>
-            </Alert>
+          <div className="mt-6 space-y-3">
+            {/* Validation Summary */}
+            {spreadsheetEmployees.length > 0 && (
+              <div className="flex items-center justify-end">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-green-600">✅</span>
+                    <span className="font-medium text-green-700">{readyCount} Ready</span>
+                  </span>
+                  {errorCount > 0 && (
+                    <>
+                      <span className="text-gray-300">•</span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-orange-600">⚠️</span>
+                        <span className="text-orange-700">{errorCount} Incomplete</span>
+                      </span>
+                      <span className="text-gray-400 text-xs">– Activation available only for ready entries</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
             
-            <Button
-              onClick={handleActivateEmployees}
-              disabled={readyCount === 0 || isSubmitting}
-              size="lg"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Activate {readyCount} Employee{readyCount !== 1 ? 's' : ''}
-            </Button>
+            <div className="flex items-center justify-between">
+              <Alert className="flex-1 mr-4">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  Employees are saved automatically as you type. Click "Activate Employees" when ready to finalize.
+                </AlertDescription>
+              </Alert>
+              
+              <Button
+                onClick={handleActivateEmployees}
+                disabled={readyCount === 0 || isSubmitting}
+                size="lg"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Activate {readyCount} Employee{readyCount !== 1 ? 's' : ''}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

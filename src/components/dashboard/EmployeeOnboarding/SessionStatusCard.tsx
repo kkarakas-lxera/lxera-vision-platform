@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, CheckCircle2, AlertCircle, TrendingUp, Users, FileText } from 'lucide-react';
+import { Calendar, Users, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -70,70 +70,50 @@ export function SessionStatusCard({ session, positionTitle }: SessionStatusCardP
     ? Math.round((session.successful / session.processed) * 100) 
     : 0;
 
+  const pendingCount = session.total_employees - session.successful - session.failed;
+  const hasErrors = session.failed > 0;
+
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className={`h-2 ${config.bgColor}`} />
+    <Card className="bg-blue-50 border-blue-200">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${config.bgColor}`}>
-              <Icon className={`h-5 w-5 ${config.color}`} />
-            </div>
-            <div>
-              <p className="font-medium text-sm">
-                {format(new Date(session.created_at), 'MMM d, yyyy - h:mm a')}
-              </p>
-              {positionTitle && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                  <FileText className="h-3 w-3" />
-                  {positionTitle}
-                </p>
-              )}
-            </div>
+        <div className="space-y-2">
+          {/* Date and time row */}
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <span className="font-medium">Session:</span>
+            <span>{format(new Date(session.created_at), 'MMM d, yyyy')} – {format(new Date(session.created_at), 'hh:mm a')}</span>
           </div>
-          <Badge className={config.badgeClass}>
-            {config.label}
-          </Badge>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Employees</span>
-            <span className="font-medium">{session.total_employees}</span>
+          
+          {/* Status row */}
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">{session.total_employees} employees added</span>
+            </div>
+            <span className="text-gray-400">•</span>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <span className="text-green-700">{session.successful} ready</span>
+            </div>
+            {hasErrors && (
+              <>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-red-700">{session.failed} with missing data</span>
+                </div>
+              </>
+            )}
+            {pendingCount > 0 && (
+              <>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <span className="text-orange-700">{pendingCount} incomplete</span>
+                </div>
+              </>
+            )}
           </div>
-
-          {session.status === 'processing' && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="font-medium">{session.processed}/{session.total_employees}</span>
-              </div>
-              <Progress 
-                value={(session.processed / session.total_employees) * 100} 
-                className="h-2"
-              />
-            </div>
-          )}
-
-          {(session.status === 'completed' || session.processed > 0) && (
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Success Rate</p>
-                <p className="text-lg font-semibold text-green-600">{successRate}%</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Analyzed</p>
-                <p className="text-lg font-semibold">{session.successful}</p>
-              </div>
-            </div>
-          )}
-
-          {session.failed > 0 && (
-            <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-              <AlertCircle className="h-3 w-3" />
-              {session.failed} failed
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
