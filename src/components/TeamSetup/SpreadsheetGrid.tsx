@@ -289,6 +289,11 @@ export default function SpreadsheetGrid({
   };
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    // Don't intercept paste if we're editing a cell - let the input handle it normally
+    if (editingCell) {
+      return;
+    }
+    
     e.preventDefault();
     
     const text = e.clipboardData.getData('text');
@@ -338,49 +343,25 @@ export default function SpreadsheetGrid({
       }
 
       if (newEmployees.length > 0) {
-        // If editing a cell, replace from that position
-        if (editingCell) {
-          const rowIndex = employees.findIndex(e => e.id === editingCell.rowId);
-          if (rowIndex >= 0) {
-            const updatedEmployees = [...employees];
-            // Replace starting from current row
-            for (let i = 0; i < newEmployees.length; i++) {
-              if (rowIndex + i < updatedEmployees.length) {
-                // Merge with existing row
-                updatedEmployees[rowIndex + i] = {
-                  ...updatedEmployees[rowIndex + i],
-                  ...newEmployees[i],
-                  id: updatedEmployees[rowIndex + i].id // Keep original ID
-                };
-              } else {
-                // Add new row
-                updatedEmployees.push(newEmployees[i]);
-              }
+        // Replace empty rows first, then append
+        const emptyRows = employees.filter(e => !e.name && !e.email);
+        const nonEmptyRows = employees.filter(e => e.name || e.email);
+        
+        if (emptyRows.length >= newEmployees.length) {
+          // Replace empty rows
+          const updatedEmployees = employees.map(emp => {
+            if (!emp.name && !emp.email && newEmployees.length > 0) {
+              return { ...newEmployees.shift()!, id: emp.id };
             }
-            onEmployeesChange(updatedEmployees);
-          }
+            return emp;
+          });
+          onEmployeesChange(updatedEmployees);
         } else {
-          // Replace empty rows first, then append
-          const emptyRows = employees.filter(e => !e.name && !e.email);
-          const nonEmptyRows = employees.filter(e => e.name || e.email);
-          
-          if (emptyRows.length >= newEmployees.length) {
-            // Replace empty rows
-            const updatedEmployees = employees.map(emp => {
-              if (!emp.name && !emp.email && newEmployees.length > 0) {
-                return { ...newEmployees.shift()!, id: emp.id };
-              }
-              return emp;
-            });
-            onEmployeesChange(updatedEmployees);
-          } else {
-            // Append to the end
-            onEmployeesChange([...nonEmptyRows, ...newEmployees]);
-          }
+          // Append to the end
+          onEmployeesChange([...nonEmptyRows, ...newEmployees]);
         }
         
         toast.success(`Added ${newEmployees.length} employee${newEmployees.length > 1 ? 's' : ''} from clipboard`);
-        setEditingCell(null);
       }
     } catch (error) {
       console.error('Paste error:', error);
