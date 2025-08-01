@@ -3,6 +3,7 @@ import { Plus, AlertCircle, Check, Loader2, Trash2, MoreVertical, CheckCircle, C
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,31 +44,7 @@ interface SpreadsheetGridProps {
   positions?: { id: string; position_code: string; position_title: string; department?: string }[];
 }
 
-const DEPARTMENTS = [
-  'Engineering',
-  'Sales',
-  'Marketing',
-  'Operations',
-  'HR',
-  'Finance',
-  'Product',
-  'Customer Success',
-  'Legal',
-  'Other'
-];
-
-const POSITIONS_BY_DEPARTMENT: Record<string, string[]> = {
-  Engineering: ['Software Engineer', 'Senior Engineer', 'Tech Lead', 'Engineering Manager', 'DevOps Engineer', 'QA Engineer'],
-  Sales: ['Sales Representative', 'Account Executive', 'Sales Manager', 'Business Development Rep', 'Sales Director'],
-  Marketing: ['Marketing Specialist', 'Content Manager', 'SEO Specialist', 'Marketing Manager', 'Brand Manager'],
-  Operations: ['Operations Manager', 'Operations Analyst', 'Supply Chain Manager', 'Logistics Coordinator'],
-  HR: ['HR Manager', 'Recruiter', 'HR Business Partner', 'Talent Acquisition Specialist', 'HR Coordinator'],
-  Finance: ['Financial Analyst', 'Accountant', 'Finance Manager', 'Controller', 'Bookkeeper'],
-  Product: ['Product Manager', 'Product Designer', 'UX Designer', 'Product Owner', 'UX Researcher'],
-  'Customer Success': ['Customer Success Manager', 'Support Engineer', 'Implementation Specialist', 'Customer Support Rep'],
-  Legal: ['Legal Counsel', 'Paralegal', 'Compliance Officer', 'Contract Manager'],
-  Other: ['General', 'Specialist', 'Manager', 'Coordinator', 'Analyst']
-};
+// No generic placeholders - only use actual data from database
 
 const COLUMNS = [
   { key: 'name', label: 'Name', required: true, width: '250px', type: 'text' },
@@ -88,6 +65,7 @@ export default function SpreadsheetGrid({
   departments: companyDepartments,
   positions: companyPositions
 }: SpreadsheetGridProps) {
+  const navigate = useNavigate();
   const [editingCell, setEditingCell] = useState<{ rowId: string; column: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -534,11 +512,18 @@ export default function SpreadsheetGrid({
                             <Select
                               value={editValue || ''}
                               onValueChange={(value) => {
-                                setEditValue(value);
-                                // Don't save immediately, wait for dropdown to close
+                                if (value === 'add-new-position') {
+                                  // Navigate to position creation page
+                                  navigate('/dashboard/positions/new');
+                                  setEditingCell(null);
+                                  setEditValue('');
+                                } else {
+                                  setEditValue(value);
+                                  // Don't save immediately, wait for dropdown to close
+                                }
                               }}
                               onOpenChange={(open) => {
-                                if (!open && editValue !== employee[column.key as keyof Employee]) {
+                                if (!open && editValue !== employee[column.key as keyof Employee] && editValue !== 'add-new-position') {
                                   // Save when dropdown closes if value changed
                                   handleCellSave();
                                 }
@@ -552,43 +537,42 @@ export default function SpreadsheetGrid({
                               <SelectContent>
                                 {column.key === 'department' && (
                                   companyDepartments && companyDepartments.length > 0 ? (
-                                    <>
-                                      {companyDepartments
-                                        .filter(dept => dept && dept.trim() !== '')
-                                        .map(dept => (
-                                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                        ))}
-                                      <SelectItem value="Other">Other</SelectItem>
-                                    </>
+                                    companyDepartments
+                                      .filter(dept => dept && dept.trim() !== '')
+                                      .map(dept => (
+                                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                      ))
                                   ) : (
-                                    DEPARTMENTS.map(dept => (
-                                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                    ))
+                                    <SelectItem value="no-departments" disabled>No departments available</SelectItem>
                                   )
                                 )}
                                 {column.key === 'position' && (
                                   employee.department ? (
-                                    companyPositions && companyPositions.length > 0 ? (
-                                      (() => {
-                                        const filteredPositions = companyPositions
-                                          .filter(p => !p.department || p.department === employee.department)
-                                          .filter(p => p.position_title && p.position_title.trim() !== '');
-                                        
-                                        return filteredPositions.length > 0 ? (
-                                          filteredPositions.map(pos => (
-                                            <SelectItem key={pos.id} value={pos.position_title}>
-                                              {pos.position_title}
-                                            </SelectItem>
-                                          ))
-                                        ) : (
-                                          <SelectItem value="no-positions" disabled>No positions for this department</SelectItem>
-                                        );
-                                      })()
-                                    ) : (
-                                      POSITIONS_BY_DEPARTMENT[employee.department]?.map(pos => (
-                                        <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                                      )) || <SelectItem value="no-positions" disabled>No positions for this department</SelectItem>
-                                    )
+                                    (() => {
+                                      const filteredPositions = companyPositions
+                                        ?.filter(p => !p.department || p.department === employee.department)
+                                        .filter(p => p.position_title && p.position_title.trim() !== '') || [];
+                                      
+                                      return (
+                                        <>
+                                          {filteredPositions.length > 0 ? (
+                                            filteredPositions.map(pos => (
+                                              <SelectItem key={pos.id} value={pos.position_title}>
+                                                {pos.position_title}
+                                              </SelectItem>
+                                            ))
+                                          ) : (
+                                            <SelectItem value="no-positions" disabled>No positions for this department</SelectItem>
+                                          )}
+                                          <SelectItem 
+                                            value="add-new-position"
+                                            className="text-blue-600 font-medium"
+                                          >
+                                            + Add New Position
+                                          </SelectItem>
+                                        </>
+                                      );
+                                    })()
                                   ) : (
                                     <SelectItem value="select-dept" disabled>Select department first</SelectItem>
                                   )
