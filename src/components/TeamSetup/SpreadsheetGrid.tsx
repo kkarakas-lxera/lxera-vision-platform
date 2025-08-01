@@ -47,11 +47,11 @@ interface SpreadsheetGridProps {
 // No generic placeholders - only use actual data from database
 
 const COLUMNS = [
-  { key: 'name', label: 'Name', required: true, width: '250px', type: 'text' },
+  { key: 'name', label: 'Full Name', required: true, width: '250px', type: 'text' },
   { key: 'email', label: 'Email', required: true, width: '300px', type: 'email' },
-  { key: 'department', label: 'Department', required: false, width: '200px', type: 'select' },
-  { key: 'position', label: 'Position', required: false, width: '250px', type: 'select' },
-  { key: 'position_code', label: 'Code', required: false, width: '120px', type: 'text' },
+  { key: 'department', label: 'Department', required: true, width: '200px', type: 'select' },
+  { key: 'position', label: 'Position', required: true, width: '250px', type: 'select' },
+  { key: 'position_code', label: 'Code', required: true, width: '120px', type: 'text' },
 ];
 
 export default function SpreadsheetGrid({
