@@ -33,9 +33,7 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   );
 
   useEffect(() => {
-    console.log('ImportTab useEffect - userProfile:', userProfile);
     if (userProfile?.company_id) {
-      console.log('Fetching data for company_id:', userProfile.company_id);
       fetchPositions();
       fetchDepartments();
       checkExistingSession();
@@ -61,7 +59,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   const fetchPositions = async () => {
     try {
-      console.log('Fetching positions for company:', userProfile.company_id);
       const { data, error } = await supabase
         .from('st_company_positions')
         .select('*')
@@ -69,7 +66,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         .order('position_title');
 
       if (error) throw error;
-      console.log('Positions fetched:', data);
       setPositions(data || []);
     } catch (error) {
       console.error('Error fetching positions:', error);
@@ -78,8 +74,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
   const fetchDepartments = async () => {
     try {
-      console.log('Fetching departments for company:', userProfile.company_id);
-      
       // Try to get departments from employees first
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
@@ -105,7 +99,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
       ];
       
       const uniqueDepartments = [...new Set(allDepartments.filter(Boolean))];
-      console.log('Departments fetched:', uniqueDepartments);
       setDepartments(uniqueDepartments);
     } catch (error) {
       console.error('Error fetching departments:', error);

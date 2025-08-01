@@ -54,82 +54,111 @@ export function useAutoSaveEmployees(
     setSaveStatus('saving');
     
     try {
-      // Prepare batch upsert data
-      const itemsToUpsert = employees.map(emp => {
-        const item: any = {
+      // Separate items with existing IDs from new items
+      const existingItems = employees.filter(emp => 
+        !emp.id.startsWith('temp-') && !emp.id.startsWith('new-')
+      );
+      
+      const newItems = employees.filter(emp => 
+        emp.id.startsWith('temp-') || emp.id.startsWith('new-')
+      );
+
+      // For existing items, prepare update data
+      const itemsToUpdate = existingItems.map(emp => ({
+        id: emp.id,
+        import_session_id: sessionId,
+        employee_name: emp.name || null,
+        employee_email: emp.email || '',
+        current_position_code: emp.position_code || null,
+        status: emp.status === 'ready' ? 'completed' : 
+                emp.status === 'error' ? 'failed' : 
+                emp.status || 'pending',
+        error_message: emp.errorMessage || null,
+        field_values: {
+          department: emp.department || null,
+          position: emp.position || null,
+          manager_email: emp.manager_email || null
+        }
+      }));
+
+      // For new items, only insert if they have at least an email
+      const itemsToInsert = newItems
+        .filter(emp => emp.email && emp.email.trim() !== '')
+        .map(emp => ({
           import_session_id: sessionId,
-          employee_name: emp.name || '',
-          employee_email: emp.email || '',
+          employee_name: emp.name || null,
+          employee_email: emp.email,
           current_position_code: emp.position_code || null,
-          // Map frontend status to database status
           status: emp.status === 'ready' ? 'completed' : 
                   emp.status === 'error' ? 'failed' : 
-                  emp.status,
+                  emp.status || 'pending',
           error_message: emp.errorMessage || null,
           field_values: {
             department: emp.department || null,
             position: emp.position || null,
             manager_email: emp.manager_email || null
           }
-        };
-        
-        // Only include id if it's not a temporary one
-        if (!emp.id.startsWith('temp-') && !emp.id.startsWith('new-')) {
-          item.id = emp.id;
-        }
-        
-        return item;
-      });
+        }));
 
-      // Don't filter out empty rows - we want to persist them
-      const validItems = itemsToUpsert;
+      // Handle updates and inserts separately
+      let updatedData: any[] = [];
+      let insertedData: any[] = [];
 
-      if (validItems.length > 0) {
-        // Delete existing items for this session first
-        const { error: deleteError } = await supabase
-          .from('st_import_session_items')
-          .delete()
-          .eq('import_session_id', sessionId);
-
-        if (deleteError) {
-          console.error('Delete error:', deleteError);
-        }
-
-        // Insert all items
+      // Update existing items
+      if (itemsToUpdate.length > 0) {
         const { data, error } = await supabase
           .from('st_import_session_items')
-          .insert(validItems)
-          .select('*');
+          .upsert(itemsToUpdate, {
+            onConflict: 'id',
+            ignoreDuplicates: false
+          })
+          .select();
 
         if (error) throw error;
-
-        // Update local state with new IDs
-        if (data) {
-          const updatedEmployees = employees.map((emp, index) => {
-            if (emp.id.startsWith('temp-') || emp.id.startsWith('new-')) {
-              const newItem = data[index];
-              if (newItem) {
-                return { ...emp, id: newItem.id };
-              }
-            }
-            return emp;
-          });
-          setEmployees(updatedEmployees);
-        }
-
-        // Update session stats
-        const readyCount = validItems.filter(item => item.status === 'completed').length;
-        const errorCount = validItems.filter(item => item.status === 'failed').length;
-        
-        await supabase
-          .from('st_import_sessions')
-          .update({
-            total_employees: validItems.length,
-            successful: readyCount,
-            failed: errorCount
-          })
-          .eq('id', sessionId);
+        updatedData = data || [];
       }
+
+      // Insert new items (without ID field)
+      if (itemsToInsert.length > 0) {
+        const { data, error } = await supabase
+          .from('st_import_session_items')
+          .insert(itemsToInsert)
+          .select();
+
+        if (error) throw error;
+        insertedData = data || [];
+      }
+
+      const allData = [...updatedData, ...insertedData];
+
+      // Update local state with new IDs
+      if (insertedData.length > 0) {
+        const updatedEmployees = employees.map((emp) => {
+          if (emp.id.startsWith('temp-') || emp.id.startsWith('new-')) {
+            // Find the inserted item by email
+            const newItem = insertedData.find(item => item.employee_email === emp.email);
+            if (newItem) {
+              return { ...emp, id: newItem.id };
+            }
+          }
+          return emp;
+        });
+        setEmployees(updatedEmployees);
+      }
+
+      // Update session stats
+      const allItems = [...itemsToUpdate, ...itemsToInsert];
+      const readyCount = allItems.filter(item => item.status === 'completed').length;
+      const errorCount = allItems.filter(item => item.status === 'failed').length;
+        
+      await supabase
+        .from('st_import_sessions')
+        .update({
+          total_employees: allItems.length,
+          successful: readyCount,
+          failed: errorCount
+        })
+        .eq('id', sessionId);
 
       setSaveStatus('saved');
       setLastSaved(new Date());

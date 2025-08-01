@@ -71,10 +71,6 @@ export default function SpreadsheetGrid({
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Debug log
-  console.log('SpreadsheetGrid - departments:', companyDepartments);
-  console.log('SpreadsheetGrid - positions:', companyPositions);
-
   // Focus input when editing cell changes
   useEffect(() => {
     if (editingCell && inputRef.current) {
