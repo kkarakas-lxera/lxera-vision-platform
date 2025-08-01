@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, Upload, FileSpreadsheet, AlertTriangle, Info } from 'lucide-react';
+import { Building2, Upload, FileSpreadsheet, AlertTriangle, Info, CheckCircle, ArrowRight } from 'lucide-react';
 import SpreadsheetGrid, { Employee as SpreadsheetEmployee } from '@/components/TeamSetup/SpreadsheetGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -24,6 +24,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState<any>(null);
   const [sessionCreatedAt, setSessionCreatedAt] = useState<string | null>(null);
+  const [showSuccessState, setShowSuccessState] = useState(false);
+  const [activatedCount, setActivatedCount] = useState(0);
 
   // Auto-save hook
   const { saveStatus, lastSaved, handleCellSave } = useAutoSaveEmployees(
@@ -250,11 +252,11 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
 
       toast.success(`Successfully activated ${data.activatedCount} employees`);
       
-      // Reset the form
-      setSpreadsheetEmployees([]);
-      setCurrentSessionId(null);
-      setSessionStats(null);
+      // Show success state instead of resetting immediately
+      setActivatedCount(data.activatedCount);
+      setShowSuccessState(true);
       
+      // Call onImportComplete to refresh the parent data
       onImportComplete();
     } catch (error) {
       console.error('Error activating employees:', error);
@@ -274,6 +276,66 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show success state if activation completed
+  if (showSuccessState) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-12">
+            <div className="text-center space-y-6">
+              <div className="flex justify-center">
+                <div className="p-4 bg-green-100 rounded-full">
+                  <CheckCircle className="h-12 w-12 text-green-600" />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold text-gray-900">
+                  Successfully Activated {activatedCount} Employee{activatedCount !== 1 ? 's' : ''}!
+                </h3>
+                <p className="text-gray-600">
+                  Your employees have been added to the system and are ready to receive invitations.
+                </p>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  size="lg" 
+                  className="group"
+                  onClick={() => {
+                    // Switch to invitations tab
+                    const invitationsTab = document.querySelector('[value="invitations"]') as HTMLButtonElement;
+                    if (invitationsTab) {
+                      invitationsTab.click();
+                    }
+                  }}
+                >
+                  Send Invitations
+                  <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                </Button>
+                
+                <p className="text-sm text-gray-500 mt-4">
+                  or{' '}
+                  <button 
+                    className="text-blue-600 hover:underline"
+                    onClick={() => {
+                      setShowSuccessState(false);
+                      setSpreadsheetEmployees([]);
+                      setCurrentSessionId(null);
+                      setSessionStats(null);
+                    }}
+                  >
+                    import more employees
+                  </button>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
