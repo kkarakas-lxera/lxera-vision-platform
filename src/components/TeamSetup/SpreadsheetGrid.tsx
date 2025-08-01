@@ -565,10 +565,6 @@ export default function SpreadsheetGrid({
                             >
                               <SelectTrigger 
                                 className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500"
-                                onBlur={() => {
-                                  // Additional safety for blur events
-                                  setTimeout(() => handleCellSave(), 10);
-                                }}
                               >
                                 <SelectValue placeholder={`Select ${column.label}`} />
                               </SelectTrigger>
@@ -624,7 +620,13 @@ export default function SpreadsheetGrid({
                               type={column.type}
                               value={editValue}
                               onChange={(e) => handleCellChange(e.target.value)}
-                              onBlur={handleCellSave}
+                              onBlur={(e) => {
+                                // Only save on blur if we're not clicking another cell
+                                const relatedTarget = e.relatedTarget as HTMLElement;
+                                if (!relatedTarget || !relatedTarget.closest('td')) {
+                                  handleCellSave();
+                                }
+                              }}
                               onKeyDown={handleKeyDown}
                               className="h-10 rounded-none border-0 focus:ring-2 focus:ring-blue-500"
                               placeholder={`Enter ${column.label.toLowerCase()}`}
@@ -638,14 +640,18 @@ export default function SpreadsheetGrid({
                               "border-b-2 border-gray-200"
                             )}
                             onClick={() => {
+                              // Don't switch cells if we're already editing this cell
+                              if (editingCell?.rowId === employee.id && editingCell?.column === column.key) {
+                                return;
+                              }
+                              
                               // Save any pending changes before switching cells
                               if (editingCell) {
                                 handleCellSave();
-                                // Small delay to let save complete
-                                setTimeout(() => handleCellClick(employee.id, column.key), 50);
-                              } else {
-                                handleCellClick(employee.id, column.key);
                               }
+                              
+                              // Directly open the new cell without delay
+                              handleCellClick(employee.id, column.key);
                             }}
                           >
                             <span className={cn(
