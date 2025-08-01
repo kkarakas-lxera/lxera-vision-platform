@@ -135,7 +135,8 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           // Map database status back to frontend status
           status: item.status === 'completed' ? 'ready' : 
                   item.status === 'failed' ? 'error' : 
-                  item.status as any
+                  item.status as any,
+          errorMessage: item.error_message || undefined
         }));
         
         // If no existing employees, initialize with 5 empty rows
@@ -161,9 +162,13 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
           ready: data.st_import_session_items.filter((i: any) => i.status === 'completed').length,
           errors: data.st_import_session_items.filter((i: any) => i.status === 'failed').length
         });
+      } else if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "no rows found", which is expected when no session exists
+        console.error('Unexpected error checking existing session:', error);
       }
     } catch (error) {
       console.error('Error checking existing session:', error);
+      // Continue with empty state if session check fails
     }
   };
 
@@ -248,9 +253,14 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to activate employees');
+      }
 
-      if (data.activatedCount > 0) {
+      console.log('Activation result:', data);
+
+      if (data?.activatedCount > 0) {
         toast.success(`Successfully activated ${data.activatedCount} employees`);
         
         // Show success state instead of resetting immediately
@@ -259,14 +269,29 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
         
         // Call onImportComplete to refresh the parent data
         onImportComplete();
+        
+        // Clear the current session data since it's been activated
+        setCurrentSessionId(null);
+        setSessionStats(null);
+        setSessionCreatedAt(null);
       } else {
-        toast.error('No employees were activated. Please check for errors and try again.');
+        const failedCount = data?.failedCount || 0;
+        const message = failedCount > 0 
+          ? `Activation completed with ${failedCount} failures. Please check for errors and try again.`
+          : 'No employees were activated. Please check for errors and try again.';
+        
+        toast.error(message);
+        
         // Refresh the session to show updated error states
-        checkExistingSession();
+        await checkExistingSession();
       }
     } catch (error) {
       console.error('Error activating employees:', error);
-      toast.error('Failed to activate employees');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to activate employees';
+      toast.error(errorMessage);
+      
+      // Refresh session to show any updated states
+      await checkExistingSession();
     } finally {
       setIsSubmitting(false);
     }
@@ -330,9 +355,25 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
                     className="text-blue-600 hover:underline"
                     onClick={() => {
                       setShowSuccessState(false);
-                      setSpreadsheetEmployees([]);
+                      setActivatedCount(0);
+                      
+                      // Reset to initial empty state
+                      const emptyRows: SpreadsheetEmployee[] = Array.from({ length: 5 }, (_, i) => ({
+                        id: `temp-${Date.now()}-${i}-${Math.random()}`,
+                        name: '',
+                        email: '',
+                        department: '',
+                        position: '',
+                        position_code: '',
+                        manager_email: '',
+                        status: 'pending'
+                      }));
+                      setSpreadsheetEmployees(emptyRows);
+                      
+                      // Clear session state
                       setCurrentSessionId(null);
                       setSessionStats(null);
+                      setSessionCreatedAt(null);
                     }}
                   >
                     import more employees

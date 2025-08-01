@@ -82,17 +82,49 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
       // Transform the data to include created_by_name and calculate current_active_employees
       const sessionsWithDetails = await Promise.all(
         (data || []).map(async (session) => {
-          // Get current active employees count for this session
-          const { count: activeCount } = await supabase
-            .from('employees')
-            .select('*', { count: 'exact', head: true })
-            .eq('import_session_id', session.id)
-            .eq('is_active', true);
+          let activeCount = 0;
+          
+          try {
+            // Try to get current active employees count for this session
+            const { count, error } = await supabase
+              .from('employees')
+              .select('*', { count: 'exact', head: true })
+              .eq('import_session_id', session.id)
+              .eq('is_active', true);
+              
+            if (error) {
+              // If the query fails due to missing column, use alternative approach
+              if (error.message?.includes('import_session_id') || error.code === '42703') {
+                console.warn('import_session_id column not found, using alternative count method');
+                
+                // Count via session items and employee lookup
+                const { data: sessionItems, error: itemsError } = await supabase
+                  .from('st_import_session_items')
+                  .select(`
+                    employee_id,
+                    employees!inner(is_active)
+                  `)
+                  .eq('import_session_id', session.id)
+                  .not('employee_id', 'is', null);
+
+                if (!itemsError && sessionItems) {
+                  activeCount = sessionItems.filter(item => item.employees?.is_active).length;
+                }
+              } else {
+                console.error('Error counting active employees:', error);
+              }
+            } else {
+              activeCount = count || 0;
+            }
+          } catch (countError) {
+            console.error('Failed to count active employees for session:', session.id, countError);
+            activeCount = 0;
+          }
 
           return {
             ...session,
             created_by_name: session.users?.full_name || 'Unknown User',
-            current_active_employees: activeCount || 0
+            current_active_employees: activeCount
           };
         })
       );
@@ -108,23 +140,80 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
 
   const handleViewDetails = async (session: ImportSession) => {
     try {
-      // Fetch detailed employee information for this session
-      const { data: employees, error } = await supabase
-        .from('employees')
-        .select('id, name, email, is_active')
-        .eq('import_session_id', session.id);
+      // Try to fetch detailed employee information for this session
+      // First check if import_session_id field exists, otherwise use alternative method
+      let employees: any[] = [];
+      
+      try {
+        const { data, error } = await supabase
+          .from('employees')
+          .select(`
+            id, 
+            is_active,
+            users!inner(full_name, email)
+          `)
+          .eq('import_session_id', session.id);
 
-      if (error) {
-        console.error('Error fetching session details:', error);
-        toast.error('Failed to load session details');
-        return;
+        if (error) {
+          // If the query fails due to missing column, try alternative approach
+          if (error.message?.includes('import_session_id') || error.code === '42703') {
+            console.warn('import_session_id column not found, using alternative method');
+            
+            // Get employees created by this session from session items
+            const { data: sessionItems, error: itemsError } = await supabase
+              .from('st_import_session_items')
+              .select(`
+                employee_id,
+                employee_name,
+                employee_email,
+                employees!inner(id, is_active, users!inner(full_name, email))
+              `)
+              .eq('import_session_id', session.id)
+              .not('employee_id', 'is', null);
+
+            if (itemsError) throw itemsError;
+            
+            employees = sessionItems?.map(item => ({
+              id: item.employees?.id || item.employee_id,
+              name: item.employees?.users?.full_name || item.employee_name,
+              email: item.employees?.users?.email || item.employee_email,
+              is_active: item.employees?.is_active ?? true
+            })) || [];
+          } else {
+            throw error;
+          }
+        } else {
+          employees = (data || []).map(emp => ({
+            id: emp.id,
+            name: emp.users?.full_name || 'Unknown',
+            email: emp.users?.email || 'No email',
+            is_active: emp.is_active
+          }));
+        }
+      } catch (queryError) {
+        console.error('Failed to fetch employees, showing session items only:', queryError);
+        
+        // Fallback: show session items data
+        const { data: sessionItems, error: itemsError } = await supabase
+          .from('st_import_session_items')
+          .select('id, employee_name, employee_email, status')
+          .eq('import_session_id', session.id);
+
+        if (itemsError) throw itemsError;
+        
+        employees = sessionItems?.map(item => ({
+          id: item.id,
+          name: item.employee_name || 'Unknown',
+          email: item.employee_email || 'Unknown',
+          is_active: item.status === 'completed'
+        })) || [];
       }
 
       // Update the session with batch details
       const sessionWithDetails = {
         ...session,
         batch_details: {
-          added_employees: employees || []
+          added_employees: employees
         }
       };
 
@@ -140,14 +229,52 @@ export function BatchHistory({ companyId, onRestore }: BatchHistoryProps) {
     if (!selectedSession) return;
 
     try {
-      const { error } = await supabase
-        .from('employees')
-        .update({ is_active: true })
-        .eq('import_session_id', selectedSession.id);
+      // Try to restore using import_session_id, fallback to employee_id lookup
+      let updateResult;
+      
+      try {
+        updateResult = await supabase
+          .from('employees')
+          .update({ is_active: true })
+          .eq('import_session_id', selectedSession.id);
+          
+        if (updateResult.error) {
+          // If the query fails due to missing column, use alternative approach
+          if (updateResult.error.message?.includes('import_session_id') || updateResult.error.code === '42703') {
+            console.warn('import_session_id column not found, using alternative restore method');
+            
+            // Get employee IDs from session items and restore individually
+            const { data: sessionItems, error: itemsError } = await supabase
+              .from('st_import_session_items')
+              .select('employee_id')
+              .eq('import_session_id', selectedSession.id)
+              .not('employee_id', 'is', null);
 
-      if (error) throw error;
+            if (itemsError) throw itemsError;
+            
+            const employeeIds = sessionItems?.map(item => item.employee_id).filter(Boolean) || [];
+            
+            if (employeeIds.length > 0) {
+              const { error: restoreError } = await supabase
+                .from('employees')
+                .update({ is_active: true })
+                .in('user_id', employeeIds);
+                
+              if (restoreError) throw restoreError;
+            }
+            
+            updateResult = { error: null };
+          } else {
+            throw updateResult.error;
+          }
+        }
+      } catch (restoreError) {
+        throw restoreError;
+      }
 
-      toast.success(`Restored ${selectedSession.total_employees} employees from batch`);
+      if (updateResult.error) throw updateResult.error;
+
+      toast.success(`Restored employees from batch`);
       fetchImportHistory();
       if (onRestore) onRestore(selectedSession.id);
     } catch (error) {
