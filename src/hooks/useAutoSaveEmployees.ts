@@ -55,23 +55,31 @@ export function useAutoSaveEmployees(
     
     try {
       // Prepare batch upsert data
-      const itemsToUpsert = employees.map(emp => ({
-        id: emp.id.startsWith('temp-') || emp.id.startsWith('new-') ? undefined : emp.id,
-        import_session_id: sessionId,
-        employee_name: emp.name,
-        employee_email: emp.email,
-        current_position_code: emp.position_code || null,
-        // Map frontend status to database status
-        status: emp.status === 'ready' ? 'completed' : 
-                emp.status === 'error' ? 'failed' : 
-                emp.status,
-        error_message: emp.errorMessage || null,
-        field_values: {
-          department: emp.department || null,
-          position: emp.position || null,
-          manager_email: emp.manager_email || null
+      const itemsToUpsert = employees.map(emp => {
+        const item: any = {
+          import_session_id: sessionId,
+          employee_name: emp.name || '',
+          employee_email: emp.email || '',
+          current_position_code: emp.position_code || null,
+          // Map frontend status to database status
+          status: emp.status === 'ready' ? 'completed' : 
+                  emp.status === 'error' ? 'failed' : 
+                  emp.status,
+          error_message: emp.errorMessage || null,
+          field_values: {
+            department: emp.department || null,
+            position: emp.position || null,
+            manager_email: emp.manager_email || null
+          }
+        };
+        
+        // Only include id if it's not a temporary one
+        if (!emp.id.startsWith('temp-') && !emp.id.startsWith('new-')) {
+          item.id = emp.id;
         }
-      }));
+        
+        return item;
+      });
 
       // Don't filter out empty rows - we want to persist them
       const validItems = itemsToUpsert;

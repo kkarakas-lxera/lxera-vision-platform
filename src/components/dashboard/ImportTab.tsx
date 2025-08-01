@@ -79,15 +79,32 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
   const fetchDepartments = async () => {
     try {
       console.log('Fetching departments for company:', userProfile.company_id);
-      const { data, error } = await supabase
+      
+      // Try to get departments from employees first
+      const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .select('department')
         .eq('company_id', userProfile.company_id)
         .not('department', 'is', null);
 
-      if (error) throw error;
+      if (employeeError) throw employeeError;
       
-      const uniqueDepartments = [...new Set(data?.map(e => e.department).filter(Boolean))];
+      // Also get departments from positions
+      const { data: positionData, error: positionError } = await supabase
+        .from('st_company_positions')
+        .select('department')
+        .eq('company_id', userProfile.company_id)
+        .not('department', 'is', null);
+
+      if (positionError) throw positionError;
+      
+      // Combine departments from both sources
+      const allDepartments = [
+        ...(employeeData?.map(e => e.department) || []),
+        ...(positionData?.map(p => p.department) || [])
+      ];
+      
+      const uniqueDepartments = [...new Set(allDepartments.filter(Boolean))];
       console.log('Departments fetched:', uniqueDepartments);
       setDepartments(uniqueDepartments);
     } catch (error) {
