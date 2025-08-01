@@ -242,20 +242,6 @@ export function ImportTab({ userProfile, onImportComplete }: ImportTabProps) {
                 Add employees using the spreadsheet interface below
               </CardDescription>
             </div>
-            {spreadsheetEmployees.length > 0 && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Badge variant="outline" className="bg-green-50">
-                    {readyCount} ready
-                  </Badge>
-                  {errorCount > 0 && (
-                    <Badge variant="outline" className="bg-red-50">
-                      {errorCount} errors
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </CardHeader>
         <CardContent>

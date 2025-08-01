@@ -19,7 +19,6 @@ interface Employee {
   invitation_status?: 'not_sent' | 'sent' | 'viewed' | 'completed';
   invitation_sent_at?: string;
   profile_completed?: boolean;
-  cv_uploaded?: boolean;
 }
 
 interface InviteEmployeesProps {
@@ -53,7 +52,6 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
           department,
           profile_complete,
           profile_completion_date,
-          cv_uploaded_at,
           users!left(
             full_name,
             email
@@ -86,8 +84,7 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
           position_title: emp.position,
           invitation_status: status,
           invitation_sent_at: invitation?.sent_at,
-          profile_completed: emp.profile_complete || false,
-          cv_uploaded: !!emp.cv_uploaded_at
+          profile_completed: emp.profile_complete || false
         };
       });
 
@@ -162,8 +159,7 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
     notInvited: employees.filter(e => e.invitation_status === 'not_sent').length,
     pending: employees.filter(e => e.invitation_status === 'sent' || e.invitation_status === 'viewed').length,
     completed: employees.filter(e => e.invitation_status === 'completed').length,
-    profilesCompleted: employees.filter(e => e.profile_completed).length,
-    cvsUploaded: employees.filter(e => e.cv_uploaded).length
+    profilesCompleted: employees.filter(e => e.profile_completed).length
   };
 
   const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
@@ -196,7 +192,7 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
           <Progress value={completionRate} className="h-2" />
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-3 bg-gray-50 rounded-lg">
             <p className="text-2xl font-bold text-foreground">{stats.notInvited}</p>
             <p className="text-xs text-muted-foreground">Not Invited</p>
@@ -209,10 +205,6 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
             <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
             <p className="text-xs text-muted-foreground">Completed</p>
           </div>
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{stats.cvsUploaded}</p>
-            <p className="text-xs text-muted-foreground">CVs Uploaded</p>
-          </div>
         </div>
       </div>
 
@@ -222,7 +214,7 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
         <AlertTitle>How it works</AlertTitle>
         <AlertDescription className="space-y-1 mt-2">
           <p>• Employees receive an email with a personalized link to complete their profile</p>
-          <p>• They can upload their CV and fill in additional information</p>
+          <p>• They can fill in their profile information and skills</p>
           <p>• Progress updates automatically as employees complete their profiles</p>
         </AlertDescription>
       </Alert>
@@ -302,12 +294,6 @@ export function InviteEmployees({ onInvitationsSent }: InviteEmployeesProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {employee.cv_uploaded && (
-                        <Badge variant="outline" className="text-xs">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          CV
-                        </Badge>
-                      )}
                       
                       {employee.invitation_status === 'not_sent' && (
                         <Badge variant="secondary">Not Invited</Badge>

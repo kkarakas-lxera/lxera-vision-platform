@@ -451,9 +451,6 @@ export default function SpreadsheetGrid({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-muted-foreground">Team Members</h3>
-          <span className="text-xs text-muted-foreground">
-            ({employees.filter(e => e.status === 'ready').length} ready of {employees.length})
-          </span>
         </div>
         
         <div className="flex items-center gap-3">

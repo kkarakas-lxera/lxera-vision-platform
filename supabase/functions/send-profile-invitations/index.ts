@@ -148,7 +148,7 @@ serve(async (req) => {
                     
                     <div style="background: #EFEFE3; padding: 20px; border-radius: 8px; margin: 20px 0;">
                       <p style="color: #191919; font-size: 15px; margin: 0; line-height: 1.6;">
-                        You've been invited to create your account and complete your professional profile. Upload your CV and we'll help you identify skills and create personalized learning paths just for you.
+                        You've been invited to create your account and complete your professional profile. We'll help you identify skills and create personalized learning paths just for you.
                       </p>
                     </div>
                     
@@ -164,9 +164,6 @@ serve(async (req) => {
                     <ul style="list-style: none; padding: 0; margin: 20px 0;">
                       <li style="padding: 12px 0; color: #666; font-size: 15px;">
                         ✓ Create your account with a secure password
-                      </li>
-                      <li style="padding: 12px 0; color: #666; font-size: 15px;">
-                        ✓ Upload your CV/Resume
                       </li>
                       <li style="padding: 12px 0; color: #666; font-size: 15px;">
                         ✓ Review and update your profile information

@@ -33,7 +33,7 @@ export default function OnboardingOverview() {
     {
       number: 2,
       title: "Invite Team Members",
-      description: "Send invitations for profile completion and CV upload",
+      description: "Send invitations for profile completion",
       icon: Send,
       completed: stats.withCV > 0 || stats.analyzed > 0,
       route: "/dashboard/onboarding/invite",
