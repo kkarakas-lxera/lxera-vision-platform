@@ -173,16 +173,24 @@ serve(async (req) => {
       company_id = userProfile.company_id
     } else {
       // Handle JSON body (existing functionality)
-      const body = await req.json()
-      employee_id = body.employee_id
-      file_path = body.file_path
-      source = body.source || source
-      session_item_id = body.session_item_id
-      use_template = body.use_template || false
-      
-      // Validate required parameters
-      if (!employee_id || !file_path) {
-        throw new Error('Missing required parameters: employee_id and file_path')
+      try {
+        const body = await req.json()
+        employee_id = body.employee_id
+        file_path = body.file_path
+        source = body.source || source
+        session_item_id = body.session_item_id
+        use_template = body.use_template || false
+        
+        // Validate required parameters
+        if (!employee_id || !file_path) {
+          throw new Error('Missing required parameters: employee_id and file_path')
+        }
+      } catch (jsonError: any) {
+        // If JSON parsing fails, provide a clearer error
+        if (jsonError.message?.includes('JSON')) {
+          throw new Error('Invalid request body. Expected JSON or multipart/form-data')
+        }
+        throw jsonError
       }
     }
     

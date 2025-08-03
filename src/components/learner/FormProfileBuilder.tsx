@@ -346,11 +346,29 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       formData.append('file', cvFile);
       formData.append('employeeId', employeeId);
       
-      const { data, error } = await supabase.functions.invoke('analyze-cv-enhanced', {
+      // Use fetch directly for FormData
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
+      
+      // Get Supabase URL from the client
+      const supabaseUrl = (supabase as any).supabaseUrl || (supabase as any).realtimeUrl?.replace('/realtime/v1', '');
+      const supabaseAnonKey = (supabase as any).supabaseKey;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/analyze-cv-enhanced`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey || '',
+        },
         body: formData
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to analyze CV');
+      }
+
+      const data = await response.json();
 
       if (data?.success) {
         // Wait for analysis to complete with timeout
