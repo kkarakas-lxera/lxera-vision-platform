@@ -23,6 +23,13 @@ export default function CVAnalysisProgress({ status, onComplete, onDataReady, fo
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
+  // Handle completed state effect
+  useEffect(() => {
+    if (status?.status === 'completed' && onComplete) {
+      onComplete();
+    }
+  }, [status?.status, onComplete]);
+
   // Handle error states
   if (status?.status === 'failed' || status?.status === 'timeout') {
     return (

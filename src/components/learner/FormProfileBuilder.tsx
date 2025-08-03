@@ -464,8 +464,8 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           <div className="space-y-6">
             {!cvExtractedData ? (
               <>
-                {/* Only show upload options when NOT analyzing */}
-                {cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'timeout' && (
+                {/* Only show upload options when NOT analyzing or completed */}
+                {cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'completed' && (
                   <>
                     {!cvFile ? (
                       <FileDropZone
@@ -527,8 +527,8 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                   />
                 )}
                 
-                {/* Only show OR section when not analyzing and no error */}
-                {cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'failed' && cvAnalysisStatus?.status !== 'timeout' && (
+                {/* Only show OR section when no file is selected and not analyzing/completed */}
+                {!cvFile && cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'completed' && (
                   <>
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
@@ -560,6 +560,19 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                       Your work experience and education have been extracted from your CV. 
                       You can edit them in the next steps.
                     </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCvFile(null);
+                        setCvAnalysisStatus(null);
+                        setCvExtractedData(null);
+                        updateStepData('cv_upload', { extracted: false, skipped: false });
+                      }}
+                      className="mt-4"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Different CV
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
