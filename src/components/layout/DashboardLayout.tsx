@@ -46,6 +46,7 @@ import MobileHamburgerMenu from '@/components/mobile/navigation/MobileHamburgerM
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
+import EarlyTrialBanner from '@/components/ui/early-trial-banner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -450,6 +451,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
 
         {/* Page content */}
         <main className={cn("p-6 font-inter", isMobile && "p-4")}>
+          <EarlyTrialBanner />
           {children}
         </main>
       </div>

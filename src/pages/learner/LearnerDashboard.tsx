@@ -26,6 +26,7 @@ import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
 import CourseGenerationWelcome from '@/components/learner/CourseGenerationWelcome';
 import CourseOutlineReward from '@/components/learner/CourseOutlineReward';
+import EarlyTrialBanner from '@/components/ui/early-trial-banner';
 
 interface CourseAssignment {
   id: string;
@@ -505,6 +506,10 @@ export default function LearnerDashboard() {
             transition: pullToRefresh.pullDistance === 0 ? 'transform 0.3s ease-out' : 'none'
           }}
         >
+          {/* Early Trial Banner */}
+          <div className="px-4 pt-3">
+            <EarlyTrialBanner />
+          </div>
           {/* Enhanced Streak Banner */}
           {streak.current_streak > 0 && (
             <div className="px-4 py-3">
@@ -594,6 +599,9 @@ export default function LearnerDashboard() {
   // Desktop view
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Early Trial Banner */}
+      <EarlyTrialBanner />
+      
       {/* Welcome Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
