@@ -154,6 +154,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   // Auto-save functionality with 2s debounce
   const saveProgress = useCallback(
     debounce(async (stepId: string, data: any) => {
+      // Validate employeeId before saving
+      if (!employeeId || employeeId === '') {
+        console.error('Invalid employee ID - cannot save progress');
+        return;
+      }
+      
       try {
         setIsSaving(true);
         
@@ -195,6 +201,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   };
 
   const handleNext = async () => {
+    // Validate employeeId before proceeding
+    if (!employeeId || employeeId === '') {
+      toast.error('Unable to save progress - employee profile not found');
+      return;
+    }
+    
     const currentStepData = STEPS[currentStep];
     
     // Mark current section as complete
@@ -214,6 +226,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   };
 
   const handleSaveDraft = async () => {
+    // Validate employeeId before saving
+    if (!employeeId || employeeId === '') {
+      toast.error('Unable to save draft - employee profile not found');
+      return;
+    }
+    
     try {
       setIsLoading(true);
       setIsSaving(true);

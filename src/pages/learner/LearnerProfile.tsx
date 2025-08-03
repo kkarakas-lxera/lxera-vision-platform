@@ -22,21 +22,31 @@ export default function LearnerProfile() {
     );
   }
 
-  // Show profile completion flow if profile is not complete
-  if (!profileCompletion.isComplete && profileCompletion.employeeId) {
+  // If no employee record exists, show a message
+  if (!profileCompletion.employeeId) {
     return (
-      <FormProfileBuilder
-        employeeId={profileCompletion.employeeId}
-        onComplete={handleProfileComplete}
-      />
+      <div className="flex items-center justify-center h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Profile Setup Required</CardTitle>
+            <CardDescription>
+              Your employee profile has not been created yet. Please contact your administrator to set up your profile.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              If you believe this is an error, please reach out to your HR department or system administrator.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  // Show profile completion flow even for completed profiles
-  // This allows them to see the success screen and edit their profile
+  // Show profile completion flow
   return (
     <FormProfileBuilder
-      employeeId={profileCompletion.employeeId || ''}
+      employeeId={profileCompletion.employeeId}
       onComplete={handleProfileComplete}
     />
   );
