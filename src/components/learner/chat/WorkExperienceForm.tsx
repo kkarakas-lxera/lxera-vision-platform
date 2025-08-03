@@ -202,7 +202,7 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
                 </AnimatePresence>
               </div>
             </motion.div>
-              )))}
+            ))}
             </AnimatePresence>
 
             {workData.length < 5 && (
