@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,9 @@ export default function EducationForm({ onComplete, initialData, editIndex }: Ed
         year: item.year || item.graduationYear || ''
       }));
     }
-    return [{ degree: '', fieldOfStudy: '', institution: '', year: '' }];
+    return [];
   });
+  const fromCV = initialData && initialData.length > 0;
   const [expandedItems, setExpandedItems] = useState<Set<number>>(() => {
     // If editing a specific index, expand only that item
     if (editIndex !== undefined) {
@@ -73,10 +74,11 @@ export default function EducationForm({ onComplete, initialData, editIndex }: Ed
 
   const isValid = educationData.some(edu => edu.degree && edu.institution);
 
-  const handleContinue = () => {
+  // Auto-update parent when data changes
+  useEffect(() => {
     const validEducation = educationData.filter(edu => edu.degree && edu.institution);
     onComplete(validEducation);
-  };
+  }, [educationData, onComplete]);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
@@ -95,8 +97,24 @@ export default function EducationForm({ onComplete, initialData, editIndex }: Ed
         </div>
       </CardHeader>
       <CardContent className="space-y-2 px-4 pb-4">
-        <AnimatePresence mode="popLayout">
-          {educationData.map((edu, index) => (
+        {educationData.length === 0 ? (
+          <div className="text-center py-8">
+            <GraduationCap className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm text-gray-500 mb-3">No education records yet</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addEducation}
+              className="text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add First Education
+            </Button>
+          </div>
+        ) : (
+          <>
+            <AnimatePresence mode="popLayout">
+              {educationData.map((edu, index) => (
             <motion.div
               key={index}
               layout
@@ -203,30 +221,22 @@ export default function EducationForm({ onComplete, initialData, editIndex }: Ed
                 </AnimatePresence>
               </div>
             </motion.div>
-          ))}
-        </AnimatePresence>
+              ))}
+            </AnimatePresence>
 
-        {educationData.length < 3 && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full h-9 text-xs"
-            onClick={addEducation}
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Another Degree
-          </Button>
+            {educationData.length < 3 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full h-9 text-xs"
+                onClick={addEducation}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Another Degree
+              </Button>
+            )}
+          </>
         )}
-
-        <div className="pt-2">
-          <Button
-            className="w-full"
-            onClick={handleContinue}
-            disabled={!isValid}
-          >
-            Continue →
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

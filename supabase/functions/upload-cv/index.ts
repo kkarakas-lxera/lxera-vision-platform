@@ -54,8 +54,8 @@ serve(async (req) => {
       )
     }
 
-    // Check permissions
-    if (!['company_admin', 'super_admin'].includes(userProfile.role)) {
+    // Check permissions - allow learners to upload their own CV
+    if (!['company_admin', 'super_admin', 'learner'].includes(userProfile.role)) {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -77,13 +77,21 @@ serve(async (req) => {
     // Verify employee belongs to user's company
     const { data: employee, error: employeeError } = await supabase
       .from('employees')
-      .select('company_id')
+      .select('company_id, user_id')
       .eq('id', employeeId)
       .single()
 
     if (employeeError || !employee || employee.company_id !== userProfile.company_id) {
       return new Response(
         JSON.stringify({ error: 'Employee not found or unauthorized' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Additional check for learners - they can only upload their own CV
+    if (userProfile.role === 'learner' && employee.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: 'Learners can only upload their own CV' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -141,7 +149,7 @@ serve(async (req) => {
 
     // Trigger CV analysis
     try {
-      const { error: analysisError } = await supabase.functions.invoke('analyze-cv', {
+      const { error: analysisError } = await supabase.functions.invoke('analyze-cv-enhanced', {
         body: { 
           employee_id: employeeId,
           file_path: filePath 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,10 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
         description: item.description || ''
       }));
     }
-    return [{ title: '', company: '', duration: '', description: '' }];
+    return [];
   });
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+  const fromCV = initialData && initialData.length > 0;
   
   const toggleExpanded = (index: number) => {
     setExpandedItems(prev => {
@@ -66,10 +67,11 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
 
   const isValid = workData.some(work => work.title && work.company);
 
-  const handleContinue = () => {
+  // Auto-update parent when data changes
+  useEffect(() => {
     const validWork = workData.filter(work => work.title && work.company);
     onComplete(validWork);
-  };
+  }, [workData, onComplete]);
 
   return (
     <Card className="transition-all border-0 shadow-sm">
@@ -80,13 +82,29 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
             Work Experience
           </CardTitle>
           <span className="text-xs text-gray-500">
-            Add your last 3 positions
+            {fromCV ? 'AI-filled from CV' : 'Add your last 3 positions'}
           </span>
         </div>
       </CardHeader>
       <CardContent className="space-y-2 px-4 pb-4">
-        <AnimatePresence mode="popLayout">
-          {workData.map((work, index) => (
+        {workData.length === 0 ? (
+          <div className="text-center py-8">
+            <Briefcase className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm text-gray-500 mb-3">No work experiences added yet</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addWork}
+              className="text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add First Work Experience
+            </Button>
+          </div>
+        ) : (
+          <>
+            <AnimatePresence mode="popLayout">
+              {workData.map((work, index) => (
             <motion.div
               key={index}
               layout
@@ -171,36 +189,36 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
                           <option value="5-10 years">5-10 years</option>
                           <option value="10+ years">10+ years</option>
                         </select>
+                        <textarea
+                          placeholder="Describe your responsibilities and achievements..."
+                          value={work.description || ''}
+                          onChange={(e) => updateWork(index, 'description', e.target.value)}
+                          className="w-full px-3 py-2 border rounded-md text-sm resize-none"
+                          rows={3}
+                        />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </motion.div>
-          ))}
-        </AnimatePresence>
+              )))}
+            </AnimatePresence>
 
-        {workData.length < 5 && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full h-9 text-xs"
-            onClick={addWork}
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Another Position
-          </Button>
+            {workData.length < 5 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full h-9 text-xs"
+                onClick={addWork}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Another Position
+              </Button>
+            )}
+          </>
         )}
 
-        <div className="pt-2">
-          <Button
-            className="w-full"
-            onClick={handleContinue}
-            disabled={!isValid}
-          >
-            Continue to AI Generation →
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

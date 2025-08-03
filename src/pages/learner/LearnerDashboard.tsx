@@ -23,7 +23,7 @@ import {
 } from '@/utils/touchOptimization';
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
-import ChatProfileBuilder from '@/components/learner/ChatProfileBuilder';
+import FormProfileBuilder from '@/components/learner/FormProfileBuilder';
 import CourseGenerationWelcome from '@/components/learner/CourseGenerationWelcome';
 import CourseOutlineReward from '@/components/learner/CourseOutlineReward';
 import EarlyTrialBanner from '@/components/ui/early-trial-banner';
@@ -351,7 +351,7 @@ export default function LearnerDashboard() {
   // Show profile completion flow if profile is not complete
   if (!profileCompletion.isComplete && profileCompletion.employeeId) {
     return (
-      <ChatProfileBuilder
+      <FormProfileBuilder
         employeeId={profileCompletion.employeeId}
         onComplete={handleProfileComplete}
       />
