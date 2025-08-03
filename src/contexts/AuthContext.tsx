@@ -128,6 +128,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (employeeData.companies) {
             data.companies = employeeData.companies;
           }
+        } else if (!data.companies && data.company_id) {
+          // If no employee record but user has company_id, fetch company directly
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('id, name, plan_type')
+            .eq('id', data.company_id)
+            .maybeSingle();
+          
+          if (companyData) {
+            data.companies = companyData;
+          }
         }
       }
 
