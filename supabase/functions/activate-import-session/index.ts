@@ -104,11 +104,26 @@ serve(async (req) => {
           userId = newUserId
         }
 
-        // Get position details if we have active_position_id
+        // Get position details - first try active_position_id, then match by position title
         let positionId = session.active_position_id
         let positionCode = item.current_position_code
+        let positionTitle = item.field_values?.position
 
-        if (positionId) {
+        // If no active_position_id but we have a position title, try to find the position
+        if (!positionId && positionTitle) {
+          const { data: matchingPosition } = await supabaseClient
+            .from('st_company_positions')
+            .select('id, position_code, position_title')
+            .eq('company_id', userData.company_id)
+            .ilike('position_title', positionTitle.trim())
+            .single()
+
+          if (matchingPosition) {
+            positionId = matchingPosition.id
+            positionCode = matchingPosition.position_code || matchingPosition.position_title
+          }
+        } else if (positionId) {
+          // If we have active_position_id, get its details
           const { data: position } = await supabaseClient
             .from('st_company_positions')
             .select('position_code, position_title')
@@ -117,6 +132,7 @@ serve(async (req) => {
 
           if (position) {
             positionCode = position.position_code || position.position_title
+            positionTitle = position.position_title
           }
         }
 
@@ -129,9 +145,9 @@ serve(async (req) => {
             email: item.employee_email,
             full_name: item.employee_name || item.employee_email.split('@')[0],
             department: item.field_values?.department || 'General',
-            position: item.field_values?.position || positionCode || 'Unassigned',
-            current_position_id: positionId,
-            target_position_id: positionId,
+            position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
+            current_position_id: positionId || null,
+            target_position_id: positionId || null,
             is_active: true,
             invitation_status: 'not_sent'
           }, {
