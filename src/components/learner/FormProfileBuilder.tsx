@@ -394,11 +394,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       });
 
       // Clear any stored profile sections related to CV
-      await EmployeeProfileService.updateProfileSection(employeeId, 'cv_upload', null, false);
+      // Delete the sections instead of updating with null
+      const { error: deleteError } = await supabase
+        .from('employee_profile_sections')
+        .delete()
+        .eq('employee_id', employeeId)
+        .in('section_name', ['cv_upload', 'work_experience', 'education']);
       
-      // Clear work experience and education that might have been auto-filled
-      await EmployeeProfileService.updateProfileSection(employeeId, 'work_experience', null, false);
-      await EmployeeProfileService.updateProfileSection(employeeId, 'education', null, false);
+      if (deleteError) console.error('Error deleting profile sections:', deleteError);
       
       toast.success('Ready to start fresh. Please upload your CV or skip this step.');
     } catch (error) {
