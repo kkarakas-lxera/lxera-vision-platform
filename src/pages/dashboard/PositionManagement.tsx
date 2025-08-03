@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Users, Target, Briefcase, ChevronRight, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Target, Briefcase, ChevronRight, ChevronDown, AlertCircle, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,10 @@ interface CompanyPosition {
   avg_match_score?: number;
   skills_gap_percentage?: number;
   employees_with_gaps?: number;
+  profiles_complete?: number;
+  profiles_incomplete?: number;
+  invitations_sent?: number;
+  no_invitations?: number;
 }
 
 interface PositionStats {
@@ -82,14 +86,21 @@ export default function PositionManagement() {
 
       if (positionsError) throw positionsError;
 
-      // Fetch all employees with their positions and skills profiles
+      // Fetch all employees with their positions, profiles and skills data
       const { data: employees, error: employeesError } = await supabase
         .from('employees')
         .select(`
           id,
           current_position_id,
+          profile_complete,
+          user_id,
           st_employee_skills_profile (
             skills_match_score
+          ),
+          profile_invitations (
+            sent_at,
+            viewed_at,
+            completed_at
           )
         `)
         .eq('company_id', userProfile.company_id);
@@ -116,12 +127,34 @@ export default function PositionManagement() {
                 employee_count: 0,
                 total_score: 0,
                 scored_employees: 0,
-                employees_with_gaps: 0
+                employees_with_gaps: 0,
+                profiles_complete: 0,
+                profiles_incomplete: 0,
+                invitations_sent: 0,
+                no_invitations: 0
               });
             }
 
             const metrics = positionMetrics.get(employee.current_position_id);
             metrics.employee_count++;
+
+            // Track profile completion status
+            if (employee.profile_complete) {
+              metrics.profiles_complete++;
+            } else {
+              metrics.profiles_incomplete++;
+              
+              // Check invitation status
+              const invitation = Array.isArray(employee.profile_invitations)
+                ? employee.profile_invitations?.[0]
+                : employee.profile_invitations;
+              
+              if (invitation?.sent_at) {
+                metrics.invitations_sent++;
+              } else {
+                metrics.no_invitations++;
+              }
+            }
 
             // Check if employee has skills profile
             // Handle both array and object response formats
@@ -150,7 +183,11 @@ export default function PositionManagement() {
           employee_count: 0,
           total_score: 0,
           scored_employees: 0,
-          employees_with_gaps: 0
+          employees_with_gaps: 0,
+          profiles_complete: 0,
+          profiles_incomplete: 0,
+          invitations_sent: 0,
+          no_invitations: 0
         };
 
         const avgScore = metrics.scored_employees > 0
@@ -176,7 +213,11 @@ export default function PositionManagement() {
           employee_count: metrics.employee_count,
           avg_match_score: avgScore,
           skills_gap_percentage: gapPercentage,
-          employees_with_gaps: metrics.employees_with_gaps
+          employees_with_gaps: metrics.employees_with_gaps,
+          profiles_complete: metrics.profiles_complete,
+          profiles_incomplete: metrics.profiles_incomplete,
+          invitations_sent: metrics.invitations_sent,
+          no_invitations: metrics.no_invitations
         };
       });
 
@@ -536,6 +577,11 @@ export default function PositionManagement() {
                                   <Users className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium">{position.employee_count || 0}</span>
                                   <span className="text-gray-500">employees</span>
+                                  {position.profiles_incomplete > 0 && (
+                                    <Badge variant="outline" className="ml-1 text-xs border-orange-200 text-orange-700 bg-orange-50">
+                                      {position.profiles_incomplete} pending
+                                    </Badge>
+                                  )}
                                 </div>
                                 
                                 {position.avg_match_score !== null && (
@@ -600,6 +646,40 @@ export default function PositionManagement() {
                           )}
                           
                           <div className="space-y-3">
+                            {/* Employee Profile Status */}
+                            {position.employee_count > 0 && (
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                  <UserCheck className="h-4 w-4" />
+                                  Employee Profile Status
+                                </h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                  <div>
+                                    <span className="text-gray-500">Complete:</span>
+                                    <span className="ml-2 font-medium text-green-600">{position.profiles_complete || 0}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500">Incomplete:</span>
+                                    <span className="ml-2 font-medium text-orange-600">{position.profiles_incomplete || 0}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500">Invited:</span>
+                                    <span className="ml-2 font-medium text-blue-600">{position.invitations_sent || 0}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500">Not Invited:</span>
+                                    <span className="ml-2 font-medium text-red-600">{position.no_invitations || 0}</span>
+                                  </div>
+                                </div>
+                                {position.no_invitations > 0 && (
+                                  <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>{position.no_invitations} employee{position.no_invitations !== 1 ? 's' : ''} need to be invited to complete their profile</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
                             <div>
                               <h4 className="text-sm font-medium text-gray-700 mb-2">Required Skills ({position.required_skills.length})</h4>
                               <div className="flex flex-wrap gap-2">
