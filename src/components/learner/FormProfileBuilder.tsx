@@ -464,49 +464,55 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           <div className="space-y-6">
             {!cvExtractedData ? (
               <>
-                {!cvFile ? (
-                  <FileDropZone
-                    onFileSelect={(file) => setCvFile(file)}
-                    accept=".pdf,.doc,.docx"
-                    maxSize={10 * 1024 * 1024}
-                  />
-                ) : (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-5 w-5 text-gray-500" />
-                          <div>
-                            <p className="font-medium text-sm">{cvFile.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {(cvFile.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
+                {/* Only show upload options when NOT analyzing */}
+                {cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'timeout' && (
+                  <>
+                    {!cvFile ? (
+                      <FileDropZone
+                        onFileSelect={(file) => setCvFile(file)}
+                        accept=".pdf,.doc,.docx"
+                        maxSize={10 * 1024 * 1024}
+                      />
+                    ) : (
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Upload className="h-5 w-5 text-gray-500" />
+                              <div>
+                                <p className="font-medium text-sm">{cvFile.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {(cvFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setCvFile(null);
+                                setCvAnalysisStatus(null);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setCvFile(null);
-                            setCvAnalysisStatus(null);
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      {!cvAnalysisStatus && (
-                        <Button
-                          className="w-full mt-4"
-                          onClick={handleCVAnalysis}
-                        >
-                          Start CV Analysis
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
+                          
+                          {!cvAnalysisStatus && (
+                            <Button
+                              className="w-full mt-4"
+                              onClick={handleCVAnalysis}
+                            >
+                              Start CV Analysis
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
                 )}
                 
+                {/* Show analysis progress */}
                 {cvAnalysisStatus && (
                   <CVAnalysisProgress
                     status={cvAnalysisStatus}
@@ -514,26 +520,35 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                       setCvExtractedData(extractedData);
                       updateStepData('cv_upload', { extracted: true });
                     }}
+                    onRetry={() => {
+                      setCvAnalysisStatus(null);
+                      handleCVAnalysis();
+                    }}
                   />
                 )}
                 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-background px-4 text-muted-foreground">OR</span>
-                  </div>
-                </div>
-                
-                <div className="text-center">
-                  <Button
-                    variant="outline"
-                    onClick={handleSkipCVUpload}
-                  >
-                    Skip and fill manually
-                  </Button>
-                </div>
+                {/* Only show OR section when not analyzing and no error */}
+                {cvAnalysisStatus?.status !== 'analyzing' && cvAnalysisStatus?.status !== 'failed' && cvAnalysisStatus?.status !== 'timeout' && (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="bg-background px-4 text-muted-foreground">OR</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <Button
+                        variant="outline"
+                        onClick={handleSkipCVUpload}
+                      >
+                        Skip and fill manually
+                      </Button>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <Card>
