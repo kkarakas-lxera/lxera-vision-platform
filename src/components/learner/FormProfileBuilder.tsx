@@ -381,23 +381,29 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
       if (statusError) console.error('Error clearing CV status:', statusError);
 
-      // Reset local state
+      // Reset local state to initial state (as if visiting for first time)
       setCvFile(null);
       setCvAnalysisStatus(null);
       setCvExtractedData(null);
       setFormData(prev => {
         const newData = { ...prev };
         delete newData.cv_upload;
+        delete newData.work_experience;
+        delete newData.education;
         return newData;
       });
 
       // Clear any stored profile sections related to CV
       await EmployeeProfileService.updateProfileSection(employeeId, 'cv_upload', null, false);
       
-      toast.success('CV analysis reset. You can now upload a new CV or skip this step.');
+      // Clear work experience and education that might have been auto-filled
+      await EmployeeProfileService.updateProfileSection(employeeId, 'work_experience', null, false);
+      await EmployeeProfileService.updateProfileSection(employeeId, 'education', null, false);
+      
+      toast.success('Ready to start fresh. Please upload your CV or skip this step.');
     } catch (error) {
       console.error('Error restarting CV analysis:', error);
-      toast.error('Failed to restart CV analysis. Please try again.');
+      toast.error('Failed to reset. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -622,7 +628,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                               Analysis seems to be stuck
                             </h3>
                             <p className="text-sm text-amber-700 mt-1">
-                              If you've been waiting for more than a minute, you can restart the process.
+                              If you've been waiting for more than a minute, you can start over.
                             </p>
                           </div>
                           <Button
@@ -632,7 +638,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                             disabled={isLoading}
                           >
                             <RefreshCw className="h-4 w-4 mr-2" />
-                            Restart
+                            Start Over
                           </Button>
                         </div>
                       </div>
@@ -680,7 +686,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                       className="mt-4"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Upload Different CV
+                      Start Over with Different CV
                     </Button>
                   </div>
                 </CardContent>
