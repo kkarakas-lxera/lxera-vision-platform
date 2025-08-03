@@ -119,7 +119,7 @@ export class EmployeeProfileService {
       .select('data')
       .eq('employee_id', employeeId)
       .eq('section_name', sectionName)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
     return data;

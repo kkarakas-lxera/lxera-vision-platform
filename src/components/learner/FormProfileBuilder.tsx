@@ -157,9 +157,9 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     }
   };
 
-  // Auto-save functionality with 2s debounce
-  const saveProgress = useCallback(
-    debounce(async (stepId: string, data: any) => {
+  // Create debounced save function outside of useCallback to prevent recreating
+  const debouncedSave = React.useMemo(
+    () => debounce(async (employeeId: string, stepId: string, data: any, currentStep: number, formData: any) => {
       // Validate employeeId before saving
       if (!employeeId || employeeId === '') {
         console.error('Invalid employee ID - cannot save progress');
@@ -192,7 +192,15 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         setIsSaving(false);
       }
     }, 2000),
-    [employeeId, currentStep, formData]
+    [] // Empty dependency array - created only once
+  );
+
+  // Auto-save functionality
+  const saveProgress = useCallback(
+    (stepId: string, data: any) => {
+      debouncedSave(employeeId, stepId, data, currentStep, formData);
+    },
+    [employeeId, currentStep, formData, debouncedSave]
   );
 
   const updateStepData = (stepId: string, data: any) => {

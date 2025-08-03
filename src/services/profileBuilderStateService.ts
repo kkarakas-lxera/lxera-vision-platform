@@ -76,9 +76,12 @@ export class ProfileBuilderStateService {
         .select('data')
         .eq('employee_id', employeeId)
         .eq('section_name', this.STATE_KEY)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
+      if (error) {
+        console.error('Failed to load profile builder state:', error);
+        return null;
+      }
       
       if (data?.data) {
         console.log('Profile builder state loaded:', data.data);
