@@ -1,0 +1,2 @@
+[functions.handle-resend-webhook]
+verify_jwt = false

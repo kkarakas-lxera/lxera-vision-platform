@@ -1,6 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 interface RequestBody {
   sessionId: string
@@ -136,25 +140,46 @@ serve(async (req) => {
           }
         }
 
-        // Create or update employee record
-        const { error: employeeError } = await supabaseClient
+        // Check if employee already exists
+        const { data: existingEmployee } = await supabaseClient
           .from('employees')
-          .upsert({
-            user_id: userId,
-            company_id: userData.company_id,
-            email: item.employee_email,
-            full_name: item.employee_name || item.employee_email.split('@')[0],
-            department: item.field_values?.department || 'General',
-            position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
-            current_position_id: positionId || null,
-            target_position_id: positionId || null,
-            is_active: true,
-            invitation_status: 'not_sent'
-          }, {
-            onConflict: 'user_id,company_id'
-          })
+          .select('id')
+          .eq('user_id', userId)
+          .eq('company_id', userData.company_id)
+          .single()
 
-        if (employeeError) throw employeeError
+        if (existingEmployee) {
+          // Update existing employee
+          const { error: employeeError } = await supabaseClient
+            .from('employees')
+            .update({
+              department: item.field_values?.department || 'General',
+              position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
+              current_position_id: positionId || null,
+              target_position_id: positionId || null,
+              is_active: true,
+              import_session_id: sessionId
+            })
+            .eq('id', existingEmployee.id)
+
+          if (employeeError) throw employeeError
+        } else {
+          // Create new employee record
+          const { error: employeeError } = await supabaseClient
+            .from('employees')
+            .insert({
+              user_id: userId,
+              company_id: userData.company_id,
+              department: item.field_values?.department || 'General',
+              position: positionTitle || item.field_values?.position || positionCode || 'Unassigned',
+              current_position_id: positionId || null,
+              target_position_id: positionId || null,
+              is_active: true,
+              import_session_id: sessionId
+            })
+
+          if (employeeError) throw employeeError
+        }
 
         // Update the item status
         await supabaseClient

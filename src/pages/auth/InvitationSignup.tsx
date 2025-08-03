@@ -203,6 +203,9 @@ const InvitationSignup = () => {
         options: {
           data: {
             full_name: employeeData.full_name,
+            role: 'learner',
+            company_id: employeeData.company_id,
+            employee_id: employeeData.id
           },
           // Skip email confirmation since they came from an invitation email
           emailRedirectTo: window.location.origin

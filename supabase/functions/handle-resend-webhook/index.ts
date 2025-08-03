@@ -89,8 +89,27 @@ async function verifyWebhookSignature(
 }
 
 serve(async (req) => {
+  // Log all incoming requests for debugging
+  console.log('[RESEND Webhook] Incoming request:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries()),
+    timestamp: new Date().toISOString()
+  })
+  
+  // IMPORTANT: Allow webhook requests without Supabase JWT
+  // Webhooks from external services cannot provide Supabase auth tokens
+  // We rely on signature verification instead
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+  
+  // Handle webhook requests (POST only)
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders 
+    })
   }
 
   try {
