@@ -8,7 +8,8 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator 
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { 
   Building2, 
@@ -35,7 +36,11 @@ import {
   MoreHorizontal,
   ChevronDown,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Mail,
+  User,
+  UserCircle,
+  Upload
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useLocation, Link } from 'react-router-dom';
@@ -367,80 +372,113 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, isEarlyAcce
           <div className="flex items-center space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback>
+                <Button variant="ghost" className="relative flex items-center gap-2 rounded-full px-2 py-1 hover:bg-gray-100">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
                       {userProfile ? getInitials(userProfile.full_name) : 'U'}
                     </AvatarFallback>
                   </Avatar>
+                  {!isMobile && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-medium text-gray-700 max-w-[150px] truncate">
+                        {userProfile?.full_name || 'User'}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    </div>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <div className="px-3 py-3">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{userProfile?.full_name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{userProfile?.email}</p>
-                    </div>
-                    
-                    {/* Show position and department for learners */}
-                    {userProfile?.role === 'learner' && userProfile?.employee && (
-                      <div className="pt-2 border-t border-gray-100">
-                        <div className="space-y-2">
-                          {(userProfile.employee.st_company_positions?.position_title || userProfile.employee.position) && (
-                            <div>
-                              <p className="text-xs text-gray-500">Position</p>
-                              <p className="text-sm font-medium text-gray-900 mt-0.5">
-                                {userProfile.employee.st_company_positions?.position_title || userProfile.employee.position}
-                              </p>
-                            </div>
-                          )}
-                          {(userProfile.employee.st_company_positions?.department || userProfile.employee.department) && (
-                            <div>
-                              <p className="text-xs text-gray-500">Department</p>
-                              <p className="text-sm font-medium text-gray-900 mt-0.5">
-                                {userProfile.employee.st_company_positions?.department || userProfile.employee.department}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="pt-2 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-500">Company</p>
-                          <p className="text-sm font-medium text-gray-900 mt-0.5">
-                            {userProfile?.companies?.name || 'Company'}
-                          </p>
-                        </div>
-                        {userProfile?.role !== 'learner' && (
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Plan</p>
-                            <span className={cn(
-                              "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5",
-                              userProfile?.companies?.plan_type === 'free_skills_gap' 
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-indigo-100 text-indigo-800"
-                            )}>
-                              {userProfile?.companies?.plan_type === 'free_skills_gap' ? 'Free Trial' : 'Premium'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+              <DropdownMenuContent align="end" className="w-72">
+                {/* User Profile Header */}
+                <div className="px-4 py-3 bg-gray-50 rounded-t-lg">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary text-white text-lg font-medium">
+                        {userProfile ? getInitials(userProfile.full_name) : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {userProfile?.full_name}
+                      </p>
+                      <p className="text-xs text-gray-600 truncate flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {userProfile?.email}
+                      </p>
                     </div>
                   </div>
                 </div>
+                
+                <DropdownMenuSeparator className="my-0" />
+                
+                {/* Company & Role Info */}
+                <div className="px-4 py-3 space-y-3">
+                  {/* Company */}
+                  <div className="flex items-start gap-2">
+                    <Building2 className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500">Company</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {userProfile?.companies?.name || 'Company'}
+                      </p>
+                    </div>
+                    {userProfile?.role !== 'learner' && (
+                      <span className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                        userProfile?.companies?.plan_type === 'free_skills_gap' 
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-indigo-100 text-indigo-800"
+                      )}>
+                        {userProfile?.companies?.plan_type === 'free_skills_gap' ? 'Free Trial' : 'Premium'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Position & Department for learners */}
+                  {userProfile?.role === 'learner' && userProfile?.employee && (
+                    <>
+                      {(userProfile.employee.st_company_positions?.position_title || userProfile.employee.position) && (
+                        <div className="flex items-start gap-2">
+                          <Target className="h-4 w-4 text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-500">Position</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {userProfile.employee.st_company_positions?.position_title || userProfile.employee.position}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {(userProfile.employee.st_company_positions?.department || userProfile.employee.department) && (
+                        <div className="flex items-start gap-2">
+                          <Users2 className="h-4 w-4 text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-500">Department</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {userProfile.employee.st_company_positions?.department || userProfile.employee.department}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                
+                {/* Actions */}
+                {userProfile?.role !== 'learner' && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard/settings" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
