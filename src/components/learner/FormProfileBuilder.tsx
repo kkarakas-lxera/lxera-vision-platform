@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Save, Check, Loader2, Upload, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, Check, Loader2, Upload, X, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from 'lodash';
 import {
@@ -76,6 +76,27 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         if (employee.cv_file_path) {
           setCvExtractedData(employee.cv_extracted_data);
           setCvAnalysisStatus({ status: 'completed' });
+        }
+      }
+
+      // Check for stuck CV analysis
+      const { data: analysisStatus } = await supabase
+        .from('cv_analysis_status')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .single();
+
+      if (analysisStatus) {
+        // If analysis is stuck in 'started' or has been running for too long
+        const createdAt = new Date(analysisStatus.created_at);
+        const now = new Date();
+        const minutesElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+        
+        if (analysisStatus.status === 'started' || 
+            (analysisStatus.status === 'analyzing' && minutesElapsed > 5)) {
+          // Show as completed but stuck
+          setCvAnalysisStatus({ status: 'completed' });
+          setCvExtractedData(null);
         }
       }
 
@@ -335,6 +356,53 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     }
   };
 
+  const handleCVAnalysisRestart = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Clear CV analysis data from database
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({
+          cv_file_path: null,
+          cv_uploaded_at: null,
+          cv_extracted_data: null,
+          cv_analysis_data: null
+        })
+        .eq('id', employeeId);
+
+      if (updateError) throw updateError;
+
+      // Clear CV analysis status
+      const { error: statusError } = await supabase
+        .from('cv_analysis_status')
+        .delete()
+        .eq('employee_id', employeeId);
+
+      if (statusError) console.error('Error clearing CV status:', statusError);
+
+      // Reset local state
+      setCvFile(null);
+      setCvAnalysisStatus(null);
+      setCvExtractedData(null);
+      setFormData(prev => {
+        const newData = { ...prev };
+        delete newData.cv_upload;
+        return newData;
+      });
+
+      // Clear any stored profile sections related to CV
+      await EmployeeProfileService.updateProfileSection(employeeId, 'cv_upload', null, false);
+      
+      toast.success('CV analysis reset. You can now upload a new CV or skip this step.');
+    } catch (error) {
+      console.error('Error restarting CV analysis:', error);
+      toast.error('Failed to restart CV analysis. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCVAnalysis = async () => {
     if (!cvFile) return;
 
@@ -514,17 +582,62 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                 
                 {/* Show analysis progress */}
                 {cvAnalysisStatus && (
-                  <CVAnalysisProgress
-                    status={cvAnalysisStatus}
-                    onComplete={(extractedData) => {
-                      setCvExtractedData(extractedData);
-                      updateStepData('cv_upload', { extracted: true });
-                    }}
-                    onRetry={() => {
-                      setCvAnalysisStatus(null);
-                      handleCVAnalysis();
-                    }}
-                  />
+                  <>
+                    <CVAnalysisProgress
+                      status={cvAnalysisStatus}
+                      onComplete={async (extractedData) => {
+                        // If no extracted data passed, try to load from database
+                        if (!extractedData) {
+                          const { data: employee } = await supabase
+                            .from('employees')
+                            .select('cv_extracted_data')
+                            .eq('id', employeeId)
+                            .single();
+                          
+                          if (employee?.cv_extracted_data) {
+                            setCvExtractedData(employee.cv_extracted_data);
+                            updateStepData('cv_upload', { extracted: true });
+                            toast.success('CV data loaded successfully');
+                          } else {
+                            // If still no data, show the stuck message
+                            setCvAnalysisStatus({ status: 'completed' });
+                          }
+                        } else {
+                          setCvExtractedData(extractedData);
+                          updateStepData('cv_upload', { extracted: true });
+                        }
+                      }}
+                      onRetry={() => {
+                        setCvAnalysisStatus(null);
+                        handleCVAnalysis();
+                      }}
+                    />
+                    
+                    {/* Show restart button when analysis is stuck in 'completed' state without extracted data */}
+                    {cvAnalysisStatus.status === 'completed' && !cvExtractedData && (
+                      <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-amber-900">
+                              Analysis seems to be stuck
+                            </h3>
+                            <p className="text-sm text-amber-700 mt-1">
+                              If you've been waiting for more than a minute, you can restart the process.
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCVAnalysisRestart}
+                            disabled={isLoading}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Restart
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 {/* Only show OR section when no file is selected and not analyzing/completed */}
@@ -562,15 +675,11 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                     </p>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setCvFile(null);
-                        setCvAnalysisStatus(null);
-                        setCvExtractedData(null);
-                        updateStepData('cv_upload', { extracted: false, skipped: false });
-                      }}
+                      onClick={handleCVAnalysisRestart}
+                      disabled={isLoading}
                       className="mt-4"
                     >
-                      <Upload className="h-4 w-4 mr-2" />
+                      <RefreshCw className="h-4 w-4 mr-2" />
                       Upload Different CV
                     </Button>
                   </div>
