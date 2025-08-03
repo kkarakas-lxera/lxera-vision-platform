@@ -40,11 +40,12 @@ export const useProfileCompletion = () => {
 
     try {
       // Get employee record
-      const { data: employee, error } = await supabase
+      const { data: employees, error } = await supabase
         .from('employees')
         .select('id, profile_complete, profile_completion_date')
-        .eq('user_id', userProfile.id)
-        .single();
+        .eq('user_id', userProfile.id);
+      
+      const employee = employees?.[0];
 
       if (error || !employee) {
         setStatus(prev => ({ ...prev, isLoading: false }));
