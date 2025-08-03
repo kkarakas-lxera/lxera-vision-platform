@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email_verified, 
           position,
           metadata,
-          companies (
+          companies:company_id (
             id,
             name,
             plan_type
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               position_title,
               department
             ),
-            companies!employees_company_id_fkey (
+            companies:company_id (
               id,
               name,
               plan_type
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (employeeData) {
           data.employee = employeeData;
-          // Override the companies data with the employee's company data
+          // Override the companies data with the employee's company data only if it exists
           if (employeeData.companies) {
             data.companies = employeeData.companies;
           }

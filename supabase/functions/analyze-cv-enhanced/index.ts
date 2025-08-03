@@ -22,10 +22,169 @@ serve(async (req) => {
   let company_id: string | undefined // Declare at function scope for error logging
   
   try {
-    const body = await req.json()
-    employee_id = body.employee_id
-    const { file_path, source, session_item_id, use_template } = body
+    // Check content type to determine how to parse the request
+    const contentType = req.headers.get('content-type') || ''
+    let file_path: string
+    let source: string = 'form_profile_builder'
+    let session_item_id: string | undefined
+    let use_template: boolean = false
     
+    if (contentType.includes('multipart/form-data')) {
+      // Handle file upload
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'No authorization header' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Create client with user's auth token for auth checks
+      const authClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        {
+          global: {
+            headers: { Authorization: authHeader },
+          },
+        }
+      )
+
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await authClient.auth.getUser()
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Parse FormData
+      const formData = await req.formData()
+      const file = formData.get('file') as File
+      employee_id = formData.get('employeeId') as string
+
+      if (!file || !employee_id) {
+        return new Response(
+          JSON.stringify({ error: 'Missing file or employeeId' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Get user's profile using service client
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+      
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('company_id, role')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !userProfile) {
+        return new Response(
+          JSON.stringify({ error: 'User profile not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Check permissions - allow learners to upload their own CV
+      if (!['company_admin', 'super_admin', 'learner'].includes(userProfile.role)) {
+        return new Response(
+          JSON.stringify({ error: 'Insufficient permissions' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Verify employee belongs to user's company
+      const { data: employee, error: employeeError } = await supabase
+        .from('employees')
+        .select('company_id, user_id')
+        .eq('id', employee_id)
+        .single()
+
+      if (employeeError || !employee || employee.company_id !== userProfile.company_id) {
+        return new Response(
+          JSON.stringify({ error: 'Employee not found or unauthorized' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Additional check for learners - they can only upload their own CV
+      if (userProfile.role === 'learner' && employee.user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Learners can only upload their own CV' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Create file path
+      const timestamp = Date.now()
+      const fileExt = file.name.split('.').pop()
+      const fileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      file_path = `${employee_id}/${timestamp}-${fileName}`
+
+      // Upload file
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('employee-cvs')
+        .upload(file_path, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) {
+        logSanitizedError(uploadError, {
+          requestId,
+          functionName: 'analyze-cv-enhanced',
+          metadata: { context: 'storage_upload' }
+        })
+        return new Response(
+          JSON.stringify({ error: 'Upload failed' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Update employee record with CV path
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({ 
+          cv_file_path: file_path,
+          cv_uploaded_at: new Date().toISOString()
+        })
+        .eq('id', employee_id)
+
+      if (updateError) {
+        logSanitizedError(updateError, {
+          requestId,
+          functionName: 'analyze-cv-enhanced',
+          metadata: { context: 'employee_update' }
+        })
+        // Try to clean up uploaded file
+        await supabase.storage.from('employee-cvs').remove([file_path])
+        
+        return new Response(
+          JSON.stringify({ error: 'Failed to update employee record' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      company_id = userProfile.company_id
+    } else {
+      // Handle JSON body (existing functionality)
+      const body = await req.json()
+      employee_id = body.employee_id
+      file_path = body.file_path
+      source = body.source || source
+      session_item_id = body.session_item_id
+      use_template = body.use_template || false
+      
+      // Validate required parameters
+      if (!employee_id || !file_path) {
+        throw new Error('Missing required parameters: employee_id and file_path')
+      }
+    }
     
     // Initialize OpenAI
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -35,12 +194,7 @@ serve(async (req) => {
     
     const openai = new OpenAI({ apiKey: openaiApiKey })
 
-    // Validate required parameters
-    if (!employee_id || !file_path) {
-      throw new Error('Missing required parameters: employee_id and file_path')
-    }
-
-    // Create Supabase client
+    // Create Supabase client if not already created
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -75,7 +229,7 @@ serve(async (req) => {
           await supabase
             .from('st_llm_usage_metrics')
             .insert({
-              company_id: employee?.company_id || 'unknown',
+              company_id: company_id || 'unknown',
               service_type: 'cv_analysis_status_error',
               model_used: 'none',
               input_tokens: 0,
@@ -98,496 +252,354 @@ serve(async (req) => {
       }
     }
     
-    // Initial status
-    await updateStatus('initializing', 0, 'Starting CV analysis...')
-
-    // Get employee and company information
+    // Initial status update
+    await updateStatus('started', 0, 'Starting CV analysis')
+    
+    // Fetch employee data to get company_id
     const { data: employee, error: empError } = await supabase
       .from('employees')
-      .select(`
-        id,
-        company_id,
-        position,
-        current_position_id,
-        target_position_id,
-        st_company_positions!employees_current_position_id_fkey(
-          id,
-          position_code,
-          position_title,
-          required_skills,
-          description
-        )
-      `)
+      .select('id, company_id, user_id, email, employee_profile_sections(id, section_name, data)')
       .eq('id', employee_id)
       .single()
-
+    
     if (empError || !employee) {
-      throw new Error('Failed to fetch employee information')
+      throw new Error('Employee not found')
     }
     
-    // Store company_id for error logging
     company_id = employee.company_id
-
-    // Get analysis template if requested
-    let analysisTemplate = null
-    if (use_template) {
-      const { data: template } = await supabase
-        .from('st_analysis_templates')
-        .select('*')
-        .eq('company_id', employee.company_id)
-        .eq('template_type', 'cv_analysis')
-        .eq('is_active', true)
-        .single()
-      
-      analysisTemplate = template
-    }
-
-    // Update session item if provided
-    if (session_item_id) {
-      await supabase
-        .from('st_import_session_items')
-        .update({
-          analysis_started_at: new Date().toISOString(),
-          status: 'processing'
-        })
-        .eq('id', session_item_id)
-    }
-
-    // Download CV from storage
-    await updateStatus('downloading', 10, 'Downloading CV file...')
     
+    // Update status: Downloading CV
+    await updateStatus('downloading', 10, 'Downloading CV file')
+    
+    // Download the CV file from storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('employee-cvs')
       .download(file_path)
-
-    if (downloadError) {
-      throw new Error(`Failed to download CV: ${downloadError.message}`)
+    
+    if (downloadError || !fileData) {
+      throw new Error(`Failed to download CV: ${downloadError?.message || 'Unknown error'}`)
     }
     
-    await updateStatus('uploading_to_ai', 20, 'Uploading CV to AI for analysis...')
-
-    // Convert file to base64 for OpenAI
-    const arrayBuffer = await fileData.arrayBuffer()
-    const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    // Update status: Processing CV
+    await updateStatus('processing', 20, 'Processing CV file')
     
-    // Get file details
-    const fileName = file_path.split('/').pop() || ''
-    const fileExtension = fileName.split('.').pop()?.toLowerCase() || 'pdf'
+    // Convert file to base64
+    const buffer = await fileData.arrayBuffer()
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
     
-    console.log(`Processing ${fileName} - ${arrayBuffer.byteLength} bytes`)
+    // Extract text from CV using OpenAI Vision API
+    await updateStatus('extracting', 30, 'Extracting text from CV')
     
-    await updateStatus('analyzing', 30, 'AI analyzing CV content...')
-
-    // Enhanced prompt using template or default
-    const systemPrompt = analysisTemplate?.system_prompt || 
-      'You are an expert HR analyst specializing in technical skill assessment and CV analysis. Extract information accurately and comprehensively.'
-    
-    const promptTemplate = analysisTemplate?.prompt_template || `
-      You are analyzing a CV/Resume. Extract ALL skills and technologies mentioned.
-      
-      Your response MUST be a valid JSON object with this EXACT structure:
-      {
-        "personal_info": {
-          "name": "Full name from CV",
-          "email": "Email address",
-          "phone": "Phone number"
+    const visionResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a CV text extractor. Extract all text from the CV image/document and return it as plain text. Maintain the structure and formatting as much as possible."
         },
-        "summary": "Professional summary or objective from CV",
-        "work_experience": [
-          {
-            "company": "Company name",
-            "title": "Job title/position",
-            "position": "Job title/position (same as title)",
-            "startDate": "Start date in YYYY-MM format",
-            "endDate": "End date in YYYY-MM format (null if current)",
-            "current": false,
-            "duration": "Time period as string (e.g. '2020-2023')",
-            "description": "Combined description of role, responsibilities and achievements",
-            "responsibilities": ["List of key responsibilities"],
-            "achievements": ["List of key achievements"],
-            "technologies": ["List of technologies used in this role"]
-          }
-        ],
-        "education": [
-          {
-            "degree": "Degree name",
-            "institution": "School/University name",
-            "year": "Graduation year or period"
-          }
-        ],
-        "certifications": [
-          {
-            "name": "Certification name",
-            "issuer": "Issuing organization",
-            "year": "Year obtained"
-          }
-        ],
-        "skills": [
-          {
-            "skill_name": "EXACT skill name as written in CV",
-            "category": "technical",
-            "proficiency_level": 4,
-            "years_experience": 2,
-            "evidence": "Quote from CV showing this skill",
-            "context": "Where/how this skill was used"
-          }
-        ],
-        "languages": [
-          {
-            "language": "Language name",
-            "proficiency": "Native/Fluent/Intermediate/Basic"
-          }
-        ],
-        "total_experience_years": 8
-      }
-      
-      CRITICAL INSTRUCTIONS:
-      1. Extract EVERY technical skill mentioned (programming languages, frameworks, tools, databases, cloud services, etc.)
-      2. Be EXTREMELY thorough - if something looks like a skill or technology, include it
-      3. Use these categories: "technical" for tech skills, "soft" for soft skills, "domain" for industry knowledge
-      4. Estimate proficiency_level: 5=Expert (5+ years), 4=Advanced (3-5 years), 3=Intermediate (1-3 years), 2=Basic (<1 year), 1=Beginner
-      5. Include evidence - quote the exact text from CV that mentions this skill
-      6. If you can't find certain information, use null instead of making it up
-      
-      FOR WORK EXPERIENCE:
-      - Extract exact dates when available and convert to YYYY-MM format for startDate/endDate
-      - If only years are given (e.g., "2020-2023"), use YYYY-01 format (e.g., "2020-01", "2023-12")
-      - Set "current" to true and "endDate" to null if it's their current position
-      - Combine all responsibilities and achievements into a single "description" field
-      - Keep separate arrays for "responsibilities" and "achievements" for detailed analysis
-      - Extract any technologies/tools mentioned for each role into "technologies" array
-      
-      Common skills to look for:
-      - Programming: Python, JavaScript, Java, C++, Go, Ruby, PHP, Swift, Kotlin, etc.
-      - Frontend: React, Angular, Vue.js, HTML, CSS, Sass, Bootstrap, Tailwind, etc.
-      - Backend: Node.js, Express, Django, Flask, Spring, Rails, Laravel, etc.
-      - Databases: MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch, Oracle, etc.
-      - Cloud: AWS, Azure, GCP, Docker, Kubernetes, Jenkins, CI/CD, etc.
-      - Tools: Git, Jira, Slack, VS Code, IntelliJ, Postman, etc.
-      - Soft Skills: Leadership, Communication, Problem-solving, Teamwork, etc.
-    `
-
-    // Prepare the prompt (CV will be sent as file)
-    const prompt = promptTemplate
-    
-    console.log('Using OpenAI PDF file analysis')
-    console.log('File size:', arrayBuffer.byteLength, 'bytes')
-
-    // Call OpenAI with file upload
-    let completion
-    const maxTokens = analysisTemplate?.parameters?.max_tokens || 4000
-    const temperature = analysisTemplate?.parameters?.temperature || 0.3
-    
-    try {
-      // Create messages with PDF file attachment using the correct format
-      const messages = [
-        { 
-          role: 'system' as const, 
-          content: systemPrompt 
-        },
-        { 
-          role: 'user' as const, 
+        {
+          role: "user",
           content: [
             {
-              type: 'file' as const,
-              file: {
-                filename: fileName,
-                file_data: `data:application/pdf;base64,${base64String}`
-              }
+              type: "text",
+              text: "Please extract all text from this CV/resume document."
             },
             {
-              type: 'text' as const,
-              text: prompt
+              type: "image_url",
+              image_url: {
+                url: `data:application/pdf;base64,${base64}`,
+                detail: "high"
+              }
             }
           ]
         }
-      ]
-      
-      completion = await openai.chat.completions.create({
-        model: 'gpt-4o', // GPT-4o supports PDF files
-        messages,
-        temperature,
-        max_tokens: maxTokens,
-        response_format: { type: 'json_object' }
-      })
-      
-      console.log('OpenAI PDF analysis completed')
-      console.log('Tokens used:', completion.usage?.total_tokens)
-      
-    } catch (openaiError) {
-      logSanitizedError(openaiError, {
-        requestId,
-        functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'openai_pdf_analysis_error' }
-      })
-      throw new Error(`Failed to analyze CV: ${openaiError.message}`)
-    }
-
-    const rawResponse = completion.choices[0].message?.content || '{}'
-    console.log('OpenAI raw response:', rawResponse)
-    console.log('Response length:', rawResponse.length)
+      ],
+      max_tokens: 4000,
+      temperature: 0
+    })
     
-    let analysisResult
-    try {
-      analysisResult = JSON.parse(rawResponse)
-      console.log('Parsed analysis result keys:', Object.keys(analysisResult))
-      console.log('Skills array length:', analysisResult.skills?.length || 0)
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', parseError)
-      analysisResult = {}
+    const extractedText = visionResponse.choices[0]?.message?.content || ''
+    
+    if (!extractedText) {
+      throw new Error('Failed to extract text from CV')
     }
     
-    await updateStatus('processing', 60, 'Processing analysis results...')
-    
-    // Track token usage
-    const tokensUsed = completion.usage?.total_tokens || 0
-    const costEstimate = calculateCost(completion.usage)
-    
-    await supabase
-      .from('st_llm_usage_metrics')
-      .insert({
-        company_id: employee.company_id,
-        service_type: 'cv_analysis',
-        model_used: 'gpt-4o',
-        input_tokens: completion.usage?.prompt_tokens || 0,
-        output_tokens: completion.usage?.completion_tokens || 0,
-        cost_estimate: costEstimate,
+    // Log token usage for extraction
+    const extractionUsage = visionResponse.usage
+    if (extractionUsage) {
+      await supabase.from('st_llm_usage_metrics').insert({
+        company_id,
+        service_type: 'cv_text_extraction',
+        model_used: 'gpt-4o-mini',
+        input_tokens: extractionUsage.prompt_tokens || 0,
+        output_tokens: extractionUsage.completion_tokens || 0,
+        cost_estimate: calculateCost('gpt-4o-mini', extractionUsage.prompt_tokens || 0, extractionUsage.completion_tokens || 0),
         duration_ms: Date.now() - startTime,
         success: true,
         metadata: {
           request_id: requestId,
           employee_id,
-          template_used: analysisTemplate?.template_name,
-          file_upload: true
+          file_path
         }
       })
-
-    // Enhanced skills extraction with better structure
-    interface AnalysisSkill {
-      skill_name?: string;
-      name?: string;
-      category?: string;
-      proficiency_level?: number;
-      level?: number;
-      years_experience?: number;
-      evidence?: string;
-      context?: string;
     }
     
-    // Ensure we have skills array
-    if (!analysisResult.skills || !Array.isArray(analysisResult.skills)) {
-      console.error('No skills array in analysis result')
-      analysisResult.skills = []
-    }
+    // Update status: Analyzing content
+    await updateStatus('analyzing', 50, 'Analyzing CV content')
     
-    const extractedSkills = (analysisResult.skills || []).map((skill: AnalysisSkill) => ({
-      skill_id: null, // Will be mapped to NESTA taxonomy later
-      skill_name: skill.skill_name || skill.name || '',
-      category: skill.category || 'technical',
-      proficiency_level: skill.proficiency_level || skill.level || 3,
-      years_experience: skill.years_experience,
-      evidence: skill.evidence || '',
-      context: skill.context || '',
-      confidence: 0.9, // High confidence for direct extraction
-      source: 'cv_analysis'
-    })).filter(skill => skill.skill_name && skill.skill_name.length > 0)
-    
-    console.log(`Extracted ${extractedSkills.length} skills from analysis`)
+    // Analyze the CV content
+    const analysisPrompt = `Analyze this CV/resume and extract structured information.
 
-    // Calculate initial match score if position exists
-    let matchScore = null
-    let positionMatchAnalysis = {}
-    
-    if (employee.st_company_positions) {
-      const position = employee.st_company_positions
-      const requiredSkills = position.required_skills || []
-      
-      // Simple match calculation (will be enhanced with LLM later)
-      const matchedSkills = requiredSkills.filter(reqSkill => 
-        extractedSkills.some(extSkill => 
-          extSkill.skill_name.toLowerCase().includes(reqSkill.skill_name.toLowerCase()) ||
-          reqSkill.skill_name.toLowerCase().includes(extSkill.skill_name.toLowerCase())
-        )
-      )
-      
-      matchScore = requiredSkills.length > 0 
-        ? Math.round((matchedSkills.length / requiredSkills.length) * 100)
-        : null
-        
-      positionMatchAnalysis = {
-        position_id: position.id,
-        position_title: position.position_title,
-        matched_skills: matchedSkills.length,
-        total_required: requiredSkills.length,
-        match_percentage: matchScore
-      }
-    }
+CV Text:
+${extractedText}
 
-    await updateStatus('storing', 80, 'Storing analysis results...')
-    
-    // Store results in temporary cv_analysis_results table
-    const { error: cvResultsError } = await supabase
-      .from('cv_analysis_results')
-      .upsert({
-        employee_id: employee_id,
-        extracted_skills: extractedSkills,
-        work_experience: analysisResult.work_experience || [],
-        education: analysisResult.education || [],
-        analysis_status: 'completed',
-        analyzed_at: new Date().toISOString()
-      }, { onConflict: 'employee_id' })
+Please extract and structure the following information:
+1. Personal Information (name, email, phone, location)
+2. Professional Summary/Objective
+3. Work Experience (company, role, duration, responsibilities)
+4. Education (institution, degree, graduation year)
+5. Skills (technical and soft skills)
+6. Certifications
+7. Languages
+8. Key Achievements
 
-    if (cvResultsError) {
-      logSanitizedError(cvResultsError, {
-        requestId,
-        functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'cv_results_storage' }
+${use_template && use_template === true ? `
+Also include:
+9. What tools and technologies they regularly use
+10. What challenges they typically face in their role
+11. Potential growth areas based on their experience
+` : ''}
+
+Return the information in a structured JSON format.`
+
+    const analysisResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional CV analyzer. Extract and structure information from CVs accurately."
+        },
+        {
+          role: "user",
+          content: analysisPrompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0,
+      response_format: { type: "json_object" }
+    })
+    
+    const analysisResult = JSON.parse(analysisResponse.choices[0]?.message?.content || '{}')
+    
+    // Log token usage for analysis
+    const analysisUsage = analysisResponse.usage
+    if (analysisUsage) {
+      await supabase.from('st_llm_usage_metrics').insert({
+        company_id,
+        service_type: 'cv_content_analysis',
+        model_used: 'gpt-4o-mini',
+        input_tokens: analysisUsage.prompt_tokens || 0,
+        output_tokens: analysisUsage.completion_tokens || 0,
+        cost_estimate: calculateCost('gpt-4o-mini', analysisUsage.prompt_tokens || 0, analysisUsage.completion_tokens || 0),
+        duration_ms: Date.now() - startTime,
+        success: true,
+        metadata: {
+          request_id: requestId,
+          employee_id,
+          file_path
+        }
       })
-      throw cvResultsError
     }
     
-    // Store skills in st_employee_skills_profile as jsonb
-    const { error: profileError } = await supabase
-      .from('st_employee_skills_profile')
-      .upsert({
-        employee_id: employee_id,
-        cv_file_path: file_path,
-        extracted_skills: extractedSkills, // Now stored as jsonb array
-        analyzed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        skills_match_score: matchScore,
-        career_readiness_score: 75 // Default score, will be updated later
-      }, { onConflict: 'employee_id' })
+    // Update status: Skills extraction
+    await updateStatus('skills_extraction', 70, 'Extracting and analyzing skills')
+    
+    // Extract skills with proficiency levels
+    const skillsPrompt = `Based on this CV analysis, identify all skills mentioned and estimate proficiency levels.
 
-    if (profileError) {
-      logSanitizedError(profileError, {
-        requestId,
-        functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'skills_profile_storage' }
+CV Analysis:
+${JSON.stringify(analysisResult, null, 2)}
+
+For each skill, provide:
+1. skill_name: The name of the skill
+2. proficiency_level: A number from 1-5 (1=Beginner, 2=Basic, 3=Intermediate, 4=Advanced, 5=Expert)
+3. years_of_experience: Estimated years (can be decimal)
+4. context: Where/how this skill was used
+
+Consider:
+- Explicit mentions of skills
+- Skills implied by work experience
+- Skills from certifications
+- Tools and technologies used
+
+Return as JSON with a "skills" array.`
+
+    const skillsResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a skills assessment expert. Extract skills from CVs and estimate proficiency levels based on experience and context."
+        },
+        {
+          role: "user",
+          content: skillsPrompt
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0,
+      response_format: { type: "json_object" }
+    })
+    
+    const skillsData = JSON.parse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
+    
+    // Log token usage for skills extraction
+    const skillsUsage = skillsResponse.usage
+    if (skillsUsage) {
+      await supabase.from('st_llm_usage_metrics').insert({
+        company_id,
+        service_type: 'cv_skills_extraction',
+        model_used: 'gpt-4o-mini',
+        input_tokens: skillsUsage.prompt_tokens || 0,
+        output_tokens: skillsUsage.completion_tokens || 0,
+        cost_estimate: calculateCost('gpt-4o-mini', skillsUsage.prompt_tokens || 0, skillsUsage.completion_tokens || 0),
+        duration_ms: Date.now() - startTime,
+        success: true,
+        metadata: {
+          request_id: requestId,
+          employee_id,
+          file_path
+        }
       })
-      throw profileError
     }
-
-    // Update session item if provided
-    if (session_item_id) {
-      await supabase
-        .from('st_import_session_items')
-        .update({
-          cv_analysis_result: extractedSkills,
-          confidence_score: matchScore ? matchScore / 100 : 0.5,
-          position_match_analysis: positionMatchAnalysis,
-          analysis_completed_at: new Date().toISOString(),
-          analysis_tokens_used: tokensUsed,
-          status: 'completed'
-        })
-        .eq('id', session_item_id)
-    }
-
-    // Update employee record with extracted data
-    const { error: employeeUpdateError } = await supabase
+    
+    // Update status: Saving results
+    await updateStatus('saving', 90, 'Saving analysis results')
+    
+    // Save the analysis results
+    const { error: updateError } = await supabase
       .from('employees')
       .update({
-        cv_file_path: file_path,
         cv_extracted_data: {
-          work_experience: analysisResult.work_experience || [],
-          education: analysisResult.education || [],
-          certifications: analysisResult.certifications || [],
-          languages: analysisResult.languages || [],
-          total_experience_years: analysisResult.total_experience_years || 0,
-          personal_info: analysisResult.personal_info || {},
-          skills_count: extractedSkills.length
+          ...analysisResult,
+          extracted_text: extractedText,
+          extraction_timestamp: new Date().toISOString()
         },
-        skills_last_analyzed: new Date().toISOString()
+        cv_analysis_data: {
+          skills: skillsData.skills,
+          analysis_version: '2.0',
+          analysis_timestamp: new Date().toISOString()
+        }
       })
       .eq('id', employee_id)
     
-    if (employeeUpdateError) {
-      console.error('Failed to update employee record:', employeeUpdateError)
+    if (updateError) {
+      throw new Error(`Failed to save analysis results: ${updateError.message}`)
     }
-
-    const analysisTime = Date.now() - startTime
     
-    await updateStatus('completed', 100, 'Analysis completed successfully')
-
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: 'CV analyzed successfully',
-        employee_id,
-        file_path,
-        session_id: sessionId, // Include session ID for frontend tracking
-        skills_extracted: extractedSkills.length,
-        match_score: matchScore,
-        analysis_time_ms: analysisTime,
-        tokens_used: tokensUsed,
-        cost_estimate: costEstimate
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    )
-
-  } catch (error) {
-    const errorTime = Date.now() - startTime
-    
-    // Log error metrics with sanitized information
-    try {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      const supabase = createClient(supabaseUrl, supabaseServiceKey)
-      
+    // If session_item_id is provided, update the chat session item
+    if (session_item_id && source === 'chat_profile_builder') {
       await supabase
-        .from('st_llm_usage_metrics')
-        .insert({
-          company_id: company_id || null, // Use company_id if available
-          service_type: 'cv_analysis',
-          model_used: 'gpt-4-turbo-preview',
-          input_tokens: 0,
-          output_tokens: 0,
-          cost_estimate: 0,
-          duration_ms: errorTime,
-          success: false,
-          error_code: error.constructor?.name || 'UnknownError',
-          metadata: {
-            request_id: requestId,
-            employee_id: employee_id || 'unknown'
+        .from('st_chat_session_items')
+        .update({
+          tool_result: {
+            cv_analysis: analysisResult,
+            skills: skillsData.skills
           }
         })
-    } catch (logError) {
-      logSanitizedError(logError, {
-        requestId,
-        functionName: 'analyze-cv-enhanced',
-        metadata: { context: 'error_metrics_logging' }
-      })
+        .eq('id', session_item_id)
     }
     
-    const errorResponse = createErrorResponse(error, {
+    // Update final status
+    await updateStatus('completed', 100, 'Analysis completed successfully')
+    
+    const totalDuration = Date.now() - startTime
+    console.log(`CV analysis completed in ${totalDuration}ms`)
+    
+    return new Response(
+      JSON.stringify({
+        success: true,
+        employee_id,
+        analysis: analysisResult,
+        skills: skillsData.skills,
+        request_id: requestId,
+        duration_ms: totalDuration
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
+    
+  } catch (error: any) {
+    console.error('CV analysis error:', error)
+    
+    // Try to update status to failed
+    if (employee_id) {
+      try {
+        await supabase
+          .from('cv_analysis_status')
+          .upsert({
+            employee_id,
+            session_id: sessionId,
+            status: 'failed',
+            progress: 0,
+            message: getUserFriendlyErrorMessage(error),
+            metadata: { 
+              source: 'analyze-cv-enhanced',
+              request_id: requestId,
+              error: error.message 
+            },
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'employee_id,session_id'
+          })
+      } catch (statusError) {
+        console.error('Failed to update error status:', statusError)
+      }
+    }
+    
+    // Log error to metrics if we have company_id
+    if (company_id) {
+      try {
+        await supabase
+          .from('st_llm_usage_metrics')
+          .insert({
+            company_id,
+            service_type: 'cv_analysis_error',
+            model_used: 'none',
+            input_tokens: 0,
+            output_tokens: 0,
+            cost_estimate: 0,
+            duration_ms: Date.now() - startTime,
+            success: false,
+            error_code: error.code || 'UNKNOWN',
+            metadata: {
+              request_id: requestId,
+              employee_id,
+              error: error.message
+            }
+          })
+      } catch (metricsError) {
+        console.error('Failed to log error metrics:', metricsError)
+      }
+    }
+    
+    return createErrorResponse(error, {
       requestId,
-      functionName: 'analyze-cv-enhanced',
-      employeeId: employee_id
+      functionName: 'analyze-cv-enhanced'
     }, getErrorStatusCode(error))
-    
-    // Ensure CORS headers are included in error responses
-    const headers = new Headers(errorResponse.headers)
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      headers.set(key, value)
-    })
-    
-    return new Response(errorResponse.body, {
-      status: errorResponse.status,
-      headers
-    })
   }
 })
 
-function calculateCost(usage: any): number {
-  // GPT-4o pricing (as of 2024)
-  const inputCostPer1k = 0.005  // $5 per 1M input tokens
-  const outputCostPer1k = 0.015 // $15 per 1M output tokens
+function calculateCost(model: string, inputTokens: number, outputTokens: number): number {
+  const pricing: Record<string, { input: number; output: number }> = {
+    'gpt-4o-mini': { input: 0.15 / 1_000_000, output: 0.60 / 1_000_000 },
+    'gpt-4o': { input: 2.50 / 1_000_000, output: 10.00 / 1_000_000 },
+    'gpt-4-turbo': { input: 10.00 / 1_000_000, output: 30.00 / 1_000_000 },
+    'gpt-3.5-turbo': { input: 0.50 / 1_000_000, output: 1.50 / 1_000_000 }
+  }
   
-  const inputCost = (usage?.prompt_tokens || 0) / 1000 * inputCostPer1k
-  const outputCost = (usage?.completion_tokens || 0) / 1000 * outputCostPer1k
-  
-  return inputCost + outputCost
+  const modelPricing = pricing[model] || pricing['gpt-4o-mini']
+  return (inputTokens * modelPricing.input) + (outputTokens * modelPricing.output)
 }

@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Save, Check, Loader2, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from 'lodash';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // Reuse existing form components
 import FileDropZone from './chat/FileDropZone';
@@ -209,6 +215,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     
     const currentStepData = STEPS[currentStep];
     
+    // Check if current step meets requirements before proceeding
+    if (!canProceed()) {
+      toast.error('Please complete the current step before proceeding');
+      return;
+    }
+    
     // Mark current section as complete
     await EmployeeProfileService.updateProfileSection(
       employeeId,
@@ -222,6 +234,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     } else {
       // Complete profile
       await handleProfileComplete();
+    }
+  };
+
+  const handleSkipCVUpload = () => {
+    // Skip CV upload and move to next step without saving
+    if (currentStep === 0 && STEPS[currentStep].id === 'cv_upload') {
+      setCurrentStep(1);
+      updateStepData('cv_upload', { skipped: true });
     }
   };
 
@@ -313,12 +333,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     try {
       setCvAnalysisStatus({ status: 'analyzing' });
 
-      // Upload CV
+      // Upload and analyze CV
       const formData = new FormData();
       formData.append('file', cvFile);
       formData.append('employeeId', employeeId);
       
-      const { data, error } = await supabase.functions.invoke('upload-cv', {
+      const { data, error } = await supabase.functions.invoke('analyze-cv-enhanced', {
         body: formData
       });
 
@@ -483,7 +503,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                 <div className="text-center">
                   <Button
                     variant="outline"
-                    onClick={handleNext}
+                    onClick={handleSkipCVUpload}
                   >
                     Skip and fill manually
                   </Button>
@@ -678,13 +698,26 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
               )}
             </div>
 
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed() || isLoading}
-            >
-              {currentStep === STEPS.length - 1 ? 'Submit Profile' : 'Next Step'}
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-block">
+                    <Button
+                      onClick={handleNext}
+                      disabled={!canProceed() || isLoading}
+                    >
+                      {currentStep === STEPS.length - 1 ? 'Submit Profile' : 'Next Step'}
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!canProceed() && (
+                  <TooltipContent>
+                    <p>Please complete the current step before proceeding</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
