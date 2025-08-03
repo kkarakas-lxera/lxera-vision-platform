@@ -54,11 +54,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     growthAreas: string[];
   }>({ challenges: [], growthAreas: [] });
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
 
   // Load existing profile data and state
   useEffect(() => {
-    loadProfileData();
-  }, [employeeId]);
+    if (!isRestarting) {
+      loadProfileData();
+    }
+  }, [employeeId, isRestarting]);
 
   const loadProfileData = async () => {
     try {
@@ -359,6 +362,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   const handleCVAnalysisRestart = async () => {
     try {
       setIsLoading(true);
+      setIsRestarting(true);
       
       // Clear CV analysis data from database
       const { error: updateError } = await supabase
@@ -404,9 +408,15 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       if (deleteError) console.error('Error deleting profile sections:', deleteError);
       
       toast.success('Ready to start fresh. Please upload your CV or skip this step.');
+      
+      // Reset the flag after a short delay to allow UI to update
+      setTimeout(() => {
+        setIsRestarting(false);
+      }, 100);
     } catch (error) {
       console.error('Error restarting CV analysis:', error);
       toast.error('Failed to reset. Please try again.');
+      setIsRestarting(false);
     } finally {
       setIsLoading(false);
     }
