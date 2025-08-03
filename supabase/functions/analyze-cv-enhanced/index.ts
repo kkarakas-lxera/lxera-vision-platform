@@ -21,6 +21,19 @@ serve(async (req) => {
   let employee_id: string | undefined // Declare at function scope
   let company_id: string | undefined // Declare at function scope for error logging
   
+  // Initialize Supabase client at function scope for error handlers
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return new Response(
+      JSON.stringify({ error: 'Server configuration error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+  
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  
   try {
     // Check content type to determine how to parse the request
     const contentType = req.headers.get('content-type') || ''
@@ -72,11 +85,6 @@ serve(async (req) => {
       }
 
       // Get user's profile using service client
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      )
-      
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
         .select('company_id, role')
@@ -201,11 +209,6 @@ serve(async (req) => {
     }
     
     const openai = new OpenAI({ apiKey: openaiApiKey })
-
-    // Create Supabase client if not already created
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
     // Helper function to update analysis status
     const updateStatus = async (status: string, progress: number, message?: string) => {
@@ -260,6 +263,15 @@ serve(async (req) => {
       }
     }
     
+    // Validate required parameters before proceeding
+    if (!employee_id) {
+      throw new Error('Employee ID is required')
+    }
+    
+    if (!file_path) {
+      throw new Error('File path is required')
+    }
+    
     // Initial status update
     await updateStatus('started', 0, 'Starting CV analysis')
     
@@ -271,7 +283,8 @@ serve(async (req) => {
       .single()
     
     if (empError || !employee) {
-      throw new Error('Employee not found')
+      console.error('Employee query error:', empError)
+      throw new Error(`Employee not found: ${employee_id}`)
     }
     
     company_id = employee.company_id
