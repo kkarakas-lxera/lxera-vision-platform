@@ -165,12 +165,21 @@ Return questions as a JSON object with a "questions" array, where each question 
 
         // Validate and save questions
         if (questions.length > 0) {
+          // Helper function to check if string is valid UUID
+          const isValidUUID = (str: string) => {
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            return uuidRegex.test(str);
+          };
+
+          // Only use skill_id if it's a valid UUID, otherwise null
+          const validSkillId = skill.skill_id && isValidUUID(skill.skill_id) ? skill.skill_id : null;
+
           const { data: saved, error: saveError } = await supabase
             .from('skill_assessment_questions')
             .insert({
               employee_id,
               skill_name: skill.skill_name,
-              skill_id: skill.skill_id || null,
+              skill_id: validSkillId,
               position_id: position_context.id || null,
               questions,
               assessment_context: {

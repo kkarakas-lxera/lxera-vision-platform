@@ -155,9 +155,34 @@ export default function ProfileVerification({
   if (loading) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Shield className="h-6 w-6 text-primary" />
+            <div>
+              <CardTitle>Skills Verification</CardTitle>
+              <CardDescription>
+                Preparing your personalized assessment
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col items-center justify-center py-8 space-y-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground text-center">
+              Loading your skills and generating assessments...
+            </p>
+          </div>
+          
+          {/* Info Box */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">What to expect:</h4>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• Each skill assessment takes 2-3 minutes</li>
+              <li>• Questions are tailored to your experience and role</li>
+              <li>• You cannot skip assessments - all skills must be verified</li>
+              <li>• Your progress is saved automatically</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
@@ -211,6 +236,20 @@ export default function ProfileVerification({
             </span>
           </div>
           <Progress value={progress} className="h-2" />
+          
+          {/* Pre-generation Status */}
+          {preGenerationStatus === 'generating' && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
+              <span>Preparing assessments for remaining skills...</span>
+            </div>
+          )}
+          {preGenerationStatus === 'completed' && verifiedSkills.length === 0 && (
+            <div className="flex items-center gap-2 text-xs text-green-600">
+              <CheckCircle className="h-3 w-3" />
+              <span>All assessments ready</span>
+            </div>
+          )}
         </div>
 
         {/* Position Context */}
