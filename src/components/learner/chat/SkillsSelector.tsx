@@ -17,16 +17,41 @@ interface Skill {
   proficiency_level?: number;
 }
 
+interface PositionSkill {
+  skill_id?: string;
+  skill_name: string;
+  skill_type?: string;
+  proficiency_level: string;
+  is_mandatory: boolean;
+}
+
 interface SkillsSelectorProps {
   extractedSkills?: any[];
   existingSkills?: any[];
+  positionRequiredSkills?: PositionSkill[];
+  positionNiceToHaveSkills?: PositionSkill[];
+  positionTitle?: string;
   onComplete: (skills: Skill[]) => void;
   onSkip?: () => void;
 }
 
+// Helper function to map proficiency levels
+const mapProficiencyLevel = (level: string): number => {
+  const mapping: Record<string, number> = {
+    'basic': 1,
+    'intermediate': 2,
+    'advanced': 3,
+    'expert': 3
+  };
+  return mapping[level?.toLowerCase()] || 1;
+};
+
 export default function SkillsSelector({
   extractedSkills = [],
   existingSkills = [],
+  positionRequiredSkills = [],
+  positionNiceToHaveSkills = [],
+  positionTitle,
   onComplete,
   onSkip
 }: SkillsSelectorProps) {
@@ -35,17 +60,58 @@ export default function SkillsSelector({
   const [manualSkillInput, setManualSkillInput] = useState('');
 
   useEffect(() => {
-    // Initialize with extracted skills and existing skills
+    // Initialize with skills from various sources
     const allSuggested: Skill[] = [];
+    const selectedByDefault: Skill[] = [];
+    
+    // Add position required skills first (highest priority)
+    positionRequiredSkills.forEach(skill => {
+      const skillObj: Skill = {
+        skill_name: skill.skill_name,
+        skill_id: skill.skill_id,
+        category: 'position_required',
+        source: 'position',
+        proficiency_level: mapProficiencyLevel(skill.proficiency_level)
+      };
+      allSuggested.push(skillObj);
+    });
+
+    // Add nice-to-have position skills
+    positionNiceToHaveSkills.forEach(skill => {
+      const skillObj: Skill = {
+        skill_name: skill.skill_name,
+        skill_id: skill.skill_id,
+        category: 'position_nice',
+        source: 'position',
+        proficiency_level: mapProficiencyLevel(skill.proficiency_level)
+      };
+      allSuggested.push(skillObj);
+    });
     
     // Add CV extracted skills
     extractedSkills.forEach(skill => {
-      allSuggested.push({
-        skill_name: skill.skill_name || skill.name || skill,
-        category: skill.category || 'technical',
-        source: 'cv',
-        proficiency_level: skill.proficiency_level
-      });
+      const skillName = skill.skill_name || skill.name || skill;
+      // Check if skill already exists from position
+      const existing = allSuggested.find(s => s.skill_name.toLowerCase() === skillName.toLowerCase());
+      
+      if (!existing) {
+        allSuggested.push({
+          skill_name: skillName,
+          category: 'cv_extracted',
+          source: 'cv',
+          proficiency_level: skill.proficiency_level
+        });
+        // Pre-select CV skills
+        selectedByDefault.push({
+          skill_name: skillName,
+          category: 'cv_extracted',
+          source: 'cv',
+          proficiency_level: skill.proficiency_level
+        });
+      } else if (existing.source === 'position') {
+        // If position skill is also in CV, pre-select it
+        selectedByDefault.push(existing);
+      }
     });
 
     // Add existing skills not already in suggested
@@ -54,19 +120,16 @@ export default function SkillsSelector({
       if (!allSuggested.find(s => s.skill_name.toLowerCase() === skillName.toLowerCase())) {
         allSuggested.push({
           skill_name: skillName,
-          category: skill.category || 'other',
-          source: 'position',
+          category: 'other',
+          source: 'manual',
           proficiency_level: skill.proficiency_level
         });
       }
     });
 
     setSuggestedSkills(allSuggested);
-    
-    // Pre-select some skills if they're from CV
-    const preSelected = allSuggested.filter(s => s.source === 'cv').slice(0, 5);
-    setSelectedSkills(preSelected);
-  }, [extractedSkills, existingSkills]);
+    setSelectedSkills(selectedByDefault);
+  }, [extractedSkills, existingSkills, positionRequiredSkills, positionNiceToHaveSkills]);
 
   useEffect(() => {
     // Auto-update parent when selection changes
@@ -75,9 +138,8 @@ export default function SkillsSelector({
 
   const addSkillToSelected = (skill: Skill) => {
     if (!selectedSkills.find(s => s.skill_name.toLowerCase() === skill.skill_name.toLowerCase())) {
-      // Set default proficiency level to 1 (Learning) if not specified
-      const skillWithLevel = { ...skill, proficiency_level: skill.proficiency_level || 1 };
-      setSelectedSkills([...selectedSkills, skillWithLevel]);
+      // Just add the skill without setting proficiency (will be verified later)
+      setSelectedSkills([...selectedSkills, skill]);
     }
     // Remove from suggested
     setSuggestedSkills(suggestedSkills.filter(s => s.skill_name !== skill.skill_name));
@@ -93,33 +155,7 @@ export default function SkillsSelector({
     }
   };
 
-  const updateSkillProficiency = (skillName: string, level: number) => {
-    setSelectedSkills(selectedSkills.map(skill => 
-      skill.skill_name === skillName 
-        ? { ...skill, proficiency_level: level }
-        : skill
-    ));
-  };
-
-  const getProficiencyIcon = (level: number) => {
-    switch(level) {
-      case 0: return '❌';
-      case 1: return '🟡';
-      case 2: return '🟢';
-      case 3: return '⭐';
-      default: return '🟡';
-    }
-  };
-
-  const getProficiencyLabel = (level: number) => {
-    switch(level) {
-      case 0: return 'None';
-      case 1: return 'Learning';
-      case 2: return 'Using';
-      case 3: return 'Expert';
-      default: return 'Learning';
-    }
-  };
+  // Removed proficiency update functions - will be handled in verification step
 
   const handleManualAdd = () => {
     if (manualSkillInput.trim()) {
@@ -148,6 +184,28 @@ export default function SkillsSelector({
       grouped[category].push(skill);
     });
     return grouped;
+  };
+
+  // Helper function to get category display name
+  const getCategoryDisplayName = (category: string) => {
+    const displayNames: Record<string, string> = {
+      'position_required': 'Required for Position',
+      'position_nice': 'Nice to Have',
+      'cv_extracted': 'From Your CV',
+      'other': 'Other Skills'
+    };
+    return displayNames[category] || category;
+  };
+
+  // Helper function to get category color
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'position_required': 'text-red-700 bg-red-50 border-red-200',
+      'position_nice': 'text-orange-700 bg-orange-50 border-orange-200',
+      'cv_extracted': 'text-blue-700 bg-blue-50 border-blue-200',
+      'other': 'text-gray-700 bg-gray-50 border-gray-200'
+    };
+    return colors[category] || 'text-gray-700 bg-gray-50 border-gray-200';
   };
 
   const suggestedGrouped = groupSkillsByCategory(suggestedSkills);
@@ -184,16 +242,24 @@ export default function SkillsSelector({
       {/* Left Column - Suggested Skills */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Suggested Skills</CardTitle>
+          <CardTitle className="text-base">Available Skills</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Click to add to your profile
+            Click skills that you have
           </p>
+          {positionTitle && (
+            <p className="text-xs text-muted-foreground mt-1">
+              For position: <span className="font-medium">{positionTitle}</span>
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(suggestedGrouped).map(([category, skills]) => (
             <div key={category}>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2 capitalize">
-                {category}
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                {getCategoryDisplayName(category)}
+                {category === 'position_required' && (
+                  <span className="ml-1 text-xs text-red-600">(Required)</span>
+                )}
               </h4>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (
@@ -205,14 +271,15 @@ export default function SkillsSelector({
                   >
                     <Badge
                       variant="outline"
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className={cn(
+                        "cursor-pointer transition-all",
+                        getCategoryColor(skill.category || 'other'),
+                        "hover:scale-105"
+                      )}
                       onClick={() => addSkillToSelected(skill)}
                     >
                       <Plus className="h-3 w-3 mr-1" />
                       {skill.skill_name}
-                      {skill.source === 'cv' && (
-                        <span className="ml-1 text-xs opacity-60">(From CV)</span>
-                      )}
                     </Badge>
                   </motion.div>
                 ))}
@@ -222,7 +289,7 @@ export default function SkillsSelector({
           
           {suggestedSkills.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              All suggested skills have been added
+              All available skills have been selected
             </p>
           )}
         </CardContent>
@@ -231,70 +298,54 @@ export default function SkillsSelector({
       {/* Right Column - Selected Skills */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Selected Skills</CardTitle>
+          <CardTitle className="text-base">Your Skills</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Your skills profile ({selectedSkills.length} skills)
+            Skills you have ({selectedSkills.length} selected)
           </p>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-            <span className="flex items-center gap-1">
-              <span>🟡</span> Learning
-            </span>
-            <span className="flex items-center gap-1">
-              <span>🟢</span> Using
-            </span>
-            <span className="flex items-center gap-1">
-              <span>⭐</span> Expert
-            </span>
-          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            <span className="font-medium">Note:</span> Proficiency levels will be verified in the next step
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(selectedGrouped).map(([category, skills]) => (
             <div key={category}>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2 capitalize">
-                {category}
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                {getCategoryDisplayName(category)}
+                {category === 'position_required' && (
+                  <span className="ml-1 text-xs text-red-600">(Required)</span>
+                )}
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 <AnimatePresence>
                   {skills.map((skill) => (
                     <motion.div
                       key={skill.skill_name}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
                       className="w-full"
                     >
-                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                      <div className={cn(
+                        "flex items-center justify-between p-3 rounded-md border",
+                        getCategoryColor(skill.category || 'other')
+                      )}>
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{getProficiencyIcon(skill.proficiency_level || 1)}</span>
+                          <Check className="h-4 w-4" />
                           <span className="text-sm font-medium">{skill.skill_name}</span>
+                          {skill.category === 'position_required' && (
+                            <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                              Required
+                            </Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <div className="flex gap-1 mr-2">
-                            {[1, 2, 3].map((level) => (
-                              <button
-                                key={level}
-                                onClick={() => updateSkillProficiency(skill.skill_name, level)}
-                                className={cn(
-                                  "w-6 h-6 text-xs rounded transition-colors",
-                                  skill.proficiency_level === level 
-                                    ? "bg-primary text-primary-foreground" 
-                                    : "bg-gray-200 hover:bg-gray-300"
-                                )}
-                                title={getProficiencyLabel(level)}
-                              >
-                                {level}
-                              </button>
-                            ))}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => removeSkillFromSelected(skill)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 hover:bg-transparent"
+                          onClick={() => removeSkillFromSelected(skill)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </motion.div>
                   ))}
@@ -303,18 +354,29 @@ export default function SkillsSelector({
             </div>
           ))}
           
+          {selectedSkills.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground mb-2">
+                No skills selected yet
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Select skills from the left panel
+              </p>
+            </div>
+          )}
+          
           {/* Manual Add */}
           <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground mb-2">Add skills manually</p>
+            <p className="text-xs text-muted-foreground mb-2">Add custom skills</p>
             <div className="flex gap-2">
               <Input
-                placeholder="Enter a skill..."
+                placeholder="Enter a skill name..."
                 value={manualSkillInput}
                 onChange={(e) => setManualSkillInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleManualAdd()}
                 className="text-sm"
               />
-              <Button onClick={handleManualAdd} size="sm">
+              <Button onClick={handleManualAdd} size="sm" variant="outline">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>

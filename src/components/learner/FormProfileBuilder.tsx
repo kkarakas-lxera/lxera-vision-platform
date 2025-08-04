@@ -23,6 +23,7 @@ import CurrentProjectsForm from './chat/CurrentProjectsForm';
 import CertificationsForm from './chat/CertificationsForm';
 import LanguagesForm from './chat/LanguagesForm';
 import ProfileSidebar from './ProfileSidebar';
+import ProfileVerification from './ProfileVerification';
 import { EmployeeProfileService, ProfileSection } from '@/services/employeeProfileService';
 import { ProfileBuilderStateService } from '@/services/profileBuilderStateService';
 
@@ -40,7 +41,8 @@ const STEPS = [
   { id: 'skills', title: 'Skills Review' },
   { id: 'current_work', title: 'Current Projects' },
   { id: 'daily_tasks', title: 'Professional Challenges' },
-  { id: 'tools_technologies', title: 'Growth Opportunities' }
+  { id: 'tools_technologies', title: 'Growth Opportunities' },
+  { id: 'profile_verification', title: 'Profile Verification' }
 ];
 
 export default function FormProfileBuilder({ employeeId, onComplete }: FormProfileBuilderProps) {
@@ -54,6 +56,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   const [cvExtractedData, setCvExtractedData] = useState<any>(null);
   const [pollIntervalRef, setPollIntervalRef] = useState<NodeJS.Timeout | null>(null);
   const [employeeName, setEmployeeName] = useState('');
+  const [employee, setEmployee] = useState<any>(null);
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<{
     challenges: string[];
     growthAreas: string[];
@@ -74,14 +77,32 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
   const loadProfileData = async () => {
     try {
-      // Load employee data
+      // Load employee data with position requirements
       const { data: employee } = await supabase
         .from('employees')
-        .select('*, users!inner(full_name)')
+        .select(`
+          *,
+          users!inner(full_name),
+          current_position:st_company_positions!current_position_id(
+            id,
+            position_title,
+            position_level,
+            department,
+            required_skills,
+            nice_to_have_skills
+          ),
+          target_position:st_company_positions!target_position_id(
+            id,
+            position_title,
+            required_skills,
+            nice_to_have_skills
+          )
+        `)
         .eq('id', employeeId)
         .single();
 
       if (employee) {
+        setEmployee(employee);
         setEmployeeName(employee.users?.full_name || 'there');
         
         // Check if CV was already uploaded
@@ -292,6 +313,10 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       );
 
       if (currentStep < STEPS.length - 1) {
+        // Save skills to validation table when moving to verification step
+        if (STEPS[currentStep + 1].id === 'profile_verification' && formData.skills?.skills) {
+          await saveUnverifiedSkills(formData.skills.skills);
+        }
         setCurrentStep(currentStep + 1);
       } else {
         // Complete profile
@@ -364,6 +389,36 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     } finally {
       setIsLoading(false);
       setIsSaving(false);
+    }
+  };
+
+  const saveUnverifiedSkills = async (skills: any[]) => {
+    try {
+      // Prepare skills for validation table
+      const skillsToValidate = skills.map(skill => ({
+        employee_id: employeeId,
+        skill_name: skill.skill_name,
+        skill_id: skill.skill_id || null,
+        is_from_position: skill.source === 'position',
+        is_from_cv: skill.source === 'cv',
+        assessment_type: null, // Will be set during verification
+        proficiency_level: null // Will be determined during verification
+      }));
+
+      // Insert skills into validation table (upsert to avoid duplicates)
+      for (const skill of skillsToValidate) {
+        const { error } = await supabase
+          .from('employee_skills_validation')
+          .upsert(skill, {
+            onConflict: 'employee_id,skill_name'
+          });
+
+        if (error) {
+          console.error('Error saving skill for validation:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving unverified skills:', error);
     }
   };
 
@@ -868,10 +923,17 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         );
 
       case 'skills':
+        // Get position skills from employee data
+        const positionRequiredSkills = employee?.current_position?.required_skills || [];
+        const positionNiceToHaveSkills = employee?.current_position?.nice_to_have_skills || [];
+        
         return (
           <SkillsSelector
             extractedSkills={cvExtractedData?.skills || []}
             existingSkills={formData.skills?.skills || []}
+            positionRequiredSkills={positionRequiredSkills}
+            positionNiceToHaveSkills={positionNiceToHaveSkills}
+            positionTitle={employee?.current_position?.position_title}
             onComplete={(skills) => updateStepData('skills', { skills })}
             onSkip={() => handleNext()}
           />
@@ -933,6 +995,91 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
             }))}
             selected={formData.tools_technologies?.selected || []}
             onComplete={(selected) => updateStepData('tools_technologies', { selected })}
+          />
+        );
+
+      case 'profile_verification':
+        // Calculate years of experience more accurately
+        const calculateTotalYears = () => {
+          if (!formData.work_experience || formData.work_experience.length === 0) return 0;
+          
+          let totalMonths = 0;
+          formData.work_experience.forEach((exp: any) => {
+            if (exp.start_date && exp.end_date) {
+              const start = new Date(exp.start_date);
+              const end = exp.end_date === 'Present' ? new Date() : new Date(exp.end_date);
+              totalMonths += (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+            }
+          });
+          return Math.round(totalMonths / 12);
+        };
+
+        // Extract technologies from projects and CV
+        const extractTechnologies = () => {
+          const techs = new Set<string>();
+          // From current projects
+          if (formData.current_work?.projects) {
+            formData.current_work.projects.forEach((project: string) => {
+              // Simple extraction of common tech keywords
+              const techKeywords = project.match(/\b(React|Node|Python|Java|AWS|Docker|Kubernetes|SQL|MongoDB|Redis|TypeScript|JavaScript|Vue|Angular|GraphQL|REST|API|CI\/CD|Git)\b/gi);
+              if (techKeywords) {
+                techKeywords.forEach(tech => techs.add(tech));
+              }
+            });
+          }
+          // From CV extracted skills
+          if (cvExtractedData?.skills) {
+            cvExtractedData.skills.forEach((skill: any) => {
+              if (typeof skill === 'string') techs.add(skill);
+              else if (skill.skill_name) techs.add(skill.skill_name);
+            });
+          }
+          return Array.from(techs);
+        };
+
+        // Get previous job titles
+        const getPreviousPositions = () => {
+          if (!formData.work_experience) return [];
+          return formData.work_experience
+            .map((exp: any) => exp.job_title)
+            .filter((title: string) => title && title !== employee?.current_position?.position_title);
+        };
+
+        // Get related skills from selected skills
+        const getRelatedSkills = () => {
+          if (!formData.skills?.skills) return [];
+          return formData.skills.skills
+            .map((skill: any) => skill.skill_name)
+            .slice(0, 10); // Limit to 10 most relevant
+        };
+
+        // Prepare enhanced employee context
+        const employeeContext = {
+          // Basic info
+          years_experience: formData.work_experience?.length || 0,
+          current_projects: formData.current_work?.projects || [],
+          daily_challenges: formData.daily_tasks?.selected || [],
+          education_level: formData.education?.[0]?.degree || 'Not specified',
+          work_experience: formData.work_experience || [],
+          
+          // Enhanced context
+          total_years_in_field: calculateTotalYears(),
+          team_size: formData.current_work?.teamSize || 'Not specified',
+          role_in_team: formData.current_work?.roleInTeam || 'Not specified',
+          recent_technologies: extractTechnologies(),
+          certifications: formData.certifications?.map((cert: any) => cert.name) || [],
+          previous_positions: getPreviousPositions(),
+          related_skills: getRelatedSkills(),
+          // Note: years_with_skill would need to be calculated per skill during assessment
+        };
+
+        return (
+          <ProfileVerification
+            employeeId={employeeId}
+            positionId={employee?.current_position_id}
+            positionTitle={employee?.current_position?.position_title}
+            employeeContext={employeeContext}
+            onComplete={() => handleNext()}
           />
         );
 
@@ -1031,7 +1178,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                       onClick={handleNext}
                       disabled={!canProceed() || isLoading}
                     >
-                      {currentStep === STEPS.length - 1 ? 'Submit Profile' : 'Next Step'}
+                      {currentStep === STEPS.length - 1 ? 'Complete Profile' : 'Next Step'}
                       <ChevronRight className="h-4 w-4 ml-2" />
                     </Button>
                   </span>
