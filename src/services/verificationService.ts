@@ -555,22 +555,36 @@ export class VerificationService {
     skillName: string
   ): Promise<StoredQuestions | null> {
     try {
+      console.log('[VerificationService] Checking for stored questions:', { employeeId, skillName });
+      
       const { data, error } = await supabase
         .from('skill_assessment_questions')
         .select('*')
         .eq('employee_id', employeeId)
         .eq('skill_name', skillName)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (error || !data) {
+      console.log('[VerificationService] Query result:', { 
+        dataLength: data?.length, 
+        error: error,
+        firstItem: data?.[0]?.id 
+      });
+
+      if (error) {
+        console.error('[VerificationService] Error fetching stored questions:', error);
         return null;
       }
 
-      return data;
+      if (!data || data.length === 0) {
+        console.log('[VerificationService] No stored questions found');
+        return null;
+      }
+
+      console.log('[VerificationService] Found stored questions:', data[0].id);
+      return data[0];
     } catch (error) {
-      console.error('Error getting stored questions:', error);
+      console.error('[VerificationService] Unexpected error getting stored questions:', error);
       return null;
     }
   }

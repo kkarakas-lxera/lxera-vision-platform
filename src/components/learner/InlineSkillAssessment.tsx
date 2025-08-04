@@ -75,11 +75,17 @@ export default function InlineSkillAssessment({
       setLoading(true);
       
       // First, check for stored questions
-      console.log('[InlineSkillAssessment] Checking for stored questions:', skill.skill_name);
+      console.log('[InlineSkillAssessment] Checking for stored questions:', {
+        skill: skill.skill_name,
+        employeeId: employeeId
+      });
       const storedQuestions = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
       
       if (storedQuestions && storedQuestions.questions) {
-        console.log('[InlineSkillAssessment] Found stored questions, using them');
+        console.log('[InlineSkillAssessment] Found stored questions, using them:', {
+          questionId: storedQuestions.id,
+          questionCount: storedQuestions.questions.length
+        });
         setQuestions(storedQuestions.questions);
         setStoredQuestionId(storedQuestions.id);
         
@@ -117,8 +123,8 @@ export default function InlineSkillAssessment({
           },
           employee_id: employeeId,
           position_id: positionContext.id,
-          skill_id: skill.skill_id,
-          check_existing: false // We already checked
+          skill_id: skill.skill_id
+          // Remove check_existing - let edge function handle it
         }
       });
 
