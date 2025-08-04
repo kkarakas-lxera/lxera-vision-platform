@@ -37,6 +37,7 @@ import {
   CheckCircle,
   ChevronRight,
   Clock,
+  Edit,
   Eye,
   FileDown,
   Search,
@@ -724,22 +725,40 @@ export const EmployeeCourseAssignments = ({ companyId: propCompanyId }: { compan
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              navigate(`/dashboard/employees/${assignment.employee_id}`);
-                            }}
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          View employee profile
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                navigate(`/dashboard/courses/${assignment.plan_id}/edit`);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Edit course content
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                navigate(`/dashboard/employees/${assignment.employee_id}`);
+                              }}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            View employee profile
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

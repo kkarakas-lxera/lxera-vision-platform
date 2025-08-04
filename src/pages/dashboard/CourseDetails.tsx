@@ -23,7 +23,8 @@ import {
   Download,
   BarChart3,
   Printer,
-  Eye
+  Eye,
+  Edit
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -264,6 +265,15 @@ export default function CourseDetails() {
           </div>
         </div>
         <div className="flex gap-2">
+          {(userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') && coursePlan && (
+            <Button 
+              onClick={() => navigate(`/dashboard/courses/${coursePlan.plan_id}/edit`)}
+              className="bg-business-black hover:bg-business-black/90"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Course
+            </Button>
+          )}
           <Button variant="outline">
             <Send className="h-4 w-4 mr-2" />
             Send Reminders

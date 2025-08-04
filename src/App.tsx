@@ -116,6 +116,7 @@ const Employees = lazy(() => import("./pages/dashboard/Employees"));
 const EmployeeProfile = lazy(() => import("./pages/dashboard/EmployeeProfile"));
 const Courses = lazy(() => import("./pages/dashboard/Courses"));
 const CourseDetails = lazy(() => import("./pages/dashboard/CourseDetails"));
+const CourseEditor = lazy(() => import("./pages/dashboard/CourseEditor"));
 
 // Lazy load skills pages
 const SkillsOverview = lazy(() => import("./pages/dashboard/skills/SkillsOverview"));
@@ -948,6 +949,7 @@ const App = () => {
                       <Route path="/employees/:employeeId" element={<PageSuspense><EmployeeProfile /></PageSuspense>} />
                       <Route path="/courses" element={<PageSuspense><Courses /></PageSuspense>} />
                       <Route path="/courses/:courseId" element={<PageSuspense><CourseDetails /></PageSuspense>} />
+                      <Route path="/courses/:courseId/edit" element={<PageSuspense><CourseEditor /></PageSuspense>} />
                       <Route path="/skills" element={<PageSuspense><SkillsOverview /></PageSuspense>} />
                       <Route path="/skills/employees" element={<PageSuspense><AnalyzedEmployees /></PageSuspense>} />
                       <Route path="/skills/positions" element={<PageSuspense><PositionRequirements /></PageSuspense>} />

@@ -408,6 +408,12 @@ export type Database = {
           updated_at: string | null
           version_notes: string | null
           version_number: number | null
+          module_id: string
+          plan_id: string
+          last_edited_by: string | null
+          last_edited_at: string | null
+          is_draft: boolean
+          draft_content: Json | null
         }
         Insert: {
           assessments?: string | null
@@ -444,6 +450,12 @@ export type Database = {
           updated_at?: string | null
           version_notes?: string | null
           version_number?: number | null
+          module_id: string
+          plan_id: string
+          last_edited_by?: string | null
+          last_edited_at?: string | null
+          is_draft?: boolean
+          draft_content?: Json | null
         }
         Update: {
           assessments?: string | null
@@ -480,6 +492,12 @@ export type Database = {
           updated_at?: string | null
           version_notes?: string | null
           version_number?: number | null
+          module_id?: string
+          plan_id?: string
+          last_edited_by?: string | null
+          last_edited_at?: string | null
+          is_draft?: boolean
+          draft_content?: Json | null
         }
         Relationships: [
           {
@@ -4616,8 +4634,175 @@ export type Database = {
           },
         ]
       }
+      course_content_versions: {
+        Row: {
+          id: string
+          content_id: string
+          module_id: string
+          plan_id: string
+          version_number: number
+          content_snapshot: Json
+          edited_by: string | null
+          created_at: string
+          change_summary: string | null
+          is_published: boolean
+        }
+        Insert: {
+          id?: string
+          content_id: string
+          module_id: string
+          plan_id: string
+          version_number: number
+          content_snapshot: Json
+          edited_by?: string | null
+          created_at?: string
+          change_summary?: string | null
+          is_published?: boolean
+        }
+        Update: {
+          id?: string
+          content_id?: string
+          module_id?: string
+          plan_id?: string
+          version_number?: number
+          content_snapshot?: Json
+          edited_by?: string | null
+          created_at?: string
+          change_summary?: string | null
+          is_published?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_content_versions_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      course_edit_permissions: {
+        Row: {
+          id: string
+          company_id: string
+          user_id: string
+          can_edit_all_courses: boolean
+          specific_course_ids: string[] | null
+          created_at: string
+          created_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          user_id: string
+          can_edit_all_courses?: boolean
+          specific_course_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          user_id?: string
+          can_edit_all_courses?: boolean
+          specific_course_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_edit_permissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_edit_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_edit_permissions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      course_edit_history: {
+        Row: {
+          id: string
+          content_id: string
+          module_id: string
+          editor_id: string
+          action_type: string
+          field_changed: string | null
+          old_value: string | null
+          new_value: string | null
+          created_at: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          id?: string
+          content_id: string
+          module_id: string
+          editor_id: string
+          action_type: string
+          field_changed?: string | null
+          old_value?: string | null
+          new_value?: string | null
+          created_at?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          id?: string
+          content_id?: string
+          module_id?: string
+          editor_id?: string
+          action_type?: string
+          field_changed?: string | null
+          old_value?: string | null
+          new_value?: string | null
+          created_at?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_edit_history_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
+      v_user_editable_courses: {
+        Row: {
+          plan_id: string
+          course_title: string | null
+          employee_id: string
+          employee_name: string
+          company_id: string
+          company_name: string
+          can_edit_all_courses: boolean
+          created_at: string | null
+          module_count: number | null
+          last_edited: string | null
+        }
+        Relationships: []
+      }
       cv_analysis_stats: {
         Row: {
           analysis_date: string | null

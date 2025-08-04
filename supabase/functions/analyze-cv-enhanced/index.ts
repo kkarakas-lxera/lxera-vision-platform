@@ -9,6 +9,23 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
+/**
+ * Parse a JSON string that may have stray bytes (BOM, dash, newline, etc.)
+ * before the opening brace. Falls back to stripping everything before the
+ * first "{". If parsing still fails, the original error is re-thrown.
+ */
+function safeJsonParse(raw: string): any {
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    const brace = raw.indexOf('{');
+    if (brace !== -1) {
+      return JSON.parse(raw.slice(brace));
+    }
+    throw err;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -278,7 +295,7 @@ serve(async (req) => {
     // Fetch employee data to get company_id
     const { data: employee, error: empError } = await supabase
       .from('employees')
-      .select('id, company_id, user_id, email, employee_profile_sections(id, section_name, data)')
+      .select('id, company_id, user_id, employee_profile_sections(id, section_name, data)')
       .eq('id', employee_id)
       .single()
     
@@ -311,16 +328,31 @@ serve(async (req) => {
     // Extract text from CV using OpenAI Vision API
     await updateStatus('extracting', 30, 'Extracting text from CV')
     
+    // Determine if the file is a PDF or image based on file extension
+    const isPdf = file_path.toLowerCase().endsWith('.pdf')
+    
     const visionResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "You are a CV text extractor. Extract all text from the CV image/document and return it as plain text. Maintain the structure and formatting as much as possible."
+          content: "You are a CV text extractor. Extract all text from the CV document and return it as plain text. Maintain the structure and formatting as much as possible."
         },
         {
           role: "user",
-          content: [
+          content: isPdf ? [
+            {
+              type: "file",
+              file: {
+                filename: file_path.split('/').pop() || 'cv.pdf',
+                file_data: `data:application/pdf;base64,${base64}`
+              }
+            },
+            {
+              type: "text",
+              text: "Please extract all text from this CV/resume document."
+            }
+          ] : [
             {
               type: "text",
               text: "Please extract all text from this CV/resume document."
@@ -328,7 +360,7 @@ serve(async (req) => {
             {
               type: "image_url",
               image_url: {
-                url: `data:application/pdf;base64,${base64}`,
+                url: `data:image/jpeg;base64,${base64}`,
                 detail: "high"
               }
             }
@@ -391,7 +423,9 @@ Also include:
 11. Potential growth areas based on their experience
 ` : ''}
 
-Return the information in a structured JSON format.`
+Return the information in a structured JSON format.
+
+Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
     const analysisResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -410,7 +444,7 @@ Return the information in a structured JSON format.`
       response_format: { type: "json_object" }
     })
     
-    const analysisResult = JSON.parse(analysisResponse.choices[0]?.message?.content || '{}')
+    const analysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
     
     // Log token usage for analysis
     const analysisUsage = analysisResponse.usage
@@ -453,7 +487,9 @@ Consider:
 - Skills from certifications
 - Tools and technologies used
 
-Return as JSON with a "skills" array.`
+Return as JSON with a "skills" array.
+
+Return ONLY a valid JSON object with no Markdown, no code fences, and no characters before the opening '{'.`
 
     const skillsResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -472,7 +508,7 @@ Return as JSON with a "skills" array.`
       response_format: { type: "json_object" }
     })
     
-    const skillsData = JSON.parse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
+    const skillsData = safeJsonParse(skillsResponse.choices[0]?.message?.content || '{"skills":[]}')
     
     // Log token usage for skills extraction
     const skillsUsage = skillsResponse.usage
