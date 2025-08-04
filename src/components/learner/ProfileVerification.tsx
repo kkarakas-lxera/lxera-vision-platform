@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, CheckCircle, AlertCircle, Clock, ChevronRight } from 'lucide-react';
+import { Shield, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { VerificationService, SkillToVerify } from '@/services/verificationService';
-import SkillAssessmentModal from './SkillAssessmentModal';
+import InlineSkillAssessment from './InlineSkillAssessment';
 
 interface ProfileVerificationProps {
   employeeId: string;
@@ -36,8 +36,6 @@ export default function ProfileVerification({
   const [skillsToVerify, setSkillsToVerify] = useState<SkillToVerify[]>([]);
   const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
   const [verifiedSkills, setVerifiedSkills] = useState<string[]>([]);
-  const [assessmentModalOpen, setAssessmentModalOpen] = useState(false);
-  const [currentSkill, setCurrentSkill] = useState<SkillToVerify | null>(null);
 
   useEffect(() => {
     loadSkillsToVerify();
@@ -60,6 +58,14 @@ export default function ProfileVerification({
       
       if (verifiedData) {
         setVerifiedSkills(verifiedData.map(s => s.skill_name));
+        
+        // If some skills are already verified, start from the first unverified skill
+        const firstUnverifiedIndex = skills.findIndex(
+          skill => !verifiedData.some(v => v.skill_name === skill.skill_name)
+        );
+        if (firstUnverifiedIndex !== -1) {
+          setCurrentSkillIndex(firstUnverifiedIndex);
+        }
       }
     } catch (error) {
       console.error('Error loading skills to verify:', error);
@@ -69,30 +75,36 @@ export default function ProfileVerification({
     }
   };
 
-  const startVerification = () => {
-    if (skillsToVerify.length === 0) {
-      toast.error('No skills to verify');
-      return;
+  const handleSkillComplete = (skillName: string, verified: boolean) => {
+    if (verified) {
+      setVerifiedSkills([...verifiedSkills, skillName]);
+      
+      // Auto-advance to next skill after a short delay
+      setTimeout(() => {
+        if (currentSkillIndex < skillsToVerify.length - 1) {
+          handleNextSkill();
+        }
+      }, 1500);
     }
-
-    // Find first unverified skill
-    const firstUnverifiedIndex = skillsToVerify.findIndex(
-      skill => !verifiedSkills.includes(skill.skill_name)
-    );
-
-    if (firstUnverifiedIndex === -1) {
-      // All skills already verified
-      onComplete();
-      return;
-    }
-
-    setCurrentSkillIndex(firstUnverifiedIndex);
-    setCurrentSkill(skillsToVerify[firstUnverifiedIndex]);
-    setAssessmentModalOpen(true);
   };
 
-  // Prevent completion if skills are unverified
+  const handleNextSkill = () => {
+    if (currentSkillIndex < skillsToVerify.length - 1) {
+      setCurrentSkillIndex(currentSkillIndex + 1);
+    }
+  };
+
+  const handlePreviousSkill = () => {
+    if (currentSkillIndex > 0) {
+      setCurrentSkillIndex(currentSkillIndex - 1);
+    }
+  };
+
   const handleComplete = () => {
+    const unverifiedCount = skillsToVerify.filter(
+      skill => !verifiedSkills.includes(skill.skill_name)
+    ).length;
+    
     if (unverifiedCount > 0) {
       toast.error(`Please verify all ${unverifiedCount} remaining skills before completing your profile`);
       return;
@@ -100,178 +112,195 @@ export default function ProfileVerification({
     onComplete();
   };
 
-  const handleAssessmentComplete = async (skillName: string, verified: boolean) => {
-    if (verified) {
-      setVerifiedSkills([...verifiedSkills, skillName]);
-    }
-
-    // Move to next unverified skill
-    let nextIndex = currentSkillIndex + 1;
-    while (nextIndex < skillsToVerify.length && verifiedSkills.includes(skillsToVerify[nextIndex].skill_name)) {
-      nextIndex++;
-    }
-
-    if (nextIndex < skillsToVerify.length) {
-      setCurrentSkillIndex(nextIndex);
-      setCurrentSkill(skillsToVerify[nextIndex]);
-      // Keep modal open for next skill
-    } else {
-      // All skills processed
-      setAssessmentModalOpen(false);
-      toast.success('Profile verification completed!');
-      onComplete();
-    }
-  };
-
   const progress = skillsToVerify.length > 0 
     ? (verifiedSkills.length / skillsToVerify.length) * 100 
     : 0;
 
-  const unverifiedCount = skillsToVerify.filter(
-    skill => !verifiedSkills.includes(skill.skill_name)
-  ).length;
-
-  const getSkillBadgeColor = (skill: SkillToVerify) => {
-    if (verifiedSkills.includes(skill.skill_name)) {
-      return 'bg-green-100 text-green-700';
-    }
-    if (skill.source === 'position_required') {
-      return 'bg-red-100 text-red-700';
-    }
-    if (skill.source === 'position_nice') {
-      return 'bg-orange-100 text-orange-700';
-    }
-    return 'bg-gray-100 text-gray-700';
-  };
+  const currentSkill = skillsToVerify[currentSkillIndex];
+  const isCurrentSkillVerified = currentSkill && verifiedSkills.includes(currentSkill.skill_name);
 
   if (loading) {
     return (
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-8">
-            <Clock className="h-8 w-8 animate-spin text-gray-400" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  return (
-    <>
+  if (skillsToVerify.length === 0) {
+    return (
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <Shield className="h-6 w-6 text-primary" />
             <div>
               <CardTitle>Profile Verification</CardTitle>
-              <CardDescription>
-                Verify your skills through AI-powered assessments
-              </CardDescription>
+              <CardDescription>No skills to verify</CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Progress Overview */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Verification Progress</span>
-              <span className="font-medium">{verifiedSkills.length} of {skillsToVerify.length} skills</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-
-          {/* Position Context */}
-          {positionTitle && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm">
-                <span className="font-medium">Verifying for position:</span> {positionTitle}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Skills will be assessed based on position requirements
-              </p>
-            </div>
-          )}
-
-          {/* Skills List */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Skills to Verify</h3>
-            <div className="space-y-2">
-              {skillsToVerify.map((skill, index) => (
-                <motion.div
-                  key={skill.skill_name}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    verifiedSkills.includes(skill.skill_name) 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {verifiedSkills.includes(skill.skill_name) ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="text-sm font-medium">{skill.skill_name}</span>
-                    <Badge variant="secondary" className={cn("text-xs", getSkillBadgeColor(skill))}>
-                      {skill.source === 'position_required' ? 'Required' :
-                       skill.source === 'position_nice' ? 'Nice to Have' :
-                       skill.source === 'cv' ? 'From CV' : 'Manual'}
-                    </Badge>
-                  </div>
-                  {skill.required_level && (
-                    <span className="text-xs text-muted-foreground">
-                      Level {skill.required_level} required
-                    </span>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            {unverifiedCount > 0 ? (
-              <Button onClick={startVerification} className="w-full">
-                Start Verification
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button onClick={handleComplete} className="w-full" variant="default">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Profile
-              </Button>
-            )}
-          </div>
-
-          {/* Info Box */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm text-amber-800">
-              <strong>Important:</strong> All skills must be verified to complete your profile. This ensures accurate skill assessment
-              and personalized learning recommendations tailored to your actual proficiency levels.
-            </p>
-          </div>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            You have no skills that require verification.
+          </p>
+          <Button onClick={onComplete} className="w-full mt-4">
+            Complete Profile
+          </Button>
         </CardContent>
       </Card>
+    );
+  }
 
-      {/* Assessment Modal */}
-      {currentSkill && (
-        <SkillAssessmentModal
-          open={assessmentModalOpen}
-          onOpenChange={setAssessmentModalOpen}
-          skill={currentSkill}
-          employeeId={employeeId}
-          positionContext={{
-            id: positionId,
-            title: positionTitle || 'Not specified',
-            level: employeeContext.education_level
-          }}
-          employeeContext={employeeContext}
-          onComplete={handleAssessmentComplete}
-        />
-      )}
-    </>
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <Shield className="h-6 w-6 text-primary" />
+          <div>
+            <CardTitle>Skills Verification</CardTitle>
+            <CardDescription>
+              Verify your skills through quick assessments
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Progress Overview */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Overall Progress</span>
+            <span className="text-sm font-medium">
+              {verifiedSkills.length} of {skillsToVerify.length} skills verified
+            </span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        {/* Position Context */}
+        {positionTitle && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm">
+              <span className="font-medium">Position:</span> {positionTitle}
+            </p>
+          </div>
+        )}
+
+        {/* Current Skill Assessment */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-700">
+              Skill {currentSkillIndex + 1} of {skillsToVerify.length}
+            </h3>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePreviousSkill}
+                disabled={currentSkillIndex === 0}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-gray-500 w-12 text-center">
+                {currentSkillIndex + 1}/{skillsToVerify.length}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextSkill}
+                disabled={currentSkillIndex === skillsToVerify.length - 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {currentSkill && (
+            <motion.div
+              key={currentSkill.skill_name}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <InlineSkillAssessment
+                skill={currentSkill}
+                employeeId={employeeId}
+                positionContext={{
+                  id: positionId,
+                  title: positionTitle || 'Not specified',
+                  level: employeeContext.education_level
+                }}
+                employeeContext={employeeContext}
+                onComplete={handleSkillComplete}
+                isVerified={isCurrentSkillVerified}
+              />
+            </motion.div>
+          )}
+        </div>
+
+        {/* Navigation Indicators */}
+        <div className="flex justify-center gap-1 py-2">
+          {skillsToVerify.map((skill, index) => (
+            <button
+              key={skill.skill_name}
+              onClick={() => setCurrentSkillIndex(index)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all duration-200",
+                index === currentSkillIndex 
+                  ? "w-6 bg-primary" 
+                  : verifiedSkills.includes(skill.skill_name)
+                  ? "bg-green-500"
+                  : "bg-gray-300"
+              )}
+              aria-label={`Go to skill ${index + 1}: ${skill.skill_name}`}
+            />
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="pt-4 space-y-3">
+          {verifiedSkills.length === skillsToVerify.length ? (
+            <Button onClick={handleComplete} className="w-full" size="lg">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Complete Profile
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <Button
+                onClick={handleNextSkill}
+                disabled={currentSkillIndex === skillsToVerify.length - 1}
+                variant={isCurrentSkillVerified ? "default" : "outline"}
+                className="w-full"
+              >
+                {isCurrentSkillVerified ? 'Continue to Next Skill' : 'Skip This Skill'}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+              {verifiedSkills.length === skillsToVerify.length - 1 && (
+                <Button
+                  onClick={handleComplete}
+                  variant="ghost"
+                  className="w-full text-sm"
+                >
+                  Complete with {skillsToVerify.length - 1} verified skills
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-xs text-amber-800">
+            <strong>Tip:</strong> Each skill assessment takes 2-3 minutes. Answer honestly to get personalized learning recommendations.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
