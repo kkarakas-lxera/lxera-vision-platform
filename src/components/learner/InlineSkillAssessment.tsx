@@ -64,12 +64,27 @@ export default function InlineSkillAssessment({
   } | null>(null);
   const [storedQuestionId, setStoredQuestionId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [hasInvalidQuestions, setHasInvalidQuestions] = useState(false);
 
   useEffect(() => {
     if (questions.length === 0 && !isVerified && !showResults) {
       loadQuestions();
     }
   }, [skill.skill_name, employeeId]); // Add employeeId to ensure we reload if employee changes
+
+  // Check for invalid questions whenever questions change
+  useEffect(() => {
+    if (questions.length > 0) {
+      const hasProblems = questions.some(q => 
+        !q.question || 
+        !q.options || 
+        !Array.isArray(q.options) || 
+        q.options.length < 2 ||
+        q.options.some(opt => !opt || opt.trim() === '')
+      );
+      setHasInvalidQuestions(hasProblems);
+    }
+  }, [questions]);
 
   const loadQuestions = async (forceRegenerate: boolean = false) => {
     try {
@@ -85,22 +100,41 @@ export default function InlineSkillAssessment({
         const storedQuestions = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
         
         if (storedQuestions && storedQuestions.questions) {
-          console.log('[InlineSkillAssessment] Found stored questions, using them:', {
+          // Filter out incomplete questions from stored questions too
+          const completeStoredQuestions = storedQuestions.questions.filter((q: Question) => 
+            q.options && Array.isArray(q.options) && q.options.length > 0
+          );
+          
+          console.log('[InlineSkillAssessment] Found stored questions:', {
             questionId: storedQuestions.id,
-            questionCount: storedQuestions.questions.length
+            totalCount: storedQuestions.questions.length,
+            validCount: completeStoredQuestions.length
           });
-          setQuestions(storedQuestions.questions);
-          setStoredQuestionId(storedQuestions.id);
           
-          // Don't mark as used - questions should be reusable
-          
-          // Initialize start times for all questions
-          const startTimes: Record<string, number> = {};
-          storedQuestions.questions.forEach((q: Question) => {
-            startTimes[q.id] = Date.now();
-          });
-          setQuestionStartTimes(startTimes);
-          return;
+          // If stored questions are incomplete, regenerate
+          if (completeStoredQuestions.length === 0) {
+            console.log('[InlineSkillAssessment] Stored questions are incomplete, regenerating');
+            // Continue to generation below
+          } else {
+            setQuestions(completeStoredQuestions);
+            setStoredQuestionId(storedQuestions.id);
+            
+            // Don't mark as used - questions should be reusable
+            
+            // Initialize start times for all questions
+            const startTimes: Record<string, number> = {};
+            completeStoredQuestions.forEach((q: Question) => {
+              startTimes[q.id] = Date.now();
+            });
+            setQuestionStartTimes(startTimes);
+            
+            // Warn if some questions were filtered out
+            if (completeStoredQuestions.length < storedQuestions.questions.length) {
+              console.warn(`[InlineSkillAssessment] Filtered out ${storedQuestions.questions.length - completeStoredQuestions.length} incomplete questions`);
+            }
+            
+            return;
+          }
         }
       }
       
@@ -148,10 +182,22 @@ export default function InlineSkillAssessment({
 
       if (error) throw error;
       if (data?.questions) {
-        setQuestions(data.questions);
+        // Filter out incomplete questions (those without options)
+        const completeQuestions = data.questions.filter((q: Question) => 
+          q.options && Array.isArray(q.options) && q.options.length > 0
+        );
+        
+        console.log(`[InlineSkillAssessment] Received ${data.questions.length} questions, ${completeQuestions.length} are complete`);
+        
+        // If we don't have enough complete questions, throw an error to trigger regeneration
+        if (completeQuestions.length === 0) {
+          throw new Error('No valid questions generated. Please try again.');
+        }
+        
+        setQuestions(completeQuestions);
         // Initialize start times for all questions
         const startTimes: Record<string, number> = {};
-        data.questions.forEach((q: Question) => {
+        completeQuestions.forEach((q: Question) => {
           startTimes[q.id] = Date.now();
         });
         setQuestionStartTimes(startTimes);
@@ -160,6 +206,11 @@ export default function InlineSkillAssessment({
         if (forceRegenerate) {
           setSelectedAnswers({});
           toast.success('New questions generated successfully');
+        }
+        
+        // Warn if we got fewer questions than expected
+        if (completeQuestions.length < data.questions.length) {
+          toast.warning(`Generated ${completeQuestions.length} valid questions out of ${data.questions.length} attempted`);
         }
       }
     } catch (error) {
@@ -333,16 +384,18 @@ export default function InlineSkillAssessment({
                       <span className="text-xs text-gray-600">
                         {Object.keys(selectedAnswers).length} / {questions.length} answered
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRegenerate}
-                        className="h-7 px-2 text-xs"
-                        title="Regenerate questions"
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Regenerate
-                      </Button>
+                      {hasInvalidQuestions && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRegenerate}
+                          className="h-7 px-2 text-xs text-orange-600 hover:text-orange-700"
+                          title="Some questions are incomplete. Click to regenerate."
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Fix Questions
+                        </Button>
+                      )}
                     </div>
                   </div>
                   
@@ -350,6 +403,12 @@ export default function InlineSkillAssessment({
                     value={(Object.keys(selectedAnswers).length / questions.length) * 100} 
                     className="h-1"
                   />
+                  
+                  {hasInvalidQuestions && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-xs text-orange-800">
+                      <strong>Note:</strong> Some questions appear to be incomplete. You can use the "Fix Questions" button above to regenerate them.
+                    </div>
+                  )}
 
                   {questions.map((question, index) => (
                     <div key={question.id} className="space-y-3 pb-4 border-b last:border-0">

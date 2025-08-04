@@ -286,19 +286,42 @@ You must return valid JSON with the specified structure.`
       }
     }
 
-    // Validate and clean questions
-    questions = questions.slice(0, config.count).map((q, index) => ({
-      id: q.id || `q_${index + 1}_${Date.now()}`,
-      type: q.type || 'multiple_choice',
-      question: q.question || '',
-      options: q.options || [],
-      correct_answer: q.correct_answer ?? 0,
-      explanation: q.explanation || '',
-      difficulty: Math.min(Math.max(q.difficulty || 1, 1), config.maxDifficulty),
-      time_limit: q.time_limit || config.timePerQuestion,
-      scoring_weight: Math.min(Math.max(q.scoring_weight || 1.0, 1.0), 2.0), // Between 1.0 and 2.0
-      skill_area: q.skill_area || 'general'
-    }))
+    // Validate and clean questions - filter out incomplete ones
+    const validQuestions = questions
+      .filter(q => {
+        // Question must have text and options
+        return q.question && 
+               q.question.trim().length > 0 && 
+               q.options && 
+               Array.isArray(q.options) && 
+               q.options.length >= 2 && // At least 2 options
+               q.options.every(opt => opt && typeof opt === 'string' && opt.trim().length > 0)
+      })
+      .slice(0, config.count)
+      .map((q, index) => ({
+        id: q.id || `q_${index + 1}_${Date.now()}`,
+        type: q.type || 'multiple_choice',
+        question: q.question.trim(),
+        options: q.options.map(opt => opt.trim()),
+        correct_answer: typeof q.correct_answer === 'number' ? q.correct_answer : 0,
+        explanation: q.explanation || '',
+        difficulty: Math.min(Math.max(q.difficulty || 1, 1), config.maxDifficulty),
+        time_limit: q.time_limit || config.timePerQuestion,
+        scoring_weight: Math.min(Math.max(q.scoring_weight || 1.0, 1.0), 2.0), // Between 1.0 and 2.0
+        skill_area: q.skill_area || 'general'
+      }))
+    
+    // If we don't have enough valid questions, log a warning
+    if (validQuestions.length < config.count) {
+      console.warn(`Only ${validQuestions.length} valid questions out of ${questions.length} generated for ${skill_name}`)
+    }
+    
+    // If no valid questions at all, throw an error
+    if (validQuestions.length === 0) {
+      throw new Error('Failed to generate valid questions. All questions were incomplete.')
+    }
+    
+    questions = validQuestions
 
     // Generate assessment ID
     const assessmentId = `assess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
