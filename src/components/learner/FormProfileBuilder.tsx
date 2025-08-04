@@ -54,14 +54,11 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     growthAreas: string[];
   }>({ challenges: [], growthAreas: [] });
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
 
   // Load existing profile data and state
   useEffect(() => {
-    if (!isRestarting) {
-      loadProfileData();
-    }
-  }, [employeeId, isRestarting]);
+    loadProfileData();
+  }, [employeeId]);
 
   const loadProfileData = async () => {
     try {
@@ -362,7 +359,6 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   const handleCVAnalysisRestart = async () => {
     try {
       setIsLoading(true);
-      setIsRestarting(true);
       
       // Clear CV analysis data from database
       const { error: updateError } = await supabase
@@ -385,18 +381,6 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
       if (statusError) console.error('Error clearing CV status:', statusError);
 
-      // Reset local state to initial state (as if visiting for first time)
-      setCvFile(null);
-      setCvAnalysisStatus(null);
-      setCvExtractedData(null);
-      setFormData(prev => {
-        const newData = { ...prev };
-        delete newData.cv_upload;
-        delete newData.work_experience;
-        delete newData.education;
-        return newData;
-      });
-
       // Clear any stored profile sections related to CV
       // Delete the sections instead of updating with null
       const { error: deleteError } = await supabase
@@ -406,17 +390,27 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         .in('section_name', ['cv_upload', 'work_experience', 'education']);
       
       if (deleteError) console.error('Error deleting profile sections:', deleteError);
+
+      // CRITICAL: Clear the ProfileBuilderStateService state to prevent old data from being restored
+      await ProfileBuilderStateService.clearState(employeeId);
+      
+      // Reset local state to initial state (as if visiting for first time)
+      setCvFile(null);
+      setCvAnalysisStatus(null);
+      setCvExtractedData(null);
+      setCurrentStep(0); // Reset to CV upload step
+      setFormData(prev => {
+        const newData = { ...prev };
+        delete newData.cv_upload;
+        delete newData.work_experience;
+        delete newData.education;
+        return newData;
+      });
       
       toast.success('Ready to start fresh. Please upload your CV or skip this step.');
-      
-      // Reset the flag after a short delay to allow UI to update
-      setTimeout(() => {
-        setIsRestarting(false);
-      }, 100);
     } catch (error) {
       console.error('Error restarting CV analysis:', error);
       toast.error('Failed to reset. Please try again.');
-      setIsRestarting(false);
     } finally {
       setIsLoading(false);
     }
