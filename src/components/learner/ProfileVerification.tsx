@@ -37,6 +37,8 @@ export default function ProfileVerification({
   const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
   const [verifiedSkills, setVerifiedSkills] = useState<string[]>([]);
   const [preGenerationStatus, setPreGenerationStatus] = useState<'idle' | 'generating' | 'completed' | 'error'>('idle');
+  const [generationProgress, setGenerationProgress] = useState({ total: 0, completed: 0 });
+  const [firstSkillReady, setFirstSkillReady] = useState(false);
 
   useEffect(() => {
     loadSkillsToVerify();
@@ -67,6 +69,11 @@ export default function ProfileVerification({
         if (firstUnverifiedIndex !== -1) {
           setCurrentSkillIndex(firstUnverifiedIndex);
         }
+        
+        // If the first skill is already verified, set firstSkillReady
+        if (skills.length > 0 && verifiedData.some(v => v.skill_name === skills[0].skill_name)) {
+          setFirstSkillReady(true);
+        }
       }
 
       // Pre-generate questions for unverified skills
@@ -74,28 +81,69 @@ export default function ProfileVerification({
         skill => !verifiedData?.some(v => v.skill_name === skill.skill_name)
       );
       
-      if (unverifiedSkills.length > 0) {
-        setPreGenerationStatus('generating');
-        console.log('[ProfileVerification] Pre-generating questions for', unverifiedSkills.length, 'skills');
+      if (unverifiedSkills.length === 0) {
+        // All skills are verified
+        setFirstSkillReady(true);
+      } else {
+        setGenerationProgress({ total: unverifiedSkills.length, completed: 0 });
         
-        const result = await VerificationService.preGenerateAllQuestions(
-          employeeId,
-          unverifiedSkills,
-          {
-            id: positionId,
-            title: positionTitle || 'Not specified',
-            level: employeeContext.education_level
-          },
-          employeeContext
-        );
-
-        if (result.success) {
-          console.log('[ProfileVerification] Pre-generation completed:', result.summary);
-          setPreGenerationStatus('completed');
+        // First, generate questions for the first skill immediately
+        if (unverifiedSkills.length > 0) {
+          const firstSkill = unverifiedSkills[0];
+          console.log('[ProfileVerification] Generating questions for first skill:', firstSkill.skill_name);
+          
+          try {
+            const firstResult = await VerificationService.preGenerateAllQuestions(
+              employeeId,
+              [firstSkill],
+              {
+                id: positionId,
+                title: positionTitle || 'Not specified',
+                level: employeeContext.education_level
+              },
+              employeeContext
+            );
+            
+            if (firstResult.success && firstResult.results.length > 0) {
+              setFirstSkillReady(true);
+              setGenerationProgress(prev => ({ ...prev, completed: 1 }));
+            }
+          } catch (error) {
+            console.error('[ProfileVerification] Failed to generate first skill questions:', error);
+          }
+        }
+        
+        // Then generate the rest in background if there are more
+        if (unverifiedSkills.length > 1) {
+          setPreGenerationStatus('generating');
+          console.log('[ProfileVerification] Pre-generating questions for remaining', unverifiedSkills.length - 1, 'skills');
+          
+          // Generate remaining skills in background
+          VerificationService.preGenerateAllQuestions(
+            employeeId,
+            unverifiedSkills.slice(1),
+            {
+              id: positionId,
+              title: positionTitle || 'Not specified',
+              level: employeeContext.education_level
+            },
+            employeeContext
+          ).then(result => {
+            if (result.success) {
+              console.log('[ProfileVerification] Background pre-generation completed:', result.summary);
+              setPreGenerationStatus('completed');
+              setGenerationProgress(prev => ({ 
+                ...prev, 
+                completed: prev.completed + result.results.filter(r => r.status === 'generated').length 
+              }));
+            } else {
+              console.error('[ProfileVerification] Background pre-generation failed:', result.errors);
+              setPreGenerationStatus('error');
+            }
+          });
         } else {
-          console.error('[ProfileVerification] Pre-generation failed:', result.errors);
-          setPreGenerationStatus('error');
-          // Don't show error toast - questions will be generated on-demand if needed
+          // Only one skill, mark as completed
+          setPreGenerationStatus('completed');
         }
       }
     } catch (error) {
@@ -152,7 +200,8 @@ export default function ProfileVerification({
   const currentSkill = skillsToVerify[currentSkillIndex];
   const isCurrentSkillVerified = currentSkill && verifiedSkills.includes(currentSkill.skill_name);
 
-  if (loading) {
+  // Show loading only while we're loading skills list and first skill
+  if (loading || (skillsToVerify.length > 0 && !firstSkillReady && !isCurrentSkillVerified)) {
     return (
       <Card>
         <CardHeader>
@@ -169,9 +218,14 @@ export default function ProfileVerification({
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground text-center">
-              Loading your skills and generating assessments...
-            </p>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-medium text-gray-700">
+                {loading ? 'Loading your skills...' : 'Generating your first assessment...'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {loading ? 'Identifying skills that need verification' : 'Creating personalized questions based on your role'}
+              </p>
+            </div>
           </div>
           
           {/* Info Box */}
@@ -238,16 +292,31 @@ export default function ProfileVerification({
           <Progress value={progress} className="h-2" />
           
           {/* Pre-generation Status */}
-          {preGenerationStatus === 'generating' && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
-              <span>Preparing assessments for remaining skills...</span>
-            </div>
-          )}
-          {preGenerationStatus === 'completed' && verifiedSkills.length === 0 && (
-            <div className="flex items-center gap-2 text-xs text-green-600">
-              <CheckCircle className="h-3 w-3" />
-              <span>All assessments ready</span>
+          {generationProgress.total > 0 && (
+            <div className="space-y-2">
+              {preGenerationStatus === 'generating' && (
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
+                    <span>Preparing assessments...</span>
+                  </div>
+                  <span className="text-muted-foreground">
+                    {generationProgress.completed} of {generationProgress.total} ready
+                  </span>
+                </div>
+              )}
+              {preGenerationStatus === 'completed' && (
+                <div className="flex items-center gap-2 text-xs text-green-600">
+                  <CheckCircle className="h-3 w-3" />
+                  <span>All {generationProgress.total} assessments ready</span>
+                </div>
+              )}
+              {generationProgress.total > 1 && (
+                <Progress 
+                  value={(generationProgress.completed / generationProgress.total) * 100} 
+                  className="h-1"
+                />
+              )}
             </div>
           )}
         </div>

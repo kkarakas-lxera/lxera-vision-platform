@@ -231,9 +231,12 @@ export default function InlineSkillAssessment({
       {!isVerified && (
         <div className="px-4 pb-4 border-t border-gray-100">
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-600">Loading assessment...</span>
+                <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div className="text-center space-y-1">
+                    <p className="text-sm font-medium text-gray-700">Preparing your assessment</p>
+                    <p className="text-xs text-gray-500">Generating personalized questions for {skill.skill_name}...</p>
+                  </div>
                 </div>
               ) : showResults ? (
                 // Results View
