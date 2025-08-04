@@ -21,7 +21,7 @@ import SkillsSelector from './chat/SkillsSelector';
 import MultiSelectCards from './chat/MultiSelectCards';
 import CurrentProjectsForm from './chat/CurrentProjectsForm';
 import ProfileSidebar from './ProfileSidebar';
-import { EmployeeProfileService } from '@/services/employeeProfileService';
+import { EmployeeProfileService, ProfileSection } from '@/services/employeeProfileService';
 import { ProfileBuilderStateService } from '@/services/profileBuilderStateService';
 
 interface FormProfileBuilderProps {
@@ -105,16 +105,17 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
           if (
             analysisStatus.status === 'started' ||
-            (analysisStatus.status === 'analyzing' && minutesElapsed > 5) ||
-            (analysisStatus.status === 'completed' && minutesElapsed > 10) // Also check for long-completed status
+            (analysisStatus.status === 'analyzing' && minutesElapsed > 5)
+            // REMOVED: Don't treat long-completed status as stuck - this was the bug!
           ) {
             console.warn(`Detected stuck CV analysis: status=${analysisStatus.status}, minutes elapsed=${minutesElapsed}`);
-            // Show as completed but stuck
+            // Show as completed but stuck - only for truly stuck analysis
             setCvAnalysisStatus({ status: 'completed' });
             setCvExtractedData(null);
           } else if (analysisStatus.status === 'completed') {
-            // Normal completed state - try to load data
+            // Normal completed state - preserve existing extracted data if it exists
             setCvAnalysisStatus({ status: 'completed' });
+            // Don't null the extracted data - it should already be loaded from employee record
           }
         }
       }
@@ -206,13 +207,21 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         return;
       }
       
+      // Validate stepId is a valid section name
+      const validSectionNames = ['cv_upload', 'basic_info', 'work_experience', 'education', 'skills', 
+        'certifications', 'languages', 'projects', 'current_work', 'daily_tasks', 'tools_technologies'];
+      if (!stepId || !validSectionNames.includes(stepId)) {
+        console.error('Invalid section name:', stepId);
+        return;
+      }
+      
       try {
         setIsSaving(true);
         
-        // Save to database
+        // Save to database with proper type casting
         await EmployeeProfileService.updateProfileSection(
           employeeId,
-          stepId,
+          stepId as ProfileSection['name'],
           data,
           false // Not complete yet
         );
@@ -273,7 +282,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       // Mark current section as complete
       await EmployeeProfileService.updateProfileSection(
         employeeId,
-        currentStepData.id,
+        currentStepData.id as ProfileSection['name'],
         formData[currentStepData.id] || {},
         true
       );
@@ -314,7 +323,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         if (formData[step.id]) {
           return EmployeeProfileService.updateProfileSection(
             employeeId,
-            step.id,
+            step.id as ProfileSection['name'],
             formData[step.id],
             false // Not complete yet
           );

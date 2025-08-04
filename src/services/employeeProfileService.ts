@@ -56,6 +56,21 @@ export class EmployeeProfileService {
       throw new Error('Employee ID is required');
     }
 
+    // Validate employeeId is a valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(employeeId)) {
+      throw new Error('Employee ID must be a valid UUID format');
+    }
+
+    // Validate data is JSON serializable
+    if (data !== null && data !== undefined) {
+      try {
+        JSON.stringify(data);
+      } catch (error) {
+        throw new Error('Data must be JSON serializable');
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('employee_profile_sections')
@@ -72,11 +87,30 @@ export class EmployeeProfileService {
 
       if (error) {
         console.error('Error updating profile section:', error);
+        
+        // Provide more user-friendly error messages for common issues
+        if (error.code === '23503') {
+          throw new Error('Employee not found or invalid employee ID');
+        } else if (error.code === '23514') {
+          throw new Error('Invalid section name or data format');
+        } else if (error.message?.includes('violates check constraint')) {
+          throw new Error('Invalid section name - must be one of the allowed profile section types');
+        } else {
+          throw new Error(`Failed to save profile section: ${error.message || 'Unknown error'}`);
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to update profile section:', { employeeId, sectionName, error });
+      
+      // Re-throw validation errors as-is
+      if (error.message?.includes('Employee ID') || 
+          error.message?.includes('JSON serializable') ||
+          error.message?.includes('section name')) {
         throw error;
       }
-    } catch (error) {
-      console.error('Failed to update profile section:', { employeeId, sectionName, error });
-      throw error;
+      
+      // Wrap other errors with user-friendly message
+      throw new Error(`Failed to save profile data: ${error.message || 'Please try again'}`);
     }
   }
 

@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               position_title,
               department
             ),
-            companies:company_id (
+            companies!company_id (
               id,
               name,
               plan_type
@@ -133,14 +133,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (employeeData) {
           data.employee = employeeData;
-          // Always override the companies data with the employee's company data
-          // This ensures learners see their employee company, not any stale user.company_id
+          // With fixed PostgREST syntax, the join should work properly
           if (employeeData.companies) {
             console.log('[AuthContext] Using company data from employee join:', employeeData.companies);
             data.companies = employeeData.companies;
           } else if (employeeData.company_id) {
             console.log('[AuthContext] Join failed, fetching company directly for employee:', employeeData.company_id);
-            // If employee has company_id but the join didn't work, fetch company directly
+            // Fallback: fetch company directly if join still fails
             const { data: companyData, error: companyError } = await supabase
               .from('companies')
               .select('id, name, plan_type')
@@ -157,24 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             console.warn('[AuthContext] Employee has no company_id');
           }
-        } else if (!data.companies && data.company_id) {
-          console.log('[AuthContext] No employee record, fetching company from user.company_id:', data.company_id);
-          // If no employee record but user has company_id, fetch company directly
-          const { data: companyData, error: companyError } = await supabase
-            .from('companies')
-            .select('id, name, plan_type')
-            .eq('id', data.company_id)
-            .maybeSingle();
-          
-          console.log('[AuthContext] User company fetch result:', { companyData, companyError });
-          
-          if (companyData) {
-            data.companies = companyData;
-          } else {
-            console.warn('[AuthContext] Failed to fetch user company data:', companyError);
-          }
         } else {
-          console.warn('[AuthContext] No employee data and no user company_id to fallback to');
+          console.warn('[AuthContext] No employee record found for learner user');
         }
 
         console.log('[AuthContext] Final company data for learner:', data.companies);
