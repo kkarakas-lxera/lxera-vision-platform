@@ -129,7 +129,7 @@ export default function SpreadsheetGrid({
 
     const updatedEmployees = employees.map(employee => {
       if (employee.id === editingCell.rowId) {
-        let updated = { ...employee, [editingCell.column]: editValue };
+        const updated = { ...employee, [editingCell.column]: editValue };
         
         // Auto-generate position code when position changes
         if (editingCell.column === 'position' && editValue) {

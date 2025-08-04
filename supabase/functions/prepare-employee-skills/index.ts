@@ -311,7 +311,7 @@ async function enrichSkillsWithDescriptions(skills: SkillForValidation[]): Promi
   
   return skills.map(skill => {
     const normalizedName = skill.skill_name.toLowerCase()
-    let enrichedSkill = { ...skill }
+    const enrichedSkill = { ...skill }
     
     // Check for exact match
     if (skillDescriptions[normalizedName]) {

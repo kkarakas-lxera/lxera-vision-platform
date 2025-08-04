@@ -577,7 +577,7 @@ function calculateExperienceLevel(workExperience: any): string {
 
   // Calculate total years of experience
   let totalYears = 0
-  let currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear()
   
   experiences.forEach((exp: any) => {
     const duration = exp.duration || exp.dates || ''

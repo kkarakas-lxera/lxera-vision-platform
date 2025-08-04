@@ -531,6 +531,27 @@ Return as JSON with a "skills" array.`
         .eq('id', session_item_id)
     }
     
+    // Create or update skills profile record
+    const { error: skillsProfileError } = await supabase
+      .from('st_employee_skills_profile')
+      .upsert({
+        employee_id,
+        extracted_skills: skillsData.skills?.map((skill: any) => ({
+          skill_name: skill.skill_name,
+          proficiency: skill.proficiency_level || 0,
+          years_experience: skill.years_experience || 0
+        })) || [],
+        gap_analysis_completed_at: new Date().toISOString(),
+        analyzed_at: new Date().toISOString()
+      }, { 
+        onConflict: 'employee_id' 
+      })
+
+    if (skillsProfileError) {
+      console.error('Failed to create skills profile:', skillsProfileError)
+      // Don't throw - this is not critical for CV analysis
+    }
+
     // Update final status
     await updateStatus('completed', 100, 'Analysis completed successfully')
     

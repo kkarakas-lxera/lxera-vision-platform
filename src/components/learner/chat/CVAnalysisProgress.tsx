@@ -66,9 +66,12 @@ export default function CVAnalysisProgress({ status, onComplete, onDataReady, fo
       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
         <div className="flex items-center gap-3">
           <Check className="h-5 w-5 text-green-600" />
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-medium text-green-900">Analysis completed!</h3>
-            <p className="text-sm text-green-700">Processing results...</p>
+            <p className="text-sm text-green-700">Loading your CV data...</p>
+          </div>
+          <div className="flex items-center">
+            <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
           </div>
         </div>
       </div>
@@ -93,13 +96,13 @@ export default function CVAnalysisProgress({ status, onComplete, onDataReady, fo
       const timeout2 = setTimeout(() => {
         setCompletedSteps(prev => new Set(prev).add(step.id));
         
-        // If this is the last step, call onComplete
-        if (index === ANALYSIS_STEPS.length - 1) {
-          const timeout3 = setTimeout(() => {
-            onComplete?.();
-          }, 1000);
-          timeouts.push(timeout3);
-        }
+        // Previously we invoked onComplete after the last simulated animation step.
+        // However, this could fire before the backend analysis has actually finished
+        // leading to a "stuck" state where no extracted data is available yet.
+        // The parent component already listens for the real completion status and
+        // triggers onComplete when `status.status === 'completed'`. Therefore, we
+        // remove this premature callback to ensure we only proceed once the
+        // backend signals completion.
       }, totalTime - 500);
       timeouts.push(timeout2);
     });

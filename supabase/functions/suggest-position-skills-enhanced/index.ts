@@ -105,7 +105,7 @@ At the end, add a section:
     const openaiData = await openaiResponse.json()
     const content = openaiData.choices[0]?.message?.content || ''
 
-    let skills: SkillSuggestion[] = []
+    const skills: SkillSuggestion[] = []
     let insights = ''
     let marketDataAvailable = false
     

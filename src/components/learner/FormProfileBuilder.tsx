@@ -48,6 +48,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvAnalysisStatus, setCvAnalysisStatus] = useState<any>(null);
   const [cvExtractedData, setCvExtractedData] = useState<any>(null);
+  const [pollIntervalRef, setPollIntervalRef] = useState<NodeJS.Timeout | null>(null);
   const [employeeName, setEmployeeName] = useState('');
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<{
     challenges: string[];
@@ -58,7 +59,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   // Load existing profile data and state
   useEffect(() => {
     loadProfileData();
-  }, [employeeId]);
+    
+    // Cleanup polling interval on unmount
+    return () => {
+      if (pollIntervalRef) {
+        clearInterval(pollIntervalRef);
+      }
+    };
+  }, [employeeId, pollIntervalRef]);
 
   const loadProfileData = async () => {
     try {
@@ -93,10 +101,15 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         const minutesElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60);
         
         if (analysisStatus.status === 'started' || 
-            (analysisStatus.status === 'analyzing' && minutesElapsed > 5)) {
+            (analysisStatus.status === 'analyzing' && minutesElapsed > 5) ||
+            (analysisStatus.status === 'completed' && minutesElapsed > 10)) { // Also check for long-completed status
+          console.warn(`Detected stuck CV analysis: status=${analysisStatus.status}, minutes elapsed=${minutesElapsed}`);
           // Show as completed but stuck
           setCvAnalysisStatus({ status: 'completed' });
           setCvExtractedData(null);
+        } else if (analysisStatus.status === 'completed') {
+          // Normal completed state - try to load data
+          setCvAnalysisStatus({ status: 'completed' });
         }
       }
 
@@ -360,6 +373,12 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     try {
       setIsLoading(true);
       
+      // CRITICAL: Stop any running polling intervals first
+      if (pollIntervalRef) {
+        clearInterval(pollIntervalRef);
+        setPollIntervalRef(null);
+      }
+      
       // Clear CV analysis data from database
       const { error: updateError } = await supabase
         .from('employees')
@@ -462,6 +481,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           // Timeout after max attempts
           if (attempts >= maxAttempts) {
             clearInterval(checkStatus);
+            setPollIntervalRef(null);
             setCvAnalysisStatus({ status: 'timeout' });
             toast.error('CV analysis is taking longer than expected. Please try again.');
             return;
@@ -478,21 +498,56 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
             if (statusData?.status === 'completed') {
               clearInterval(checkStatus);
+              setPollIntervalRef(null);
               setCvAnalysisStatus({ status: 'completed' });
               
-              // Load extracted data
-              const { data: employee } = await supabase
-                .from('employees')
-                .select('cv_extracted_data')
-                .eq('id', employeeId)
-                .single();
-                
-              if (employee?.cv_extracted_data) {
-                setCvExtractedData(employee.cv_extracted_data);
-                toast.success('Experience & Education auto-filled');
-              }
+              // Add retry logic for loading extracted data with exponential backoff
+              let retryAttempts = 0;
+              const maxRetries = 5;
+              
+              const loadExtractedData = async () => {
+                try {
+                  const { data: employee } = await supabase
+                    .from('employees')
+                    .select('cv_extracted_data')
+                    .eq('id', employeeId)
+                    .single();
+                    
+                  if (employee?.cv_extracted_data) {
+                    setCvExtractedData(employee.cv_extracted_data);
+                    toast.success('Experience & Education auto-filled');
+                    return true;
+                  } else if (retryAttempts < maxRetries) {
+                    retryAttempts++;
+                    const delay = Math.min(1000 * Math.pow(2, retryAttempts), 5000); // Exponential backoff, max 5s
+                    console.log(`CV data not ready yet, retrying in ${delay}ms (attempt ${retryAttempts}/${maxRetries})`);
+                    setTimeout(loadExtractedData, delay);
+                    return false;
+                  } else {
+                    console.warn('CV analysis completed but no extracted data found after retries');
+                    // Still considered successful - user can continue manually
+                    toast.info('CV analysis completed. You can proceed to fill information manually.');
+                    return true;
+                  }
+                } catch (error) {
+                  console.error('Error loading extracted data:', error);
+                  if (retryAttempts < maxRetries) {
+                    retryAttempts++;
+                    const delay = Math.min(1000 * Math.pow(2, retryAttempts), 5000);
+                    setTimeout(loadExtractedData, delay);
+                    return false;
+                  } else {
+                    toast.error('Failed to load CV data. Please try restarting the analysis.');
+                    return false;
+                  }
+                }
+              };
+              
+              // Start loading extracted data
+              await loadExtractedData();
             } else if (statusData?.status === 'failed') {
               clearInterval(checkStatus);
+              setPollIntervalRef(null);
               setCvAnalysisStatus({ status: 'failed' });
               toast.error('CV analysis failed');
             }
@@ -503,7 +558,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         }, 2000);
         
         // Store interval ID for cleanup
-        return () => clearInterval(checkStatus);
+        setPollIntervalRef(checkStatus);
       }
     } catch (error) {
       console.error('CV analysis error:', error);
@@ -635,18 +690,28 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                               Analysis seems to be stuck
                             </h3>
                             <p className="text-sm text-amber-700 mt-1">
-                              If you've been waiting for more than a minute, you can start over.
+                              The analysis completed but data couldn't be loaded. You can restart the analysis or skip this step to continue manually.
                             </p>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleCVAnalysisRestart}
-                            disabled={isLoading}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Start Over
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleSkipCVUpload}
+                              disabled={isLoading}
+                            >
+                              Skip & Continue
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCVAnalysisRestart}
+                              disabled={isLoading}
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Start Over
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}

@@ -176,7 +176,7 @@ export default function PositionCreate() {
     };
 
     // Declare timer variables outside try block for cleanup
-    let progressTimeouts: NodeJS.Timeout[] = [];
+    const progressTimeouts: NodeJS.Timeout[] = [];
     let progressInterval: NodeJS.Timer | null = null;
 
     try {
