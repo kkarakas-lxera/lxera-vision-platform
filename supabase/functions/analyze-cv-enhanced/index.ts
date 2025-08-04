@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import OpenAI from 'https://esm.sh/openai@4.28.0'
+// Responses API is available from v5.0.0 upward
+import OpenAI from 'https://esm.sh/openai@5.11.0'
 import { createErrorResponse, logSanitizedError, getUserFriendlyErrorMessage, getErrorStatusCode } from '../_shared/error-utils.ts'
 
 const corsHeaders = {
