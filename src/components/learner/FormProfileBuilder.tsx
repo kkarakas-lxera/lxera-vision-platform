@@ -965,15 +965,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         ) : (
           <MultiSelectCards
             title="Professional Challenges"
-            description="Select challenges that resonate with your experience"
-            options={personalizedSuggestions.challenges.map((challenge, index) => ({
-              id: `challenge-${index}`,
-              icon: '🎯',
-              title: challenge,
-              description: ''
-            }))}
-            selected={formData.daily_tasks?.selected || []}
-            onComplete={(selected) => updateStepData('daily_tasks', { selected })}
+            subtitle="Select challenges that resonate with your experience"
+            items={personalizedSuggestions.challenges || []}
+            selectedItems={formData.daily_tasks?.selected || []}
+            onSelectionChange={(selected) => updateStepData('daily_tasks', { selected })}
+            onComplete={(selectedItems) => {
+              updateStepData('daily_tasks', { selected: selectedItems });
+              handleNext();
+            }}
           />
         );
 
@@ -986,15 +985,14 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         ) : (
           <MultiSelectCards
             title="Growth Opportunities"
-            description="Select areas where you'd like to develop further"
-            options={personalizedSuggestions.growthAreas.map((area, index) => ({
-              id: `growth-${index}`,
-              icon: '🚀',
-              title: area,
-              description: ''
-            }))}
-            selected={formData.tools_technologies?.selected || []}
-            onComplete={(selected) => updateStepData('tools_technologies', { selected })}
+            subtitle="Select areas where you'd like to develop further"
+            items={personalizedSuggestions.growthAreas || []}
+            selectedItems={formData.tools_technologies?.selected || []}
+            onSelectionChange={(selected) => updateStepData('tools_technologies', { selected })}
+            onComplete={(selectedItems) => {
+              updateStepData('tools_technologies', { selected: selectedItems });
+              handleNext();
+            }}
           />
         );
 
