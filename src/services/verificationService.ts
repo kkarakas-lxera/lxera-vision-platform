@@ -431,7 +431,13 @@ export class VerificationService {
   /**
    * Helper: Map proficiency text to number
    */
-  private static mapProficiencyToNumber(proficiency: string): number {
+  private static mapProficiencyToNumber(proficiency: string | number): number {
+    // If already a number, return it
+    if (typeof proficiency === 'number') {
+      return proficiency;
+    }
+    
+    // Otherwise map string to number
     const mapping: Record<string, number> = {
       'basic': 1,
       'intermediate': 2,
