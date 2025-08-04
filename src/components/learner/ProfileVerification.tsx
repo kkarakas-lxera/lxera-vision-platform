@@ -60,18 +60,26 @@ export default function ProfileVerification({
         .not('assessment_type', 'is', null);
       
       if (verifiedData) {
-        setVerifiedSkills(verifiedData.map(s => s.skill_name));
+        // Only count verified skills that are in the current skills to verify list
+        const relevantVerifiedSkills = verifiedData
+          .map(s => s.skill_name)
+          .filter(skillName => skills.some(s => s.skill_name === skillName));
+        
+        setVerifiedSkills(relevantVerifiedSkills);
         
         // If some skills are already verified, start from the first unverified skill
         const firstUnverifiedIndex = skills.findIndex(
-          skill => !verifiedData.some(v => v.skill_name === skill.skill_name)
+          skill => !relevantVerifiedSkills.includes(skill.skill_name)
         );
         if (firstUnverifiedIndex !== -1) {
           setCurrentSkillIndex(firstUnverifiedIndex);
+        } else {
+          // All skills are verified, start at the last one
+          setCurrentSkillIndex(Math.max(0, skills.length - 1));
         }
         
         // If the first skill is already verified, set firstSkillReady
-        if (skills.length > 0 && verifiedData.some(v => v.skill_name === skills[0].skill_name)) {
+        if (skills.length > 0 && relevantVerifiedSkills.includes(skills[0].skill_name)) {
           setFirstSkillReady(true);
         }
       }
@@ -208,7 +216,7 @@ export default function ProfileVerification({
   };
 
   const handleSkillComplete = (skillName: string, verified: boolean) => {
-    if (verified) {
+    if (verified && !verifiedSkills.includes(skillName)) {
       setVerifiedSkills([...verifiedSkills, skillName]);
       
       // Auto-advance to next skill after a short delay
@@ -343,35 +351,6 @@ export default function ProfileVerification({
             </span>
           </div>
           <Progress value={progress} className="h-2" />
-          
-          {/* Pre-generation Status */}
-          {generationProgress.total > 0 && (
-            <div className="space-y-2">
-              {preGenerationStatus === 'generating' && (
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
-                    <span>Preparing assessments...</span>
-                  </div>
-                  <span className="text-muted-foreground">
-                    {generationProgress.completed} of {generationProgress.total} ready
-                  </span>
-                </div>
-              )}
-              {preGenerationStatus === 'completed' && (
-                <div className="flex items-center gap-2 text-xs text-green-600">
-                  <CheckCircle className="h-3 w-3" />
-                  <span>All {generationProgress.total} assessments ready</span>
-                </div>
-              )}
-              {generationProgress.total > 1 && (
-                <Progress 
-                  value={(generationProgress.completed / generationProgress.total) * 100} 
-                  className="h-1"
-                />
-              )}
-            </div>
-          )}
         </div>
 
         {/* Position Context */}
@@ -440,21 +419,25 @@ export default function ProfileVerification({
 
         {/* Navigation Indicators */}
         <div className="flex justify-center gap-1 py-2">
-          {skillsToVerify.map((skill, index) => (
-            <button
-              key={skill.skill_name}
-              onClick={() => setCurrentSkillIndex(index)}
-              className={cn(
-                "w-2 h-2 rounded-full transition-all duration-200",
-                index === currentSkillIndex 
-                  ? "w-6 bg-primary" 
-                  : verifiedSkills.includes(skill.skill_name)
-                  ? "bg-green-500"
-                  : "bg-gray-300"
-              )}
-              aria-label={`Go to skill ${index + 1}: ${skill.skill_name}`}
-            />
-          ))}
+          {skillsToVerify.map((skill, index) => {
+            const isVerified = verifiedSkills.includes(skill.skill_name);
+            return (
+              <button
+                key={`${skill.skill_name}-${index}`}
+                onClick={() => setCurrentSkillIndex(index)}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-200",
+                  index === currentSkillIndex 
+                    ? "w-6 bg-primary" 
+                    : isVerified
+                    ? "bg-green-500"
+                    : "bg-gray-300"
+                )}
+                aria-label={`Go to skill ${index + 1}: ${skill.skill_name}${isVerified ? ' (verified)' : ''}`}
+                title={`${skill.skill_name}${isVerified ? ' ✓' : ''}`}
+              />
+            );
+          })}
         </div>
 
         {/* Action Buttons */}

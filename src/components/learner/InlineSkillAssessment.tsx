@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, Check, Loader2 } from 'lucide-react';
+import { Brain, Check, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -63,6 +63,7 @@ export default function InlineSkillAssessment({
     passed: boolean;
   } | null>(null);
   const [storedQuestionId, setStoredQuestionId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (questions.length === 0 && !isVerified && !showResults) {
@@ -70,38 +71,55 @@ export default function InlineSkillAssessment({
     }
   }, [skill.skill_name, employeeId]); // Add employeeId to ensure we reload if employee changes
 
-  const loadQuestions = async () => {
+  const loadQuestions = async (forceRegenerate: boolean = false) => {
     try {
       setLoading(true);
+      setLoadError(false);
       
-      // First, check for stored questions
-      console.log('[InlineSkillAssessment] Checking for stored questions:', {
-        skill: skill.skill_name,
-        employeeId: employeeId
-      });
-      const storedQuestions = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
-      
-      if (storedQuestions && storedQuestions.questions) {
-        console.log('[InlineSkillAssessment] Found stored questions, using them:', {
-          questionId: storedQuestions.id,
-          questionCount: storedQuestions.questions.length
+      // First, check for stored questions (unless forcing regeneration)
+      if (!forceRegenerate) {
+        console.log('[InlineSkillAssessment] Checking for stored questions:', {
+          skill: skill.skill_name,
+          employeeId: employeeId
         });
-        setQuestions(storedQuestions.questions);
-        setStoredQuestionId(storedQuestions.id);
+        const storedQuestions = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
         
-        // Don't mark as used - questions should be reusable
-        
-        // Initialize start times for all questions
-        const startTimes: Record<string, number> = {};
-        storedQuestions.questions.forEach((q: Question) => {
-          startTimes[q.id] = Date.now();
-        });
-        setQuestionStartTimes(startTimes);
-        return;
+        if (storedQuestions && storedQuestions.questions) {
+          console.log('[InlineSkillAssessment] Found stored questions, using them:', {
+            questionId: storedQuestions.id,
+            questionCount: storedQuestions.questions.length
+          });
+          setQuestions(storedQuestions.questions);
+          setStoredQuestionId(storedQuestions.id);
+          
+          // Don't mark as used - questions should be reusable
+          
+          // Initialize start times for all questions
+          const startTimes: Record<string, number> = {};
+          storedQuestions.questions.forEach((q: Question) => {
+            startTimes[q.id] = Date.now();
+          });
+          setQuestionStartTimes(startTimes);
+          return;
+        }
       }
       
-      // If no stored questions, generate them
-      console.log('[InlineSkillAssessment] No stored questions found, generating new ones');
+      // If no stored questions or forcing regeneration, generate them
+      console.log('[InlineSkillAssessment] Generating new questions', { forceRegenerate });
+      
+      // If forcing regeneration, delete existing questions first
+      if (forceRegenerate) {
+        const { error: deleteError } = await supabase
+          .from('skill_assessment_questions')
+          .delete()
+          .eq('employee_id', employeeId)
+          .eq('skill_name', skill.skill_name);
+        
+        if (deleteError) {
+          console.error('Error deleting old questions:', deleteError);
+        }
+      }
+      
       const requiredLevel = skill.required_level 
         ? (skill.required_level === 1 ? 'basic' : skill.required_level === 2 ? 'intermediate' : 'advanced')
         : 'intermediate';
@@ -123,8 +141,8 @@ export default function InlineSkillAssessment({
           },
           employee_id: employeeId,
           position_id: positionContext.id,
-          skill_id: skill.skill_id
-          // Remove check_existing - let edge function handle it
+          skill_id: skill.skill_id,
+          check_existing: false // Force new generation when regenerating
         }
       });
 
@@ -137,13 +155,29 @@ export default function InlineSkillAssessment({
           startTimes[q.id] = Date.now();
         });
         setQuestionStartTimes(startTimes);
+        
+        // Reset answers when regenerating
+        if (forceRegenerate) {
+          setSelectedAnswers({});
+          toast.success('New questions generated successfully');
+        }
       }
     } catch (error) {
       console.error('Error loading questions:', error);
       toast.error('Failed to load assessment questions');
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRegenerate = async () => {
+    if (selectedAnswers && Object.keys(selectedAnswers).length > 0) {
+      if (!confirm('Regenerating questions will reset your current answers. Continue?')) {
+        return;
+      }
+    }
+    await loadQuestions(true);
   };
 
   const handleSubmitAssessment = async () => {
@@ -265,6 +299,29 @@ export default function InlineSkillAssessment({
                     )}
                   </div>
                 </div>
+              ) : loadError ? (
+                // Error View
+                <div className="mt-4 space-y-3">
+                  <div className="text-center py-4">
+                    <div className="mb-2 text-red-600">
+                      <div className="text-sm font-medium">
+                        Failed to load assessment
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        There was an error loading the questions for {skill.skill_name}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => loadQuestions(true)}
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
               ) : questions.length > 0 ? (
                 // Questions View
                 <div className="mt-4 space-y-4">
@@ -272,9 +329,21 @@ export default function InlineSkillAssessment({
                     <span className="text-xs text-gray-600">
                       Answer all {questions.length} questions to verify this skill
                     </span>
-                    <span className="text-xs text-gray-600">
-                      {Object.keys(selectedAnswers).length} / {questions.length} answered
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-600">
+                        {Object.keys(selectedAnswers).length} / {questions.length} answered
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRegenerate}
+                        className="h-7 px-2 text-xs"
+                        title="Regenerate questions"
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Regenerate
+                      </Button>
+                    </div>
                   </div>
                   
                   <Progress 
