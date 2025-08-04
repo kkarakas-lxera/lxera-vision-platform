@@ -313,8 +313,11 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       );
 
       if (currentStep < STEPS.length - 1) {
-        // Save skills to validation table when moving to verification step
-        if (STEPS[currentStep + 1].id === 'profile_verification' && formData.skills?.skills) {
+        // Save skills to validation table when moving from skills step or to verification step
+        const isLeavingSkillsStep = STEPS[currentStep].id === 'skills' && formData.skills?.skills;
+        const isEnteringVerificationStep = STEPS[currentStep + 1].id === 'profile_verification' && formData.skills?.skills;
+        
+        if (isLeavingSkillsStep || isEnteringVerificationStep) {
           await saveUnverifiedSkills(formData.skills.skills);
         }
         setCurrentStep(currentStep + 1);
