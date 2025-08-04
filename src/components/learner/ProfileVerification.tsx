@@ -46,7 +46,9 @@ export default function ProfileVerification({
   const loadSkillsToVerify = async () => {
     try {
       setLoading(true);
+      console.log('[ProfileVerification] Loading skills for:', { employeeId, positionId });
       const skills = await VerificationService.getSkillsToVerify(employeeId, positionId);
+      console.log('[ProfileVerification] Skills loaded:', skills);
       setSkillsToVerify(skills);
       
       // Check which skills are already verified

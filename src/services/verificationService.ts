@@ -254,6 +254,7 @@ export class VerificationService {
     positionId?: string
   ): Promise<SkillToVerify[]> {
     try {
+      console.log('[VerificationService] Getting skills to verify for:', { employeeId, positionId });
       const skillsToVerify: SkillToVerify[] = [];
 
       // Get position required skills if position ID provided
@@ -294,11 +295,17 @@ export class VerificationService {
       }
 
       // Get employee's claimed skills
-      const { data: claimedSkills } = await supabase
+      const { data: claimedSkills, error: claimedError } = await supabase
         .from('employee_skills_validation')
         .select('skill_name, skill_id, is_from_cv, assessment_type')
         .eq('employee_id', employeeId)
         .is('assessment_type', null); // Only unverified skills
+
+      console.log('[VerificationService] Claimed skills query result:', { 
+        claimedSkills, 
+        claimedError,
+        count: claimedSkills?.length || 0 
+      });
 
       if (claimedSkills) {
         claimedSkills.forEach(skill => {
@@ -315,13 +322,20 @@ export class VerificationService {
       }
 
       // Prioritize: required skills first, then nice-to-have, then others
-      return skillsToVerify.sort((a, b) => {
+      const sortedSkills = skillsToVerify.sort((a, b) => {
         if (a.is_mandatory && !b.is_mandatory) return -1;
         if (!a.is_mandatory && b.is_mandatory) return 1;
         if (a.source === 'position_required' && b.source !== 'position_required') return -1;
         if (a.source !== 'position_required' && b.source === 'position_required') return 1;
         return 0;
       });
+
+      console.log('[VerificationService] Final skills to verify:', {
+        totalCount: sortedSkills.length,
+        skills: sortedSkills
+      });
+
+      return sortedSkills;
     } catch (error) {
       console.error('Error getting skills to verify:', error);
       return [];
