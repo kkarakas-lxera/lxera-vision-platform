@@ -1,5 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
+interface StoredQuestions {
+  id: string;
+  questions: any[];
+  assessment_context: any;
+}
+
 export interface QuestionResponse {
   question_id: string;
   selected_answer: number | string;
@@ -484,5 +490,114 @@ export class VerificationService {
     }
 
     return recommendations;
+  }
+
+  /**
+   * Pre-generate questions for all skills that need verification
+   */
+  static async preGenerateAllQuestions(
+    employeeId: string,
+    skills: SkillToVerify[],
+    positionContext: {
+      id?: string;
+      title: string;
+      level?: string;
+      department?: string;
+    },
+    employeeContext: any
+  ): Promise<{
+    success: boolean;
+    results: any[];
+    errors: any[];
+  }> {
+    try {
+      console.log('[VerificationService] Pre-generating questions for all skills');
+      
+      const { data, error } = await supabase.functions.invoke('pregenerate-skill-questions', {
+        body: {
+          employee_id: employeeId,
+          skills: skills.map(skill => ({
+            skill_name: skill.skill_name,
+            skill_id: skill.skill_id,
+            required_level: skill.required_level,
+            source: skill.source
+          })),
+          position_context: positionContext,
+          employee_context: employeeContext
+        }
+      });
+
+      if (error) {
+        console.error('Error pre-generating questions:', error);
+        return {
+          success: false,
+          results: [],
+          errors: [{ message: error.message }]
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in preGenerateAllQuestions:', error);
+      return {
+        success: false,
+        results: [],
+        errors: [{ message: error.message }]
+      };
+    }
+  }
+
+  /**
+   * Get stored questions for a specific skill
+   */
+  static async getStoredQuestions(
+    employeeId: string,
+    skillName: string
+  ): Promise<StoredQuestions | null> {
+    try {
+      const { data, error } = await supabase
+        .from('skill_assessment_questions')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .eq('skill_name', skillName)
+        .eq('is_used', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting stored questions:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Mark questions as used when assessment starts
+   */
+  static async markQuestionsAsUsed(questionId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('skill_assessment_questions')
+        .update({
+          is_used: true,
+          used_at: new Date().toISOString()
+        })
+        .eq('id', questionId);
+
+      if (error) {
+        console.error('Error marking questions as used:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in markQuestionsAsUsed:', error);
+      return false;
+    }
   }
 }

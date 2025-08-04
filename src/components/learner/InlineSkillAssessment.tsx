@@ -62,6 +62,7 @@ export default function InlineSkillAssessment({
     level: number;
     passed: boolean;
   } | null>(null);
+  const [storedQuestionId, setStoredQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (questions.length === 0 && !isVerified && !showResults) {
@@ -72,6 +73,30 @@ export default function InlineSkillAssessment({
   const loadQuestions = async () => {
     try {
       setLoading(true);
+      
+      // First, check for stored questions
+      console.log('[InlineSkillAssessment] Checking for stored questions:', skill.skill_name);
+      const storedQuestions = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
+      
+      if (storedQuestions && storedQuestions.questions) {
+        console.log('[InlineSkillAssessment] Found stored questions, using them');
+        setQuestions(storedQuestions.questions);
+        setStoredQuestionId(storedQuestions.id);
+        
+        // Mark as used
+        await VerificationService.markQuestionsAsUsed(storedQuestions.id);
+        
+        // Initialize start times for all questions
+        const startTimes: Record<string, number> = {};
+        storedQuestions.questions.forEach((q: Question) => {
+          startTimes[q.id] = Date.now();
+        });
+        setQuestionStartTimes(startTimes);
+        return;
+      }
+      
+      // If no stored questions, generate them
+      console.log('[InlineSkillAssessment] No stored questions found, generating new ones');
       const requiredLevel = skill.required_level 
         ? (skill.required_level === 1 ? 'basic' : skill.required_level === 2 ? 'intermediate' : 'advanced')
         : 'intermediate';
@@ -90,7 +115,11 @@ export default function InlineSkillAssessment({
             certifications: [],
             previous_positions: employeeContext.work_experience?.map((exp: any) => exp.position) || [],
             related_skills: []
-          }
+          },
+          employee_id: employeeId,
+          position_id: positionContext.id,
+          skill_id: skill.skill_id,
+          check_existing: false // We already checked
         }
       });
 

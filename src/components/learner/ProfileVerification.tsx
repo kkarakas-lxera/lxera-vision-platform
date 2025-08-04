@@ -36,6 +36,7 @@ export default function ProfileVerification({
   const [skillsToVerify, setSkillsToVerify] = useState<SkillToVerify[]>([]);
   const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
   const [verifiedSkills, setVerifiedSkills] = useState<string[]>([]);
+  const [preGenerationStatus, setPreGenerationStatus] = useState<'idle' | 'generating' | 'completed' | 'error'>('idle');
 
   useEffect(() => {
     loadSkillsToVerify();
@@ -65,6 +66,36 @@ export default function ProfileVerification({
         );
         if (firstUnverifiedIndex !== -1) {
           setCurrentSkillIndex(firstUnverifiedIndex);
+        }
+      }
+
+      // Pre-generate questions for unverified skills
+      const unverifiedSkills = skills.filter(
+        skill => !verifiedData?.some(v => v.skill_name === skill.skill_name)
+      );
+      
+      if (unverifiedSkills.length > 0) {
+        setPreGenerationStatus('generating');
+        console.log('[ProfileVerification] Pre-generating questions for', unverifiedSkills.length, 'skills');
+        
+        const result = await VerificationService.preGenerateAllQuestions(
+          employeeId,
+          unverifiedSkills,
+          {
+            id: positionId,
+            title: positionTitle || 'Not specified',
+            level: employeeContext.education_level
+          },
+          employeeContext
+        );
+
+        if (result.success) {
+          console.log('[ProfileVerification] Pre-generation completed:', result.summary);
+          setPreGenerationStatus('completed');
+        } else {
+          console.error('[ProfileVerification] Pre-generation failed:', result.errors);
+          setPreGenerationStatus('error');
+          // Don't show error toast - questions will be generated on-demand if needed
         }
       }
     } catch (error) {
@@ -109,6 +140,8 @@ export default function ProfileVerification({
       toast.error(`Please verify all ${unverifiedCount} remaining skills before completing your profile`);
       return;
     }
+    
+    toast.success('All skills verified successfully!');
     onComplete();
   };
 
@@ -272,23 +305,20 @@ export default function ProfileVerification({
             </Button>
           ) : (
             <div className="space-y-2">
-              <Button
-                onClick={handleNextSkill}
-                disabled={currentSkillIndex === skillsToVerify.length - 1}
-                variant={isCurrentSkillVerified ? "default" : "outline"}
-                className="w-full"
-              >
-                {isCurrentSkillVerified ? 'Continue to Next Skill' : 'Skip This Skill'}
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              {verifiedSkills.length === skillsToVerify.length - 1 && (
+              {isCurrentSkillVerified && (
                 <Button
-                  onClick={handleComplete}
-                  variant="ghost"
-                  className="w-full text-sm"
+                  onClick={handleNextSkill}
+                  disabled={currentSkillIndex === skillsToVerify.length - 1}
+                  className="w-full"
                 >
-                  Complete with {skillsToVerify.length - 1} verified skills
+                  Continue to Next Skill
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
+              )}
+              {!isCurrentSkillVerified && (
+                <p className="text-sm text-center text-muted-foreground">
+                  Please complete the assessment above to continue
+                </p>
               )}
             </div>
           )}

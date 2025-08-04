@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,6 +33,10 @@ interface AssessmentRequest {
     skill_usage_context?: string;
     related_skills?: string[];
   };
+  employee_id?: string;
+  position_id?: string;
+  skill_id?: string;
+  check_existing?: boolean; // If true, check for existing questions first
 }
 
 interface Question {
@@ -71,11 +76,68 @@ serve(async (req) => {
       skill_type = 'skill',
       required_level = 'intermediate',
       position_context, 
-      employee_context 
+      employee_context,
+      employee_id,
+      position_id,
+      skill_id,
+      check_existing = true
     } = await req.json() as AssessmentRequest
 
     if (!skill_name || !position_context?.title) {
       throw new Error('Skill name and position title are required')
+    }
+
+    // Initialize Supabase client with service role
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Check for existing questions if requested and employee_id provided
+    if (check_existing && employee_id) {
+      console.log('Checking for existing questions for:', { employee_id, skill_name })
+      
+      const { data: existingQuestions, error: fetchError } = await supabase
+        .from('skill_assessment_questions')
+        .select('*')
+        .eq('employee_id', employee_id)
+        .eq('skill_name', skill_name)
+        .eq('is_used', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (!fetchError && existingQuestions && existingQuestions.questions) {
+        console.log('Found existing questions, returning them')
+        
+        // Mark as used
+        await supabase
+          .from('skill_assessment_questions')
+          .update({ 
+            is_used: true,
+            used_at: new Date().toISOString()
+          })
+          .eq('id', existingQuestions.id)
+        
+        const response: AssessmentResponse = {
+          assessment_id: existingQuestions.id,
+          skill_name,
+          questions: existingQuestions.questions,
+          estimated_time: existingQuestions.questions.reduce((sum: number, q: any) => sum + (q.time_limit || 60), 0),
+          context_used: existingQuestions.assessment_context?.context_used || {
+            position: position_context.title,
+            projects_referenced: false,
+            difficulty_level: required_level
+          }
+        }
+
+        return new Response(
+          JSON.stringify(response),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        )
+      }
     }
 
     // Get OpenAI API key
@@ -259,6 +321,36 @@ You must return valid JSON with the specified structure.`
     }
 
     console.log(`Generated ${questions.length} questions for ${skill_name}`)
+
+    // Save questions to database if employee_id is provided
+    if (employee_id) {
+      console.log('Saving generated questions to database')
+      
+      const { error: saveError } = await supabase
+        .from('skill_assessment_questions')
+        .insert({
+          employee_id,
+          skill_name,
+          skill_id: skill_id || null,
+          position_id: position_id || null,
+          questions,
+          assessment_context: {
+            required_level,
+            position_context,
+            employee_context,
+            context_used: response.context_used
+          },
+          is_used: true, // Mark as used immediately since we're returning it
+          used_at: new Date().toISOString()
+        })
+
+      if (saveError) {
+        console.error('Error saving questions to database:', saveError)
+        // Don't throw - still return the questions even if save fails
+      } else {
+        console.log('Questions saved successfully')
+      }
+    }
 
     return new Response(
       JSON.stringify(response),
