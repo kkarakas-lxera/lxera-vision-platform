@@ -25,23 +25,13 @@ export class EmployeeProfileService {
 
     if (error) throw error;
 
-    const sections: ProfileSection[] = [
-      'basic_info',
-      'work_experience', 
-      'education',
-      'skills',
-      'certifications',
-      'languages',
-      'projects'
-    ].map(sectionName => {
-      const section = data?.find(s => s.section_name === sectionName);
-      return {
-        name: sectionName as ProfileSection['name'],
-        isComplete: section?.is_complete || false,
-        completedAt: section?.completed_at,
-        data: section?.data
-      };
-    });
+    // Get all sections from database instead of hardcoded list
+    const sections: ProfileSection[] = data?.map(section => ({
+      name: section.section_name as ProfileSection['name'],
+      isComplete: section.is_complete || false,
+      completedAt: section.completed_at,
+      data: section.data
+    })) || [];
 
     return sections;
   }

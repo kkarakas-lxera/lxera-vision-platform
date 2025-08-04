@@ -156,7 +156,9 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       const sections = await EmployeeProfileService.getProfileSections(employeeId);
       const sectionData: any = {};
       sections.forEach(section => {
-        sectionData[section.sectionName] = section.data;
+        if (section.data) {
+          sectionData[section.name] = section.data;
+        }
       });
       setFormData(prev => ({ ...prev, ...sectionData }));
       
