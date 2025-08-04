@@ -227,12 +227,49 @@ function transformCVDataKeys(rawResult: any): any {
     transformed[mappedKey] = value;
   }
 
+  // Helper function to map duration to dropdown values
+  const mapDurationToDropdown = (duration: string): string => {
+    if (!duration) return '';
+    
+    const lowerDuration = duration.toLowerCase();
+    
+    // Check for current/present
+    if (lowerDuration.includes('present') || lowerDuration.includes('current') || 
+        lowerDuration.includes('now') || lowerDuration.includes('ongoing')) {
+      return 'Current';
+    }
+    
+    // Try to extract years from the duration
+    const yearMatch = duration.match(/(\d+)\s*(?:-|–|to)?\s*(\d+)?\s*year/i);
+    if (yearMatch) {
+      const startYear = parseInt(yearMatch[1]);
+      const endYear = yearMatch[2] ? parseInt(yearMatch[2]) : null;
+      const years = endYear ? endYear - startYear : startYear;
+      
+      if (years < 1) return '< 1 year';
+      if (years <= 2) return '1-2 years';
+      if (years <= 3) return '2-3 years';
+      if (years <= 5) return '3-5 years';
+      if (years <= 10) return '5-10 years';
+      return '10+ years';
+    }
+    
+    // Check for month-based durations
+    const monthMatch = duration.match(/(\d+)\s*month/i);
+    if (monthMatch && parseInt(monthMatch[1]) < 12) {
+      return '< 1 year';
+    }
+    
+    // Return original if can't map
+    return duration;
+  };
+
   // Transform work_experience array to match frontend expectations
   if (transformed.work_experience && Array.isArray(transformed.work_experience)) {
     transformed.work_experience = transformed.work_experience.map((work: any) => ({
       title: work.Role || work.role || work.title || '',
       company: work.Company || work.company || '',
-      duration: work.Duration || work.duration || '',
+      duration: mapDurationToDropdown(work.Duration || work.duration || ''),
       description: Array.isArray(work.Responsibilities) 
         ? work.Responsibilities.join(' ') 
         : (work.responsibilities || work.description || '')
@@ -241,7 +278,7 @@ function transformCVDataKeys(rawResult: any): any {
     transformed.work_experience = rawResult['Work Experience'].map((work: any) => ({
       title: work.Role || work.role || work.title || '',
       company: work.Company || work.company || '',
-      duration: work.Duration || work.duration || '',
+      duration: mapDurationToDropdown(work.Duration || work.duration || ''),
       description: Array.isArray(work.Responsibilities) 
         ? work.Responsibilities.join(' ') 
         : (work.responsibilities || work.description || '')

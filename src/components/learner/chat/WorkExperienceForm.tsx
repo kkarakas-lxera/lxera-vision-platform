@@ -162,40 +162,55 @@ export default function WorkExperienceForm({ onComplete, initialData, editIndex 
                       className="overflow-hidden"
                     >
                       <div className="space-y-3 pt-2">
-                        <Input
-                          placeholder="Job Title (e.g., Senior Software Engineer)"
-                          value={work.title}
-                          onChange={(e) => updateWork(index, 'title', e.target.value)}
-                          className="text-sm"
-                        />
-                        <Input
-                          placeholder="Company Name"
-                          value={work.company}
-                          onChange={(e) => updateWork(index, 'company', e.target.value)}
-                          className="text-sm"
-                        />
-                        <select
-                          className="w-full px-3 py-2 border rounded-md text-sm"
-                          value={work.duration}
-                          onChange={(e) => updateWork(index, 'duration', e.target.value)}
-                          title="Select duration"
-                        >
-                          <option value="">Duration</option>
-                          <option value="Current">Current Position</option>
-                          <option value="< 1 year">Less than 1 year</option>
-                          <option value="1-2 years">1-2 years</option>
-                          <option value="2-3 years">2-3 years</option>
-                          <option value="3-5 years">3-5 years</option>
-                          <option value="5-10 years">5-10 years</option>
-                          <option value="10+ years">10+ years</option>
-                        </select>
-                        <textarea
-                          placeholder="Describe your responsibilities and achievements..."
-                          value={work.description || ''}
-                          onChange={(e) => updateWork(index, 'description', e.target.value)}
-                          className="w-full px-3 py-2 border rounded-md text-sm resize-none"
-                          rows={3}
-                        />
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Job Title</label>
+                          <Input
+                            placeholder="e.g., Senior Software Engineer"
+                            value={work.title}
+                            onChange={(e) => updateWork(index, 'title', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Company Name</label>
+                          <Input
+                            placeholder="e.g., Google, Microsoft"
+                            value={work.company}
+                            onChange={(e) => updateWork(index, 'company', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Duration</label>
+                          <select
+                            className="w-full px-3 py-2 border rounded-md text-sm"
+                            value={work.duration}
+                            onChange={(e) => updateWork(index, 'duration', e.target.value)}
+                            title="Select duration"
+                          >
+                            <option value="">Select Duration</option>
+                            <option value="Current">Current Position</option>
+                            <option value="< 1 year">Less than 1 year</option>
+                            <option value="1-2 years">1-2 years</option>
+                            <option value="2-3 years">2-3 years</option>
+                            <option value="3-5 years">3-5 years</option>
+                            <option value="5-10 years">5-10 years</option>
+                            <option value="10+ years">10+ years</option>
+                          </select>
+                          {work.duration && !['Current', '< 1 year', '1-2 years', '2-3 years', '3-5 years', '5-10 years', '10+ years'].includes(work.duration) && (
+                            <p className="text-xs text-amber-600 mt-1">Original: {work.duration}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Description</label>
+                          <textarea
+                            placeholder="Describe your responsibilities and achievements..."
+                            value={work.description || ''}
+                            onChange={(e) => updateWork(index, 'description', e.target.value)}
+                            className="w-full px-3 py-2 border rounded-md text-sm resize-none"
+                            rows={3}
+                          />
+                        </div>
                       </div>
                     </motion.div>
                   )}

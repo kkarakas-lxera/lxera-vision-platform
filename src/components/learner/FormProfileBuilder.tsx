@@ -20,6 +20,8 @@ import EducationForm from './chat/EducationForm';
 import SkillsSelector from './chat/SkillsSelector';
 import MultiSelectCards from './chat/MultiSelectCards';
 import CurrentProjectsForm from './chat/CurrentProjectsForm';
+import CertificationsForm from './chat/CertificationsForm';
+import LanguagesForm from './chat/LanguagesForm';
 import ProfileSidebar from './ProfileSidebar';
 import { EmployeeProfileService, ProfileSection } from '@/services/employeeProfileService';
 import { ProfileBuilderStateService } from '@/services/profileBuilderStateService';
@@ -33,6 +35,8 @@ const STEPS = [
   { id: 'cv_upload', title: 'CV Upload' },
   { id: 'work_experience', title: 'Work Experience' },
   { id: 'education', title: 'Education' },
+  { id: 'certifications', title: 'Certifications' },
+  { id: 'languages', title: 'Languages' },
   { id: 'skills', title: 'Skills Review' },
   { id: 'current_work', title: 'Current Projects' },
   { id: 'daily_tasks', title: 'Professional Challenges' },
@@ -844,6 +848,22 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
           <EducationForm
             initialData={cvExtractedData?.education || formData.education || []}
             onComplete={(data) => updateStepData('education', data)}
+          />
+        );
+
+      case 'certifications':
+        return (
+          <CertificationsForm
+            initialData={cvExtractedData?.certifications || formData.certifications || []}
+            onComplete={(data) => updateStepData('certifications', data)}
+          />
+        );
+
+      case 'languages':
+        return (
+          <LanguagesForm
+            initialData={cvExtractedData?.languages || formData.languages || []}
+            onComplete={(data) => updateStepData('languages', data)}
           />
         );
 

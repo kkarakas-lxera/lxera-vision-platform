@@ -174,47 +174,66 @@ export default function EducationForm({ onComplete, initialData, editIndex }: Ed
                       className="overflow-hidden"
                     >
                       <div className="space-y-3 pt-2">
-                        <select
-                          className="w-full px-3 py-2 border rounded-md text-sm"
-                          value={edu.degree}
-                          onChange={(e) => updateEducation(index, 'degree', e.target.value)}
-                          title="Select degree"
-                        >
-                          <option value="">Select Degree</option>
-                          <option value="High School">High School</option>
-                          <option value="Associate">Associate Degree</option>
-                          <option value="Bachelor">Bachelor's Degree</option>
-                          <option value="Master">Master's Degree</option>
-                          <option value="MBA">MBA</option>
-                          <option value="PhD">PhD</option>
-                          <option value="Certificate">Certificate</option>
-                          <option value="Bootcamp">Bootcamp</option>
-                        </select>
-                        <Input
-                          placeholder="Field of Study (e.g., Computer Science)"
-                          value={edu.fieldOfStudy}
-                          onChange={(e) => updateEducation(index, 'fieldOfStudy', e.target.value)}
-                          className="text-sm"
-                        />
-                        <Input
-                          placeholder="Institution Name"
-                          value={edu.institution}
-                          onChange={(e) => updateEducation(index, 'institution', e.target.value)}
-                          className="text-sm"
-                        />
-                        <select
-                          className="w-full px-3 py-2 border rounded-md text-sm"
-                          value={edu.year}
-                          onChange={(e) => updateEducation(index, 'year', e.target.value)}
-                          title="Select graduation year"
-                        >
-                          <option value="">Graduation Year</option>
-                          <option value="Expected 2025">Expected 2025</option>
-                          <option value="Expected 2026">Expected 2026</option>
-                          {years.map(year => (
-                            <option key={year} value={year.toString()}>{year}</option>
-                          ))}
-                        </select>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Degree Type</label>
+                          <select
+                            className="w-full px-3 py-2 border rounded-md text-sm"
+                            value={edu.degree}
+                            onChange={(e) => updateEducation(index, 'degree', e.target.value)}
+                            title="Select degree"
+                          >
+                            <option value="">Select Degree</option>
+                            <option value="High School">High School</option>
+                            <option value="Associate">Associate Degree</option>
+                            <option value="Bachelor">Bachelor's Degree</option>
+                            <option value="Master">Master's Degree</option>
+                            <option value="MBA">MBA</option>
+                            <option value="PhD">PhD</option>
+                            <option value="Certificate">Certificate</option>
+                            <option value="Bootcamp">Bootcamp</option>
+                            <option value="MSc">MSc</option>
+                            <option value="BSc">BSc</option>
+                            <option value="MA">MA</option>
+                            <option value="BA">BA</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Field of Study</label>
+                          <Input
+                            placeholder="e.g., Computer Science, Business Administration"
+                            value={edu.fieldOfStudy}
+                            onChange={(e) => updateEducation(index, 'fieldOfStudy', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Institution Name</label>
+                          <Input
+                            placeholder="e.g., Harvard University, MIT"
+                            value={edu.institution}
+                            onChange={(e) => updateEducation(index, 'institution', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Graduation Year</label>
+                          <select
+                            className="w-full px-3 py-2 border rounded-md text-sm"
+                            value={edu.year}
+                            onChange={(e) => updateEducation(index, 'year', e.target.value)}
+                            title="Select graduation year"
+                          >
+                            <option value="">Select Year</option>
+                            <option value="Expected 2025">Expected 2025</option>
+                            <option value="Expected 2026">Expected 2026</option>
+                            {years.map(year => (
+                              <option key={year} value={year.toString()}>{year}</option>
+                            ))}
+                          </select>
+                          {edu.year && !['Expected 2025', 'Expected 2026', ...years.map(y => y.toString())].includes(edu.year) && (
+                            <p className="text-xs text-amber-600 mt-1">Original: {edu.year}</p>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   )}
