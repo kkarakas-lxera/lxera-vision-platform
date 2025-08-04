@@ -68,7 +68,7 @@ export default function InlineSkillAssessment({
     if (questions.length === 0 && !isVerified && !showResults) {
       loadQuestions();
     }
-  }, [skill.skill_name]);
+  }, [skill.skill_name, employeeId]); // Add employeeId to ensure we reload if employee changes
 
   const loadQuestions = async () => {
     try {
@@ -83,8 +83,7 @@ export default function InlineSkillAssessment({
         setQuestions(storedQuestions.questions);
         setStoredQuestionId(storedQuestions.id);
         
-        // Mark as used
-        await VerificationService.markQuestionsAsUsed(storedQuestions.id);
+        // Don't mark as used - questions should be reusable
         
         // Initialize start times for all questions
         const startTimes: Record<string, number> = {};

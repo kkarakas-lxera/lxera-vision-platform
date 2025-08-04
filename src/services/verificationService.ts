@@ -560,7 +560,6 @@ export class VerificationService {
         .select('*')
         .eq('employee_id', employeeId)
         .eq('skill_name', skillName)
-        .eq('is_used', false)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

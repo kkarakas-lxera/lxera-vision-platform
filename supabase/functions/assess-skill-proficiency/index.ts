@@ -92,8 +92,9 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check for existing questions if requested and employee_id provided
-    if (check_existing && employee_id) {
+    // ALWAYS check for existing questions if employee_id is provided
+    // Questions should only be generated ONCE per employee per skill
+    if (employee_id) {
       console.log('Checking for existing questions for:', { employee_id, skill_name })
       
       const { data: existingQuestions, error: fetchError } = await supabase
@@ -101,22 +102,14 @@ serve(async (req) => {
         .select('*')
         .eq('employee_id', employee_id)
         .eq('skill_name', skill_name)
-        .eq('is_used', false)
         .order('created_at', { ascending: false })
         .limit(1)
         .single()
 
       if (!fetchError && existingQuestions && existingQuestions.questions) {
-        console.log('Found existing questions, returning them')
+        console.log('Found existing questions (is_used:', existingQuestions.is_used, '), returning them')
         
-        // Mark as used
-        await supabase
-          .from('skill_assessment_questions')
-          .update({ 
-            is_used: true,
-            used_at: new Date().toISOString()
-          })
-          .eq('id', existingQuestions.id)
+        // Don't update is_used here - let the frontend handle that when assessment is actually started
         
         const response: AssessmentResponse = {
           assessment_id: existingQuestions.id,
@@ -138,6 +131,8 @@ serve(async (req) => {
           }
         )
       }
+      
+      console.log('No existing questions found, will generate new ones')
     }
 
     // Get OpenAI API key
@@ -340,8 +335,8 @@ You must return valid JSON with the specified structure.`
             employee_context,
             context_used: response.context_used
           },
-          is_used: true, // Mark as used immediately since we're returning it
-          used_at: new Date().toISOString()
+          is_used: false, // Don't mark as used - questions should be reusable
+          used_at: null
         })
 
       if (saveError) {

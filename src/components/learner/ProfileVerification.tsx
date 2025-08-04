@@ -85,65 +85,118 @@ export default function ProfileVerification({
         // All skills are verified
         setFirstSkillReady(true);
       } else {
-        setGenerationProgress({ total: unverifiedSkills.length, completed: 0 });
+        // Check for existing questions first
+        console.log('[ProfileVerification] Checking for existing questions for unverified skills');
+        let existingCount = 0;
         
-        // First, generate questions for the first skill immediately
+        // Check each unverified skill for existing questions
+        for (const skill of unverifiedSkills) {
+          const existing = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
+          if (existing) {
+            existingCount++;
+            console.log(`[ProfileVerification] Found existing questions for ${skill.skill_name}`);
+          }
+        }
+        
+        console.log(`[ProfileVerification] Found ${existingCount} skills with existing questions out of ${unverifiedSkills.length} unverified skills`);
+        
+        setGenerationProgress({ total: unverifiedSkills.length, completed: existingCount });
+        
+        // If first skill has existing questions, mark as ready
         if (unverifiedSkills.length > 0) {
-          const firstSkill = unverifiedSkills[0];
-          console.log('[ProfileVerification] Generating questions for first skill:', firstSkill.skill_name);
+          const firstSkillHasQuestions = await VerificationService.getStoredQuestions(employeeId, unverifiedSkills[0].skill_name);
+          if (firstSkillHasQuestions) {
+            setFirstSkillReady(true);
+          }
+        }
+        
+        // Generate questions for skills that don't have them
+        const skillsNeedingGeneration = [];
+        for (const skill of unverifiedSkills) {
+          const existing = await VerificationService.getStoredQuestions(employeeId, skill.skill_name);
+          if (!existing) {
+            skillsNeedingGeneration.push(skill);
+          }
+        }
+        
+        console.log(`[ProfileVerification] ${skillsNeedingGeneration.length} skills need question generation`);
+        
+        if (skillsNeedingGeneration.length === 0) {
+          // All questions already exist
+          setFirstSkillReady(true);
+          setPreGenerationStatus('completed');
+        } else {
+          // Generate questions for skills that need them
+          const firstSkillNeedsGeneration = !await VerificationService.getStoredQuestions(employeeId, unverifiedSkills[0].skill_name);
           
-          try {
-            const firstResult = await VerificationService.preGenerateAllQuestions(
+          if (firstSkillNeedsGeneration) {
+            // First skill needs generation
+            console.log('[ProfileVerification] Generating questions for first skill:', unverifiedSkills[0].skill_name);
+            
+            try {
+              const firstResult = await VerificationService.preGenerateAllQuestions(
+                employeeId,
+                [unverifiedSkills[0]],
+                {
+                  id: positionId,
+                  title: positionTitle || 'Not specified',
+                  level: employeeContext.education_level
+                },
+                employeeContext
+              );
+              
+              if (firstResult.success && firstResult.results.length > 0) {
+                setFirstSkillReady(true);
+                setGenerationProgress(prev => ({ ...prev, completed: prev.completed + 1 }));
+              }
+            } catch (error) {
+              console.error('[ProfileVerification] Failed to generate first skill questions:', error);
+            }
+          } else {
+            // First skill already has questions
+            setFirstSkillReady(true);
+          }
+          
+          // Generate remaining skills that need questions in background
+          const remainingSkillsToGenerate = firstSkillNeedsGeneration 
+            ? skillsNeedingGeneration.slice(1) 
+            : skillsNeedingGeneration;
+          
+          if (remainingSkillsToGenerate.length > 0) {
+            setPreGenerationStatus('generating');
+            console.log('[ProfileVerification] Pre-generating questions for', remainingSkillsToGenerate.length, 'remaining skills');
+            
+            // Generate remaining skills in background
+            VerificationService.preGenerateAllQuestions(
               employeeId,
-              [firstSkill],
+              remainingSkillsToGenerate,
               {
                 id: positionId,
                 title: positionTitle || 'Not specified',
                 level: employeeContext.education_level
               },
               employeeContext
-            );
-            
-            if (firstResult.success && firstResult.results.length > 0) {
-              setFirstSkillReady(true);
-              setGenerationProgress(prev => ({ ...prev, completed: 1 }));
-            }
-          } catch (error) {
-            console.error('[ProfileVerification] Failed to generate first skill questions:', error);
+            ).then(result => {
+              if (result.success) {
+                console.log('[ProfileVerification] Background pre-generation completed:', result.summary);
+                setPreGenerationStatus('completed');
+                // Count both newly generated and already existing as completed
+                const processedCount = result.results.filter(r => 
+                  r.status === 'generated' || r.status === 'already_exists'
+                ).length;
+                setGenerationProgress(prev => ({ 
+                  ...prev, 
+                  completed: Math.min(prev.completed + processedCount, prev.total)
+                }));
+              } else {
+                console.error('[ProfileVerification] Background pre-generation failed:', result.errors);
+                setPreGenerationStatus('error');
+              }
+            });
+          } else {
+            // All skills have questions already
+            setPreGenerationStatus('completed');
           }
-        }
-        
-        // Then generate the rest in background if there are more
-        if (unverifiedSkills.length > 1) {
-          setPreGenerationStatus('generating');
-          console.log('[ProfileVerification] Pre-generating questions for remaining', unverifiedSkills.length - 1, 'skills');
-          
-          // Generate remaining skills in background
-          VerificationService.preGenerateAllQuestions(
-            employeeId,
-            unverifiedSkills.slice(1),
-            {
-              id: positionId,
-              title: positionTitle || 'Not specified',
-              level: employeeContext.education_level
-            },
-            employeeContext
-          ).then(result => {
-            if (result.success) {
-              console.log('[ProfileVerification] Background pre-generation completed:', result.summary);
-              setPreGenerationStatus('completed');
-              setGenerationProgress(prev => ({ 
-                ...prev, 
-                completed: prev.completed + result.results.filter(r => r.status === 'generated').length 
-              }));
-            } else {
-              console.error('[ProfileVerification] Background pre-generation failed:', result.errors);
-              setPreGenerationStatus('error');
-            }
-          });
-        } else {
-          // Only one skill, mark as completed
-          setPreGenerationStatus('completed');
         }
       }
     } catch (error) {

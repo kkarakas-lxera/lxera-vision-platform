@@ -72,7 +72,6 @@ serve(async (req) => {
           .select('id')
           .eq('employee_id', employee_id)
           .eq('skill_name', skill.skill_name)
-          .eq('is_used', false)
           .single()
 
         if (existing) {
@@ -225,7 +224,8 @@ Return questions as a JSON object with a "questions" array, where each question 
           total_skills: skills.length,
           generated: results.filter(r => r.status === 'generated').length,
           already_exists: results.filter(r => r.status === 'already_exists').length,
-          failed: errors.length
+          failed: errors.length,
+          successful: results.length // Total successful (generated + already_exists)
         }
       }),
       { 
