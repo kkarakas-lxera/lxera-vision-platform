@@ -255,33 +255,38 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
   };
 
   const handleNext = async () => {
-    // Validate employeeId before proceeding
-    if (!employeeId || employeeId === '') {
-      toast.error('Unable to save progress - employee profile not found');
-      return;
-    }
-    
-    const currentStepData = STEPS[currentStep];
-    
-    // Check if current step meets requirements before proceeding
-    if (!canProceed()) {
-      toast.error('Please complete the current step before proceeding');
-      return;
-    }
-    
-    // Mark current section as complete
-    await EmployeeProfileService.updateProfileSection(
-      employeeId,
-      currentStepData.id,
-      formData[currentStepData.id] || {},
-      true
-    );
+    try {
+      // Validate employeeId before proceeding
+      if (!employeeId || employeeId === '') {
+        toast.error('Unable to save progress - employee profile not found');
+        return;
+      }
+      
+      const currentStepData = STEPS[currentStep];
+      
+      // Check if current step meets requirements before proceeding
+      if (!canProceed()) {
+        toast.error('Please complete the current step before proceeding');
+        return;
+      }
+      
+      // Mark current section as complete
+      await EmployeeProfileService.updateProfileSection(
+        employeeId,
+        currentStepData.id,
+        formData[currentStepData.id] || {},
+        true
+      );
 
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Complete profile
-      await handleProfileComplete();
+      if (currentStep < STEPS.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        // Complete profile
+        await handleProfileComplete();
+      }
+    } catch (error) {
+      console.error('Error in handleNext:', error);
+      toast.error('Failed to proceed to next step. Please try again.');
     }
   };
 
@@ -579,13 +584,19 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
 
     switch (stepId) {
       case 'cv_upload':
-        return true; // Optional step
+        return true; // Optional step - can always proceed
       case 'work_experience':
-        return stepData?.length > 0;
+        // Can proceed if we have CV extracted data OR manual data
+        return (cvExtractedData?.work_experience && cvExtractedData.work_experience.length > 0) || 
+               (stepData?.length > 0);
       case 'education':
-        return stepData?.length > 0;
+        // Can proceed if we have CV extracted data OR manual data
+        return (cvExtractedData?.education && cvExtractedData.education.length > 0) || 
+               (stepData?.length > 0);
       case 'skills':
-        return stepData?.skills?.length > 0;
+        // Can proceed if we have CV extracted skills OR manual skills
+        return (cvExtractedData?.skills && cvExtractedData.skills.length > 0) || 
+               (stepData?.skills?.length > 0);
       case 'current_work':
         return stepData?.projects?.length > 0;
       case 'daily_tasks':

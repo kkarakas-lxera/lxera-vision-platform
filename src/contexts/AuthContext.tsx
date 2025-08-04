@@ -124,9 +124,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (employeeData) {
           data.employee = employeeData;
-          // Override the companies data with the employee's company data only if it exists
+          // Always override the companies data with the employee's company data
+          // This ensures learners see their employee company, not any stale user.company_id
           if (employeeData.companies) {
             data.companies = employeeData.companies;
+          } else if (employeeData.company_id) {
+            // If employee has company_id but the join didn't work, fetch company directly
+            const { data: companyData } = await supabase
+              .from('companies')
+              .select('id, name, plan_type')
+              .eq('id', employeeData.company_id)
+              .maybeSingle();
+            
+            if (companyData) {
+              data.companies = companyData;
+            }
           }
         } else if (!data.companies && data.company_id) {
           // If no employee record but user has company_id, fetch company directly

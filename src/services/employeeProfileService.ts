@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ProfileSection {
-  name: 'basic_info' | 'work_experience' | 'education' | 'skills' | 'certifications' | 'languages' | 'projects' | 'current_work' | 'daily_tasks' | 'tools_technologies';
+  name: 'cv_upload' | 'basic_info' | 'work_experience' | 'education' | 'skills' | 'certifications' | 'languages' | 'projects' | 'current_work' | 'daily_tasks' | 'tools_technologies';
   isComplete: boolean;
   completedAt?: string;
   data?: any;
@@ -52,20 +52,32 @@ export class EmployeeProfileService {
     data: any,
     isComplete: boolean = false
   ): Promise<void> {
-    const { error } = await supabase
-      .from('employee_profile_sections')
-      .upsert({
-        employee_id: employeeId,
-        section_name: sectionName,
-        data,
-        is_complete: isComplete,
-        completed_at: isComplete ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'employee_id,section_name'
-      });
+    if (!employeeId || employeeId.trim() === '') {
+      throw new Error('Employee ID is required');
+    }
 
-    if (error) throw error;
+    try {
+      const { error } = await supabase
+        .from('employee_profile_sections')
+        .upsert({
+          employee_id: employeeId,
+          section_name: sectionName,
+          data,
+          is_complete: isComplete,
+          completed_at: isComplete ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'employee_id,section_name'
+        });
+
+      if (error) {
+        console.error('Error updating profile section:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to update profile section:', { employeeId, sectionName, error });
+      throw error;
+    }
   }
 
   static async createProfileInvitation(employeeId: string): Promise<string> {

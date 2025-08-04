@@ -782,6 +782,61 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
         .eq('id', session_item_id)
     }
     
+    // Ensure employee has a current_position_id before creating skills profile
+    // The database trigger requires this field to prevent orphaned skills profiles
+    if (!employee.current_position_id) {
+      console.log('Employee lacks current_position_id, attempting to assign default position')
+      
+      // Try to find an existing position for this company
+      const { data: companyPositions, error: positionsError } = await supabase
+        .from('st_company_positions')
+        .select('id, position_title')
+        .eq('company_id', company_id)
+        .limit(1)
+      
+      let defaultPositionId = null
+      
+      if (positionsError || !companyPositions || companyPositions.length === 0) {
+        // Create an "Unassigned" position for this company
+        console.log('No positions found, creating Unassigned position')
+        const { data: newPosition, error: createPositionError } = await supabase
+          .from('st_company_positions')
+          .insert({
+            company_id,
+            position_code: 'UNASSIGNED',
+            position_title: 'Unassigned',
+            description: 'Default position for employees without assigned roles',
+            department: 'General'
+          })
+          .select('id')
+          .single()
+        
+        if (createPositionError || !newPosition) {
+          console.error('Failed to create default position:', createPositionError)
+          throw new Error('Unable to assign position to employee - skills profile creation failed')
+        }
+        
+        defaultPositionId = newPosition.id
+      } else {
+        // Use the first available position
+        defaultPositionId = companyPositions[0].id
+        console.log(`Assigning employee to existing position: ${companyPositions[0].position_title}`)
+      }
+      
+      // Update employee with the position
+      const { error: updatePositionError } = await supabase
+        .from('employees')
+        .update({ current_position_id: defaultPositionId })
+        .eq('id', employee_id)
+      
+      if (updatePositionError) {
+        console.error('Failed to update employee position:', updatePositionError)
+        throw new Error('Unable to assign position to employee - skills profile creation failed')
+      }
+      
+      console.log('Successfully assigned position to employee')
+    }
+
     // Create or update skills profile record
     const { error: skillsProfileError } = await supabase
       .from('st_employee_skills_profile')
@@ -800,7 +855,8 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
 
     if (skillsProfileError) {
       console.error('Failed to create skills profile:', skillsProfileError)
-      // Don't throw - this is not critical for CV analysis
+      // This is now critical since we've ensured position assignment
+      throw new Error(`Failed to create skills profile: ${skillsProfileError.message}`)
     }
 
     // Update final status

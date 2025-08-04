@@ -33,16 +33,106 @@ serve(async (req) => {
     // Verify the invitation token is valid
     const { data: invitation, error: invitationError } = await supabaseAdmin
       .from('profile_invitations')
-      .select('employee_id, employees!inner(user_id)')
+      .select('employee_id, completed_at, expires_at, employees!inner(user_id)')
       .eq('invitation_token', invitationToken)
       .single()
 
     if (invitationError || !invitation) {
-      throw new Error('Invalid invitation token')
+      console.log('Invitation token not found:', invitationToken)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invitation token not found',
+          code: 'TOKEN_NOT_FOUND'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
+      )
     }
 
-    // The employee might not have a user_id yet during signup, so we'll link them now
-    if (!invitation.employees.user_id) {
+    // Check if invitation is already completed
+    if (invitation.completed_at) {
+      console.log('Invitation already completed:', invitationToken)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invitation link already used',
+          code: 'TOKEN_ALREADY_USED'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 410, // Gone
+        }
+      )
+    }
+
+    // Check if invitation is expired
+    if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) {
+      console.log('Invitation expired:', invitationToken)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invitation link has expired',
+          code: 'TOKEN_EXPIRED'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 410, // Gone
+        }
+      )
+    }
+
+    // Handle user linking - either first time or updating to new user_id
+    if (!invitation.employees.user_id || invitation.employees.user_id !== userId) {
+      console.log(`Linking employee ${invitation.employee_id} to user ${userId}`)
+      
+      // First, ensure the public.users record exists
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+      if (!authUser.user) {
+        throw new Error('Auth user not found')
+      }
+      
+      // Check if public.users record exists
+      const { data: existingPublicUser } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single()
+      
+      // Create public.users record if it doesn't exist
+      if (!existingPublicUser) {
+        console.log('Creating missing public.users record')
+        const { error: createUserError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            id: userId,
+            email: authUser.user.email,
+            full_name: authUser.user.user_metadata?.full_name || authUser.user.email?.split('@')[0] || 'User',
+            role: 'learner',
+            company_id: null // Will be set when employee is linked
+          })
+        
+        if (createUserError) {
+          console.error('Error creating public user:', createUserError)
+          throw new Error('Failed to create user profile')
+        }
+      }
+      
+      // Get employee's company_id for user profile
+      const { data: employeeData } = await supabaseAdmin
+        .from('employees')
+        .select('company_id')
+        .eq('id', invitation.employee_id)
+        .single()
+      
+      // Update user's company_id if needed
+      if (employeeData?.company_id) {
+        await supabaseAdmin
+          .from('users')
+          .update({ company_id: employeeData.company_id })
+          .eq('id', userId)
+      }
+      
+      // Now link the employee to the user
       const { error: linkError } = await supabaseAdmin
         .from('employees')
         .update({ user_id: userId })
@@ -52,8 +142,8 @@ serve(async (req) => {
         console.error('Error linking employee to user:', linkError)
         throw new Error('Failed to link employee to user')
       }
-    } else if (invitation.employees.user_id !== userId) {
-      throw new Error('Invalid invitation token')
+      
+      console.log('Successfully linked employee to user')
     }
 
     // Update auth.users to confirm email
