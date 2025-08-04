@@ -199,6 +199,26 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     try {
       setLoadingSuggestions(true);
       
+      // First, check if suggestions already exist in the database
+      const { data: existingSuggestions, error: fetchError } = await supabase
+        .from('employee_profile_suggestions')
+        .select('challenges, growth_areas')
+        .eq('employee_id', employeeId)
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (existingSuggestions && existingSuggestions.challenges && existingSuggestions.growth_areas) {
+        console.log('[FormProfileBuilder] Using existing suggestions from database');
+        setPersonalizedSuggestions({
+          challenges: existingSuggestions.challenges,
+          growthAreas: existingSuggestions.growth_areas
+        });
+        return; // Don't regenerate if we already have suggestions
+      }
+      
+      // Only generate new suggestions if none exist
+      console.log('[FormProfileBuilder] Generating new suggestions');
       const { data, error } = await supabase.functions.invoke('generate-profile-suggestions', {
         body: { 
           employee_id: employeeId,
