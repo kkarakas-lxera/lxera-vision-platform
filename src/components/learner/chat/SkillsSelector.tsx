@@ -36,14 +36,17 @@ interface SkillsSelectorProps {
 }
 
 // Helper function to map proficiency levels
-const mapProficiencyLevel = (level: string): number => {
+const mapProficiencyLevel = (level: string | number | undefined): number => {
+  if (typeof level === 'number') return level;
+  if (!level || typeof level !== 'string') return 1;
+  
   const mapping: Record<string, number> = {
     'basic': 1,
     'intermediate': 2,
     'advanced': 3,
     'expert': 3
   };
-  return mapping[level?.toLowerCase()] || 1;
+  return mapping[level.toLowerCase()] || 1;
 };
 
 export default function SkillsSelector({
@@ -66,6 +69,7 @@ export default function SkillsSelector({
     
     // Add position required skills first (highest priority)
     positionRequiredSkills.forEach(skill => {
+      if (!skill.skill_name) return; // Skip if no skill name
       const skillObj: Skill = {
         skill_name: skill.skill_name,
         skill_id: skill.skill_id,
@@ -78,6 +82,7 @@ export default function SkillsSelector({
 
     // Add nice-to-have position skills
     positionNiceToHaveSkills.forEach(skill => {
+      if (!skill.skill_name) return; // Skip if no skill name
       const skillObj: Skill = {
         skill_name: skill.skill_name,
         skill_id: skill.skill_id,
@@ -91,8 +96,11 @@ export default function SkillsSelector({
     // Add CV extracted skills
     extractedSkills.forEach(skill => {
       const skillName = skill.skill_name || skill.name || skill;
+      // Ensure skillName is a string
+      if (!skillName || typeof skillName !== 'string') return;
+      
       // Check if skill already exists from position
-      const existing = allSuggested.find(s => s.skill_name.toLowerCase() === skillName.toLowerCase());
+      const existing = allSuggested.find(s => s.skill_name && skillName && s.skill_name.toLowerCase() === skillName.toLowerCase());
       
       if (!existing) {
         allSuggested.push({
@@ -117,7 +125,10 @@ export default function SkillsSelector({
     // Add existing skills not already in suggested
     existingSkills.forEach(skill => {
       const skillName = skill.skill_name || skill.name || skill;
-      if (!allSuggested.find(s => s.skill_name.toLowerCase() === skillName.toLowerCase())) {
+      // Ensure skillName is a string
+      if (!skillName || typeof skillName !== 'string') return;
+      
+      if (!allSuggested.find(s => s.skill_name && skillName && s.skill_name.toLowerCase() === skillName.toLowerCase())) {
         allSuggested.push({
           skill_name: skillName,
           category: 'other',
