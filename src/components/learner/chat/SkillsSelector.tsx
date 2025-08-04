@@ -103,22 +103,20 @@ export default function SkillsSelector({
       const existing = allSuggested.find(s => s.skill_name && skillName && s.skill_name.toLowerCase() === skillName.toLowerCase());
       
       if (!existing) {
-        allSuggested.push({
+        // CV skill that's not in position requirements - add directly to selected
+        const cvSkill = {
           skill_name: skillName,
           category: 'cv_extracted',
           source: 'cv',
           proficiency_level: skill.proficiency_level
-        });
-        // Pre-select CV skills
-        selectedByDefault.push({
-          skill_name: skillName,
-          category: 'cv_extracted',
-          source: 'cv',
-          proficiency_level: skill.proficiency_level
-        });
+        };
+        // Don't add to suggested, only to selected
+        selectedByDefault.push(cvSkill);
       } else if (existing.source === 'position') {
-        // If position skill is also in CV, pre-select it
+        // If position skill is also in CV, pre-select it and remove from suggested
         selectedByDefault.push(existing);
+        // Remove from allSuggested since it's pre-selected
+        allSuggested = allSuggested.filter(s => s.skill_name !== existing.skill_name);
       }
     });
 
@@ -138,7 +136,14 @@ export default function SkillsSelector({
       }
     });
 
-    setSuggestedSkills(allSuggested);
+    // Filter out any skills from suggested that are already in selected
+    const finalSuggested = allSuggested.filter(
+      suggested => !selectedByDefault.find(
+        selected => selected.skill_name.toLowerCase() === suggested.skill_name.toLowerCase()
+      )
+    );
+    
+    setSuggestedSkills(finalSuggested);
     setSelectedSkills(selectedByDefault);
   }, [extractedSkills, existingSkills, positionRequiredSkills, positionNiceToHaveSkills]);
 
@@ -248,18 +253,54 @@ export default function SkillsSelector({
     );
   }
 
+  // Calculate skill counts by source
+  const skillCounts = {
+    cvSkills: selectedSkills.filter(s => s.source === 'cv').length,
+    positionRequired: positionRequiredSkills.length,
+    positionRequiredSelected: selectedSkills.filter(s => s.category === 'position_required').length,
+    positionNice: positionNiceToHaveSkills.length,
+    positionNiceSelected: selectedSkills.filter(s => s.category === 'position_nice').length,
+    manual: selectedSkills.filter(s => s.source === 'manual').length
+  };
+
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="space-y-4">
+      {/* Skills Summary */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="pt-4 pb-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-blue-700">{skillCounts.cvSkills}</p>
+              <p className="text-xs text-gray-600">From Your CV</p>
+              <p className="text-xs text-green-600 mt-1">✓ Auto-included</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-orange-700">
+                {skillCounts.positionRequiredSelected}/{skillCounts.positionRequired}
+              </p>
+              <p className="text-xs text-gray-600">Position Required</p>
+              <p className="text-xs text-gray-500 mt-1">Click to add</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-indigo-700">{selectedSkills.length}</p>
+              <p className="text-xs text-gray-600">Total Selected</p>
+              <p className="text-xs text-gray-500 mt-1">Ready to verify</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-6">
       {/* Left Column - Suggested Skills */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Available Skills</CardTitle>
+          <CardTitle className="text-base">Additional Skills to Add</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Click skills that you have
+            Click to add any skills you have that aren't already selected
           </p>
           {positionTitle && (
             <p className="text-xs text-muted-foreground mt-1">
-              For position: <span className="font-medium">{positionTitle}</span>
+              Position: <span className="font-medium">{positionTitle}</span>
             </p>
           )}
         </CardHeader>
@@ -300,7 +341,7 @@ export default function SkillsSelector({
           
           {suggestedSkills.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              All available skills have been selected
+              No additional skills to add
             </p>
           )}
         </CardContent>
@@ -309,13 +350,28 @@ export default function SkillsSelector({
       {/* Right Column - Selected Skills */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Your Skills</CardTitle>
+          <CardTitle className="text-base">Your Selected Skills</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Skills you have ({selectedSkills.length} selected)
+            Total: {selectedSkills.length} skills
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            <span className="font-medium">Note:</span> Proficiency levels will be verified in the next step
-          </p>
+          
+          {/* Info Box */}
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs">
+            <div className="space-y-1">
+              <p className="flex items-center gap-1">
+                <Check className="h-3 w-3 text-blue-600" />
+                <span>Skills from your CV have been automatically included</span>
+              </p>
+              <p className="flex items-center gap-1">
+                <Plus className="h-3 w-3 text-blue-600" />
+                <span>Add any position-required skills you possess</span>
+              </p>
+              <p className="flex items-center gap-1">
+                <Brain className="h-3 w-3 text-blue-600" />
+                <span>Proficiency levels will be AI-verified in the next step</span>
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(selectedGrouped).map(([category, skills]) => (
@@ -394,6 +450,7 @@ export default function SkillsSelector({
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }
