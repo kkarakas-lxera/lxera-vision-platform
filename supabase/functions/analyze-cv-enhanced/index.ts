@@ -196,6 +196,72 @@ function safeJsonParse(raw: string): any {
   }
 }
 
+/**
+ * Transform CV analysis result keys from OpenAI format to frontend expected format
+ * Maps capitalized keys like "Work Experience" to lowercase snake_case like "work_experience"
+ */
+function transformCVDataKeys(rawResult: any): any {
+  if (!rawResult || typeof rawResult !== 'object') {
+    return rawResult;
+  }
+
+  const keyMappings: Record<string, string> = {
+    'Work Experience': 'work_experience',
+    'Education': 'education',
+    'Skills': 'skills',
+    'Personal Information': 'personal_information',
+    'Professional Summary': 'professional_summary',
+    'Certifications': 'certifications',
+    'Languages': 'languages',
+    'Key Achievements': 'key_achievements',
+    'Technical Skills': 'technical_skills',
+    'Soft Skills': 'soft_skills'
+  };
+
+  const transformed: any = {};
+  
+  // Copy all existing properties
+  for (const [key, value] of Object.entries(rawResult)) {
+    const mappedKey = keyMappings[key] || key;
+    transformed[mappedKey] = value;
+  }
+
+  // Ensure the structure matches what the frontend expects
+  // The frontend expects work_experience, education, and skills arrays
+  if (transformed.work_experience && Array.isArray(transformed.work_experience)) {
+    // Keep as is
+  } else if (rawResult['Work Experience'] && Array.isArray(rawResult['Work Experience'])) {
+    transformed.work_experience = rawResult['Work Experience'];
+  }
+
+  if (transformed.education && Array.isArray(transformed.education)) {
+    // Keep as is
+  } else if (rawResult['Education'] && Array.isArray(rawResult['Education'])) {
+    transformed.education = rawResult['Education'];
+  }
+
+  if (transformed.skills && Array.isArray(transformed.skills)) {
+    // Keep as is
+  } else if (rawResult['Skills']) {
+    // Handle different skills formats
+    if (Array.isArray(rawResult['Skills'])) {
+      transformed.skills = rawResult['Skills'];
+    } else if (rawResult['Skills']['Technical Skills'] || rawResult['Skills']['Soft Skills']) {
+      // Combine technical and soft skills into one array
+      const allSkills: any[] = [];
+      if (rawResult['Skills']['Technical Skills'] && Array.isArray(rawResult['Skills']['Technical Skills'])) {
+        allSkills.push(...rawResult['Skills']['Technical Skills']);
+      }
+      if (rawResult['Skills']['Soft Skills'] && Array.isArray(rawResult['Skills']['Soft Skills'])) {
+        allSkills.push(...rawResult['Skills']['Soft Skills']);
+      }
+      transformed.skills = allSkills;
+    }
+  }
+
+  return transformed;
+}
+
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -659,7 +725,10 @@ Return ONLY a valid JSON object with no Markdown, no code fences, and no charact
       response_format: { type: "json_object" }
     })
     
-    const analysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
+    const rawAnalysisResult = safeJsonParse(analysisResponse.choices[0]?.message?.content || '{}')
+    
+    // Transform the keys to match frontend expectations
+    const analysisResult = transformCVDataKeys(rawAnalysisResult)
     
     // Log token usage for analysis
     const analysisUsage = analysisResponse.usage

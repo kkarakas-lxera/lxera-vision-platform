@@ -578,25 +578,63 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
     }
   };
 
+  // Helper function to check for CV extracted data in both old and new formats
+  const hasExtractedWorkExperience = () => {
+    return (cvExtractedData?.work_experience && cvExtractedData.work_experience.length > 0) ||
+           (cvExtractedData?.['Work Experience'] && cvExtractedData['Work Experience'].length > 0);
+  };
+
+  const hasExtractedEducation = () => {
+    return (cvExtractedData?.education && cvExtractedData.education.length > 0) ||
+           (cvExtractedData?.['Education'] && cvExtractedData['Education'].length > 0);
+  };
+
+  const hasExtractedSkills = () => {
+    // Check for skills in multiple formats
+    if (cvExtractedData?.skills && cvExtractedData.skills.length > 0) {
+      return true;
+    }
+    
+    // Check for old capitalized format
+    if (cvExtractedData?.['Skills']) {
+      if (Array.isArray(cvExtractedData['Skills']) && cvExtractedData['Skills'].length > 0) {
+        return true;
+      }
+      // Check for nested skills structure
+      if (cvExtractedData['Skills']['Technical Skills'] || cvExtractedData['Skills']['Soft Skills']) {
+        const techSkills = cvExtractedData['Skills']['Technical Skills'] || [];
+        const softSkills = cvExtractedData['Skills']['Soft Skills'] || [];
+        return techSkills.length > 0 || softSkills.length > 0;
+      }
+    }
+    
+    return false;
+  };
+
   const canProceed = () => {
     const stepId = STEPS[currentStep].id;
     const stepData = formData[stepId];
+
+    console.log(`[canProceed] Checking step: ${stepId}`, {
+      stepData: stepData ? 'exists' : 'null',
+      cvExtractedData: cvExtractedData ? 'exists' : 'null',
+      hasWorkExp: hasExtractedWorkExperience(),
+      hasEducation: hasExtractedEducation(),
+      hasSkills: hasExtractedSkills()
+    });
 
     switch (stepId) {
       case 'cv_upload':
         return true; // Optional step - can always proceed
       case 'work_experience':
         // Can proceed if we have CV extracted data OR manual data
-        return (cvExtractedData?.work_experience && cvExtractedData.work_experience.length > 0) || 
-               (stepData?.length > 0);
+        return hasExtractedWorkExperience() || (stepData?.length > 0);
       case 'education':
         // Can proceed if we have CV extracted data OR manual data
-        return (cvExtractedData?.education && cvExtractedData.education.length > 0) || 
-               (stepData?.length > 0);
+        return hasExtractedEducation() || (stepData?.length > 0);
       case 'skills':
         // Can proceed if we have CV extracted skills OR manual skills
-        return (cvExtractedData?.skills && cvExtractedData.skills.length > 0) || 
-               (stepData?.skills?.length > 0);
+        return hasExtractedSkills() || (stepData?.skills?.length > 0);
       case 'current_work':
         return stepData?.projects?.length > 0;
       case 'daily_tasks':
