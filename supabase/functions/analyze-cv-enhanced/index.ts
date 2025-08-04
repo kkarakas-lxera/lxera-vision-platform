@@ -199,6 +199,7 @@ function safeJsonParse(raw: string): any {
 /**
  * Transform CV analysis result keys from OpenAI format to frontend expected format
  * Maps capitalized keys like "Work Experience" to lowercase snake_case like "work_experience"
+ * Also transforms inner field names to match frontend expectations
  */
 function transformCVDataKeys(rawResult: any): any {
   if (!rawResult || typeof rawResult !== 'object') {
@@ -226,20 +227,83 @@ function transformCVDataKeys(rawResult: any): any {
     transformed[mappedKey] = value;
   }
 
-  // Ensure the structure matches what the frontend expects
-  // The frontend expects work_experience, education, and skills arrays
+  // Transform work_experience array to match frontend expectations
   if (transformed.work_experience && Array.isArray(transformed.work_experience)) {
-    // Keep as is
+    transformed.work_experience = transformed.work_experience.map((work: any) => ({
+      title: work.Role || work.role || work.title || '',
+      company: work.Company || work.company || '',
+      duration: work.Duration || work.duration || '',
+      description: Array.isArray(work.Responsibilities) 
+        ? work.Responsibilities.join(' ') 
+        : (work.responsibilities || work.description || '')
+    }));
   } else if (rawResult['Work Experience'] && Array.isArray(rawResult['Work Experience'])) {
-    transformed.work_experience = rawResult['Work Experience'];
+    transformed.work_experience = rawResult['Work Experience'].map((work: any) => ({
+      title: work.Role || work.role || work.title || '',
+      company: work.Company || work.company || '',
+      duration: work.Duration || work.duration || '',
+      description: Array.isArray(work.Responsibilities) 
+        ? work.Responsibilities.join(' ') 
+        : (work.responsibilities || work.description || '')
+    }));
   }
 
+  // Transform education array to match frontend expectations
   if (transformed.education && Array.isArray(transformed.education)) {
-    // Keep as is
+    transformed.education = transformed.education.map((edu: any) => {
+      // Try to extract field of study from degree if it contains both
+      let degree = edu.Degree || edu.degree || '';
+      let fieldOfStudy = edu.fieldOfStudy || edu.field || '';
+      
+      // If degree contains "in" or similar, try to split it
+      if (!fieldOfStudy && degree.includes(' in ')) {
+        const parts = degree.split(' in ');
+        degree = parts[0].trim();
+        fieldOfStudy = parts[1].trim();
+      } else if (!fieldOfStudy && (degree.startsWith('MSc ') || degree.startsWith('BSc ') || 
+                                    degree.startsWith('MA ') || degree.startsWith('BA '))) {
+        // Extract field from degree like "MSc Artificial Intelligence"
+        const degreeType = degree.split(' ')[0];
+        fieldOfStudy = degree.substring(degreeType.length + 1).trim();
+        degree = degreeType;
+      }
+      
+      return {
+        degree: degree,
+        fieldOfStudy: fieldOfStudy,
+        institution: edu.Institution || edu.institution || edu.school || '',
+        year: edu['Graduation Year'] || edu.graduationYear || edu.year || ''
+      };
+    });
   } else if (rawResult['Education'] && Array.isArray(rawResult['Education'])) {
-    transformed.education = rawResult['Education'];
+    transformed.education = rawResult['Education'].map((edu: any) => {
+      // Try to extract field of study from degree if it contains both
+      let degree = edu.Degree || edu.degree || '';
+      let fieldOfStudy = edu.fieldOfStudy || edu.field || '';
+      
+      // If degree contains "in" or similar, try to split it
+      if (!fieldOfStudy && degree.includes(' in ')) {
+        const parts = degree.split(' in ');
+        degree = parts[0].trim();
+        fieldOfStudy = parts[1].trim();
+      } else if (!fieldOfStudy && (degree.startsWith('MSc ') || degree.startsWith('BSc ') || 
+                                    degree.startsWith('MA ') || degree.startsWith('BA '))) {
+        // Extract field from degree like "MSc Artificial Intelligence"
+        const degreeType = degree.split(' ')[0];
+        fieldOfStudy = degree.substring(degreeType.length + 1).trim();
+        degree = degreeType;
+      }
+      
+      return {
+        degree: degree,
+        fieldOfStudy: fieldOfStudy,
+        institution: edu.Institution || edu.institution || edu.school || '',
+        year: edu['Graduation Year'] || edu.graduationYear || edu.year || ''
+      };
+    });
   }
 
+  // Handle skills transformation (keep existing logic)
   if (transformed.skills && Array.isArray(transformed.skills)) {
     // Keep as is
   } else if (rawResult['Skills']) {
