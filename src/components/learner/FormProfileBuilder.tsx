@@ -87,29 +87,35 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         }
       }
 
-      // Check for stuck CV analysis
-      const { data: analysisStatus } = await supabase
-        .from('cv_analysis_status')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .single();
+      // Check for stuck CV analysis ONLY if a CV is currently associated with the employee.
+      // After a successful "Start Over" the CV file path will be cleared, so any historical
+      // or RLS-protected rows in `cv_analysis_status` should be ignored.
+      if (employee?.cv_file_path) {
+        const { data: analysisStatus } = await supabase
+          .from('cv_analysis_status')
+          .select('*')
+          .eq('employee_id', employeeId)
+          .single();
 
-      if (analysisStatus) {
-        // If analysis is stuck in 'started' or has been running for too long
-        const createdAt = new Date(analysisStatus.created_at);
-        const now = new Date();
-        const minutesElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60);
-        
-        if (analysisStatus.status === 'started' || 
+        if (analysisStatus) {
+          // If analysis is stuck in 'started' or has been running for too long
+          const createdAt = new Date(analysisStatus.created_at);
+          const now = new Date();
+          const minutesElapsed = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+          if (
+            analysisStatus.status === 'started' ||
             (analysisStatus.status === 'analyzing' && minutesElapsed > 5) ||
-            (analysisStatus.status === 'completed' && minutesElapsed > 10)) { // Also check for long-completed status
-          console.warn(`Detected stuck CV analysis: status=${analysisStatus.status}, minutes elapsed=${minutesElapsed}`);
-          // Show as completed but stuck
-          setCvAnalysisStatus({ status: 'completed' });
-          setCvExtractedData(null);
-        } else if (analysisStatus.status === 'completed') {
-          // Normal completed state - try to load data
-          setCvAnalysisStatus({ status: 'completed' });
+            (analysisStatus.status === 'completed' && minutesElapsed > 10) // Also check for long-completed status
+          ) {
+            console.warn(`Detected stuck CV analysis: status=${analysisStatus.status}, minutes elapsed=${minutesElapsed}`);
+            // Show as completed but stuck
+            setCvAnalysisStatus({ status: 'completed' });
+            setCvExtractedData(null);
+          } else if (analysisStatus.status === 'completed') {
+            // Normal completed state - try to load data
+            setCvAnalysisStatus({ status: 'completed' });
+          }
         }
       }
 
