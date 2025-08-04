@@ -513,30 +513,74 @@ export class VerificationService {
     try {
       console.log('[VerificationService] Pre-generating questions for all skills');
       
-      const { data, error } = await supabase.functions.invoke('pregenerate-skill-questions', {
-        body: {
-          employee_id: employeeId,
-          skills: skills.map(skill => ({
+      const results = [];
+      const errors = [];
+      
+      // Process each skill individually using assess-skill-proficiency
+      for (const skill of skills) {
+        try {
+          // First check if questions already exist
+          const existing = await this.getStoredQuestions(employeeId, skill.skill_name);
+          if (existing) {
+            console.log(`[VerificationService] Questions already exist for ${skill.skill_name}, skipping`);
+            results.push({
+              skill_name: skill.skill_name,
+              status: 'already_exists',
+              question_id: existing.id
+            });
+            continue;
+          }
+          
+          // Generate questions using assess-skill-proficiency
+          const requiredLevel = skill.required_level 
+            ? (skill.required_level === 1 ? 'basic' : skill.required_level === 2 ? 'intermediate' : 'advanced')
+            : 'intermediate';
+            
+          const { data, error } = await supabase.functions.invoke('assess-skill-proficiency', {
+            body: {
+              skill_name: skill.skill_name,
+              skill_type: 'skill',
+              required_level: requiredLevel,
+              position_context: positionContext,
+              employee_context: employeeContext,
+              employee_id: employeeId,
+              position_id: positionContext.id,
+              skill_id: skill.skill_id
+            }
+          });
+          
+          if (error) {
+            throw error;
+          }
+          
+          if (data?.questions) {
+            results.push({
+              skill_name: skill.skill_name,
+              status: 'generated',
+              question_count: data.questions.length
+            });
+          }
+        } catch (error) {
+          console.error(`Error generating questions for ${skill.skill_name}:`, error);
+          errors.push({
             skill_name: skill.skill_name,
-            skill_id: skill.skill_id,
-            required_level: skill.required_level,
-            source: skill.source
-          })),
-          position_context: positionContext,
-          employee_context: employeeContext
+            error: error.message
+          });
         }
-      });
-
-      if (error) {
-        console.error('Error pre-generating questions:', error);
-        return {
-          success: false,
-          results: [],
-          errors: [{ message: error.message }]
-        };
       }
-
-      return data;
+      
+      return {
+        success: errors.length === 0,
+        results,
+        errors,
+        summary: {
+          total_skills: skills.length,
+          generated: results.filter(r => r.status === 'generated').length,
+          already_exists: results.filter(r => r.status === 'already_exists').length,
+          failed: errors.length,
+          successful: results.length
+        }
+      };
     } catch (error) {
       console.error('Error in preGenerateAllQuestions:', error);
       return {
