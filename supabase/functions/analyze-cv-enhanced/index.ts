@@ -331,68 +331,113 @@ serve(async (req) => {
     // Determine if the file is a PDF or image based on file extension
     const isPdf = file_path.toLowerCase().endsWith('.pdf')
     
-    const visionResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a CV text extractor. Extract all text from the CV document and return it as plain text. Maintain the structure and formatting as much as possible."
-        },
-        {
-          role: "user",
-          content: isPdf ? [
+    // For PDFs, use the new responses API; for images, use chat completions
+    let extractedText = ''
+    let apiResponse: any = null
+    let modelUsed = 'gpt-4o-mini'
+    
+    if (isPdf) {
+      try {
+        // Use the new responses API for PDF processing
+        modelUsed = 'gpt-4o'
+        apiResponse = await openai.responses.create({
+          model: modelUsed,
+          input: [
             {
-              type: "file",
-              file: {
-                filename: file_path.split('/').pop() || 'cv.pdf',
-                file_data: `data:application/pdf;base64,${base64}`
-              }
-            },
-            {
-              type: "text",
-              text: "Please extract all text from this CV/resume document."
-            }
-          ] : [
-            {
-              type: "text",
-              text: "Please extract all text from this CV/resume document."
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64}`,
-                detail: "high"
-              }
+              role: "user",
+              content: [
+                {
+                  type: "input_file",
+                  filename: file_path.split('/').pop() || 'cv.pdf',
+                  file_data: `data:application/pdf;base64,${base64}`
+                },
+                {
+                  type: "input_text",
+                  text: "Extract all text from this CV/resume document. Maintain the structure and formatting as much as possible. Return as plain text."
+                }
+              ]
             }
           ]
+        })
+        
+        extractedText = apiResponse.output_text || ''
+      } catch (pdfError: any) {
+        console.error('PDF processing with responses API failed:', pdfError)
+        
+        // If the responses API fails, provide a helpful error message
+        if (pdfError.message?.includes('Invalid MIME type') || pdfError.message?.includes('400')) {
+          throw new Error('PDF processing failed. The document may be corrupted or in an unsupported format. Please try converting to an image format (JPG/PNG) or ensure the PDF contains readable content.')
         }
-      ],
-      max_tokens: 4000,
-      temperature: 0
-    })
-    
-    const extractedText = visionResponse.choices[0]?.message?.content || ''
+        
+        // For other errors, re-throw with context
+        throw new Error(`PDF processing failed: ${pdfError.message}`)
+      }
+    } else {
+      // Use chat completions for images
+      apiResponse = await openai.chat.completions.create({
+        model: modelUsed,
+        messages: [
+          {
+            role: "system",
+            content: "You are a CV text extractor. Extract all text from the CV document and return it as plain text. Maintain the structure and formatting as much as possible."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Please extract all text from this CV/resume document."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64}`,
+                  detail: "high"
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0
+      })
+      
+      extractedText = apiResponse.choices[0]?.message?.content || ''
+    }
     
     if (!extractedText) {
       throw new Error('Failed to extract text from CV')
     }
     
     // Log token usage for extraction
-    const extractionUsage = visionResponse.usage
+    let extractionUsage: any = null
+    
+    if (isPdf) {
+      // For responses API, we'll estimate usage based on content length
+      extractionUsage = {
+        prompt_tokens: Math.ceil(extractedText.length / 4), // Rough estimate
+        completion_tokens: Math.ceil(extractedText.length / 4)
+      }
+    } else {
+      // For chat completions, we have actual usage data
+      extractionUsage = apiResponse?.usage
+    }
+    
     if (extractionUsage) {
       await supabase.from('st_llm_usage_metrics').insert({
         company_id,
         service_type: 'cv_text_extraction',
-        model_used: 'gpt-4o-mini',
+        model_used: modelUsed,
         input_tokens: extractionUsage.prompt_tokens || 0,
         output_tokens: extractionUsage.completion_tokens || 0,
-        cost_estimate: calculateCost('gpt-4o-mini', extractionUsage.prompt_tokens || 0, extractionUsage.completion_tokens || 0),
+        cost_estimate: calculateCost(modelUsed, extractionUsage.prompt_tokens || 0, extractionUsage.completion_tokens || 0),
         duration_ms: Date.now() - startTime,
         success: true,
         metadata: {
           request_id: requestId,
           employee_id,
-          file_path
+          file_path,
+          api_type: isPdf ? 'responses' : 'chat_completions'
         }
       })
     }
