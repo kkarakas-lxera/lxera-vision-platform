@@ -73,9 +73,23 @@ const Careers = () => {
             <h2 className="text-3xl lg:text-4xl font-medium text-business-black mb-6">
               Open Positions
             </h2>
-            <p className="text-lg text-business-black/70 max-w-3xl mx-auto">
-              We currently don't have any openings. Please check back later or join our talent network below.
+            <p className="text-lg text-business-black/70 max-w-3xl mx-auto mb-8">
+              Explore our current openings and join us in transforming the future of workplace learning.
             </p>
+          </div>
+          
+          {/* Dover Job Board Iframe */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-4xl">
+              <iframe 
+                width="100%" 
+                height="700px" 
+                src="https://app.dover.com/jobs/lxera?embed=1" 
+                frameBorder="0"
+                className="rounded-xl shadow-lg"
+                title="LXERA Job Board"
+              />
+            </div>
           </div>
         </div>
       </section>
