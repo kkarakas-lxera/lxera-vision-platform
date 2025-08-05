@@ -66,6 +66,22 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   console.log('Employee Skills Profile:', employee.skills_profile);
   console.log('Employee Verified Skills Raw:', employee.verifiedSkillsRaw);
   console.log('Employee Verified Skills Stats:', employee.verifiedSkills);
+  
+  // Debug verification data
+  if (employee.verifiedSkillsRaw) {
+    console.log('Verification Data Analysis:');
+    employee.verifiedSkillsRaw.forEach((skill: any, index: number) => {
+      console.log(`Skill ${index + 1}:`, {
+        name: skill.skill_name,
+        is_from_cv: skill.is_from_cv,
+        is_from_position: skill.is_from_position,
+        verification_score: skill.verification_score,
+        responses: skill.responses?.length || 0,
+        questions: skill.questions_asked?.length || 0,
+        time_taken: skill.responses?.[0]?.time_taken || 'N/A'
+      });
+    });
+  }
 
   if (!employee.skills_profile && !employee.verifiedSkillsRaw) {
     return (
@@ -134,6 +150,14 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   const positionSkills = mergedSkills.filter(s => s.source === 'position');
   const assessmentSkills = mergedSkills.filter(s => s.source === 'assessment');
   const verifiedCount = mergedSkills.filter(s => s.verification).length;
+
+  // Debug skill categorization
+  console.log('=== SKILLS CATEGORIZATION DEBUG ===');
+  console.log('Total merged skills:', mergedSkills.length);
+  console.log('CV Skills:', cvSkills.length, cvSkills.map(s => s.skill_name));
+  console.log('Position Skills:', positionSkills.length, positionSkills.map(s => s.skill_name));
+  console.log('Assessment Skills:', assessmentSkills.length, assessmentSkills.map(s => s.skill_name));
+  console.log('All skills with sources:', mergedSkills.map(s => ({ name: s.skill_name, source: s.source })));
 
   const summary = `Top Skills: ${mergedSkills.slice(0, 5).map(s => s.skill_name).join(' • ')}
 From CV: ${cvSkills.length} | Position: ${positionSkills.length} | Assessment: ${assessmentSkills.length} | Verified: ${verifiedCount}`;
@@ -251,7 +275,9 @@ From CV: ${cvSkills.length} | Position: ${positionSkills.length} | Assessment: $
                             ))}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Time: {skill.verification.responses?.[0]?.time_taken || 0}s • 
+                            Time: {skill.verification.responses?.length > 0 
+                              ? Math.round(skill.verification.responses.reduce((sum: number, r: any) => sum + (r.time_taken || 0), 0) / skill.verification.responses.length)
+                              : 0}s • 
                             Verified: {skill.verification.lastVerified ? 
                               new Date(skill.verification.lastVerified).toLocaleDateString() : 'N/A'}
                           </div>
