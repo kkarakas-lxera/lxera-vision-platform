@@ -79,6 +79,14 @@ interface EmployeeProfile {
     count: number;
     total: number;
     avgScore: number;
+    strongest?: {
+      name: string;
+      score: number;
+    } | null;
+    weakest?: {
+      name: string;
+      score: number;
+    } | null;
   };
   verifiedSkillsRaw?: any[];
   skills_profile?: {
@@ -217,23 +225,29 @@ export default function EmployeeProfile() {
         return acc;
       }, {});
 
-      // Fetch skills verification data
+      // Fetch skills verification data with explicit columns
       const { data: verifiedSkills, error: skillsValidationError } = await supabase
         .from('employee_skills_validation')
-        .select('*')
+        .select(`
+          id,
+          employee_id,
+          skill_name,
+          skill_id,
+          proficiency_level,
+          is_from_cv,
+          is_from_position,
+          verification_score,
+          questions_asked,
+          responses,
+          verified_at,
+          created_at
+        `)
         .eq('employee_id', employeeId);
       
       if (skillsValidationError) {
         console.error('Skills validation query error:', skillsValidationError);
       }
 
-      // Debug logging
-      console.log('=== PROFILE DEBUG DATA ===');
-      console.log('Employee ID:', employeeId);
-      console.log('Profile Sections:', profileSections);
-      console.log('Profile Data From Sections:', profileDataFromSections);
-      console.log('Verified Skills:', verifiedSkills);
-      console.log('Skills Profile:', skillsProfile);
 
       // Fetch course assignments
       const { data: courseAssignments } = await supabase
@@ -285,59 +299,45 @@ export default function EmployeeProfile() {
       const completedSections = mainProfileSections.filter(s => s.is_complete).length;
       const totalSections = Math.max(mainProfileSections.length, 7); // At least 7 for the standard profile
 
-      console.log('=== PROFILE COMPLETION DEBUG ===');
-      console.log('All Profile Sections:', profileSections?.map(s => ({ name: s.section_name, complete: s.is_complete })));
-      console.log('Main Profile Sections:', mainProfileSections.map(s => ({ name: s.section_name, complete: s.is_complete })));
-      console.log('Completed Sections:', completedSections);
-      console.log('Total Sections:', totalSections);
 
-      // Calculate verified skills stats - use skills profile data since validation table has all zeros
-      // Include all skills with valid proficiency levels (1-4 scale: 1=Beginner, 2=Learning, 3=Using, 4=Expert)
-      const skillsWithProficiency = skillsProfile?.extracted_skills?.filter((s: any) => 
-        s.proficiency !== null && s.proficiency !== undefined && s.proficiency > 0
-      ) || [];
+      // Calculate verified skills stats from validation table
+      const verifiedSkillsList = verifiedSkills?.filter((s: any) => {
+        const score = s.verification_score as number | string | null;
+        return score !== null && score !== undefined && Number(score) > 0;
+      }) || [];
+      
+      // Find strongest and weakest skills
+      let strongestSkill = null;
+      let weakestSkill = null;
+      
+      if (verifiedSkillsList.length > 0) {
+        const sortedByScore = [...verifiedSkillsList].sort((a: any, b: any) => 
+          Number(b.verification_score) - Number(a.verification_score)
+        );
+        strongestSkill = {
+          name: sortedByScore[0].skill_name,
+          score: Math.round(Number(sortedByScore[0].verification_score) * 100)
+        };
+        weakestSkill = {
+          name: sortedByScore[sortedByScore.length - 1].skill_name,
+          score: Math.round(Number(sortedByScore[sortedByScore.length - 1].verification_score) * 100)
+        };
+      }
+      
       const verifiedSkillsStats = {
-        count: skillsWithProficiency.length,
-        total: skillsProfile?.extracted_skills?.length || 0,
-        avgScore: skillsWithProficiency.length > 0 
-          ? Math.round(skillsWithProficiency.reduce((acc: number, s: any) => acc + ((s.proficiency || 0) * 25), 0) / skillsWithProficiency.length) // Convert 1-4 scale to percentage
-          : 0
+        count: verifiedSkillsList.length,
+        total: verifiedSkills?.length || 0,
+        avgScore: verifiedSkillsList.length > 0 
+          ? Math.round(verifiedSkillsList.reduce((acc: number, s: any) => 
+              acc + (Number(s.verification_score) * 100), 0) / verifiedSkillsList.length)
+          : 0,
+        strongest: strongestSkill,
+        weakest: weakestSkill
       };
 
-      console.log('=== SKILLS VERIFICATION DEBUG ===');
-      console.log('Raw Verified Skills (validation table):', verifiedSkills?.map(v => ({ 
-        skill: v.skill_name, 
-        score: v.verification_score,
-        hasScore: (v.verification_score || 0) > 0 
-      })));
-      console.log('All Extracted Skills:', skillsProfile?.extracted_skills?.map((s, index) => {
-        console.log(`Skill ${index}:`, s); // Log full object structure
-        return {
-          skill: s.skill_name,
-          proficiency: s.proficiency,
-          hasLevel: (s.proficiency || 0) > 0,
-          allFields: Object.keys(s)
-        };
-      }));
-      console.log('Skills With Proficiency (profile table):', skillsWithProficiency.map(s => ({
-        skill: s.skill_name,
-        proficiency: s.proficiency,
-        percentage: Math.round(s.proficiency * 25) // 1-4 scale to percentage
-      })));
-      console.log('Verified Skills With Score:', skillsWithProficiency.length);
-      console.log('Skills Profile Extracted:', skillsProfile?.extracted_skills?.length);
-      console.log('Verification Stats:', verifiedSkillsStats);
 
-      // Use validation data if available, otherwise fall back to profile data
-      const skillsAsVerificationData = verifiedSkills && verifiedSkills.length > 0 
-        ? verifiedSkills 
-        : (Array.isArray(skillsProfile?.extracted_skills) ? skillsProfile.extracted_skills : []).map((skill: any) => ({
-            skill_name: skill.skill_name,
-            verification_score: (skill.proficiency || 0) / 4, // Convert 1-4 scale to 0-1 scale
-            proficiency_level: skill.proficiency,
-            is_from_cv: true,
-            created_at: skillsProfile.analyzed_at
-          }));
+      // Use validation data directly
+      const skillsAsVerificationData = verifiedSkills || [];
 
       // Transform the data
       const transformedEmployee: EmployeeProfile = {
@@ -388,7 +388,7 @@ export default function EmployeeProfile() {
           completed: completedSections,
           total: totalSections
         },
-        profileSections: mainProfileSections.map(section => {
+        profileSections: mainProfileSections.map((section: any) => {
           const displayNameMap: Record<string, string> = {
             'cv_upload': 'Upload Your CV',
             'work_experience': 'Work Experience',

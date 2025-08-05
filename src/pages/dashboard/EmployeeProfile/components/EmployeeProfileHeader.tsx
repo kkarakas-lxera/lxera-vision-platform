@@ -50,6 +50,14 @@ interface EmployeeProfileHeaderProps {
       count: number;
       total: number;
       avgScore: number;
+      strongest?: {
+        name: string;
+        score: number;
+      } | null;
+      weakest?: {
+        name: string;
+        score: number;
+      } | null;
     };
   };
 }
@@ -228,8 +236,18 @@ export function EmployeeProfileHeader({ employee }: EmployeeProfileHeaderProps) 
                     View Detail
                   </Button>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Avg Score: {employee.verifiedSkills?.avgScore || 0}%
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <div>Avg Score: {employee.verifiedSkills?.avgScore || 0}%</div>
+                  {employee.verifiedSkills?.strongest && (
+                    <div className="text-xs">
+                      <span className="text-green-600">Strongest:</span> {employee.verifiedSkills.strongest.name} ({employee.verifiedSkills.strongest.score}%)
+                    </div>
+                  )}
+                  {employee.verifiedSkills?.weakest && (
+                    <div className="text-xs">
+                      <span className="text-red-600">Weakest:</span> {employee.verifiedSkills.weakest.name} ({employee.verifiedSkills.weakest.score}%)
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
