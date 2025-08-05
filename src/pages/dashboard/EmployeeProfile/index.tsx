@@ -144,11 +144,15 @@ export default function EmployeeProfile() {
         .single();
 
       // Fetch profile sections
-      const { data: profileSections } = await supabase
+      const { data: profileSections, error: profileSectionsError } = await supabase
         .from('employee_profile_sections')
         .select('*')
         .eq('employee_id', employeeId)
         .order('section_order', { ascending: true });
+      
+      if (profileSectionsError) {
+        console.error('Profile sections query error:', profileSectionsError);
+      }
 
       // Fetch profile data from sections (not from employees.profile_data which is null)
       const profileDataFromSections = profileSections?.reduce((acc: any, section: any) => {
@@ -159,10 +163,14 @@ export default function EmployeeProfile() {
       }, {});
 
       // Fetch skills verification data
-      const { data: verifiedSkills } = await supabase
+      const { data: verifiedSkills, error: skillsValidationError } = await supabase
         .from('employee_skills_validation')
         .select('*')
         .eq('employee_id', employeeId);
+      
+      if (skillsValidationError) {
+        console.error('Skills validation query error:', skillsValidationError);
+      }
 
       // Debug logging
       console.log('=== PROFILE DEBUG DATA ===');
@@ -243,6 +251,12 @@ export default function EmployeeProfile() {
         skill: v.skill_name, 
         score: v.verification_score,
         hasScore: (v.verification_score || 0) > 0 
+      })));
+      console.log('All Extracted Skills:', skillsProfile?.extracted_skills?.map(s => ({
+        skill: s.skill_name,
+        proficiency: s.proficiency_level,
+        hasLevel: (s.proficiency_level || 0) > 0,
+        fullObject: s
       })));
       console.log('Skills With Proficiency (profile table):', skillsWithProficiency.map(s => ({
         skill: s.skill_name,
