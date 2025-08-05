@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify
 import asyncio
 import logging
 import os
-from lxera_database_pipeline import generate_course_with_agents
+from lxera_database_pipeline import generate_course_with_agents, resume_course_generation
 
 app = Flask(__name__)
 
@@ -43,7 +43,8 @@ def generate_course():
                 employee_id=data['employee_id'],
                 company_id=data['company_id'],
                 assigned_by_id=data['assigned_by_id'],
-                job_id=data.get('job_id')
+                job_id=data.get('job_id'),
+                generation_mode=data.get('generation_mode', 'full')
             )
         )
         
@@ -51,6 +52,44 @@ def generate_course():
         
     except Exception as e:
         logger.error(f"API error: {e}")
+        return jsonify({
+            'pipeline_success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/resume-course', methods=['POST'])
+def resume_course():
+    """Resume course generation from partial to full."""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['plan_id', 'employee_id', 'company_id', 'assigned_by_id']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Run the async resume pipeline
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        result = loop.run_until_complete(
+            resume_course_generation(
+                plan_id=data['plan_id'],
+                employee_id=data['employee_id'],
+                company_id=data['company_id'],
+                assigned_by_id=data['assigned_by_id'],
+                job_id=data.get('job_id')
+            )
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Resume API error: {e}")
         return jsonify({
             'pipeline_success': False,
             'error': str(e)

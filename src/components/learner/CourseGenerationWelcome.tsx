@@ -14,7 +14,9 @@ import {
   Loader2,
   MessageSquare,
   Brain,
-  X
+  X,
+  Play,
+  Zap
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -32,16 +34,18 @@ export default function CourseGenerationWelcome({
   employeeName,
   onClose 
 }: CourseGenerationWelcomeProps) {
-  const [stage, setStage] = useState<'welcome' | 'generating' | 'completed' | 'error'>('welcome');
+  const [stage, setStage] = useState<'welcome' | 'generating' | 'completed' | 'error' | 'creating_course'>('welcome');
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [courseOutline, setCourseOutline] = useState(null);
   const [rawCourseOutline, setRawCourseOutline] = useState(null);
   const [error, setError] = useState<string | null>(null);
+  const [courseGenerated, setCourseGenerated] = useState(false);
+  const [courseData, setCourseData] = useState<any>(null);
 
   useEffect(() => {
     // Start progress animation when generating
-    if (stage === 'generating') {
+    if (stage === 'generating' || stage === 'creating_course') {
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 95) {
@@ -132,32 +136,110 @@ export default function CourseGenerationWelcome({
   };
 
   const handleIntention = async (intention: 'accepted' | 'maybe_later' | 'rejected') => {
+    if (intention === 'accepted') {
+      // CRITICAL FIX: Actually generate the course when user accepts
+      await generateFirstModule();
+    } else {
+      // Handle other intentions without course generation
+      try {
+        await supabase
+          .from('employee_course_intentions')
+          .upsert({
+            employee_id: employeeId,
+            course_outline: rawCourseOutline || courseOutline,
+            intention: intention,
+            intended_start_date: null,
+            created_at: new Date().toISOString()
+          });
+
+        if (intention === 'maybe_later') {
+          toast.info('No problem! Your course will be saved for later.');
+        } else {
+          toast.info('We\'ll help you find a better match.');
+        }
+        
+        setTimeout(onClose, 1500);
+      } catch (error) {
+        console.error('Failed to save intention:', error);
+        toast.error('Failed to save your preference');
+      }
+    }
+  };
+
+  const generateFirstModule = async () => {
+    setStage('creating_course');
+    setProgress(0);
+    setCurrentStep('Saving your course preference...');
+    
     try {
+      // First, save the intention
       await supabase
         .from('employee_course_intentions')
         .upsert({
           employee_id: employeeId,
-          course_outline: rawCourseOutline || courseOutline, // Use raw data for database
-          intention: intention,
-          intended_start_date: intention === 'accepted' ? new Date().toISOString() : null,
+          course_outline: rawCourseOutline || courseOutline,
+          intention: 'accepted',
+          intended_start_date: new Date().toISOString(),
           created_at: new Date().toISOString()
         });
 
-      if (intention === 'accepted') {
-        toast.success('Great! Your course is ready to start.');
-        setTimeout(() => {
-          window.location.href = '/learner/courses';
-        }, 1500);
-      } else if (intention === 'maybe_later') {
-        toast.info('No problem! Your course will be saved for later.');
-        setTimeout(onClose, 1500);
-      } else {
-        toast.info('We\'ll help you find a better match.');
-        setTimeout(onClose, 1500);
+      setCurrentStep('Starting course generation...');
+      setProgress(20);
+
+      // Add realistic step updates
+      setTimeout(() => {
+        setCurrentStep('Generating your first module...');
+        setProgress(40);
+      }, 1000);
+
+      setTimeout(() => {
+        setCurrentStep('Personalizing content for your role...');
+        setProgress(60);
+      }, 3000);
+
+      setTimeout(() => {
+        setCurrentStep('Almost ready...');
+        setProgress(80);
+      }, 5000);
+
+      // Call the new edge function to generate the first module
+      const { data, error } = await supabase.functions.invoke('generate-first-module', {
+        body: { 
+          employee_id: employeeId
+        }
+      });
+
+      if (error) {
+        console.error('Course generation error:', error);
+        throw new Error(`Failed to generate course: ${error.message}`);
       }
-    } catch (error) {
-      console.error('Failed to save intention:', error);
-      toast.error('Failed to save your preference');
+
+      console.log('First module generation response:', JSON.stringify(data, null, 2));
+
+      if (data?.success) {
+        setCourseData(data.course_data);
+        setCourseGenerated(true);
+        setProgress(100);
+        setCurrentStep('Course ready!');
+        
+        toast.success('🎉 Your first module is ready! You can start learning immediately.');
+        
+        // Redirect to the course after a brief celebration
+        setTimeout(() => {
+          if (data.course_data?.content_id) {
+            window.location.href = `/learner/course/${data.course_data.content_id}`;
+          } else {
+            window.location.href = '/learner/courses';
+          }
+        }, 2000);
+      } else {
+        throw new Error(data?.error || 'Course generation failed');
+      }
+
+    } catch (err) {
+      console.error('Course generation error:', err);
+      setError(err.message || 'Failed to generate your course');
+      setStage('error');
     }
   };
 
@@ -280,6 +362,53 @@ export default function CourseGenerationWelcome({
     );
   }
 
+  if (stage === 'creating_course') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full">
+          <Card className="border-gray-200 shadow-sm">
+            <CardContent className="p-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Zap className="h-5 w-5 text-green-600 animate-pulse" />
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Creating Your Course
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Generating your first module so you can start learning immediately...
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-900">{currentStep}</span>
+                      <span className="text-sm text-green-700">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-1.5" />
+                  </div>
+                  
+                  {courseGenerated && (
+                    <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-900">
+                          Course ready! Redirecting you to start learning...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (stage === 'completed' && courseOutline) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -366,7 +495,7 @@ export default function CourseGenerationWelcome({
                     onClick={() => handleIntention('accepted')}
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
-                    <CheckCircle className="mr-2 h-4 w-4" />
+                    <Play className="mr-2 h-4 w-4" />
                     Yes, start now
                   </Button>
                   <Button
@@ -377,6 +506,11 @@ export default function CourseGenerationWelcome({
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Different course
                   </Button>
+                </div>
+                
+                <div className="text-xs text-center text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  💡 <strong>New:</strong> Your first module will be ready immediately! 
+                  Additional modules unlock as they're generated in the background.
                 </div>
               </div>
             </CardContent>
@@ -402,7 +536,7 @@ export default function CourseGenerationWelcome({
                       Course Generation Failed
                     </h2>
                     <p className="text-sm text-gray-600">
-                      {error || "We couldn't generate your course outline at this time."}
+                      {error || "We couldn't generate your course at this time."}
                     </p>
                   </div>
                 </div>

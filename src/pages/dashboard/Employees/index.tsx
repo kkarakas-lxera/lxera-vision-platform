@@ -331,7 +331,8 @@ const EmployeesPage = () => {
         
         // Calculate profile completion from sections
         const sections = profileSectionsMap.get(emp.id) || [];
-        const profileSectionNames = ['basic_info', 'work_experience', 'education', 'skills', 'certifications', 'languages', 'projects'];
+        // Updated to match new profile builder sections
+        const profileSectionNames = ['work_experience', 'education', 'skills', 'current_work', 'daily_tasks', 'tools_technologies', 'profile_verification'];
         const completedSections = sections.filter(s => s.is_complete && profileSectionNames.includes(s.section_name)).length;
         const totalSections = profileSectionNames.length;
         

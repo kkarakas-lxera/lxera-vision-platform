@@ -11,6 +11,7 @@ interface CourseGenerationRequest {
   company_id: string
   assigned_by_id: string
   job_id?: string
+  generation_mode?: 'full' | 'first_module'
 }
 
 serve(async (req) => {
@@ -20,7 +21,7 @@ serve(async (req) => {
   }
 
   try {
-    const { employee_id, company_id, assigned_by_id, job_id } = await req.json() as CourseGenerationRequest
+    const { employee_id, company_id, assigned_by_id, job_id, generation_mode = 'full' } = await req.json() as CourseGenerationRequest
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -189,7 +190,8 @@ serve(async (req) => {
       employee_id,
       company_id,
       assigned_by_id,
-      job_id
+      job_id,
+      generation_mode
     }
 
     // Call the agent pipeline API
@@ -235,7 +237,9 @@ serve(async (req) => {
         assignment_id: assignment_id,
         module_name: pipelineResult.metadata?.module_name || 'Course Module',
         employee_name: employee.users?.full_name || 'Employee',
-        module_count: 1,
+        module_count: generation_mode === 'first_module' ? 1 : (pipelineResult.total_modules || 1),
+        generation_mode,
+        is_partial_generation: generation_mode === 'first_module',
         token_savings: pipelineResult.token_savings,
         processing_time: pipelineResult.total_processing_time
       }),

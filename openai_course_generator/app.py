@@ -115,7 +115,8 @@ def generate_course():
                 employee_id=data['employee_id'],
                 company_id=data['company_id'],
                 assigned_by_id=data['assigned_by_id'],
-                job_id=data.get('job_id')
+                job_id=data.get('job_id'),
+                generation_mode=data.get('generation_mode', 'full')
             )
         )
         
@@ -124,6 +125,57 @@ def generate_course():
         
     except Exception as e:
         logger.error(f"Error in course generation: {e}")
+        return jsonify({
+            'pipeline_success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/resume-course', methods=['POST', 'OPTIONS'])
+def resume_course():
+    """Resume course generation from partial to full"""
+    
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        return jsonify({'message': 'OK'}), 200
+    
+    try:
+        # Get request data
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['plan_id', 'employee_id', 'company_id', 'assigned_by_id']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'pipeline_success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Check if pipeline is available
+        if not resume_course_generation:
+            return jsonify({
+                'pipeline_success': False,
+                'error': 'Resume pipeline not properly initialized'
+            }), 500
+        
+        logger.info(f"Starting course resume for plan: {data['plan_id']}")
+        
+        # Run the async resume pipeline
+        result = asyncio.run(
+            resume_course_generation(
+                plan_id=data['plan_id'],
+                employee_id=data['employee_id'],
+                company_id=data['company_id'],
+                assigned_by_id=data['assigned_by_id'],
+                job_id=data.get('job_id')
+            )
+        )
+        
+        logger.info(f"Resume pipeline completed for plan: {data['plan_id']}")
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error in course resume: {e}")
         return jsonify({
             'pipeline_success': False,
             'error': str(e)
@@ -139,6 +191,7 @@ def root():
             'ping': '/ping',
             'health': '/health',
             'generate_course': '/api/generate-course',
+            'resume_course': '/api/resume-course',
             'sentry_test': '/sentry-test',
             'sentry_performance_test': '/sentry-performance-test'
         }

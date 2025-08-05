@@ -463,6 +463,15 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
       // Clear state
       await ProfileBuilderStateService.clearState(employeeId);
 
+      // CRITICAL: Set localStorage flags to trigger course generation flow
+      try {
+        localStorage.setItem('showCourseGeneration', 'true');
+        localStorage.setItem('profileJustCompleted', 'true');
+      } catch (localStorageError) {
+        console.warn('localStorage not available, course generation will not be triggered automatically:', localStorageError);
+        // Continue with normal flow even if localStorage fails
+      }
+
       toast.success('Profile completed successfully!');
       onComplete();
     } catch (error) {

@@ -41,7 +41,8 @@ class LXERADatabasePipeline:
         employee_id: str,
         company_id: str,
         assigned_by_id: str,
-        job_id: Optional[str] = None
+        job_id: Optional[str] = None,
+        generation_mode: str = 'full'
     ) -> Dict[str, Any]:
         """
         Generate a personalized course for an employee using their existing skills gap analysis.
@@ -87,7 +88,8 @@ class LXERADatabasePipeline:
             pipeline_result = await self._run_sdk_pipeline(
                 employee_data,
                 skills_gaps,
-                job_id
+                job_id,
+                generation_mode
             )
             
             # If successful, create course assignment
@@ -96,16 +98,24 @@ class LXERADatabasePipeline:
                     employee_id,
                     pipeline_result['content_id'],
                     company_id,
-                    assigned_by_id
+                    assigned_by_id,
+                    pipeline_result.get('plan_id'),
+                    generation_mode
                 )
                 pipeline_result['assignment_id'] = assignment_id
             
             # Final job update
             if job_id:
+                completion_message = (
+                    'First module generated - course preview ready' if generation_mode == 'first_module' 
+                    else 'Course generation complete'
+                )
                 await self._update_job_progress(job_id, {
-                    'current_phase': 'Course generation complete',
+                    'current_phase': completion_message,
                     'progress_percentage': 100,
-                    'successful_courses': 1
+                    'successful_courses': 1,
+                    'generation_mode': generation_mode,
+                    'can_resume': generation_mode == 'first_module'
                 })
             
             return pipeline_result
@@ -123,7 +133,8 @@ class LXERADatabasePipeline:
         self,
         employee_data: Dict[str, Any],
         skills_gaps: List[Dict[str, Any]],
-        job_id: Optional[str] = None
+        job_id: Optional[str] = None,
+        generation_mode: str = 'full'
     ) -> Dict[str, Any]:
         """
         Run the course generation pipeline using OpenAI SDK with automated agent handoffs.
@@ -162,11 +173,13 @@ class LXERADatabasePipeline:
             Complete these steps and store the final course plan.
             """
             
-            # Update job progress for planning phase
+            # Update job progress for planning phase (adjust for generation mode)
             if job_id:
+                planning_progress = 30 if generation_mode == 'full' else 15  # Planning takes less % in partial mode
                 await self._update_job_progress(job_id, {
                     'current_phase': 'Planning Phase: Creating personalized course structure',
-                    'progress_percentage': 30
+                    'progress_percentage': planning_progress,
+                    'generation_mode': generation_mode
                 })
             
             plan_id = None
@@ -192,9 +205,11 @@ class LXERADatabasePipeline:
             
             # Phase 2: Enhanced Research Agent
             if job_id:
+                research_progress = 60 if generation_mode == 'full' else 30  # Research takes less % in partial mode
                 await self._update_job_progress(job_id, {
                     'current_phase': 'Research Phase: Enhanced comprehensive research with advanced Tavily/Firecrawl',
-                    'progress_percentage': 60
+                    'progress_percentage': research_progress,
+                    'generation_mode': generation_mode
                 })
             
             # Check feature flag for enhanced research
@@ -269,11 +284,13 @@ class LXERADatabasePipeline:
                 else:
                     logger.info(f"✅ Standard research phase completed with research_id: {research_id}")
             
-            # Phase 3: Content Generation Agent - Generate ALL modules
+            # Phase 3: Content Generation Agent - Generate modules based on mode
             if job_id:
+                content_start_progress = 70 if generation_mode == 'full' else 60  # Content starts later in partial mode
                 await self._update_job_progress(job_id, {
                     'current_phase': 'Content Generation Phase: Creating course materials',
-                    'progress_percentage': 70
+                    'progress_percentage': content_start_progress,
+                    'generation_mode': generation_mode
                 })
             
             # Fetch course plan to get all modules
@@ -287,23 +304,37 @@ class LXERADatabasePipeline:
                 }
             
             modules = course_plan.get('course_structure', {}).get('modules', [])
-            logger.info(f"📚 Found {len(modules)} modules to generate")
+            total_modules = len(modules)
+            
+            # Determine how many modules to generate based on mode
+            if generation_mode == 'first_module':
+                modules_to_generate = modules[:1]  # Only first module
+                logger.info(f"📚 Partial generation mode: generating first module only (1/{total_modules})")
+            else:
+                modules_to_generate = modules  # All modules
+                logger.info(f"📚 Full generation mode: generating all {total_modules} modules")
             
             from course_agents.content_agent import create_content_agent
             content_agent = create_content_agent()
             
-            # Generate content for each module
+            # Generate content for selected modules
             content_ids = []
-            for idx, module in enumerate(modules):
+            for idx, module in enumerate(modules_to_generate):
                 module_number = idx + 1
                 module_title = module.get('title', f'Module {module_number}')
                 logger.info(f"📖 Generating content for Module {module_number}/{len(modules)}: {module_title}")
                 
                 if job_id:
-                    # Update progress for each module
-                    module_progress = 70 + (20 * (idx / len(modules)))
+                    # Update progress for each module (adjust for partial vs full generation)
+                    if generation_mode == 'first_module':
+                        # For partial generation: 60-100% for the single module
+                        module_progress = 60 + (40 * (idx + 1 / len(modules_to_generate)))
+                    else:
+                        # For full generation: 70-90% for all modules
+                        module_progress = 70 + (20 * (idx / len(modules_to_generate)))
+                    
                     await self._update_job_progress(job_id, {
-                        'current_phase': f'Generating Module {module_number}/{len(modules)}: {module_title}',
+                        'current_phase': f'Generating Module {module_number}/{total_modules}: {module_title}',
                         'progress_percentage': int(module_progress)
                     })
                 
@@ -374,7 +405,7 @@ class LXERADatabasePipeline:
                     'content_id': None
                 }
             
-            logger.info(f"✅ Content generation completed: {len(content_ids)}/{len(modules)} modules")
+            logger.info(f"✅ Content generation completed: {len(content_ids)}/{total_modules} modules (mode: {generation_mode})")
             
             # Phase 4: Quality Assessment (simplified for now)
             if job_id:
@@ -387,15 +418,18 @@ class LXERADatabasePipeline:
             
             return {
                 'pipeline_success': True,
+                'generation_mode': generation_mode,
                 'content_ids': content_ids,  # List of all module content IDs
                 'content_id': content_ids[0]['content_id'] if content_ids else None,  # First module for compatibility
                 'plan_id': plan_id,
                 'research_id': research_id,
-                'agent_result': f"Course generated successfully: {len(content_ids)} modules created",
+                'agent_result': f"Course generated successfully: {len(content_ids)} modules created ({generation_mode} mode)",
                 'agent_name': 'full_pipeline',
                 'sdk_handoffs': True,
                 'modules_generated': len(content_ids),
-                'total_modules': len(modules)
+                'total_modules_planned': total_modules,
+                'can_resume': generation_mode == 'first_module',
+                'partial_generation': generation_mode == 'first_module'
             }
             
         except Exception as e:
@@ -789,12 +823,23 @@ class LXERADatabasePipeline:
         employee_id: str,
         content_id: str,
         company_id: str,
-        assigned_by_id: str
+        assigned_by_id: str,
+        plan_id: Optional[str] = None,
+        generation_mode: str = 'full'
     ) -> str:
         """Create course assignment in database."""
         try:
             from datetime import timedelta
             due_date = datetime.now() + timedelta(days=30)
+            
+            # Create assignment metadata for partial generation
+            assignment_metadata = {
+                'generation_mode': generation_mode,
+                'can_resume': generation_mode == 'first_module',
+                'partial_generation': generation_mode == 'first_module'
+            }
+            if plan_id:
+                assignment_metadata['plan_id'] = plan_id
             
             response = self.supabase.table('course_assignments').insert({
                 'employee_id': employee_id,
@@ -804,8 +849,9 @@ class LXERADatabasePipeline:
                 'assigned_at': datetime.now().isoformat(),
                 'due_date': due_date.isoformat(),
                 'priority': 'high',
-                'status': 'assigned',
-                'progress_percentage': 0
+                'status': 'assigned' if generation_mode == 'full' else 'partial',
+                'progress_percentage': 0,
+                'metadata': assignment_metadata
             }).execute()
             
             assignment_id = response.data[0]['id'] if response.data else str(uuid.uuid4())
@@ -855,22 +901,193 @@ class LXERADatabasePipeline:
                 
         except Exception as e:
             logger.error(f"Failed to log enhanced research metrics: {e}")
+    
+    async def resume_course_generation(
+        self,
+        plan_id: str,
+        employee_id: str,
+        company_id: str,
+        assigned_by_id: str,
+        job_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Resume course generation from partial to full by generating remaining modules.
+        
+        Args:
+            plan_id: Existing course plan ID
+            employee_id: Employee ID
+            company_id: Company ID
+            assigned_by_id: User ID who initiated the resume
+            job_id: Optional job tracking ID
+        
+        Returns:
+            Dict containing updated content_ids and pipeline results
+        """
+        try:
+            logger.info(f"🔄 Resuming course generation for plan_id: {plan_id}")
+            
+            # Fetch the existing course plan
+            course_plan = await self._fetch_course_plan(plan_id)
+            if not course_plan:
+                raise Exception(f"Course plan {plan_id} not found")
+            
+            modules = course_plan.get('course_structure', {}).get('modules', [])
+            total_modules = len(modules)
+            
+            # Skip the first module (already generated) and generate the rest
+            remaining_modules = modules[1:]  # Skip module 0
+            logger.info(f"📚 Resuming generation: {len(remaining_modules)} remaining modules (skipping first module)")
+            
+            if not remaining_modules:
+                logger.info("✅ No remaining modules to generate - course already complete")
+                return {
+                    'pipeline_success': True,
+                    'generation_mode': 'resume_complete',
+                    'message': 'Course was already complete',
+                    'modules_generated': 0,
+                    'total_modules_planned': total_modules
+                }
+            
+            # Get employee data for context
+            employee_data = await self._retrieve_employee_data(employee_id)
+            
+            from course_agents.content_agent import create_content_agent
+            from lxera_agents import Runner, trace
+            content_agent = create_content_agent()
+            
+            # Generate remaining modules
+            new_content_ids = []
+            for idx, module in enumerate(remaining_modules):
+                module_number = idx + 2  # Start from module 2 (since module 1 is already done)
+                module_title = module.get('title', f'Module {module_number}')
+                logger.info(f"📖 Generating remaining Module {module_number}/{total_modules}: {module_title}")
+                
+                if job_id:
+                    # Update progress for remaining modules
+                    module_progress = 20 + (70 * (idx / len(remaining_modules)))
+                    await self._update_job_progress(job_id, {
+                        'current_phase': f'Resuming - Module {module_number}/{total_modules}: {module_title}',
+                        'progress_percentage': int(module_progress)
+                    })
+                
+                content_message = f"""
+                Generate comprehensive course content for Module {module_number}: {module_title}
+                
+                DATABASE CONTEXT:
+                - plan_id: {plan_id}
+                
+                MODULE DETAILS:
+                - Module Number: {module_number}
+                - Module Title: {module_title}
+                - Topics: {', '.join(module.get('topics', []))}
+                - Duration: {module.get('duration', '1 week')}
+                - Priority: {module.get('priority', 'high')}
+                
+                [Same content generation workflow as in full generation...]
+                """
+                
+                with trace(f"resume_content_generation_module_{module_number}"):
+                    content_result = await Runner.run(
+                        content_agent,
+                        content_message,
+                        max_turns=25
+                    )
+                
+                # Extract content_id from content result
+                content_id = self._extract_content_id(content_result)
+                
+                if content_id:
+                    logger.info(f"✅ Module {module_number} completed with content_id: {content_id}")
+                    new_content_ids.append({
+                        'module_number': module_number,
+                        'module_title': module_title,
+                        'content_id': content_id
+                    })
+                else:
+                    logger.error(f"❌ Module {module_number} generation failed")
+            
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'current_phase': 'Resume complete - full course now available',
+                    'progress_percentage': 100,
+                    'generation_mode': 'resume_complete'
+                })
+            
+            logger.info(f"✅ Course resume completed: {len(new_content_ids)} additional modules generated")
+            
+            return {
+                'pipeline_success': True,
+                'generation_mode': 'resume_complete',
+                'new_content_ids': new_content_ids,
+                'plan_id': plan_id,
+                'modules_generated': len(new_content_ids),
+                'total_modules_planned': total_modules,
+                'agent_result': f"Course resume completed: {len(new_content_ids)} additional modules generated",
+                'partial_generation': False  # Now complete
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Course resume failed: {e}")
+            if job_id:
+                await self._update_job_progress(job_id, {
+                    'status': 'failed',
+                    'error_message': str(e)
+                })
+            raise
 
 
-# Convenience function for edge function integration
+# Convenience functions for edge function integration
 async def generate_course_with_agents(
+    employee_id: str,
+    company_id: str,
+    assigned_by_id: str,
+    job_id: Optional[str] = None,
+    generation_mode: str = 'full'
+) -> Dict[str, Any]:
+    """
+    Generate a course using the full agent pipeline with database integration.
+    
+    Args:
+        employee_id: Employee ID from database
+        company_id: Company ID
+        assigned_by_id: User ID who initiated the generation
+        job_id: Optional job tracking ID
+        generation_mode: 'full' for complete course, 'first_module' for partial generation
+    
+    This is the main entry point for the edge function to call.
+    """
+    pipeline = LXERADatabasePipeline()
+    return await pipeline.generate_course_for_employee(
+        employee_id,
+        company_id,
+        assigned_by_id,
+        job_id,
+        generation_mode
+    )
+
+async def resume_course_generation(
+    plan_id: str,
     employee_id: str,
     company_id: str,
     assigned_by_id: str,
     job_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Generate a course using the full agent pipeline with database integration.
+    Resume course generation from partial to full.
     
-    This is the main entry point for the edge function to call.
+    Args:
+        plan_id: Existing course plan ID from partial generation
+        employee_id: Employee ID from database
+        company_id: Company ID
+        assigned_by_id: User ID who initiated the resume
+        job_id: Optional job tracking ID
+    
+    Returns:
+        Dict containing results of remaining module generation
     """
     pipeline = LXERADatabasePipeline()
-    return await pipeline.generate_course_for_employee(
+    return await pipeline.resume_course_generation(
+        plan_id,
         employee_id,
         company_id,
         assigned_by_id,
