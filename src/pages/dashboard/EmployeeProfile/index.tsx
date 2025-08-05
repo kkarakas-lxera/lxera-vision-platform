@@ -38,6 +38,34 @@ interface EmployeeProfile {
   target_position_id?: string;
   current_position_title?: string;
   target_position_title?: string;
+  current_position_requirements?: {
+    required_skills?: Array<{
+      skill_id: string;
+      skill_name: string;
+      is_mandatory: boolean;
+      proficiency_level: number;
+    }>;
+    nice_to_have_skills?: Array<{
+      skill_id: string;
+      skill_name: string;
+      proficiency_level: number;
+    }>;
+    description?: string;
+  };
+  target_position_requirements?: {
+    required_skills?: Array<{
+      skill_id: string;
+      skill_name: string;
+      is_mandatory: boolean;
+      proficiency_level: number;
+    }>;
+    nice_to_have_skills?: Array<{
+      skill_id: string;
+      skill_name: string;
+      proficiency_level: number;
+    }>;
+    description?: string;
+  };
   is_active: boolean;
   cv_file_path?: string;
   employee_since: string;
@@ -124,10 +152,16 @@ export default function EmployeeProfile() {
             avatar_url
           ),
           current_position:st_company_positions!employees_current_position_id_fkey(
-            position_title
+            position_title,
+            required_skills,
+            nice_to_have_skills,
+            description
           ),
           target_position:st_company_positions!employees_target_position_id_fkey(
-            position_title
+            position_title,
+            required_skills,
+            nice_to_have_skills,
+            description
           )
         `)
         .eq('id', employeeId)
@@ -318,6 +352,34 @@ export default function EmployeeProfile() {
         target_position_id: employeeData.target_position_id,
         current_position_title: employeeData.current_position?.position_title,
         target_position_title: employeeData.target_position?.position_title,
+        current_position_requirements: employeeData.current_position ? {
+          required_skills: employeeData.current_position.required_skills as Array<{
+            skill_id: string;
+            skill_name: string;
+            is_mandatory: boolean;
+            proficiency_level: number;
+          }> || [],
+          nice_to_have_skills: employeeData.current_position.nice_to_have_skills as Array<{
+            skill_id: string;
+            skill_name: string;
+            proficiency_level: number;
+          }> || [],
+          description: employeeData.current_position.description
+        } : undefined,
+        target_position_requirements: employeeData.target_position ? {
+          required_skills: employeeData.target_position.required_skills as Array<{
+            skill_id: string;
+            skill_name: string;
+            is_mandatory: boolean;
+            proficiency_level: number;
+          }> || [],
+          nice_to_have_skills: employeeData.target_position.nice_to_have_skills as Array<{
+            skill_id: string;
+            skill_name: string;
+            proficiency_level: number;
+          }> || [],
+          description: employeeData.target_position.description
+        } : undefined,
         is_active: employeeData.is_active,
         cv_file_path: employeeData.cv_file_path,
         employee_since: employeeData.created_at,

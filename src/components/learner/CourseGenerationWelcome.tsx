@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CourseOutlineReward from './CourseOutlineReward';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CourseGenerationWelcomeProps {
   employeeId: string;
@@ -34,6 +35,7 @@ export default function CourseGenerationWelcome({
   employeeName,
   onClose 
 }: CourseGenerationWelcomeProps) {
+  const { user } = useAuth();
   const [stage, setStage] = useState<'welcome' | 'generating' | 'completed' | 'error' | 'creating_course'>('welcome');
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
@@ -42,6 +44,26 @@ export default function CourseGenerationWelcome({
   const [error, setError] = useState<string | null>(null);
   const [courseGenerated, setCourseGenerated] = useState(false);
   const [courseData, setCourseData] = useState<any>(null);
+  const [employeeData, setEmployeeData] = useState<any>(null);
+
+  // Fetch employee data to get company_id
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('company_id')
+        .eq('id', employeeId)
+        .single();
+      
+      if (data) {
+        setEmployeeData(data);
+      }
+    };
+    
+    if (employeeId) {
+      fetchEmployeeData();
+    }
+  }, [employeeId]);
 
   useEffect(() => {
     // Start progress animation when generating
@@ -202,10 +224,13 @@ export default function CourseGenerationWelcome({
         setProgress(80);
       }, 5000);
 
-      // Call the new edge function to generate the first module
-      const { data, error } = await supabase.functions.invoke('generate-first-module', {
+      // Call the course generation edge function with first_module mode
+      const { data, error } = await supabase.functions.invoke('generate-course', {
         body: { 
-          employee_id: employeeId
+          employee_id: employeeId,
+          company_id: employeeData?.company_id || user?.app_metadata?.company_id,
+          assigned_by_id: user?.id,
+          generation_mode: 'first_module'
         }
       });
 
@@ -217,7 +242,17 @@ export default function CourseGenerationWelcome({
       console.log('First module generation response:', JSON.stringify(data, null, 2));
 
       if (data?.success) {
-        setCourseData(data.course_data);
+        // Transform the response to match expected format
+        const courseData = {
+          content_id: data.content_id,
+          course_title: data.module_name || 'Your Personalized Course',
+          modules_generated: data.module_count || 1,
+          total_modules_planned: data.total_modules || 1,
+          can_resume: data.is_partial_generation || false,
+          partial_generation: data.is_partial_generation || false
+        };
+        
+        setCourseData(courseData);
         setCourseGenerated(true);
         setProgress(100);
         setCurrentStep('Course ready!');
@@ -226,8 +261,8 @@ export default function CourseGenerationWelcome({
         
         // Redirect to the course after a brief celebration
         setTimeout(() => {
-          if (data.course_data?.content_id) {
-            window.location.href = `/learner/course/${data.course_data.content_id}`;
+          if (data.content_id) {
+            window.location.href = `/learner/course/${data.content_id}`;
           } else {
             window.location.href = '/learner/courses';
           }

@@ -64,7 +64,7 @@ export default function SkillsSelector({
 
   useEffect(() => {
     // Initialize with skills from various sources
-    const allSuggested: Skill[] = [];
+    let allSuggested: Skill[] = [];
     const selectedByDefault: Skill[] = [];
     
     // Add position required skills first (highest priority)
