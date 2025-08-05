@@ -293,7 +293,6 @@ export default function ProfileVerification({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">What to expect:</h4>
             <ul className="text-xs text-blue-800 space-y-1">
-              <li>• Each skill assessment takes 2-3 minutes</li>
               <li>• Questions are tailored to your experience and role</li>
               <li>• You cannot skip assessments - all skills must be verified</li>
               <li>• Your progress is saved automatically</li>
@@ -468,12 +467,6 @@ export default function ProfileVerification({
           )}
         </div>
 
-        {/* Info Box */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <p className="text-xs text-amber-800">
-            <strong>Tip:</strong> Each skill assessment takes 2-3 minutes. Answer honestly to get personalized learning recommendations.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

@@ -734,6 +734,31 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
         return stepData?.selected?.length > 0;
       case 'tools_technologies':
         return stepData?.selected?.length > 0;
+      case 'profile_verification':
+        // For the final step, ensure all previous steps are completed
+        const requiredSteps = ['work_experience', 'education', 'skills', 'current_work', 'daily_tasks', 'tools_technologies'];
+        for (const step of requiredSteps) {
+          const data = formData[step];
+          switch (step) {
+            case 'work_experience':
+              if (!hasExtractedWorkExperience() && (!data || data.length === 0)) return false;
+              break;
+            case 'education':
+              if (!hasExtractedEducation() && (!data || data.length === 0)) return false;
+              break;
+            case 'skills':
+              if (!hasExtractedSkills() && (!data?.skills || data.skills.length === 0)) return false;
+              break;
+            case 'current_work':
+              if (!data?.projects || data.projects.length === 0) return false;
+              break;
+            case 'daily_tasks':
+            case 'tools_technologies':
+              if (!data?.selected || data.selected.length === 0) return false;
+              break;
+          }
+        }
+        return true;
       default:
         return true;
     }
@@ -1201,7 +1226,7 @@ export default function FormProfileBuilder({ employeeId, onComplete }: FormProfi
                       onClick={handleNext}
                       disabled={!canProceed() || isLoading}
                     >
-                      {currentStep === STEPS.length - 1 ? 'Complete Profile' : 'Next Step'}
+                      {currentStep === STEPS.length - 1 ? 'Complete Profile' : currentStep === STEPS.length - 2 ? 'Verify Your Skills' : 'Next Step'}
                       <ChevronRight className="h-4 w-4 ml-2" />
                     </Button>
                   </span>
