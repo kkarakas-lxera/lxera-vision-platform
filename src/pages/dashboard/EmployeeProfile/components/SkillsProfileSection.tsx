@@ -46,11 +46,13 @@ interface SkillsProfileSectionProps {
     verifiedSkillsRaw?: Array<{
       skill_name: string;
       verification_score: number;
-      questions_asked: any[];
-      responses: any[];
-      verified_at: string;
-      is_from_cv: boolean;
-      is_from_position: boolean;
+      questions_asked?: any[];
+      responses?: any[];
+      verified_at?: string;
+      is_from_cv?: boolean;
+      is_from_position?: boolean;
+      assessment_type?: string;
+      proficiency_level?: number;
     }>;
   };
   onRefresh: () => void;
@@ -100,7 +102,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
           score: Math.round(verified.verification_score * 100),
           questionsAnswered: verified.responses?.filter((r: any) => r.correct).length || 0,
           totalQuestions: verified.questions_asked?.length || 0,
-          lastVerified: verified.verified_at
+          lastVerified: verified.verified_at || verified.created_at
         };
       } else {
         skillsMap.set(verified.skill_name, {
@@ -110,7 +112,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
             score: Math.round(verified.verification_score * 100),
             questionsAnswered: verified.responses?.filter((r: any) => r.correct).length || 0,
             totalQuestions: verified.questions_asked?.length || 0,
-            lastVerified: verified.verified_at
+            lastVerified: verified.verified_at || verified.created_at
           }
         });
       }

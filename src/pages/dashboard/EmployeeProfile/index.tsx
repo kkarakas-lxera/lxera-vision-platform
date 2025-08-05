@@ -159,7 +159,7 @@ export default function EmployeeProfile() {
 
       // Fetch skills verification data
       const { data: verifiedSkills } = await supabase
-        .from('employee_skills_verification')
+        .from('employee_skills_validation')
         .select('*')
         .eq('employee_id', employeeId);
 
