@@ -255,13 +255,13 @@ export default function CompanyDashboard() {
       const companyPermissions = await getCompanyPermissions(userProfile.company_id);
       setPermissions(companyPermissions);
       
-      // Show welcome modal for skills gap users on first visit
-      if (companyPermissions?.isSkillsGapUser) {
-        const hasSeenWelcome = localStorage.getItem('skills-gap-welcome-seen');
-        if (!hasSeenWelcome) {
-          setShowWelcomeModal(true);
-        }
-      }
+      // Welcome modal disabled - no longer showing on first visit
+      // if (companyPermissions?.isSkillsGapUser) {
+      //   const hasSeenWelcome = localStorage.getItem('skills-gap-welcome-seen');
+      //   if (!hasSeenWelcome) {
+      //     setShowWelcomeModal(true);
+      //   }
+      // }
     }
   };
 
