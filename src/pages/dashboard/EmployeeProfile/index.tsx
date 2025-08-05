@@ -143,15 +143,36 @@ export default function EmployeeProfile() {
         .eq('employee_id', employeeId)
         .single();
 
-      // Fetch profile sections
-      const { data: profileSections, error: profileSectionsError } = await supabase
+      // Fetch profile sections - try multiple approaches
+      let profileSections = null;
+      let profileSectionsError = null;
+      
+      // Try with order by
+      const result1 = await supabase
         .from('employee_profile_sections')
         .select('*')
         .eq('employee_id', employeeId)
         .order('section_order', { ascending: true });
       
-      if (profileSectionsError) {
-        console.error('Profile sections query error:', profileSectionsError);
+      if (result1.error) {
+        console.error('Profile sections query error (with order):', result1.error);
+        
+        // Try without order by
+        const result2 = await supabase
+          .from('employee_profile_sections')
+          .select('*')
+          .eq('employee_id', employeeId);
+          
+        if (result2.error) {
+          console.error('Profile sections query error (no order):', result2.error);
+          profileSectionsError = result2.error;
+        } else {
+          profileSections = result2.data;
+          console.log('Profile sections found without order by:', result2.data?.length);
+        }
+      } else {
+        profileSections = result1.data;
+        console.log('Profile sections found with order by:', result1.data?.length);
       }
 
       // Fetch profile data from sections (not from employees.profile_data which is null)
@@ -252,12 +273,15 @@ export default function EmployeeProfile() {
         score: v.verification_score,
         hasScore: (v.verification_score || 0) > 0 
       })));
-      console.log('All Extracted Skills:', skillsProfile?.extracted_skills?.map(s => ({
-        skill: s.skill_name,
-        proficiency: s.proficiency_level,
-        hasLevel: (s.proficiency_level || 0) > 0,
-        fullObject: s
-      })));
+      console.log('All Extracted Skills:', skillsProfile?.extracted_skills?.map((s, index) => {
+        console.log(`Skill ${index}:`, s); // Log full object structure
+        return {
+          skill: s.skill_name,
+          proficiency: s.proficiency_level,
+          hasLevel: (s.proficiency_level || 0) > 0,
+          allFields: Object.keys(s)
+        };
+      }));
       console.log('Skills With Proficiency (profile table):', skillsWithProficiency.map(s => ({
         skill: s.skill_name,
         proficiency: s.proficiency_level,
