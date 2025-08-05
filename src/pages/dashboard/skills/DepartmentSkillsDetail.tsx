@@ -10,7 +10,12 @@ import {
   Users, 
   Target,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  GraduationCap,
+  UserPlus,
+  Brain,
+  FileText,
+  CheckCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -325,29 +330,38 @@ export default function DepartmentSkillsDetail() {
           <div className="flex items-center gap-6">
             <div className="text-center">
               <div className="text-lg font-bold">{departmentStats.totalEmployees}</div>
-              <div className="text-xs text-muted-foreground">Total People</div>
+              <div className="text-xs text-muted-foreground">Team Size</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold">{departmentStats.avgScore}%</div>
-              <div className="text-xs text-muted-foreground">Avg Score</div>
+              <div className="text-lg font-bold">
+                {departmentStats.analyzedEmployees}/{departmentStats.totalEmployees}
+              </div>
+              <div className="text-xs text-muted-foreground">Coverage</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-red-600">{departmentStats.criticalGaps}</div>
-              <div className="text-xs text-muted-foreground">Critical</div>
+              <div className="text-xs text-muted-foreground">Critical Gaps</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-orange-600">{departmentStats.moderateGaps}</div>
-              <div className="text-xs text-muted-foreground">Moderate</div>
+              <div className="text-xs text-muted-foreground">Moderate Gaps</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {departmentStats.criticalGaps > 5 && (
+              <Badge variant="destructive" className="text-xs">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Action needed
+              </Badge>
+            )}
             <div className="text-right">
-              <div className="text-sm font-medium">{departmentStats.analyzedEmployees} analyzed</div>
-              <div className="h-1.5 w-24 bg-secondary rounded-full overflow-hidden mt-1">
-                <div 
-                  className="h-full bg-primary transition-all duration-300 rounded-full"
-                  style={{ width: `${departmentStats.totalEmployees > 0 ? (departmentStats.analyzedEmployees / departmentStats.totalEmployees) * 100 : 0}%` }}
+              <div className="text-sm font-medium text-gray-700">Department Health</div>
+              <div className="flex items-center gap-2">
+                <Progress 
+                  value={departmentStats.avgScore} 
+                  className="w-20 h-2"
                 />
+                <span className="text-sm font-bold">{departmentStats.avgScore}%</span>
               </div>
             </div>
           </div>
@@ -363,40 +377,74 @@ export default function DepartmentSkillsDetail() {
             <span className="text-sm text-muted-foreground">{skillBreakdown.length} skills</span>
           </div>
           <div className="space-y-2">
-            {skillBreakdown.slice(0, 8).map((skill) => (
-              <div key={skill.skill_name} className="border-b border-border/50 pb-2 last:border-b-0">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{skill.skill_name}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${
-                      skill.skill_type === 'technical' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                    }`}>
-                      {skill.skill_type === 'technical' ? 'Tech' : 'Soft'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{skill.employees_count} people</span>
-                    {skill.below_target_count > 0 && (
-                      <span className="text-red-600">
-                        {skill.below_target_count} need training
+            {skillBreakdown.slice(0, 8).map((skill) => {
+              const needsTraining = skill.below_target_count > 0;
+              const groupSize = skill.below_target_count;
+              const isUrgent = skill.avg_proficiency < 2;
+              
+              return (
+                <div key={skill.skill_name} className="border-b border-border/50 pb-2 last:border-b-0">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{skill.skill_name}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        skill.skill_type === 'technical' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {skill.skill_type === 'technical' ? 'Tech' : 'Soft'}
                       </span>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">{skill.employees_count} have skill</span>
+                      {needsTraining && (
+                        <Badge variant={isUrgent ? "destructive" : "secondary"} className="text-xs px-1">
+                          {skill.below_target_count} need training
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-300 rounded-full ${
-                        skill.avg_proficiency < 2 ? 'bg-red-500' : 
-                        skill.avg_proficiency < 3 ? 'bg-orange-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: `${(skill.avg_proficiency / 5) * 100}%` }}
-                    />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-300 rounded-full ${
+                          skill.avg_proficiency < 2 ? 'bg-red-500' : 
+                          skill.avg_proficiency < 3 ? 'bg-orange-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${(skill.avg_proficiency / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium w-8">{skill.avg_proficiency.toFixed(1)}</span>
                   </div>
-                  <span className="text-xs font-medium w-8">{skill.avg_proficiency.toFixed(1)}</span>
+                  {needsTraining && (
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-3 text-gray-600">
+                        {groupSize > 5 ? (
+                          <>
+                            <span className="flex items-center gap-1">
+                              <GraduationCap className="h-3 w-3" />
+                              Group training ({groupSize} people)
+                            </span>
+                            <span className="text-green-600">~$2K total</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              Individual coaching
+                            </span>
+                            <span className="text-blue-600">~$500/person</span>
+                          </>
+                        )}
+                      </div>
+                      {isUrgent && (
+                        <Badge variant="outline" className="text-xs bg-red-50 border-red-200 text-red-700">
+                          Urgent
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -407,25 +455,41 @@ export default function DepartmentSkillsDetail() {
             <span className="text-sm text-muted-foreground">{employees.length} people</span>
           </div>
           <div className="space-y-2">
-            {employees.map((employee) => (
-              <div key={employee.employee_id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-b-0">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{employee.employee_name}</p>
-                  <p className="text-xs text-muted-foreground">{employee.position_title}</p>
-                </div>
-                <div className="text-right ml-2">
-                  <div className={`text-sm font-medium ${
-                    employee.skills_match_score >= 80 ? 'text-green-600' : 
-                    employee.skills_match_score >= 60 ? 'text-orange-600' : 'text-red-600'
-                  }`}>
-                    {Math.round(employee.skills_match_score)}%
+            {employees.map((employee) => {
+              const readinessLevel = employee.skills_match_score >= 80 ? 'ready' : 
+                                   employee.skills_match_score >= 60 ? 'developing' : 'needs-support';
+              const skillsCount = (employee.technical_skills?.length || 0) + (employee.soft_skills?.length || 0);
+              
+              return (
+                <div key={employee.employee_id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-b-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{employee.employee_name}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{employee.position_title}</span>
+                      <span>{skillsCount} skills</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatTimeAgo(employee.analyzed_at)}
+                  <div className="flex items-center gap-2">
+                    {readinessLevel === 'ready' && (
+                      <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Ready
+                      </Badge>
+                    )}
+                    {readinessLevel === 'developing' && (
+                      <Badge variant="outline" className="text-xs bg-orange-50 border-orange-200 text-orange-700">
+                        Developing
+                      </Badge>
+                    )}
+                    {readinessLevel === 'needs-support' && (
+                      <Badge variant="outline" className="text-xs bg-red-50 border-red-200 text-red-700">
+                        Support needed
+                      </Badge>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

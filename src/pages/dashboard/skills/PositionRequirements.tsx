@@ -13,7 +13,9 @@ import {
   Target,
   ChevronDown,
   ChevronUp,
-  FileText
+  FileText,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -265,34 +267,42 @@ export default function PositionRequirements() {
                   {/* Inline Stats */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <div className="text-sm font-bold">{analyzedPercentage}%</div>
-                        <div className="text-xs text-muted-foreground">Coverage</div>
-                      </div>
-                      {position.analyzed_employees > 0 && (
+                      {position.analyzed_employees > 0 ? (
                         <>
                           <div className="text-center">
-                            <div className="text-sm font-bold">{avgCoverage}%</div>
-                            <div className="text-xs text-muted-foreground">Avg Skills</div>
+                            <div className="text-sm font-bold">{analyzedPercentage}%</div>
+                            <div className="text-xs text-muted-foreground">Analyzed</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-sm font-bold text-red-600">{criticalSkills}</div>
-                            <div className="text-xs text-muted-foreground">Critical</div>
+                            <div className="text-sm font-bold">{position.required_skills.length}</div>
+                            <div className="text-xs text-muted-foreground">Skills Required</div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm font-bold text-green-600">{goodSkills}</div>
-                            <div className="text-xs text-muted-foreground">Strong</div>
-                          </div>
+                          {criticalSkills > 0 && (
+                            <Badge variant="destructive" className="text-xs">
+                              {criticalSkills} gaps
+                            </Badge>
+                          )}
+                          {goodSkills === position.required_skills.length && position.required_skills.length > 0 && (
+                            <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Full coverage
+                            </Badge>
+                          )}
                         </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-orange-500" />
+                          <span className="text-sm text-muted-foreground">No skills data yet</span>
+                        </div>
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">{position.analyzed_employees} analyzed</div>
-                      <div className="h-1 w-16 bg-secondary rounded-full overflow-hidden mt-1">
-                        <div 
-                          className="h-full bg-primary transition-all duration-300 rounded-full"
-                          style={{ width: `${analyzedPercentage}%` }}
-                        />
+                      <Progress 
+                        value={analyzedPercentage} 
+                        className="w-20 h-2"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {position.analyzed_employees}/{position.total_employees} people
                       </div>
                     </div>
                   </div>
