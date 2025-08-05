@@ -163,6 +163,14 @@ export default function EmployeeProfile() {
         .select('*')
         .eq('employee_id', employeeId);
 
+      // Debug logging
+      console.log('=== PROFILE DEBUG DATA ===');
+      console.log('Employee ID:', employeeId);
+      console.log('Profile Sections:', profileSections);
+      console.log('Profile Data:', profileData);
+      console.log('Verified Skills:', verifiedSkills);
+      console.log('Skills Profile:', skillsProfile);
+
       // Fetch course assignments
       const { data: courseAssignments } = await supabase
         .from('course_assignments')
@@ -213,6 +221,12 @@ export default function EmployeeProfile() {
       const completedSections = mainProfileSections.filter(s => s.is_complete).length;
       const totalSections = Math.max(mainProfileSections.length, 7); // At least 7 for the standard profile
 
+      console.log('=== PROFILE COMPLETION DEBUG ===');
+      console.log('All Profile Sections:', profileSections?.map(s => ({ name: s.section_name, complete: s.is_complete })));
+      console.log('Main Profile Sections:', mainProfileSections.map(s => ({ name: s.section_name, complete: s.is_complete })));
+      console.log('Completed Sections:', completedSections);
+      console.log('Total Sections:', totalSections);
+
       // Calculate verified skills stats
       const verifiedSkillsWithScore = verifiedSkills?.filter((v: any) => (v.verification_score || 0) > 0) || [];
       const verifiedSkillsStats = {
@@ -222,6 +236,16 @@ export default function EmployeeProfile() {
           ? Math.round(verifiedSkillsWithScore.reduce((acc: number, v: any) => acc + (v.verification_score || 0), 0) / verifiedSkillsWithScore.length * 100)
           : 0
       };
+
+      console.log('=== SKILLS VERIFICATION DEBUG ===');
+      console.log('Raw Verified Skills:', verifiedSkills?.map(v => ({ 
+        skill: v.skill_name, 
+        score: v.verification_score,
+        hasScore: (v.verification_score || 0) > 0 
+      })));
+      console.log('Verified Skills With Score:', verifiedSkillsWithScore.length);
+      console.log('Skills Profile Extracted:', skillsProfile?.extracted_skills?.length);
+      console.log('Verification Stats:', verifiedSkillsStats);
 
       // Transform the data
       const transformedEmployee: EmployeeProfile = {

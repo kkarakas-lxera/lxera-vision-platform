@@ -62,6 +62,11 @@ interface SkillsProfileSectionProps {
 export function SkillsProfileSection({ employee, onRefresh, refreshing }: SkillsProfileSectionProps) {
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
+  console.log('=== SKILLS SECTION DEBUG ===');
+  console.log('Employee Skills Profile:', employee.skills_profile);
+  console.log('Employee Verified Skills Raw:', employee.verifiedSkillsRaw);
+  console.log('Employee Verified Skills Stats:', employee.verifiedSkills);
+
   if (!employee.skills_profile && !employee.verifiedSkillsRaw) {
     return (
       <CollapsibleCard
