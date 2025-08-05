@@ -294,6 +294,15 @@ export default function EmployeeProfile() {
       console.log('Skills Profile Extracted:', skillsProfile?.extracted_skills?.length);
       console.log('Verification Stats:', verifiedSkillsStats);
 
+      // Use skills profile data for verification since validation table has all zeros
+      const skillsAsVerificationData = (Array.isArray(skillsProfile?.extracted_skills) ? skillsProfile.extracted_skills : []).map((skill: any) => ({
+        skill_name: skill.skill_name,
+        verification_score: (skill.proficiency_level || 0) / 3, // Convert 0-3 scale to 0-1 scale
+        proficiency_level: skill.proficiency_level,
+        is_from_cv: true,
+        created_at: skillsProfile.analyzed_at
+      })) || [];
+
       // Transform the data
       const transformedEmployee: EmployeeProfile = {
         id: employeeData.id,
@@ -338,7 +347,7 @@ export default function EmployeeProfile() {
           };
         }),
         verifiedSkills: verifiedSkillsStats,
-        verifiedSkillsRaw: verifiedSkills,
+        verifiedSkillsRaw: skillsAsVerificationData,
         skills_profile: skillsProfile ? {
           id: skillsProfile.id,
           skills_match_score: skillsProfile.skills_match_score,
@@ -368,20 +377,7 @@ export default function EmployeeProfile() {
         })
       };
 
-      // Use skills profile data for verification since validation table has all zeros
-      const skillsAsVerificationData = (Array.isArray(skillsProfile?.extracted_skills) ? skillsProfile.extracted_skills : []).map((skill: any) => ({
-        skill_name: skill.skill_name,
-        verification_score: (skill.proficiency_level || 0) / 3, // Convert 0-3 scale to 0-1 scale
-        proficiency_level: skill.proficiency_level,
-        is_from_cv: true,
-        created_at: skillsProfile.analyzed_at
-      })) || [];
-
-      setEmployee({
-        ...transformedEmployee,
-        verifiedSkills: verifiedSkillsStats,
-        verifiedSkillsRaw: skillsAsVerificationData
-      });
+      setEmployee(transformedEmployee);
     } catch (error) {
       console.error('Error fetching employee data:', error);
       toast.error('Failed to load employee profile');
