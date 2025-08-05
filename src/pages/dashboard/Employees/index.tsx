@@ -22,7 +22,6 @@ import {
   Building2,
   CheckCircle2,
   Send,
-  BarChart3,
   History,
   HelpCircle,
   Undo2,
@@ -75,7 +74,6 @@ import CourseGenerationModal from '@/pages/dashboard/Courses/CourseGenerationMod
 
 // Import components from onboarding pages
 import { ImportTab } from '@/components/dashboard/ImportTab';
-import { SkillsGapAnalysis } from '@/components/dashboard/EmployeeOnboarding/SkillsGapAnalysis';
 import { QuickTour } from '@/components/dashboard/QuickTour';
 import { UndoButton } from '@/components/dashboard/UndoButton';
 import { BatchHistory } from '@/components/dashboard/BatchHistory';
@@ -680,24 +678,6 @@ const EmployeesPage = () => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Track invitations sent to employees</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsTrigger>
-              
-              <TabsTrigger 
-                value="analysis" 
-                className="group flex items-center gap-2 px-6 py-3 border-b-3 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50/50 hover:bg-gray-50 text-sm font-medium relative transition-all rounded-t-md" 
-                data-tab="analysis"
-              >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-gray-400 group-data-[state=active]:text-blue-600" />
-                      <span className="group-data-[state=active]:text-blue-700 group-data-[state=active]:font-semibold">Analysis</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Review skills gap insights</p>
                   </TooltipContent>
                 </Tooltip>
               </TabsTrigger>
@@ -1460,20 +1440,6 @@ const EmployeesPage = () => {
         />
         </TabsContent>
 
-        {/* Analysis Tab */}
-        <TabsContent value="analysis" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
-          <SkillsGapAnalysis 
-        employees={employees.map(e => ({
-          id: e.id,
-          name: e.full_name,
-          email: e.email,
-          position: e.position || '',
-          cv_status: e.cv_file_path ? 'analyzed' : 'missing',
-          skills_analysis: e.gap_analysis_completed_at ? 'completed' : 'pending',
-          gap_score: e.skills_match_score
-        }))}
-        />
-        </TabsContent>
 
         {/* History Tab */}
         <TabsContent value="history" className="bg-white rounded-b-md p-6 space-y-6 -mt-px">
