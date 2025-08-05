@@ -43,7 +43,7 @@ interface SkillsProfileSectionProps {
       languages?: any[];
       cv_summary?: string;
     };
-    verifiedSkills?: Array<{
+    verifiedSkillsRaw?: Array<{
       skill_name: string;
       verification_score: number;
       questions_asked: any[];
@@ -60,7 +60,7 @@ interface SkillsProfileSectionProps {
 export function SkillsProfileSection({ employee, onRefresh, refreshing }: SkillsProfileSectionProps) {
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
-  if (!employee.skills_profile && !employee.verifiedSkills) {
+  if (!employee.skills_profile && !employee.verifiedSkillsRaw) {
     return (
       <CollapsibleCard
         title="Skills Overview"
@@ -93,7 +93,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
     });
 
     // Add verification data
-    employee.verifiedSkills?.forEach(verified => {
+    employee.verifiedSkillsRaw?.forEach(verified => {
       const existing = skillsMap.get(verified.skill_name);
       if (existing) {
         existing.verification = {
@@ -117,7 +117,7 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
     });
 
     return Array.from(skillsMap.values());
-  }, [employee.skills_profile, employee.verifiedSkills]);
+  }, [employee.skills_profile, employee.verifiedSkillsRaw]);
 
   const cvSkills = mergedSkills.filter(s => s.source === 'cv');
   const positionSkills = mergedSkills.filter(s => s.source === 'position');

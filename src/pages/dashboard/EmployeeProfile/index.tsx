@@ -47,7 +47,12 @@ interface EmployeeProfile {
     total: number;
   };
   profileSections?: any[];
-  verifiedSkills?: any[];
+  verifiedSkills?: {
+    count: number;
+    total: number;
+    avgScore: number;
+  };
+  verifiedSkillsRaw?: any[];
   skills_profile?: {
     id: string;
     skills_match_score: number;
@@ -201,17 +206,22 @@ export default function EmployeeProfile() {
         }
       }
 
-      // Calculate profile completion
-      const profileSectionNames = ['work_experience', 'education', 'skills', 'current_work', 'daily_tasks', 'tools_technologies', 'profile_verification'];
-      const completedSections = profileSections?.filter(s => s.is_complete && profileSectionNames.includes(s.section_name)).length || 0;
-      const totalSections = profileSectionNames.length;
+      // Calculate profile completion - use actual completed sections from database
+      const mainProfileSections = profileSections?.filter(s => 
+        !['certifications', 'languages', 'profile_builder_state'].includes(s.section_name)
+      ) || [];
+      const completedSections = mainProfileSections.filter(s => s.is_complete).length;
+      const totalSections = Math.max(mainProfileSections.length, 7); // At least 7 for the standard profile
 
       // Calculate verified skills stats
-      const verifiedSkillsStats = verifiedSkills && verifiedSkills.length > 0 ? {
-        count: verifiedSkills.length,
-        total: (skillsProfile?.extracted_skills?.length || 0) + (verifiedSkills?.filter((v: any) => v.is_from_position).length || 0),
-        avgScore: Math.round(verifiedSkills.reduce((acc: number, v: any) => acc + (v.verification_score || 0), 0) / verifiedSkills.length * 100)
-      } : undefined;
+      const verifiedSkillsWithScore = verifiedSkills?.filter((v: any) => (v.verification_score || 0) > 0) || [];
+      const verifiedSkillsStats = {
+        count: verifiedSkillsWithScore.length,
+        total: skillsProfile?.extracted_skills?.length || 0,
+        avgScore: verifiedSkillsWithScore.length > 0 
+          ? Math.round(verifiedSkillsWithScore.reduce((acc: number, v: any) => acc + (v.verification_score || 0), 0) / verifiedSkillsWithScore.length * 100)
+          : 0
+      };
 
       // Transform the data
       const transformedEmployee: EmployeeProfile = {
@@ -234,15 +244,28 @@ export default function EmployeeProfile() {
           completed: completedSections,
           total: totalSections
         },
-        profileSections: profileSections?.map(section => ({
-          name: section.section_name,
-          displayName: section.section_name.split('_').map((word: string) => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' '),
-          isComplete: section.is_complete,
-          completedAt: section.completed_at,
-          summary: section.section_data?.summary
-        })),
+        profileSections: mainProfileSections.map(section => {
+          const displayNameMap: Record<string, string> = {
+            'cv_upload': 'Upload Your CV',
+            'work_experience': 'Work Experience',
+            'education': 'Education Background',
+            'skills': 'Skills Review',
+            'current_work': 'Current Projects',
+            'daily_tasks': 'Professional Challenges', 
+            'tools_technologies': 'Growth Opportunities',
+            'profile_verification': 'Profile Verification'
+          };
+          
+          return {
+            name: section.section_name,
+            displayName: displayNameMap[section.section_name] || section.section_name.split('_').map((word: string) => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' '),
+            isComplete: section.is_complete,
+            completedAt: section.completed_at,
+            summary: section.section_data?.summary
+          };
+        }),
         verifiedSkills: verifiedSkills,
         skills_profile: skillsProfile ? {
           id: skillsProfile.id,
@@ -275,7 +298,8 @@ export default function EmployeeProfile() {
 
       setEmployee({
         ...transformedEmployee,
-        verifiedSkills: verifiedSkillsStats
+        verifiedSkills: verifiedSkillsStats,
+        verifiedSkillsRaw: verifiedSkills
       });
     } catch (error) {
       console.error('Error fetching employee data:', error);
