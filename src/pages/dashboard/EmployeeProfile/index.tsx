@@ -21,7 +21,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { EmployeeProfileHeader } from './components/EmployeeProfileHeader';
-import { ProfileJourneySection } from './components/ProfileJourneySection';
 import { SkillsProfileSection } from './components/SkillsProfileSection';
 import { ExperienceSection } from './components/ExperienceSection';
 import { DevelopmentSection } from './components/DevelopmentSection';
@@ -503,12 +502,6 @@ export default function EmployeeProfile() {
 
       {/* Employee Header */}
       <EmployeeProfileHeader employee={employee} />
-
-      {/* Profile Journey Section */}
-      <ProfileJourneySection 
-        sections={employee.profileSections || []}
-        lastUpdated={employee.profileSections?.find(s => s.isComplete)?.completedAt}
-      />
 
       {/* Skills Profile Section */}
       <SkillsProfileSection 
