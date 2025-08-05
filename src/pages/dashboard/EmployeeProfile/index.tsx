@@ -150,12 +150,13 @@ export default function EmployeeProfile() {
         .eq('employee_id', employeeId)
         .order('section_order', { ascending: true });
 
-      // Fetch profile data
-      const { data: profileData } = await supabase
-        .from('employees')
-        .select('profile_data')
-        .eq('id', employeeId)
-        .single();
+      // Fetch profile data from sections (not from employees.profile_data which is null)
+      const profileDataFromSections = profileSections?.reduce((acc: any, section: any) => {
+        if (section.section_data) {
+          acc[section.section_name] = section.section_data;
+        }
+        return acc;
+      }, {});
 
       // Fetch skills verification data
       const { data: verifiedSkills } = await supabase
@@ -227,23 +228,28 @@ export default function EmployeeProfile() {
       console.log('Completed Sections:', completedSections);
       console.log('Total Sections:', totalSections);
 
-      // Calculate verified skills stats
-      const verifiedSkillsWithScore = verifiedSkills?.filter((v: any) => (v.verification_score || 0) > 0) || [];
+      // Calculate verified skills stats - use skills profile data since validation table has all zeros
+      const skillsWithProficiency = skillsProfile?.extracted_skills?.filter((s: any) => (s.proficiency_level || 0) > 0) || [];
       const verifiedSkillsStats = {
-        count: verifiedSkillsWithScore.length,
+        count: skillsWithProficiency.length,
         total: skillsProfile?.extracted_skills?.length || 0,
-        avgScore: verifiedSkillsWithScore.length > 0 
-          ? Math.round(verifiedSkillsWithScore.reduce((acc: number, v: any) => acc + (v.verification_score || 0), 0) / verifiedSkillsWithScore.length * 100)
+        avgScore: skillsWithProficiency.length > 0 
+          ? Math.round(skillsWithProficiency.reduce((acc: number, s: any) => acc + ((s.proficiency_level || 0) * 25), 0) / skillsWithProficiency.length) // Convert 1-4 scale to percentage
           : 0
       };
 
       console.log('=== SKILLS VERIFICATION DEBUG ===');
-      console.log('Raw Verified Skills:', verifiedSkills?.map(v => ({ 
+      console.log('Raw Verified Skills (validation table):', verifiedSkills?.map(v => ({ 
         skill: v.skill_name, 
         score: v.verification_score,
         hasScore: (v.verification_score || 0) > 0 
       })));
-      console.log('Verified Skills With Score:', verifiedSkillsWithScore.length);
+      console.log('Skills With Proficiency (profile table):', skillsWithProficiency.map(s => ({
+        skill: s.skill_name,
+        proficiency: s.proficiency_level,
+        percentage: s.proficiency_level * 25
+      })));
+      console.log('Verified Skills With Score:', skillsWithProficiency.length);
       console.log('Skills Profile Extracted:', skillsProfile?.extracted_skills?.length);
       console.log('Verification Stats:', verifiedSkillsStats);
 
@@ -263,7 +269,7 @@ export default function EmployeeProfile() {
         is_active: employeeData.is_active,
         cv_file_path: employeeData.cv_file_path,
         employee_since: employeeData.created_at,
-        profile_data: profileData?.profile_data,
+        profile_data: profileDataFromSections,
         profileCompletion: {
           completed: completedSections,
           total: totalSections
@@ -320,10 +326,19 @@ export default function EmployeeProfile() {
         })
       };
 
+      // Use skills profile data for verification since validation table has all zeros
+      const skillsAsVerificationData = skillsProfile?.extracted_skills?.map((skill: any) => ({
+        skill_name: skill.skill_name,
+        verification_score: (skill.proficiency_level || 0) / 4, // Convert 1-4 scale to 0-1 scale
+        proficiency_level: skill.proficiency_level,
+        is_from_cv: true,
+        created_at: skillsProfile.analyzed_at
+      })) || [];
+
       setEmployee({
         ...transformedEmployee,
         verifiedSkills: verifiedSkillsStats,
-        verifiedSkillsRaw: verifiedSkills
+        verifiedSkillsRaw: skillsAsVerificationData
       });
     } catch (error) {
       console.error('Error fetching employee data:', error);
