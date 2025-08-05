@@ -168,7 +168,7 @@ export default function EmployeeProfile() {
       console.log('=== PROFILE DEBUG DATA ===');
       console.log('Employee ID:', employeeId);
       console.log('Profile Sections:', profileSections);
-      console.log('Profile Data:', profileData);
+      console.log('Profile Data From Sections:', profileDataFromSections);
       console.log('Verified Skills:', verifiedSkills);
       console.log('Skills Profile:', skillsProfile);
 
