@@ -78,7 +78,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
         verification_score: skill.verification_score,
         responses: skill.responses?.length || 0,
         questions: skill.questions_asked?.length || 0,
-        time_taken: skill.responses?.[0]?.time_taken || 'N/A'
+        time_taken: skill.responses?.[0]?.time_taken || 'N/A',
+        determined_source: skill.is_from_cv ? 'cv' : (skill.is_from_position ? 'position' : 'assessment')
       });
     });
   }
@@ -119,6 +120,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
     employee.verifiedSkillsRaw?.forEach(verified => {
       const existing = skillsMap.get(verified.skill_name);
       if (existing) {
+        // Update source based on verification data
+        existing.source = verified.is_from_cv ? 'cv' : (verified.is_from_position ? 'position' : 'assessment');
         existing.verification = {
           score: Math.round(verified.verification_score * 100),
           questionsAnswered: verified.responses?.filter((r: any) => r.correct).length || 0,
