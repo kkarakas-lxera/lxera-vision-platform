@@ -107,17 +107,21 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
           score: Math.round(verified.verification_score * 100),
           questionsAnswered: verified.responses?.filter((r: any) => r.correct).length || 0,
           totalQuestions: verified.questions_asked?.length || 0,
-          lastVerified: verified.verified_at || verified.created_at
+          lastVerified: verified.verified_at || verified.created_at,
+          responses: verified.responses || [],
+          questions: verified.questions_asked || []
         };
       } else {
         skillsMap.set(verified.skill_name, {
           skill_name: verified.skill_name,
-          source: verified.is_from_cv ? 'cv' : 'position',
+          source: verified.is_from_cv ? 'cv' : (verified.is_from_position ? 'position' : 'assessment'),
           verification: {
             score: Math.round(verified.verification_score * 100),
             questionsAnswered: verified.responses?.filter((r: any) => r.correct).length || 0,
             totalQuestions: verified.questions_asked?.length || 0,
-            lastVerified: verified.verified_at || verified.created_at
+            lastVerified: verified.verified_at || verified.created_at,
+            responses: verified.responses || [],
+            questions: verified.questions_asked || []
           }
         });
       }
@@ -128,10 +132,11 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
 
   const cvSkills = mergedSkills.filter(s => s.source === 'cv');
   const positionSkills = mergedSkills.filter(s => s.source === 'position');
+  const assessmentSkills = mergedSkills.filter(s => s.source === 'assessment');
   const verifiedCount = mergedSkills.filter(s => s.verification).length;
 
   const summary = `Top Skills: ${mergedSkills.slice(0, 5).map(s => s.skill_name).join(' • ')}
-From CV: ${cvSkills.length} skills | From Role: ${positionSkills.length} skills | Verified: ${verifiedCount} skills`;
+From CV: ${cvSkills.length} | Position: ${positionSkills.length} | Assessment: ${assessmentSkills.length} | Verified: ${verifiedCount}`;
 
   const getVerificationIcon = (score?: number) => {
     if (!score) return null;
@@ -155,16 +160,18 @@ From CV: ${cvSkills.length} skills | From Role: ${positionSkills.length} skills 
         {/* Skills Table */}
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 text-sm font-medium">
-            <div className="col-span-5">From CV ({cvSkills.length})</div>
-            <div className="col-span-4">Required ({positionSkills.length})</div>
+            <div className="col-span-4">From CV ({cvSkills.length})</div>
+            <div className="col-span-3">Position ({positionSkills.length})</div>
+            <div className="col-span-2">Assessment ({assessmentSkills.length})</div>
             <div className="col-span-3">Verification Status</div>
           </div>
           
           <ScrollArea className="h-[400px]">
             <div className="divide-y">
-              {/* CV Skills */}
+              {/* Skills Display */}
               <div className="grid grid-cols-12 gap-4 p-4">
-                <div className="col-span-5 space-y-2">
+                {/* CV Skills */}
+                <div className="col-span-4 space-y-2">
                   {cvSkills.slice(0, 5).map(skill => (
                     <div key={skill.skill_name} className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -179,10 +186,10 @@ From CV: ${cvSkills.length} skills | From Role: ${positionSkills.length} skills 
                 </div>
                 
                 {/* Position Required Skills */}
-                <div className="col-span-4 space-y-2">
+                <div className="col-span-3 space-y-2">
                   {positionSkills.slice(0, 5).map(skill => (
                     <div key={skill.skill_name} className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-600" />
+                      <Target className="h-4 w-4 text-blue-600" />
                       <span className="text-sm">{skill.skill_name}</span>
                     </div>
                   ))}
@@ -193,9 +200,24 @@ From CV: ${cvSkills.length} skills | From Role: ${positionSkills.length} skills 
                   )}
                 </div>
                 
+                {/* Assessment Skills */}
+                <div className="col-span-2 space-y-2">
+                  {assessmentSkills.slice(0, 3).map(skill => (
+                    <div key={skill.skill_name} className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm truncate">{skill.skill_name}</span>
+                    </div>
+                  ))}
+                  {assessmentSkills.length > 3 && (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                      +{assessmentSkills.length - 3} more
+                    </Button>
+                  )}
+                </div>
+                
                 {/* Verification Details */}
                 <div className="col-span-3 space-y-2">
-                  {mergedSkills.filter(s => s.verification).slice(0, 1).map(skill => (
+                  {mergedSkills.filter(s => s.verification).slice(0, 5).map(skill => (
                     <div key={skill.skill_name}>
                       <Button
                         variant="ghost"
@@ -219,17 +241,19 @@ From CV: ${cvSkills.length} skills | From Role: ${positionSkills.length} skills 
                         </div>
                       </Button>
                       
-                      {expandedSkill === skill.skill_name && (
+                      {expandedSkill === skill.skill_name && skill.verification && (
                         <div className="mt-2 p-3 bg-muted/50 rounded-md space-y-2">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span>Q1: ✗</span>
-                            <span>Q2: ✓</span>
-                            <span>Q3: ✗</span>
-                            <span>Q4: ✗</span>
-                            <span>Q5: ✗</span>
+                          <div className="flex items-center gap-2 text-xs flex-wrap">
+                            {skill.verification.responses?.map((response: any, index: number) => (
+                              <span key={`Q${index + 1}`}>
+                                Q{index + 1}: {response.correct ? '✓' : '✗'}
+                              </span>
+                            ))}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Time: 95s • Verified: 2 days ago
+                            Time: {skill.verification.responses?.[0]?.time_taken || 0}s • 
+                            Verified: {skill.verification.lastVerified ? 
+                              new Date(skill.verification.lastVerified).toLocaleDateString() : 'N/A'}
                           </div>
                         </div>
                       )}
