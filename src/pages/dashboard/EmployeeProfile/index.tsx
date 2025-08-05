@@ -21,11 +21,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { EmployeeProfileHeader } from './components/EmployeeProfileHeader';
-import { CareerPathSection } from './components/CareerPathSection';
+import { ProfileJourneySection } from './components/ProfileJourneySection';
 import { SkillsProfileSection } from './components/SkillsProfileSection';
-import { LearningSection } from './components/LearningSection';
-import { SkillsGapSection } from './components/SkillsGapSection';
-import { ActionsBar } from './components/ActionsBar';
+import { ExperienceSection } from './components/ExperienceSection';
+import { DevelopmentSection } from './components/DevelopmentSection';
 
 interface EmployeeProfile {
   id: string;
@@ -42,6 +41,13 @@ interface EmployeeProfile {
   is_active: boolean;
   cv_file_path?: string;
   employee_since: string;
+  profile_data?: any;
+  profileCompletion?: {
+    completed: number;
+    total: number;
+  };
+  profileSections?: any[];
+  verifiedSkills?: any[];
   skills_profile?: {
     id: string;
     skills_match_score: number;
@@ -132,6 +138,26 @@ export default function EmployeeProfile() {
         .eq('employee_id', employeeId)
         .single();
 
+      // Fetch profile sections
+      const { data: profileSections } = await supabase
+        .from('employee_profile_sections')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .order('section_order', { ascending: true });
+
+      // Fetch profile data
+      const { data: profileData } = await supabase
+        .from('employees')
+        .select('profile_data')
+        .eq('id', employeeId)
+        .single();
+
+      // Fetch skills verification data
+      const { data: verifiedSkills } = await supabase
+        .from('employee_skills_verification')
+        .select('*')
+        .eq('employee_id', employeeId);
+
       // Fetch course assignments
       const { data: courseAssignments } = await supabase
         .from('course_assignments')
@@ -175,6 +201,18 @@ export default function EmployeeProfile() {
         }
       }
 
+      // Calculate profile completion
+      const profileSectionNames = ['work_experience', 'education', 'skills', 'current_work', 'daily_tasks', 'tools_technologies', 'profile_verification'];
+      const completedSections = profileSections?.filter(s => s.is_complete && profileSectionNames.includes(s.section_name)).length || 0;
+      const totalSections = profileSectionNames.length;
+
+      // Calculate verified skills stats
+      const verifiedSkillsStats = verifiedSkills && verifiedSkills.length > 0 ? {
+        count: verifiedSkills.length,
+        total: (skillsProfile?.extracted_skills?.length || 0) + (verifiedSkills?.filter((v: any) => v.is_from_position).length || 0),
+        avgScore: Math.round(verifiedSkills.reduce((acc: number, v: any) => acc + (v.verification_score || 0), 0) / verifiedSkills.length * 100)
+      } : undefined;
+
       // Transform the data
       const transformedEmployee: EmployeeProfile = {
         id: employeeData.id,
@@ -191,6 +229,21 @@ export default function EmployeeProfile() {
         is_active: employeeData.is_active,
         cv_file_path: employeeData.cv_file_path,
         employee_since: employeeData.created_at,
+        profile_data: profileData?.profile_data,
+        profileCompletion: {
+          completed: completedSections,
+          total: totalSections
+        },
+        profileSections: profileSections?.map(section => ({
+          name: section.section_name,
+          displayName: section.section_name.split('_').map((word: string) => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' '),
+          isComplete: section.is_complete,
+          completedAt: section.completed_at,
+          summary: section.section_data?.summary
+        })),
+        verifiedSkills: verifiedSkills,
         skills_profile: skillsProfile ? {
           id: skillsProfile.id,
           skills_match_score: skillsProfile.skills_match_score,
@@ -220,7 +273,10 @@ export default function EmployeeProfile() {
         })
       };
 
-      setEmployee(transformedEmployee);
+      setEmployee({
+        ...transformedEmployee,
+        verifiedSkills: verifiedSkillsStats
+      });
     } catch (error) {
       console.error('Error fetching employee data:', error);
       toast.error('Failed to load employee profile');
@@ -283,16 +339,11 @@ export default function EmployeeProfile() {
       {/* Employee Header */}
       <EmployeeProfileHeader employee={employee} />
 
-      {/* Sticky Actions Bar */}
-      <ActionsBar employee={employee} />
-
-      {/* Career Path Section */}
-      <CareerPathSection employee={{
-        ...employee,
-        id: employee.id,
-        full_name: employee.full_name,
-        courses: employee.courses
-      }} />
+      {/* Profile Journey Section */}
+      <ProfileJourneySection 
+        sections={employee.profileSections || []}
+        lastUpdated={employee.profileSections?.find(s => s.isComplete)?.completedAt}
+      />
 
       {/* Skills Profile Section */}
       <SkillsProfileSection 
@@ -301,15 +352,11 @@ export default function EmployeeProfile() {
         refreshing={refreshing}
       />
 
-      {/* Learning & Development Section */}
-      <LearningSection employee={employee} />
+      {/* Experience Section */}
+      <ExperienceSection employee={employee} />
 
-      {/* Skills Gap Analysis Section */}
-      <SkillsGapSection employee={{
-        ...employee,
-        current_position_id: employee.current_position_id,
-        target_position_id: employee.target_position_id
-      }} />
+      {/* Development & Growth Section */}
+      <DevelopmentSection employee={employee} />
     </div>
   );
 }
