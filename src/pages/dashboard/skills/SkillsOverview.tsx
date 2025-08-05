@@ -76,10 +76,18 @@ export default function SkillsOverview() {
         setPositionsCount(posCount);
       }
 
-      // Fetch employees count
+      // Fetch employees count and check for skills profile
       const { data: employeesData, error: employeesError } = await supabase
         .from('employees')
-        .select('id, skills_last_analyzed')
+        .select(`
+          id,
+          skills_last_analyzed,
+          st_employee_skills_profile!left(
+            id,
+            analyzed_at,
+            gap_analysis_completed_at
+          )
+        `)
         .eq('company_id', userProfile.company_id);
 
       if (employeesError) {
@@ -88,7 +96,13 @@ export default function SkillsOverview() {
         setAnalyzedEmployeesCount(0);
       } else {
         const empCount = employeesData?.length || 0;
-        const analyzedCount = employeesData?.filter(emp => emp.skills_last_analyzed).length || 0;
+        // Check if employee has skills profile (analyzed_at or gap_analysis_completed_at)
+        const analyzedCount = employeesData?.filter(emp => {
+          const hasSkillsProfile = emp.st_employee_skills_profile && 
+            (emp.st_employee_skills_profile.analyzed_at || 
+             emp.st_employee_skills_profile.gap_analysis_completed_at);
+          return hasSkillsProfile || emp.skills_last_analyzed;
+        }).length || 0;
         console.log('Employees count:', empCount, 'Analyzed:', analyzedCount);
         setEmployeesCount(empCount);
         setAnalyzedEmployeesCount(analyzedCount);
