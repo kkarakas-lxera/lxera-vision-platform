@@ -152,7 +152,7 @@ export default function EmployeeProfile() {
         .from('employee_profile_sections')
         .select('*')
         .eq('employee_id', employeeId)
-        .order('section_order', { ascending: true });
+        .order('section_name', { ascending: true });
       
       if (result1.error) {
         console.error('Profile sections query error (with order):', result1.error);
