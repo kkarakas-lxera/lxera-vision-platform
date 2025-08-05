@@ -258,12 +258,15 @@ export default function EmployeeProfile() {
       console.log('Total Sections:', totalSections);
 
       // Calculate verified skills stats - use skills profile data since validation table has all zeros
-      const skillsWithProficiency = skillsProfile?.extracted_skills?.filter((s: any) => (s.proficiency_level || 0) > 0) || [];
+      // Include all skills with valid proficiency levels (0-3 scale: 0=None, 1=Learning, 2=Using, 3=Expert)
+      const skillsWithProficiency = skillsProfile?.extracted_skills?.filter((s: any) => 
+        s.proficiency_level !== null && s.proficiency_level !== undefined
+      ) || [];
       const verifiedSkillsStats = {
         count: skillsWithProficiency.length,
         total: skillsProfile?.extracted_skills?.length || 0,
         avgScore: skillsWithProficiency.length > 0 
-          ? Math.round(skillsWithProficiency.reduce((acc: number, s: any) => acc + ((s.proficiency_level || 0) * 25), 0) / skillsWithProficiency.length) // Convert 1-4 scale to percentage
+          ? Math.round(skillsWithProficiency.reduce((acc: number, s: any) => acc + ((s.proficiency_level || 0) * 33.33), 0) / skillsWithProficiency.length) // Convert 0-3 scale to percentage
           : 0
       };
 
@@ -285,7 +288,7 @@ export default function EmployeeProfile() {
       console.log('Skills With Proficiency (profile table):', skillsWithProficiency.map(s => ({
         skill: s.skill_name,
         proficiency: s.proficiency_level,
-        percentage: s.proficiency_level * 25
+        percentage: Math.round(s.proficiency_level * 33.33) // 0-3 scale to percentage
       })));
       console.log('Verified Skills With Score:', skillsWithProficiency.length);
       console.log('Skills Profile Extracted:', skillsProfile?.extracted_skills?.length);
@@ -334,7 +337,8 @@ export default function EmployeeProfile() {
             summary: section.section_data?.summary
           };
         }),
-        verifiedSkills: verifiedSkills,
+        verifiedSkills: verifiedSkillsStats,
+        verifiedSkillsRaw: verifiedSkills,
         skills_profile: skillsProfile ? {
           id: skillsProfile.id,
           skills_match_score: skillsProfile.skills_match_score,
@@ -365,9 +369,9 @@ export default function EmployeeProfile() {
       };
 
       // Use skills profile data for verification since validation table has all zeros
-      const skillsAsVerificationData = skillsProfile?.extracted_skills?.map((skill: any) => ({
+      const skillsAsVerificationData = (Array.isArray(skillsProfile?.extracted_skills) ? skillsProfile.extracted_skills : []).map((skill: any) => ({
         skill_name: skill.skill_name,
-        verification_score: (skill.proficiency_level || 0) / 4, // Convert 1-4 scale to 0-1 scale
+        verification_score: (skill.proficiency_level || 0) / 3, // Convert 0-3 scale to 0-1 scale
         proficiency_level: skill.proficiency_level,
         is_from_cv: true,
         created_at: skillsProfile.analyzed_at
