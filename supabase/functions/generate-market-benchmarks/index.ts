@@ -76,7 +76,7 @@ ${department ? `Department: ${department}` : ''}
 
 Based on current market data and trends, provide exactly 8-12 skills that are most important for this role in 2025.
 
-For each skill, provide a JSON object with:
+Return a JSON object with a "skills" property containing an array of skill objects. Each skill object must have:
 - skill_name: Clear, concise skill name (e.g., "React.js", "Project Management", "Data Analysis")
 - match_percentage: Expected proficiency level (0-100, where 100 means expert level expected)
 - category: "critical" (must-have), "emerging" (growing importance), or "foundational" (baseline expectation)
@@ -88,7 +88,17 @@ Focus on:
 3. Industry-specific knowledge if applicable
 4. Emerging technologies or methodologies gaining traction
 
-Return ONLY a JSON array of skill objects, no additional text or markdown.`
+Example format:
+{
+  "skills": [
+    {
+      "skill_name": "Product Management",
+      "match_percentage": 90,
+      "category": "critical",
+      "market_demand": "high"
+    }
+  ]
+}`
 
     const openai = new OpenAI({ apiKey: openaiApiKey })
     
@@ -118,7 +128,31 @@ Return ONLY a JSON array of skill objects, no additional text or markdown.`
     let skills: MarketSkill[]
     try {
       const parsed = JSON.parse(aiResponse)
-      skills = parsed.skills || parsed
+      console.log('Parsed AI response:', JSON.stringify(parsed, null, 2))
+      
+      // Handle different response formats
+      if (Array.isArray(parsed)) {
+        skills = parsed
+      } else if (parsed.skills && Array.isArray(parsed.skills)) {
+        skills = parsed.skills
+      } else if (typeof parsed === 'object') {
+        // If it's an object but not in expected format, try to extract array from any property
+        const possibleArrays = Object.values(parsed).filter(val => Array.isArray(val))
+        if (possibleArrays.length > 0) {
+          skills = possibleArrays[0] as MarketSkill[]
+        } else {
+          console.error('No array found in AI response:', parsed)
+          throw new Error('AI response does not contain a skills array')
+        }
+      } else {
+        throw new Error('Unexpected AI response format')
+      }
+      
+      // Validate that we have an array
+      if (!Array.isArray(skills)) {
+        console.error('Skills is not an array:', skills)
+        throw new Error('Skills must be an array')
+      }
       
       // Validate and clean the skills
       skills = skills.map(skill => ({
@@ -133,6 +167,7 @@ Return ONLY a JSON array of skill objects, no additional text or markdown.`
       }))
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError)
+      console.error('Raw AI response:', aiResponse)
       throw new Error('Failed to parse AI response')
     }
 
