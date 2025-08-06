@@ -472,16 +472,32 @@ export class MarketSkillsService {
       let validScores = 0;
       let totalProficiencySum = 0;
       let skillCount = 0;
+      let employeesWithHighSkills = 0;
+      let totalEmployeesAnalyzed = 0;
 
       skillsData?.forEach(profile => {
         if (profile.extracted_skills && Array.isArray(profile.extracted_skills)) {
+          let employeeSkillSum = 0;
+          let employeeSkillCount = 0;
+          
           profile.extracted_skills.forEach((skill: any) => {
             if (skill.skill_name && typeof skill.proficiency === 'number') {
               // Calculate coverage based on proficiency levels (0-5 scale)
               totalProficiencySum += skill.proficiency;
+              employeeSkillSum += skill.proficiency;
               skillCount++;
+              employeeSkillCount++;
             }
           });
+          
+          // Track employees with high skill levels (avg proficiency >= 3)
+          if (employeeSkillCount > 0) {
+            totalEmployeesAnalyzed++;
+            const avgProficiency = employeeSkillSum / employeeSkillCount;
+            if (avgProficiency >= 3) {
+              employeesWithHighSkills++;
+            }
+          }
         }
         
         if (profile.skills_match_score !== null && profile.skills_match_score !== undefined) {
@@ -490,15 +506,16 @@ export class MarketSkillsService {
         }
       });
 
-      // Market coverage: Average proficiency as percentage (proficiency 3/5 = 60%)
-      const marketCoverageRate = skillCount > 0 
-        ? Math.round((totalProficiencySum / skillCount) * 20) // Convert 0-5 scale to 0-100%
+      // Market coverage: Percentage of employees with adequate skills (proficiency >= 3)
+      // This better represents organizational readiness
+      const marketCoverageRate = totalEmployeesAnalyzed > 0 
+        ? Math.round((employeesWithHighSkills / totalEmployeesAnalyzed) * 100)
         : 0;
 
-      // Industry alignment: Average of skills match scores converted to 0-10 scale
-      const industryAlignmentIndex = validScores > 0 
-        ? Math.round((totalMatchScore / validScores) / 10) // Convert to 0-10 scale
-        : 0;
+      // Industry alignment: Average of skills match scores on 0-10 scale
+      // Using a more nuanced calculation that considers the distribution
+      const avgMatchScore = validScores > 0 ? totalMatchScore / validScores : 0;
+      const industryAlignmentIndex = Math.round(avgMatchScore / 10); // Already 0-100, convert to 0-10
 
       // Get top missing skills
       const { data: missingSkills, error: missingError } = await supabase
@@ -617,18 +634,26 @@ export class MarketSkillsService {
           : 0;
 
         // Calculate benchmark health score (0-10)
-        const benchmarkHealthScore = Math.min(10, Math.round(
-          (dept.avg_skills_match || 0) / 10 +
-          Math.max(0, 5 - (dept.critical_gaps || 0)) +
-          analyzed_percentage / 20
-        ));
+        // Higher score = better health
+        // Based on: skills match, gap reduction, and analysis coverage
+        const benchmarkHealthScore = Math.round(
+          ((dept.avg_skills_match || 0) / 100) * 4 +  // 40% weight on skills match (0-4 points)
+          Math.max(0, 3 - (dept.critical_gaps || 0) * 0.5) + // 30% weight on few gaps (0-3 points)
+          (analyzed_percentage / 100) * 3  // 30% weight on analysis coverage (0-3 points)
+        );
 
-        // Calculate impact score based on employee count and gaps
-        const impactScore = Math.min(10, Math.round(
-          (dept.employee_count || 0) / 10 +
-          (dept.critical_gaps || 0) * 2 +
-          (100 - (dept.avg_skills_match || 0)) / 10
-        ));
+        // Calculate impact score based on business risk
+        // Higher score = higher risk/impact if not addressed
+        // Based on: size of department, number of gaps, and skills deficit
+        const gapSeverity = dept.critical_gaps || 0;
+        const skillsDeficit = 100 - (dept.avg_skills_match || 0);
+        const sizeImpact = Math.min(dept.employee_count || 0, 20) / 20; // Normalize to 0-1
+        
+        const impactScore = Math.round(
+          (gapSeverity / 3) * 3 +  // Critical gaps impact (0-3 points)
+          (skillsDeficit / 100) * 4 +  // Skills deficit impact (0-4 points)
+          sizeImpact * 3  // Department size impact (0-3 points)
+        );
 
         // Use the critical and emerging gaps from the main query as breakdown
         const marketSkillBreakdown = {

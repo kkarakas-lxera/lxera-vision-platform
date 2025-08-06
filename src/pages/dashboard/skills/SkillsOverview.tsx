@@ -675,7 +675,9 @@ export default function SkillsOverview() {
                                     <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
                                   </TooltipTrigger>
                                   <TooltipContent className="max-w-xs">
-                                    <p className="text-sm">Percentage of in-demand market skills your employees currently possess. Higher coverage means your workforce is better equipped for industry requirements.</p>
+                                    <p className="text-sm font-medium mb-1">How we calculate this:</p>
+                                    <p className="text-sm">% of analyzed employees with adequate skills (avg proficiency ≥3/5).</p>
+                                    <p className="text-sm mt-1 text-gray-400">Based on: {organizationBenchmark?.analyzed_employees || 0} employees analyzed</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -684,17 +686,25 @@ export default function SkillsOverview() {
                           </div>
                           <div className="flex items-baseline gap-1">
                             <span className="text-2xl font-bold text-gray-900">{organizationBenchmark?.market_coverage_rate || 0}%</span>
-                            <span className="text-xs text-gray-500">of skills</span>
+                            <span className="text-xs text-gray-500">ready</span>
                           </div>
                           <div className="mt-2">
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
+                              <div className={`h-1.5 rounded-full transition-all duration-500 ${
+                                organizationBenchmark?.market_coverage_rate >= 75 ? 'bg-green-500' :
+                                organizationBenchmark?.market_coverage_rate >= 50 ? 'bg-blue-500' :
+                                organizationBenchmark?.market_coverage_rate >= 25 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`} style={{width: `${organizationBenchmark?.market_coverage_rate || 0}%`}}></div>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">{
-                              organizationBenchmark?.market_coverage_rate > 65 ? 'Above avg' : 
-                              organizationBenchmark?.market_coverage_rate > 40 ? 'Near avg' : 
-                              'Below avg'
-                            } (65%)</div>
+                            <div className="flex items-center justify-between text-xs mt-1">
+                              <span className="font-medium">{
+                                organizationBenchmark?.market_coverage_rate > 65 ? 'Above avg' : 
+                                organizationBenchmark?.market_coverage_rate > 40 ? 'Near avg' : 
+                                'Below avg'
+                              }</span>
+                              <span className="text-gray-400">Industry: 65%</span>
+                            </div>
                           </div>
                         </div>
 
