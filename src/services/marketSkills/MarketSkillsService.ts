@@ -654,15 +654,51 @@ export class MarketSkillsService {
    */
   async getEmployeesBenchmark(): Promise<EmployeeBenchmarkData[]> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('Not authenticated');
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
+
+      // Get the user's company_id first
+      const { data: userDetails } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', userData.user.id)
+        .single();
+      
+      // Determine the actual company_id
+      let companyId = userDetails?.company_id;
+      if (!companyId) {
+        // Check if user ID is itself a company (admin case)
+        const { data: companyCheck } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('id', userData.user.id)
+          .single();
+        
+        if (companyCheck) {
+          companyId = userData.user.id;
+        } else {
+          // Check if user is an employee
+          const { data: employeeCheck } = await supabase
+            .from('employees')
+            .select('company_id')
+            .eq('user_id', userData.user.id)
+            .single();
+          
+          companyId = employeeCheck?.company_id;
+        }
+      }
+
+      if (!companyId) {
+        console.warn('Could not determine company ID for user');
+        return [];
+      }
 
       // Get employee benchmark data with user email from joined table
       const { data: employeesData, error } = await supabase
         .from('employees')
         .select(`
           id,
-          user:users!inner(email, full_name),
+          user:users!employees_user_id_fkey(email, full_name),
           department,
           current_position:st_company_positions!employees_current_position_id_fkey(position_title),
           st_employee_skills_profile(
@@ -671,6 +707,7 @@ export class MarketSkillsService {
             gap_analysis_completed_at
           )
         `)
+        .eq('company_id', companyId)
         .not('st_employee_skills_profile', 'is', null);
 
       if (error) {
