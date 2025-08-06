@@ -515,28 +515,41 @@ export class MarketSkillsService {
                  'minor' as const
       }));
 
-      // Generate AI executive summary
+      // Generate AI executive summary using existing market benchmarks function
       let executiveSummary: string | undefined;
-      // TODO: Create generate-organization-summary Edge Function
-      // Temporarily disabled as the Edge Function doesn't exist yet
-      /*
+      
       try {
-        const { data: aiSummary } = await supabase.functions.invoke('generate-organization-summary', {
-          body: {
-            market_coverage_rate: marketCoverageRate,
-            industry_alignment_index: industryAlignmentIndex,
-            top_missing_skills: topMissingSkills,
-            organization_stats: stats
+        // Get company industry if available
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('settings')
+          .eq('id', companyId)
+          .single();
+        
+        const industry = companyData?.settings?.industry as string | undefined;
+        
+        // Use existing fetchMarketBenchmarks with insights enabled
+        const benchmarkResponse = await this.fetchMarketBenchmarks(
+          'organization',
+          industry,
+          null,
+          false,
+          true, // include_insights = true
+          {
+            employees_count: stats?.total_employees,
+            analyzed_count: stats?.analyzed_employees,
+            critical_gaps: stats?.critical_gaps_count,
+            moderate_gaps: stats?.moderate_gaps_count
           }
-        });
-        executiveSummary = aiSummary?.summary;
+        );
+        
+        executiveSummary = benchmarkResponse.insights?.executive_summary;
       } catch (error) {
         console.warn('Could not generate AI summary:', error);
       }
-      */
       
-      // Provide a basic summary for now
-      if (stats?.analyzed_employees > 0) {
+      // Fallback to basic summary if AI generation fails
+      if (!executiveSummary && stats?.analyzed_employees > 0) {
         executiveSummary = `Your organization has analyzed ${stats.analyzed_employees} of ${stats.total_employees} employees across ${stats.departments_count} departments. ` +
           `Current market coverage is at ${marketCoverageRate}% with an industry alignment index of ${industryAlignmentIndex}/10. ` +
           `Focus on addressing ${topMissingSkills.length} critical skill gaps to improve market competitiveness.`;
