@@ -22,8 +22,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { parseGapSeverity, parseSkillsArray } from '@/utils/typeGuards';
 import type { CriticalSkillsGap } from '@/types/common';
+import type { DepartmentMarketGap } from '@/types/marketSkills';
 import EmptyStateOverlay from '@/components/dashboard/EmptyStateOverlay';
+import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
 import { cn } from '@/lib/utils';
+import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
 
 interface DepartmentSummary {
   department: string;
@@ -52,12 +55,36 @@ export default function SkillsOverview() {
   const [positionsCount, setPositionsCount] = useState(0);
   const [employeesCount, setEmployeesCount] = useState(0);
   const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
+  const [departmentMarketGaps, setDepartmentMarketGaps] = useState<Record<string, DepartmentMarketGap>>({});
 
   useEffect(() => {
     if (userProfile?.company_id) {
       fetchSkillsOverview();
     }
   }, [userProfile?.company_id]);
+
+  useEffect(() => {
+    // Fetch market gaps for departments after department data is loaded
+    if (departmentSummaries.length > 0) {
+      fetchMarketGapsForDepartments();
+    }
+  }, [departmentSummaries]);
+
+  // Refresh stale benchmarks on component mount
+  useEffect(() => {
+    const refreshBenchmarks = async () => {
+      try {
+        await marketSkillsService.refreshStaleBenchmarks();
+      } catch (error) {
+        console.error('Error refreshing benchmarks:', error);
+      }
+    };
+    
+    // Only refresh if user is admin
+    if (userProfile?.role === 'company_admin' || userProfile?.role === 'super_admin') {
+      refreshBenchmarks();
+    }
+  }, [userProfile?.role]);
 
   const fetchSkillsOverview = async () => {
     if (!userProfile?.company_id) return;
@@ -193,6 +220,65 @@ export default function SkillsOverview() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMarketGapsForDepartments = async () => {
+    if (!userProfile?.company_id || departmentSummaries.length === 0) return;
+
+    try {
+      // Get company information for industry context
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('industry')
+        .eq('id', userProfile.company_id)
+        .single();
+
+      const companyIndustry = companyData?.industry;
+
+      // Fetch market gaps for each department
+      const gaps = await Promise.all(
+        departmentSummaries.map(async (dept) => {
+          // Get all employees' skills for this department
+          const { data: employeeSkills } = await supabase
+            .from('st_employee_skills_profile')
+            .select(`
+              extracted_skills,
+              employees!inner(
+                company_id,
+                department
+              )
+            `)
+            .eq('employees.company_id', userProfile.company_id)
+            .eq('employees.department', dept.department)
+            .not('extracted_skills', 'is', null);
+
+          // Aggregate all skills from employees
+          const allSkills = employeeSkills?.flatMap(profile => 
+            parseSkillsArray(profile.extracted_skills)
+          ) || [];
+
+          // Get market gaps
+          const marketGap = await marketSkillsService.getDepartmentMarketGaps(
+            dept.department,
+            companyIndustry,
+            allSkills
+          );
+
+          return marketGap;
+        })
+      );
+
+      // Convert to record format for easy lookup
+      const gapsRecord = gaps.reduce((acc, gap) => {
+        acc[gap.department] = gap;
+        return acc;
+      }, {} as Record<string, DepartmentMarketGap>);
+
+      setDepartmentMarketGaps(gapsRecord);
+    } catch (error) {
+      console.error('Error fetching market gaps:', error);
+      // Don't show error toast - this is a progressive enhancement
     }
   };
 
@@ -440,59 +526,78 @@ export default function SkillsOverview() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {departmentSummaries.slice(0, 5).map((dept, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sm">{dept.department}</h4>
-                    <div className="flex items-center gap-2">
-                      {dept.analyzed_employees === dept.total_employees ? (
-                        <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
-                          Full coverage
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-gray-500">
-                          {Math.round((dept.analyzed_employees / dept.total_employees) * 100)}% analyzed
-                        </span>
+            {departmentSummaries.slice(0, 5).map((dept, index) => {
+              const marketGap = departmentMarketGaps[dept.department];
+              
+              return (
+                <div 
+                  key={index} 
+                  className="flex flex-col p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                >
+                  <div 
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => navigate(`/dashboard/skills/department/${encodeURIComponent(dept.department)}`)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-sm">{dept.department}</h4>
+                        <div className="flex items-center gap-2">
+                          {dept.analyzed_employees === dept.total_employees ? (
+                            <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
+                              Full coverage
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-gray-500">
+                              {Math.round((dept.analyzed_employees / dept.total_employees) * 100)}% analyzed
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3 text-gray-400" />
+                            <span className="text-gray-600">{dept.total_employees} people</span>
+                          </div>
+                          {dept.critical_gaps > 0 && (
+                            <Badge variant="destructive" className="text-xs px-1.5 py-0">
+                              {dept.critical_gaps} critical gaps
+                            </Badge>
+                          )}
+                          {dept.moderate_gaps > 0 && (
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-orange-100 text-orange-700">
+                              {dept.moderate_gaps} moderate
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {dept.avg_skills_match !== null && (
+                        <div className="mt-2">
+                          <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                              className={`h-1 rounded-full transition-all duration-300 ${getProgressColor(dept.avg_skills_match)}`}
+                              style={{ width: `${Math.min(dept.avg_skills_match, 100)}%` }}
+                            />
+                          </div>
+                        </div>
                       )}
                     </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400 ml-3" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-600">{dept.total_employees} people</span>
-                      </div>
-                      {dept.critical_gaps > 0 && (
-                        <Badge variant="destructive" className="text-xs px-1.5 py-0">
-                          {dept.critical_gaps} critical gaps
-                        </Badge>
-                      )}
-                      {dept.moderate_gaps > 0 && (
-                        <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-orange-100 text-orange-700">
-                          {dept.moderate_gaps} moderate
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  {dept.avg_skills_match !== null && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-1">
-                        <div 
-                          className={`h-1 rounded-full transition-all duration-300 ${getProgressColor(dept.avg_skills_match)}`}
-                          style={{ width: `${Math.min(dept.avg_skills_match, 100)}%` }}
-                        />
-                      </div>
+                  
+                  {/* Market Gap Section */}
+                  {marketGap && marketGap.skills.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <MarketGapBars
+                        skills={marketGap.skills.slice(0, 3)} // Show top 3 skills
+                        industry={marketGap.industry}
+                        className="text-xs"
+                      />
                     </div>
                   )}
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 ml-3" />
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 

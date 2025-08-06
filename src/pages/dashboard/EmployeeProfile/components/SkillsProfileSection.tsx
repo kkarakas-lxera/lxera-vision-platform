@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CollapsibleCard } from '@/components/ui/collapsible-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +15,14 @@ import {
   Clock,
   Award,
   HelpCircle,
-  Check
+  Check,
+  Brain,
+  AlertCircle
 } from 'lucide-react';
+import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+import { supabase } from '@/integrations/supabase/client';
+import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
+import type { MarketSkillData } from '@/types/marketSkills';
 
 interface Skill {
   skill_id: string;
@@ -92,6 +98,8 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'verified' | 'level' | 'alphabetical'>('verified');
   const [filters, setFilters] = useState<Set<string>>(new Set());
+  const [marketGaps, setMarketGaps] = useState<MarketSkillData[]>([]);
+  const [loadingMarketData, setLoadingMarketData] = useState(false);
 
   const toggleExpanded = (skillName: string) => {
     const newExpanded = new Set(expandedSkills);
@@ -112,6 +120,44 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
     }
     setFilters(newFilters);
   };
+
+  // Fetch market gap data
+  useEffect(() => {
+    const fetchMarketGaps = async () => {
+      if (!employee.current_position_title || !employee.id) return;
+      
+      setLoadingMarketData(true);
+      try {
+        // Get company info for industry context
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('industry')
+          .eq('id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
+          .single();
+
+        // Use the cached method that stores data in employee record
+        const employeeSkills = employee.skills_profile?.extracted_skills || [];
+        const marketGapData = await marketSkillsService.getEmployeeMarketGaps(
+          employee.id,
+          employee.current_position_title,
+          companyData?.industry,
+          employeeSkills.map(skill => ({
+            skill_name: skill.skill_name,
+            proficiency_level: skill.proficiency_level,
+            source: 'cv' as const
+          }))
+        );
+
+        setMarketGaps(marketGapData);
+      } catch (error) {
+        console.error('Error fetching market gaps:', error);
+      } finally {
+        setLoadingMarketData(false);
+      }
+    };
+
+    fetchMarketGaps();
+  }, [employee.id, employee.current_position_title, employee.skills_profile]);
 
   if (!employee.skills_profile && !employee.verifiedSkillsRaw) {
     return (
@@ -308,6 +354,35 @@ export function SkillsProfileSection({ employee, onRefresh, refreshing }: Skills
             </CardContent>
           </Card>
         </div>
+
+        {/* Market Skills Gap Analysis */}
+        {marketGaps.length > 0 && (
+          <Card className="border-gray-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Market Skills Comparison</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                How your skills compare to market expectations for {employee.current_position_title}
+              </p>
+            </CardHeader>
+            <CardContent>
+              {loadingMarketData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-pulse text-gray-600">Loading market data...</div>
+                </div>
+              ) : (
+                <MarketGapBars 
+                  skills={marketGaps}
+                  role={employee.current_position_title}
+                  showSource={true}
+                  className="max-w-2xl"
+                />
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filters and Sort */}
         <div className="space-y-4">

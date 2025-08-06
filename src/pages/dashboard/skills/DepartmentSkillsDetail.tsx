@@ -21,6 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { parseJsonSkills } from '@/utils/typeGuards';
+import { marketSkillsService } from '@/services/marketSkills/MarketSkillsService';
+import MarketGapBars from '@/components/dashboard/skills/MarketGapBars';
+import type { MarketSkillData } from '@/types/marketSkills';
 
 interface DepartmentEmployee {
   employee_id: string;
@@ -54,10 +57,13 @@ export default function DepartmentSkillsDetail() {
     criticalGaps: 0,
     moderateGaps: 0
   });
+  const [marketGapSkills, setMarketGapSkills] = useState<MarketSkillData[]>([]);
+  const [loadingMarketGaps, setLoadingMarketGaps] = useState(false);
 
   useEffect(() => {
     if (userProfile?.company_id && department) {
       fetchDepartmentData();
+      fetchMarketGaps();
     }
   }, [userProfile, department]);
 
@@ -269,6 +275,52 @@ export default function DepartmentSkillsDetail() {
     return `${diffDays} days ago`;
   };
 
+  const fetchMarketGaps = async () => {
+    if (!userProfile?.company_id || !department) return;
+
+    setLoadingMarketGaps(true);
+    try {
+      // Get company industry
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('industry')
+        .eq('id', userProfile.company_id)
+        .single();
+
+      // Get all employees' skills for this department
+      const { data: employeeSkills } = await supabase
+        .from('st_employee_skills_profile')
+        .select(`
+          extracted_skills,
+          employees!inner(
+            company_id,
+            department
+          )
+        `)
+        .eq('employees.company_id', userProfile.company_id)
+        .eq('employees.department', decodeURIComponent(department))
+        .not('extracted_skills', 'is', null);
+
+      // Aggregate all skills
+      const allSkills = employeeSkills?.flatMap(profile => 
+        parseJsonSkills(profile.extracted_skills)
+      ) || [];
+
+      // Get market gaps
+      const marketGap = await marketSkillsService.getDepartmentMarketGaps(
+        decodeURIComponent(department),
+        companyData?.industry,
+        allSkills
+      );
+
+      setMarketGapSkills(marketGap.skills);
+    } catch (error) {
+      console.error('Error fetching market gaps:', error);
+    } finally {
+      setLoadingMarketGaps(false);
+    }
+  };
+
   const getDepartmentIcon = (deptName: string) => {
     switch (deptName?.toLowerCase()) {
       case 'finance': return '💼';
@@ -367,6 +419,25 @@ export default function DepartmentSkillsDetail() {
           </div>
         </div>
       </div>
+
+      {/* Market Skills Gap Section */}
+      {marketGapSkills.length > 0 && (
+        <div className="bg-card rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Market Skills Comparison</h2>
+            <Badge variant="outline" className="text-xs">
+              <Brain className="h-3 w-3 mr-1" />
+              2025 Market Data
+            </Badge>
+          </div>
+          <MarketGapBars
+            skills={marketGapSkills}
+            role={decodeURIComponent(department)}
+            showSource={true}
+            className="text-sm"
+          />
+        </div>
+      )}
 
       {/* Dense Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
