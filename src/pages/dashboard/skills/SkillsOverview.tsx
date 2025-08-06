@@ -15,7 +15,11 @@ import {
   Building2,
   Brain,
   FileText,
-  CheckCircle
+  CheckCircle,
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,6 +42,52 @@ interface DepartmentSummary {
   exceeding_targets: number;
 }
 
+function getDepartmentHealthStatus(dept: DepartmentSummary) {
+  const { critical_gaps, moderate_gaps, analyzed_employees, total_employees } = dept;
+  
+  // Coverage penalty
+  const coverageRatio = total_employees > 0 ? analyzed_employees / total_employees : 0;
+  const hasLowCoverage = coverageRatio < 0.5;
+  
+  if (critical_gaps === 0 && moderate_gaps < 5) {
+    return {
+      status: 'excellent',
+      color: 'text-green-700',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+      icon: CheckCircle2,
+      label: 'Excellent'
+    };
+  } else if (critical_gaps <= 2 && moderate_gaps <= 10) {
+    return {
+      status: 'good',
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      icon: TrendingUp,
+      label: 'Good'
+    };
+  } else if (critical_gaps <= 5 || moderate_gaps <= 20) {
+    return {
+      status: 'needs-improvement',
+      color: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      icon: AlertCircle,
+      label: 'Needs Work'
+    };
+  } else {
+    return {
+      status: 'critical',
+      color: 'text-red-700',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+      icon: AlertTriangle,
+      label: 'Critical'
+    };
+  }
+}
+
 export default function SkillsOverview() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
@@ -56,6 +106,7 @@ export default function SkillsOverview() {
   const [employeesCount, setEmployeesCount] = useState(0);
   const [analyzedEmployeesCount, setAnalyzedEmployeesCount] = useState(0);
   const [departmentMarketGaps, setDepartmentMarketGaps] = useState<Record<string, DepartmentMarketGap>>({});
+  const [expandedDepartments, setExpandedDepartments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (userProfile?.company_id) {
@@ -408,10 +459,29 @@ export default function SkillsOverview() {
                   <CardTitle className="text-xl">Organization Skills Health</CardTitle>
                   <CardDescription>Comprehensive view of your workforce readiness</CardDescription>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{overallStats.avgSkillsMatch}%</div>
-                  <div className="text-sm text-gray-500">Overall Readiness</div>
-                </div>
+                {
+                  (() => {
+                    const orgHealth = getDepartmentHealthStatus({
+                      department: 'Organization',
+                      total_employees: overallStats.totalEmployees,
+                      analyzed_employees: overallStats.analyzedEmployees,
+                      avg_skills_match: overallStats.avgSkillsMatch,
+                      critical_gaps: overallStats.totalCriticalGaps,
+                      moderate_gaps: overallStats.totalModerateGaps,
+                      exceeding_targets: 0
+                    });
+                    const HealthIcon = orgHealth.icon;
+                    return (
+                      <div className="text-right">
+                        <Badge className={`${orgHealth.bgColor} ${orgHealth.color} ${orgHealth.borderColor} border px-3 py-1.5`}>
+                          <HealthIcon className="h-4 w-4 mr-2" />
+                          <span className="font-semibold text-base">{orgHealth.label}</span>
+                        </Badge>
+                        <div className="text-sm text-gray-500 mt-1">Organization Health</div>
+                      </div>
+                    );
+                  })()
+                }
               </div>
             </CardHeader>
             <CardContent>
@@ -486,24 +556,6 @@ export default function SkillsOverview() {
                   </div>
                 </div>
               </div>
-
-              {/* Progress Bar */}
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Organization Readiness Score</span>
-                  <span className="text-sm font-medium text-gray-900">{overallStats.avgSkillsMatch}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(overallStats.avgSkillsMatch)}`}
-                    style={{ width: `${overallStats.avgSkillsMatch}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-gray-500">Need improvement</span>
-                  <span className="text-xs text-gray-500">Target: 80%</span>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -528,6 +580,7 @@ export default function SkillsOverview() {
           <CardContent className="space-y-3">
             {departmentSummaries.slice(0, 5).map((dept, index) => {
               const marketGap = departmentMarketGaps[dept.department];
+              const isExpanded = expandedDepartments.has(dept.department);
               
               return (
                 <div 
@@ -571,29 +624,69 @@ export default function SkillsOverview() {
                           )}
                         </div>
                       </div>
-                      {dept.avg_skills_match !== null && (
-                        <div className="mt-2">
-                          <div className="w-full bg-gray-200 rounded-full h-1">
-                            <div 
-                              className={`h-1 rounded-full transition-all duration-300 ${getProgressColor(dept.avg_skills_match)}`}
-                              style={{ width: `${Math.min(dept.avg_skills_match, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
+                      {
+                        (() => {
+                          const health = getDepartmentHealthStatus(dept);
+                          const HealthIcon = health.icon;
+                          return (
+                            <div className="mt-2 flex items-center justify-between">
+                              <Badge className={`${health.bgColor} ${health.color} ${health.borderColor} border text-xs px-1.5 py-0`}>
+                                <HealthIcon className="h-3 w-3 mr-1" />
+                                {health.label}
+                              </Badge>
+                              {dept.analyzed_employees < dept.total_employees && (
+                                <span className="text-xs text-gray-500">
+                                  {dept.total_employees - dept.analyzed_employees} pending analysis
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()
+                      }
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 ml-3" />
                   </div>
                   
-                  {/* Market Gap Section */}
+                  {/* Market Gap Toggle */}
                   {marketGap && marketGap.skills.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <MarketGapBars
-                        skills={marketGap.skills.slice(0, 3)} // Show top 3 skills
-                        industry={marketGap.industry}
-                        className="text-xs"
-                      />
-                    </div>
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedDepartments(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(dept.department)) {
+                              newSet.delete(dept.department);
+                            } else {
+                              newSet.add(dept.department);
+                            }
+                            return newSet;
+                          });
+                        }}
+                        className="mt-2 flex items-center justify-between w-full text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                      >
+                        <span className="flex items-center gap-1">
+                          <Brain className="h-3 w-3" />
+                          Market Skills Gap ({marketGap.skills.length} skills)
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </button>
+                      
+                      {/* Expandable Market Gap Section */}
+                      {isExpanded && (
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          <MarketGapBars
+                            skills={marketGap.skills}
+                            industry={marketGap.industry}
+                            className="text-xs"
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               );
@@ -619,23 +712,11 @@ export default function SkillsOverview() {
           </CardHeader>
           <CardContent className="space-y-3">
             {criticalGaps.slice(0, 6).map((gap, index) => {
-              const sourceInfo = getSkillSourceInfo(gap.skill_name);
-              const SourceIcon = sourceInfo.icon;
-              
               return (
                 <div key={index} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm">{gap.skill_name}</h4>
-                        <div className="flex items-center gap-1">
-                          <SourceIcon className={`h-3 w-3 ${sourceInfo.className}`} />
-                          <span className={`text-xs ${sourceInfo.className}`}>
-                            {sourceInfo.label}
-                            {sourceInfo.confidence < 100 && ` • ${sourceInfo.confidence}%`}
-                          </span>
-                        </div>
-                      </div>
+                      <h4 className="font-medium text-sm">{gap.skill_name}</h4>
                       <Badge variant="outline" className={`text-xs ${getSeverityColor(gap.gap_severity)}`}>
                         {gap.gap_severity}
                       </Badge>

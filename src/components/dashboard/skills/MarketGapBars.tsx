@@ -61,8 +61,11 @@ export default function MarketGapBars({
               <TooltipTrigger>
                 <HelpCircle className="h-3 w-3 text-gray-400" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Benchmarked from GPT-4o and industry datasets</p>
+              <TooltipContent className="max-w-xs">
+                <p className="text-xs">
+                  This shows how your team's skills compare to market expectations for similar roles. 
+                  Data is generated using GPT-4o analysis of current job market requirements and industry standards.
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -80,12 +83,7 @@ export default function MarketGapBars({
       </div>
       
       {skills.length > 0 ? (
-        <>
-          <p className="text-xs text-gray-500">
-            Based on benchmark data for roles in this {role ? 'position' : 'department'}
-          </p>
-          
-          <div className="space-y-2">
+        <div className="space-y-2">
             {skills.slice(0, 8).map((skill, index) => (
               <div key={index} className="space-y-1">
                 <div className="flex items-center justify-between">
@@ -131,7 +129,7 @@ export default function MarketGapBars({
               +{skills.length - 8} more skills
             </p>
           )}
-        </>
+        </div>
       ) : (
         <p className="text-xs text-gray-500 italic">
           No market benchmark data available yet
