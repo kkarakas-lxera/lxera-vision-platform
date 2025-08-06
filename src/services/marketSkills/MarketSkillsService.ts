@@ -383,16 +383,59 @@ export class MarketSkillsService {
    */
   async getOrganizationBenchmark(): Promise<OrganizationBenchmarkData & { executive_summary?: string }> {
     try {
-      const { data: company } = await supabase.auth.getUser();
-      if (!company.user) throw new Error('Not authenticated');
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
 
-      // Get organization stats
+      // Get organization stats from RPC function (handles company ID resolution)
       const { data: stats, error: statsError } = await supabase
         .rpc('get_organization_stats');
 
       if (statsError) {
         console.error('Error fetching organization stats:', statsError);
         throw statsError;
+      }
+
+      // Get the user's actual company_id
+      const { data: userDetails } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', userData.user.id)
+        .single();
+      
+      // Determine the actual company_id (could be user's company_id or the user id itself for admins)
+      let companyId = userDetails?.company_id;
+      if (!companyId) {
+        // Check if user ID is itself a company (admin case)
+        const { data: companyCheck } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('id', userData.user.id)
+          .single();
+        
+        if (companyCheck) {
+          companyId = userData.user.id;
+        } else {
+          // Check if user is an employee
+          const { data: employeeCheck } = await supabase
+            .from('employees')
+            .select('company_id')
+            .eq('user_id', userData.user.id)
+            .single();
+          
+          companyId = employeeCheck?.company_id;
+        }
+      }
+
+      if (!companyId) {
+        console.warn('Could not determine company ID for user');
+        return {
+          market_coverage_rate: 0,
+          industry_alignment_index: 0,
+          top_missing_skills: [],
+          total_employees: stats?.total_employees || 0,
+          analyzed_employees: stats?.analyzed_employees || 0,
+          departments_count: stats?.departments_count || 0
+        };
       }
 
       // Get aggregated skills data
@@ -407,7 +450,7 @@ export class MarketSkillsService {
             company_id
           )
         `)
-        .eq('employee.company_id', company.user.id);
+        .eq('employee.company_id', companyId);
 
       if (skillsError) {
         console.error('Error fetching skills data:', skillsError);
@@ -506,10 +549,10 @@ export class MarketSkillsService {
    */
   async getDepartmentsBenchmark(): Promise<(DepartmentBenchmarkData & { ai_explanation?: string })[]> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('Not authenticated');
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
 
-      // Get department stats
+      // Get department stats from RPC function (handles company ID resolution)
       const { data: deptStats, error: statsError } = await supabase
         .rpc('get_departments_benchmark_data');
 
