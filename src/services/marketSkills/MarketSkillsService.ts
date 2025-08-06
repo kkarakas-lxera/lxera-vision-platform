@@ -890,13 +890,25 @@ export class MarketSkillsService {
           .single();
 
         if (cachedData) {
-          console.log('Returning cached benchmark data');
-          return {
-            organization: cachedData.organization_data as OrganizationBenchmarkData & { executive_summary?: string },
-            departments: cachedData.departments_data as DepartmentBenchmarkData[],
-            employees: cachedData.employees_data as EmployeeBenchmarkData[],
-            generated_at: new Date(cachedData.generated_at)
-          };
+          const employeesData = cachedData.employees_data as EmployeeBenchmarkData[] | null;
+
+          // If the cached row has ZERO employee benchmarks, treat it as stale and generate fresh data.
+          if (Array.isArray(employeesData) && employeesData.length === 0) {
+            console.log(
+              'Cached benchmark data has no employee entries – bypassing cache and regenerating benchmarks…'
+            );
+            // fall through → let the code below generate fresh benchmarks and recache
+          } else {
+            console.log('Returning cached benchmark data');
+            return {
+              organization: cachedData.organization_data as OrganizationBenchmarkData & {
+                executive_summary?: string;
+              },
+              departments: cachedData.departments_data as DepartmentBenchmarkData[],
+              employees: employeesData || [],
+              generated_at: new Date(cachedData.generated_at)
+            };
+          }
         }
       }
 
