@@ -747,7 +747,6 @@ export default function SkillsOverview() {
           </CardContent>
         </Card>
       </div>
-        </div>
 
         {/* Empty State Overlay */}
         {emptyStateConfig.shouldBlur && (
