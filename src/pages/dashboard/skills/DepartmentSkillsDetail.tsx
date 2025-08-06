@@ -579,10 +579,6 @@ export default function DepartmentSkillsDetail() {
                     </div>
                   )}
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold ${health.color}">{health.score}</div>
-                  <div className="text-xs text-gray-600">Health Score</div>
-                </div>
               </div>
             </div>
           );
